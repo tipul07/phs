@@ -118,10 +118,10 @@ if ($can_list_plugins || $can_manage_plugins) {
         <ul>
             <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'plugins', 'p' => 'admin']); ?>"><?php echo $this::_t('List Plugins'); ?></a></li>
             <?php
-            if($is_multi_tenant) {
+            if ($is_multi_tenant) {
                 ?><li><a href="<?php echo PHS::url(['a' => 'plugins', 'ad' => 'tenants', 'p' => 'admin']); ?>"><?php echo $this::_t('Tenants Plugin Management'); ?></a></li><?php
             }
-            ?>
+    ?>
             <li><a href="<?php echo PHS::url(['a' => 'plugins_integrity', 'p' => 'admin']); ?>"><?php echo $this::_t('Plugins\' Integrity'); ?></a></li>
         </ul>
     </li>

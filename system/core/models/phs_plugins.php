@@ -126,6 +126,37 @@ class PHS_Model_Plugins extends PHS_Model
                && (int)$plugin_arr['status'] === self::STATUS_INSTALLED;
     }
 
+    public function is_active_on_tenant(string $instance_id, int $tenant_id) : bool
+    {
+        return !empty($instance_id)
+               && ($record_arr = $this->get_details_fields(['instance_id' => $instance_id, 'tenant_id' => $tenant_id], ['table_name' => 'plugins_tenants']))
+               && (int)$record_arr['status'] === self::STATUS_ACTIVE;
+    }
+
+    public function is_inactive_on_tenant(string $instance_id, int $tenant_id) : bool
+    {
+        return !empty($instance_id)
+               && ($record_arr = $this->get_details_fields(['instance_id' => $instance_id, 'tenant_id' => $tenant_id], ['table_name' => 'plugins_tenants']))
+               && $this->inactive_status($record_arr['status']);
+    }
+
+    public function is_status_inactive_on_tenant(string $instance_id, int $tenant_id) : bool
+    {
+        return !empty($instance_id)
+               && ($record_arr = $this->get_details_fields(['instance_id' => $instance_id, 'tenant_id' => $tenant_id], ['table_name' => 'plugins_tenants']))
+               && (int)$record_arr['status'] === self::STATUS_INACTIVE;
+    }
+
+    public function get_status_of_tenant(string $instance_id, int $tenant_id) : int
+    {
+        if (!empty($instance_id)
+            && ($record_arr = $this->get_details_fields(['instance_id' => $instance_id, 'tenant_id' => $tenant_id], ['table_name' => 'plugins_tenants']))) {
+            return (int)$record_arr['status'];
+        }
+
+        return 0;
+    }
+
     /**
      * @param null|string $instance_id
      * @param array|string $settings_arr array or PHS_Line_params string
@@ -279,33 +310,52 @@ class PHS_Model_Plugins extends PHS_Model
         }
 
         foreach ($dir_entries as $plugin_instance) {
-            if (!($plugin_info_arr = $plugin_instance->get_plugin_info())) {
+            if (!($record_arr = $this->get_record_details_from_instance_for_paginator($plugin_instance))) {
                 continue;
             }
-
-            $record_arr = [];
-            $record_arr['id'] = $plugin_info_arr['id'];
-            $record_arr['plugin_name'] = $plugin_info_arr['plugin_name'];
-            $record_arr['vendor_id'] = $plugin_info_arr['vendor_id'];
-            $record_arr['vendor_name'] = $plugin_info_arr['vendor_name'];
-            $record_arr['name'] = $plugin_info_arr['name'];
-            $record_arr['description'] = $plugin_info_arr['description'];
-            $record_arr['version'] = $plugin_info_arr['db_version'].' / '.$plugin_info_arr['script_version'];
-            $record_arr['status'] = (int)($plugin_info_arr['db_details']['status'] ?? -1);
-            $record_arr['status_date'] = (!empty($plugin_info_arr['db_details']) ? $plugin_info_arr['db_details']['status_date'] : null);
-            $record_arr['cdate'] = (!empty($plugin_info_arr['db_details']) ? $plugin_info_arr['db_details']['cdate'] : null);
-            $record_arr['models'] = ((!empty($plugin_info_arr['models']) && is_array($plugin_info_arr['models'])) ? $plugin_info_arr['models'] : []);
-            $record_arr['is_installed'] = $plugin_info_arr['is_installed'];
-            $record_arr['is_upgradable'] = $plugin_info_arr['is_upgradable'];
-            $record_arr['is_core'] = $plugin_info_arr['is_core'];
-            $record_arr['is_always_active'] = $plugin_info_arr['is_always_active'];
-            $record_arr['is_distribution'] = $plugin_info_arr['is_distribution'];
-            $record_arr['tenants'] = $this->get_tenants_ids_for_plugin_name($plugin_info_arr['plugin_name']);
 
             $records_arr[] = $record_arr;
         }
 
         return $records_arr;
+    }
+
+    public function get_record_details_from_name_for_paginator(string $plugin_name) : ?array
+    {
+        /** @var \phs\libraries\PHS_Plugin $plugin_instance */
+        if (!($plugin_instance = PHS::load_plugin($plugin_name))) {
+            return null;
+        }
+
+        return $this->get_record_details_from_instance_for_paginator($plugin_instance);
+    }
+
+    public function get_record_details_from_instance_for_paginator(PHS_Plugin $plugin_instance) : ?array
+    {
+        if (!($plugin_info_arr = $plugin_instance->get_plugin_info())) {
+            return null;
+        }
+
+        $record_arr = [];
+        $record_arr['id'] = $plugin_info_arr['id'];
+        $record_arr['plugin_name'] = $plugin_info_arr['plugin_name'];
+        $record_arr['vendor_id'] = $plugin_info_arr['vendor_id'];
+        $record_arr['vendor_name'] = $plugin_info_arr['vendor_name'];
+        $record_arr['name'] = $plugin_info_arr['name'];
+        $record_arr['description'] = $plugin_info_arr['description'];
+        $record_arr['version'] = $plugin_info_arr['db_version'].' / '.$plugin_info_arr['script_version'];
+        $record_arr['status'] = (int)($plugin_info_arr['db_details']['status'] ?? -1);
+        $record_arr['status_date'] = (!empty($plugin_info_arr['db_details']) ? $plugin_info_arr['db_details']['status_date'] : null);
+        $record_arr['cdate'] = (!empty($plugin_info_arr['db_details']) ? $plugin_info_arr['db_details']['cdate'] : null);
+        $record_arr['models'] = ((!empty($plugin_info_arr['models']) && is_array($plugin_info_arr['models'])) ? $plugin_info_arr['models'] : []);
+        $record_arr['is_installed'] = $plugin_info_arr['is_installed'];
+        $record_arr['is_upgradable'] = $plugin_info_arr['is_upgradable'];
+        $record_arr['is_core'] = $plugin_info_arr['is_core'];
+        $record_arr['is_always_active'] = $plugin_info_arr['is_always_active'];
+        $record_arr['is_distribution'] = $plugin_info_arr['is_distribution'];
+        $record_arr['tenants'] = $this->get_tenants_ids_for_plugin_name($plugin_info_arr['plugin_name']);
+
+        return $record_arr;
     }
 
     /**
@@ -562,6 +612,38 @@ class PHS_Model_Plugins extends PHS_Model
         $plugin_details['status'] = self::STATUS_INACTIVE;
 
         return $this->_update_db_details($instance_id, $plugin_details);
+    }
+
+    /**
+     * @param string $instance_id
+     * @param int $tenant_id
+     *
+     * @return null|array
+     */
+    public function act_activate_on_tenant(string $instance_id, int $tenant_id) : ?array
+    {
+        $this->reset_error();
+
+        $plugin_details = [];
+        $plugin_details['status'] = self::STATUS_ACTIVE;
+
+        return $this->_update_db_tenant_details($instance_id, $plugin_details, $tenant_id);
+    }
+
+    /**
+     * @param string $instance_id
+     * @param int $tenant_id
+     *
+     * @return null|array
+     */
+    public function act_inactivate_on_tenant(string $instance_id, int $tenant_id) : ?array
+    {
+        $this->reset_error();
+
+        $plugin_details = [];
+        $plugin_details['status'] = self::STATUS_INACTIVE;
+
+        return $this->_update_db_tenant_details($instance_id, $plugin_details, $tenant_id);
     }
 
     public function install_record($instance_id, $plugin, $plugin_name, $type, $is_core, $def_settings, $version) : ?array
@@ -1653,7 +1735,10 @@ class PHS_Model_Plugins extends PHS_Model
             $params['action'] = 'insert';
             $fields_arr['tenant_id'] = $tenant_id;
             $fields_arr['instance_id'] = $instance_id;
-            if (!empty($db_main_details['status'])) {
+            $fields_arr['type'] = $instance_details['instance_type'];
+            $fields_arr['plugin'] = $instance_details['plugin_name'];
+            if (empty($fields_arr['status'])
+                && !empty($db_main_details['status'])) {
                 $fields_arr['status'] = $db_main_details['status'];
             }
         } else {

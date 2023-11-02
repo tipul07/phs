@@ -127,6 +127,30 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             return false;
         },
 
+        get_form_as_json_object: function( form_id ) {
+            let form_obj = document.getElementById(form_id);
+            if( !form_obj
+                || !(form_obj instanceof HTMLFormElement)) {
+                return null;
+            }
+
+            let form_data = new FormData(form_obj);
+
+            var object = {};
+            form_data.forEach((value, key) => {
+                if(!object.hasOwnProperty(key)){
+                    object[key] = value;
+                    return;
+                }
+                if(!Array.isArray(object[key])){
+                    object[key] = [object[key]];
+                }
+                object[key].push(value);
+            });
+
+            return object;
+        },
+
         load_storage: function( i_name ) {
             let data = null;
             if( localStorage ) {
@@ -578,6 +602,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 message_box_prefix: "",
                 async: true,
                 full_buffer: false,
+                extract_response_messages: true,
 
                 onfailed: null,
                 onsuccess: null
@@ -611,60 +636,75 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 success: function( data, status, ajax_obj ) {
 
                     // check next AJAX requests in the stack before managing current response
-                    if( options.stack_request )
+                    if( options.stack_request ) {
                         PHS_JSEN.check_ajax_requests_stack();
+                    }
 
-                    var result_response = false;
+                    var result_response = null;
                     if( !options.full_buffer ) {
-                        if( typeof data.response == 'undefined' || !data.response )
-                            data.response = false;
+                        if( typeof data.response == 'undefined' || !data.response ) {
+                            data.response = null;
+                        }
 
                         result_response = data.response;
-                    } else
+                    } else {
                         result_response = data;
+                    }
+
+                    console.log("Result", result_response);
+                    console.log("Data", data);
+                    console.log("Options", options);
 
                     var onsuccess_result = null;
                     if( options.queue_request ) {
                         onsuccess_result = PHS_JSEN.onsuccess_ajax_queue_for_request( request_hash, result_response, status, ajax_obj, data );
                     } else if( options.onsuccess ) {
-                        if( $.isFunction( options.onsuccess ) )
-                            onsuccess_result = options.onsuccess( result_response, status, ajax_obj, data );
-                        else if( typeof options.onsuccess == "string" )
-                            onsuccess_result = eval( options.onsuccess );
+                        if( $.isFunction( options.onsuccess ) ) {
+                            onsuccess_result = options.onsuccess(result_response, status, ajax_obj, data);
+                        } else if( typeof options.onsuccess == "string" ) {
+                            onsuccess_result = eval(options.onsuccess);
+                        }
                     }
 
                     if( typeof onsuccess_result == "object"
-                     && onsuccess_result )
+                        && onsuccess_result ) {
                         data = onsuccess_result;
+                    }
 
-                    if( data && typeof data.redirect_to_url != 'undefined' && data.redirect_to_url.length ) {
+                    if( data && typeof data.redirect_to_url !== 'undefined' && data.redirect_to_url.length ) {
                         document.location = data.redirect_to_url;
                         return;
                     }
 
-                    if( data && typeof data.status != 'undefined' && data.status ) {
-                        if( typeof data.status.success_messages != 'undefined' && data.status.success_messages.length )
-                            PHS_JSEN.js_messages( data.status.success_messages, "success", options.message_box_prefix );
-                        if( typeof data.status.warning_messages != 'undefined' && data.status.warning_messages.length )
-                            PHS_JSEN.js_messages( data.status.warning_messages, "warning", options.message_box_prefix );
-                        if( typeof data.status.error_messages != 'undefined' && data.status.error_messages.length )
-                            PHS_JSEN.js_messages( data.status.error_messages, "error", options.message_box_prefix );
+                    if( options.extract_response_messages
+                        && data && typeof data.status !== 'undefined' && data.status ) {
+                        if( typeof data.status.success_messages !== 'undefined' && data.status.success_messages.length ) {
+                            PHS_JSEN.js_messages(data.status.success_messages, "success", options.message_box_prefix);
+                        }
+                        if( typeof data.status.warning_messages !== 'undefined' && data.status.warning_messages.length ) {
+                            PHS_JSEN.js_messages(data.status.warning_messages, "warning", options.message_box_prefix);
+                        }
+                        if( typeof data.status.error_messages !== 'undefined' && data.status.error_messages.length ) {
+                            PHS_JSEN.js_messages(data.status.error_messages, "error", options.message_box_prefix);
+                        }
                     }
                 },
 
                 error: function( ajax_obj, status, error_exception ) {
 
                     // check next AJAX requests in the stack before managing current response
-                    if( options.stack_request )
+                    if( options.stack_request ) {
                         PHS_JSEN.check_ajax_requests_stack();
+                    }
 
                     if( options.queue_request ) {
                         PHS_JSEN.onfailed_ajax_queue_for_request( request_hash, ajax_obj, status, error_exception );
                     } else if( options.onfailed ) {
-                        if( $.isFunction( options.onfailed ) )
-                            options.onfailed( ajax_obj, status, error_exception );
-                        else if( typeof options.onfailed == "string" )
-                            eval( options.onfailed );
+                        if( $.isFunction( options.onfailed ) ) {
+                            options.onfailed(ajax_obj, status, error_exception);
+                        } else if( typeof options.onfailed == "string" ) {
+                            eval(options.onfailed);
+                        }
                     }
                 }
             };

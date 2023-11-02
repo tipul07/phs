@@ -45,7 +45,7 @@ class PHS_Model_Tenants extends PHS_Model
         return 'phs_tenants';
     }
 
-    public function is_active($record_data): bool
+    public function is_active($record_data) : bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
@@ -59,7 +59,7 @@ class PHS_Model_Tenants extends PHS_Model
                && (int)$record_arr['status'] === self::STATUS_INACTIVE;
     }
 
-    public function is_deleted($record_data): bool
+    public function is_deleted($record_data) : bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))

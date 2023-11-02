@@ -26,7 +26,7 @@ if (!PHS_Api::framework_allows_api_calls()) {
 }
 
 if (!PHS::is_secured_request()
- && !PHS_Api::framework_allows_api_calls_over_http()) {
+    && !PHS_Api::framework_allows_api_calls_over_http()) {
     PHS_Api::http_header_response(PHS_Api_base::H_CODE_SERVICE_UNAVAILABLE, 'Only connections over HTTPS are accepted.');
     exit;
 }

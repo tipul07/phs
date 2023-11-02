@@ -3111,12 +3111,12 @@ final class PHS extends PHS_Registry
 
             switch ($current_scope) {
                 default:
-                case PHS_Scope::SCOPE_AJAX:
                 case PHS_Scope::SCOPE_WEB:
                     echo '<strong>'.$error_type.'</strong> ['.$errno.'] ('.$errfile.':'.$errline.') '.$errstr.'<br/>'."\n";
                     echo '<pre>'.$backtrace_str.'</pre>';
                     break;
 
+                case PHS_Scope::SCOPE_AJAX:
                 case PHS_Scope::SCOPE_API:
 
                     if (self::st_debugging_mode()) {
