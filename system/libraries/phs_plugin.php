@@ -53,9 +53,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return !($json_arr = $this->get_json_info()) || !empty($json_arr['is_multi_tenant']);
     }
 
-    final public function is_always_active(): bool
+    final public function is_always_active() : bool
     {
-        return ($details_arr = $this->get_plugin_info()) && !empty( $details_arr['is_always_active']);
+        return ($details_arr = $this->get_plugin_info()) && !empty($details_arr['is_always_active']);
     }
 
     /**
@@ -707,9 +707,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return true;
     }
 
-    final public function get_plugin_display_name(): string
+    final public function get_plugin_display_name() : string
     {
-        return ($details_arr = $this->get_plugin_info()) && !empty( $details_arr['name'])
+        return ($details_arr = $this->get_plugin_info()) && !empty($details_arr['name'])
             ? $details_arr['name']
             : '';
     }

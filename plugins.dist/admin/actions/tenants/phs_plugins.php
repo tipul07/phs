@@ -91,7 +91,6 @@ class PHS_Action_Plugins extends PHS_Api_action
         }
 
         if ($is_ajax_call) {
-
             if ($tenant_reset) {
                 return $this->send_api_error(PHS_Api_base::H_CODE_BAD_REQUEST, self::ERR_PARAMETERS,
                     $this->_pt('Provided tenant is invalid.'));
@@ -133,7 +132,7 @@ class PHS_Action_Plugins extends PHS_Api_action
                      */
                     foreach ($instances_arr as $plugin_name => $plugin_obj) {
                         $plugin_display_name = $plugin_obj->get_plugin_display_name() ?: $plugin_name;
-                        if ((!empty( $tenant_id ) && !$plugin_obj->is_multi_tenant())
+                        if ((!empty($tenant_id) && !$plugin_obj->is_multi_tenant())
                             || $plugin_obj->is_always_active()) {
                             PHS_Notifications::add_warning_notice($this->_pt('Cannot change status for plugin %s.',
                                 $plugin_display_name));
@@ -161,13 +160,13 @@ class PHS_Action_Plugins extends PHS_Api_action
                 return $this->send_api_success(['action_success' => $action_success]);
             }
 
-            if( !empty( $do_get_registry ) || !empty($do_get_settings) ) {
+            if (!empty($do_get_registry) || !empty($do_get_settings)) {
                 /** @var \phs\libraries\PHS_Plugin $plugin_obj */
-                if( !($plugin_id = PHS_Params::_p('plugin_id', PHS_Params::T_NOHTML))
+                if (!($plugin_id = PHS_Params::_p('plugin_id', PHS_Params::T_NOHTML))
                  || !($id_details = PHS_Instantiable::valid_instance_id($plugin_id))
                  || $id_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
                  || $id_details['plugin_name'] === PHS_Instantiable::CORE_PLUGIN
-                 || !($plugin_obj = PHS::load_plugin($id_details['plugin_name'])) ) {
+                 || !($plugin_obj = PHS::load_plugin($id_details['plugin_name']))) {
                     PHS_Notifications::add_error_notice($this->_pt('Please provide a valid plugin id.'));
                 } else {
                     return $this->send_api_success(['registry' => $plugin_obj->get_plugin_registry($tenant_id)]);

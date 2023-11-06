@@ -32,7 +32,7 @@ foreach ($plugins_arr as $key => $plugin_arr) {
     }
 
     $plugins_arr[$key]['can_change_status'] = empty($plugin_arr['is_always_active'])
-                                              && (empty( $tenant_id ) || !empty($plugin_arr['is_multi_tenant']));
+                                              && (empty($tenant_id) || !empty($plugin_arr['is_multi_tenant']));
 }
 
 echo $this->sub_view('ractive/bootstrap');
@@ -135,9 +135,9 @@ function tenant_changed()
             {{/if}}
         </td>
         <td class="text-center">
-            <a href="javascript:void(0)"><i class="fa fa-wrench action-icons" title="<?php echo $this->_pte('Plugin Settings')?>"></i></a>
+            <a href="javascript:void(0)"><i class="fa fa-wrench action-icons" title="<?php echo $this->_pte('Plugin Settings'); ?>"></i></a>
             {{#if .plugin_name }}
-            <a href="javascript:void(0)" on-click="@this.get_plugin_registry(.)"><i class="fa fa-database action-icons" title="<?php echo $this->_pte('Plugin Registry')?>"></i></a>
+            <a href="javascript:void(0)" on-click="@this.get_plugin_registry(.)"><i class="fa fa-database action-icons" title="<?php echo $this->_pte('Plugin Registry'); ?>"></i></a>
             {{/if}}
         </td>
     </tr>
@@ -167,10 +167,10 @@ function tenant_changed()
         <p>Registry data for plugin <strong>{{plugin_details.name}}</strong> on tenant <strong>{{tenant_name}}</strong>.</p>
         {{#each plugin_registry}}
             {{@index+1}}.
-            <code title="<?php echo $this->_pte('Registry key')?>">{{.r_key}}</code>
-            = <code title="<?php echo $this->_pte('Registry value')?>">{{.r_value}}</code><br/>
+            <code title="<?php echo $this->_pte('Registry key'); ?>">{{.r_key}}</code>
+            = <code title="<?php echo $this->_pte('Registry value'); ?>">{{.r_value}}</code><br/>
         {{ else }}
-        <p class="p-5 text-center"><?php echo $this->_pt( 'No registry data yet...' )?></p>
+        <p class="p-5 text-center"><?php echo $this->_pt('No registry data yet...'); ?></p>
         {{/each}}
     </div>
 </script>
