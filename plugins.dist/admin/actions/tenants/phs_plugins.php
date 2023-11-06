@@ -3,6 +3,7 @@ namespace phs\plugins\admin\actions\tenants;
 
 use phs\PHS;
 use phs\PHS_Scope;
+use phs\PHS_Api_base;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Api_action;
 use phs\libraries\PHS_Instantiable;
@@ -90,17 +91,26 @@ class PHS_Action_Plugins extends PHS_Api_action
         }
 
         if ($is_ajax_call) {
-            $do_activate_selected = PHS_Params::_p('do_activate_selected');
-            $do_inactivate_selected = PHS_Params::_p('do_inactivate_selected');
-            $selected_plugins = PHS_Params::_p('selected_plugins', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML]) ?: [];
 
             if ($tenant_reset) {
-                $do_activate_selected = null;
-                $do_inactivate_selected = null;
+                return $this->send_api_error(PHS_Api_base::H_CODE_BAD_REQUEST, self::ERR_PARAMETERS,
+                    $this->_pt('Provided tenant is invalid.'));
             }
 
-            $action_success = false;
+            if (!$admin_plugin->can_admin_manage_plugins()) {
+                return $this->send_api_error(PHS_Api_base::H_CODE_FORBIDDEN, self::ERR_RIGHTS,
+                    $this->_pt('You don\'t have rights to access this section.'));
+            }
+
+            $do_activate_selected = PHS_Params::_p('do_activate_selected');
+            $do_inactivate_selected = PHS_Params::_p('do_inactivate_selected');
+            $do_get_registry = PHS_Params::_p('do_get_registry');
+            $do_get_settings = PHS_Params::_p('do_get_settings');
+
             if (!empty($do_inactivate_selected) || !empty($do_activate_selected)) {
+                $selected_plugins = PHS_Params::_p('selected_plugins', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML]) ?: [];
+                $action_success = false;
+
                 if (empty($selected_plugins)) {
                     PHS_Notifications::add_error_notice($this->_pt('Please provide a list of plugins.'));
                 } elseif (!($dir_entries = $plugins_model->cache_all_dir_details())) {
@@ -122,10 +132,11 @@ class PHS_Action_Plugins extends PHS_Api_action
                      * @var \phs\libraries\PHS_Plugin $plugin_obj
                      */
                     foreach ($instances_arr as $plugin_name => $plugin_obj) {
-                        if (!($details_arr = $plugins_model->get_record_details_from_instance_for_paginator($plugin_obj))
-                            || !empty($details_arr['is_always_active'])) {
-                            PHS_Notifications::add_warning_notice($this->_pt('Plugin %s should always be active. Cannot change status for it.',
-                                $details_arr['name'] ?? $plugin_name));
+                        $plugin_display_name = $plugin_obj->get_plugin_display_name() ?: $plugin_name;
+                        if ((!empty( $tenant_id ) && !$plugin_obj->is_multi_tenant())
+                            || $plugin_obj->is_always_active()) {
+                            PHS_Notifications::add_warning_notice($this->_pt('Cannot change status for plugin %s.',
+                                $plugin_display_name));
                             continue;
                         }
 
@@ -134,21 +145,37 @@ class PHS_Action_Plugins extends PHS_Api_action
                                 || (!empty($tenant_id) && !$plugin_obj->inactivate_plugin_on_tenant($tenant_id))) {
                                 $action_success = false;
                                 PHS_Notifications::add_error_notice($this->_pt('Error inactivating plugin %s on tenant %s.',
-                                    $details_arr['name'] ?? $plugin_name, $tenants_filter_arr[$tenant_id] ?? $this->_pt('N/A')));
+                                    $plugin_display_name, $tenants_filter_arr[$tenant_id] ?? $this->_pt('N/A')));
                             }
                         } elseif (!empty($do_activate_selected)) {
                             if ((empty($tenant_id) && !$plugin_obj->activate_plugin())
                                 || (!empty($tenant_id) && !$plugin_obj->activate_plugin_on_tenant($tenant_id))) {
                                 $action_success = false;
                                 PHS_Notifications::add_error_notice($this->_pt('Error activating plugin %s on tenant %s.',
-                                    $details_arr['name'] ?? $plugin_name, $tenants_filter_arr[$tenant_id] ?? $this->_pt('N/A')));
+                                    $plugin_display_name, $tenants_filter_arr[$tenant_id] ?? $this->_pt('N/A')));
                             }
                         }
                     }
                 }
+
+                return $this->send_api_success(['action_success' => $action_success]);
             }
 
-            return $this->send_api_success(['action_success' => $action_success]);
+            if( !empty( $do_get_registry ) || !empty($do_get_settings) ) {
+                /** @var \phs\libraries\PHS_Plugin $plugin_obj */
+                if( !($plugin_id = PHS_Params::_p('plugin_id', PHS_Params::T_NOHTML))
+                 || !($id_details = PHS_Instantiable::valid_instance_id($plugin_id))
+                 || $id_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_PLUGIN
+                 || $id_details['plugin_name'] === PHS_Instantiable::CORE_PLUGIN
+                 || !($plugin_obj = PHS::load_plugin($id_details['plugin_name'])) ) {
+                    PHS_Notifications::add_error_notice($this->_pt('Please provide a valid plugin id.'));
+                } else {
+                    return $this->send_api_success(['registry' => $plugin_obj->get_plugin_registry($tenant_id)]);
+                }
+            }
+
+            return $this->send_api_error(PHS_Api_base::H_CODE_BAD_REQUEST, self::ERR_PARAMETERS,
+                $this->_pt('Unknown action in request.'));
         }
 
         $data = [

@@ -336,6 +336,15 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
 
             ajax_params.onfailed = function( ajax_obj, status, error_exception ) {
 
+                if(ajax_opts.extract_logical_error_from_response
+                    && ajax_obj
+                    && typeof ajax_obj.responseJSON !== "undefined"
+                    && ajax_obj.responseJSON
+                    && typeof ajax_obj.responseJSON.response !== "undefined"
+                    && ajax_obj.responseJSON.response ) {
+                    self._extract_error_message_from_response(ajax_obj.responseJSON.response);
+                }
+
                 if( ajax_opts.extract_status_messages_from_response
                     && ajax_obj
                     && typeof ajax_obj.responseJSON !== "undefined"

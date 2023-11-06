@@ -278,7 +278,7 @@ class PHS_Model_Tenants extends PHS_Model
             return null;
         }
 
-        return $tenant_arr['name'].' ('.$tenant_arr['domain'].(!empty($tenant_arr['directory']) ? '/'.$tenant_arr['directory'] : '').')';
+        return $tenant_arr['name'].' ('.self::prepare_tenant_domain_and_directory($tenant_arr['domain'], $tenant_arr['directory']).')';
     }
 
     public function get_tenant_settings($record_data) : ?array

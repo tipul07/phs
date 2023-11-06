@@ -30,6 +30,9 @@ foreach ($plugins_arr as $key => $plugin_arr) {
     } else {
         $plugins_arr[$key]['tenant_status'] = $plugin_arr['status'];
     }
+
+    $plugins_arr[$key]['can_change_status'] = empty($plugin_arr['is_always_active'])
+                                              && (empty( $tenant_id ) || !empty($plugin_arr['is_multi_tenant']));
 }
 
 echo $this->sub_view('ractive/bootstrap');
@@ -110,7 +113,7 @@ function tenant_changed()
     <tr>
         <th scope="row" class="text-center">
             {{@index+1}}
-            {{#if !.is_always_active }}
+            {{#if .can_change_status }}
             <br/>
             <input type="checkbox" name="{{selected_plugins}}" value="{{.safe_name}}"
                    id="selected_plugins_{{.safe_name}}" />
@@ -131,7 +134,12 @@ function tenant_changed()
             <br/>[{{@this.plugin_status_as_string(.status)}}]
             {{/if}}
         </td>
-        <td>&nbsp;</td>
+        <td class="text-center">
+            <a href="javascript:void(0)"><i class="fa fa-wrench action-icons" title="<?php echo $this->_pte('Plugin Settings')?>"></i></a>
+            {{#if .plugin_name }}
+            <a href="javascript:void(0)" on-click="@this.get_plugin_registry(.)"><i class="fa fa-database action-icons" title="<?php echo $this->_pte('Plugin Registry')?>"></i></a>
+            {{/if}}
+        </td>
     </tr>
     {{else}}
     <tr>
@@ -155,7 +163,16 @@ function tenant_changed()
                on-click="@this.inactivate_selected_plugins()"
                value="<?php echo $this->_pte('INACTIVATE Selected'); ?> ({{selected_plugins_length}})" />
     </div>
-
+    <div style="display: none;" id="phs_plugins_registry_container">
+        <p>Registry data for plugin <strong>{{plugin_details.name}}</strong> on tenant <strong>{{tenant_name}}</strong>.</p>
+        {{#each plugin_registry}}
+            {{@index+1}}.
+            <code title="<?php echo $this->_pte('Registry key')?>">{{.r_key}}</code>
+            = <code title="<?php echo $this->_pte('Registry value')?>">{{.r_value}}</code><br/>
+        {{ else }}
+        <p class="p-5 text-center"><?php echo $this->_pt( 'No registry data yet...' )?></p>
+        {{/each}}
+    </div>
 </script>
 <script type="text/javascript">
     let statuses_filter_arr = <?php echo @json_encode($this->view_var('statuses_filter_arr') ?: []); ?>;
@@ -174,10 +191,14 @@ function tenant_changed()
                         plugin_status: 0
                     },
                     tenant_id: <?php echo $tenant_id; ?>,
+                    tenant_name: "<?php echo $tenant_id ? $this::_e($tenants_key_val_arr[$tenant_id] ?? $na_str) : $this->_pte('Default'); ?>",
                     statuses_filter_arr: statuses_filter_arr,
                     all_tenants: <?php echo @json_encode($tenants_key_val_arr ?: null); ?>,
                     selected_plugins_all: false,
-                    selected_plugins: null
+                    selected_plugins: null,
+
+                    plugin_registry: [],
+                    plugin_details: null
                 }
             },
 
@@ -194,7 +215,7 @@ function tenant_changed()
                         let new_selected_plugins = [];
                         let knti = 0;
                         for( ; knti < all_plugins.length; knti++ ) {
-                            if( !all_plugins[knti].is_always_active
+                            if( all_plugins[knti].can_change_status
                                 && (selected_plugins_empty
                                     || -1 === selected_plugins.indexOf(all_plugins[knti].safe_name))
                             ) {
@@ -380,12 +401,77 @@ function tenant_changed()
                     return null;
                 }
 
-                if( typeof form_obj["{{selected_plugins}}"] !== "undefined" ) {
-                    form_obj["selected_plugins"] = form_obj["{{selected_plugins}}"];
-                    delete form_obj["{{selected_plugins}}"];
-                }
+                form_obj["selected_plugins"] = this.get("selected_plugins");
 
                 return form_obj;
+            },
+
+            get_plugin_registry: function(plugin_obj) {
+
+                if( typeof plugin_obj === "undefined"
+                    || !plugin_obj
+                    || typeof plugin_obj.id === "undefined"
+                    || !plugin_obj.id ) {
+                    this.phs_add_error_message("<?php echo $this->_pt('Please select plugin for which you want to see registry data.'); ?>", 10);
+                    return;
+                }
+
+                let request_data = {};
+                request_data.plugin_id = plugin_obj.id;
+                request_data.tenant_id = this.get("tenant_id");
+                request_data.do_get_registry = 2;
+
+                let self = this;
+                this._send_action_request(request_data,
+                    function(response){
+                        if( typeof response === "undefined"
+                            || !response
+                            || typeof response.registry === "undefined" ) {
+                            self.phs_add_error_message("<?php echo $this->_pt('Error obtaining plugin registry data. Please try again.'); ?>", 10);
+                            return;
+                        }
+
+                        self._set_registry_data(response.registry);
+                        self._display_registry_dialogue( plugin_obj );
+                });
+            },
+
+            _set_registry_data: function( registry_data ) {
+                let new_registry_data = [];
+                let el = null;
+                for( el in registry_data ) {
+                    if( !registry_data.hasOwnProperty(el) ) {
+                        continue;
+                    }
+
+                    new_registry_data.push({
+                        r_key: el,
+                        r_value: registry_data[el]
+                    })
+                }
+
+                this.set("plugin_registry", new_registry_data);
+            },
+
+            _display_registry_dialogue: function ( plugin_obj ) {
+                let tenant_name = this.get("tenant_name");
+                let container_obj = $("#phs_plugins_registry_container");
+                if( !container_obj )
+                    return;
+
+                this.set("plugin_details", plugin_obj);
+
+                container_obj.show();
+
+                PHS_JSEN.createAjaxDialog( {
+                    suffix: 'phs_plugins_registry_',
+                    width: 650,
+                    height: 500,
+                    title: "<?php echo $this->_pt('%s registry for %s tenant', '" + plugin_obj.name + "', '" + tenant_name + "'); ?>",
+                    resizable: true,
+                    close_outside_click: false,
+                    source_obj: container_obj
+                });
             },
 
             _send_action_request: function(form_data, success_callback, failure_callback) {
@@ -435,7 +521,7 @@ function tenant_changed()
                     function( ajax_obj, status, error_exception ) {
                         hide_submit_protection();
 
-                        const error_msg = "<?php echo $this->_pte('Error saving changes. Please try again.'); ?>";
+                        const error_msg = "<?php echo $this->_pte('Error sending request to the server. Please try again.'); ?>";
 
                         if( $.isFunction( failure_callback ) ) {
                             failure_callback(self, error_msg);

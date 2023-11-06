@@ -50,8 +50,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      */
     public function is_multi_tenant() : bool
     {
-        return !($json_arr = $this->get_json_info())
-               || !empty($json_arr['is_multi_tenant']);
+        return !($json_arr = $this->get_json_info()) || !empty($json_arr['is_multi_tenant']);
+    }
+
+    final public function is_always_active(): bool
+    {
+        return ($details_arr = $this->get_plugin_info()) && !empty( $details_arr['is_always_active']);
     }
 
     /**
@@ -701,6 +705,13 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         PHS_Maintenance::output('['.$this->instance_plugin_name().'] Plugin activated on tenant '.$tenant_id.'.');
 
         return true;
+    }
+
+    final public function get_plugin_display_name(): string
+    {
+        return ($details_arr = $this->get_plugin_info()) && !empty( $details_arr['name'])
+            ? $details_arr['name']
+            : '';
     }
 
     final public function inactivate_plugin()

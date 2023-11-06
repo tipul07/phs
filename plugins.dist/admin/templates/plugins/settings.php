@@ -9,28 +9,25 @@ use phs\system\core\views\PHS_View;
 use phs\libraries\PHS_Has_db_settings;
 
 /** @var null|\phs\system\core\models\PHS_Model_Tenants $tenants_model */
+/** @var null|\phs\system\core\models\PHS_Model_Plugins $plugins_model */
 if (!($context_arr = $this->view_var('context_arr'))
     || !($tenants_model = $this->view_var('tenants_model'))
+    || !($plugins_model = $this->view_var('plugins_model'))
 ) {
     return $this->_pt('Error loading required resources.');
 }
 
-if (!($tenant_id = $this->view_var('tenant_id'))) {
-    $tenant_id = 0;
-}
-
-if (!($back_page = $this->view_var('back_page'))) {
-    $back_page = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'plugins']);
-}
-if (!($tenants_arr = $this->view_var('tenants_arr'))) {
-    $tenants_arr = [];
-}
+$tenant_id = $this->view_var('tenant_id') ?: 0;
+$back_page = $this->view_var('back_page') ?: PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'plugins']);
+$tenants_arr = $this->view_var('tenants_arr') ?: [];
 
 $pid = $this->view_var('pid') ?? '';
 $model_id = $this->view_var('model_id') ?? '';
 
 /** @var PHS_Plugin $plugin_obj */
+/** @var PHS_Has_db_settings $instance_obj */
 $plugin_obj = $context_arr['plugin_instance'] ?? null;
+$instance_obj = $context_arr['model_instance'] ?? $context_arr['plugin_instance'] ?? null;
 $models_arr = $context_arr['models_arr'] ?? [];
 $is_multitenant = $context_arr['is_multi_tenant'] ?? false;
 $settings_structure = $context_arr['settings_structure'] ?? [];
@@ -167,8 +164,8 @@ foreach ($models_arr as $m_id => $m_name) {
 
                 echo $this->_pt('Database version').': '.$context_arr['db_version'].', ';
                 echo $this->_pt('Script version').': '.$context_arr['script_version'];
-                /** @var PHS_Has_db_settings $instance_obj */
-                if( ($instance_obj = ($context_arr['model_instance'] ?? $context_arr['plugin_instance'] ?? null)) ) {
+
+                if( $instance_obj ) {
                     echo ', Instance Id: '.$instance_obj->instance_id();
                 }
 
@@ -178,6 +175,14 @@ foreach ($models_arr as $m_id => $m_name) {
 
                 ?></small></p><?php
 
+        if($is_multitenant && $tenant_id && $plugin_obj
+           && ($tenant_status = $plugins_model->get_status_of_tenant($plugin_obj->instance_id(), $tenant_id))
+           && ($tenant_status_arr = $plugins_model->valid_status($tenant_status))) {
+            ?><p class="text-center"><?php
+            echo $this->_pt('For selected tenant, current plugin status is %s.',
+                '<strong>'.($tenant_status_arr['title'] ?? 'N/A').'</strong>');
+            ?></p><?php
+        }
 
 if (empty($settings_structure) || !is_array($settings_structure)) {
     ?><p style="text-align: center;margin:30px auto;"><?php echo $this->_pt('Selected module doesn\'t have any settings.'); ?></p><?php

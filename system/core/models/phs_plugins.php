@@ -353,6 +353,7 @@ class PHS_Model_Plugins extends PHS_Model
         $record_arr['is_core'] = $plugin_info_arr['is_core'];
         $record_arr['is_always_active'] = $plugin_info_arr['is_always_active'];
         $record_arr['is_distribution'] = $plugin_info_arr['is_distribution'];
+        $record_arr['is_multi_tenant'] = $plugin_info_arr['is_multi_tenant'];
         $record_arr['tenants'] = $this->get_tenants_ids_for_plugin_name($plugin_info_arr['plugin_name']);
 
         return $record_arr;
@@ -1599,6 +1600,8 @@ class PHS_Model_Plugins extends PHS_Model
         $record_arr['is_core'] = true;
         $record_arr['is_always_active'] = $core_details['is_always_active'];
         $record_arr['is_distribution'] = $core_details['is_distribution'];
+        // Considered multi tenant for core models...
+        $record_arr['is_multi_tenant'] = true;
         $record_arr['tenants'] = [];
 
         return $record_arr;
