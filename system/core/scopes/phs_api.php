@@ -9,6 +9,7 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Notifications;
+use phs\system\core\models\PHS_Model_Api_monitor;
 
 class PHS_Scope_Api extends PHS_Scope
 {
@@ -22,6 +23,12 @@ class PHS_Scope_Api extends PHS_Scope
         // We have already an error from flow before initiating scope class
         if (!empty($static_error_arr)
             && self::arr_has_error($static_error_arr)) {
+
+            PHS_Model_Api_monitor::api_request_error(
+                PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR,
+                'Error in API action result: '.self::arr_get_simple_error_message($static_error_arr)
+            );
+
             PHS_Api::http_header_response(
                 PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR,
                 self::arr_get_simple_error_message($static_error_arr)
@@ -44,6 +51,10 @@ class PHS_Scope_Api extends PHS_Scope
 
             if (!empty($action_result['request_login'])
                 && !$api_obj->api_user_account_id()) {
+                PHS_Model_Api_monitor::api_request_error(
+                    PHS_Api_base::H_CODE_UNAUTHORIZED,
+                    'Request not authorized.'
+                );
                 PHS_Api::http_header_response(PHS_Api_base::H_CODE_UNAUTHORIZED);
                 exit;
             }
@@ -130,6 +141,8 @@ class PHS_Scope_Api extends PHS_Scope
         }
 
         if ($action_result['api_buffer'] !== '') {
+            // We don't know here if this is an error body or a success body
+            PHS_Model_Api_monitor::update_api_request(null, $action_result['api_buffer']);
             echo $action_result['api_buffer'];
         }
 

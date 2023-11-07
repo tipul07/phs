@@ -91,7 +91,7 @@ final class PHS extends PHS_Registry
         // !!! Don't change order of models here unless you know what you're doing !!!
         // Models should be placed in this array after their dependencies
         // (e.g. bg_jobs depends on agent_jobs - it adds an agent job for timed bg jobs)
-        return ['agent_jobs', 'bg_jobs', 'roles', 'api_keys', 'agent_jobs_monitor'];
+        return ['agent_jobs', 'bg_jobs', 'roles', 'api_keys', 'agent_jobs_monitor', 'api_monitor'];
     }
 
     /**
@@ -1106,7 +1106,7 @@ final class PHS extends PHS_Registry
     public static function safe_escape_route_action_dir($part)
     {
         if (empty($part) || !is_string($part)
-         || preg_match('@[^a-zA-Z0-9/]@', $part)) {
+         || preg_match('@[^a-zA-Z0-9/_]@', $part)) {
             return false;
         }
 
@@ -1535,7 +1535,7 @@ final class PHS extends PHS_Registry
         $action_str = (!empty($parts['a']) ? $parts['a'] : '');
         if (!empty($parts['ad'])
          && !empty($action_str)) {
-            $action_str = self::validate_action_dir_in_url($parts['ad']).self::ACTION_DIR_ACTION_SEPARATOR.$action_str;
+            $action_str = self::validate_action_dir_in_url(str_replace('_','/',$parts['ad'])).self::ACTION_DIR_ACTION_SEPARATOR.$action_str;
         }
 
         if (empty($parts['p'])) {
