@@ -10,11 +10,14 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
 use phs\system\core\models\PHS_Model_Plugins;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\system\core\events\layout\PHS_Event_Layout;
 use phs\system\core\events\layout\PHS_Event_Template;
 
 class PHS_Plugin_Admin extends PHS_Plugin
 {
     public const H_ADMIN_LEFT_MENU_ADMIN_AFTER_USERS = 'phs_admin_left_menu_admin_after_users';
+
+    public const LOG_API_MONITOR = 'api_monitor.log';
 
     public const EXPORT_TO_FILE = 1, EXPORT_TO_OUTPUT = 2, EXPORT_TO_BROWSER = 3;
 
@@ -73,6 +76,30 @@ class PHS_Plugin_Admin extends PHS_Plugin
                         'type'         => PHS_Params::T_BOOL,
                         'default'      => false,
                     ],
+                    'monitor_api_incoming_calls' => [
+                        'display_name' => $this->_pt('Monitor incoming calls'),
+                        'display_hint' => $this->_pt('Incoming API calls will be saved in a special monitoring table.'),
+                        'type'         => PHS_Params::T_BOOL,
+                        'default'      => false,
+                    ],
+                    'monitor_api_outgoing_calls' => [
+                        'display_name' => $this->_pt('Monitor outgoing API calls'),
+                        'display_hint' => $this->_pt('Gives option to programatically add outgoing calls to API monitoring report table.'),
+                        'type'         => PHS_Params::T_BOOL,
+                        'default'      => false,
+                    ],
+                    'monitor_api_full_request_body' => [
+                        'display_name' => $this->_pt('Log full request body'),
+                        'display_hint' => $this->_pt('Log full request body as JSON.'),
+                        'type'         => PHS_Params::T_BOOL,
+                        'default'      => false,
+                    ],
+                    'monitor_api_full_response_body' => [
+                        'display_name' => $this->_pt('Log full response body'),
+                        'display_hint' => $this->_pt('Log full response body as JSON.'),
+                        'type'         => PHS_Params::T_BOOL,
+                        'default'      => false,
+                    ],
                 ],
             ],
             'agent_jobs_group' => [
@@ -97,6 +124,42 @@ class PHS_Plugin_Admin extends PHS_Plugin
     {
         return ($settings_arr = $this->get_plugin_settings())
                && !empty($settings_arr['monitor_agent_jobs']);
+    }
+
+    /**
+     * @return bool
+     */
+    public function monitor_api_incoming_calls() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings())
+               && !empty($settings_arr['monitor_api_incoming_calls']);
+    }
+
+    /**
+     * @return bool
+     */
+    public function monitor_api_outgoing_calls() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings())
+               && !empty($settings_arr['monitor_api_outgoing_calls']);
+    }
+
+    /**
+     * @return bool
+     */
+    public function monitor_api_full_request_body() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings())
+               && !empty($settings_arr['monitor_api_full_request_body']);
+    }
+
+    /**
+     * @return bool
+     */
+    public function monitor_api_full_response_body() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings())
+               && !empty($settings_arr['monitor_api_full_response_body']);
     }
 
     /**
@@ -215,7 +278,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
                         'description' => 'Allow user to list agent jobs',
                     ],
 
-                    // API keys...
+                    // API Settings
                     PHS_Roles::ROLEU_MANAGE_API_KEYS => [
                         'name'        => 'Manage API keys',
                         'description' => 'Allow user to manage API keys',
@@ -223,6 +286,10 @@ class PHS_Plugin_Admin extends PHS_Plugin
                     PHS_Roles::ROLEU_LIST_API_KEYS => [
                         'name'        => 'List API keys',
                         'description' => 'Allow user to list API keys',
+                    ],
+                    PHS_Roles::ROLEU_API_MONITORING_REPORT => [
+                        'name'        => 'API monitoring report',
+                        'description' => 'Allow user to view API monitoring report',
                     ],
 
                     // Logs...
@@ -413,6 +480,16 @@ class PHS_Plugin_Admin extends PHS_Plugin
     public function can_admin_list_api_keys($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_LIST_API_KEYS, null, $user_data);
+    }
+
+    /**
+     * @param null|int|array $user_data
+     *
+     * @return bool
+     */
+    public function can_admin_view_api_monitoring_report($user_data = null) : bool
+    {
+        return can(PHS_Roles::ROLEU_API_MONITORING_REPORT, null, $user_data);
     }
 
     /**
@@ -744,6 +821,26 @@ class PHS_Plugin_Admin extends PHS_Plugin
         $hook_args['buffer'] = $this->quick_render_template_for_buffer('left_menu_admin', $data);
 
         return $hook_args;
+    }
+
+    /**
+     * @param  \phs\system\core\events\layout\PHS_Event_Layout  $event_obj
+     *
+     * @return bool
+     */
+    public function listen_after_left_menu_admin(PHS_Event_Layout $event_obj): bool
+    {
+        if( !($buffer = $event_obj->get_output('buffer')) ) {
+            $buffer = '';
+        }
+
+        if( !is_string($template_buffer = $this->quick_render_template_for_buffer('left_menu_admin', [])) ) {
+            $template_buffer = '';
+        }
+
+        $event_obj->set_output('buffer', $buffer.$template_buffer);
+
+        return true;
     }
 
     /**

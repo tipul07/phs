@@ -2,28 +2,22 @@
 namespace phs\plugins\admin\actions\agent;
 
 use phs\PHS;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
-use phs\system\core\models\PHS_Model_Agent_jobs;
 use phs\libraries\PHS_Paginator_exporter_library;
 use phs\system\core\models\PHS_Model_Agent_jobs_monitor;
 
 /** @property \phs\system\core\models\PHS_Model_Agent_jobs_monitor $_paginator_model */
 class PHS_Action_Report extends PHS_Action_Generic_list
 {
-    /** @var null|\phs\plugins\accounts\models\PHS_Model_Agent_jobs */
-    private ?PHS_Model_Agent_jobs $_agent_job_model = null;
-
     /** @var null|\phs\plugins\admin\PHS_Plugin_Admin */
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
     public function load_depencies()
     {
         if (!($this->_admin_plugin = PHS_Plugin_Admin::get_instance())
-         || !($this->_agent_job_model = PHS_Model_Agent_jobs::get_instance())
          || !($this->_paginator_model = PHS_Model_Agent_jobs_monitor::get_instance())) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
 
@@ -218,11 +212,7 @@ class PHS_Action_Report extends PHS_Action_Generic_list
     }
 
     /**
-     * Manages actions to be taken for current listing
-     *
-     * @param array $action Action details array
-     *
-     * @return array|bool Returns true if no error or no action taken, false if there was an error while taking action or an action array in case action was taken (with success or not)
+     * @inheritdoc
      */
     public function manage_action($action)
     {
@@ -442,7 +432,7 @@ class PHS_Action_Report extends PHS_Action_Generic_list
                         ob_start();
                         ?>
                         <a href="javascript:void(0)" onclick="phs_open_agent_job_error( '<?php echo $agent_job['id']; ?>' )"
-                           onfocus="this.blur()"><i class="fa fa-exclamation action-icons company-notes"></i></a>
+                           onfocus="this.blur()"><i class="fa fa-exclamation action-icons"></i></a>
                         <div id="phs_agent_jobs_report_error_<?php echo $agent_job['id']; ?>" style="display:none;">
                             <?php echo str_replace('  ', ' &nbsp;', nl2br($agent_job['error_message'])); ?>
                         </div>

@@ -78,7 +78,7 @@ class PHS_Action_Login extends PHS_Api_action
 
         if (!($account_arr = $accounts_model->get_details_fields(['nick' => $nick]))
          || !$accounts_model->is_active($account_arr)) {
-            return $this->send_api_error(PHS_Api_base::H_CODE_BAD_REQUEST, $accounts_model::ERR_LOGIN,
+            return $this->send_api_error(PHS_Api_base::H_CODE_NOT_FOUND, $accounts_model::ERR_LOGIN,
                 $this->_pt('Bad user or password.'));
         }
 
@@ -97,7 +97,7 @@ class PHS_Action_Login extends PHS_Api_action
                 }
             }
 
-            return $this->send_api_error(PHS_Api_base::H_CODE_BAD_REQUEST, $accounts_model::ERR_LOGIN,
+            return $this->send_api_error(PHS_Api_base::H_CODE_NOT_FOUND, $accounts_model::ERR_LOGIN,
                 $this->_pt('Bad user or password.'));
         }
 
@@ -129,7 +129,7 @@ class PHS_Action_Login extends PHS_Api_action
                 $error_msg = $this->_pt('Error logging in. Please try again.');
             }
 
-            return $this->send_api_error(PHS_Api_base::H_CODE_BAD_REQUEST, $accounts_model::ERR_LOGIN, $error_msg);
+            return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, $accounts_model::ERR_LOGIN, $error_msg);
         }
 
         if (($account_language = $accounts_model->get_account_language($account_arr))) {
