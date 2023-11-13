@@ -52,7 +52,7 @@ if (!($api_obj = PHS_Api::api_factory($api_params))) {
 
     PHS_Logger::error('Error obtaining API instance: ['.$error_msg.']', PHS_Logger::TYPE_API);
 
-    PHS_Model_Api_monitor::api_request_direct_error(
+    PHS_Model_Api_monitor::api_incoming_request_direct_error(
         PHS_Api_base::GENERIC_ERROR_CODE, 'Error obtaining API instance: '.$error_msg
     );
 
@@ -67,7 +67,7 @@ if (!$api_obj->extract_api_request_details()) {
         $error_msg = $api_obj::_t('Unknow error.');
     }
 
-    PHS_Model_Api_monitor::api_request_direct_error(
+    PHS_Model_Api_monitor::api_incoming_request_direct_error(
         PHS_Api_base::GENERIC_ERROR_CODE, 'Error initializing API: '.$error_msg
     );
 
@@ -77,7 +77,7 @@ if (!$api_obj->extract_api_request_details()) {
 
 $api_obj->set_api_credentials();
 
-PHS_Model_Api_monitor::api_incoming_request_started();
+PHS_Api::incoming_monitoring_record(PHS_Model_Api_monitor::api_incoming_request_started());
 
 if (!($action_result = $api_obj->run_route())) {
     if ($api_obj->has_error()) {
@@ -88,7 +88,7 @@ if (!($action_result = $api_obj->run_route())) {
 
     PHS_Logger::error('Error running API route: ['.$error_msg.']', PHS_Logger::TYPE_API);
 
-    PHS_Model_Api_monitor::api_request_error(
+    PHS_Model_Api_monitor::api_incoming_request_error(
         PHS_Api_base::GENERIC_ERROR_CODE, 'Error running API route: '.$error_msg
     );
 

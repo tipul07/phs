@@ -106,11 +106,11 @@ class PHS_Api extends PHS_Api_base
 
         $phs_route = PHS::validate_route_from_parts($phs_route, true);
 
-        if (PHS::st_debugging_mode()) {
-            if (!($route_str = PHS::route_from_parts($phs_route))) {
-                $route_str = 'N/A';
-            }
+        if (!($route_str = PHS::route_from_parts($phs_route))) {
+            $route_str = 'N/A';
+        }
 
+        if (PHS::st_debugging_mode()) {
             PHS_Logger::debug('Resulting PHS route ['.$route_str.']', PHS_Logger::TYPE_API);
         }
 
@@ -118,6 +118,12 @@ class PHS_Api extends PHS_Api_base
         $this->api_flow_value('api_route', $api_route);
 
         PHS::set_route($phs_route);
+
+        PHS_Model_Api_monitor::update_incoming_request_record([
+            'plugin' => $phs_route['p'] ?? null,
+            'internal_route' => $route_str,
+            'external_route' => implode('/', $final_api_route_tokens),
+        ]);
 
         if (!empty($api_route['authentication_methods'])) {
             $this->allowed_authentication_methods($api_route['authentication_methods']);
@@ -135,7 +141,7 @@ class PHS_Api extends PHS_Api_base
                 return false;
             }
 
-            PHS_Model_Api_monitor::api_request_error( $http_code, $error_msg );
+            PHS_Model_Api_monitor::api_incoming_request_error( $http_code, $error_msg );
 
             exit;
         }

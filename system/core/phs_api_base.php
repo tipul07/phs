@@ -55,6 +55,9 @@ abstract class PHS_Api_base extends PHS_Registry
     /** @var array Instance API flow */
     protected array $my_flow = [];
 
+    /** @var null|array $_incoming_monitoring_record */
+    protected static ?array $_incoming_monitoring_record = null;
+
     protected static array $AUTH_METHODS_CALLBACKS = [
         // Just method name which should be defined in $this when calling
         // @see PHS_Api_base::_api_authentication_failed()
@@ -692,6 +695,16 @@ abstract class PHS_Api_base extends PHS_Registry
     public function send_header_response(int $code, ?string $msg = null) : bool
     {
         return self::http_header_response($code, $msg, $this->http_protocol());
+    }
+
+    public static function incoming_monitoring_record(?array $record = null): ?array
+    {
+        if( $record === null ) {
+            return self::$_incoming_monitoring_record;
+        }
+
+        self::$_incoming_monitoring_record = $record;
+        return self::$_incoming_monitoring_record;
     }
 
     protected function default_response_envelope(array $response_arr, ?array $errors_arr = null) : ?array
