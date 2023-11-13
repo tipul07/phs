@@ -19,6 +19,7 @@ $can_list_agent_jobs = $admin_plugin->can_admin_list_agent_jobs();
 $can_manage_agent_jobs = $admin_plugin->can_admin_manage_agent_jobs();
 $can_list_api_keys = $admin_plugin->can_admin_list_api_keys();
 $can_manage_api_keys = $admin_plugin->can_admin_manage_api_keys();
+$can_view_api_monitoring_report = $admin_plugin->can_admin_view_api_monitoring_report();
 $can_list_roles = $admin_plugin->can_admin_list_roles();
 $can_manage_roles = $admin_plugin->can_admin_manage_roles();
 $can_list_accounts = $admin_plugin->can_admin_list_accounts();
@@ -27,7 +28,7 @@ $can_view_logs = $admin_plugin->can_admin_view_logs();
 $can_import_accounts = $admin_plugin->can_admin_import_accounts();
 
 if (!$can_list_plugins && !$can_manage_plugins
- && !$can_list_api_keys && !$can_manage_api_keys
+ && !$can_list_api_keys && !$can_manage_api_keys && !$can_view_api_monitoring_report
  && !$can_list_agent_jobs && !$can_manage_agent_jobs
  && !$can_list_roles && !$can_manage_roles
  && !$can_list_accounts && !$can_manage_accounts
@@ -112,9 +113,9 @@ if ($can_list_agent_jobs || $can_manage_agent_jobs) {
     </li>
     <?php
 }
-if ($can_list_api_keys || $can_manage_api_keys) {
+if ($can_list_api_keys || $can_manage_api_keys || $can_view_api_monitoring_report) {
     ?>
-    <li><?php echo $this::_t('API Keys'); ?>
+    <li><?php echo $this::_t('API Settings'); ?>
         <ul>
             <?php
             if ($can_manage_api_keys) {
@@ -122,8 +123,17 @@ if ($can_list_api_keys || $can_manage_api_keys) {
                 <li><a href="<?php echo PHS::url(['a' => 'api_key_add', 'p' => 'admin']); ?>"><?php echo $this::_t('Add API key'); ?></a></li>
                 <?php
             }
-    ?>
-            <li><a href="<?php echo PHS::url(['a' => 'api_keys_list', 'p' => 'admin']); ?>"><?php echo $this::_t('List API keys'); ?></a></li>
+            if ($can_list_api_keys || $can_manage_api_keys) {
+                ?>
+                <li><a href="<?php echo PHS::url(['a' => 'api_keys_list', 'p' => 'admin']); ?>"><?php echo $this::_t('List API keys'); ?></a></li>
+                <?php
+            }
+            if ($can_view_api_monitoring_report) {
+                ?>
+                <li><a href="<?php echo PHS::url(['a' => 'api_report', 'p' => 'admin']); ?>"><?php echo $this::_t('API monitoring report'); ?></a></li>
+                <?php
+            }
+            ?>
         </ul>
     </li>
     <?php

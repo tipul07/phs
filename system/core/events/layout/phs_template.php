@@ -6,10 +6,8 @@ use phs\libraries\PHS_Action;
 
 class PHS_Event_Template extends PHS_Event_Template_details
 {
-    public const
-        REGISTER = 'phs_template_register',
-    INDEX = 'phs_template_index',
-    GENERIC = 'phs_template_generic';
+    public const REGISTER = 'phs_template_register', INDEX = 'phs_template_index',
+        GENERIC = 'phs_template_generic';
 
     protected const OLD_HOOKS = [
         self::REGISTER => [PHS_Hooks::H_PAGE_REGISTER],

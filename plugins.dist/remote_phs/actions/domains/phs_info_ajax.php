@@ -40,7 +40,7 @@ class PHS_Action_Info_ajax extends PHS_Action
             return self::default_action_result();
         }
 
-        if (!$remote_plugin->can_admin_list_domains($current_user)) {
+        if (!$remote_plugin->can_admin_list_domains()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to ping remote domains.'));
 
             return self::default_action_result();

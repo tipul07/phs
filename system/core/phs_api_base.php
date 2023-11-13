@@ -1,10 +1,10 @@
 <?php
 namespace phs;
 
-use phs\PHS_Api;
-use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Registry;
+use phs\libraries\PHS_Notifications;
+use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\system\core\models\PHS_Model_Api_keys;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
@@ -55,11 +55,14 @@ abstract class PHS_Api_base extends PHS_Registry
     /** @var array Instance API flow */
     protected array $my_flow = [];
 
+    /** @var null|array $_incoming_monitoring_record */
+    protected static ?array $_incoming_monitoring_record = null;
+
     protected static array $AUTH_METHODS_CALLBACKS = [
         // Just method name which should be defined in $this when calling
         // @see PHS_Api_base::_api_authentication_failed()
         self::AUTH_METHOD_BASIC  => ['method' => '_basic_api_authentication_failed', ],
-        self::AUTH_METHOD_BEARER => ['method' => '_bearer_api_authentication_failed'],
+        self::AUTH_METHOD_BEARER => ['method' => '_bearer_api_authentication_failed', ],
     ];
 
     /** @var array API settings set in admin plugin settings */
@@ -562,7 +565,7 @@ abstract class PHS_Api_base extends PHS_Registry
             $this->my_flow = $this->_default_api_flow();
         }
 
-        $method = self::prepare_http_method($method);
+        $method = self::_prepare_http_method($method);
         if (empty($method)
          || !in_array($method, $this->allowed_http_methods(), true)) {
             $this->set_error(self::ERR_HTTP_METHOD, self::_t('HTTP method %s not allowed.', $method));
@@ -694,6 +697,16 @@ abstract class PHS_Api_base extends PHS_Registry
         return self::http_header_response($code, $msg, $this->http_protocol());
     }
 
+    public static function incoming_monitoring_record(?array $record = null): ?array
+    {
+        if( $record === null ) {
+            return self::$_incoming_monitoring_record;
+        }
+
+        self::$_incoming_monitoring_record = $record;
+        return self::$_incoming_monitoring_record;
+    }
+
     protected function default_response_envelope(array $response_arr, ?array $errors_arr = null) : ?array
     {
         if (!array_key_exists('response_status', $response_arr)
@@ -808,6 +821,8 @@ abstract class PHS_Api_base extends PHS_Registry
             $this->api_flow_value('api_session_data', false);
         }
 
+        PHS::user_logged_in(true);
+
         return null;
     }
 
@@ -884,6 +899,8 @@ abstract class PHS_Api_base extends PHS_Registry
             $this->api_flow_value('api_key_user_id', 0);
             $this->api_flow_value('api_account_data', false);
         }
+
+        PHS::user_logged_in(true);
 
         return null;
     }
@@ -1063,7 +1080,7 @@ abstract class PHS_Api_base extends PHS_Registry
      *
      * @return string
      */
-    public static function prepare_http_method(string $method) : string
+    protected static function _prepare_http_method(string $method) : string
     {
         return strtolower(trim($method));
     }
@@ -1096,7 +1113,7 @@ abstract class PHS_Api_base extends PHS_Registry
      * @return array{"allow_api_calls": bool, "allow_api_calls_over_http": bool,
      *      "api_can_simulate_web": bool, "allow_bearer_token_authentication": bool}
      */
-    public static function default_framework_api_settings() : array
+    private static function _default_framework_api_settings() : array
     {
         return [
             'allow_api_calls'                   => false,
@@ -1109,16 +1126,16 @@ abstract class PHS_Api_base extends PHS_Registry
     /**
      * @return array
      */
-    public static function get_framework_api_settings() : array
+    private static function _get_framework_api_settings() : array
     {
         if (!empty(self::$_framework_settings)) {
             return self::$_framework_settings;
         }
 
-        self::$_framework_settings = self::default_framework_api_settings();
+        self::$_framework_settings = self::_default_framework_api_settings();
 
         /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-        if (!($admin_plugin = PHS::load_plugin('admin'))
+        if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($admin_plugin_settings = $admin_plugin->get_plugin_settings())) {
             return self::$_framework_settings;
         }
@@ -1136,7 +1153,7 @@ abstract class PHS_Api_base extends PHS_Registry
      */
     public static function framework_allows_api_calls() : bool
     {
-        return ($settings = self::get_framework_api_settings()) && !empty($settings['allow_api_calls']);
+        return ($settings = self::_get_framework_api_settings()) && !empty($settings['allow_api_calls']);
     }
 
     /**
@@ -1144,7 +1161,7 @@ abstract class PHS_Api_base extends PHS_Registry
      */
     public static function framework_allows_api_calls_over_http() : bool
     {
-        return ($settings = self::get_framework_api_settings()) && !empty($settings['allow_api_calls_over_http']);
+        return ($settings = self::_get_framework_api_settings()) && !empty($settings['allow_api_calls_over_http']);
     }
 
     /**
@@ -1152,7 +1169,7 @@ abstract class PHS_Api_base extends PHS_Registry
      */
     public static function framework_api_can_simulate_web() : bool
     {
-        return ($settings = self::get_framework_api_settings()) && !empty($settings['api_can_simulate_web']);
+        return ($settings = self::_get_framework_api_settings()) && !empty($settings['api_can_simulate_web']);
     }
 
     /**
@@ -1160,7 +1177,7 @@ abstract class PHS_Api_base extends PHS_Registry
      */
     public static function framework_allow_bearer_token_authentication() : bool
     {
-        return ($settings = self::get_framework_api_settings()) && !empty($settings['allow_bearer_token_authentication']);
+        return ($settings = self::_get_framework_api_settings()) && !empty($settings['allow_bearer_token_authentication']);
     }
 
     /**
