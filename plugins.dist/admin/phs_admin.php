@@ -278,7 +278,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
                         'description' => 'Allow user to list agent jobs',
                     ],
 
-                    // API keys...
+                    // API Settings
                     PHS_Roles::ROLEU_MANAGE_API_KEYS => [
                         'name'        => 'Manage API keys',
                         'description' => 'Allow user to manage API keys',
@@ -286,6 +286,10 @@ class PHS_Plugin_Admin extends PHS_Plugin
                     PHS_Roles::ROLEU_LIST_API_KEYS => [
                         'name'        => 'List API keys',
                         'description' => 'Allow user to list API keys',
+                    ],
+                    PHS_Roles::ROLEU_API_MONITORING_REPORT => [
+                        'name'        => 'API monitoring report',
+                        'description' => 'Allow user to view API monitoring report',
                     ],
 
                     // Logs...
@@ -476,6 +480,16 @@ class PHS_Plugin_Admin extends PHS_Plugin
     public function can_admin_list_api_keys($user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_LIST_API_KEYS, null, $user_data);
+    }
+
+    /**
+     * @param null|int|array $user_data
+     *
+     * @return bool
+     */
+    public function can_admin_view_api_monitoring_report($user_data = null) : bool
+    {
+        return can(PHS_Roles::ROLEU_API_MONITORING_REPORT, null, $user_data);
     }
 
     /**

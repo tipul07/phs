@@ -254,11 +254,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
     }
 
     /**
-     * Manages actions to be taken for current listing
-     *
-     * @param array $action Action details array
-     *
-     * @return array|bool Returns true if no error or no action taken, false if there was an error while taking action or an action array in case action was taken (with success or not)
+     * @inheritdoc
      */
     public function manage_action($action)
     {
@@ -653,7 +649,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                         ob_start();
                         ?>
                         <a href="javascript:void(0)" onclick="phs_open_agent_job_last_error( '<?php echo $agent_job['id']; ?>' )"
-                           onfocus="this.blur()"><i class="fa fa-exclamation action-icons company-notes"></i></a>
+                           onfocus="this.blur()"><i class="fa fa-exclamation action-icons"></i></a>
                         <div id="phs_agent_jobs_agent_last_error_<?php echo $agent_job['id']; ?>" style="display:none;">
                             <?php echo str_replace('  ', ' &nbsp;', nl2br($agent_job['last_error'])); ?>
                         </div>

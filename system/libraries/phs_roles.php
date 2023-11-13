@@ -11,16 +11,17 @@ class PHS_Roles extends PHS_Registry
     public const ROLE_GUEST = 'phs_guest', ROLE_MEMBER = 'phs_member', ROLE_OPERATOR = 'phs_operator', ROLE_ADMIN = 'phs_admin';
 
     public const ROLEU_CONTACT_US = 'phs_contact_us', ROLEU_REGISTER = 'phs_register',
-    ROLEU_MANAGE_ROLES = 'phs_manage_roles', ROLEU_LIST_ROLES = 'phs_list_roles',
-    ROLEU_MANAGE_PLUGINS = 'phs_manage_plugins', ROLEU_LIST_PLUGINS = 'phs_list_plugins',
-    ROLEU_EXPORT_PLUGINS_SETTINGS = 'phs_export_plugins_settings',
-    ROLEU_IMPORT_PLUGINS_SETTINGS = 'phs_import_plugins_settings',
-    ROLEU_MANAGE_ACCOUNTS = 'phs_manage_accounts', ROLEU_LIST_ACCOUNTS = 'phs_list_accounts',
-    ROLEU_LOGIN_SUBACCOUNT = 'phs_login_subaccount',
-    ROLEU_EXPORT_ACCOUNTS = 'phs_accounts_export', ROLEU_IMPORT_ACCOUNTS = 'phs_accounts_import',
-    ROLEU_MANAGE_AGENT_JOBS = 'phs_manage_agent_jobs', ROLEU_LIST_AGENT_JOBS = 'phs_list_agent_jobs',
-    ROLEU_MANAGE_API_KEYS = 'phs_manage_api_keys', ROLEU_LIST_API_KEYS = 'phs_list_api_keys',
-    ROLEU_VIEW_LOGS = 'phs_view_logs';
+        ROLEU_MANAGE_ROLES = 'phs_manage_roles', ROLEU_LIST_ROLES = 'phs_list_roles',
+        ROLEU_MANAGE_PLUGINS = 'phs_manage_plugins', ROLEU_LIST_PLUGINS = 'phs_list_plugins',
+        ROLEU_EXPORT_PLUGINS_SETTINGS = 'phs_export_plugins_settings',
+        ROLEU_IMPORT_PLUGINS_SETTINGS = 'phs_import_plugins_settings',
+        ROLEU_MANAGE_ACCOUNTS = 'phs_manage_accounts', ROLEU_LIST_ACCOUNTS = 'phs_list_accounts',
+        ROLEU_LOGIN_SUBACCOUNT = 'phs_login_subaccount',
+        ROLEU_EXPORT_ACCOUNTS = 'phs_accounts_export', ROLEU_IMPORT_ACCOUNTS = 'phs_accounts_import',
+        ROLEU_MANAGE_AGENT_JOBS = 'phs_manage_agent_jobs', ROLEU_LIST_AGENT_JOBS = 'phs_list_agent_jobs',
+        ROLEU_MANAGE_API_KEYS = 'phs_manage_api_keys', ROLEU_LIST_API_KEYS = 'phs_list_api_keys',
+        ROLEU_API_MONITORING_REPORT = 'phs_api_monitor_report',
+        ROLEU_VIEW_LOGS = 'phs_view_logs';
 
     /** @var bool|\phs\system\core\models\PHS_Model_Roles */
     private static $_role_model = false;

@@ -8,6 +8,7 @@ use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Logger;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\traits\PHS_Model_Trait_statuses;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Model_Api_monitor extends PHS_Model
 {
@@ -161,6 +162,7 @@ class PHS_Model_Api_monitor extends PHS_Model
                         'type'    => self::FTYPE_VARCHAR,
                         'length'  => 50,
                         'default' => null,
+                        'index' => true,
                     ],
                     'internal_route' => [
                         'type'    => self::FTYPE_VARCHAR,
@@ -176,6 +178,7 @@ class PHS_Model_Api_monitor extends PHS_Model
                         'type'    => self::FTYPE_VARCHAR,
                         'length'  => 255,
                         'default' => null,
+                        'index' => true,
                     ],
                     'request_time' => [
                         'type'    => self::FTYPE_DATETIME,
@@ -193,6 +196,7 @@ class PHS_Model_Api_monitor extends PHS_Model
                         'type'    => self::FTYPE_INT,
                         'default' => 0,
                         'comment' => 'HTTP response code',
+                        'index' => true,
                     ],
                     'error_message' => [
                         'type'    => self::FTYPE_TEXT,
@@ -551,6 +555,46 @@ class PHS_Model_Api_monitor extends PHS_Model
         return self::_update_api_monitor_record($new_fields_arr, $force_record);
     }
     //endregion Outgoing monitoring
+
+    /**
+     * @inheritdoc
+     */
+    protected function get_count_list_common_params($params = false)
+    {
+        if (empty($params['flags']) || !is_array($params['flags'])) {
+            return $params;
+        }
+
+        if (empty($params['db_fields'])) {
+            $params['db_fields'] = '';
+        }
+
+        $model_table = $this->get_flow_table_name($params);
+        foreach ($params['flags'] as $flag) {
+            switch ($flag) {
+                case 'include_account_details':
+
+                    if (!($accounts_model = PHS_Model_Accounts::get_instance())
+                        || !($accounts_table = $accounts_model->get_flow_table_name())) {
+                        continue 2;
+                    }
+
+                    $params['db_fields'] .= ', `'.$accounts_table.'`.nick AS account_nick, '
+                                            .' `'.$accounts_table.'`.email AS account_email, '
+                                            .' `'.$accounts_table.'`.level AS account_level, '
+                                            .' `'.$accounts_table.'`.deleted AS account_deleted, '
+                                            .' `'.$accounts_table.'`.lastlog AS account_lastlog, '
+                                            .' `'.$accounts_table.'`.lastip AS account_lastip, '
+                                            .' `'.$accounts_table.'`.status AS account_status, '
+                                            .' `'.$accounts_table.'`.status_date AS account_status_date, '
+                                            .' `'.$accounts_table.'`.cdate AS account_cdate ';
+                    $params['join_sql'] .= ' LEFT JOIN `'.$accounts_table.'` ON `'.$accounts_table.'`.id = `'.$model_table.'`.account_id ';
+                break;
+            }
+        }
+
+        return $params;
+    }
 
     protected function get_insert_prepare_params_api_monitor($params)
     {
