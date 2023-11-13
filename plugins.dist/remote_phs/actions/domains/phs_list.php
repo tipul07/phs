@@ -69,7 +69,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return self::default_action_result();
         }
 
-        if (!$this->_remote_plugin->can_admin_list_domains($current_user)) {
+        if (!$this->_remote_plugin->can_admin_list_domains()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
@@ -91,7 +91,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return false;
         }
 
-        if (!$this->_remote_plugin->can_admin_list_domains($current_user)) {
+        if (!$this->_remote_plugin->can_admin_list_domains()) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list remote PHS domains.'));
 
             return false;
@@ -302,11 +302,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
     }
 
     /**
-     * Manages actions to be taken for current listing
-     *
-     * @param array $action Action details array
-     *
-     * @return array|bool Returns true if no error or no action taken, false if there was an error while taking action or an action array in case action was taken (with success or not)
+     * @inheritdoc
      */
     public function manage_action($action)
     {

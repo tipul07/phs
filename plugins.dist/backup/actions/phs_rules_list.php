@@ -257,11 +257,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
     }
 
     /**
-     * Manages actions to be taken for current listing
-     *
-     * @param array $action Action details array
-     *
-     * @return array|bool Returns true if no error or no action taken, false if there was an error while taking action or an action array in case action was taken (with success or not)
+     * @inheritdoc
      */
     public function manage_action($action)
     {

@@ -4,7 +4,7 @@ namespace phs\libraries;
 use phs\PHS_Api;
 use phs\PHS_Scope;
 use phs\PHS_Api_base;
-use phs\libraries\PHS_Params;
+use phs\system\core\models\PHS_Model_Api_monitor;
 
 abstract class PHS_Api_action extends PHS_Action
 {
@@ -86,6 +86,18 @@ abstract class PHS_Api_action extends PHS_Action
 
             if (!$api_obj->send_header_response($response_data['http_code'])) {
                 return false;
+            }
+
+            if ($scope === PHS_Scope::SCOPE_API ) {
+                // We don't have now the full request body, log only HTTP code
+                if (!empty($response_data['http_code_is_error']) ) {
+                    PHS_Model_Api_monitor::api_incoming_request_error( $response_data['http_code'],
+                        (!empty($response_data['error']['code'])?$response_data['error']['code'].': ':'').
+                        ($response_data['error']['message'] ?? 'Unknown error.')
+                    );
+                } else {
+                    PHS_Model_Api_monitor::api_incoming_request_success($response_data['http_code']);
+                }
             }
         } elseif ($scope === PHS_Scope::SCOPE_AJAX) {
             if (!empty($response_data['http_code_is_error'])

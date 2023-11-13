@@ -22,6 +22,7 @@ class PHS_Roles extends PHS_Registry
     ROLEU_EXPORT_ACCOUNTS = 'phs_accounts_export', ROLEU_IMPORT_ACCOUNTS = 'phs_accounts_import',
     ROLEU_MANAGE_AGENT_JOBS = 'phs_manage_agent_jobs', ROLEU_LIST_AGENT_JOBS = 'phs_list_agent_jobs',
     ROLEU_MANAGE_API_KEYS = 'phs_manage_api_keys', ROLEU_LIST_API_KEYS = 'phs_list_api_keys',
+    ROLEU_API_MONITORING_REPORT = 'phs_api_monitor_report',
     ROLEU_VIEW_LOGS = 'phs_view_logs',
 
     // Tenant role units
