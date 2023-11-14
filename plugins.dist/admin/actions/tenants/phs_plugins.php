@@ -169,7 +169,11 @@ class PHS_Action_Plugins extends PHS_Api_action
                  || !($plugin_obj = PHS::load_plugin($id_details['plugin_name']))) {
                     PHS_Notifications::add_error_notice($this->_pt('Please provide a valid plugin id.'));
                 } else {
-                    return $this->send_api_success(['registry' => $plugin_obj->get_plugin_registry($tenant_id)]);
+                    if (!empty($do_get_registry) ) {
+                        return $this->send_api_success(['registry' => $plugin_obj->get_plugin_registry($tenant_id)]);
+                    }
+
+                    return $this->send_api_success(['settings' => $plugin_obj->get_plugin_settings_as_strings_array($tenant_id)]);
                 }
             }
 

@@ -95,8 +95,8 @@ abstract class PHS_Instantiable extends PHS_Registry
             return null;
         }
 
-        if (!empty($this->_parent_plugin)) {
-            return $this->_parent_plugin;
+        if (($plugin_obj = $this->parent_plugin())) {
+            return $plugin_obj;
         }
 
         if (!($plugin_name = $this->instance_plugin_name())
@@ -108,6 +108,8 @@ abstract class PHS_Instantiable extends PHS_Registry
 
             return null;
         }
+
+        $this->parent_plugin($plugin_obj);
 
         return $plugin_obj;
     }
@@ -129,19 +131,36 @@ abstract class PHS_Instantiable extends PHS_Registry
     }
 
     /**
+     * @param null|int $tenant_id
+     * @param bool $force
      * @return array Array with settings of plugin
      */
-    public function get_plugin_settings() : array
+    public function get_plugin_settings(?int $tenant_id = null, bool $force = false) : array
     {
         if (!($plugin_obj = $this->get_plugin_instance())) {
             return [];
         }
 
-        if (!($plugins_settings = $plugin_obj->get_db_settings())) {
+        if (!($plugins_settings = $plugin_obj->get_db_settings($tenant_id, $force))) {
             $plugins_settings = $plugin_obj->get_default_settings();
         }
 
         return $plugins_settings;
+    }
+
+    /**
+     * @param null|int $tenant_id
+     * @param bool $force
+     * @return array Array with settings of plugin
+     */
+    public function get_plugin_settings_as_strings_array(?int $tenant_id = null, bool $force = false) : array
+    {
+        if (!($plugin_obj = $this->get_plugin_instance())
+            || !($strings_arr = $plugin_obj->get_db_settings_as_strings($tenant_id, $force))) {
+            return [];
+        }
+
+        return $strings_arr;
     }
 
     /**

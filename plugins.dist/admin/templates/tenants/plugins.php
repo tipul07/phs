@@ -135,7 +135,7 @@ function tenant_changed()
             {{/if}}
         </td>
         <td class="text-center">
-            <a href="javascript:void(0)"><i class="fa fa-wrench action-icons" title="<?php echo $this->_pte('Plugin Settings'); ?>"></i></a>
+            <a href="javascript:void(0)" on-click="@this.get_plugin_settings(.)"><i class="fa fa-wrench action-icons" title="<?php echo $this->_pte('Plugin Settings'); ?>"></i></a>
             {{#if .plugin_name }}
             <a href="javascript:void(0)" on-click="@this.get_plugin_registry(.)"><i class="fa fa-database action-icons" title="<?php echo $this->_pte('Plugin Registry'); ?>"></i></a>
             {{/if}}
@@ -173,6 +173,26 @@ function tenant_changed()
         <p class="p-5 text-center"><?php echo $this->_pt('No registry data yet...'); ?></p>
         {{/each}}
     </div>
+    <div style="display: none;" id="phs_plugins_settings_container">
+        <p>Settings for plugin <strong>{{plugin_details.name}}</strong> on tenant <strong>{{tenant_name}}</strong>.</p>
+        {{#if plugin_settings.length }}
+        <table class="table table-hover"><tbody>
+        {{#each plugin_settings}}
+        <tr>
+            <td>{{@index+1}}</td>
+            <td>
+                <strong title="{{.s_key}}">{{.s_title}}</strong>
+                {{#if .s_hint.length }}<br/><small>{{{.s_hint}}}</small>{{/if}}
+            </td>
+            <td>=</td>
+            <td><code title="<?php echo $this->_pte('Settings value'); ?>">{{{.s_value}}}</code></td>
+        </tr>
+        {{/each}}
+        </tbody></table>
+        {{ else }}
+        <p class="p-5 text-center"><?php echo $this->_pt('No settings yet...'); ?></p>
+        {{/if}}
+    </div>
 </script>
 <script type="text/javascript">
     let statuses_filter_arr = <?php echo @json_encode($this->view_var('statuses_filter_arr') ?: []); ?>;
@@ -198,6 +218,7 @@ function tenant_changed()
                     selected_plugins: null,
 
                     plugin_registry: [],
+                    plugin_settings: [],
                     plugin_details: null
                 }
             },
@@ -419,7 +440,7 @@ function tenant_changed()
                 let request_data = {};
                 request_data.plugin_id = plugin_obj.id;
                 request_data.tenant_id = this.get("tenant_id");
-                request_data.do_get_registry = 2;
+                request_data.do_get_registry = 1;
 
                 let self = this;
                 this._send_action_request(request_data,
@@ -436,6 +457,9 @@ function tenant_changed()
                 });
             },
 
+            _reset_registry_data: function() {
+                this.set("plugin_registry", []);
+            },
             _set_registry_data: function( registry_data ) {
                 let new_registry_data = [];
                 let el = null;
@@ -469,9 +493,103 @@ function tenant_changed()
                     height: 500,
                     title: "<?php echo $this->_pt('%s registry for %s tenant', '" + plugin_obj.name + "', '" + tenant_name + "'); ?>",
                     resizable: true,
+                    source_not_cloned: true,
                     close_outside_click: false,
-                    source_obj: container_obj
+                    source_obj: container_obj,
+                    onbeforeclose: () => this._hide_registry_dialogue()
                 });
+            },
+            _hide_registry_dialogue: function() {
+                this._reset_registry_data();
+                let container_obj = $("#phs_plugins_registry_container");
+                if( !container_obj )
+                    return;
+
+                container_obj.hide();
+            },
+
+            get_plugin_settings: function(plugin_obj) {
+
+                if( typeof plugin_obj === "undefined"
+                    || !plugin_obj
+                    || typeof plugin_obj.id === "undefined"
+                    || !plugin_obj.id ) {
+                    this.phs_add_error_message("<?php echo $this->_pt('Please select plugin for which you want to see settings.'); ?>", 10);
+                    return;
+                }
+
+                let request_data = {};
+                request_data.plugin_id = plugin_obj.id;
+                request_data.tenant_id = this.get("tenant_id");
+                request_data.do_get_settings = 1;
+
+                let self = this;
+                this._send_action_request(request_data,
+                    function(response){
+                        if( typeof response === "undefined"
+                            || !response
+                            || typeof response.settings === "undefined" ) {
+                            self.phs_add_error_message("<?php echo $this->_pt('Error obtaining plugin settings. Please try again.'); ?>", 10);
+                            return;
+                        }
+
+                        self._set_settings_data(response.settings);
+                        self._display_settings_dialogue( plugin_obj );
+                });
+            },
+
+            _reset_settings_data: function() {
+                this.set("plugin_settings", []);
+            },
+            _set_settings_data: function( settings_data ) {
+                let new_settings_data = [];
+                let el = null;
+                for( el in settings_data ) {
+                    if( !settings_data.hasOwnProperty(el) ) {
+                        continue;
+                    }
+
+                    new_settings_data.push({
+                        s_key: el,
+                        s_title: settings_data[el].title,
+                        s_hint: settings_data[el].hint,
+                        s_placeholder: settings_data[el].placeholder,
+                        s_value: settings_data[el].value
+                    })
+                }
+
+                this.set("plugin_settings", new_settings_data);
+            },
+
+            _display_settings_dialogue: function ( plugin_obj ) {
+                let tenant_name = this.get("tenant_name");
+                let container_obj = $("#phs_plugins_settings_container");
+                if( !container_obj )
+                    return;
+
+                this.set("plugin_details", plugin_obj);
+
+                container_obj.show();
+
+                PHS_JSEN.createAjaxDialog( {
+                    suffix: 'phs_plugins_settings_',
+                    width: 700,
+                    height: 600,
+                    title: "<?php echo $this->_pt('%s settings for %s tenant', '" + plugin_obj.name + "', '" + tenant_name + "'); ?>",
+                    resizable: true,
+                    source_not_cloned: true,
+                    close_outside_click: false,
+                    source_obj: container_obj,
+                    onbeforeclose: () => this._hide_settings_dialogue()
+                });
+            },
+            _hide_settings_dialogue: function() {
+                this._reset_settings_data();
+                let container_obj = $("#phs_plugins_settings_container");
+                if( !container_obj )
+                    return;
+
+                container_obj.hide();
             },
 
             _send_action_request: function(form_data, success_callback, failure_callback) {
