@@ -824,17 +824,17 @@ class PHS_Plugin_Admin extends PHS_Plugin
     }
 
     /**
-     * @param  \phs\system\core\events\layout\PHS_Event_Layout  $event_obj
+     * @param \phs\system\core\events\layout\PHS_Event_Layout $event_obj
      *
      * @return bool
      */
-    public function listen_after_left_menu_admin(PHS_Event_Layout $event_obj): bool
+    public function listen_after_left_menu_admin(PHS_Event_Layout $event_obj) : bool
     {
-        if( !($buffer = $event_obj->get_output('buffer')) ) {
+        if (!($buffer = $event_obj->get_output('buffer'))) {
             $buffer = '';
         }
 
-        if( !is_string($template_buffer = $this->quick_render_template_for_buffer('left_menu_admin', [])) ) {
+        if (!is_string($template_buffer = $this->quick_render_template_for_buffer('left_menu_admin', []))) {
             $template_buffer = '';
         }
 

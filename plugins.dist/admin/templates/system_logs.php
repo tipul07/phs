@@ -91,7 +91,7 @@ function send_server_request( data )
     var defaults = {
         command           : 'display_file',
         log_file          : "",
-        log_lines         : <?php echo !empty($log_lines) ? (int) $log_lines : 20; ?>,
+        log_lines         : <?php echo !empty($log_lines) ? (int)$log_lines : 20; ?>,
         search_term       : ""
     };
 

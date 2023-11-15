@@ -1254,29 +1254,21 @@ class PHS_Utils extends PHS_Language
             $params = [];
         }
 
-        // Default CURL params...
-        if (empty($params['userpass']) || !is_array($params['userpass']) || !isset($params['userpass']['user']) || !isset($params['userpass']['pass'])) {
-            $params['userpass'] = false;
+        $params['ssl_verification'] = !empty($params['ssl_verification']);
+        $params['follow_location'] = !empty($params['follow_location']);
+        $params['timeout'] = (int)($params['timeout'] ?? 30);
+
+        if (empty($params['userpass']) || !is_array($params['userpass'])
+            || !isset($params['userpass']['user']) || !isset($params['userpass']['pass'])) {
+            $params['userpass'] = null;
         }
 
-        if (empty($params['follow_location'])) {
-            $params['follow_location'] = false;
-        } else {
-            $params['follow_location'] = (!empty($params['follow_location']));
-        }
-
-        if (empty($params['timeout'])) {
-            $params['timeout'] = 30;
-        } else {
-            $params['timeout'] = (int)$params['timeout'];
-        }
         if (empty($params['user_agent'])) {
             $params['user_agent'] = 'PHS/PHS_Utils v'.PHS_VERSION;
         }
         if (empty($params['extra_get_params']) || !is_array($params['extra_get_params'])) {
             $params['extra_get_params'] = [];
         }
-        // END Default CURL params...
 
         if (!isset($params['raw_post_str'])) {
             $params['raw_post_str'] = '';
@@ -1290,7 +1282,7 @@ class PHS_Utils extends PHS_Language
 
         // Convert old format to new format...
         if (!empty($params['header_arr'])) {
-            foreach ($params['header_arr'] as $knti => $header_txt) {
+            foreach ($params['header_arr'] as $header_txt) {
                 $header_value_arr = explode(':', $header_txt);
                 $key = trim($header_value_arr[0]);
                 $val = '';
@@ -1308,12 +1300,9 @@ class PHS_Utils extends PHS_Language
         $post_string = '';
         if (!empty($params['post_arr']) && is_array($params['post_arr'])) {
             foreach ($params['post_arr'] as $key => $val) {
-                if (!is_scalar($val)) {
-                    continue;
-                }
-
                 // workaround for '@/local/file' fields...
-                if (substr($val, 0, 1) === '@') {
+                if (!is_scalar($val)
+                    || substr($val, 0, 1) === '@') {
                     $post_string = $params['post_arr'];
                     break;
                 }
@@ -1376,8 +1365,10 @@ class PHS_Utils extends PHS_Language
             @curl_setopt($ch, constant('CURLINFO_HEADER_OUT'), true);
         }
         @curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        @curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        @curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        if (empty($params['ssl_verification'])) {
+            @curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            @curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        }
         @curl_setopt($ch, CURLOPT_FOLLOWLOCATION, $params['follow_location']);
         @curl_setopt($ch, CURLOPT_TIMEOUT, $params['timeout']);
 
