@@ -88,12 +88,12 @@ abstract class PHS_Api_action extends PHS_Action
                 return false;
             }
 
-            if ($scope === PHS_Scope::SCOPE_API ) {
+            if ($scope === PHS_Scope::SCOPE_API) {
                 // We don't have now the full request body, log only HTTP code
-                if (!empty($response_data['http_code_is_error']) ) {
-                    PHS_Model_Api_monitor::api_incoming_request_error( $response_data['http_code'],
-                        (!empty($response_data['error']['code'])?$response_data['error']['code'].': ':'').
-                        ($response_data['error']['message'] ?? 'Unknown error.')
+                if (!empty($response_data['http_code_is_error'])) {
+                    PHS_Model_Api_monitor::api_incoming_request_error($response_data['http_code'],
+                        (!empty($response_data['error']['code']) ? $response_data['error']['code'].': ' : '')
+                        .($response_data['error']['message'] ?? 'Unknown error.')
                     );
                 } else {
                     PHS_Model_Api_monitor::api_incoming_request_success($response_data['http_code']);
