@@ -172,9 +172,9 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                 'display_callback'    => [$this, 'display_hide_id'],
             ],
             [
-                'column_title'     => $this->_pt('Account'),
-                'record_field'     => 'account_nick',
-                'record_api_field' => 'account_id',
+                'column_title'        => $this->_pt('Account'),
+                'record_field'        => 'account_nick',
+                'record_api_field'    => 'account_id',
                 'display_callback'    => [$this, 'display_account_name'],
                 'extra_style'         => 'width:120px;text-align:center;',
                 'extra_records_style' => 'width:120px;text-align:center;word-break:break-word;',
@@ -197,25 +197,25 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                 'invalid_value'       => $this->_pt('N/A'),
             ],
             [
-                'column_title'        => $this->_pt('Request'),
+                'column_title'          => $this->_pt('Request'),
                 'default_sort'          => 1,
-                'record_field'        => 'request_time',
+                'record_field'          => 'request_time',
                 'date_format'           => 'd-m-Y H:i:s',
                 'extra_classes'         => 'date_th',
                 'extra_records_classes' => 'date',
-                'extra_style'         => 'text-align:center;',
-                'extra_records_style' => 'text-align:center;',
-                'display_callback'    => [$this, 'display_request_details'],
+                'extra_style'           => 'text-align:center;',
+                'extra_records_style'   => 'text-align:center;',
+                'display_callback'      => [$this, 'display_request_details'],
             ],
             [
-                'column_title'        => $this->_pt('Response'),
-                'record_field'        => 'response_time',
+                'column_title'          => $this->_pt('Response'),
+                'record_field'          => 'response_time',
                 'date_format'           => 'd-m-Y H:i:s',
                 'extra_classes'         => 'date_th',
                 'extra_records_classes' => 'date',
-                'extra_style'         => 'text-align:center;',
-                'extra_records_style' => 'text-align:center;',
-                'display_callback'    => [$this, 'display_response_details'],
+                'extra_style'           => 'text-align:center;',
+                'extra_records_style'   => 'text-align:center;',
+                'display_callback'      => [$this, 'display_response_details'],
             ],
             [
                 'column_title'        => $this->_pt('HTTP Code'),
@@ -302,7 +302,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                 case $paginator_obj::CELL_RENDER_JSON:
                 case $paginator_obj::CELL_RENDER_TEXT:
                     return $params['preset_content'];
-                break;
+                    break;
             }
         }
 
@@ -336,7 +336,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                     $pretty_params['date_format'] = (!empty($params['column']['date_format']) ? $params['column']['date_format'] : false);
                     $pretty_params['request_render_type'] = $this->_paginator::CELL_RENDER_HTML;
 
-                    if(!empty($record_arr['request_time']) ) {
+                    if (!empty($record_arr['request_time'])) {
                         $cell_str = $this->_paginator->pretty_date_independent($record_arr['request_time'], $pretty_params);
                     }
 
@@ -347,12 +347,12 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                            onfocus="this.blur()"><i class="fa fa-sign-in action-icons"></i></a>
                         <div id="phs_open_api_monitor_record_request_body_<?php echo $record_arr['id']; ?>" style="display:none;">
                             <pre><?php
-                                if( ($json_arr = @json_decode($record_arr['request_body'], true)) ) {
+                                if (($json_arr = @json_decode($record_arr['request_body'], true))) {
                                     echo @json_encode($json_arr, JSON_PRETTY_PRINT);
                                 } else {
                                     echo htmlentities($record_arr['request_body']);
                                 }
-                            ?></pre>
+                        ?></pre>
                         </div>
                         <?php
                         $cell_str .= ob_get_clean();
@@ -386,7 +386,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                     $pretty_params['date_format'] = (!empty($params['column']['date_format']) ? $params['column']['date_format'] : false);
                     $pretty_params['request_render_type'] = $this->_paginator::CELL_RENDER_HTML;
 
-                    if(!empty($record_arr['response_time']) ) {
+                    if (!empty($record_arr['response_time'])) {
                         $cell_str = $this->_paginator->pretty_date_independent($record_arr['response_time'], $pretty_params);
                     }
 
@@ -402,7 +402,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                                 } else {
                                     echo htmlentities($record_arr['response_body']);
                                 }
-                            ?></pre>
+                        ?></pre>
                         </div>
                         <?php
                         $cell_str .= ob_get_clean();
@@ -426,7 +426,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
         $cell_str = $record_arr['response_code'] ?? '0';
 
         if (!empty($params['request_render_type'])
-            && (int) $params['request_render_type'] === $this->_paginator::CELL_RENDER_HTML) {
+            && (int)$params['request_render_type'] === $this->_paginator::CELL_RENDER_HTML) {
             if (!empty($record_arr['error_message'])) {
                 ob_start();
                 ?>
@@ -439,8 +439,8 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                 $cell_str .= ob_get_clean();
             }
 
-            if( empty( $record_arr['request_time'] )
-                || empty( $record_arr['response_time'] )) {
+            if (empty($record_arr['request_time'])
+                || empty($record_arr['response_time'])) {
                 $response_time = 0;
             } else {
                 $response_time = abs(seconds_passed($record_arr['response_time']) - seconds_passed($record_arr['request_time']));

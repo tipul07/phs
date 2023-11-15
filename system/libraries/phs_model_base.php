@@ -898,18 +898,24 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         // This will only create non-existing tables...
         if ($this_instance_id !== $plugins_model_id
-         && !$this->install_tables()) {
+            && !$this->install_tables()) {
             PHS_Maintenance::unlock_db_structure_read();
 
             return false;
         }
 
-        $plugin_name = $this->instance_plugin_name();
+        if (($plugin_obj = $this->get_plugin_instance())
+            && ($plugin_info = $plugin_obj->get_plugin_info())
+            && !empty($plugin_info['name'])) {
+            $plugin_name = $plugin_info['name'];
+        } else {
+            $plugin_name = $this->instance_plugin_name();
+        }
 
         if (!($db_details = $plugins_model->install_record($this_instance_id,
             $this->instance_plugin_name(), $plugin_name, $this->instance_type(), $this->instance_is_core(),
             $this->get_default_settings(), $this->get_model_version()))
-         || empty($db_details['new_data'])) {
+            || empty($db_details['new_data'])) {
             if ($plugins_model->has_error()) {
                 $this->copy_error($plugins_model);
             } else {
@@ -1296,7 +1302,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         // If it is a dry update, don't trigger custom updates
         if (!$is_dry_update
-         && !$this->custom_update($old_version, $new_version)) {
+            && !$this->custom_update($old_version, $new_version)) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_UPDATE, self::_t('Model custom update functionality failed.'));
             }
@@ -1330,7 +1336,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         $custom_after_missing_tables_updates_params = ['created_tables' => $created_tables, ];
 
         if (!$is_dry_update
-         && !$this->custom_after_missing_tables_update($old_version, $new_version, $custom_after_missing_tables_updates_params)) {
+            && !$this->custom_after_missing_tables_update($old_version, $new_version, $custom_after_missing_tables_updates_params)) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_UPDATE,
                     self::_t('Model custom after missing tables update functionality failed.'));
@@ -1353,7 +1359,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         }
 
         if (!$is_dry_update
-         && !$this->custom_after_update($old_version, $new_version)) {
+            && !$this->custom_after_update($old_version, $new_version)) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_UPDATE, self::_t('Model custom after update functionality failed.'));
             }
@@ -1367,9 +1373,17 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         PHS_Maintenance::unlock_db_structure_read();
 
+        if (($plugin_obj = $this->get_plugin_instance())
+            && ($plugin_info = $plugin_obj->get_plugin_info())
+            && !empty($plugin_info['name'])) {
+            $plugin_name = $plugin_info['name'];
+        } else {
+            $plugin_name = $this->instance_plugin_name();
+        }
+
         if (!$is_dry_update
          && (!($db_details = $this->_plugins_instance->update_record(
-             $this_instance_id, $this->instance_plugin_name(), $this->instance_is_core(), $this->get_model_version()))
+             $this_instance_id, $plugin_name, $this->instance_is_core(), $this->get_model_version()))
              || empty($db_details['new_data']))
         ) {
             if ($this->_plugins_instance->has_error()) {

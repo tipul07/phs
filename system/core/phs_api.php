@@ -122,7 +122,7 @@ class PHS_Api extends PHS_Api_base
         PHS::set_route($phs_route);
 
         PHS_Model_Api_monitor::update_incoming_request_record([
-            'plugin' => $phs_route['p'] ?? null,
+            'plugin'         => $phs_route['p'] ?? null,
             'internal_route' => $route_str,
             'external_route' => implode('/', $final_api_route_tokens),
         ]);
@@ -139,11 +139,11 @@ class PHS_Api extends PHS_Api_base
             $http_code = $authentication_failed['http_code'] ?? self::H_CODE_UNAUTHORIZED;
             $error_msg = $authentication_failed['error_msg'] ?? self::_t('Authentication failed.');
 
-            if (!$this->send_header_response($http_code,$error_msg)) {
+            if (!$this->send_header_response($http_code, $error_msg)) {
                 return false;
             }
 
-            PHS_Model_Api_monitor::api_incoming_request_error( $http_code, $error_msg );
+            PHS_Model_Api_monitor::api_incoming_request_error($http_code, $error_msg);
 
             exit;
         }

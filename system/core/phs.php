@@ -1581,7 +1581,7 @@ final class PHS extends PHS_Registry
         $action_str = (!empty($parts['a']) ? $parts['a'] : '');
         if (!empty($parts['ad'])
          && !empty($action_str)) {
-            $action_str = self::validate_action_dir_in_url(str_replace('_','/',$parts['ad'])).self::ACTION_DIR_ACTION_SEPARATOR.$action_str;
+            $action_str = self::validate_action_dir_in_url(str_replace('_', '/', $parts['ad'])).self::ACTION_DIR_ACTION_SEPARATOR.$action_str;
         }
 
         if (empty($parts['p'])) {

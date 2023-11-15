@@ -1207,15 +1207,15 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        // if (($plugin_info = $this->get_plugin_info())
-        //  && !empty($plugin_info['name'])) {
-        //     $plugin_name = $plugin_info['name'];
-        // } else {
-        //     $plugin_name = $this->instance_plugin_name();
-        // }
+        if (($plugin_info = $this->get_plugin_info())
+            && !empty($plugin_info['name'])) {
+            $plugin_name = $plugin_info['name'];
+        } else {
+            $plugin_name = $this->instance_plugin_name();
+        }
 
         if (!($db_details = $this->_plugins_instance->install_record($this_instance_id,
-            $this->instance_plugin_name(), $this->instance_plugin_name(), $this->instance_type(), $this->instance_is_core(),
+            $this->instance_plugin_name(), $plugin_name, $this->instance_type(), $this->instance_is_core(),
             $this->get_default_settings(), $this->get_plugin_version()))
          || empty($db_details['new_data'])) {
             if ($this->_plugins_instance->has_error()) {
@@ -1462,6 +1462,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         if (($models_arr = $this->get_models())) {
             foreach ($models_arr as $model_name) {
+                /** @var \phs\libraries\PHS_Model $model_obj */
                 if (!($model_obj = PHS::load_model($model_name, $this->instance_plugin_name()))) {
                     if (PHS::st_has_error()) {
                         $this->copy_static_error(self::ERR_UPDATE);
@@ -1477,7 +1478,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                 }
 
                 if (!($model_details = $model_obj->get_db_main_details(true))
-                 || empty($model_details['version'])) {
+                    || empty($model_details['version'])) {
                     $old_model_version = '0.0.0';
                 } else {
                     $old_model_version = $model_details['version'];
@@ -1486,7 +1487,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                 $current_version = $model_obj->get_model_version();
 
                 if (version_compare($old_model_version, $current_version, '==')
-                 && !$model_obj->dynamic_table_structure()) {
+                    && !$model_obj->dynamic_table_structure()) {
                     PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$model_obj->instance_name().'] Same version ['.$current_version.']...');
                     continue;
                 }
@@ -1511,7 +1512,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         // If it is a dry update, don't trigger custom updates
         if (!$is_dry_update
-         && !$this->custom_after_update($old_version, $new_version)) {
+            && !$this->custom_after_update($old_version, $new_version)) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_UPDATE, self::_t('Plugin custom after update functionality failed.'));
             }
@@ -1523,16 +1524,16 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        // if (($plugin_info = $this->get_plugin_info())
-        //  && !empty($plugin_info['name'])) {
-        //     $plugin_name = $plugin_info['name'];
-        // } else {
-        //     $plugin_name = $this->instance_plugin_name();
-        // }
+        if (($plugin_info = $this->get_plugin_info())
+            && !empty($plugin_info['name'])) {
+            $plugin_name = $plugin_info['name'];
+        } else {
+            $plugin_name = $this->instance_plugin_name();
+        }
 
         if (!$is_dry_update
          && (!($db_details = $this->_plugins_instance->update_record(
-             $this_instance_id, $this->instance_plugin_name(), $this->instance_is_core(), $this->get_plugin_version()))
+             $this_instance_id, $plugin_name, $this->instance_is_core(), $this->get_plugin_version()))
              || empty($db_details['new_data']))
         ) {
             if ($this->_plugins_instance->has_error()) {

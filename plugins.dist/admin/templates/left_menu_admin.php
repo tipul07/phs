@@ -163,7 +163,7 @@ if ($can_list_api_keys || $can_manage_api_keys || $can_view_api_monitoring_repor
                 <li><a href="<?php echo PHS::url(['a' => 'api_report', 'p' => 'admin']); ?>"><?php echo $this::_t('API monitoring report'); ?></a></li>
                 <?php
             }
-            ?>
+    ?>
         </ul>
     </li>
     <?php
