@@ -656,7 +656,7 @@ class PHS_Model_Plugins extends PHS_Model
         $plugin_details['plugin_name'] = $plugin_name;
         $plugin_details['type'] = $type;
         $plugin_details['is_core'] = ($is_core ? 1 : 0);
-        $plugin_details['settings'] = PHS_Line_params::to_string($def_settings);
+        $plugin_details['settings'] = $this->_encode_settings_field($def_settings);
         $plugin_details['version'] = $version;
         $plugin_details['status'] = self::STATUS_INSTALLED;
 
@@ -1148,10 +1148,6 @@ class PHS_Model_Plugins extends PHS_Model
             return false;
         }
 
-        if (empty($params['fields']['plugin_name'])) {
-            $params['fields']['plugin_name'] = '';
-        }
-
         $now_date = date(self::DATETIME_DB);
 
         $params['fields']['last_update'] = $params['fields']['status_date'] = $now_date;
@@ -1249,10 +1245,6 @@ class PHS_Model_Plugins extends PHS_Model
             $this->set_error(self::ERR_INSERT, self::_t('There is already a tenant plugin with this id in database.'));
 
             return false;
-        }
-
-        if (empty($params['fields']['plugin_name'])) {
-            $params['fields']['plugin_name'] = '';
         }
 
         $now_date = date(self::DATETIME_DB);

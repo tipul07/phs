@@ -41,6 +41,7 @@ class PHS_Action_Edit extends PHS_Action
 
         $is_multi_tenant = PHS::is_multi_tenant();
 
+        $tenants_model = $accounts_tenants_model = null;
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */

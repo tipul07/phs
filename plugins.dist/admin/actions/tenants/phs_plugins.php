@@ -54,6 +54,13 @@ class PHS_Action_Plugins extends PHS_Api_action
             return self::default_action_result();
         }
 
+        if(PHS_Params::_pg('plugins_activated', PHS_Params::T_INT)) {
+            PHS_Notifications::add_success_notice($this->_pt('Selected plugins activated with success.'));
+        }
+        if(PHS_Params::_pg('plugins_inactivated', PHS_Params::T_INT)) {
+            PHS_Notifications::add_success_notice($this->_pt('Selected plugins inactivated with success.'));
+        }
+
         $tenant_id = PHS_Params::_pg('tenant_id', PHS_Params::T_INT);
 
         $is_multi_tenant = PHS::is_multi_tenant();
@@ -71,14 +78,8 @@ class PHS_Action_Plugins extends PHS_Api_action
             $tenants_key_val_arr = [];
         }
 
-        $tenants_filter_arr = [];
-        $statuses_filter_arr = [];
-        if (!empty($tenants_key_val_arr)) {
-            $tenants_filter_arr = self::merge_array_assoc([0 => $this->_pt('Default')], $tenants_key_val_arr);
-        }
-        if (!empty($plugins_statuses)) {
-            $statuses_filter_arr = self::merge_array_assoc([0 => $this->_pt(' - Choose - '), -1 => $this->_pt('Not Installed')], $plugins_statuses);
-        }
+        $tenants_filter_arr = self::merge_array_assoc([0 => $this->_pt('Default')], $tenants_key_val_arr);
+        $statuses_filter_arr = self::merge_array_assoc([0 => $this->_pt(' - Choose - '), -1 => $this->_pt('Not Installed')], $plugins_statuses);
 
         $tenant_reset = false;
         if ($tenant_id

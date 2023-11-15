@@ -332,7 +332,7 @@ if (!empty($all_tenants_arr) && is_array($all_tenants_arr)) {
     $old_domain = null;
     $did_autofocus = false;
     foreach ($all_tenants_arr as $t_id => $t_arr) {
-        if ($tenants_model->is_deleted($t_arr)) {
+        if ($tenants_model && $tenants_model->is_deleted($t_arr)) {
             continue;
         }
 

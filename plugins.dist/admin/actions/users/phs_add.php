@@ -42,22 +42,20 @@ class PHS_Action_Add extends PHS_Action
 
         $is_multi_tenant = PHS::is_multi_tenant();
 
+        $tenants_model = null;
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
         /** @var \phs\system\core\models\PHS_Model_Tenants $tenants_model */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tenants $accounts_tenants_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
          || !($admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($accounts_plugin_settings = $accounts_plugin->get_plugin_settings())
          || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($roles_model = PHS_Model_Roles::get_instance())
          || !($plugins_model = PHS_Model_Plugins::get_instance())
-         || ($is_multi_tenant
-             && (!($tenants_model = PHS_Model_Tenants::get_instance())
-                 || !($accounts_tenants_model = PHS_Model_Accounts_tenants::get_instance())))
+         || ($is_multi_tenant && !($tenants_model = PHS_Model_Tenants::get_instance()))
         ) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 

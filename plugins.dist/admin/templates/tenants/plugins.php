@@ -48,6 +48,9 @@ echo $this->sub_view('ractive/bootstrap');
         <h3><?php echo $this->_pt('Manage Tenant\'s Plugins'); ?></h3>
     </section>
 
+    <?php
+    if($is_multi_tenant) {
+    ?>
     <div class="form-group row">
         <label for="tenant_id" class="col-sm-2 col-form-label"><?php echo $this->_pt('Choose tenant'); ?></label>
         <div class="col-sm-8">
@@ -64,6 +67,13 @@ echo $this->sub_view('ractive/bootstrap');
         </div>
         <input type="button" class="btn btn-primary" value="<?php echo $this->_pt('Select'); ?>" onclick="tenant_changed()" />
     </div>
+    <?php
+    } else {
+        ?>
+        <p class="text-center"><?php echo $this->_pt( 'Current platform doesn\'t support multi-tenant setup. All changes will be done on a "Default" tenant.')?></p>
+        <?php
+    }
+    ?>
 
     <div id="PHS_RActive_Tenants_plugins_target"></div>
 
@@ -376,7 +386,9 @@ function tenant_changed()
 
                         show_submit_protection("<?php echo $this->_pte('Refreshing the page...'); ?>");
                         setTimeout(function(){
-                            document.location = "<?php echo PHS::url(['p' => 'admin', 'a' => 'plugins', 'ad' => 'tenants'], ['tenant_id' => $tenant_id]); ?>";
+                            document.location = "<?php echo PHS::url(
+                                ['p' => 'admin', 'a' => 'plugins', 'ad' => 'tenants'],
+                                ['tenant_id' => $tenant_id, 'plugins_activated' => 1]); ?>";
                         }, timeout);
                     });
             },
@@ -412,7 +424,9 @@ function tenant_changed()
 
                         show_submit_protection("<?php echo $this->_pte('Refreshing the page...'); ?>");
                         setTimeout(function(){
-                            document.location = "<?php echo PHS::url(['p' => 'admin', 'a' => 'plugins', 'ad' => 'tenants'], ['tenant_id' => $tenant_id]); ?>";
+                            document.location = "<?php echo PHS::url(
+                                ['p' => 'admin', 'a' => 'plugins', 'ad' => 'tenants'],
+                                ['tenant_id' => $tenant_id, 'plugins_inactivated' => 1]); ?>";
                         }, timeout);
                     });
             },
@@ -580,7 +594,7 @@ function tenant_changed()
 
                 PHS_JSEN.createAjaxDialog( {
                     suffix: 'phs_plugins_settings_',
-                    width: 700,
+                    width: 750,
                     height: 600,
                     title: "<?php echo $this->_pt('%s settings for %s tenant', '" + plugin_obj.name + "', '" + tenant_name + "'); ?>",
                     resizable: true,

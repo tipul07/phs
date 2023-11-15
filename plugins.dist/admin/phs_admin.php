@@ -535,8 +535,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_list_tenants($user_data = null) : bool
     {
-        return PHS::is_multi_tenant()
-                && can(PHS_Roles::ROLEU_TENANTS_LIST, null, $user_data);
+        return can(PHS_Roles::ROLEU_TENANTS_LIST, null, $user_data);
     }
 
     /**
@@ -546,8 +545,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function can_admin_manage_tenants($user_data = null) : bool
     {
-        return PHS::is_multi_tenant()
-                && can(PHS_Roles::ROLEU_TENANTS_MANAGE, null, $user_data);
+        return can(PHS_Roles::ROLEU_TENANTS_MANAGE, null, $user_data);
     }
 
     /**
