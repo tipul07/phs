@@ -1535,7 +1535,7 @@ final class PHS extends PHS_Registry
         $action_str = (!empty($parts['a']) ? $parts['a'] : '');
         if (!empty($parts['ad'])
          && !empty($action_str)) {
-            $action_str = self::validate_action_dir_in_url(str_replace('_','/',$parts['ad'])).self::ACTION_DIR_ACTION_SEPARATOR.$action_str;
+            $action_str = self::validate_action_dir_in_url(str_replace('_', '/', $parts['ad'])).self::ACTION_DIR_ACTION_SEPARATOR.$action_str;
         }
 
         if (empty($parts['p'])) {
@@ -1772,14 +1772,14 @@ final class PHS extends PHS_Registry
 
         switch ($extra['for_scope']) {
             default:
-                $stock_url = self::get_interpret_url($route_arr['force_https'], $extra['for_domain']).
-                             ($query_string !== '' ? '?'.$query_string : '').
-                             $extra['anchor'];
+                $stock_url = self::get_interpret_url($route_arr['force_https'], $extra['for_domain'])
+                             .($query_string !== '' ? '?'.$query_string : '')
+                             .$extra['anchor'];
                 break;
 
             case PHS_Scope::SCOPE_AJAX:
-                $stock_url = self::get_ajax_url($route_arr['force_https'], $extra['for_domain']).
-                             ($query_string !== '' ? '?'.$query_string : '');
+                $stock_url = self::get_ajax_url($route_arr['force_https'], $extra['for_domain'])
+                             .($query_string !== '' ? '?'.$query_string : '');
                 break;
 
             case PHS_Scope::SCOPE_API:

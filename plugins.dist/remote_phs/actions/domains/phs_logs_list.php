@@ -22,7 +22,7 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
     public function load_depencies()
     {
         if (!($this->_remote_plugin = PHS_Plugin_Remote_phs::get_instance())
-            || !($this->_paginator_model = PHS_Model_Phs_remote_domains::get_instance()) ) {
+            || !($this->_paginator_model = PHS_Model_Phs_remote_domains::get_instance())) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
