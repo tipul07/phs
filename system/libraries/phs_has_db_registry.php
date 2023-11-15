@@ -19,6 +19,7 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         }
 
         if (!PHS::is_multi_tenant()
+            || !$this->is_plugin_multi_tenant()
             || ($tenant_id === null
                 && !($tenant_id = PHS_Tenants::get_current_tenant_id()))) {
             $tenant_id = 0;
@@ -40,6 +41,7 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         }
 
         if (!PHS::is_multi_tenant()
+            || !$this->is_plugin_multi_tenant()
             || ($tenant_id === null
                 && !($tenant_id = PHS_Tenants::get_current_tenant_id()))) {
             $tenant_id = 0;
@@ -55,6 +57,7 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         }
 
         if (!PHS::is_multi_tenant()
+            || !$this->is_plugin_multi_tenant()
             || ($tenant_id === null
                 && !($tenant_id = PHS_Tenants::get_current_tenant_id()))) {
             $tenant_id = 0;
@@ -84,6 +87,7 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         }
 
         if (!PHS::is_multi_tenant()
+            || !$this->is_plugin_multi_tenant()
             || ($tenant_id === null
                 && !($tenant_id = PHS_Tenants::get_current_tenant_id()))) {
             $tenant_id = 0;

@@ -11,7 +11,6 @@ if (!($admin_plugin = PHS_Plugin_Admin::get_instance())) {
     return $this->_pt('Error loading required resources.');
 }
 
-$cuser_arr = PHS::current_user();
 $is_multi_tenant = PHS::is_multi_tenant();
 
 $can_list_plugins = $admin_plugin->can_admin_list_plugins();
@@ -181,7 +180,8 @@ if ($can_view_logs) {
 
 /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
 if (($accounts_model = PHS_Model_Accounts::get_instance())
- && $accounts_model->acc_is_developer($cuser_arr)) {
+    && ($cuser_arr = PHS::user_logged_in())
+    && $accounts_model->acc_is_developer($cuser_arr)) {
     ?>
     <li><?php echo $this::_t('Framework Updates'); ?>
         <ul>

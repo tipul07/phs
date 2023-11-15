@@ -8,7 +8,7 @@ if (!($smtp_library = $this->view_var('smtp_library'))) {
     $smtp_library = false;
 }
 /** @var \phs\plugins\emails\PHS_Plugin_Emails $emails_plugin */
-if (!($emails_plugin = $this->parent_plugin())) {
+if (!($emails_plugin = $this->get_plugin_instance())) {
     $emails_plugin = false;
 }
 

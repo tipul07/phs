@@ -33,6 +33,7 @@ foreach ($plugins_arr as $key => $plugin_arr) {
 
     $plugins_arr[$key]['can_change_status'] = empty($plugin_arr['is_always_active'])
                                               && (empty($tenant_id) || !empty($plugin_arr['is_multi_tenant']));
+    $plugins_arr[$key]['can_view_registry_data'] = $plugins_arr[$key]['can_view_settings'] = (empty($tenant_id) || !empty($plugin_arr['is_multi_tenant']));
 }
 
 echo $this->sub_view('ractive/bootstrap');
@@ -135,9 +136,15 @@ function tenant_changed()
             {{/if}}
         </td>
         <td class="text-center">
-            <a href="javascript:void(0)" on-click="@this.get_plugin_settings(.)"><i class="fa fa-wrench action-icons" title="<?php echo $this->_pte('Plugin Settings'); ?>"></i></a>
             {{#if .plugin_name }}
-            <a href="javascript:void(0)" on-click="@this.get_plugin_registry(.)"><i class="fa fa-database action-icons" title="<?php echo $this->_pte('Plugin Registry'); ?>"></i></a>
+            {{#if .can_view_settings }}
+            <a href="javascript:void(0)" on-click="@this.get_plugin_settings(.)"><i class="fa fa-wrench action-icons"
+                                                                                    title="<?php echo $this->_pte('Plugin Settings'); ?>"></i></a>
+            {{/if}}
+            {{#if .can_view_registry_data }}
+            <a href="javascript:void(0)" on-click="@this.get_plugin_registry(.)"><i class="fa fa-database action-icons"
+                                                                                    title="<?php echo $this->_pte('Plugin Registry'); ?>"></i></a>
+            {{/if}}
             {{/if}}
         </td>
     </tr>

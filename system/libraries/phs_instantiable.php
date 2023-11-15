@@ -91,8 +91,12 @@ abstract class PHS_Instantiable extends PHS_Registry
     {
         $this->reset_error();
 
-        if ($this->instance_type() === self::INSTANCE_TYPE_UNDEFINED) {
+        if (($instance_type = $this->instance_type()) === self::INSTANCE_TYPE_UNDEFINED) {
             return null;
+        }
+
+        if ($instance_type === self::INSTANCE_TYPE_PLUGIN) {
+            return $this;
         }
 
         if (($plugin_obj = $this->parent_plugin())) {
@@ -161,6 +165,13 @@ abstract class PHS_Instantiable extends PHS_Registry
         }
 
         return $strings_arr;
+    }
+
+    public function is_plugin_multi_tenant(): bool
+    {
+        return PHS::is_multi_tenant()
+               && ($plugin_obj = $this->get_plugin_instance())
+               && $plugin_obj->is_multi_tenant();
     }
 
     /**

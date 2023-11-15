@@ -769,7 +769,7 @@ class PHS_Model_Plugins extends PHS_Model
         $this->reset_error();
 
         if (empty($instance_id)
-            || !self::valid_instance_id($instance_id)) {
+            || !($instance_details = self::valid_instance_id($instance_id))) {
             $this->set_error(self::ERR_REGISTRY, self::_t('Invalid instance ID.'));
 
             return null;
