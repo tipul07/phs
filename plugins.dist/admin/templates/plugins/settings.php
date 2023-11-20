@@ -8,9 +8,11 @@ use phs\libraries\PHS_Plugin;
 use phs\system\core\views\PHS_View;
 use phs\libraries\PHS_Has_db_settings;
 
+/** @var null|\phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
 /** @var null|\phs\system\core\models\PHS_Model_Tenants $tenants_model */
 /** @var null|\phs\system\core\models\PHS_Model_Plugins $plugins_model */
 if (!($context_arr = $this->view_var('context_arr'))
+    || !($admin_plugin = $this->view_var('admin_plugin'))
     || !($tenants_model = $this->view_var('tenants_model'))
     || !($plugins_model = $this->view_var('plugins_model'))
 ) {
@@ -181,6 +183,11 @@ foreach ($models_arr as $m_id => $m_name) {
             ?><p class="text-center"><?php
             echo $this->_pt('For selected tenant, current plugin status is %s.',
                 '<strong>'.($tenant_status_arr['title'] ?? 'N/A').'</strong>');
+
+            if( $admin_plugin->can_admin_manage_plugins() ) {
+                ?> - <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'plugins', 'ad' => 'tenants'],
+                    ['tenant_id' => $tenant_id])?>"><?php echo $this->_pt('Manage plugins for this tenant')?></a><?php
+            }
             ?></p><?php
         }
 

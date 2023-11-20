@@ -11,6 +11,8 @@ if (!($plugins_model = $this->view_var('plugins_model'))) {
 
 $tenant_id = $this->view_var('tenant_id') ?: 0;
 
+$can_manage_plugins = (bool)$this->view_var('can_manage_plugins');
+
 $is_multi_tenant = $this->view_var('is_multi_tenant') ?? false;
 $tenants_key_val_arr = $this->view_var('tenants_key_val_arr') ?: [];
 $plugins_statuses = $this->view_var('plugins_statuses') ?: [];
@@ -148,12 +150,14 @@ function tenant_changed()
         <td class="text-center">
             {{#if .plugin_name }}
             {{#if .can_view_settings }}
-            <a href="javascript:void(0)" on-click="@this.get_plugin_settings(.)"><i class="fa fa-wrench action-icons"
-                                                                                    title="<?php echo $this->_pte('Plugin Settings'); ?>"></i></a>
+            <a href="javascript:void(0)" onclick="this.blur()"
+               on-click="@this.get_plugin_settings(.)"><i class="fa fa-wrench action-icons"
+                                                          title="<?php echo $this->_pte('Plugin Settings'); ?>"></i></a>
             {{/if}}
             {{#if .can_view_registry_data }}
-            <a href="javascript:void(0)" on-click="@this.get_plugin_registry(.)"><i class="fa fa-database action-icons"
-                                                                                    title="<?php echo $this->_pte('Plugin Registry'); ?>"></i></a>
+            <a href="javascript:void(0)" onclick="this.blur()"
+               on-click="@this.get_plugin_registry(.)"><i class="fa fa-database action-icons"
+                                                          title="<?php echo $this->_pte('Plugin Registry'); ?>"></i></a>
             {{/if}}
             {{/if}}
         </td>
@@ -166,9 +170,9 @@ function tenant_changed()
     </tbody>
     </table>
     <div>
-        <div><small>Selected {{selected_plugins_length}} plugins...</small></div>
+        <div><small><?php echo $this->_pt( 'Selected %s plugins...', '{{selected_plugins_length}}' )?></small></div>
         {{#if !all_selected_visible }}
-        <div class="alert alert-danger" role="alert">There are selected plugins which are not visible!</div>
+        <div class="alert alert-danger" role="alert"><?php echo $this->_pt( 'There are selected plugins which are not visible!' )?></div>
         {{/if}}
     </div>
     <div>
@@ -181,7 +185,13 @@ function tenant_changed()
                value="<?php echo $this->_pte('INACTIVATE Selected'); ?> ({{selected_plugins_length}})" />
     </div>
     <div style="display: none;" id="phs_plugins_registry_container">
-        <p>Registry data for plugin <strong>{{plugin_details.name}}</strong> on tenant <strong>{{tenant_name}}</strong>.</p>
+        <p><?php echo $this->_pt( 'Registry data for plugin %s on tenant %s.',
+                '<strong>{{plugin_details.name}}</strong>', '<strong>{{tenant_name}}</strong>' )?></p>
+        <?php if($can_manage_plugins) { ?>
+            <p><a class="btn btn-primary" href="<?php echo PHS::url(['p' => 'admin', 'a' => 'registry', 'ad' => 'plugins'],
+                    ($is_multi_tenant ? ['tenant_id' => $tenant_id] : []),
+                    ['raw_args' => ['pname' => '{{plugin_details.plugin_name}}']]); ?>"><?php echo $this->_pt('Edit')?></a></p>
+        <?php } ?>
         {{#each plugin_registry}}
             {{@index+1}}.
             <code title="<?php echo $this->_pte('Registry key'); ?>">{{.r_key}}</code>
@@ -191,7 +201,13 @@ function tenant_changed()
         {{/each}}
     </div>
     <div style="display: none;" id="phs_plugins_settings_container">
-        <p>Settings for plugin <strong>{{plugin_details.name}}</strong> on tenant <strong>{{tenant_name}}</strong>.</p>
+        <p><?php echo $this->_pt( 'Settings for plugin %s on tenant %s.',
+                '<strong>{{plugin_details.name}}</strong>', '<strong>{{tenant_name}}</strong>' )?></p>
+        <?php if($can_manage_plugins) { ?>
+            <p><a class="btn btn-primary" href="<?php echo PHS::url(['p' => 'admin', 'a' => 'settings', 'ad' => 'plugins'],
+                    ($is_multi_tenant ? ['tenant_id' => $tenant_id] : []),
+                    ['raw_args' => ['pid' => '{{plugin_details.id}}']]); ?>"><?php echo $this->_pt('Edit')?></a></p>
+        <?php } ?>
         {{#if plugin_settings.length }}
         <table class="table table-hover"><tbody>
         {{#each plugin_settings}}
@@ -630,8 +646,6 @@ function tenant_changed()
                     form_data,
                     //result_response, status, ajax_obj, data
                     function( response, status, ajax_obj ) {
-
-                        console.log( "Response", response, "Status", status, "Ajax obj", ajax_obj );
 
                         hide_submit_protection();
 

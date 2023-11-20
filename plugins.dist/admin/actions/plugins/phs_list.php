@@ -56,19 +56,21 @@ class PHS_Action_List extends PHS_Action_Generic_list
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model)
+            && !$this->load_depencies()) {
+            return false;
         }
 
         if (!($scope_arr = $this->_paginator->get_scope())
-         || !is_array($scope_arr)) {
+            || !is_array($scope_arr)) {
             $scope_arr = [];
         }
 
         if (PHS_Params::_g('unknown_plugin', PHS_Params::T_INT)) {
             PHS_Notifications::add_error_notice($this->_pt('Plugin ID is invalid or plugin was not found.'));
+        }
+        if (PHS_Params::_g('unknown_tenant', PHS_Params::T_INT)) {
+            PHS_Notifications::add_error_notice($this->_pt('Invalid tenant or tenant was not found in database.'));
         }
 
         if (!($records_arr = $this->_paginator_model->get_all_records_for_paginator())) {
@@ -798,6 +800,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 <?php
             }
             ?>
+            <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'registry', 'ad' => 'plugins'],
+                ['pname' => $params['record']['plugin_name'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
+            ><i class="fa fa-database action-icons" title="<?php echo $this->_pt('Plugin Registry'); ?>"></i></a>
             <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'settings', 'ad' => 'plugins'],
                 ['pid' => $params['record']['id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
             ><i class="fa fa-wrench action-icons" title="<?php echo $this->_pt('Plugin Settings'); ?>"></i></a>

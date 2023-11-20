@@ -26,7 +26,7 @@ URL not provided for autocomplete field.,URL non fornito per il campo di complet
 Changing language... Please wait.,Cambiamento della lingua ... Attendere prego.
 Error changing language. Please retry.,Errore durante il cambiamento della lingua. Si prega di riprovare.
 Error,Errore
-Error ontaining dialogue body. Please try again.,Errore durante l'ottenimento del corpo del dialogo. Si prega di riprovare.
+Error obtaining dialogue body. Please try again.,Errore durante l'ottenimento del corpo del dialogo. Si prega di riprovare.
 Rendered from outside of paginator.,Decodifica dall'impaginatore esterno.
 Render before filters call failed.,Decodifica prima che i filtri della chiamata siano falliti.
 True,Vero

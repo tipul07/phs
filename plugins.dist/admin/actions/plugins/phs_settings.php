@@ -20,7 +20,7 @@ class PHS_Action_Settings extends PHS_Action
 {
     public function allowed_scopes()
     {
-        return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
+        return [PHS_Scope::SCOPE_WEB];
     }
 
     public function execute()
@@ -176,6 +176,7 @@ class PHS_Action_Settings extends PHS_Action
 
             'tenants_model' => $tenants_model,
             'plugins_model' => $plugins_model,
+            'admin_plugin' => $admin_plugin,
         ];
 
         return $this->quick_render_template('plugins/settings', $data);

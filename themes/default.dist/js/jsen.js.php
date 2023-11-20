@@ -11,18 +11,20 @@ use phs\PHS_Ajax;
 use phs\libraries\PHS_Language;
 
 ?>
-if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
+if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
 {
     if( typeof $ === "undefined" )
     {
-        if( typeof jQuery !== "undefined" )
+        if( typeof jQuery !== "undefined" ) {
             $ = jQuery;
+        }
     }
 
     if( typeof $ === "undefined" )
     {
-        if( console )
-            console.log( "Seems like we don't have jQuery..." );
+        if( console ) {
+            console.log("Seems like we don't have jQuery...");
+        }
     }
 
     var PHS_JSEN = {
@@ -651,10 +653,6 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                         result_response = data;
                     }
 
-                    console.log("Result", result_response);
-                    console.log("Data", data);
-                    console.log("Options", options);
-
                     var onsuccess_result = null;
                     if( options.queue_request ) {
                         onsuccess_result = PHS_JSEN.onsuccess_ajax_queue_for_request( request_hash, result_response, status, ajax_obj, data );
@@ -1224,7 +1222,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                         onfailed: function( ajax_obj, status, error_exception ) {
                             //var diag_container = $( "#" + PHS_JSEN.dialogs_prefix + options.suffix );
                             if( dialog_obj ) {
-                                dialog_obj.html( "<?php echo PHS_Language::_te('Error ontaining dialogue body. Please try again.'); ?>" );
+                                dialog_obj.html( "<?php echo PHS_Language::_te('Error obtaining dialogue body. Please try again.'); ?>" );
                                 dialog_obj.dialog( "open" );
                             }
 
@@ -1246,44 +1244,51 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     if( typeof( options.source_obj ) === "string" ) {
                         source_container = $( '#' + options.source_obj );
                         options.source_obj = source_container;
-                    } else
+                    } else {
                         source_container = options.source_obj;
+                    }
 
-                    if( !options.source_parent )
+                    if( !options.source_parent ) {
                         options.source_parent = source_container.parent();
+                    }
 
-                    if( options.source_not_cloned )
-                        dialog_obj.append( source_container );
-                    else
-                        dialog_obj.html( source_container.html() );
+                    if( options.source_not_cloned ) {
+                        dialog_obj.append(source_container);
+                    } else {
+                        dialog_obj.html(source_container.html());
+                    }
 
                     dialog_obj.dialog( "open" );
 
                     if( options.onsuccess ) {
-                        if( $.isFunction( options.onsuccess ) )
+                        if( $.isFunction( options.onsuccess ) ) {
                             options.onsuccess();
-                        else if( typeof options.onsuccess === "string" )
-                            eval( options.onsuccess );
+                        } else if( typeof options.onsuccess === "string" ) {
+                            eval(options.onsuccess);
+                        }
                     }
                 }
 
                 if( options.close_outside_click ) {
                     $(document).on( "click", ".ui-widget-overlay", function() {
-                        if( dialog_obj )
-                            dialog_obj.dialog( "close" );
+                        if( dialog_obj ) {
+                            dialog_obj.dialog("close");
+                        }
                     });
                 }
 
                 dialog_obj.bind( 'dialogclose', function( event ) {
                     if( options.onclose ) {
-                        if( $.isFunction( options.onclose ) )
+                        if( $.isFunction( options.onclose ) ) {
                             options.onclose();
-                        else if( typeof options.onclose === "string" )
-                            eval( options.onclose );
+                        } else if( typeof options.onclose === "string" ) {
+                            eval(options.onclose);
+                        }
                     }
 
-                    if( options.source_not_cloned && options.source_obj && options.source_parent )
-                        options.source_parent.append( options.source_obj );
+                    if( options.source_not_cloned && options.source_obj && options.source_parent ) {
+                        options.source_parent.append(options.source_obj);
+                    }
 
                     dialog_obj.dialog('destroy').remove();
                     dialog_obj = false;
@@ -1293,7 +1298,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             }
 
             if( options.adjust_top_for_height
-             && window.innerHeight < options.height ) {
+                && window.innerHeight < options.height ) {
                 setTimeout(function() {
                     dialog_obj.parent().css( "top", "30px" );
                 }, 500 );
@@ -1302,27 +1307,31 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
         // Close Loading div...
         dialogOptions : function( suffix, key, val ) {
-            if( typeof key === "undefined" && typeof val === "undefined" )
+            if( typeof key === "undefined" && typeof val === "undefined" ) {
                 return PHS_JSEN.dialogs_options[suffix];
+            }
 
             if( typeof key === "string" && typeof val === "undefined" ) {
-                if( typeof PHS_JSEN.dialogs_options[suffix] !== "undefined" && typeof PHS_JSEN.dialogs_options[suffix][key] !== "undefined" )
+                if( typeof PHS_JSEN.dialogs_options[suffix] !== "undefined"
+                    && typeof PHS_JSEN.dialogs_options[suffix][key] !== "undefined" ) {
                     return PHS_JSEN.dialogs_options[suffix][key];
-                else
-                    return null;
+                }
+
+                return null;
             }
 
             if( typeof key === "object" ) {
-                if( typeof PHS_JSEN.dialogs_options[suffix] !== "undefined" )
-                    PHS_JSEN.dialogs_options[suffix] = $.extend( {}, PHS_JSEN.dialogs_options[suffix], key );
-                else
+                if( typeof PHS_JSEN.dialogs_options[suffix] !== "undefined" ) {
+                    PHS_JSEN.dialogs_options[suffix] = $.extend({}, PHS_JSEN.dialogs_options[suffix], key);
+                } else {
                     PHS_JSEN.dialogs_options[suffix] = key;
+                }
 
                 return PHS_JSEN.dialogs_options[suffix];
             }
 
             if( typeof key === "string" && typeof val !== "undefined"
-             && typeof PHS_JSEN.dialogs_options[suffix] !== "undefined" ) {
+                && typeof PHS_JSEN.dialogs_options[suffix] !== "undefined" ) {
                 PHS_JSEN.dialogs_options[suffix][key] = val;
                 return true;
             }
@@ -1356,12 +1365,14 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
             // Remove Dialog ( if previously created )
             var loading_dialog_obj = $("#phs_jsen_loading" + options.suffix);
-            if( loading_dialog_obj )
+            if( loading_dialog_obj ) {
                 loading_dialog_obj.remove();
+            }
 
             // Create Dialog
-            if( $(options.parent_tag).length === 0 )
+            if( $(options.parent_tag).length === 0 ) {
                 options.parent_tag = "body";
+            }
 
             $(options.parent_tag).append( '<div id="phs_jsen_loading' + options.suffix + '"></div>' );
 
@@ -1395,8 +1406,9 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
         keyPressHandler : function() {
             var r = $(PHS_JSEN.default_action_13);
-            if( !r || !r.length )
+            if( !r || !r.length ) {
                 return;
+            }
 
             r.each( function() {
                 var a = $(this);
@@ -1418,8 +1430,9 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
         },
 
         logf : function( str ) {
-            if( console && PHS_JSEN.debugging_mode )
-                console.log( str );
+            if( console && PHS_JSEN.debugging_mode ) {
+                console.log(str);
+            }
         }
     };
 }

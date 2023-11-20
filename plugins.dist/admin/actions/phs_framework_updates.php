@@ -37,10 +37,6 @@ class PHS_Action_Framework_updates extends PHS_Action
             return self::default_action_result();
         }
 
-        $data = [
-            'current_user' => $current_user,
-        ];
-
-        return $this->quick_render_template('framework_updates', $data);
+        return $this->quick_render_template('framework_updates', []);
     }
 }

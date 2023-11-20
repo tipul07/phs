@@ -48,7 +48,8 @@ class PHS_Action_Plugins extends PHS_Api_action
             return self::default_action_result();
         }
 
-        if (!$admin_plugin->can_admin_list_tenants()) {
+        if (!$admin_plugin->can_admin_list_tenants()
+            || !$admin_plugin->can_admin_list_plugins()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
@@ -97,17 +98,17 @@ class PHS_Action_Plugins extends PHS_Api_action
                     $this->_pt('Provided tenant is invalid.'));
             }
 
-            if (!$admin_plugin->can_admin_manage_plugins()) {
-                return $this->send_api_error(PHS_Api_base::H_CODE_FORBIDDEN, self::ERR_RIGHTS,
-                    $this->_pt('You don\'t have rights to access this section.'));
-            }
-
             $do_activate_selected = PHS_Params::_p('do_activate_selected');
             $do_inactivate_selected = PHS_Params::_p('do_inactivate_selected');
             $do_get_registry = PHS_Params::_p('do_get_registry');
             $do_get_settings = PHS_Params::_p('do_get_settings');
 
             if (!empty($do_inactivate_selected) || !empty($do_activate_selected)) {
+                if (!$admin_plugin->can_admin_manage_plugins()) {
+                    return $this->send_api_error(PHS_Api_base::H_CODE_FORBIDDEN, self::ERR_RIGHTS,
+                        $this->_pt('You don\'t have rights to access this section.'));
+                }
+
                 $selected_plugins = PHS_Params::_p('selected_plugins', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML]) ?: [];
                 $action_success = false;
 
@@ -187,6 +188,7 @@ class PHS_Action_Plugins extends PHS_Api_action
             'is_multi_tenant'     => $is_multi_tenant,
             'plugins_statuses'    => $plugins_statuses,
             'tenants_key_val_arr' => $tenants_key_val_arr,
+            'can_manage_plugins' => $admin_plugin->can_admin_manage_plugins(),
 
             'tenants_filter_arr'  => $tenants_filter_arr,
             'statuses_filter_arr' => $statuses_filter_arr,
