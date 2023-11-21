@@ -4,7 +4,7 @@
 use phs\PHS;
 
 /** @var \phs\plugins\backup\PHS_Plugin_Backup $plugin_obj */
-if (!($plugin_obj = $this->parent_plugin())) {
+if (!($plugin_obj = $this->get_plugin_instance())) {
     return $this->_pt('Couldn\'t get parent plugin object.');
 }
 

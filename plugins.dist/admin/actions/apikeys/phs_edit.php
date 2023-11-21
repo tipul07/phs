@@ -1,5 +1,5 @@
 <?php
-namespace phs\plugins\admin\actions;
+namespace phs\plugins\admin\actions\apikeys;
 
 use phs\PHS;
 use phs\PHS_Api;
@@ -8,8 +8,11 @@ use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\system\core\models\PHS_Model_Tenants;
+use phs\system\core\models\PHS_Model_Api_keys;
+use phs\plugins\admin\actions\PHS_Action_Users_autocomplete;
 
-class PHS_Action_Api_key_edit extends PHS_Action
+class PHS_Action_Edit extends PHS_Action
 {
     /**
      * Returns an array of scopes in which action is allowed to run
@@ -35,7 +38,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
         }
 
         if (!can(PHS_Roles::ROLEU_MANAGE_API_KEYS)) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to manage API keys.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }
@@ -52,16 +55,17 @@ class PHS_Action_Api_key_edit extends PHS_Action
             return self::default_action_result();
         }
 
+        $is_multi_tenant = PHS::is_multi_tenant();
+
         /** @var \phs\system\core\models\PHS_Model_Api_keys $apikeys_model */
-        if (!($apikeys_model = PHS::load_model('api_keys'))) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load API keys model.'));
-
-            return self::default_action_result();
-        }
-
         /** @var \phs\plugins\admin\actions\PHS_Action_Users_autocomplete $users_autocomplete_action */
-        if (!($users_autocomplete_action = PHS::load_action('users_autocomplete', 'admin'))) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load users autocomplete action.'));
+        /** @var \phs\system\core\models\PHS_Model_Tenants $tenants_model */
+        if (!($apikeys_model = PHS_Model_Api_keys::get_instance())
+            || !($users_autocomplete_action = PHS_Action_Users_autocomplete::get_instance())
+            || ($is_multi_tenant
+                && !($tenants_model = PHS_Model_Tenants::get_instance()))
+        ) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
@@ -78,7 +82,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
             ];
 
             if (empty($back_page)) {
-                $back_page = PHS::url(['p' => 'admin', 'a' => 'api_keys_list']);
+                $back_page = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'apikeys']);
             } else {
                 $back_page = from_safe_url($back_page);
             }
@@ -94,9 +98,16 @@ class PHS_Action_Api_key_edit extends PHS_Action
             $api_methods_arr = [];
         }
 
+        $all_tenants_arr = [];
+        if ($is_multi_tenant
+            && !($all_tenants_arr = $tenants_model->get_all_tenants())) {
+            $all_tenants_arr = [];
+        }
+
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
         $uid = PHS_Params::_p('uid', PHS_Params::T_INT);
         $autocomplete_uid = PHS_Params::_p('autocomplete_uid', PHS_Params::T_NOHTML);
+        $tenant_id = PHS_Params::_p('tenant_id', PHS_Params::T_INT) ?? 0;
         $title = PHS_Params::_p('title', PHS_Params::T_NOHTML);
         $api_key = PHS_Params::_p('api_key', PHS_Params::T_NOHTML);
         $api_secret = PHS_Params::_p('api_secret', PHS_Params::T_NOHTML);
@@ -116,7 +127,8 @@ class PHS_Action_Api_key_edit extends PHS_Action
                 $account_data = [];
             }
 
-            $uid = $apikey_arr['uid'];
+            $uid = (int)$apikey_arr['uid'];
+            $tenant_id = (int)$apikey_arr['tenant_id'];
             $autocomplete_uid = $users_autocomplete_action->format_data(false, false);
             $title = $apikey_arr['title'];
             $api_key = $apikey_arr['api_key'];
@@ -144,7 +156,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
 
             // styling
             'text_css_classes' => 'form-control',
-            'text_css_style'   => '',
+            'text_css_style'   => 'display: inline-block;',
 
             'id_value'   => (empty($uid) ? 0 : $uid),
             'text_value' => (empty($autocomplete_uid) ? '' : $autocomplete_uid),
@@ -157,7 +169,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
         } else {
             $new_allowed_methods = [];
             foreach ($allowed_methods as $method) {
-                if (!in_array($method, $api_methods_arr)) {
+                if (!in_array($method, $api_methods_arr, true)) {
                     continue;
                 }
 
@@ -172,7 +184,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
         } else {
             $new_denied_methods = [];
             foreach ($denied_methods as $method) {
-                if (!in_array($method, $api_methods_arr)) {
+                if (!in_array($method, $api_methods_arr, true)) {
                     continue;
                 }
 
@@ -186,12 +198,15 @@ class PHS_Action_Api_key_edit extends PHS_Action
             $edit_arr = [];
             $edit_arr['added_by_uid'] = $current_user['id'];
             $edit_arr['uid'] = $uid;
+            if ($is_multi_tenant) {
+                $edit_arr['tenant_id'] = $tenant_id;
+            }
             $edit_arr['title'] = $title;
             $edit_arr['api_key'] = $api_key;
             $edit_arr['api_secret'] = $api_secret;
             $edit_arr['allow_sw'] = $allow_sw;
-            $edit_arr['allowed_methods'] = (!empty($allowed_methods) ? implode(',', $allowed_methods) : '');
-            $edit_arr['denied_methods'] = (!empty($denied_methods) ? implode(',', $denied_methods) : '');
+            $edit_arr['allowed_methods'] = (!empty($allowed_methods) ? implode(',', $allowed_methods) : null);
+            $edit_arr['denied_methods'] = (!empty($denied_methods) ? implode(',', $denied_methods) : null);
 
             $edit_params_arr = [];
             $edit_params_arr['fields'] = $edit_arr;
@@ -206,7 +221,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
                     $url_params['back_page'] = $back_page;
                 }
 
-                return action_redirect(['p' => 'admin', 'a' => 'api_key_edit'], $url_params);
+                return action_redirect(['p' => 'admin', 'a' => 'edit', 'ad' => 'apikeys'], $url_params);
             }
 
             if ($apikeys_model->has_error()) {
@@ -220,6 +235,7 @@ class PHS_Action_Api_key_edit extends PHS_Action
             'aid'              => $apikey_arr['id'],
             'back_page'        => $back_page,
             'uid'              => $uid,
+            'tenant_id'        => $tenant_id,
             'autocomplete_uid' => $autocomplete_uid,
             'title'            => $title,
             'api_key'          => $api_key,
@@ -228,12 +244,14 @@ class PHS_Action_Api_key_edit extends PHS_Action
             'allowed_methods'  => $allowed_methods,
             'denied_methods'   => $denied_methods,
 
-            'api_methods_arr'           => $api_methods_arr,
+            'api_methods_arr' => $api_methods_arr,
+            'all_tenants_arr' => $all_tenants_arr,
+
             'api_obj'                   => $api_obj,
             'apikeys_model'             => $apikeys_model,
             'users_autocomplete_action' => $users_autocomplete_action,
         ];
 
-        return $this->quick_render_template('api_key_edit', $data);
+        return $this->quick_render_template('apikeys/edit', $data);
     }
 }

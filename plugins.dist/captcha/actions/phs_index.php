@@ -5,6 +5,7 @@ use phs\PHS_Scope;
 use phs\PHS_Session;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
+use phs\plugins\captcha\PHS_Plugin_Captcha;
 
 class PHS_Action_Index extends PHS_Action
 {
@@ -16,9 +17,9 @@ class PHS_Action_Index extends PHS_Action
     public function execute()
     {
         /** @var \phs\plugins\captcha\PHS_Plugin_Captcha $plugin_instance */
-        if (!($plugin_instance = $this->get_plugin_instance())
+        if (!($plugin_instance = PHS_Plugin_Captcha::get_instance())
          || !$plugin_instance->plugin_active()
-         || !($plugin_settings = $plugin_instance->get_db_settings())) {
+         || !($plugin_settings = $plugin_instance->get_plugin_settings())) {
             echo $this->_pt('Couldn\'t obtain plugin settings.');
             exit;
         }

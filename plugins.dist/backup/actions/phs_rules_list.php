@@ -7,6 +7,8 @@ use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\libraries\PHS_Action_Generic_list;
+use phs\plugins\backup\models\PHS_Model_Rules;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 /** @property \phs\plugins\backup\models\PHS_Model_Rules $_paginator_model */
 class PHS_Action_Rules_list extends PHS_Action_Generic_list
@@ -30,14 +32,14 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
         }
 
         if (!$this->_accounts_model
-         && !($this->_accounts_model = PHS::load_model('accounts', 'accounts'))) {
+         && !($this->_accounts_model = PHS_Model_Accounts::get_instance())) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Couldn\'t load accounts model.'));
 
             return false;
         }
 
         if (!$this->_paginator_model
-         && !($this->_paginator_model = PHS::load_model('rules', 'backup'))) {
+         && !($this->_paginator_model = PHS_Model_Rules::get_instance())) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Couldn\'t load backup rules model.'));
 
             return false;
@@ -79,7 +81,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
 
         if (!$can_manage_rules
          && !can($backup_plugin::ROLEU_LIST_RULES)) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list backup rules.'));
+            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
             return false;
         }
@@ -299,7 +301,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 }
 
                 if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup rules.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -358,7 +360,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 }
 
                 if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup rules.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -417,7 +419,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 }
 
                 if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup rules.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -474,7 +476,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 }
 
                 if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup rules.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -509,7 +511,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 }
 
                 if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup rules.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -544,7 +546,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 }
 
                 if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup rules.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }

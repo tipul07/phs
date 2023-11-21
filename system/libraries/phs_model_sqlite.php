@@ -151,34 +151,6 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
         return $params;
     }
 
-    public function check_extra_index_exists($index_name, $flow_params = false, bool $force = false)
-    {
-        $this->reset_error();
-
-        if (!($flow_params = $this->fetch_default_flow_params($flow_params))
-         || !($flow_table_name = $this->get_flow_table_name($flow_params))) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('Failed validating flow parameters.'));
-
-            return false;
-        }
-
-        if (!($table_definition = $this->get_table_columns_as_definition($flow_params, $force))
-         || !is_array($table_definition)) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t get definition for table %s.', $flow_table_name));
-            }
-
-            return false;
-        }
-
-        if (empty($table_definition[self::EXTRA_INDEXES_KEY])
-         || !array_key_exists($index_name, $table_definition[self::EXTRA_INDEXES_KEY])) {
-            return false;
-        }
-
-        return $table_definition[self::EXTRA_INDEXES_KEY][$index_name];
-    }
-
     /**
      * @param string $field
      * @param bool|array $params
@@ -460,7 +432,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * @return bool
      */
-    final public function alter_table_drop_column_index($field_name, $flow_params = false) : bool
+    final public function alter_table_drop_column_index(string $field_name, $flow_params = false) : bool
     {
         $this->reset_error();
 
@@ -1962,21 +1934,31 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
             case self::FTYPE_MEDIUMTEXT:
             case self::FTYPE_LONGTEXT:
 
-                if (!empty($mysql_type['max_bytes'])
-                 && (empty($field_details['length'])
-                        || 0 <= PHS_Utils::numeric_string_compare($field_details['length'], $mysql_type['max_bytes'])
-                 )) {
-                    $max_bytes = $mysql_type['max_bytes'];
+                if ($value === '') {
+                    if (!empty($field_details['nullable'])) {
+                        $value = null;
+                    }
+                } elseif ($value === null) {
+                    if (empty($field_details['nullable'])) {
+                        $value = '';
+                    }
                 } else {
-                    $max_bytes = $field_details['length'];
-                }
+                    if (!empty($mysql_type['max_bytes'])
+                        && (empty($field_details['length'])
+                            || 0 <= PHS_Utils::numeric_string_compare($field_details['length'], $mysql_type['max_bytes'])
+                        )) {
+                        $max_bytes = $mysql_type['max_bytes'];
+                    } else {
+                        $max_bytes = $field_details['length'];
+                    }
 
-                if (!is_string($value)) {
-                    $value = (string)$value;
-                }
+                    if (!is_string($value)) {
+                        $value = (string)$value;
+                    }
 
-                if (strlen($value) > $max_bytes) {
-                    $value = substr($value, 0, $max_bytes);
+                    if (strlen($value) > $max_bytes) {
+                        $value = substr($value, 0, $max_bytes);
+                    }
                 }
                 break;
 

@@ -37,6 +37,12 @@ abstract class PHS_Cli extends PHS_Registry
     private array $_options = [];
 
     /**
+     * Options passed to this app in command line (which are not matching application options - might be command options)
+     * @var array
+     */
+    private array $_command_options = [];
+
+    /**
      * Definition of app options that can be passed in command line
      * @var array
      */
@@ -97,7 +103,9 @@ abstract class PHS_Cli extends PHS_Registry
 
         $this->_validate_app_commands($this->_get_app_commands_definition());
 
-        $this->_extract_app_options($cli_arguments);
+        if (($new_cli_arguments = $this->_extract_app_and_command_options($cli_arguments))) {
+            $cli_arguments = $new_cli_arguments;
+        }
 
         $this->_process_app_options_on_init();
 
@@ -223,6 +231,15 @@ abstract class PHS_Cli extends PHS_Registry
         return $this->_output_colors;
     }
 
+    public function command_option(string $option)
+    {
+        if (empty($this->_command['options'][$option]['value'])) {
+            return null;
+        }
+
+        return $this->_command['options'][$option]['value'];
+    }
+
     /**
      * @param array $args
      *
@@ -292,7 +309,7 @@ abstract class PHS_Cli extends PHS_Registry
     /**
      * @return bool
      */
-    public function cli_option_help()
+    public function cli_option_help() : bool
     {
         if (!$this->cli_option_version()) {
             return false;
@@ -424,7 +441,7 @@ abstract class PHS_Cli extends PHS_Registry
         return self::st_cli_color($str, $color, $background);
     }
 
-    protected function _extract_app_command($argv) : bool
+    protected function _extract_app_command($argv) : void
     {
         $this->reset_error();
 
@@ -457,23 +474,29 @@ abstract class PHS_Cli extends PHS_Registry
         // If we didn't find any command in command line arguments, don't set here the error
         // as it will be displayed in run() method
         if (!$this->_command) {
-            return true;
+            return;
         }
 
         $this->_command = self::validate_array($this->_command, self::get_app_selected_command_definition());
         $this->_command['command_name'] = $command_name;
         $this->_command['arguments'] = $command_arguments_arr;
 
-        return true;
+        $this->_extract_command_options();
     }
 
-    protected function _extract_app_options($argv) : void
+    protected function _extract_app_and_command_options($argv) : array
     {
+        $old_verbosity = $this->_verbosity_block(self::VERBOSE_L3);
+
         // Obtain command line options and match them against what application has defined as options
         $this->_options = [];
-        $old_verbosity = $this->_verbosity_block(self::VERBOSE_L3);
+        $this->_command_options = [];
+        $new_argv = [];
+
         foreach ($argv as $cli_argument) {
             if (!($parsed_option = $this->_extract_option_from_argument($cli_argument))) {
+                $new_argv[] = $cli_argument;
+
                 continue;
             }
 
@@ -492,10 +515,54 @@ abstract class PHS_Cli extends PHS_Registry
             if (!empty($index_arr)
              && !empty($this->_options_definition[$index_arr['option_name']])) {
                 $app_option_name = $index_arr['option_name'];
-                $parsed_option['app_option'] = $this->_options_definition[$index_arr['option_name']];
+                $parsed_option['matched_option'] = $this->_options_definition[$index_arr['option_name']];
+            } else {
+                $this->_command_options[$app_option_name] = $parsed_option;
+                continue;
             }
 
             $this->_options[$app_option_name] = $parsed_option;
+        }
+
+        $this->_verbosity_block($old_verbosity);
+
+        return $new_argv;
+    }
+
+    protected function _extract_command_options() : void
+    {
+        if (!$this->_validate_command_options()
+         || empty($this->_command_options)) {
+            return;
+        }
+
+        $old_verbosity = $this->_verbosity_block(self::VERBOSE_L3);
+
+        $this->_command['options'] = [];
+
+        foreach ($this->_command_options as $parsed_option) {
+            if (empty($parsed_option['option'])) {
+                continue;
+            }
+
+            $index_arr = null;
+            if (!empty($parsed_option['is_short'])) {
+                if (!empty($this->_command['options_as_keys']['short'][$parsed_option['option']])) {
+                    $index_arr = $this->_command['options_as_keys']['short'][$parsed_option['option']];
+                }
+            } else {
+                if (!empty($this->_command['options_as_keys']['long'][$parsed_option['option']])) {
+                    $index_arr = $this->_command['options_as_keys']['long'][$parsed_option['option']];
+                }
+            }
+
+            if (empty($index_arr)
+             || empty($this->_command['options_definition'][$index_arr['option_name']])) {
+                continue;
+            }
+
+            $parsed_option['matched_option'] = $this->_command['options_definition'][$index_arr['option_name']];
+            $this->_command['options'][$index_arr['option_name']] = $parsed_option;
         }
 
         $this->_verbosity_block($old_verbosity);
@@ -579,20 +646,18 @@ abstract class PHS_Cli extends PHS_Registry
                 $this->_echo(self::_t('[INIT_LEVEL] Executing option [%s]', $app_option_name),
                     ['verbose_lvl' => self::VERBOSE_L3]);
 
-                if (empty($app_option_details['app_option'])
-                 || !is_array($app_option_details['app_option'])
-                 || empty($app_option_details['app_option']['callback_init'])
-                 || !is_callable($app_option_details['app_option']['callback_init'])) {
+                if (empty($app_option_details['matched_option']['callback_init'])
+                 || !is_callable($app_option_details['matched_option']['callback_init'])) {
                     $this->_echo(self::_t('[INIT_LEVEL] Nothing to execute for option [%s]', $app_option_name),
                         ['verbose_lvl' => self::VERBOSE_L3]);
                     continue;
                 }
 
-                if (!empty($app_option_details['app_option']['behaves_as_command'])) {
+                if (!empty($app_option_details['matched_option']['behaves_as_command'])) {
                     $this->_had_option_as_command(true);
                 }
 
-                if (false === @call_user_func($app_option_details['app_option']['callback_init'], $app_option_details)) {
+                if (false === @call_user_func($app_option_details['matched_option']['callback_init'], $app_option_details)) {
                     $this->_echo(self::_t('[INIT_LEVEL] Executing option [%s] returned false value.', $app_option_name),
                         ['verbose_lvl' => self::VERBOSE_L3]);
                 }
@@ -611,20 +676,18 @@ abstract class PHS_Cli extends PHS_Registry
             $this->_echo(self::_t('[RUN_LEVEL] Executing option [%s]', $app_option_name),
                 ['verbose_lvl' => self::VERBOSE_L3]);
 
-            if (empty($app_option_details['app_option'])
-             || !is_array($app_option_details['app_option'])
-             || empty($app_option_details['app_option']['callback_run'])
-             || !is_callable($app_option_details['app_option']['callback_run'])) {
+            if (empty($app_option_details['matched_option']['callback_run'])
+             || !is_callable($app_option_details['matched_option']['callback_run'])) {
                 $this->_echo(self::_t('[RUN_LEVEL] Nothing to execute for option [%s]', $app_option_name),
                     ['verbose_lvl' => self::VERBOSE_L3]);
                 continue;
             }
 
-            if (!empty($app_option_details['app_option']['behaves_as_command'])) {
+            if (!empty($app_option_details['matched_option']['behaves_as_command'])) {
                 $this->_had_option_as_command(true);
             }
 
-            if (false === @call_user_func($app_option_details['app_option']['callback_run'], $app_option_details)) {
+            if (false === @call_user_func($app_option_details['matched_option']['callback_run'], $app_option_details)) {
                 $this->_echo(self::_t('[RUN_LEVEL] Executing option [%s] returned false value.', $app_option_name),
                     ['verbose_lvl' => self::VERBOSE_L3]);
             }
@@ -816,7 +879,7 @@ abstract class PHS_Cli extends PHS_Registry
 
         $app_options = self::validate_array($app_options, $this->_default_app_options());
 
-        $node_definition = self::get_app_option_node_definition();
+        $node_definition = self::get_option_node_definition();
 
         $option_count = 0;
         $return_arr = [];
@@ -859,12 +922,66 @@ abstract class PHS_Cli extends PHS_Registry
         return $this->_options_definition;
     }
 
+    private function _validate_command_options() : bool
+    {
+        if (empty($this->_command)
+            || empty($this->_command['options_definition'])
+            || !is_array($this->_command['options_definition'])) {
+            return true;
+        }
+
+        $node_definition = self::get_option_node_definition();
+
+        $option_count = 0;
+        $return_arr = [];
+        foreach ($this->_command['options_definition'] as $option_name => $option_arr) {
+            $option_count++;
+
+            if (!is_string($option_name)
+             || $option_name === '') {
+                $this->set_error(self::ERR_PARAMETERS,
+                    self::_t('Command %s, option %s should have a string in key array definition.',
+                        $this->_command['command_name'] ?? 'N/A', $option_count));
+
+                return false;
+            }
+
+            if (empty($option_arr) || !is_array($option_arr)) {
+                $this->set_error(self::ERR_PARAMETERS,
+                    self::_t('Command %s, option %s should have an array as definition.',
+                        $this->_command['command_name'] ?? 'N/A', $option_name));
+
+                return false;
+            }
+
+            $option_arr = self::validate_array($option_arr, $node_definition);
+
+            // All CLI parameters are case-insensitive (convert all to lowercase)
+            $return_arr[strtolower($option_name)] = $option_arr;
+        }
+
+        $this->_command['options_definition'] = $return_arr;
+        $this->_command['options_as_keys'] = [];
+
+        foreach ($return_arr as $option_name => $option_arr) {
+            if (!empty($option_arr['short'])) {
+                $this->_command['options_as_keys']['short'][strtolower($option_arr['short'])] = ['option_name' => $option_name, ];
+            }
+
+            if (!empty($option_arr['long'])) {
+                $this->_command['options_as_keys']['long'][strtolower($option_arr['long'])] = ['option_name' => $option_name, ];
+            }
+        }
+
+        return true;
+    }
+
     /**
      * @param array $app_commands
      *
-     * @return array|bool
+     * @return null|array
      */
-    private function _validate_app_commands(array $app_commands)
+    private function _validate_app_commands(array $app_commands) : ?array
     {
         $this->reset_error();
 
@@ -922,6 +1039,10 @@ abstract class PHS_Cli extends PHS_Registry
             'description' => 'No description.',
             // When this option is present we will call this callback (if present)
             'callback' => false,
+            // An array of command option definition (if any) @see self::get_option_node_definition()
+            'options_definition' => null,
+            // An array of command option as keys to easy find options passed in CLI as parameters
+            'options_as_keys' => null,
         ];
     }
 
@@ -931,10 +1052,13 @@ abstract class PHS_Cli extends PHS_Registry
             // Keep command name in selected command array
             'command_name' => '',
             // If arguments from command line doesn't match an option or a command they will be added to command arguments
-            'arguments' => [], ], self::get_app_command_node_definition());
+            'arguments' => [],
+            // If there are any command specific options, they will be added to this array
+            'options' => [],
+        ], self::get_app_command_node_definition());
     }
 
-    public static function get_app_option_node_definition() : array
+    public static function get_option_node_definition() : array
     {
         return [
             // short parameter passed in cli line (eg. -u)
@@ -963,9 +1087,9 @@ abstract class PHS_Cli extends PHS_Registry
             'option' => '',
             // Value extracted after = sign from command line argument (eg. 5)
             'value' => null,
-            // App option that matched this argument (this is app parameter node definition, @see self::get_app_option_node_definition())
+            // Option that matched this argument (this is app parameter node definition, @see self::get_option_node_definition())
             // if this is null, means no parameter matched this and maybe this argument is used by other app parameter
-            'app_option' => null,
+            'matched_option' => null,
         ];
     }
 

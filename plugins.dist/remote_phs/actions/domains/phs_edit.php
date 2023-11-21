@@ -48,7 +48,7 @@ class PHS_Action_Edit extends PHS_Action
         }
 
         if (!$remote_plugin->can_admin_manage_domains($current_user)) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to manage remote PHS domains.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }

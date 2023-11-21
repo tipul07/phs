@@ -44,6 +44,9 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
         if (empty($params['co'])) {
             $params['co'] = '';
         }
+        if (empty($params['e'])) {
+            $params['e'] = '';
+        }
         if (empty($params['dir'])) {
             $params['dir'] = '';
         } else {
@@ -53,7 +56,7 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
 
         $action_result['ajax_result']['params'] = $params;
 
-        if (empty($params['c']) && empty($params['m']) && empty($params['a']) && empty($params['co'])) {
+        if (empty($params['c']) && empty($params['m']) && empty($params['a']) && empty($params['co']) && empty($params['e'])) {
             if (!($plugin_obj = PHS::load_plugin($params['p']))) {
                 if (self::st_has_error()) {
                     $error_msg = self::st_get_error_message();
@@ -103,6 +106,19 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
                 $action_result['buffer'] = $error_msg;
                 $action_result['ajax_result']['has_error'] = true;
             } elseif (($instance_details = $contract_obj->instance_details())) {
+                $action_result['ajax_result']['instance_details'] = $instance_details;
+            }
+        } elseif (!empty($params['e'])) {
+            if (!($event_obj = PHS::load_event($params['e'], $params['p'], $params['dir']))) {
+                if (self::st_has_error()) {
+                    $error_msg = self::st_get_error_message();
+                } else {
+                    $error_msg = $this->_pt('Unknown error while instantiating event.');
+                }
+
+                $action_result['buffer'] = $error_msg;
+                $action_result['ajax_result']['has_error'] = true;
+            } elseif (($instance_details = $event_obj->instance_details())) {
                 $action_result['ajax_result']['instance_details'] = $instance_details;
             }
         } elseif (!empty($params['m'])) {

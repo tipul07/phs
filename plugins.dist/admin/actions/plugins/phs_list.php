@@ -1,29 +1,32 @@
 <?php
-namespace phs\plugins\admin\actions;
+namespace phs\plugins\admin\actions\plugins;
 
 use phs\PHS;
-use phs\libraries\PHS_Model;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
-use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
+use phs\system\core\models\PHS_Model_Plugins;
+use phs\system\core\models\PHS_Model_Tenants;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 /** @property \phs\system\core\models\PHS_Model_Plugins $_paginator_model */
-class PHS_Action_Plugins_list extends PHS_Action_Generic_list
+class PHS_Action_List extends PHS_Action_Generic_list
 {
-    /** @var \phs\plugins\admin\PHS_Plugin_Admin */
-    private $_admin_plugin;
+    /** @var null|\phs\plugins\admin\PHS_Plugin_Admin */
+    private ?PHS_Plugin_Admin $_admin_plugin = null;
 
-    /** @var \phs\plugins\accounts\models\PHS_Model_Accounts */
-    private $_accounts_model;
+    /** @var null|\phs\system\core\models\PHS_Model_Tenants */
+    private ?PHS_Model_Tenants $_tenants_model = null;
+
+    private array $_tenants_key_val_arr = [];
 
     public function load_depencies()
     {
-        if (!($this->_admin_plugin = PHS::load_plugin('admin'))
-         || !($this->_accounts_model = PHS::load_model('accounts', 'accounts'))
-         || !($this->_paginator_model = PHS::load_model('plugins'))) {
+        if (!($this->_admin_plugin = PHS_Plugin_Admin::get_instance())
+         || !($this->_tenants_model = PHS_Model_Tenants::get_instance())
+         || !($this->_paginator_model = PHS_Model_Plugins::get_instance())) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
@@ -49,130 +52,60 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
     }
 
     // Do any actions required after paginator was instantiated and initialized (eg. columns, filters, model and bulk actions were set)
-    public function we_initialized_paginator()
+    public function we_initialized_paginator(): bool
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
-        }
-
-        if (!($originals_arr = $this->_paginator->get_originals())
-         || !is_array($originals_arr)) {
-            $originals_arr = [];
+        if (empty($this->_paginator_model)
+            && !$this->load_depencies()) {
+            return false;
         }
 
         if (!($scope_arr = $this->_paginator->get_scope())
-         || !is_array($scope_arr)) {
+            || !is_array($scope_arr)) {
             $scope_arr = [];
         }
 
         if (PHS_Params::_g('unknown_plugin', PHS_Params::T_INT)) {
             PHS_Notifications::add_error_notice($this->_pt('Plugin ID is invalid or plugin was not found.'));
         }
-
-        $records_arr = [];
-
-        if (!($page = $this->_paginator->pagination_params('page'))) {
-            $page = 0;
+        if (PHS_Params::_g('unknown_tenant', PHS_Params::T_INT)) {
+            PHS_Notifications::add_error_notice($this->_pt('Invalid tenant or tenant was not found in database.'));
         }
 
-        $count_offset = 0;
-        $core_details = PHS_Plugin::core_plugin_details_fields();
-
-        $record_arr = [];
-        $record_arr['id'] = $core_details['id'];
-        $record_arr['plugin_name'] = $core_details['plugin_name'];
-        $record_arr['vendor_id'] = $core_details['vendor_id'];
-        $record_arr['vendor_name'] = $core_details['vendor_name'];
-        $record_arr['name'] = $core_details['name'];
-        $record_arr['description'] = $core_details['description'];
-        $record_arr['version'] = $core_details['db_version'].' / '.$core_details['script_version'];
-        $record_arr['status'] = $core_details['status'];
-        $record_arr['status_date'] = date(PHS_Model::DATETIME_DB, @filemtime(PHS_PATH.'bootstrap.php'));
-        $record_arr['cdate'] = $record_arr['status_date'];
-        $record_arr['models'] = ((!empty($core_details['models']) && is_array($core_details['models'])) ? $core_details['models'] : []);
-        $record_arr['is_installed'] = true;
-        $record_arr['is_core'] = true;
-        $record_arr['is_always_active'] = $core_details['is_always_active'];
-        $record_arr['is_distribution'] = $core_details['is_distribution'];
-
-        if ($this->_check_record_for_current_scope($record_arr, $scope_arr)) {
-            if (!$page) {
-                $records_arr[] = $record_arr;
-            }
-            $count_offset = 1;
+        if (!($records_arr = $this->_paginator_model->get_all_records_for_paginator())) {
+            $records_arr = [];
         }
 
-        if (!($dir_entries = $this->_paginator_model->cache_all_dir_details())
-         || !is_array($dir_entries)) {
-            $dir_entries = [];
-        }
+        $this->_paginator->set_records_count(count($records_arr));
 
-        $this->_paginator->set_records_count(count($dir_entries) + 1);
-
-        if (!empty($dir_entries)) {
+        $page_records_arr = [];
+        $on_page_records = 0;
+        if (!empty($records_arr)) {
             $offset = $this->_paginator->pagination_params('offset');
             $records_per_page = (int)$this->_paginator->pagination_params('records_per_page');
 
-            /**
-             * @var string $plugin_dir
-             * @var \phs\libraries\PHS_Plugin $plugin_instance
-             */
-            $knti = $count_offset; // including core...
-            $on_this_page = $count_offset;
-            $add_records = true;
-            foreach ($dir_entries as $plugin_dir => $plugin_instance) {
-                if (!($plugin_info_arr = $plugin_instance->get_plugin_info())) {
-                    PHS_Notifications::add_warning_notice($this->_pt('Couldn\'t get plugin info for %s.', @basename($plugin_dir)));
-                    continue;
-                }
-
-                $record_arr = [];
-                $record_arr['id'] = $plugin_info_arr['id'];
-                $record_arr['plugin_name'] = $plugin_info_arr['plugin_name'];
-                $record_arr['vendor_id'] = $plugin_info_arr['vendor_id'];
-                $record_arr['vendor_name'] = $plugin_info_arr['vendor_name'];
-                $record_arr['name'] = $plugin_info_arr['name'];
-                $record_arr['description'] = $plugin_info_arr['description'];
-                $record_arr['version'] = $plugin_info_arr['db_version'].' / '.$plugin_info_arr['script_version'];
-                $record_arr['status'] = (!empty($plugin_info_arr['db_details']) ? $plugin_info_arr['db_details']['status'] : -1);
-                $record_arr['status_date'] = (!empty($plugin_info_arr['db_details']) ? $plugin_info_arr['db_details']['status_date'] : null);
-                $record_arr['cdate'] = (!empty($plugin_info_arr['db_details']) ? $plugin_info_arr['db_details']['cdate'] : null);
-                $record_arr['models'] = ((!empty($plugin_info_arr['models']) && is_array($plugin_info_arr['models'])) ? $plugin_info_arr['models'] : []);
-                $record_arr['is_installed'] = $plugin_info_arr['is_installed'];
-                $record_arr['is_upgradable'] = $plugin_info_arr['is_upgradable'];
-                $record_arr['is_core'] = $plugin_info_arr['is_core'];
-                $record_arr['is_always_active'] = $plugin_info_arr['is_always_active'];
-                $record_arr['is_distribution'] = $plugin_info_arr['is_distribution'];
-
+            $knti = 0;
+            foreach ($records_arr as $record_arr) {
                 if (!$this->_check_record_for_current_scope($record_arr, $scope_arr)) {
                     continue;
                 }
 
                 $knti++;
 
-                if ($on_this_page === $records_per_page) {
-                    $add_records = false;
+                if ($offset > $knti - 1
+                 || $on_page_records >= $records_per_page) {
                     continue;
                 }
 
-                if ($offset > $knti - 1) {
-                    continue;
-                }
-
-                if ($add_records) {
-                    $records_arr[] = $record_arr;
-                    $on_this_page++;
-                }
+                $page_records_arr[] = $record_arr;
+                $on_page_records++;
             }
 
             $this->_paginator->set_records_count($knti);
         }
 
-        $this->_paginator->set_records($records_arr);
+        $this->_paginator->set_records($page_records_arr);
 
         $this->_paginator->flow_param('did_query_database', true);
         $this->_paginator->flow_param('records_from_model', true);
@@ -192,14 +125,15 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
         }
 
         if (!$this->_admin_plugin->can_admin_list_plugins()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list plugins.'));
+            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
             return false;
         }
 
+        $is_multi_tenant = PHS::is_multi_tenant();
         $can_export_settings = $this->_admin_plugin->can_admin_export_plugins_settings();
 
-        $this->_paginator_model->cache_all_db_details(true);
+        $this->_paginator_model->get_all_db_details(true);
 
         $flow_params = [
             'listing_title'        => $this->_pt('Plugins List'),
@@ -213,6 +147,16 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
         }
         if (!empty($plugins_statuses)) {
             $plugins_statuses = self::merge_array_assoc([0 => $this->_pt(' - Choose - '), -1 => $this->_pt('Not Installed')], $plugins_statuses);
+        }
+
+        if ($is_multi_tenant
+           && !($this->_tenants_key_val_arr = $this->_tenants_model->get_tenants_as_key_val())) {
+            $this->_tenants_key_val_arr = [];
+        }
+
+        $tenants_filter_arr = [];
+        if (!empty($this->_tenants_key_val_arr)) {
+            $tenants_filter_arr = self::merge_array_assoc([0 => $this->_pt(' - All - ')], $this->_tenants_key_val_arr);
         }
 
         $bulk_actions = [];
@@ -258,6 +202,19 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             ],
         ];
 
+        if ($is_multi_tenant) {
+            $filters_arr = array_merge($filters_arr, [
+                [
+                    'display_name' => $this->_pt('Tenant'),
+                    'var_name'     => 'ftenant',
+                    'record_field' => 'tenants',
+                    'type'         => PHS_Params::T_INT,
+                    'default'      => 0,
+                    'values_arr'   => $tenants_filter_arr,
+                ],
+            ]);
+        }
+
         $columns_arr = [
             [
                 'column_title'     => '&nbsp;',
@@ -284,6 +241,22 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 'extra_records_style' => 'vertical-align: middle;text-align:center;',
                 'sortable'            => false,
             ],
+        ];
+
+        if ($is_multi_tenant) {
+            $columns_arr = array_merge($columns_arr, [
+                [
+                    'column_title'        => $this->_pt('Tenant'),
+                    'record_field'        => 'tenant',
+                    'display_callback'    => [$this, 'display_plugin_tenants'],
+                    'extra_style'         => 'vertical-align: middle;text-align:center;',
+                    'extra_records_style' => 'vertical-align: middle;text-align:center;',
+                    'sortable'            => false,
+                ],
+            ]);
+        }
+
+        $columns_arr = array_merge($columns_arr, [
             [
                 'column_title'        => $this->_pt('Version').'<br/><small>'.$this->_pt('Installed / Script').'</small>',
                 'record_field'        => 'version',
@@ -328,7 +301,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 'extra_records_style' => 'vertical-align: middle;text-align:right;white-space: nowrap;',
                 'sortable'            => false,
             ],
-        ];
+        ]);
 
         if ($this->_admin_plugin->can_admin_export_plugins_settings()) {
             $columns_arr[0]['checkbox_record_index_key'] = [
@@ -338,7 +311,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
         }
 
         $return_arr = $this->default_paginator_params();
-        $return_arr['base_url'] = PHS::url(['p' => 'admin', 'a' => 'plugins_list']);
+        $return_arr['base_url'] = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'plugins']);
         $return_arr['flow_parameters'] = $flow_params;
         $return_arr['bulk_actions'] = $bulk_actions;
         $return_arr['filters_arr'] = $filters_arr;
@@ -354,10 +327,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            return false;
         }
 
         $action_result_params = $this->_paginator->default_action_params();
@@ -389,9 +360,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$this->_admin_plugin->can_admin_export_plugins_settings()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to export plugin settings.'));
+                if (!$this->_admin_plugin->can_admin_export_plugins_settings()) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -432,9 +402,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$this->_admin_plugin->can_admin_export_plugins_settings()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to export plugin settings.'));
+                if (!$this->_admin_plugin->can_admin_export_plugins_settings()) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -464,9 +433,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$this->_admin_plugin->can_admin_manage_plugins()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage plugins.'));
+                if (!$this->_admin_plugin->can_admin_manage_plugins()) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -510,9 +478,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$this->_admin_plugin->can_admin_manage_plugins()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage plugins.'));
+                if (!$this->_admin_plugin->can_admin_manage_plugins()) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -556,9 +523,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$this->_admin_plugin->can_admin_manage_plugins()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage plugins.'));
+                if (!$this->_admin_plugin->can_admin_manage_plugins()) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -603,9 +569,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$this->_admin_plugin->can_admin_manage_plugins()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage plugins.'));
+                if (!$this->_admin_plugin->can_admin_manage_plugins()) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -659,9 +624,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$this->_admin_plugin->can_admin_manage_plugins()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage plugins.'));
+                if (!$this->_admin_plugin->can_admin_manage_plugins()) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -718,9 +682,8 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$this->_admin_plugin->can_admin_manage_plugins()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage plugins.'));
+                if (!$this->_admin_plugin->can_admin_manage_plugins()) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -765,9 +728,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
 
     public function display_plugin_name($params)
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])) {
+        if (empty($params['record']) || !is_array($params['record'])) {
             return false;
         }
 
@@ -777,12 +738,30 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                .(!empty($params['record']['description']) ? '<br/><small>'.$params['record']['description'].'</small>' : '');
     }
 
+    public function display_plugin_tenants($params)
+    {
+        if (empty($params['record']) || !is_array($params['record'])) {
+            return false;
+        }
+
+        if (empty($params['record']['tenants']) || !is_array($params['record']['tenants'])) {
+            return '<strong>'.$this->_pt('All').'</strong>';
+        }
+
+        return implode(', ', array_merge(['<strong>'.$this->_pt('All').'</strong>'], array_filter(array_map(function(int $tenant_id) {
+            if (!empty($this->_tenants_key_val_arr[$tenant_id])) {
+                return $this->_tenants_key_val_arr[$tenant_id];
+            }
+
+            return null;
+        }, $params['record']['tenants']))));
+    }
+
     public function display_actions($params)
     {
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model)
+            && !$this->load_depencies()) {
+            return false;
         }
 
         if (empty($params)
@@ -792,6 +771,10 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             return false;
         }
 
+        if(!$this->_admin_plugin->can_admin_manage_plugins()) {
+            return '-';
+        }
+
         ob_start();
         if (empty($params['record']['is_installed'])) {
             ?>
@@ -799,7 +782,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             ><i class="fa fa-plus-circle action-icons" title="<?php echo $this->_pt('Install plugin'); ?>"></i></a>
             <?php
         }
-        if ($params['record']['id'] !== PHS_Plugin::CORE_PLUGIN
+        if ($params['record']['id'] !== PHS_Instantiable::CORE_PLUGIN
          && empty($params['record']['is_always_active'])
          && $this->_paginator_model->is_inactive($params['record'])) {
             ?>
@@ -817,11 +800,14 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
                 <?php
             }
             ?>
-            <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'plugin_settings'],
+            <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'registry', 'ad' => 'plugins'],
+                ['pname' => $params['record']['plugin_name'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
+            ><i class="fa fa-database action-icons" title="<?php echo $this->_pt('Plugin Registry'); ?>"></i></a>
+            <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'settings', 'ad' => 'plugins'],
                 ['pid' => $params['record']['id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
             ><i class="fa fa-wrench action-icons" title="<?php echo $this->_pt('Plugin Settings'); ?>"></i></a>
             <?php
-            if ($params['record']['id'] !== PHS_Plugin::CORE_PLUGIN
+            if ($params['record']['id'] !== PHS_Instantiable::CORE_PLUGIN
              && empty($params['record']['is_always_active'])) {
                 ?>
                 <a href="javascript:void(0)" onclick="phs_plugins_list_inactivate( '<?php echo $params['record']['id']; ?>' )"
@@ -830,7 +816,7 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
             }
         }
 
-        if ($params['record']['id'] !== PHS_Plugin::CORE_PLUGIN
+        if ($params['record']['id'] !== PHS_Instantiable::CORE_PLUGIN
          && empty($params['record']['is_always_active'])
          && empty($params['record']['is_installed'])
          && empty($params['record']['is_core'])) {
@@ -1073,13 +1059,16 @@ class PHS_Action_Plugins_list extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    private function _check_record_for_current_scope($record_arr, $scope_arr)
+    private function _check_record_for_current_scope($record_arr, $scope_arr) : bool
     {
         return (empty($scope_arr['fstatus'])
                  || (int)$record_arr['status'] === (int)$scope_arr['fstatus'])
                && (empty($scope_arr['fplugin'])
                    || stripos($record_arr['name'], $scope_arr['fplugin']) !== false)
                && (empty($scope_arr['fvendor'])
-                   || stripos($record_arr['vendor_name'], $scope_arr['fvendor']) !== false);
+                   || stripos($record_arr['vendor_name'], $scope_arr['fvendor']) !== false)
+               && (!PHS::is_multi_tenant()
+                   || empty($scope_arr['ftenant'])
+                   || in_array((int)$scope_arr['ftenant'], $record_arr['tenants'] ?? [], true));
     }
 }

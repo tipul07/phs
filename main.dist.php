@@ -132,6 +132,10 @@ define( 'PHP_EXEC', '{{PHS_PHP_EXEC}}' ); // Default: /usr/bin/php
 define( 'PHS_DEBUG_MODE', {{PHS_DEBUG_MODE}} ); // Development: true, Production: false
 define( 'PHS_DEBUG_THROW_ERRORS', {{PHS_DEBUG_THROW_ERRORS}} ); // Default: false
 
+// Accepting multi-tenants?
+// Multi tenant means multiple domains served by same application
+define( 'PHS_MULTI_TENANT', {{PHS_MULTI_TENANT}} ); // Default: false
+
 include_once( PHS_PATH.'bootstrap.php' );
 
 use \phs\PHS;

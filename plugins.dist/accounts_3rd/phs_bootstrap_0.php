@@ -4,10 +4,10 @@ use phs\PHS;
 use phs\PHS_Api;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
+use phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd;
 
 /** @var \phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd $trd_party_plugin */
-if (($trd_party_plugin = PHS::load_plugin('accounts_3rd'))
- && $trd_party_plugin->plugin_active()) {
+if (($trd_party_plugin = PHS_Plugin_Accounts_3rd::get_instance())) {
     PHS_Logger::define_channel($trd_party_plugin::LOG_CHANNEL);
     PHS_Logger::define_channel($trd_party_plugin::LOG_ERR_CHANNEL);
 

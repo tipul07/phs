@@ -333,7 +333,8 @@ abstract class PHS_Scope extends PHS_Instantiable
         }
 
         if (!($scope_details = self::valid_scope($scope))
-         || !($scope_instance = PHS::load_scope($scope_details['class_name'], $scope_details['plugin']))) {
+            || empty($scope_details['class_name'])
+            || !($scope_instance = PHS::load_scope($scope_details['class_name'], $scope_details['plugin']))) {
             if (!self::st_has_error()) {
                 self::st_set_error(self::ERR_INSTANCE, self::_t('Error spawning scope instance.'));
             }

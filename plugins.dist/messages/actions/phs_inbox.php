@@ -68,7 +68,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         $messages_plugin = $this->_messages_plugin;
 
         if (!can($messages_plugin::ROLEU_READ_MESSAGE)) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to read messages.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }
@@ -106,7 +106,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         }
 
         if (!can($messages_plugin::ROLEU_READ_MESSAGE)) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to read messages.'));
+            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
             return false;
         }
@@ -308,7 +308,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                 }
 
                 if (!can($messages_plugin::ROLEU_WRITE_MESSAGE)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage messages.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -367,7 +367,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                 }
 
                 if (!can($messages_plugin::ROLEU_WRITE_MESSAGE)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage messages.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -424,7 +424,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                 }
 
                 if (!can($messages_plugin::ROLEU_WRITE_MESSAGE)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage messages.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }

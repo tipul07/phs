@@ -5,6 +5,7 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains;
 
 // ! @version 1.00
 
@@ -262,7 +263,7 @@ class PHS_Api_remote extends PHS_Api_base
         $this->reset_error();
 
         if (empty(self::$_domains_model)
-         && !(self::$_domains_model = PHS::load_model('phs_remote_domains', 'remote_phs'))) {
+         && !(self::$_domains_model = PHS_Model_Phs_remote_domains::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading remote domains model.'));
 
             return false;

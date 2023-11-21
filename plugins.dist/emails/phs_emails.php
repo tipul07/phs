@@ -64,10 +64,11 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 'default'      => 20971520, // 20Mb
             ],
             'test_email_sending' => [
-                'display_name'       => 'Test sending emails',
-                'custom_renderer'    => [$this, 'display_test_sending_emails'],
-                'default'            => false,
-                'ignore_field_value' => true,
+                'display_name'           => 'Test sending emails',
+                'custom_renderer'        => [$this, 'display_test_sending_emails'],
+                'default'                => false,
+                'ignore_field_value'     => true,
+                'only_main_tenant_value' => true,
             ],
         ];
     }
@@ -81,58 +82,55 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $params = self::merge_array_assoc(self::st_default_custom_save_params(), $params);
 
         if (empty($params['field_name'])
-         || empty($params['form_data']) || !is_array($params['form_data'])
-         || !in_array($params['field_name'], ['routes'], true)) {
+            || empty($params['form_data']) || !is_array($params['form_data'])
+            || $params['field_name'] !== 'routes') {
             return null;
         }
 
         if (!array_key_exists('field_value', $params)
-         || $params['field_value'] === null) {
+            || $params['field_value'] === null) {
             $old_values = null;
         } else {
             $old_values = $params['field_value'];
         }
 
-        $return_data = null;
-        if ($params['field_name'] === 'routes') {
-            if (empty($params['form_data']['routes']) || !is_array($params['form_data']['routes'])) {
+        if (empty($params['form_data']['routes']) || !is_array($params['form_data']['routes'])) {
+            return null;
+        }
+
+        if ($old_values === null
+         || !is_array($old_values)) {
+            $old_values = [];
+        }
+
+        $default_smtp_settings = self::get_default_smtp_settings();
+        $return_data = [];
+        foreach ($params['form_data']['routes'] as $route_name => $route_arr) {
+            $route_arr = self::merge_array_assoc($default_smtp_settings, $route_arr);
+
+            // Check if we have a password change
+            if (!empty($old_values)
+            && !empty($old_values[$route_name]) && is_array($old_values[$route_name])) {
+                if (!empty($old_values[$route_name]['smtp_pass'])
+                 && $route_arr['smtp_pass'] === self::UNCHANGED_SMTP_PASS
+                 && ($decrypted_pass = PHS_Crypt::quick_decode($old_values[$route_name]['smtp_pass']))) {
+                    $route_arr['smtp_pass'] = $decrypted_pass;
+                }
+            }
+
+            if (false === ($encoded_pass = PHS_Crypt::quick_encode($route_arr['smtp_pass']))) {
                 return null;
             }
 
-            if ($old_values === null
-             || !is_array($old_values)) {
-                $old_values = [];
-            }
+            $route_arr['smtp_pass'] = $encoded_pass;
 
-            $default_smtp_settings = self::get_default_smtp_settings();
-            $return_data = [];
-            foreach ($params['form_data']['routes'] as $route_name => $route_arr) {
-                $route_arr = self::merge_array_assoc($default_smtp_settings, $route_arr);
-
-                // Check if we have a password change
-                if (!empty($old_values)
-                && !empty($old_values[$route_name]) && is_array($old_values[$route_name])) {
-                    if (!empty($old_values[$route_name]['smtp_pass'])
-                     && $route_arr['smtp_pass'] === self::UNCHANGED_SMTP_PASS
-                     && ($decrypted_pass = PHS_Crypt::quick_decode($old_values[$route_name]['smtp_pass']))) {
-                        $route_arr['smtp_pass'] = $decrypted_pass;
-                    }
-                }
-
-                if (false === ($encoded_pass = PHS_Crypt::quick_encode($route_arr['smtp_pass']))) {
-                    return null;
-                }
-
-                $route_arr['smtp_pass'] = $encoded_pass;
-
-                $return_data[$route_name] = $route_arr;
-            }
+            $return_data[$route_name] = $route_arr;
         }
 
         return $return_data;
     }
 
-    public function display_settings_routes($params)
+    public function display_settings_routes($params) : ?string
     {
         $params = self::validate_array($params, self::default_custom_renderer_params());
 
@@ -155,6 +153,24 @@ class PHS_Plugin_Emails extends PHS_Plugin
             $email_routes[$route_name] = $route_arr;
         }
 
+        if (!empty($params['value_as_text'])) {
+            $routes_buf = '';
+            $lang_na = $this->_pt('N/A');
+            foreach ($email_routes as $route_name => $route_arr) {
+                $routes_buf .= 'Route '.$route_name.':<br/>'
+                               .$this->_pt('Localhost').': '.($route_arr['localhost'] ?: $lang_na).', '
+                               .$this->_pt('Username').': '.($route_arr['smtp_user'] ?: $lang_na).', '
+                               .$this->_pt('Password').': '.($route_arr['smtp_pass'] ? '('.$this->_pt('Undisclosed pass').')' : $lang_na).', '
+                               .$this->_pt('SMTP Host').': '.($route_arr['smtp_host'] ?: $lang_na).', '
+                               .$this->_pt('SMTP Port').': '.($route_arr['smtp_port'] ?: $lang_na).', '
+                               .$this->_pt('SMTP Timeout').': '.($route_arr['smtp_timeout'] ?? $lang_na).', '
+                               .$this->_pt('SMTP Encryption').': '.($route_arr['smtp_encryption'] ?: $lang_na).', '
+                               .$this->_pt('SMTP Authetication').': '.($route_arr['smtp_authentication'] ?: $lang_na).'.';
+            }
+
+            return $routes_buf;
+        }
+
         $data_arr = [];
         $data_arr['email_routes'] = $email_routes;
         $data_arr['smtp_library'] = $this->smtp_library;
@@ -162,9 +178,13 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $this->quick_render_template_for_buffer('routes_settings', $data_arr);
     }
 
-    public function display_test_sending_emails($params)
+    public function display_test_sending_emails($params) : ?string
     {
         $params = self::validate_array($params, self::default_custom_renderer_params());
+
+        if (!empty($params['value_as_text'])) {
+            return '';
+        }
 
         if (!($current_settings = $this->get_plugin_settings())) {
             $current_settings = [];
@@ -246,7 +266,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             return $defined_routes;
         }
 
-        if (!($plugin_settings = $this->get_db_settings())
+        if (!($plugin_settings = $this->get_plugin_settings())
          || empty($plugin_settings['routes']) || !is_array($plugin_settings['routes'])) {
             return [];
         }
@@ -292,7 +312,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         $hook_args = self::validate_array_recursive($hook_args, PHS_Hooks::default_init_email_hook_args());
 
-        if (!($settings_arr = $this->get_db_settings())
+        if (!($settings_arr = $this->get_plugin_settings())
          || empty($settings_arr['template_main'])) {
             $this->set_error(self::ERR_TEMPLATE, $this->_pt('Couldn\'t load template from plugin settings.'));
 

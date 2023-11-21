@@ -11,7 +11,7 @@ if (!($admin_plugin = PHS_Plugin_Admin::get_instance())) {
     return $this->_pt('Error loading required resources.');
 }
 
-$cuser_arr = PHS::current_user();
+$is_multi_tenant = PHS::is_multi_tenant();
 
 $can_list_plugins = $admin_plugin->can_admin_list_plugins();
 $can_manage_plugins = $admin_plugin->can_admin_manage_plugins();
@@ -26,14 +26,39 @@ $can_list_accounts = $admin_plugin->can_admin_list_accounts();
 $can_manage_accounts = $admin_plugin->can_admin_manage_accounts();
 $can_view_logs = $admin_plugin->can_admin_view_logs();
 $can_import_accounts = $admin_plugin->can_admin_import_accounts();
+$can_list_tenants = $admin_plugin->can_admin_list_tenants();
+$can_manage_tenants = $admin_plugin->can_admin_manage_tenants();
 
 if (!$can_list_plugins && !$can_manage_plugins
  && !$can_list_api_keys && !$can_manage_api_keys && !$can_view_api_monitoring_report
  && !$can_list_agent_jobs && !$can_manage_agent_jobs
  && !$can_list_roles && !$can_manage_roles
  && !$can_list_accounts && !$can_manage_accounts
+ && !$can_list_tenants && !$can_manage_tenants
  && !$can_import_accounts) {
     return '';
+}
+
+if ($is_multi_tenant
+    && ($can_list_tenants || $can_manage_tenants)) {
+    ?><li><?php echo $this::_t('Platform Tenants'); ?>
+        <ul>
+            <?php
+            if ($can_manage_tenants) {
+                ?>
+                <li><a href="<?php echo PHS::url(['a' => 'add', 'ad' => 'tenants', 'p' => 'admin']); ?>"
+                    ><?php echo $this::_t('Add Tenant'); ?></a></li>
+                <?php
+            }
+            if ($can_list_tenants) {
+                ?>
+                <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'tenants', 'p' => 'admin']); ?>"
+                    ><?php echo $this::_t('List Tenants'); ?></a></li>
+                <?php
+            }
+    ?>
+        </ul>
+    </li><?php
 }
 
 if ($can_list_accounts || $can_manage_accounts || $can_import_accounts) {
@@ -91,7 +116,14 @@ if ($can_list_plugins || $can_manage_plugins) {
     ?>
     <li><?php echo $this::_t('Plugins Management'); ?>
         <ul>
-            <li><a href="<?php echo PHS::url(['a' => 'plugins_list', 'p' => 'admin']); ?>"><?php echo $this::_t('List Plugins'); ?></a></li>
+            <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'plugins', 'p' => 'admin']); ?>"><?php echo $this::_t('List Plugins'); ?></a></li>
+            <?php
+            if (!$is_multi_tenant || $can_list_tenants) {
+                ?>
+                <li><a href="<?php echo PHS::url(['a' => 'plugins', 'ad' => 'tenants', 'p' => 'admin']); ?>"><?php echo $this::_t('Tenant Plugin Management'); ?></a></li>
+                <?php
+            }
+    ?>
             <li><a href="<?php echo PHS::url(['a' => 'plugins_integrity', 'p' => 'admin']); ?>"><?php echo $this::_t('Plugins\' Integrity'); ?></a></li>
         </ul>
     </li>
@@ -101,11 +133,11 @@ if ($can_list_agent_jobs || $can_manage_agent_jobs) {
     ?>
     <li><?php echo $this::_t('Agent Jobs'); ?>
         <ul>
-            <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'agent', 'p' => 'admin']); ?>"><?php echo $this::_t('List agent jobs'); ?></a></li>
+            <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'agent', 'p' => 'admin']); ?>"><?php echo $this::_t('List Agent Jobs'); ?></a></li>
             <?php
             if ($admin_plugin->monitor_agent_jobs()) {
                 ?>
-                <li><a href="<?php echo PHS::url(['a' => 'report', 'ad' => 'agent', 'p' => 'admin']); ?>"><?php echo $this::_t('Agent jobs report'); ?></a></li>
+                <li><a href="<?php echo PHS::url(['a' => 'report', 'ad' => 'agent', 'p' => 'admin']); ?>"><?php echo $this::_t('Agent Jobs Report'); ?></a></li>
                 <?php
             }
     ?>
@@ -120,17 +152,17 @@ if ($can_list_api_keys || $can_manage_api_keys || $can_view_api_monitoring_repor
             <?php
             if ($can_manage_api_keys) {
                 ?>
-                <li><a href="<?php echo PHS::url(['a' => 'api_key_add', 'p' => 'admin']); ?>"><?php echo $this::_t('Add API key'); ?></a></li>
+                <li><a href="<?php echo PHS::url(['a' => 'add', 'ad' => 'apikeys', 'p' => 'admin']); ?>"><?php echo $this::_t('Add API Key'); ?></a></li>
                 <?php
             }
             if ($can_list_api_keys || $can_manage_api_keys) {
                 ?>
-                <li><a href="<?php echo PHS::url(['a' => 'api_keys_list', 'p' => 'admin']); ?>"><?php echo $this::_t('List API keys'); ?></a></li>
+                <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'apikeys', 'p' => 'admin']); ?>"><?php echo $this::_t('List API Keys'); ?></a></li>
                 <?php
             }
             if ($can_view_api_monitoring_report) {
                 ?>
-                <li><a href="<?php echo PHS::url(['a' => 'api_report', 'p' => 'admin']); ?>"><?php echo $this::_t('API monitoring report'); ?></a></li>
+                <li><a href="<?php echo PHS::url(['a' => 'api_report', 'p' => 'admin']); ?>"><?php echo $this::_t('API Monitoring Report'); ?></a></li>
                 <?php
             }
     ?>
@@ -142,7 +174,7 @@ if ($can_view_logs) {
     ?>
     <li><?php echo $this::_t('System Logs'); ?>
         <ul>
-            <li><a href="<?php echo PHS::url(['a' => 'system_logs', 'p' => 'admin']); ?>"><?php echo $this::_t('View logs'); ?></a></li>
+            <li><a href="<?php echo PHS::url(['a' => 'system_logs', 'p' => 'admin']); ?>"><?php echo $this::_t('View Logs'); ?></a></li>
         </ul>
     </li>
     <?php
@@ -150,11 +182,12 @@ if ($can_view_logs) {
 
 /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
 if (($accounts_model = PHS_Model_Accounts::get_instance())
- && $accounts_model->acc_is_developer($cuser_arr)) {
+    && ($cuser_arr = PHS::user_logged_in())
+    && $accounts_model->acc_is_developer($cuser_arr)) {
     ?>
     <li><?php echo $this::_t('Framework Updates'); ?>
         <ul>
-            <li><a href="<?php echo PHS::url(['a' => 'framework_updates', 'p' => 'admin']); ?>"><?php echo $this::_t('Update PHS structure'); ?></a></li>
+            <li><a href="<?php echo PHS::url(['a' => 'framework_updates', 'p' => 'admin']); ?>"><?php echo $this::_t('Update PHS Structure'); ?></a></li>
         </ul>
     </li>
     <?php

@@ -117,12 +117,10 @@ class PHS_Params
             $extra = [];
         }
 
-        if (empty($extra['trim_before'])) {
-            $extra['trim_before'] = false;
-        }
+        $extra['trim_before'] = !empty($extra['trim_before']);
 
         if (!empty($extra['trim_before'])
-         && is_scalar($val)) {
+            && is_scalar($val)) {
             $val = trim($val);
         }
 
@@ -147,10 +145,6 @@ class PHS_Params
             case self::T_FLOAT:
                 if (empty($extra['trim_before'])) {
                     $val = trim($val);
-                }
-
-                if (empty($extra) || !is_array($extra)) {
-                    $extra = [];
                 }
 
                 if (empty($extra['digits'])) {
@@ -201,10 +195,6 @@ class PHS_Params
             case self::T_ARRAY:
                 if (empty($val) || !is_array($val)) {
                     return [];
-                }
-
-                if (empty($extra) || !is_array($extra)) {
-                    $extra = [];
                 }
 
                 if (empty($extra['type'])) {

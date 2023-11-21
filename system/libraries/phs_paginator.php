@@ -1743,7 +1743,7 @@ class PHS_Paginator extends PHS_Registry
         && empty($column_arr['record_api_field'])
         && empty($column_arr['display_callback'])) {
             $cell_content = '!'.self::_t('Bad column setup').'!';
-        } elseif ($render_params['for_scope'] != PHS_Scope::SCOPE_API
+        } elseif ((int)$render_params['for_scope'] !== PHS_Scope::SCOPE_API
              || empty($field_exists_in_record)) {
             if (!empty($column_arr['display_key_value'])
             && is_array($column_arr['display_key_value'])
@@ -1781,7 +1781,7 @@ class PHS_Paginator extends PHS_Registry
             $cell_content = $record_arr[$field_name];
         }
 
-        if (($cell_content === null || $render_params['for_scope'] != PHS_Scope::SCOPE_API)
+        if (($cell_content === null || (int)$render_params['for_scope'] !== PHS_Scope::SCOPE_API)
         && !empty($column_arr['display_callback'])) {
             if (!@is_callable($column_arr['display_callback'])) {
                 $cell_content = '!'.self::_t('Cell callback failed.').'!';
@@ -1795,7 +1795,7 @@ class PHS_Paginator extends PHS_Registry
 
                 $cell_callback_params = $render_params;
                 $cell_callback_params['table_field'] = $field_details;
-                $cell_callback_params['preset_content'] = ($cell_content === null ? '' : $cell_content);
+                $cell_callback_params['preset_content'] = ($cell_content ?? '');
                 $cell_callback_params['extra_callback_params'] = (!empty($column_arr['extra_callback_params']) ? $column_arr['extra_callback_params'] : false);
 
                 if (($cell_content = @call_user_func($column_arr['display_callback'], $cell_callback_params)) === false
@@ -1925,13 +1925,13 @@ class PHS_Paginator extends PHS_Registry
             return false;
         }
 
-        $rendering_params = false;
+        $rendering_params = null;
         if (PHS_Scope::current_scope() === PHS_Scope::SCOPE_API) {
             $rendering_params = ['only_string_result' => false];
         }
 
         // in API scope return could be an array to place in response
-        if (($buffer = $view_obj->render(false, false, $rendering_params)) === false) {
+        if (($buffer = $view_obj->render(null, null, $rendering_params)) === null) {
             if ($view_obj->has_error()) {
                 $this->copy_error($view_obj);
             } else {

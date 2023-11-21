@@ -7,6 +7,9 @@ use phs\PHS_Scope;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\backup\models\PHS_Model_Rules;
+use phs\plugins\backup\models\PHS_Model_Results;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Action_Result_files extends PHS_Action
 {
@@ -34,35 +37,21 @@ class PHS_Action_Result_files extends PHS_Action
         }
 
         /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
-        if (!($backup_plugin = $this->get_plugin_instance())) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load packages plugin.'));
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var \phs\plugins\backup\models\PHS_Model_Results $results_model */
+        /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
+        if (!($backup_plugin = $this->get_plugin_instance())
+            || !($accounts_model = PHS_Model_Accounts::get_instance())
+            || !($results_model = PHS_Model_Results::get_instance())
+            || !($rules_model = PHS_Model_Rules::get_instance())
+        ) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
 
         if (!can($backup_plugin::ROLEU_LIST_BACKUPS)) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to list backup result files.'));
-
-            return self::default_action_result();
-        }
-
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts model.'));
-
-            return self::default_action_result();
-        }
-
-        /** @var \phs\plugins\backup\models\PHS_Model_Results $results_model */
-        if (!($results_model = PHS::load_model('results', 'backup'))) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load backup results model.'));
-
-            return self::default_action_result();
-        }
-
-        /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
-        if (!($rules_model = PHS::load_model('rules', 'backup'))) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load backup rules model.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }
@@ -108,7 +97,7 @@ class PHS_Action_Result_files extends PHS_Action
             switch ($action) {
                 case 'delete':
                     if (!can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
-                        PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to delete backup files.'));
+                        PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
                     } elseif (empty($brfid)
                          || !($brf_flow_params = $results_model->fetch_default_flow_params(['table_name' => 'backup_results_files']))
                          || !($backup_file_arr = $results_model->get_details($brfid, $brf_flow_params))) {

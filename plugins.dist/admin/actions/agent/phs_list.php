@@ -769,7 +769,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             $params['record']['last_action'] = null;
         }
 
-        $stalling_minutes = $this->_paginator_model->get_job_stalling_minutes($agent_job);
+        $stalling_minutes = $this->_paginator_model->get_job_stalling_minutes($agent_job) ?? 0;
         $stalling_seconds = $stalling_minutes * 60;
         $stalling_minutes_str = PHS_Utils::parse_period($stalling_seconds);
 

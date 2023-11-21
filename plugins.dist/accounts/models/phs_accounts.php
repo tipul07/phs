@@ -12,6 +12,7 @@ use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\system\core\models\PHS_Model_Roles;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\system\core\models\PHS_Model_Tenants;
 
 class PHS_Model_Accounts extends PHS_Model
 {
@@ -53,7 +54,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     public function get_model_version()
     {
-        return '1.3.7';
+        return '1.3.8';
     }
 
     /**
@@ -1835,6 +1836,13 @@ class PHS_Model_Accounts extends PHS_Model
                         'type'   => self::FTYPE_TINYINT,
                         'length' => 2,
                     ],
+                    'is_multitenant' => [
+                        'type'    => self::FTYPE_TINYINT,
+                        'length'  => 2,
+                        'index'   => true,
+                        'default' => 1,
+                        'comment' => '1 - all tenants, 0 - check users_tenants',
+                    ],
                     'failed_logins' => [
                         'type'    => self::FTYPE_TINYINT,
                         'default' => 0,
@@ -2183,6 +2191,11 @@ class PHS_Model_Accounts extends PHS_Model
             $params['{account_roles}'] = false;
         }
 
+        if (!PHS::is_multi_tenant()
+         || !isset($params['{account_tenants}']) || !is_array($params['{account_tenants}'])) {
+            $params['{account_tenants}'] = null;
+        }
+
         if (!isset($params['{append_default_roles}'])) {
             $params['{append_default_roles}'] = true;
         } else {
@@ -2278,6 +2291,12 @@ class PHS_Model_Accounts extends PHS_Model
 
         if (!empty($roles_arr)) {
             PHS_Roles::link_roles_to_user($insert_arr, $roles_arr);
+        }
+
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tenants $accounts_tenants_model */
+        if (!empty($params['{account_tenants}'])
+         && ($accounts_tenants_model = PHS_Model_Accounts_tenants::get_instance())) {
+            $accounts_tenants_model->link_tenants_to_account($insert_arr, $params['{account_tenants}']);
         }
 
         $registration_email_params = [];
@@ -2388,14 +2407,14 @@ class PHS_Model_Accounts extends PHS_Model
             $encoded_clear = null;
             if ($accounts_plugin->is_password_decryption_enabled()
              && false === ($encoded_clear = PHS_Crypt::quick_encode($params['fields']['pass']))) {
-                $this->set_error(self::ERR_EDIT, $this->_pt('Error encrypting account password. Please retry.'));
+                $this->set_error(self::ERR_INSERT, $this->_pt('Error encrypting account password. Please retry.'));
 
                 return false;
             }
 
             if (!($pass_salt = self::generate_password((!empty($accounts_settings['pass_salt_length']) ? $accounts_settings['pass_salt_length'] + 3 : 8)))
              || !($encoded_pass = self::encode_pass($params['fields']['pass'], $pass_salt))) {
-                $this->set_error(self::ERR_EDIT, $this->_pt('Error obtaining account password. Please retry.'));
+                $this->set_error(self::ERR_INSERT, $this->_pt('Error obtaining account password. Please retry.'));
 
                 return false;
             }
@@ -2504,6 +2523,11 @@ class PHS_Model_Accounts extends PHS_Model
             $params['{users_details}'] = false;
         }
 
+        if (!PHS::is_multi_tenant()
+         || !isset($params['{account_tenants}']) || !is_array($params['{account_tenants}'])) {
+            $params['{account_tenants}'] = null;
+        }
+
         if (empty($params['{activate_after_registration}'])) {
             $params['{activate_after_registration}'] = false;
         }
@@ -2545,6 +2569,21 @@ class PHS_Model_Accounts extends PHS_Model
                 PHS_Logger::notice('ROLES Account #'.$existing_data['id'].': '.$existing_data['nick'].' was assigned roles: '
                                    .implode(', ', $params['{account_roles}']).'.',
                     $plugin_obj::LOG_SECURITY);
+            }
+        }
+
+        if (PHS::is_multi_tenant()
+            && isset($params['{account_tenants}']) && is_array($params['{account_tenants}'])) {
+            /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tenants $account_tenants_model */
+            if (!($account_tenants_model = PHS_Model_Accounts_tenants::get_instance())
+                || !$account_tenants_model->link_tenants_to_account($existing_data, $params['{account_tenants}'], ['append_tenants' => false])) {
+                if ($account_tenants_model->has_error()) {
+                    $this->copy_error($account_tenants_model, self::ERR_EDIT);
+                } else {
+                    $this->set_error(self::ERR_EDIT, $this->_pt('Error saving account tenants in database. Please try again.'));
+                }
+
+                return false;
             }
         }
 

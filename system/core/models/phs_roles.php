@@ -5,6 +5,7 @@ use phs\PHS;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Params;
 use phs\traits\PHS_Model_Trait_statuses;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Model_Roles extends PHS_Model
 {
@@ -210,7 +211,7 @@ class PHS_Model_Roles extends PHS_Model
         return str_replace('__', '_', @preg_replace('/[^a-zA-Z0-9_]+/', '_', $str));
     }
 
-    public function get_all_role_units($force = false)
+    public function get_all_role_units(bool $force = false)
     {
         static $all_role_units = null;
 
@@ -242,7 +243,7 @@ class PHS_Model_Roles extends PHS_Model
         return $all_role_units;
     }
 
-    public function get_all_role_units_by_slug($force = false)
+    public function get_all_role_units_by_slug(bool $force = false)
     {
         static $all_role_units = false;
 
@@ -276,7 +277,7 @@ class PHS_Model_Roles extends PHS_Model
         return $role_units_arr[$slug];
     }
 
-    public function get_all_role_units_by_slug_list($slug_arr, $force = false)
+    public function get_all_role_units_by_slug_list($slug_arr, bool $force = false)
     {
         if (empty($slug_arr) || !is_array($slug_arr)
          || !($role_units_arr = $this->get_all_role_units_by_slug($force))) {
@@ -521,9 +522,9 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return array
      */
-    public function role_units_list_to_ids($role_units_arr, $fresh_role_units = false)
+    public function role_units_list_to_ids(array $role_units_arr, bool $fresh_role_units = false) : array
     {
-        if (empty($role_units_arr) || !is_array($role_units_arr)) {
+        if (empty($role_units_arr)) {
             return [];
         }
 
@@ -567,7 +568,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return bool True on success, false on fail
      */
-    public function unlink_all_role_units_from_role($role_data)
+    public function unlink_all_role_units_from_role($role_data) : bool
     {
         $this->reset_error();
 
@@ -596,19 +597,9 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return bool
      */
-    public function unlink_role_units_from_role($role_data, $role_units_arr, $params = false)
+    public function unlink_role_units_from_role($role_data, array $role_units_arr) : bool
     {
         $this->reset_error();
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if (!is_array($role_units_arr)) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('No role units provided to unlink from role.'));
-
-            return false;
-        }
 
         if (!($role_arr = $this->data_to_array($role_data))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Role not found in database.'));
@@ -637,15 +628,15 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @param array|int $role_data Role id or role array
      * @param array $role_units_arr Role units passed as slugs, id or role unit array
-     * @param bool|array $params Functionality parameters
+     * @param null|array $params Functionality parameters
      *
      * @return bool
      */
-    public function link_role_units_to_role($role_data, $role_units_arr, $params = false)
+    public function link_role_units_to_role($role_data, $role_units_arr, ?array $params = null) : bool
     {
         $this->reset_error();
 
-        if (empty($params) || !is_array($params)) {
+        if (empty($params)) {
             $params = [];
         }
 
@@ -733,18 +724,14 @@ class PHS_Model_Roles extends PHS_Model
      * Un-links roles from one account.
      *
      * @param array|int $account_data Account id or account array
-     * @param array $roles_arr Roles passed as slugs, id or role array
+     * @param string|array $roles_arr Roles passed as slugs, id or role array
      * @param bool|array $params Functionality parameters
      *
      * @return bool
      */
-    public function unlink_roles_from_user($account_data, $roles_arr, $params = false)
+    public function unlink_roles_from_user($account_data, $roles_arr) : bool
     {
         $this->reset_error();
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
 
         if (empty(self::$_accounts_model)
         && !$this->_load_dependencies()) {
@@ -790,7 +777,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return bool
      */
-    public function unlink_all_roles_from_user($account_data)
+    public function unlink_all_roles_from_user($account_data) : bool
     {
         $this->reset_error();
 
@@ -822,7 +809,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return bool
      */
-    public function unlink_role_from_all_users($role_data)
+    public function unlink_role_from_all_users($role_data) : bool
     {
         $this->reset_error();
 
@@ -846,12 +833,12 @@ class PHS_Model_Roles extends PHS_Model
      * Links role units to roles. We assume role units were already created.
      *
      * @param array|int $account_data Account id or account array
-     * @param array $roles_arr Roles passed as slugs, id or role array
+     * @param string|array $roles_arr Roles passed as slugs, id or role array
      * @param bool|array $params Functionality parameters
      *
      * @return bool
      */
-    public function link_roles_to_user($account_data, $roles_arr, $params = false)
+    public function link_roles_to_user($account_data, $roles_arr, $params = false) : bool
     {
         $this->reset_error();
 
@@ -952,7 +939,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return array False on error or an array of slugs for provided role
      */
-    public function get_role_role_units_slugs($role_data)
+    public function get_role_role_units_slugs($role_data) : array
     {
         if (!($flow_params_ru = $this->fetch_default_flow_params(['table_name' => 'roles_units']))
          || !($flow_params_rul = $this->fetch_default_flow_params(['table_name' => 'roles_units_links']))
@@ -1252,19 +1239,24 @@ class PHS_Model_Roles extends PHS_Model
         return $return_arr;
     }
 
-    public function get_user_role_units_slugs($account_data)
+    /**
+     * @param int|array $account_data
+     *
+     * @return null|array
+     */
+    public function get_user_role_units_slugs($account_data) : ?array
     {
         $this->reset_error();
 
         if (empty(self::$_accounts_model)
          && !$this->_load_dependencies()) {
-            return false;
+            return null;
         }
 
         if (!($account_arr = self::$_accounts_model->data_to_array($account_data))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Account not found in database.'));
 
-            return false;
+            return null;
         }
 
         if (!($role_ids = $this->get_role_ids_for_user($account_arr['id']))
@@ -1514,7 +1506,7 @@ class PHS_Model_Roles extends PHS_Model
     {
         if (!empty($params['{role_units}']) && is_array($params['{role_units}'])) {
             if (empty($params['{role_units_params}'])) {
-                $params['{role_units_params}'] = false;
+                $params['{role_units_params}'] = null;
             }
 
             if (!$this->link_role_units_to_role($insert_arr, $params['{role_units}'], $params['{role_units_params}'])) {
@@ -1583,7 +1575,7 @@ class PHS_Model_Roles extends PHS_Model
     {
         if (is_array($params['{role_units}'])) {
             if (empty($params['{role_units_params}'])) {
-                $params['{role_units_params}'] = false;
+                $params['{role_units_params}'] = null;
             }
 
             if (!$this->link_role_units_to_role($existing_data, $params['{role_units}'], $params['{role_units_params}'])) {
@@ -1810,7 +1802,7 @@ class PHS_Model_Roles extends PHS_Model
     private function _load_dependencies() : bool
     {
         if (empty(self::$_accounts_model)
-         && !(self::$_accounts_model = PHS::load_model('accounts', 'accounts'))) {
+         && !(self::$_accounts_model = PHS_Model_Accounts::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
             return false;

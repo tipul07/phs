@@ -8,7 +8,7 @@ if (!($smtp_library = $this->view_var('smtp_library'))) {
     $smtp_library = false;
 }
 /** @var \phs\plugins\emails\PHS_Plugin_Emails $emails_plugin */
-if (!($emails_plugin = $this->parent_plugin())) {
+if (!($emails_plugin = $this->get_plugin_instance())) {
     $emails_plugin = false;
 }
 
@@ -22,7 +22,7 @@ if (!($test_email_sending_success = $this->view_var('test_email_sending_success'
 $route_safe_name = str_replace([' ', '[', ']'], '', $emails_plugin::DEFAULT_ROUTE);
 
 ?>
-    <div class="clearfix" style="margin-bottom:10px;"><?php echo $this->_pt('Test will be done using route %s. Be sure to save settings before testing.', $route_safe_name); ?></div>
+    <p><?php echo $this->_pt('Test will be done using route %s. Be sure to save settings before testing.', $route_safe_name); ?></p>
     <?php
 if (!empty($test_email_sending_success)) {
     ?>
@@ -34,18 +34,19 @@ if (!empty($test_email_sending_success)) {
         <?php
 }
 ?>
-    <div style="margin-bottom:10px;">
-        <label for="test_email_sending_email" style="width:150px !important;">
+    <div class="form-group">
+        <label for="test_email_sending_email">
             <?php echo $this->_pt('To email'); ?>
             <i class="fa fa-question-circle" title="<?php echo $this->_pt('To what email should we send test email'); ?>"></i>
         </label>
-        <input type="text" class="form-control" style="width:250px;"
+        <input type="text" class="form-control"
                name="test_email_sending_email"
                id="test_email_sending_email"
                value="<?php echo form_str($this->view_var('test_email_sending_email')); ?>" />
     </div>
 
-    <div style="margin-bottom:10px;">
-        <input type="submit" id="do_test_email_sending_submit" name="do_test_email_sending_submit" class="btn btn-success submit-protection ignore_hidden_required" value="<?php echo $this->_pte('Send test email'); ?>" />
+    <div class="form-group">
+        <input type="submit" id="do_test_email_sending_submit" name="do_test_email_sending_submit"
+               class="btn btn-success submit-protection ignore_hidden_required" value="<?php echo $this->_pte('Send test email'); ?>" />
     </div>
     <?php

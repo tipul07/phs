@@ -1,12 +1,11 @@
 <?php
 
-use phs\PHS;
 use phs\PHS_Api;
 use phs\libraries\PHS_Logger;
+use phs\plugins\mobileapi\PHS_Plugin_Mobileapi;
 
 /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobile_plugin */
-if (($mobile_plugin = PHS::load_plugin('mobileapi'))
- && $mobile_plugin->plugin_active()) {
+if (($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())) {
     PHS_Logger::define_channel($mobile_plugin::LOG_CHANNEL);
     PHS_Logger::define_channel($mobile_plugin::LOG_FIREBASE);
 

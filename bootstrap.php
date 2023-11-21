@@ -121,6 +121,8 @@ include_once PHS_CORE_DIR.'phs_db.php';
 
 include_once PHS_CORE_DIR.'phs_session.php';
 
+include_once PHS_CORE_DIR.'phs_tenants.php';
+
 include_once PHS_CORE_DIR.'phs_crypt.php';
 
 include_once PHS_CORE_VIEW_DIR.'phs_view.php';
@@ -155,6 +157,7 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Language;
 use phs\libraries\PHS_Notifications;
+use phs\system\core\models\PHS_Model_Plugins;
 
 // These are special cases as there might be 3 definitions of same constant
 
@@ -299,10 +302,9 @@ if (defined('PHS_DB_DRIVER_SETTINGS')) {
     $mysql_settings['driver_settings'] = constant('PHS_DB_DRIVER_SETTINGS');
 }
 
-if (!empty($mysql_settings['driver_settings'])) {
-    if (is_string($mysql_settings['driver_settings'])) {
-        $mysql_settings['driver_settings'] = @json_decode($mysql_settings['driver_settings'], true);
-    }
+if (!empty($mysql_settings['driver_settings'])
+    && is_string($mysql_settings['driver_settings'])) {
+    $mysql_settings['driver_settings'] = @json_decode($mysql_settings['driver_settings'], true);
 }
 
 if (!is_array($mysql_settings['driver_settings'])) {
@@ -324,18 +326,11 @@ if (!PHS_Db::add_db_connection(PHS_DB_DEFAULT_CONNECTION, $mysql_settings)) {
 // END Default database settings
 //
 
-//
-
-// Request domain settings (if available)
-//
-
+// Check domain settings (if available)
 if (($custom_config_file = PHS::check_custom_config())) {
     include_once $custom_config_file;
 }
-//
-
-// END Request domain settings (if available)
-//
+// END Check domain settings (if available)
 
 PHS::define_constants();
 
@@ -390,71 +385,73 @@ define('PHS_LANGUAGES_WWW', $base_url.'languages/');
 define('PHS_UPLOADS_WWW', $base_url.'_uploads/');
 
 // most used functionalities defined as functions for quick access (doh...)
-
 include_once PHS_SYSTEM_DIR.'functions.php';
 
 // Init session
-
 // !!!NOTE!!! When working with session variables you HAVE to use PHS_Session::_* (_g - get, _s - set and _d - delete)
-
 // $_SESSION array will be overwritten by PHS_Session class and variables set directly in $_SESSION array will be lost
-
 include_once PHS_SYSTEM_DIR.'session_init.php';
 
 // Init language system
-
 include_once PHS_SYSTEM_DIR.'languages_init.php';
 
+// Init tenants (if required)
+if (PHS::is_multi_tenant()) {
+    include_once PHS_SYSTEM_DIR.'tenants_init.php';
+}
+
 /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-if (!($plugins_model = PHS::load_model('plugins'))) {
+if (!($plugins_model = PHS_Model_Plugins::get_instance())) {
     echo PHS::_t('ERROR Instantiating plugins model.')."\n";
     if (PHS::st_debugging_mode()) {
-        PHS::var_dump(PHS::st_get_error(), ['max_level' => 5]);
+        echo PHS::var_dump(PHS::st_get_error(), ['max_level' => 5]);
     }
     exit;
 }
 
-//
+$all_plugins = [];
 
+//
 // Check if we are in install flow...
 //
-
 if (!defined('PHS_INSTALLING_FLOW') || !constant('PHS_INSTALLING_FLOW')) {
-    if (!($active_plugins = $plugins_model->get_all_active_plugins())) {
+    if ((PHS::is_multi_tenant() && !($all_plugins = $plugins_model->get_all_plugins()))
+        || (!PHS::is_multi_tenant() && !($all_plugins = $plugins_model->get_all_active_plugins()))) {
+        $all_plugins = [];
+    }
+
+    if (empty($all_plugins)) {
         $plugins_model_err = $plugins_model->get_error();
         if (!$plugins_model->test_db_connection()) {
             echo PHS::_t('ERROR Connecting to database. Please check your database connection settings.');
 
             if (PHS::arr_has_error($plugins_model_err)
              && PHS::st_debugging_mode()) {
-                PHS::var_dump($plugins_model_err, ['max_level' => 5]);
+                echo PHS::var_dump($plugins_model_err, ['max_level' => 5]);
             }
             exit;
         }
 
-        $active_plugins = [];
-    }
+        if (!$plugins_model->check_table_exists(['table_name' => 'plugins'])) {
+            if (!@is_dir(PHS_SETUP_DIR)) {
+                echo 'It seems you didn\'t run yet install script.';
+            }
 
-    if (empty($active_plugins)
-     && !$plugins_model->check_table_exists(['table_name' => 'plugins'])) {
-        if (!@is_dir(PHS_SETUP_DIR)) {
-            echo 'It seems you didn\'t run yet install script.';
+            // If we have a main.php script it means platform was setup before
+            // Don't redirect to setup script
+            elseif (!@is_file(PHS_PATH.'main.php')) {
+                echo 'It seems plugins table is missing. You should create a main file with database settings and then run ./bin/phs phs_setup in CLI.';
+            } else {
+                @header('Location: '.PHS_SETUP_WWW);
+                echo 'You should run ./bin/phs phs_setup in CLI to setup database.';
+            }
+
+            exit;
         }
-
-        // If we have a main.php script it means platform was setup before
-        // Don't redirect to setup script
-        elseif (!@is_file(PHS_PATH.'main.php')) {
-            echo 'It seems plugins table is missing. You should create a main file with database settings and then run ./bin/phs phs_update in CLI.';
-        } else {
-            @header('Location: '.PHS_SETUP_WWW);
-            echo 'You should run ./bin/phs phs_update in CLI to setup database.';
-        }
-
-        exit;
     }
 } else {
-    if (!($active_plugins = $plugins_model->get_all_plugins())) {
-        $active_plugins = [];
+    if (!($all_plugins = $plugins_model->get_all_plugins())) {
+        $all_plugins = [];
     }
 
     echo 'Checking plugins module installation... ';
@@ -478,7 +475,7 @@ foreach ($bootstrap_scripts_numbers as $bootstrap_scripts_number_i) {
     $bootstrap_scripts[$bootstrap_scripts_number_i] = [];
 }
 
-foreach ($active_plugins as $plugin_name => $plugin_db_arr) {
+foreach ($all_plugins as $plugin_name => $plugin_db_arr) {
     foreach ($bootstrap_scripts_numbers as $bootstrap_scripts_number_i) {
         if (@file_exists(PHS_PLUGINS_DIR.$plugin_name.'/phs_bootstrap_'.$bootstrap_scripts_number_i.'.php')) {
             $bootstrap_scripts[$bootstrap_scripts_number_i][]

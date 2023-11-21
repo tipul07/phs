@@ -6,6 +6,7 @@ use phs\PHS_Scope;
 use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
+use phs\plugins\backup\models\PHS_Model_Results;
 
 class PHS_Action_Finish_backup_script_bg extends PHS_Action
 {
@@ -27,7 +28,7 @@ class PHS_Action_Finish_backup_script_bg extends PHS_Action
         if (!($params = PHS_Bg_jobs::get_current_job_parameters())
          || !is_array($params)
          || empty($params['result_id'])
-         || !($results_model = PHS::load_model('results', 'backup'))
+         || !($results_model = PHS_Model_Results::get_instance())
          || !($result_arr = $results_model->get_details($params['result_id']))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Backup result not found in database.'));
 

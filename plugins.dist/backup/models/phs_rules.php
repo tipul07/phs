@@ -566,7 +566,7 @@ class PHS_Model_Rules extends PHS_Model
             return true;
         }
 
-        if (!($settings_arr = $backup_plugin->get_db_settings())) {
+        if (!($settings_arr = $backup_plugin->get_plugin_settings())) {
             $settings_arr = [];
         }
 
@@ -695,7 +695,7 @@ class PHS_Model_Rules extends PHS_Model
             return false;
         }
 
-        if (!($settings_arr = $backup_plugin->get_db_settings())) {
+        if (!($settings_arr = $backup_plugin->get_plugin_settings())) {
             $settings_arr = [];
         }
 
@@ -817,7 +817,7 @@ class PHS_Model_Rules extends PHS_Model
             }
         }
 
-        if (!($settings_arr = $backup_plugin->get_db_settings())) {
+        if (!($settings_arr = $backup_plugin->get_plugin_settings())) {
             $settings_arr = [];
         }
 

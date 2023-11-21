@@ -350,8 +350,7 @@ class PHS_Language_Container extends PHS_Error
         }
 
         // Add cascading themes to language files...
-        if (($themes_arr = PHS::get_cascading_themes())
-         && is_array($themes_arr)) {
+        if (($themes_arr = PHS::get_cascading_themes())) {
             foreach ($themes_arr as $c_theme) {
                 if (!empty($c_theme)
                  && ($theme_language_paths = PHS::get_theme_language_paths($c_theme))
@@ -534,7 +533,7 @@ class PHS_Language_Container extends PHS_Error
             }
 
             $index = $csv_line[0];
-            $index_lang = $csv_line[1];
+            $index_lang = $csv_line[1] ?? '';
 
             $return_arr[$index] = $index_lang;
         }
@@ -545,13 +544,13 @@ class PHS_Language_Container extends PHS_Error
     }
 
     /**
-     * Translate text $index. If $index contains %XX format (@param string $index Language index to be translated
+     * Translate text $index. If $index contains %XX format vsprintf, arguments will be passed in $args parameter.
      *
-     * @param array $args Array of arguments to be used to populate $index (@see vsprintf)
-     * @param string $index
+     * @param string $index Language index to be translated
+     * @param array $args Array of arguments to be used to populate $index
      *
      * @return string Translated string
-     *@see vsprintf), arguments will be passed in $args parameter.
+     * @see vsprintf
      */
     public function _t(string $index, array $args = []) : string
     {
@@ -571,14 +570,14 @@ class PHS_Language_Container extends PHS_Error
     }
 
     /**
-     * Translate text $index for language $lang. If $index contains %XX format (@param  string  $index Language index to be translated
+     * Translate text $index for language $lang. If $index contains %XX format vsprintf, arguments will be passed in $args parameter.
      *
-     * @param string $lang
-     * @param array $args Array of arguments to be used to populate $index (@see vsprintf)
      * @param string $index
+     * @param string $lang
+     * @param array $args Array of arguments to be used to populate $index
      *
      * @return string
-     *@see vsprintf), arguments will be passed in $args parameter.
+     * @see vsprintf
      */
     public function _tl(string $index, string $lang, array $args = []) : string
     {

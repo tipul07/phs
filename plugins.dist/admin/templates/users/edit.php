@@ -2,6 +2,7 @@
 /** @var \phs\system\core\views\PHS_View $this */
 
 use phs\PHS;
+use phs\PHS_Tenants;
 use phs\libraries\PHS_Utils;
 
 /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
@@ -13,6 +14,13 @@ if (!($roles_model = $this->view_var('roles_model'))
     || !($account_arr = $this->view_var('account_data'))) {
     return $this->_pt('Error loading required resources.');
 }
+
+/** @var null|\phs\system\core\models\PHS_Model_Tenants $tenants_model */
+if (!($tenants_model = $this->view_var('tenants_model'))) {
+    $tenants_model = null;
+}
+
+$is_multi_tenant = PHS::is_multi_tenant();
 
 if (!($accounts_plugin_settings = $this->view_var('accounts_plugin_settings'))) {
     $accounts_plugin_settings = [];
@@ -31,6 +39,13 @@ if (!($account_roles = $this->view_var('account_roles'))) {
 }
 if (!($roles_by_slug = $this->view_var('roles_by_slug'))) {
     $roles_by_slug = [];
+}
+
+if (!($db_account_tenants = $this->view_var('db_account_tenants'))) {
+    $db_account_tenants = [];
+}
+if (!($all_tenants_arr = $this->view_var('all_tenants_arr'))) {
+    $all_tenants_arr = [];
 }
 
 $current_user = PHS::user_logged_in();
@@ -101,15 +116,27 @@ if (!empty($back_page)) {
         </div>
     </div>
 
-
     <div class="form-group row">
-        <label for="level" class="col-sm-2 col-form-label"><?php echo $this->_pt('Roles'); ?></label>
+        <label for="account_current_roles" class="col-sm-2 col-form-label"><?php echo $this->_pt('Roles'); ?></label>
         <div class="col-sm-10">
             <div id="account_current_roles"></div>
             <a href="javascript:void(0)" onclick="open_roles_dialogue();this.blur();"
                class="btn btn-small btn-primary"><?php echo $this->_pt('Change roles'); ?></a>
         </div>
     </div>
+
+    <?php
+    if ($is_multi_tenant) {
+        ?>
+    <div class="form-group row">
+        <label for="account_current_tenants" class="col-sm-2 col-form-label"><?php echo $this->_pt('Tenants'); ?></label>
+        <div class="col-sm-10">
+            <div id="account_current_tenants"></div>
+            <a href="javascript:void(0)" onclick="open_tenants_dialogue();this.blur();"
+               class="btn btn-small btn-primary"><?php echo $this->_pt('Change tenants'); ?></a>
+        </div>
+    </div>
+    <?php } ?>
 
     <div class="form-group row">
         <label for="title" class="col-sm-2 col-form-label"><?php echo $this->_pt('Title'); ?></label>
@@ -258,11 +285,10 @@ if (!empty($roles_by_slug) && is_array($roles_by_slug)) {
 ?>
     </div>
     <div class="float-right p-2">
-        <input type="button" id="do_close_roles_dialogue" name="do_reject_doc_cancel" class="btn btn-primary btn-small"
+        <input type="button" id="do_close_roles_dialogue" name="do_close_roles_dialogue" class="btn btn-primary btn-small"
                value="<?php echo $this->_pt('Close'); ?>" onclick="close_roles_dialogue()" />
     </div>
 </div>
-</form>
 
 <script type="text/javascript">
 function close_roles_dialogue()
@@ -300,8 +326,8 @@ function closing_roles_dialogue()
 }
 function update_selected_roles()
 {
-    var roles_container_obj = $("#account_current_roles");
-    if( !roles_container_obj )
+    var container_obj = $("#account_current_roles");
+    if( !container_obj )
         return;
 
     var old_slug = false;
@@ -334,10 +360,143 @@ function update_selected_roles()
     });
 
     if( selected_roles.length )
-        roles_container_obj.html( selected_roles.join( ', ' ) + '.' );
+        container_obj.html( selected_roles.join( ', ' ) + '.' );
     else
-        roles_container_obj.html( "<em><?php echo $this->_pte('No role assigned to this account.'); ?></em>" );
+        container_obj.html( "<em><?php echo $this->_pte('No role assigned to this account.'); ?></em>" );
 }
 
 update_selected_roles();
 </script>
+<?php
+if ($is_multi_tenant) {
+    ?>
+
+<div style="display: none;" id="account_tenants_container">
+
+    <div>
+    <?php
+if (!empty($all_tenants_arr) && is_array($all_tenants_arr)) {
+    $old_domain = null;
+    $did_autofocus = false;
+    foreach ($all_tenants_arr as $t_id => $t_arr) {
+        if ($tenants_model && $tenants_model->is_deleted($t_arr)) {
+            continue;
+        }
+
+        if ($old_domain !== $t_arr['domain']) {
+            if ($old_domain !== null) {
+                ?><div style="margin-bottom:10px;"></div><?php
+            }
+            ?>
+                <section class="heading-bordered">
+                    <h4><?php echo $t_arr['domain']; ?></h4>
+                </section>
+                <?php
+            $old_domain = $t_arr['domain'];
+        }
+        ?>
+        <div class="mb-1">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox"
+                       name="account_tenants[]" id="account_tenants_<?php echo $t_id; ?>"
+                       data-tenant-id="<?php echo form_str($t_id); ?>"
+                       data-tenant-name="<?php echo form_str($t_arr['name']); ?>"
+                       data-tenant-domain="<?php echo form_str($t_arr['domain']); ?>"
+                       <?php echo in_array($t_id, $db_account_tenants, true) ? 'checked="checked"' : ''; ?>
+                       value="<?php echo form_str($t_id); ?>"
+                       <?php echo !$did_autofocus ? 'autofocus="true"' : ''; ?> />
+                <label class="form-check-label" for="account_tenants_<?php echo $t_id; ?>">
+                    <?php echo PHS_Tenants::get_tenant_details_for_display($t_arr); ?>
+                </label>
+            </div>
+        </div>
+        <?php
+
+        $did_autofocus = true;
+    }
+}
+    ?>
+    </div>
+    <div class="float-right p-2">
+        <input type="button" id="do_close_tenant_dialogue" name="do_close_tenant_dialogue" class="btn btn-primary btn-small"
+               value="<?php echo $this->_pt('Close'); ?>" onclick="close_tenants_dialogue()" />
+    </div>
+</div>
+
+<script type="text/javascript">
+function close_tenants_dialogue()
+{
+    PHS_JSEN.closeAjaxDialog( 'user_tenants_' );
+}
+function open_tenants_dialogue()
+{
+    var container_obj = $("#account_tenants_container");
+    if( !container_obj )
+        return;
+
+    container_obj.show();
+
+    PHS_JSEN.createAjaxDialog( {
+        suffix: 'user_tenants_',
+        //width: 800,
+        height: 600,
+        title: "<?php echo $this->_pte('Account Tenants'); ?>",
+        resizable: false,
+        source_obj: container_obj,
+        source_not_cloned: true,
+        onbeforeclose: closing_tenants_dialogue
+    });
+}
+function closing_tenants_dialogue()
+{
+    var container_obj = $("#account_tenants_container");
+    if( !container_obj )
+        return;
+
+    container_obj.hide();
+
+    update_selected_tenants();
+}
+function update_selected_tenants()
+{
+    var container_obj = $("#account_current_tenants");
+    if( !container_obj )
+        return;
+
+    var old_domain = false;
+
+    var selected_tenants = [];
+    $("input:checked[name=account_tenants\\[\\]").each(function(){
+        var tenant_name = $(this).data( 'tenantName' );
+        if( tenant_name && tenant_name.length )
+        {
+            var tenant_domain = $(this).data( 'tenantDomain' );
+
+            if( !tenant_domain || !tenant_domain.length )
+                tenant_domain = "";
+
+            if( old_domain !== tenant_domain )
+            {
+                var prefix = " - ";
+                if( old_domain !== false )
+                    prefix = "<br/> - ";
+
+                tenant_name = prefix + "<strong>" + tenant_domain + "</strong>: " + tenant_name;
+
+                old_domain = tenant_domain;
+            }
+
+            selected_tenants.push( tenant_name );
+        }
+    });
+
+    if( selected_tenants.length )
+        container_obj.html( selected_tenants.join( ', ' ) + '.' );
+    else
+        container_obj.html( "<strong><?php echo $this->_pte('ALL TENANTS'); ?></strong>" );
+}
+
+update_selected_tenants();
+</script>
+<?php } ?>
+</form>

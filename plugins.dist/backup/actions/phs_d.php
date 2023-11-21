@@ -8,6 +8,7 @@ use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\backup\models\PHS_Model_Results;
 
 class PHS_Action_D extends PHS_Action
 {
@@ -40,14 +41,14 @@ class PHS_Action_D extends PHS_Action
         }
 
         /** @var \phs\plugins\backup\models\PHS_Model_Results $results_model */
-        if (!($results_model = PHS::load_model('results', 'backup'))) {
+        if (!($results_model = PHS_Model_Results::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load results model.'));
 
             return self::default_action_result();
         }
 
         if (!can($backup_plugin::ROLEU_LIST_BACKUPS)) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to list backup results.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }

@@ -165,7 +165,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
             return PHS_Hooks::default_messages_summary_hook_args();
         }
 
-        if (!($settings_arr = $this->get_db_settings())
+        if (!($settings_arr = $this->get_plugin_settings())
          || empty($settings_arr['summary_template'])) {
             $this->set_error(self::ERR_TEMPLATE, $this->_pt('Couldn\'t load summary template from plugin settings.'));
 
@@ -244,7 +244,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
             return false;
         }
 
-        if (($hook_args['summary_buffer'] = $view_obj->render()) === false) {
+        if (($hook_args['summary_buffer'] = $view_obj->render()) === null) {
             if ($view_obj->has_error()) {
                 $this->copy_error($view_obj);
             } else {

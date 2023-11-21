@@ -6,11 +6,11 @@ if (!defined('PHS_VERSION')) {
 
 // Prety name of the site (will be displayed to visitors as site name) (eg. MyNiceSite.com)
 
-define('PHS_SITE_NAME', 'PoweredByPHS.com');
+define('PHS_DEFAULT_SITE_NAME', 'PoweredByPHS.com');
 
 // Where should Contact Us send emails (this email(s) might be shown to users) this can contain comma separated emails
 
-define('PHS_CONTACT_EMAIL', 'contact@email.com');
+define('PHS_DEFAULT_CONTACT_EMAIL', 'contact@email.com');
 
 // domain to set session cookie (could be .example.com serving all subdomains)
 

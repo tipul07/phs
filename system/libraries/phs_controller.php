@@ -105,8 +105,10 @@ abstract class PHS_Controller extends PHS_Instantiable
         PHS::running_controller($this);
 
         if (!$this->instance_is_core()
-        && (!($plugin_instance = $this->get_plugin_instance())
-                || !$plugin_instance->plugin_active())) {
+            && (!($plugin_instance = $this->get_plugin_instance())
+                || (!$plugin_instance->plugin_active()
+                    && !in_array($plugin_instance->instance_plugin_name(), PHS::get_always_active_plugins(), true)))
+        ) {
             $this->set_error(self::ERR_RUN_ACTION, self::_t('Unknown or not active controller.'));
 
             return false;
@@ -142,7 +144,9 @@ abstract class PHS_Controller extends PHS_Instantiable
 
         if (!$this->instance_is_core()
             && (!($plugin_instance = $this->get_plugin_instance())
-                || !$plugin_instance->plugin_active())) {
+                || (!$plugin_instance->plugin_active()
+                    && !in_array($plugin_instance->instance_plugin_name(), PHS::get_always_active_plugins(), true)))
+        ) {
             $this->set_error(self::ERR_RUN_ACTION, self::_t('Unknown or not active controller.'));
 
             return false;
@@ -176,7 +180,9 @@ abstract class PHS_Controller extends PHS_Instantiable
 
         if (!$this->instance_is_core()
             && (!($plugin_instance = $this->get_plugin_instance())
-                || !$plugin_instance->plugin_active())) {
+                || (!$plugin_instance->plugin_active()
+                    && !in_array($plugin_instance->instance_plugin_name(), PHS::get_always_active_plugins(), true)))
+        ) {
             $this->set_error(self::ERR_RUN_ACTION, self::_t('Unknown or not active controller.'));
 
             return null;

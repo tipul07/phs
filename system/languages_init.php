@@ -28,8 +28,11 @@ $languages_arr = [
 
 foreach ($languages_arr as $lang_key => $lang_details) {
     if (!PHS_Language::define_language($lang_key, $lang_details)) {
-        // Do something if we cannot initialize English language
-        PHS_Language::st_throw_error();
+        PHS_Language::trigger_critical_error(
+            PHS_Language::st_has_error()
+                ? PHS_Language::st_get_simple_error_message()
+                : 'Error defining required languages.'
+        );
     }
 }
 

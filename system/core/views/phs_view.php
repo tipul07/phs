@@ -11,7 +11,8 @@ use phs\libraries\PHS_Instantiable;
 
 class PHS_View extends PHS_Instantiable
 {
-    public const ERR_BAD_CONTROLLER = 40000, ERR_BAD_ACTION = 40001, ERR_BAD_TEMPLATE = 40002, ERR_BAD_THEME = 40003, ERR_TEMPLATE_DIRS = 40004, ERR_INIT_VIEW = 40005;
+    public const ERR_BAD_CONTROLLER = 40000, ERR_BAD_ACTION = 40001, ERR_BAD_TEMPLATE = 40002,
+    ERR_BAD_THEME = 40003, ERR_TEMPLATE_DIRS = 40004, ERR_INIT_VIEW = 40005;
 
     public const VIEW_CONTEXT_DATA_KEY = 'phs_view_context';
 
@@ -20,10 +21,10 @@ class PHS_View extends PHS_Instantiable
     protected $_theme = '';
 
     // Array of directories where we check if template exists
-    protected $_template_dirs = [];
+    protected array $_template_dirs = [];
 
     // Array of directories where we check if template exists (others than the ones we detect)
-    protected $_extra_template_dirs = [];
+    protected array $_extra_template_dirs = [];
 
     // Resulting template file
     protected string $_template_file = '';
@@ -58,12 +59,12 @@ class PHS_View extends PHS_Instantiable
         return true;
     }
 
-    public function set_action($action_obj)
+    public function set_action($action_obj) : bool
     {
         $this->reset_error();
 
-        if ($action_obj !== false
-         && !($action_obj instanceof PHS_Action)) {
+        if (!empty($action_obj)
+            && !($action_obj instanceof PHS_Action)) {
             $this->set_error(self::ERR_BAD_ACTION, self::_t('Not an action instance.'));
 
             return false;
@@ -74,11 +75,11 @@ class PHS_View extends PHS_Instantiable
         return true;
     }
 
-    public function set_parent_view($view_obj)
+    public function set_parent_view($view_obj) : bool
     {
         $this->reset_error();
 
-        if ($view_obj !== false
+        if (!empty($view_obj)
          && !($view_obj instanceof self)) {
             $this->set_error(self::ERR_BAD_ACTION, self::_t('Not a view instance.'));
 
@@ -90,7 +91,7 @@ class PHS_View extends PHS_Instantiable
         return true;
     }
 
-    final public function is_admin_controller()
+    final public function is_admin_controller() : bool
     {
         return $this->_controller && $this->_controller->is_admin_controller();
     }
@@ -122,7 +123,7 @@ class PHS_View extends PHS_Instantiable
     /**
      * @return array If current view has an action associated, return it's action result
      */
-    public function get_action_result()
+    public function get_action_result() : array
     {
         $default_action_result = PHS_Action::default_action_result();
         /** @var \phs\libraries\PHS_Action $action */
@@ -153,7 +154,7 @@ class PHS_View extends PHS_Instantiable
         return $this->_template_file;
     }
 
-    public function add_extra_template_dir($dir_path, $dir_www)
+    public function add_extra_template_dir($dir_path, $dir_www) : bool
     {
         if (empty($dir_path)) {
             return false;
@@ -171,7 +172,7 @@ class PHS_View extends PHS_Instantiable
         return true;
     }
 
-    public function add_extra_theme_dir($theme_relative_dir)
+    public function add_extra_theme_dir(string $theme_relative_dir) : bool
     {
         if (!($extra_dirs = self::st_add_extra_theme_dir($theme_relative_dir, $this->get_theme()))) {
             return false;
@@ -189,9 +190,9 @@ class PHS_View extends PHS_Instantiable
      *
      * @param string $file
      *
-     * @return array|false
+     * @return null|array
      */
-    public function get_resource_details(string $file)
+    public function get_resource_details(string $file) : ?array
     {
         $this->reset_error();
 
@@ -199,7 +200,7 @@ class PHS_View extends PHS_Instantiable
          || !($file = self::safe_escape_resource($file))) {
             $this->set_error(self::ERR_BAD_TEMPLATE, self::_t('Invalid resource file.'));
 
-            return false;
+            return null;
         }
 
         if (!($file_details = $this->_get_file_details($file))) {
@@ -207,7 +208,7 @@ class PHS_View extends PHS_Instantiable
                 $this->set_error(self::ERR_BAD_TEMPLATE, self::_t('Resource file [%s] not found.', $file));
             }
 
-            return false;
+            return null;
         }
 
         return $file_details;
@@ -277,11 +278,11 @@ class PHS_View extends PHS_Instantiable
     /**
      * Set template for current view
      * @param string|array $template
-     * @param bool|array $params
+     * @param null|array $params
      *
      * @return array|bool
      */
-    public function set_template($template, $params = false)
+    public function set_template($template, ?array $params = null)
     {
         $this->reset_error();
 
@@ -320,11 +321,11 @@ class PHS_View extends PHS_Instantiable
 
     /**
      * Force a specific theme for current view
-     * @param string $theme
+     * @param null|string $theme
      *
      * @return bool
      */
-    public function set_theme($theme)
+    public function set_theme(?string $theme) : bool
     {
         $this->reset_error();
 
@@ -332,7 +333,7 @@ class PHS_View extends PHS_Instantiable
             $theme = PHS::get_theme();
         }
 
-        if (!PHS::valid_theme($theme)) {
+        if (!($theme = PHS::valid_theme($theme))) {
             $this->set_error(self::ERR_BAD_THEME, self::_t('Invalid theme.'));
 
             return false;
@@ -345,11 +346,11 @@ class PHS_View extends PHS_Instantiable
 
     /**
      * @param string|array $template
-     * @param bool|array $force_theme
+     * @param null|string $force_theme
      *
      * @return bool|mixed|string
      */
-    public function sub_view_if_exists($template, $force_theme = false)
+    public function sub_view_if_exists($template, ?string $force_theme = null)
     {
         $this->reset_error();
 
@@ -380,11 +381,11 @@ class PHS_View extends PHS_Instantiable
 
     /**
      * @param string|array $template
-     * @param bool|array $force_theme
+     * @param null|string $force_theme
      *
      * @return bool|mixed|string
      */
-    public function sub_view($template, $force_theme = false)
+    public function sub_view($template, ?string $force_theme = null)
     {
         $this->reset_error();
 
@@ -412,7 +413,7 @@ class PHS_View extends PHS_Instantiable
         $template_params['theme'] = $view_theme;
 
         if (!($subview_template = $subview_obj->set_template($template, $template_params))
-         || ($subview_buffer = $subview_obj->render($template)) === false) {
+         || ($subview_buffer = $subview_obj->render($template)) === null) {
             if ($subview_obj->has_error()) {
                 $this->copy_error($subview_obj);
             } else {
@@ -512,22 +513,22 @@ class PHS_View extends PHS_Instantiable
     /**
      * Render template set for current view or the template provided in parameters
      *
-     * @param bool|array|string $template
-     * @param bool|string $force_theme
-     * @param bool|array $params
+     * @param null|array|string $template
+     * @param null|string $force_theme
+     * @param null|array $params
      *
-     * @return bool|string
+     * @return null|string
      */
-    public function render($template = false, $force_theme = false, $params = false)
+    public function render($template = null, ?string $force_theme = null, ?array $params = null) : ?string
     {
-        if ($template !== false
+        if ($template !== null
          && !$this->set_template($template)) {
-            return false;
+            return null;
         }
 
-        if ($force_theme !== false
+        if ($force_theme !== null
          && !$this->set_theme($force_theme)) {
-            return false;
+            return null;
         }
 
         if (!$this->_get_template_path()) {
@@ -541,12 +542,12 @@ class PHS_View extends PHS_Instantiable
                     PHS_Logger::TYPE_DEBUG);
             }
 
-            return false;
+            return null;
         }
 
         $resulting_buf = '';
 
-        if (empty($params) || !is_array($params)) {
+        if (empty($params)) {
             $params = [];
         }
 
@@ -582,11 +583,25 @@ class PHS_View extends PHS_Instantiable
         $this->_template_file = '';
     }
 
-    protected function _get_template_directories()
+    protected function _check_directory_for_template(string $path, string $www, string $language, array &$matching_arr) : void
+    {
+        if (@file_exists($path)
+            && @is_dir($path)) {
+            if (@file_exists($path.'/'.$language)
+                && @is_dir($path.'/'.$language)) {
+                $matching_arr[$path.'/'.$language.'/'] = $www.'/'.$language.'/';
+            }
+
+            $matching_arr[$path.'/'] = $www.'/';
+        }
+    }
+
+    protected function _get_template_directories() : array
     {
         $this->_template_dirs = [];
 
         $current_language = PHS_Language::get_current_language();
+        $themes_stack = PHS::get_all_themes_stack($this->_theme);
 
         if (defined('PHS_THEMES_WWW') && defined('PHS_THEMES_DIR')) {
             // Check if current theme overrides plugin template
@@ -601,143 +616,63 @@ class PHS_View extends PHS_Instantiable
 
                 $plugin_name = $instance_obj->instance_plugin_name();
 
-                if (!empty($this->_theme)) {
-                    $check_dir = PHS_THEMES_DIR.$this->_theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name;
-                    if (@file_exists($check_dir)
-                     && @is_dir($check_dir)) {
-                        if (@file_exists($check_dir.'/'.$current_language)
-                         && @is_dir($check_dir.'/'.$current_language)) {
-                            $this->_template_dirs[$check_dir.'/'.$current_language.'/']
-                                = PHS_THEMES_WWW.$this->_theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name.'/'.$current_language.'/';
-                        }
-
-                        $this->_template_dirs[$check_dir.'/']
-                            = PHS_THEMES_WWW.$this->_theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name.'/';
-                    }
-                }
-
-                if (($themes_arr = PHS::get_cascading_themes())
-                 && is_array($themes_arr)) {
-                    foreach ($themes_arr as $c_theme) {
-                        if (empty($c_theme)) {
-                            continue;
-                        }
-
-                        $check_dir = PHS_THEMES_DIR.$c_theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name;
-                        if (!@file_exists($check_dir)
-                         || !@is_dir($check_dir)) {
-                            continue;
-                        }
-
-                        if (@file_exists($check_dir.'/'.$current_language)
-                         && @is_dir($check_dir.'/'.$current_language)) {
-                            $this->_template_dirs[$check_dir.'/'.$current_language.'/']
-                                = PHS_THEMES_WWW.$c_theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name.'/'.$current_language.'/';
-                        }
-
-                        $this->_template_dirs[$check_dir.'/']
-                            = PHS_THEMES_WWW.$c_theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name.'/';
-                    }
-                }
-
-                if (($default_theme = PHS::get_default_theme())
-                 && $default_theme !== $this->_theme) {
-                    $check_dir = PHS_THEMES_DIR.$default_theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name;
-                    if (@file_exists($check_dir)
-                     && @is_dir($check_dir)) {
-                        if (@file_exists($check_dir.'/'.$current_language)
-                         && @is_dir($check_dir.'/'.$current_language)) {
-                            $this->_template_dirs[$check_dir.'/'.$current_language.'/']
-                                = PHS_THEMES_WWW.$default_theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name.'/'.$current_language.'/';
-                        }
-
-                        $this->_template_dirs[$check_dir.'/']
-                                = PHS_THEMES_WWW.$default_theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name.'/';
+                if ($themes_stack) {
+                    foreach ($themes_stack as $theme) {
+                        $location = $theme.'/'.self::THEMES_PLUGINS_TEMPLATES_DIR.'/'.$plugin_name;
+                        $this->_check_directory_for_template(
+                            PHS_THEMES_DIR.$location,
+                            PHS_THEMES_WWW.$location,
+                            $current_language,
+                            $this->_template_dirs
+                        );
                     }
                 }
             }
         }
 
         // take first dirs custom ones... (if any)
-        if (!empty($this->_extra_template_dirs) && is_array($this->_extra_template_dirs)) {
+        if (!empty($this->_extra_template_dirs)) {
             foreach ($this->_extra_template_dirs as $dir_path => $dir_www) {
-                $dir_path = rtrim($dir_path, '/\\');
-                $dir_www = rtrim($dir_www, '/');
-
-                if (@file_exists($dir_path.'/'.$current_language)
-                 && @is_dir($dir_path.'/'.$current_language)) {
-                    $this->_template_dirs[$dir_path.'/'.$current_language.'/'] = $dir_www.'/'.$current_language.'/';
-                }
-
-                $this->_template_dirs[$dir_path.'/'] = $dir_www.'/';
+                $this->_check_directory_for_template(
+                    rtrim($dir_path, '/\\'),
+                    rtrim($dir_www, '/'),
+                    $current_language,
+                    $this->_template_dirs
+                );
             }
         }
 
         if (!empty($this->_controller)
          && !$this->_controller->instance_is_core()
-         && ($plugin_path = $this->_controller->instance_plugin_path())
-         && @file_exists($plugin_path.'/'.self::TEMPLATES_DIR)
-         && @is_dir($plugin_path.'/'.self::TEMPLATES_DIR)) {
-            $plugin_www = $this->_controller->instance_plugin_www();
-
-            $check_dir = $plugin_path.'/'.self::TEMPLATES_DIR.'/'.$current_language;
-            if (@file_exists($check_dir)
-             && @is_dir($check_dir)) {
-                $this->_template_dirs[$check_dir.'/'] = $plugin_www.self::TEMPLATES_DIR.'/'.$current_language.'/';
-            }
-
-            $this->_template_dirs[$plugin_path.self::TEMPLATES_DIR.'/'] = $plugin_www.self::TEMPLATES_DIR.'/';
+         && ($plugin_path = $this->_controller->instance_plugin_path())) {
+            $this->_check_directory_for_template(
+                $plugin_path.'/'.self::TEMPLATES_DIR,
+                $this->_controller->instance_plugin_www().self::TEMPLATES_DIR,
+                $current_language,
+                $this->_template_dirs
+            );
         }
 
         if (!empty($this->_action)
          && !$this->_action->instance_is_core()
-         && ($plugin_path = $this->_action->instance_plugin_path())
-         && @file_exists($plugin_path.'/'.self::TEMPLATES_DIR)
-         && @is_dir($plugin_path.'/'.self::TEMPLATES_DIR)) {
-            $plugin_www = $this->_action->instance_plugin_www();
-
-            $check_dir = $plugin_path.'/'.self::TEMPLATES_DIR.'/'.$current_language;
-            if (@file_exists($check_dir)
-             && @is_dir($check_dir)) {
-                $this->_template_dirs[$check_dir.'/'] = $plugin_www.self::TEMPLATES_DIR.'/'.$current_language.'/';
-            }
-
-            $this->_template_dirs[$plugin_path.self::TEMPLATES_DIR.'/'] = $plugin_www.self::TEMPLATES_DIR.'/';
+         && ($plugin_path = $this->_action->instance_plugin_path())) {
+            $this->_check_directory_for_template(
+                $plugin_path.'/'.self::TEMPLATES_DIR,
+                $this->_action->instance_plugin_www().self::TEMPLATES_DIR,
+                $current_language,
+                $this->_template_dirs
+            );
         }
 
-        if (defined('PHS_THEMES_WWW') && defined('PHS_THEMES_DIR')) {
-            if (!empty($this->_theme)) {
-                $check_dir = PHS_THEMES_DIR.$this->_theme.'/'.$current_language;
-                if (@file_exists($check_dir)
-                 && @is_dir($check_dir)) {
-                    $this->_template_dirs[$check_dir.'/'] = PHS_THEMES_WWW.$this->_theme.'/'.$current_language.'/';
-                }
-
-                $this->_template_dirs[PHS_THEMES_DIR.$this->_theme.'/'] = PHS_THEMES_WWW.$this->_theme.'/';
-            }
-
-            if (($themes_arr = PHS::get_cascading_themes())
-             && is_array($themes_arr)) {
-                foreach ($themes_arr as $c_theme) {
-                    $check_dir = PHS_THEMES_DIR.$c_theme.'/'.$current_language;
-                    if (@file_exists($check_dir)
-                     && @is_dir($check_dir)) {
-                        $this->_template_dirs[$check_dir.'/'] = PHS_THEMES_WWW.$c_theme.'/'.$current_language.'/';
-                    }
-
-                    $this->_template_dirs[PHS_THEMES_DIR.$c_theme.'/'] = PHS_THEMES_WWW.$c_theme.'/';
-                }
-            }
-
-            if (($default_theme = PHS::get_default_theme())
-             && $default_theme !== $this->_theme) {
-                $check_dir = PHS_THEMES_DIR.$default_theme.'/'.$current_language;
-                if (@file_exists($check_dir)
-                  && @is_dir($check_dir)) {
-                    $this->_template_dirs[$check_dir.'/'] = PHS_THEMES_WWW.$default_theme.'/'.$current_language.'/';
-                }
-
-                $this->_template_dirs[PHS_THEMES_DIR.$default_theme.'/'] = PHS_THEMES_WWW.$default_theme.'/';
+        if (defined('PHS_THEMES_WWW') && defined('PHS_THEMES_DIR')
+            && $themes_stack) {
+            foreach ($themes_stack as $theme) {
+                $this->_check_directory_for_template(
+                    PHS_THEMES_DIR.$theme,
+                    PHS_THEMES_WWW.$theme,
+                    $current_language,
+                    $this->_template_dirs
+                );
             }
         }
 
@@ -806,21 +741,20 @@ class PHS_View extends PHS_Instantiable
         return false;
     }
 
-    private function _get_file_details($file_name)
+    private function _get_file_details($file_name) : ?array
     {
         $this->reset_error();
 
         if (empty($file_name)) {
             $this->set_error(self::ERR_BAD_TEMPLATE, self::_t('Please provide a resource file.'));
 
-            return false;
+            return null;
         }
 
-        if (!($dirs_list = $this->_get_template_directories())
-         || !is_array($dirs_list)) {
+        if (!($dirs_list = $this->_get_template_directories())) {
             $this->set_error(self::ERR_TEMPLATE_DIRS, self::_t('Couldn\'t get includes directories.'));
 
-            return false;
+            return null;
         }
 
         @clearstatcache();
@@ -835,11 +769,11 @@ class PHS_View extends PHS_Instantiable
             }
         }
 
-        return false;
+        return null;
     }
 
     /**
-     * @return array{'file': string, 'extra_paths': array, 'resource_validated': bool}
+     * @return array{"file": string, "extra_paths": array, "resource_validated": bool}
      */
     public static function default_template_resource_arr() : array
     {
@@ -852,20 +786,20 @@ class PHS_View extends PHS_Instantiable
 
     /**
      * @param string|array $template
-     * @param bool|array $params
+     * @param null|array $params
      *
-     * @return array|bool
+     * @return null|array
      */
-    public static function validate_template_resource($template, $params = false)
+    public static function validate_template_resource($template, ?array $params = null) : ?array
     {
         self::st_reset_error();
 
         if (empty($template)
          || (!is_string($template) && !is_array($template))) {
-            return false;
+            return null;
         }
 
-        if (empty($params) || !is_array($params)) {
+        if (empty($params)) {
             $params = [];
         }
 
@@ -874,10 +808,11 @@ class PHS_View extends PHS_Instantiable
         }
 
         if (!empty($params['theme'])) {
-            if (!($validated_theme = PHS::valid_theme($params['theme']))) {
+            if (!is_string($params['theme'])
+             || !($validated_theme = PHS::valid_theme($params['theme']))) {
                 self::st_set_error(self::ERR_BAD_THEME, self::_t('Invalid theme passed to template.'));
 
-                return false;
+                return null;
             }
 
             $params['theme'] = $validated_theme;
@@ -889,8 +824,8 @@ class PHS_View extends PHS_Instantiable
         if (is_string($template)) {
             $template_structure['file'] = $template;
         } elseif (is_array($template)) {
-            if (empty($template['file'])) {
-                return false;
+            if (empty($template['file']) || !is_string($template['file'])) {
+                return null;
             }
 
             if (empty($template['extra_paths']) || !is_array($template['extra_paths'])) {
@@ -911,7 +846,8 @@ class PHS_View extends PHS_Instantiable
 
         if (!empty($params['theme_relative_dirs'])) {
             foreach ($params['theme_relative_dirs'] as $theme_dir) {
-                if (($extra_dirs = self::st_add_extra_theme_dir($theme_dir, $params['theme']))) {
+                if (is_string($theme_dir)
+                 && ($extra_dirs = self::st_add_extra_theme_dir($theme_dir, $params['theme']))) {
                     foreach ($extra_dirs as $dir_path => $dir_www) {
                         $template_structure['extra_paths'][$dir_path] = $dir_www;
                     }
@@ -944,7 +880,7 @@ class PHS_View extends PHS_Instantiable
 
         $action_result = PHS_Action::default_action_result();
 
-        if (($action_result['buffer'] = $view_obj->render()) === false) {
+        if (($action_result['buffer'] = $view_obj->render()) === null) {
             if ($view_obj->has_error()) {
                 self::st_copy_error($view_obj);
             } else {
@@ -969,12 +905,12 @@ class PHS_View extends PHS_Instantiable
      */
     public static function init_view($template, ?array $params = null) : ?self
     {
-        if (empty($params) || !is_array($params)) {
+        if (empty($params)) {
             $params = [];
         }
 
-        if (empty($params['theme'])) {
-            $params['theme'] = false;
+        if (empty($params['theme']) || !is_string($params['theme'])) {
+            $params['theme'] = '';
         }
         if (empty($params['view_class'])) {
             $params['view_class'] = false;
@@ -993,11 +929,11 @@ class PHS_View extends PHS_Instantiable
             $params['controller_obj'] = false;
         }
         if (empty($params['parent_plugin_obj'])) {
-            $params['parent_plugin_obj'] = false;
+            $params['parent_plugin_obj'] = null;
         }
 
-        if (empty($params['template_data'])) {
-            $params['template_data'] = false;
+        if (empty($params['template_data']) || !is_array($params['template_data'])) {
+            $params['template_data'] = null;
         }
 
         if (!($view_obj = PHS::load_view($params['view_class'], $params['plugin'], $params['as_singleton']))) {
@@ -1032,58 +968,42 @@ class PHS_View extends PHS_Instantiable
 
     /**
      * @param string $theme_relative_dir
-     * @param bool|string $theme
+     * @param null|string $theme
      *
-     * @return array|bool
+     * @return null|array
      */
-    public static function st_add_extra_theme_dir($theme_relative_dir, $theme = false)
+    public static function st_add_extra_theme_dir(string $theme_relative_dir, ?string $theme = null) : ?array
     {
-        if ($theme === false) {
+        if ($theme === null) {
             $theme = PHS::get_theme();
         }
 
         $theme_relative_dir = rtrim($theme_relative_dir, '/\\');
         if (empty($theme_relative_dir)
          || (!empty($theme) && !($theme = PHS::valid_theme($theme)))) {
-            return false;
+            return null;
         }
 
         $extra_dirs = [];
-        if (defined('PHS_THEMES_WWW') && defined('PHS_THEMES_DIR')) {
-            if (!empty($theme)
-             && @file_exists(PHS_THEMES_DIR.$theme.'/'.$theme_relative_dir)
-             && @is_dir(PHS_THEMES_DIR.$theme.'/'.$theme_relative_dir)) {
-                $extra_dirs[PHS_THEMES_DIR.$theme.'/'.$theme_relative_dir.'/'] = PHS_THEMES_WWW.$theme.'/'.$theme_relative_dir.'/';
-            }
-
-            if (($themes_arr = PHS::get_cascading_themes())
-             && is_array($themes_arr)) {
-                foreach ($themes_arr as $c_theme) {
-                    if (!empty($c_theme)
-                     && @file_exists(PHS_THEMES_DIR.$c_theme.'/'.$theme_relative_dir)
-                     && @is_dir(PHS_THEMES_DIR.$c_theme.'/'.$theme_relative_dir)
-                     && empty($extra_dirs[PHS_THEMES_DIR.$c_theme.'/'.$theme_relative_dir.'/'])) {
-                        $extra_dirs[PHS_THEMES_DIR.$c_theme.'/'.$theme_relative_dir.'/'] = PHS_THEMES_WWW.$c_theme.'/'.$theme_relative_dir.'/';
-                    }
+        if (defined('PHS_THEMES_WWW') && defined('PHS_THEMES_DIR')
+         && ($themes_stack = PHS::get_all_themes_stack($theme))) {
+            foreach ($themes_stack as $c_theme) {
+                if (!empty($c_theme)
+                    && @file_exists(PHS_THEMES_DIR.$c_theme.'/'.$theme_relative_dir)
+                    && @is_dir(PHS_THEMES_DIR.$c_theme.'/'.$theme_relative_dir)) {
+                    $extra_dirs[PHS_THEMES_DIR.$c_theme.'/'.$theme_relative_dir.'/'] = PHS_THEMES_WWW.$c_theme.'/'.$theme_relative_dir.'/';
                 }
-            }
-
-            if (($default_theme = PHS::get_default_theme())
-             && $default_theme !== $theme
-             && @file_exists(PHS_THEMES_DIR.$default_theme.'/'.$theme_relative_dir)
-             && @is_dir(PHS_THEMES_DIR.$default_theme.'/'.$theme_relative_dir)) {
-                $extra_dirs[PHS_THEMES_DIR.$default_theme.'/'.$theme_relative_dir.'/'] = PHS_THEMES_WWW.$default_theme.'/'.$theme_relative_dir.'/';
             }
         }
 
         return $extra_dirs;
     }
 
-    public static function safe_escape_template($template)
+    public static function safe_escape_template($template) : string
     {
         if (empty($template) || !is_string($template)
          || preg_match('@[^a-zA-Z0-9_\-\./]@', $template)) {
-            return false;
+            return '';
         }
 
         return str_replace('..', '', trim($template, '/'));

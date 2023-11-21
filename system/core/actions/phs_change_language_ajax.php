@@ -6,6 +6,7 @@ use phs\PHS_Scope;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Action_Change_language_ajax extends PHS_Action
 {
@@ -44,7 +45,7 @@ class PHS_Action_Change_language_ajax extends PHS_Action
         }
 
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (($accounts_model = PHS::load_model('accounts', 'accounts'))
+        if (($accounts_model = PHS_Model_Accounts::get_instance())
          && ($current_user = PHS::user_logged_in())
          && (!($account_language = $accounts_model->get_account_language($current_user))
                 || $account_language !== $clean_lang

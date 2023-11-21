@@ -1,12 +1,9 @@
 <?php
 /** @var \phs\system\core\views\PHS_View $this */
 
-use phs\PHS;
-use phs\libraries\PHS_Roles;
-
 /** @var \phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd $plugin_obj */
 /** @var \phs\plugins\accounts_3rd\libraries\Apple $apple_lib */
-if (!($plugin_obj = $this->parent_plugin())
+if (!($plugin_obj = $this->get_plugin_instance())
  || !($apple_lib = $this->view_var('apple_lib'))) {
     return $this->_pt('Error loading required resources.');
 }
