@@ -11,6 +11,7 @@ use phs\PHS_Session;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Language;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 $hook_args = PHS_Hooks::default_language_definition_hook_args();
 $hook_args['languages_arr'] = PHS_Language::get_defined_languages();
@@ -19,8 +20,11 @@ if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_LANGUAGE_DEFINITION, $hook_arg
  && !empty($hook_args['languages_arr']) && is_array($hook_args['languages_arr'])) {
     foreach ($hook_args['languages_arr'] as $lang_key => $lang_details) {
         if (!PHS_Language::define_language($lang_key, $lang_details)) {
-            // Do something if we cannot initialize English language
-            PHS_Language::st_throw_error();
+            PHS_Language::trigger_critical_error(
+                PHS_Language::st_has_error()
+                    ? PHS_Language::st_get_simple_error_message()
+                    : 'Error defining required languages.'
+            );
         }
     }
 }
@@ -46,7 +50,7 @@ if (($url_lang = PHS_Params::_gp(PHS_Language::LANG_URL_PARAMETER))
 // Checking current user's selected language only for session scopes
 /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
 if (!PHS::prevent_session()
- && ($accounts_model = PHS::load_model('accounts', 'accounts'))
+ && ($accounts_model = PHS_Model_Accounts::get_instance())
  && ($current_user = PHS::user_logged_in())) {
     if (!($account_language = $accounts_model->get_account_language($current_user))) {
         $account_language = false;

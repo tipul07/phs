@@ -7,6 +7,9 @@ use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\admin\PHS_Plugin_Admin;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\accounts\models\PHS_Model_Accounts_details;
 
 class PHS_Action_Users_autocomplete extends PHS_Action
 {
@@ -74,7 +77,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         }
 
         if (!$this->_admin_plugin->can_admin_list_accounts()) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to list accounts.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }
@@ -364,11 +367,11 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         $this->reset_error();
 
         if ((empty($this->_admin_plugin)
-             && !($this->_admin_plugin = PHS::load_plugin('admin')))
+             && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
          || (empty($this->_accounts_model)
-             && !($this->_accounts_model = PHS::load_model('accounts', 'accounts')))
+             && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
          || (empty($this->_account_details_model)
-             && !($this->_account_details_model = PHS::load_model('accounts_details', 'accounts')))
+             && !($this->_account_details_model = PHS_Model_Accounts_details::get_instance()))
         ) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 

@@ -11,7 +11,9 @@ use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\models\PHS_Model_Roles;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\system\core\models\PHS_Model_Plugins;
+use phs\system\core\models\PHS_Model_Tenants;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\accounts\models\PHS_Model_Accounts_tenants;
 
 class PHS_Action_Add extends PHS_Action
 {
@@ -38,24 +40,30 @@ class PHS_Action_Add extends PHS_Action
             return action_request_login();
         }
 
+        $is_multi_tenant = PHS::is_multi_tenant();
+
+        $tenants_model = null;
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        /** @var \phs\system\core\models\PHS_Model_Tenants $tenants_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
          || !($admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($accounts_plugin_settings = $accounts_plugin->get_plugin_settings())
          || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($roles_model = PHS_Model_Roles::get_instance())
-         || !($plugins_model = PHS_Model_Plugins::get_instance())) {
+         || !($plugins_model = PHS_Model_Plugins::get_instance())
+         || ($is_multi_tenant && !($tenants_model = PHS_Model_Tenants::get_instance()))
+        ) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
 
         if (!$admin_plugin->can_admin_manage_accounts()) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to manage accounts.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }
@@ -64,19 +72,28 @@ class PHS_Action_Add extends PHS_Action
             $roles_by_slug = [];
         }
 
+        $all_tenants_arr = [];
+        if ($is_multi_tenant
+        && !($all_tenants_arr = $tenants_model->get_all_tenants())) {
+            $all_tenants_arr = [];
+        }
+
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
         $nick = PHS_Params::_p('nick', PHS_Params::T_NOHTML);
         $pass = PHS_Params::_p('pass', PHS_Params::T_ASIS);
         $email = PHS_Params::_p('email', PHS_Params::T_EMAIL);
         $level = PHS_Params::_p('level', PHS_Params::T_INT);
-        if (!($account_roles_slugs = PHS_Params::_p('account_roles_slugs', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML]))) {
-            $account_roles_slugs = [];
-        }
         $title = PHS_Params::_p('title', PHS_Params::T_NOHTML);
         $fname = PHS_Params::_p('fname', PHS_Params::T_NOHTML);
         $lname = PHS_Params::_p('lname', PHS_Params::T_NOHTML);
         $phone = PHS_Params::_p('phone', PHS_Params::T_NOHTML);
         $company = PHS_Params::_p('company', PHS_Params::T_NOHTML);
+        if (!($account_roles_slugs = PHS_Params::_p('account_roles_slugs', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML]))) {
+            $account_roles_slugs = [];
+        }
+        if (!($account_tenants = PHS_Params::_p('account_tenants', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_INT]))) {
+            $account_tenants = [];
+        }
 
         $do_submit = PHS_Params::_p('do_submit');
 
@@ -104,6 +121,7 @@ class PHS_Action_Add extends PHS_Action
             $insert_params_arr['fields'] = $insert_arr;
             $insert_params_arr['{users_details}'] = $insert_details_arr;
             $insert_params_arr['{account_roles}'] = $account_roles_slugs;
+            $insert_params_arr['{account_tenants}'] = $account_tenants;
             $insert_params_arr['{send_confirmation_email}'] = true;
 
             if ($accounts_model->insert($insert_params_arr)) {
@@ -135,11 +153,13 @@ class PHS_Action_Add extends PHS_Action
             'min_password_length'      => $accounts_plugin_settings['min_password_length'],
             'password_regexp'          => $accounts_plugin_settings['password_regexp'],
 
-            'roles_by_slug' => $roles_by_slug,
+            'roles_by_slug'   => $roles_by_slug,
+            'all_tenants_arr' => $all_tenants_arr,
 
-            'accounts_plugin' => $accounts_plugin,
+            'tenants_model'   => $tenants_model,
             'roles_model'     => $roles_model,
             'plugins_model'   => $plugins_model,
+            'accounts_plugin' => $accounts_plugin,
         ];
 
         return $this->quick_render_template('users/add', $data);

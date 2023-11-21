@@ -134,7 +134,7 @@ class PHS_Action_Compose extends PHS_Action
         if (empty($reply_message)
         && empty($followup_message)
         && !can($messages_plugin::ROLEU_WRITE_MESSAGE)) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to compose messages.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }

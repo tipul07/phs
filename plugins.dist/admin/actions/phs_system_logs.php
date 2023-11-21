@@ -36,7 +36,7 @@ class PHS_Action_System_logs extends PHS_Action
         }
 
         if (!$admin_plugin->can_admin_view_logs()) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to view system logs.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }

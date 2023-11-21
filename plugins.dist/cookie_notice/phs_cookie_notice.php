@@ -52,7 +52,6 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
     {
         return PHS_Session::set_cookie(self::COOKIE_NAME, 1, [
             'expire_secs' => self::COOKIE_EXPIRE_SECS,
-            'path'        => PHS_Session::get_data(PHS_Session::SESS_COOKIE_PATH),
         ]);
     }
 
@@ -68,7 +67,7 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
             return $hook_args;
         }
 
-        if (!($settings_arr = $this->get_db_settings())
+        if (!($settings_arr = $this->get_plugin_settings())
          || empty($settings_arr['template'])) {
             $this->set_error(self::ERR_TEMPLATE, $this->_pt('Couldn\'t load template from plugin settings.'));
 
@@ -89,7 +88,7 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
         $view_params['action_obj'] = false;
         $view_params['controller_obj'] = false;
         $view_params['parent_plugin_obj'] = $this;
-        $view_params['plugin'] = $this->instance_plugin_name();
+        $view_params['plugin'] = 'cookie_notice';
         $view_params['template_data'] = [
             'rejection_url' => $settings_arr['rejection_url'] ?? '',
             'read_more_url' => $settings_arr['read_more_url'] ?? '',
@@ -105,7 +104,7 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
             return false;
         }
 
-        if (($hook_args['buffer'] = $view_obj->render()) === false) {
+        if (($hook_args['buffer'] = $view_obj->render()) === null) {
             if ($view_obj->has_error()) {
                 $this->copy_error($view_obj);
             } else {

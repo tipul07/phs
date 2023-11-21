@@ -6,10 +6,10 @@
 
 /**region Notifications */
 .phs_ractive_notifications_container {
-    padding: 2px;
-    border: 1px solid #dfdfdf;
-    border-radius: 5px;
-    background: #fff;
+    /*padding: 2px;*/
+    /*border: 1px solid #dfdfdf;*/
+    /*border-radius: 5px;*/
+    /*background: #fff;*/
     opacity: 0.8;
     position: fixed;
     z-index: 10000;
@@ -70,7 +70,7 @@
 }
 .phs_ractive_notifications_close {
     float: right;
-    font-size: smaller;
+    /*font-size: smaller;*/
     cursor: pointer;
 }
 /**endregion Notifications */

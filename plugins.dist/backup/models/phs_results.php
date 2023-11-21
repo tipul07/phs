@@ -6,6 +6,7 @@ use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\traits\PHS_Model_Trait_statuses;
+use phs\plugins\backup\PHS_Plugin_Backup;
 
 class PHS_Model_Results extends PHS_Model
 {
@@ -272,15 +273,8 @@ class PHS_Model_Results extends PHS_Model
         $params['force'] = !empty($params['force']);
 
         /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
-        if (!($backup_plugin = PHS::load_plugin('backup'))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load backup plugin.'));
-
-            return null;
-        }
-
-        /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
-        if (!($rules_model = PHS::load_model('rules', 'backup'))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load backup rules model.'));
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 
             return null;
         }
@@ -620,15 +614,11 @@ class PHS_Model_Results extends PHS_Model
         }
 
         /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
-        if (!($backup_plugin = PHS::load_plugin('backup'))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t load backup plugin.'));
-
-            return false;
-        }
-
         /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
-        if (!($rules_model = PHS::load_model('rules', 'backup'))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t load backup rules model.'));
+        if (!($backup_plugin = PHS::load_plugin('backup'))
+            || !($rules_model = PHS_Model_Rules::get_instance())
+        ) {
+            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
             return false;
         }

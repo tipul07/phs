@@ -45,7 +45,7 @@ class PHS_Bg_jobs extends PHS_Registry
         }
 
         /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
-        if (!($bg_jobs_model = PHS::load_model('bg_jobs'))
+        if (!($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())
          || !($stalling_minutes = $bg_jobs_model->get_stalling_minutes())) {
             $stalling_minutes = 0;
         }
@@ -65,7 +65,7 @@ class PHS_Bg_jobs extends PHS_Registry
         if (!empty($extra['bg_jobs_model'])) {
             $bg_jobs_model = $extra['bg_jobs_model'];
         } else {
-            $bg_jobs_model = PHS::load_model('bg_jobs');
+            $bg_jobs_model = PHS_Model_Bg_jobs::get_instance();
         }
 
         if (empty($bg_jobs_model)
@@ -155,7 +155,7 @@ class PHS_Bg_jobs extends PHS_Registry
         }
 
         /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
-        if (!($bg_jobs_model = PHS::load_model('bg_jobs'))) {
+        if (!($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())) {
             if (!self::st_has_error()) {
                 self::st_set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t load background jobs model.'));
             }
@@ -321,7 +321,7 @@ class PHS_Bg_jobs extends PHS_Registry
         if (!empty($extra['bg_jobs_model'])) {
             $bg_jobs_model = $extra['bg_jobs_model'];
         } else {
-            $bg_jobs_model = PHS::load_model('bg_jobs');
+            $bg_jobs_model = PHS_Model_Bg_jobs::get_instance();
         }
 
         if (empty($extra['return_buffer'])) {
@@ -394,7 +394,7 @@ class PHS_Bg_jobs extends PHS_Registry
          || !($decrypted_parts = explode('::', $decrypted_data, 2))
          || empty($decrypted_parts[0]) || empty($decrypted_parts[1])
          || !($job_id = (int)$decrypted_parts[0])
-         || !($bg_jobs_model = PHS::load_model('bg_jobs'))
+         || !($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())
          || !($job_arr = $bg_jobs_model->get_details($job_id))
          || $decrypted_parts[1] !== md5($job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'])) {
             PHS_Logger::error('Input validation failed', PHS_Logger::TYPE_BACKGROUND);

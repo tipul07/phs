@@ -137,8 +137,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
 
         if (!($cookie_value = $this->_encode_tfa_cookie_value($tfa_arr, $account_arr))
             || !PHS_Session::set_cookie(self::DEVICE_COOKIE_NAME, $cookie_value,
-                ['expire_secs' => $device_session_length_hours * 3660,
-                    'path'     => PHS_Session::get_data(PHS_Session::SESS_COOKIE_PATH), ])) {
+                ['expire_secs' => $device_session_length_hours * 3660, ])) {
             $this->set_error(self::ERR_FUNCTIONALITY,
                 $this->_pt('Error marking this device as TFA valid.'));
 

@@ -1,11 +1,8 @@
 <?php
 /** @var \phs\system\core\views\PHS_View $this */
 
-use phs\PHS;
-use phs\libraries\PHS_Roles;
-
 /** @var \phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd $plugin_obj */
-if (!($plugin_obj = $this->parent_plugin())) {
+if (!($plugin_obj = $this->get_plugin_instance())) {
     return $this->_pt('Couldn\'t get parent plugin object.');
 }
 

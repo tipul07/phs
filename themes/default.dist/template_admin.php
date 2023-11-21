@@ -3,8 +3,6 @@
 
 use phs\PHS;
 use phs\libraries\PHS_Hooks;
-use phs\libraries\PHS_Roles;
-use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Language;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\accounts\PHS_Plugin_Accounts;

@@ -41,7 +41,7 @@ class PHS_Action_Info_ajax extends PHS_Action
         }
 
         if (!$remote_plugin->can_admin_list_domains()) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to ping remote domains.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }
@@ -60,7 +60,7 @@ class PHS_Action_Info_ajax extends PHS_Action
         $ping_result = false;
         if (!empty($do_ping)) {
             if (!$remote_plugin->can_admin_ping_domains($current_user)) {
-                PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to ping remote domains.'));
+                PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
                 return self::default_action_result();
             }

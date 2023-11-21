@@ -39,7 +39,7 @@ class PHS_Action_Append_messages extends PHS_Action
         }
 
         if (!can($messages_plugin::ROLEU_READ_MESSAGE)) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to read messages.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }

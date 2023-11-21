@@ -3,13 +3,13 @@
 use phs\PHS;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Model;
+use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\plugins\messages\PHS_Plugin_Messages;
 
 /** @var \phs\plugins\messages\PHS_Plugin_Messages $messages_plugin */
-if (($messages_plugin = PHS::load_plugin('messages'))
- && $messages_plugin->plugin_active()) {
+if (($messages_plugin = PHS_Plugin_Messages::get_instance())) {
     /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-    if (($accounts_plugin = PHS::load_plugin('accounts'))
-     && $accounts_plugin->plugin_active()) {
+    if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
         PHS::register_hook(
             PHS_Model::HOOK_TABLE_FIELDS.'_'.$accounts_plugin->instance_id(),
             [$messages_plugin, 'trigger_model_table_fields'],

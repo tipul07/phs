@@ -383,11 +383,11 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $this->edit($job_arr, ['fields' => $edit_arr]);
     }
 
-    public function get_stalling_minutes()
+    public function get_stalling_minutes() : int
     {
-        static $stalling_minutes = false;
+        static $stalling_minutes = null;
 
-        if ($stalling_minutes !== false) {
+        if ($stalling_minutes !== null) {
             return $stalling_minutes;
         }
 
@@ -401,11 +401,11 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $stalling_minutes;
     }
 
-    public function get_stalling_policy()
+    public function get_stalling_policy() : int
     {
-        static $stalling_policy = false;
+        static $stalling_policy = null;
 
-        if ($stalling_policy !== false) {
+        if ($stalling_policy !== null) {
             return $stalling_policy;
         }
 
@@ -424,7 +424,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
      *
      * @return null|bool
      */
-    public function is_job_dead_as_per_stalling_policy($job_data)
+    public function is_job_dead_as_per_stalling_policy($job_data) : ?bool
     {
         $this->reset_error();
 
@@ -452,7 +452,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
             );
     }
 
-    public function get_job_stalling_minutes($job_data)
+    public function get_job_stalling_minutes($job_data) : int
     {
         $this->reset_error();
 
@@ -460,7 +460,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
          || !($job_arr = $this->data_to_array($job_data))) {
             $this->set_error(self::ERR_DB_JOB, self::_t('Couldn\'t get agent jobs details.'));
 
-            return null;
+            return 0;
         }
 
         if (!empty($job_arr['stalling_minutes'])) {

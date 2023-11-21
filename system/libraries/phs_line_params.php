@@ -101,7 +101,7 @@ class PHS_Line_params extends PHS_Language
      *
      * @return array|bool
      */
-    public static function parse_string_line($line_str, $comment_no = 0)
+    public static function parse_string_line($line_str, int $comment_no = 0)
     {
         if (!is_string($line_str)) {
             $line_str = '';
@@ -153,7 +153,7 @@ class PHS_Line_params extends PHS_Language
      *
      * @return string String representing converted array of line parameters
      */
-    public static function to_string($lines_data)
+    public static function to_string($lines_data) : string
     {
         if (empty($lines_data) || !is_array($lines_data)) {
             return '';
@@ -190,7 +190,7 @@ class PHS_Line_params extends PHS_Language
      *
      * @return array Parse line parameters in an array
      */
-    public static function parse_string($string)
+    public static function parse_string($string) : array
     {
         if (empty($string)
          || (!is_array($string) && !is_string($string))) {
@@ -225,7 +225,7 @@ class PHS_Line_params extends PHS_Language
      *
      * @return array Merged array from parsed parameters
      */
-    public static function update_line_params($current_data, $append_data)
+    public static function update_line_params($current_data, $append_data) : array
     {
         if (empty($append_data) || (!is_array($append_data) && !is_string($append_data))) {
             $append_data = [];

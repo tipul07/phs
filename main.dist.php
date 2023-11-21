@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.1.9.11' );
+define( 'PHS_KNOWN_VERSION', '1.2.0.0' );
 
 // Site build version
 define( 'PHS_SITEBUILD_VERSION', '{{PHS_SITEBUILD_VERSION}}' ); // Default: 1.0.0
@@ -131,6 +131,10 @@ define( 'PHP_EXEC', '{{PHS_PHP_EXEC}}' ); // Default: /usr/bin/php
 // Debugging mode?
 define( 'PHS_DEBUG_MODE', {{PHS_DEBUG_MODE}} ); // Development: true, Production: false
 define( 'PHS_DEBUG_THROW_ERRORS', {{PHS_DEBUG_THROW_ERRORS}} ); // Default: false
+
+// Accepting multi-tenants?
+// Multi tenant means multiple domains served by same application
+define( 'PHS_MULTI_TENANT', {{PHS_MULTI_TENANT}} ); // Default: false
 
 include_once( PHS_PATH.'bootstrap.php' );
 

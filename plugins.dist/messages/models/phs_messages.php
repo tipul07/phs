@@ -1417,7 +1417,7 @@ class PHS_Model_Messages extends PHS_Model
          && empty($followup_message)
          && !empty($account_arr)
          && !can($messages_plugin::ROLEU_WRITE_MESSAGE, null, $account_arr)) {
-            $this->set_error(self::ERR_PARAMETERS, $this->_pt('You don\'t have rights to compose messages.'));
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('You don\'t have rights to access this section.'));
 
             return false;
         }

@@ -11,18 +11,20 @@ use phs\PHS_Ajax;
 use phs\libraries\PHS_Language;
 
 ?>
-if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
+if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
 {
     if( typeof $ === "undefined" )
     {
-        if( typeof jQuery !== "undefined" )
+        if( typeof jQuery !== "undefined" ) {
             $ = jQuery;
+        }
     }
 
     if( typeof $ === "undefined" )
     {
-        if( console )
-            console.log( "Seems like we don't have jQuery..." );
+        if( console ) {
+            console.log("Seems like we don't have jQuery...");
+        }
     }
 
     var PHS_JSEN = {
@@ -125,6 +127,30 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             }
 
             return false;
+        },
+
+        get_form_as_json_object: function( form_id ) {
+            let form_obj = document.getElementById(form_id);
+            if( !form_obj
+                || !(form_obj instanceof HTMLFormElement)) {
+                return null;
+            }
+
+            let form_data = new FormData(form_obj);
+
+            var object = {};
+            form_data.forEach((value, key) => {
+                if(!object.hasOwnProperty(key)){
+                    object[key] = value;
+                    return;
+                }
+                if(!Array.isArray(object[key])){
+                    object[key] = [object[key]];
+                }
+                object[key].push(value);
+            });
+
+            return object;
         },
 
         load_storage: function( i_name ) {
@@ -578,6 +604,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 message_box_prefix: "",
                 async: true,
                 full_buffer: false,
+                extract_response_messages: true,
 
                 onfailed: null,
                 onsuccess: null
@@ -611,60 +638,71 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                 success: function( data, status, ajax_obj ) {
 
                     // check next AJAX requests in the stack before managing current response
-                    if( options.stack_request )
+                    if( options.stack_request ) {
                         PHS_JSEN.check_ajax_requests_stack();
+                    }
 
-                    var result_response = false;
+                    var result_response = null;
                     if( !options.full_buffer ) {
-                        if( typeof data.response == 'undefined' || !data.response )
-                            data.response = false;
+                        if( typeof data.response == 'undefined' || !data.response ) {
+                            data.response = null;
+                        }
 
                         result_response = data.response;
-                    } else
+                    } else {
                         result_response = data;
+                    }
 
                     var onsuccess_result = null;
                     if( options.queue_request ) {
                         onsuccess_result = PHS_JSEN.onsuccess_ajax_queue_for_request( request_hash, result_response, status, ajax_obj, data );
                     } else if( options.onsuccess ) {
-                        if( $.isFunction( options.onsuccess ) )
-                            onsuccess_result = options.onsuccess( result_response, status, ajax_obj, data );
-                        else if( typeof options.onsuccess == "string" )
-                            onsuccess_result = eval( options.onsuccess );
+                        if( $.isFunction( options.onsuccess ) ) {
+                            onsuccess_result = options.onsuccess(result_response, status, ajax_obj, data);
+                        } else if( typeof options.onsuccess == "string" ) {
+                            onsuccess_result = eval(options.onsuccess);
+                        }
                     }
 
                     if( typeof onsuccess_result == "object"
-                     && onsuccess_result )
+                        && onsuccess_result ) {
                         data = onsuccess_result;
+                    }
 
-                    if( data && typeof data.redirect_to_url != 'undefined' && data.redirect_to_url.length ) {
+                    if( data && typeof data.redirect_to_url !== 'undefined' && data.redirect_to_url.length ) {
                         document.location = data.redirect_to_url;
                         return;
                     }
 
-                    if( data && typeof data.status != 'undefined' && data.status ) {
-                        if( typeof data.status.success_messages != 'undefined' && data.status.success_messages.length )
-                            PHS_JSEN.js_messages( data.status.success_messages, "success", options.message_box_prefix );
-                        if( typeof data.status.warning_messages != 'undefined' && data.status.warning_messages.length )
-                            PHS_JSEN.js_messages( data.status.warning_messages, "warning", options.message_box_prefix );
-                        if( typeof data.status.error_messages != 'undefined' && data.status.error_messages.length )
-                            PHS_JSEN.js_messages( data.status.error_messages, "error", options.message_box_prefix );
+                    if( options.extract_response_messages
+                        && data && typeof data.status !== 'undefined' && data.status ) {
+                        if( typeof data.status.success_messages !== 'undefined' && data.status.success_messages.length ) {
+                            PHS_JSEN.js_messages(data.status.success_messages, "success", options.message_box_prefix);
+                        }
+                        if( typeof data.status.warning_messages !== 'undefined' && data.status.warning_messages.length ) {
+                            PHS_JSEN.js_messages(data.status.warning_messages, "warning", options.message_box_prefix);
+                        }
+                        if( typeof data.status.error_messages !== 'undefined' && data.status.error_messages.length ) {
+                            PHS_JSEN.js_messages(data.status.error_messages, "error", options.message_box_prefix);
+                        }
                     }
                 },
 
                 error: function( ajax_obj, status, error_exception ) {
 
                     // check next AJAX requests in the stack before managing current response
-                    if( options.stack_request )
+                    if( options.stack_request ) {
                         PHS_JSEN.check_ajax_requests_stack();
+                    }
 
                     if( options.queue_request ) {
                         PHS_JSEN.onfailed_ajax_queue_for_request( request_hash, ajax_obj, status, error_exception );
                     } else if( options.onfailed ) {
-                        if( $.isFunction( options.onfailed ) )
-                            options.onfailed( ajax_obj, status, error_exception );
-                        else if( typeof options.onfailed == "string" )
-                            eval( options.onfailed );
+                        if( $.isFunction( options.onfailed ) ) {
+                            options.onfailed(ajax_obj, status, error_exception);
+                        } else if( typeof options.onfailed == "string" ) {
+                            eval(options.onfailed);
+                        }
                     }
                 }
             };
@@ -1184,7 +1222,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                         onfailed: function( ajax_obj, status, error_exception ) {
                             //var diag_container = $( "#" + PHS_JSEN.dialogs_prefix + options.suffix );
                             if( dialog_obj ) {
-                                dialog_obj.html( "<?php echo PHS_Language::_te('Error ontaining dialogue body. Please try again.'); ?>" );
+                                dialog_obj.html( "<?php echo PHS_Language::_te('Error obtaining dialogue body. Please try again.'); ?>" );
                                 dialog_obj.dialog( "open" );
                             }
 
@@ -1206,44 +1244,51 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
                     if( typeof( options.source_obj ) === "string" ) {
                         source_container = $( '#' + options.source_obj );
                         options.source_obj = source_container;
-                    } else
+                    } else {
                         source_container = options.source_obj;
+                    }
 
-                    if( !options.source_parent )
+                    if( !options.source_parent ) {
                         options.source_parent = source_container.parent();
+                    }
 
-                    if( options.source_not_cloned )
-                        dialog_obj.append( source_container );
-                    else
-                        dialog_obj.html( source_container.html() );
+                    if( options.source_not_cloned ) {
+                        dialog_obj.append(source_container);
+                    } else {
+                        dialog_obj.html(source_container.html());
+                    }
 
                     dialog_obj.dialog( "open" );
 
                     if( options.onsuccess ) {
-                        if( $.isFunction( options.onsuccess ) )
+                        if( $.isFunction( options.onsuccess ) ) {
                             options.onsuccess();
-                        else if( typeof options.onsuccess === "string" )
-                            eval( options.onsuccess );
+                        } else if( typeof options.onsuccess === "string" ) {
+                            eval(options.onsuccess);
+                        }
                     }
                 }
 
                 if( options.close_outside_click ) {
                     $(document).on( "click", ".ui-widget-overlay", function() {
-                        if( dialog_obj )
-                            dialog_obj.dialog( "close" );
+                        if( dialog_obj ) {
+                            dialog_obj.dialog("close");
+                        }
                     });
                 }
 
                 dialog_obj.bind( 'dialogclose', function( event ) {
                     if( options.onclose ) {
-                        if( $.isFunction( options.onclose ) )
+                        if( $.isFunction( options.onclose ) ) {
                             options.onclose();
-                        else if( typeof options.onclose === "string" )
-                            eval( options.onclose );
+                        } else if( typeof options.onclose === "string" ) {
+                            eval(options.onclose);
+                        }
                     }
 
-                    if( options.source_not_cloned && options.source_obj && options.source_parent )
-                        options.source_parent.append( options.source_obj );
+                    if( options.source_not_cloned && options.source_obj && options.source_parent ) {
+                        options.source_parent.append(options.source_obj);
+                    }
 
                     dialog_obj.dialog('destroy').remove();
                     dialog_obj = false;
@@ -1253,7 +1298,7 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
             }
 
             if( options.adjust_top_for_height
-             && window.innerHeight < options.height ) {
+                && window.innerHeight < options.height ) {
                 setTimeout(function() {
                     dialog_obj.parent().css( "top", "30px" );
                 }, 500 );
@@ -1262,27 +1307,31 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
         // Close Loading div...
         dialogOptions : function( suffix, key, val ) {
-            if( typeof key === "undefined" && typeof val === "undefined" )
+            if( typeof key === "undefined" && typeof val === "undefined" ) {
                 return PHS_JSEN.dialogs_options[suffix];
+            }
 
             if( typeof key === "string" && typeof val === "undefined" ) {
-                if( typeof PHS_JSEN.dialogs_options[suffix] !== "undefined" && typeof PHS_JSEN.dialogs_options[suffix][key] !== "undefined" )
+                if( typeof PHS_JSEN.dialogs_options[suffix] !== "undefined"
+                    && typeof PHS_JSEN.dialogs_options[suffix][key] !== "undefined" ) {
                     return PHS_JSEN.dialogs_options[suffix][key];
-                else
-                    return null;
+                }
+
+                return null;
             }
 
             if( typeof key === "object" ) {
-                if( typeof PHS_JSEN.dialogs_options[suffix] !== "undefined" )
-                    PHS_JSEN.dialogs_options[suffix] = $.extend( {}, PHS_JSEN.dialogs_options[suffix], key );
-                else
+                if( typeof PHS_JSEN.dialogs_options[suffix] !== "undefined" ) {
+                    PHS_JSEN.dialogs_options[suffix] = $.extend({}, PHS_JSEN.dialogs_options[suffix], key);
+                } else {
                     PHS_JSEN.dialogs_options[suffix] = key;
+                }
 
                 return PHS_JSEN.dialogs_options[suffix];
             }
 
             if( typeof key === "string" && typeof val !== "undefined"
-             && typeof PHS_JSEN.dialogs_options[suffix] !== "undefined" ) {
+                && typeof PHS_JSEN.dialogs_options[suffix] !== "undefined" ) {
                 PHS_JSEN.dialogs_options[suffix][key] = val;
                 return true;
             }
@@ -1316,12 +1365,14 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
             // Remove Dialog ( if previously created )
             var loading_dialog_obj = $("#phs_jsen_loading" + options.suffix);
-            if( loading_dialog_obj )
+            if( loading_dialog_obj ) {
                 loading_dialog_obj.remove();
+            }
 
             // Create Dialog
-            if( $(options.parent_tag).length === 0 )
+            if( $(options.parent_tag).length === 0 ) {
                 options.parent_tag = "body";
+            }
 
             $(options.parent_tag).append( '<div id="phs_jsen_loading' + options.suffix + '"></div>' );
 
@@ -1355,8 +1406,9 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
 
         keyPressHandler : function() {
             var r = $(PHS_JSEN.default_action_13);
-            if( !r || !r.length )
+            if( !r || !r.length ) {
                 return;
+            }
 
             r.each( function() {
                 var a = $(this);
@@ -1378,8 +1430,9 @@ if( typeof( PHS_JSEN ) != "undefined" || !PHS_JSEN )
         },
 
         logf : function( str ) {
-            if( console && PHS_JSEN.debugging_mode )
-                console.log( str );
+            if( console && PHS_JSEN.debugging_mode ) {
+                console.log(str);
+            }
         }
     };
 }

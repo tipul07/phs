@@ -8,14 +8,12 @@ use phs\PHS_Maintenance;
 use phs\libraries\PHS_Roles;
 use phs\system\core\views\PHS_View;
 use phs\system\core\models\PHS_Model_Plugins;
+use phs\system\core\models\PHS_Model_Agent_jobs;
 
 abstract class PHS_Plugin extends PHS_Has_db_registry
 {
     public const ERR_MODEL = 50000, ERR_INSTALL = 50001, ERR_UPDATE = 50002, ERR_UNINSTALL = 50003, ERR_CHANGES = 50004, ERR_LIBRARY = 50005, ERR_RENDER = 50006,
     ERR_ACTIVATE = 50007, ERR_INACTIVATE = 50008;
-
-    public const SIGNAL_INSTALL = 'phs_plugin_install', SIGNAL_UNINSTALL = 'phs_plugin_uninstall',
-    SIGNAL_UPDATE = 'phs_plugin_update', SIGNAL_FORCE_INSTALL = 'phs_plugin_force_install';
 
     public const LIBRARIES_DIR = 'libraries';
 
@@ -25,8 +23,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     private $_plugin_details = [];
 
     // Plugin details as defined in JSON file
-    /** @var bool|array */
-    private $_plugin_json_details = false;
+    /** @var null|array */
+    private ?array $_plugin_json_details = null;
 
     // For which languages we already checked plugin language file
     // Languages might be defined by other plugins at bootstrap and current language might change
@@ -48,11 +46,24 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     }
 
     /**
+     * @return bool Tells if plugin is allowed to have tenant settings or functionality can be used per tenant
+     */
+    public function is_multi_tenant() : bool
+    {
+        return !($json_arr = $this->get_json_info()) || !empty($json_arr['is_multi_tenant']);
+    }
+
+    final public function is_always_active() : bool
+    {
+        return ($details_arr = $this->get_plugin_info()) && !empty($details_arr['is_always_active']);
+    }
+
+    /**
      * @return array An array of strings which are the models used by this plugin
      */
     public function get_models() : array
     {
-        if (!($json_arr = $this->get_plugin_json_info())
+        if (!($json_arr = $this->get_json_info())
          || empty($json_arr['models'])) {
             return [];
         }
@@ -65,7 +76,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      */
     public function get_plugin_version() : string
     {
-        if (!($json_arr = $this->get_plugin_json_info())
+        if (!($json_arr = $this->get_json_info())
          || empty($json_arr['version'])) {
             return '0.0.0';
         }
@@ -130,9 +141,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      *
      * @return array Array of roles definition
      */
-    public function get_agent_jobs_definition()
+    public function get_agent_jobs_definition() : array
     {
-        if (!($json_arr = $this->get_plugin_json_info())
+        if (!($json_arr = $this->get_json_info())
          || empty($json_arr['agent_jobs'])
          || !is_array($json_arr['agent_jobs'])) {
             return [];
@@ -141,7 +152,13 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $json_arr['agent_jobs'];
     }
 
-    final public function quick_init_view_instance($template, $template_data = false)
+    /**
+     * @param string|array $template
+     * @param null|array $template_data
+     *
+     * @return false|\phs\system\core\views\PHS_View
+     */
+    final public function quick_init_view_instance($template, ?array $template_data = null)
     {
         $this->reset_error();
 
@@ -183,26 +200,33 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $view_obj;
     }
 
-    final public function quick_render_template_for_buffer($template, $template_data = false)
+    /**
+     * @param string|array $template
+     * @param null|array $template_data
+     *
+     * @return null|string
+     */
+    final public function quick_render_template_for_buffer($template, ?array $template_data = null) : ?string
     {
         $this->reset_error();
 
-        if (!($view_obj = $this->quick_init_view_instance($template, $template_data))) {
+        if (empty($template)
+         || !($view_obj = $this->quick_init_view_instance($template, $template_data))) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_RENDER, self::_t('Instantiating view from plugin.'));
             }
 
-            return false;
+            return null;
         }
 
-        if (($buffer = $view_obj->render()) === false) {
+        if (($buffer = $view_obj->render()) === null) {
             if ($view_obj->has_error()) {
                 $this->copy_error($view_obj);
             } else {
                 $this->set_error(self::ERR_RENDER, self::_t('Error rendering template [%s].', $view_obj->get_template()));
             }
 
-            return false;
+            return null;
         }
 
         if (empty($buffer)) {
@@ -441,14 +465,14 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
     public function plugin_active() : bool
     {
-        return (bool)$this->db_record_active();
+        return $this->db_record_active();
     }
 
     public function check_installation()
     {
         PHS_Maintenance::output('['.$this->instance_plugin_name().'] Checking installation...');
 
-        if (!($db_details = $this->get_db_details())) {
+        if (!($db_details = $this->get_db_main_details())) {
             $this->reset_error();
 
             return $this->install();
@@ -639,6 +663,57 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $plugin_arr;
     }
 
+    final public function activate_plugin_on_tenant(int $tenant_id) : bool
+    {
+        $this->reset_error();
+
+        if (!($this_instance_id = $this->instance_id())) {
+            $this->set_error(self::ERR_CHANGES, self::_t('Couldn\'t obtain current plugin id.'));
+
+            return false;
+        }
+
+        PHS_Maintenance::output('['.$this->instance_plugin_name().'] Activating plugin on tenant '.$tenant_id.'...');
+
+        if (!$this->_load_plugins_instance()) {
+            PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error instantiating plugins model.');
+
+            $this->set_error(self::ERR_CHANGES, self::_t('Error instantiating plugins model.'));
+
+            return false;
+        }
+
+        if ($this->_plugins_instance->is_active_on_tenant($this_instance_id, $tenant_id)) {
+            PHS_Maintenance::output('['.$this->instance_plugin_name().'] Plugin already active on tenant '.$tenant_id.'.');
+
+            return true;
+        }
+
+        if (!($db_details = $this->_plugins_instance->act_activate_on_tenant($this_instance_id, $tenant_id))
+            || empty($db_details['new_data'])) {
+            if ($this->_plugins_instance->has_error()) {
+                $this->copy_error($this->_plugins_instance);
+            } else {
+                $this->set_error(self::ERR_CHANGES, self::_t('Error activating plugin.'));
+            }
+
+            PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error activating database record ['.$this_instance_id.'] on tenant '.$tenant_id.'.');
+
+            return false;
+        }
+
+        PHS_Maintenance::output('['.$this->instance_plugin_name().'] Plugin activated on tenant '.$tenant_id.'.');
+
+        return true;
+    }
+
+    final public function get_plugin_display_name() : string
+    {
+        return ($details_arr = $this->get_plugin_info()) && !empty($details_arr['name'])
+            ? $details_arr['name']
+            : '';
+    }
+
     final public function inactivate_plugin()
     {
         $this->reset_error();
@@ -751,6 +826,50 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $plugin_arr;
     }
 
+    final public function inactivate_plugin_on_tenant(int $tenant_id) : bool
+    {
+        $this->reset_error();
+
+        if (!($this_instance_id = $this->instance_id())) {
+            $this->set_error(self::ERR_CHANGES, self::_t('Couldn\'t obtain current plugin id.'));
+
+            return false;
+        }
+
+        PHS_Maintenance::output('['.$this->instance_plugin_name().'] Inactivating plugin on tenant '.$tenant_id.'...');
+
+        if (!$this->_load_plugins_instance()) {
+            PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error instantiating plugins model.');
+
+            $this->set_error(self::ERR_CHANGES, self::_t('Error instantiating plugins model.'));
+
+            return false;
+        }
+
+        if ($this->_plugins_instance->is_inactive_on_tenant($this_instance_id, $tenant_id)) {
+            PHS_Maintenance::output('['.$this->instance_plugin_name().'] Plugin already inactive on tenant '.$tenant_id.'.');
+
+            return true;
+        }
+
+        if (!($db_details = $this->_plugins_instance->act_inactivate_on_tenant($this_instance_id, $tenant_id))
+            || empty($db_details['new_data'])) {
+            if ($this->_plugins_instance->has_error()) {
+                $this->copy_error($this->_plugins_instance);
+            } else {
+                $this->set_error(self::ERR_CHANGES, self::_t('Error inactivating plugin.'));
+            }
+
+            PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error inactivating database record ['.$this_instance_id.'] on tenant '.$tenant_id.'.');
+
+            return false;
+        }
+
+        PHS_Maintenance::output('['.$this->instance_plugin_name().'] Plugin inactivated on tenant '.$tenant_id.'.');
+
+        return true;
+    }
+
     final public function user_has_any_of_defined_role_units() : bool
     {
         if (!($role_definition = $this->get_roles_definition())
@@ -788,19 +907,18 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return can(array_keys($role_units_arr), ['logical_operation' => 'or']);
     }
 
-    final public function install_agent_jobs()
+    final public function install_agent_jobs() : bool
     {
         $this->reset_error();
 
-        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())
-         || !is_array($agent_jobs_definition)) {
+        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())) {
             return true;
         }
 
         PHS_Maintenance::output('['.$this->instance_plugin_name().'] Installing agent jobs...');
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS::load_model('agent_jobs'))) {
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t load agent jobs model.'));
 
             return false;
@@ -873,8 +991,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     {
         $this->reset_error();
 
-        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())
-         || !is_array($agent_jobs_definition)) {
+        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())) {
             return true;
         }
 
@@ -905,8 +1022,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     {
         $this->reset_error();
 
-        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())
-         || !is_array($agent_jobs_definition)) {
+        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())) {
             return true;
         }
 
@@ -928,8 +1044,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     {
         $this->reset_error();
 
-        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())
-         || !is_array($agent_jobs_definition)) {
+        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())) {
             return true;
         }
 
@@ -1115,7 +1230,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         $plugin_arr = $db_details['new_data'];
-        $old_plugin_arr = (!empty($db_details['old_data']) ? $db_details['old_data'] : false);
+        $old_plugin_arr = $db_details['old_data'] ?? null;
 
         if (!empty($old_plugin_arr)) {
             // Performs any necessary actions when updating model from old version to new version
@@ -1268,7 +1383,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         // Logging and error is set in method...
         // we don't stop all uninstall process because of registry failure...
-        $this->delete_db_registry();
+        $this->delete_all_db_registry();
 
         if ($db_details
          && !$this->_plugins_instance->hard_delete($db_details)) {
@@ -1362,7 +1477,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                     return false;
                 }
 
-                if (!($model_details = $model_obj->get_db_details(true))
+                if (!($model_details = $model_obj->get_db_main_details(true))
                     || empty($model_details['version'])) {
                     $old_model_version = '0.0.0';
                 } else {
@@ -1445,14 +1560,14 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      * Returns plugin information as described in plugin JSON file (if available) as array or false in case there is no JSON file
      * @return array
      */
-    final public function get_plugin_json_info()
+    final public function get_json_info() : ?array
     {
-        if ($this->_plugin_json_details !== false) {
+        if ($this->_plugin_json_details !== null) {
             return $this->_plugin_json_details;
         }
 
         if (!($plugin_name = $this->instance_plugin_name())
-         || !($json_arr = PHS::get_plugin_json_info($plugin_name))) {
+         || !($json_arr = PHS_Instantiable::get_plugin_json_info($plugin_name))) {
             $json_arr = [];
         }
 
@@ -1462,20 +1577,20 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     }
 
     /**
-     * @return array|bool
+     * @return null|array
      */
-    final public function get_plugin_info()
+    final public function get_plugin_info() : ?array
     {
         if (!empty($this->_plugin_details)) {
             return $this->_plugin_details;
         }
 
         if (!$this->_load_plugins_instance()) {
-            return false;
+            return null;
         }
 
         $plugin_details = self::validate_array($this->get_plugin_details(), self::default_plugin_details_fields());
-        if (($json_info = $this->get_plugin_json_info())
+        if (($json_info = $this->get_json_info())
          && !empty($json_info['data_from_json'])) {
             $plugin_details = self::merge_array_assoc($plugin_details, $json_info);
         }
@@ -1490,10 +1605,10 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $plugin_details['script_version'] = $this->get_plugin_version();
         $plugin_details['models'] = $this->get_models();
 
-        if (($db_details = $this->get_db_details())) {
+        if (($db_details = $this->get_db_main_details())) {
             $plugin_details['db_details'] = $db_details;
             $plugin_details['is_installed'] = true;
-            $plugin_details['is_active'] = (bool)$this->_plugins_instance->is_active($db_details);
+            $plugin_details['is_active'] = $this->_plugins_instance->is_active($db_details);
             $plugin_details['db_version'] = (!empty($db_details['version']) ? $db_details['version'] : '0.0.0');
             $plugin_details['is_upgradable'] = ((string)$plugin_details['db_version'] !== (string)$plugin_details['script_version']);
             $plugin_details['is_core'] = (!empty($db_details['is_core']));
@@ -1501,8 +1616,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         $plugin_details['is_always_active'] = in_array($plugin_details['plugin_name'], PHS::get_always_active_plugins(), true);
         $plugin_details['is_distribution'] = in_array($plugin_details['plugin_name'], PHS::get_distribution_plugins(), true);
-
-        $plugin_details['settings_arr'] = $this->get_plugin_settings();
 
         $this->_plugin_details = $plugin_details;
 
@@ -1653,10 +1766,10 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             'is_core'          => false,
             'is_always_active' => false,
             'is_distribution'  => false,
+            'is_multi_tenant'  => true,
             'data_from_json'   => false,
             'db_details'       => false,
             'models'           => [],
-            'settings_arr'     => [],
             // Tells if plugin has any dependencies (key is plugin name and value is min version required)
             'requires'   => [],
             'agent_jobs' => [],
@@ -1679,6 +1792,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             'is_core'          => true,
             'is_always_active' => true,
             'is_distribution'  => true,
+            'is_multi_tenant'  => true,
             'models'           => PHS::get_core_models(),
         ];
 

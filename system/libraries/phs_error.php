@@ -308,39 +308,45 @@ class PHS_Error
     }
 
     /**
+     * @param string $default_message
      * @return string Returns error message
      */
-    public function get_error_message() : string
+    public function get_error_message(string $default_message = '') : string
     {
         if ($this->debugging_mode()) {
-            return $this->error_debug_msg;
+            $error_msg = $this->error_debug_msg;
+        } else {
+            $error_msg = $this->error_simple_msg;
         }
 
-        return $this->error_simple_msg;
+        return $error_msg !== '' ? $error_msg : $default_message;
     }
 
     /**
+     * @param string $default_message
      * @return string Returns full error message
      */
-    public function get_full_error_message() : string
+    public function get_full_error_message(string $default_message = '') : string
     {
-        return $this->error_msg;
+        return $this->error_msg !== '' ? $this->error_msg : $default_message;
     }
 
     /**
+     * @param string $default_message
      * @return string Always returns short version error message
      */
-    public function get_simple_error_message() : string
+    public function get_simple_error_message(string $default_message = '') : string
     {
-        return $this->error_simple_msg;
+        return $this->error_simple_msg !== '' ? $this->error_simple_msg : $default_message;
     }
 
     /**
+     * @param int $default_code
      * @return int Returns error code
      */
-    public function get_error_code() : int
+    public function get_error_code(int $default_code = self::ERR_OK) : int
     {
-        return $this->error_no;
+        return $this->error_no !== self::ERR_OK ? $this->error_no : $default_code;
     }
 
     /**
@@ -792,7 +798,7 @@ class PHS_Error
      * @param string $error_msg
      * @param string $error_debug_msg
      */
-    public static function st_set_error($error_no, $error_msg, $error_debug_msg = '') : void
+    public static function st_set_error(int $error_no, string $error_msg, string $error_debug_msg = '') : void
     {
         self::get_error_static_instance()->set_error($error_no, $error_msg, $error_debug_msg);
     }
@@ -861,59 +867,61 @@ class PHS_Error
         return self::get_error_static_instance()->copy_error($obj, $force_error_code);
     }
 
-    public static function st_get_error_code() : int
+    public static function st_get_error_code(int $default_code = self::ERR_OK) : int
     {
-        return self::get_error_static_instance()->get_error_code();
+        return self::get_error_static_instance()->get_error_code($default_code);
     }
 
-    public static function st_get_error_message() : string
+    public static function st_get_error_message(string $default_message = '') : string
     {
-        return self::get_error_static_instance()->get_error_message();
+        return self::get_error_static_instance()->get_error_message($default_message);
     }
 
-    public static function st_get_full_error_message() : string
+    public static function st_get_full_error_message(string $default_message = '') : string
     {
-        return self::get_error_static_instance()->get_full_error_message();
+        return self::get_error_static_instance()->get_full_error_message($default_message);
     }
 
-    public static function st_get_simple_error_message() : string
+    public static function st_get_simple_error_message(string $default_message = '') : string
     {
-        return self::get_error_static_instance()->get_simple_error_message();
+        return self::get_error_static_instance()->get_simple_error_message($default_message);
     }
 
-    public static function arr_get_error_code($err_arr) : int
+    public static function arr_get_error_code($err_arr, int $default_code = self::ERR_OK) : int
     {
         $err_arr = self::validate_error_arr($err_arr);
 
-        return $err_arr['error_no'];
+        return $err_arr['error_no'] !== self::ERR_OK ? $err_arr['error_no'] : $default_code;
     }
 
-    public static function arr_get_error_message($err_arr) : string
+    public static function arr_get_error_message($err_arr, string $default_message = '') : string
     {
         $err_arr = self::validate_error_arr($err_arr);
 
         if (self::st_debugging_mode()) {
-            return $err_arr['error_debug_msg'];
+            $error_msg = $err_arr['error_debug_msg'];
+        } else {
+            $error_msg = $err_arr['error_simple_msg'];
         }
 
-        return $err_arr['error_simple_msg'];
+        return $error_msg !== '' ? $error_msg : $default_message;
     }
 
-    public static function arr_get_full_error_message($err_arr) : string
+    public static function arr_get_full_error_message($err_arr, string $default_message = '') : string
     {
         $err_arr = self::validate_error_arr($err_arr);
 
-        return $err_arr['error_msg'];
+        return $err_arr['error_msg'] !== '' ? $err_arr['error_msg'] : $default_message;
     }
 
-    public static function arr_get_simple_error_message($err_arr) : string
+    public static function arr_get_simple_error_message($err_arr, string $default_message = '') : string
     {
         $err_arr = self::validate_error_arr($err_arr);
 
-        return $err_arr['error_simple_msg'];
+        return $err_arr['error_simple_msg'] !== '' ? $err_arr['error_simple_msg'] : $default_message;
     }
 
-    public static function arr_change_error_message($err_arr, $error_msg, $error_debug_msg = '') : array
+    public static function arr_change_error_message($err_arr, string $error_msg, string $error_debug_msg = '') : array
     {
         $err_arr = self::validate_error_arr($err_arr);
 
@@ -936,7 +944,7 @@ class PHS_Error
         return $err_arr;
     }
 
-    public static function arr_change_error_code_and_message($err_arr, int $error_code, $error_msg, $error_debug_msg = '') : array
+    public static function arr_change_error_code_and_message($err_arr, int $error_code, string $error_msg, string $error_debug_msg = '') : array
     {
         return self::arr_change_error_message(self::arr_change_error_code($err_arr, $error_code), $error_msg, $error_debug_msg);
     }
@@ -1038,6 +1046,14 @@ class PHS_Error
     public static function st_suppress_backtrace(?bool $mode = null) : bool
     {
         return self::get_error_static_instance()->suppress_backtrace($mode);
+    }
+
+    public static function trigger_critical_error(string $error_msg) : void
+    {
+        if (@class_exists(PHS_Logger::class, false)) {
+            PHS_Logger::critical($error_msg, PHS_Logger::TYPE_DEBUG);
+        }
+        trigger_error($error_msg, E_USER_ERROR);
     }
 
     /**

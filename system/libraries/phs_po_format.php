@@ -10,9 +10,7 @@ class PHS_Po_format extends PHS_Registry
 
     public const PLUGINS_DIST_DIRNAME = 'plugins.dist', THEME_DIST_DIRNAME = 'default.dist';
 
-    private $can_use_generator = false;
-
-    private $filename = '';
+    private string $filename = '';
 
     private array $lines_arr = [];
 
@@ -35,7 +33,7 @@ class PHS_Po_format extends PHS_Registry
      *
      * @return bool
      */
-    public function set_filename($f) : bool
+    public function set_filename(string $f) : bool
     {
         $this->reset_error();
 
@@ -45,12 +43,6 @@ class PHS_Po_format extends PHS_Registry
             $this->set_error(self::ERR_PO_FILE, self::_t('PO file not found or not readable.'));
 
             return false;
-        }
-
-        if (version_compare(PHP_VERSION, '5.5.0', '>')) {
-            $this->can_use_generator = true;
-        } else {
-            $this->can_use_generator = false;
         }
 
         if (!($buf = @file_get_contents($f))) {
@@ -64,74 +56,21 @@ class PHS_Po_format extends PHS_Registry
         return $this->set_buffer($buf);
     }
 
-    public function set_buffer($b) : bool
+    public function set_buffer(string $b) : bool
     {
         $this->reset_lines_arr();
 
-        return !(!$this->get_lines($b));
+        return (bool)$this->_get_lines($b);
     }
 
-    public function get_parsed_indexes()
+    public function get_parsed_indexes() : array
     {
         return [
             'count'          => $this->indexes_count,
             'language'       => $this->parsed_language,
-            'language_files' => ((!empty($this->parsed_indexes) && is_array($this->parsed_indexes)) ? array_keys($this->parsed_indexes) : []),
+            'language_files' => (!empty($this->parsed_indexes) ? array_keys($this->parsed_indexes) : []),
             'indexes'        => $this->parsed_indexes,
         ];
-    }
-
-    public function backup_language_file($lang_file)
-    {
-        $this->reset_error();
-
-        $return_arr = [];
-        $return_arr['backup_created'] = false;
-        $return_arr['path'] = '';
-        $return_arr['file_name'] = '';
-        $return_arr['full_name'] = '';
-
-        if (empty($lang_file)
-         || !@file_exists($lang_file)) {
-            return $return_arr;
-        }
-
-        if (!($path_info = PHS_Utils::mypathinfo($lang_file))
-         || empty($path_info['extension']) || $path_info['extension'] !== 'csv'
-         || empty($path_info['basename']) || !self::valid_language($path_info['basename'])
-         || $lang_file === PHS::relative_path($path_info['dirname'])) {
-            $this->set_error(self::ERR_LANGUAGE_FILE, self::_t('Couldn\'t get details about language file or language file is invalid.'));
-
-            return false;
-        }
-
-        if (!@is_dir($path_info['dirname'])
-         || !@is_writable($path_info['dirname'])) {
-            $this->set_error(self::ERR_LANGUAGE_FILE, self::_t('Destination directory is not writable. Please check write rights.'));
-
-            return false;
-        }
-
-        $backup_file_name = $path_info['basename'].'_bk'.date('YmdHis').'.csv';
-
-        if (($bk_files = @glob($path_info['dirname'].'/'.$path_info['basename'].'_bk*.csv'))) {
-            foreach ($bk_files as $bk_file) {
-                @unlink($bk_file);
-            }
-        }
-
-        $return_arr['backup_created'] = true;
-        $return_arr['path'] = $path_info['dirname'];
-        $return_arr['file_name'] = $backup_file_name;
-        $return_arr['full_name'] = $path_info['dirname'].'/'.$backup_file_name;
-
-        if (!@copy($lang_file, $return_arr['full_name'])) {
-            $this->set_error(self::ERR_LANGUAGE_FILE, self::_t('Error creating backup file in destination directory. Please check write rights.'));
-
-            return false;
-        }
-
-        return $return_arr;
     }
 
     /**
@@ -140,7 +79,7 @@ class PHS_Po_format extends PHS_Registry
      *
      * @return bool
      */
-    public function export_csv_from_po($po_file, $params = false)
+    public function export_csv_from_po(string $po_file, $params = false) : bool
     {
         $this->reset_error();
 
@@ -169,17 +108,9 @@ class PHS_Po_format extends PHS_Registry
             $params['csv_column_escape'] = '"';
         }
 
-        if (!isset($params['export_to_output'])) {
-            $params['export_to_output'] = true;
-        } else {
-            $params['export_to_output'] = (!empty($params['export_to_output']));
-        }
+        $params['export_to_output'] = (!isset($params['export_to_output']) || !empty($params['export_to_output']));
+        $params['export_to_filename'] ??= null;
 
-        if (empty($params['export_to_filename'])) {
-            $params['export_to_filename'] = false;
-        }
-
-        $csv_dir = false;
         if (!empty($params['export_to_filename'])
         && (!is_string($params['export_to_filename'])
             || !($csv_dir = rtrim(@dirname($params['export_to_filename']), '/\\'))
@@ -190,31 +121,27 @@ class PHS_Po_format extends PHS_Registry
             return false;
         }
 
-        $csv_real_file = $params['export_to_filename'];
-
-        if (empty($params['language'])) {
-            if (($guessed_language = $this->guess_language_from_header())
+        if (empty($params['language'])
+            && ($guessed_language = $this->guess_language_from_header())
             && !empty($guessed_language['guessed_language'])) {
-                $params['language'] = $guessed_language['guessed_language'];
-            }
+            $params['language'] = $guessed_language['guessed_language'];
         }
 
         if (empty($params['language'])
-         || !($lang_details = self::get_defined_language($params['language']))) {
-            $params['language'] = false;
+         || !self::get_defined_language($params['language'])) {
+            $params['language'] = '';
         }
 
         $this->_reset_parsed_indexes();
 
         $this->parsed_language = $params['language'];
 
-        $csv_f = false;
-        if (!empty($csv_real_file)) {
-            if (!($csv_f = @fopen($csv_real_file, 'wb'))) {
-                $this->set_error(self::ERR_EXPORT, self::_t('Couldn\'t open export csv filename for writing.'));
+        $csv_f = null;
+        if (!empty($params['export_to_filename'])
+            && !($csv_f = @fopen($params['export_to_filename'], 'wb'))) {
+            $this->set_error(self::ERR_EXPORT, self::_t('Couldn\'t open export csv filename for writing.'));
 
-                return false;
-            }
+            return false;
         }
 
         while (($translation_arr = $this->extract_po_translation())) {
@@ -222,23 +149,19 @@ class PHS_Po_format extends PHS_Registry
                 continue;
             }
 
-            if (!isset($translation_arr['translation'])) {
-                $translation_arr['translation'] = '';
-            }
-
-            $csv_line = PHS_Utils::csv_line([$translation_arr['index'], $translation_arr['translation']],
+            $csv_line = PHS_Utils::csv_line([$translation_arr['index'], $translation_arr['translation'] ?? ''],
                 $params['csv_line_delimiter'], $params['csv_column_delimiter'],
                 $params['csv_column_enclosure'], $params['csv_column_escape']);
 
-            if (!empty($csv_f)) {
+            if ($csv_f !== null) {
                 @fwrite($csv_f, $csv_line);
                 @fflush($csv_f);
-            } else {
+            } elseif ($params['export_to_output']) {
                 echo $csv_line;
             }
         }
 
-        if (!empty($csv_f)) {
+        if ($csv_f !== null) {
             @fflush($csv_f);
             @fclose($csv_f);
         }
@@ -330,7 +253,7 @@ class PHS_Po_format extends PHS_Registry
             $fp = false;
             if (!empty($params['update_language_files'])) {
                 if (!empty($params['backup_language_files'])
-                 && !$this->backup_language_file($lang_file)) {
+                 && !$this->_backup_language_file($lang_file)) {
                     $error_msg = self::_t('Error creating backup for language file [%s]', $lang_file);
 
                     $return_arr['update_errors'][$lang_file] = $error_msg;
@@ -397,11 +320,11 @@ class PHS_Po_format extends PHS_Registry
 
     /**
      * @param string $po_file
-     * @param array|false $params
+     * @param null|array $params
      *
-     * @return array|false
+     * @return bool
      */
-    public function parse_language_from_po_file(string $po_file, $params = false)
+    public function parse_language_from_po_file(string $po_file, ?array $params = null) : bool
     {
         $this->reset_error();
 
@@ -413,18 +336,16 @@ class PHS_Po_format extends PHS_Registry
             return false;
         }
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
+        $params ??= [];
 
         if (empty($params['language'])
-         && ($guessed_language = $this->guess_language_from_header())
-         && !empty($guessed_language['guessed_language'])) {
+            && ($guessed_language = $this->guess_language_from_header())
+            && !empty($guessed_language['guessed_language'])) {
             $params['language'] = $guessed_language['guessed_language'];
         }
 
         if (empty($params['language'])
-         || !($lang_details = self::get_defined_language($params['language']))) {
+            || !($lang_details = self::get_defined_language($params['language']))) {
             $this->set_error(self::ERR_PO_FILE, self::_t('Language is invalid.'));
 
             return false;
@@ -515,10 +436,10 @@ class PHS_Po_format extends PHS_Registry
             }
         }
 
-        return $this->get_parsed_indexes();
+        return true;
     }
 
-    public function extract_po_translation()
+    public function extract_po_translation() : ?array
     {
         if (empty($this->header_arr)) {
             $this->extract_header();
@@ -549,12 +470,12 @@ class PHS_Po_format extends PHS_Registry
         ];
     }
 
-    public function guess_language_from_header()
+    public function guess_language_from_header() : ?array
     {
         if (!($header_data = $this->get_po_header())
          || empty($header_data['lower_header_arr'])
          || empty($header_data['lower_header_arr']['language'])) {
-            return false;
+            return null;
         }
 
         $guessed_language = '';
@@ -581,6 +502,59 @@ class PHS_Po_format extends PHS_Registry
         return $return_arr;
     }
 
+    private function _backup_language_file(string $lang_file) : ?array
+    {
+        $this->reset_error();
+
+        $return_arr = [];
+        $return_arr['backup_created'] = false;
+        $return_arr['path'] = '';
+        $return_arr['file_name'] = '';
+        $return_arr['full_name'] = '';
+
+        if (empty($lang_file)
+         || !@file_exists($lang_file)) {
+            return $return_arr;
+        }
+
+        if (!($path_info = PHS_Utils::mypathinfo($lang_file))
+         || empty($path_info['extension']) || $path_info['extension'] !== 'csv'
+         || empty($path_info['basename']) || !self::valid_language($path_info['basename'])
+         || $lang_file === PHS::relative_path($path_info['dirname'])) {
+            $this->set_error(self::ERR_LANGUAGE_FILE, self::_t('Couldn\'t get details about language file or language file is invalid.'));
+
+            return null;
+        }
+
+        if (!@is_dir($path_info['dirname'])
+         || !@is_writable($path_info['dirname'])) {
+            $this->set_error(self::ERR_LANGUAGE_FILE, self::_t('Destination directory is not writable. Please check write rights.'));
+
+            return null;
+        }
+
+        $backup_file_name = $path_info['basename'].'_bk'.date('YmdHis').'.csv';
+
+        if (($bk_files = @glob($path_info['dirname'].'/'.$path_info['basename'].'_bk*.csv'))) {
+            foreach ($bk_files as $bk_file) {
+                @unlink($bk_file);
+            }
+        }
+
+        $return_arr['backup_created'] = true;
+        $return_arr['path'] = $path_info['dirname'];
+        $return_arr['file_name'] = $backup_file_name;
+        $return_arr['full_name'] = $path_info['dirname'].'/'.$backup_file_name;
+
+        if (!@copy($lang_file, $return_arr['full_name'])) {
+            $this->set_error(self::ERR_LANGUAGE_FILE, self::_t('Error creating backup file in destination directory. Please check write rights.'));
+
+            return null;
+        }
+
+        return $return_arr;
+    }
+
     private function _reset_parsed_indexes()
     {
         $this->indexes_count = 0;
@@ -588,7 +562,7 @@ class PHS_Po_format extends PHS_Registry
         $this->parsed_indexes = [];
     }
 
-    private function extract_po_unit()
+    private function extract_po_unit() : ?array
     {
         // read empty lines till first translation unit
         do {
@@ -600,7 +574,7 @@ class PHS_Po_format extends PHS_Registry
         } while ($line_str === '');
 
         if ($line_str === false) {
-            return false;
+            return null;
         }
 
         $unit_arr = [];
@@ -688,19 +662,19 @@ class PHS_Po_format extends PHS_Registry
     }
 
     /**
-     * @param string|false $buffer
+     * @param null|string $buffer
      *
      * @return array|bool
      */
-    private function get_lines($buffer = false)
+    private function _get_lines(?string $buffer = null)
     {
-        if ($buffer === false) {
+        if ($buffer === null) {
             return $this->lines_arr;
         }
 
         $this->reset_error();
 
-        if (!is_string($buffer)) {
+        if (empty($buffer)) {
             $this->set_error(self::ERR_INPUT_BUFFER, self::_t('Invalid input buffer.'));
 
             return false;
@@ -723,11 +697,7 @@ class PHS_Po_format extends PHS_Registry
      */
     private function get_line(int $index)
     {
-        if (!isset($this->lines_arr[$index])) {
-            return false;
-        }
-
-        return $this->lines_arr[$index];
+        return $this->lines_arr[$index] ?? null;
     }
 
     private function extract_header()

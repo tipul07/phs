@@ -7,6 +7,7 @@ use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Registry;
 use phs\libraries\PHS_Instantiable;
 use phs\plugins\admin\PHS_Plugin_Admin;
+use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\models\PHS_Model_Agent_jobs;
 use phs\system\core\models\PHS_Model_Agent_jobs_monitor;
 
@@ -291,7 +292,7 @@ class PHS_Agent extends PHS_Registry
         self::st_reset_error();
 
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-        if (!($plugins_model = PHS::load_model('plugins'))) {
+        if (!($plugins_model = PHS_Model_Plugins::get_instance())) {
             self::st_set_error(self::ERR_AVAILABLE_ACTIONS, self::_t('Couldn\'t load plugins model.'));
 
             return false;
@@ -329,12 +330,12 @@ class PHS_Agent extends PHS_Registry
         return $available_plugins_arr;
     }
 
-    public static function get_agent_available_controllers($plugin = false)
+    public static function get_agent_available_controllers(?string $plugin = null) : array
     {
         self::st_reset_error();
 
         if ($plugin === PHS_Instantiable::CORE_PLUGIN) {
-            $plugin = false;
+            $plugin = null;
         }
 
         if (!($controller_names = PHS::get_plugin_scripts_from_dir($plugin, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER))
@@ -357,12 +358,12 @@ class PHS_Agent extends PHS_Registry
         return $available_controllers;
     }
 
-    public static function get_agent_available_actions($plugin = false)
+    public static function get_agent_available_actions(?string $plugin = null)
     {
         self::st_reset_error();
 
         if ($plugin === PHS_Instantiable::CORE_PLUGIN) {
-            $plugin = false;
+            $plugin = null;
         }
 
         if (!($action_names = PHS::get_plugin_scripts_from_dir($plugin, PHS_Instantiable::INSTANCE_TYPE_ACTION))
@@ -419,7 +420,7 @@ class PHS_Agent extends PHS_Registry
         self::st_reset_error();
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS::load_model('agent_jobs'))) {
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t load agent jobs model.'));
 
             return false;
@@ -463,7 +464,7 @@ class PHS_Agent extends PHS_Registry
         }
 
         if (empty($agent_jobs_model)
-        && !($agent_jobs_model = PHS::load_model('agent_jobs'))) {
+        && !($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t load agent jobs model.'));
 
             return false;
@@ -505,7 +506,7 @@ class PHS_Agent extends PHS_Registry
         self::st_reset_error();
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS::load_model('agent_jobs'))) {
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t load agent jobs model.'));
 
             return false;
@@ -652,7 +653,7 @@ class PHS_Agent extends PHS_Registry
         return $job_arr;
     }
 
-    public static function suspend_agent_jobs($plugin)
+    public static function suspend_agent_jobs($plugin) : bool
     {
         self::st_reset_error();
 
@@ -663,7 +664,7 @@ class PHS_Agent extends PHS_Registry
         }
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS::load_model('agent_jobs'))) {
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t load agent jobs model.'));
 
             return false;
@@ -687,7 +688,7 @@ class PHS_Agent extends PHS_Registry
         return true;
     }
 
-    public static function unsuspend_agent_jobs($plugin)
+    public static function unsuspend_agent_jobs($plugin) : bool
     {
         self::st_reset_error();
 
@@ -698,7 +699,7 @@ class PHS_Agent extends PHS_Registry
         }
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS::load_model('agent_jobs'))) {
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t load agent jobs model.'));
 
             return false;
@@ -722,7 +723,7 @@ class PHS_Agent extends PHS_Registry
         return true;
     }
 
-    public static function bg_validate_input($input_str)
+    public static function bg_validate_input(string $input_str) : ?array
     {
         if (empty($input_str)
          || @strstr($input_str, '::') === false
@@ -730,23 +731,22 @@ class PHS_Agent extends PHS_Registry
          || empty($parts_arr[0]) || empty($parts_arr[1])) {
             PHS_Logger::error('Invalid input', PHS_Logger::TYPE_AGENT);
 
-            return false;
+            return null;
         }
 
-        $crypted_data = $parts_arr[0];
-        $pub_key = $parts_arr[1];
+        [$crypted_data, $pub_key] = $parts_arr;
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
         if (!($decrypted_data = PHS_Crypt::quick_decode($crypted_data))
          || !($decrypted_parts = explode('::', $decrypted_data, 3))
          || empty($decrypted_parts[0]) || !isset($decrypted_parts[1]) || empty($decrypted_parts[2])
          || !($job_id = (int)$decrypted_parts[0])
-         || !($agent_jobs_model = PHS::load_model('agent_jobs'))
+         || !($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())
          || !($job_arr = $agent_jobs_model->get_details($job_id))
          || $decrypted_parts[2] !== md5($job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'])) {
             PHS_Logger::error('Input validation failed', PHS_Logger::TYPE_AGENT);
 
-            return false;
+            return null;
         }
 
         return [
@@ -757,16 +757,16 @@ class PHS_Agent extends PHS_Registry
         ];
     }
 
-    public static function get_stalling_minutes()
+    public static function get_stalling_minutes() : int
     {
-        static $stalling_minutes = false;
+        static $stalling_minutes = null;
 
-        if ($stalling_minutes !== false) {
+        if ($stalling_minutes !== null) {
             return $stalling_minutes;
         }
 
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS::load_model('agent_jobs'))
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())
          || !($stalling_minutes = $agent_jobs_model->get_stalling_minutes())) {
             $stalling_minutes = 0;
         }
@@ -791,7 +791,7 @@ class PHS_Agent extends PHS_Registry
         if (!empty($extra['agent_jobs_model'])) {
             $agent_jobs_model = $extra['agent_jobs_model'];
         } else {
-            $agent_jobs_model = PHS::load_model('agent_jobs');
+            $agent_jobs_model = PHS_Model_Agent_jobs::get_instance();
         }
 
         if (empty($agent_jobs_model)

@@ -2,13 +2,15 @@
 namespace phs\libraries;
 
 use phs\PHS;
+use phs\system\core\models\PHS_Model_Roles;
 
 // ! Main wrapper for roles (roles are defined by plugins/functionalities and are pushed to this class)
 class PHS_Roles extends PHS_Registry
 {
     public const ERR_DEPENDENCIES = 1;
 
-    public const ROLE_GUEST = 'phs_guest', ROLE_MEMBER = 'phs_member', ROLE_OPERATOR = 'phs_operator', ROLE_ADMIN = 'phs_admin';
+    public const ROLE_GUEST = 'phs_guest', ROLE_MEMBER = 'phs_member', ROLE_OPERATOR = 'phs_operator', ROLE_ADMIN = 'phs_admin',
+    ROLE_TENANT_ADMIN = 'phs_tenant_admin';
 
     public const ROLEU_CONTACT_US = 'phs_contact_us', ROLEU_REGISTER = 'phs_register',
     ROLEU_MANAGE_ROLES = 'phs_manage_roles', ROLEU_LIST_ROLES = 'phs_list_roles',
@@ -21,10 +23,13 @@ class PHS_Roles extends PHS_Registry
     ROLEU_MANAGE_AGENT_JOBS = 'phs_manage_agent_jobs', ROLEU_LIST_AGENT_JOBS = 'phs_list_agent_jobs',
     ROLEU_MANAGE_API_KEYS = 'phs_manage_api_keys', ROLEU_LIST_API_KEYS = 'phs_list_api_keys',
     ROLEU_API_MONITORING_REPORT = 'phs_api_monitor_report',
-    ROLEU_VIEW_LOGS = 'phs_view_logs';
+    ROLEU_VIEW_LOGS = 'phs_view_logs',
 
-    /** @var bool|\phs\system\core\models\PHS_Model_Roles */
-    private static $_role_model = false;
+    // Tenant role units
+    ROLEU_TENANTS_LIST = 'phs_list_tenants', ROLEU_TENANTS_MANAGE = 'phs_manage_tenants';
+
+    /** @var null|\phs\system\core\models\PHS_Model_Roles */
+    private static ?PHS_Model_Roles $_role_model = null;
 
     public static function transform_string_to_slug($str) : ?string
     {
@@ -34,9 +39,7 @@ class PHS_Roles extends PHS_Registry
             return null;
         }
 
-        $role_model = self::$_role_model;
-
-        return $role_model->transform_string_to_slug($str);
+        return self::$_role_model->transform_string_to_slug($str);
     }
 
     public static function user_has_role($account_data, $role_list, $params = false)
@@ -47,10 +50,8 @@ class PHS_Roles extends PHS_Registry
             return false;
         }
 
-        $role_model = self::$_role_model;
-
-        if (($return_arr = $role_model->user_has_roles($account_data, $role_list, $params)) === false) {
-            self::st_copy_error($role_model);
+        if (($return_arr = self::$_role_model->user_has_roles($account_data, $role_list, $params)) === false) {
+            self::st_copy_error(self::$_role_model);
 
             return false;
         }
@@ -66,10 +67,8 @@ class PHS_Roles extends PHS_Registry
             return false;
         }
 
-        $role_model = self::$_role_model;
-
-        if (($return_arr = $role_model->user_has_role_units($account_data, $role_units_list, $params)) === false) {
-            self::st_copy_error($role_model);
+        if (($return_arr = self::$_role_model->user_has_role_units($account_data, $role_units_list, $params)) === false) {
+            self::st_copy_error(self::$_role_model);
 
             return false;
         }
@@ -85,10 +84,8 @@ class PHS_Roles extends PHS_Registry
             return false;
         }
 
-        $role_model = self::$_role_model;
-
-        if (($slugs_arr = $role_model->get_user_roles_slugs($account_data)) === false) {
-            self::st_copy_error($role_model);
+        if (($slugs_arr = self::$_role_model->get_user_roles_slugs($account_data)) === false) {
+            self::st_copy_error(self::$_role_model);
 
             return false;
         }
@@ -96,64 +93,85 @@ class PHS_Roles extends PHS_Registry
         return $slugs_arr;
     }
 
-    public static function get_user_role_units_slugs($account_data)
+    /**
+     * @param int|array $account_data
+     *
+     * @return null|array
+     */
+    public static function get_user_role_units_slugs($account_data) : ?array
     {
         self::st_reset_error();
 
         if (!self::load_dependencies()) {
-            return false;
+            return null;
         }
 
-        $role_model = self::$_role_model;
+        if (!($slugs_arr = self::$_role_model->get_user_role_units_slugs($account_data))) {
+            if (self::$_role_model->has_error()) {
+                self::st_copy_error(self::$_role_model);
 
-        if (($slugs_arr = $role_model->get_user_role_units_slugs($account_data)) === false) {
-            self::st_copy_error($role_model);
+                return null;
+            }
 
-            return false;
+            return [];
         }
 
         return $slugs_arr;
     }
 
-    public static function get_role_role_units_slugs($role_data)
+    /**
+     * @param int|array|string $role_data
+     *
+     * @return null|array
+     */
+    public static function get_role_role_units_slugs($role_data) : ?array
     {
         self::st_reset_error();
 
         if (!self::load_dependencies()) {
-            return false;
+            return null;
         }
 
-        $role_model = self::$_role_model;
+        if (!($slugs_arr = self::$_role_model->get_role_role_units_slugs($role_data))) {
+            if (self::$_role_model->has_error()) {
+                self::st_copy_error(self::$_role_model);
 
-        if (($slugs_arr = $role_model->get_role_role_units_slugs($role_data)) === false) {
-            self::st_copy_error($role_model);
+                return null;
+            }
 
-            return false;
+            return [];
         }
 
         return $slugs_arr;
     }
 
-    public static function get_role_units_slugs_from_roles_slugs($roles_slugs)
+    /**
+     * @param string|int|array $roles_slugs
+     *
+     * @return null|array
+     */
+    public static function get_role_units_slugs_from_roles_slugs($roles_slugs) : ?array
     {
         self::st_reset_error();
 
         if (!self::load_dependencies()) {
-            return false;
+            return null;
         }
 
-        $role_model = self::$_role_model;
+        if (!($slugs_arr = self::$_role_model->get_role_units_slugs_from_roles_slugs($roles_slugs))) {
+            if (self::$_role_model->has_error()) {
+                self::st_copy_error(self::$_role_model);
 
-        if (($slugs_arr = $role_model->get_role_units_slugs_from_roles_slugs($roles_slugs)) === false) {
-            self::st_copy_error($role_model);
+                return null;
+            }
 
-            return false;
+            return [];
         }
 
         return $slugs_arr;
     }
 
-    public static function link_roles_to_user($account_data, $role_data, $params = false)
+    public static function link_roles_to_user($account_data, $role_data, $params = false) : bool
     {
         self::st_reset_error();
 
@@ -161,10 +179,8 @@ class PHS_Roles extends PHS_Registry
             return false;
         }
 
-        $role_model = self::$_role_model;
-
-        if ($role_model->link_roles_to_user($account_data, $role_data, $params) === false) {
-            self::st_copy_error($role_model);
+        if (self::$_role_model->link_roles_to_user($account_data, $role_data, $params) === false) {
+            self::st_copy_error(self::$_role_model);
 
             return false;
         }
@@ -172,7 +188,7 @@ class PHS_Roles extends PHS_Registry
         return true;
     }
 
-    public static function unlink_roles_from_user($account_data, $role_data, $params = false)
+    public static function unlink_roles_from_user($account_data, $role_data) : bool
     {
         self::st_reset_error();
 
@@ -180,10 +196,8 @@ class PHS_Roles extends PHS_Registry
             return false;
         }
 
-        $role_model = self::$_role_model;
-
-        if ($role_model->unlink_roles_from_user($account_data, $role_data, $params) === false) {
-            self::st_copy_error($role_model);
+        if (self::$_role_model->unlink_roles_from_user($account_data, $role_data) === false) {
+            self::st_copy_error(self::$_role_model);
 
             return false;
         }
@@ -191,7 +205,7 @@ class PHS_Roles extends PHS_Registry
         return true;
     }
 
-    public static function unlink_all_roles_from_user($account_data)
+    public static function unlink_all_roles_from_user($account_data) : bool
     {
         self::st_reset_error();
 
@@ -199,10 +213,8 @@ class PHS_Roles extends PHS_Registry
             return false;
         }
 
-        $role_model = self::$_role_model;
-
-        if ($role_model->unlink_all_roles_from_user($account_data) === false) {
-            self::st_copy_error($role_model);
+        if (self::$_role_model->unlink_all_roles_from_user($account_data) === false) {
+            self::st_copy_error(self::$_role_model);
 
             return false;
         }
@@ -210,24 +222,29 @@ class PHS_Roles extends PHS_Registry
         return true;
     }
 
-    public static function register_role($params)
+    /**
+     * @param array $params
+     *
+     * @return null|array
+     */
+    public static function register_role(array $params) : ?array
     {
         self::st_reset_error();
 
         if (!self::load_dependencies()) {
-            return false;
+            return null;
         }
 
-        if (empty($params) || !is_array($params)) {
+        if (empty($params)) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Please provide valid parameters for this role.'));
 
-            return false;
+            return null;
         }
 
         if (empty($params['slug'])) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Please provide a slug for this role.'));
 
-            return false;
+            return null;
         }
 
         $role_units_arr = false;
@@ -252,7 +269,7 @@ class PHS_Roles extends PHS_Registry
                 self::st_set_error(self::ERR_PARAMETERS,
                     self::_t('Error adding role [%s] there is already a role with same slug from other plugin.', $params['slug']));
 
-                return false;
+                return null;
             }
 
             $edit_fields_arr = [];
@@ -307,31 +324,36 @@ class PHS_Roles extends PHS_Registry
                     self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error adding role [%s] to database.', $params['slug']));
                 }
 
-                return false;
+                return null;
             }
         }
 
         return $role_arr;
     }
 
-    public static function register_role_unit($params)
+    /**
+     * @param array $params
+     *
+     * @return null|array
+     */
+    public static function register_role_unit(array $params) : ?array
     {
         self::st_reset_error();
 
         if (!self::load_dependencies()) {
-            return false;
+            return null;
         }
 
-        if (empty($params) || !is_array($params)) {
+        if (empty($params)) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Please provide valid parameters for this role unit.'));
 
-            return false;
+            return null;
         }
 
         if (empty($params['slug'])) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Please provide a slug for this role unit.'));
 
-            return false;
+            return null;
         }
 
         $role_model = self::$_role_model;
@@ -392,20 +414,20 @@ class PHS_Roles extends PHS_Registry
                     self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error adding role unit [%s] to database.', $params['slug']));
                 }
 
-                return false;
+                return null;
             }
         }
 
         return $role_unit_arr;
     }
 
-    private static function load_dependencies()
+    private static function load_dependencies() : bool
     {
         self::st_reset_error();
 
         if (empty(self::$_role_model)
-         && !(self::$_role_model = PHS::load_model('roles'))) {
-            self::st_set_error(self::ERR_DEPENDENCIES, self::_t('Couldn\'t load roles model.'));
+         && !(self::$_role_model = PHS_Model_Roles::get_instance())) {
+            self::st_set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
             return false;
         }

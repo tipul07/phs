@@ -21,8 +21,7 @@ if (($admin_plugin = PHS_Plugin_Admin::get_instance())) {
     // PHS_Event_Layout::listen([$admin_plugin, 'listen_after_left_menu_admin'],
     //     PHS_Event_Layout::ADMIN_TEMPLATE_AFTER_LEFT_MENU, ['priority' => 1000]);
 
-    if (($settings_arr = $admin_plugin->get_plugin_settings())
-     && !empty($settings_arr['default_theme_in_admin'])) {
+    if ($admin_plugin->use_default_theme_in_admin()) {
         // Set "default" as current theme for admin section
         PHS_Event_Template::listen([$admin_plugin, 'listen_web_template_rendering'], PHS_Event_Template::GENERIC);
     }

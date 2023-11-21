@@ -579,7 +579,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      */
     private function _validate_listener_callback($callback)
     {
-        if (!is_callable($callback)
+        if (!@is_callable($callback)
          && (!is_array($callback)
              || empty($callback[0]) || empty($callback[1])
              || !is_string($callback[0]) || !is_string($callback[1])
@@ -601,19 +601,30 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
                 return null;
             }
 
+            if (!($plugin_obj = $listener_obj->get_plugin_instance())
+                || !$plugin_obj->plugin_active()) {
+                return null;
+            }
+
             return $callback;
         }
 
         if (is_object($callback[0])) {
-            if (!($callback[0] instanceof PHS_Instantiable)
-             || !@method_exists($callback[0], $callback[1])) {
+            $listener_obj = $callback[0];
+            if (!($listener_obj instanceof PHS_Instantiable)
+             || !@method_exists($listener_obj, $callback[1])) {
                 $this->set_error(self::ERR_LISTEN,
                     self::_t('Listeners should be a function or a method of instances of PHS_Instatiable.'));
 
                 return null;
             }
 
-            $callback[0] = @get_class($callback[0]);
+            if (!($plugin_obj = $listener_obj->get_plugin_instance())
+                || !$plugin_obj->plugin_active()) {
+                return null;
+            }
+
+            $callback[0] = @get_class($listener_obj);
 
             return $callback;
         }
@@ -638,6 +649,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
             return $callback;
         }
 
+        /** @var \phs\libraries\PHS_Instantiable $listener_obj */
         if (!is_string($callback[0])
          || !($listener_obj = $callback[0]::get_instance())
          || !($listener_obj instanceof PHS_Instantiable)
@@ -648,9 +660,20 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
             return null;
         }
 
+        if (!($plugin_obj = $listener_obj->get_plugin_instance())
+            || !$plugin_obj->plugin_active()) {
+            return null;
+        }
+
         return [$listener_obj, $callback[1]];
     }
+    //
+    // endregion Listen methods
+    //
 
+    //
+    // region Utilities
+    //
     private function _validate_event_input(array $input = []) : array
     {
         if (empty($input)) {
@@ -722,6 +745,9 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         return $event_obj;
     }
 
+    //
+    // region Listen methods
+    //
     /**
      * @param array|callable $callback
      * @param string $event_prefix

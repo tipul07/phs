@@ -6,7 +6,11 @@ use phs\PHS_Ajax;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\backup\PHS_Plugin_Backup;
 use phs\libraries\PHS_Action_Generic_list;
+use phs\plugins\backup\models\PHS_Model_Rules;
+use phs\plugins\backup\models\PHS_Model_Results;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 /** @property \phs\plugins\backup\models\PHS_Model_Results $_paginator_model */
 class PHS_Action_Backups_list extends PHS_Action_Generic_list
@@ -26,28 +30,28 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
     public function load_depencies()
     {
         if (empty($this->_backup_plugin)
-        && !($this->_backup_plugin = $this->get_plugin_instance())) {
+        && !($this->_backup_plugin = PHS_Plugin_Backup::get_instance())) {
             $this->set_error(self::ERR_ACTION, $this->_pt('Couldn\'t load backup plugin.'));
 
             return false;
         }
 
         if (empty($this->_accounts_model)
-        && !($this->_accounts_model = PHS::load_model('accounts', 'accounts'))) {
+        && !($this->_accounts_model = PHS_Model_Accounts::get_instance())) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Couldn\'t load accounts model.'));
 
             return false;
         }
 
         if (empty($this->_paginator_model)
-        && !($this->_paginator_model = PHS::load_model('results', 'backup'))) {
+        && !($this->_paginator_model = PHS_Model_Results::get_instance())) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Couldn\'t load backup results model.'));
 
             return false;
         }
 
         if (empty($this->_rules_model)
-        && !($this->_rules_model = PHS::load_model('rules', 'backup'))) {
+        && !($this->_rules_model = PHS_Model_Rules::get_instance())) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Couldn\'t load backup rules model.'));
 
             return false;
@@ -95,7 +99,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 
         if (!can($backup_plugin::ROLEU_LIST_BACKUPS)
         && !$can_delete_backups) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list backup results.'));
+            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
             return false;
         }
@@ -283,7 +287,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 
                 if (!($current_user = PHS::user_logged_in())
                  || !can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup results.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -340,7 +344,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
                 }
 
                 if (!can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup results.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }

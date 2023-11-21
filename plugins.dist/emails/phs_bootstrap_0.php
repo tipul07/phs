@@ -3,10 +3,10 @@
 use phs\PHS;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
+use phs\plugins\emails\PHS_Plugin_Emails;
 
 /** @var \phs\plugins\emails\PHS_Plugin_Emails $emails_plugin */
-if (($emails_plugin = PHS::load_plugin('emails'))
- && $emails_plugin->plugin_active()) {
+if (($emails_plugin = PHS_Plugin_Emails::get_instance())) {
     PHS_Logger::define_channel($emails_plugin::LOG_CHANNEL);
 
     PHS::register_hook(

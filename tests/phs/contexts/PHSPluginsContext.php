@@ -2,9 +2,8 @@
 namespace phs\tests\phs\contexts;
 
 use phs\PHS;
-use phs\PHS_Cli;
 use PHPUnit\Framework\Assert;
-use Behat\Behat\Tester\Exception\PendingException;
+use phs\system\core\models\PHS_Model_Plugins;
 
 class PHSPluginsContext extends PHSAbstractContext
 {
@@ -110,7 +109,7 @@ class PHSPluginsContext extends PHSAbstractContext
      */
     public static function prepare($scope)
     {
-        if (!(self::$_plugins_model = PHS::load_model('plugins'))) {
+        if (!(self::$_plugins_model = PHS_Model_Plugins::get_instance())) {
             throw new \RuntimeException('Couldn\'t load plugins model.');
         }
     }

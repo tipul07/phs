@@ -3,15 +3,13 @@
 
 use phs\PHS;
 use phs\libraries\PHS_Hooks;
-use phs\libraries\PHS_Roles;
-use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Language;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 $accounts_plugin_settings = [];
 /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
+if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
     PHS_Notifications::add_error_notice($this::_t('Couldn\'t load accounts model. Please contact support.'));
     $accounts_model = false;
 }

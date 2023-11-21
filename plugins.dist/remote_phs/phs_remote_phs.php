@@ -232,22 +232,22 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
         ];
     }
 
-    public function is_remote_enabled()
+    public function is_remote_enabled() : bool
     {
         return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['enable_remotes']);
     }
 
-    public function is_remote_calls_enabled()
+    public function is_remote_calls_enabled() : bool
     {
         return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['allow_remote_calls']);
     }
 
-    public function is_accepting_remote_calls()
+    public function is_accepting_remote_calls() : bool
     {
         return $this->is_remote_enabled() && $this->is_remote_calls_enabled();
     }
 
-    public function log_all_outgoing_calls()
+    public function log_all_outgoing_calls() : bool
     {
         return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_outgoing_calls']);
     }

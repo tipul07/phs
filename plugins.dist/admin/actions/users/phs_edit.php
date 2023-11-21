@@ -3,7 +3,6 @@ namespace phs\plugins\admin\actions\users;
 
 use phs\PHS;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
@@ -11,7 +10,9 @@ use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\models\PHS_Model_Roles;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\system\core\models\PHS_Model_Plugins;
+use phs\system\core\models\PHS_Model_Tenants;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\accounts\models\PHS_Model_Accounts_tenants;
 
 class PHS_Action_Edit extends PHS_Action
 {
@@ -38,24 +39,33 @@ class PHS_Action_Edit extends PHS_Action
             return action_request_login();
         }
 
+        $is_multi_tenant = PHS::is_multi_tenant();
+
+        $tenants_model = $accounts_tenants_model = null;
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
         /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        /** @var \phs\system\core\models\PHS_Model_Tenants $tenants_model */
+        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tenants $accounts_tenants_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
          || !($admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($accounts_plugin_settings = $accounts_plugin->get_plugin_settings())
          || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($roles_model = PHS_Model_Roles::get_instance())
-         || !($plugins_model = PHS_Model_Plugins::get_instance())) {
+         || !($plugins_model = PHS_Model_Plugins::get_instance())
+         || ($is_multi_tenant
+             && (!($tenants_model = PHS_Model_Tenants::get_instance())
+                 || !($accounts_tenants_model = PHS_Model_Accounts_tenants::get_instance())))
+        ) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
 
         if (!$admin_plugin->can_admin_manage_accounts()) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to manage accounts.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }
@@ -104,6 +114,17 @@ class PHS_Action_Edit extends PHS_Action
             $account_roles = [];
         }
 
+        $all_tenants_arr = [];
+        $db_account_tenants = [];
+        if ($is_multi_tenant) {
+            if (!($all_tenants_arr = $tenants_model->get_all_tenants())) {
+                $all_tenants_arr = [];
+            }
+            if (!($db_account_tenants = $accounts_tenants_model->get_account_tenants_as_ids_array($account_arr['id']))) {
+                $db_account_tenants = [];
+            }
+        }
+
         if (!($account_details_arr = $accounts_model->get_account_details($account_arr, ['populate_with_empty_data' => true]))) {
             $account_details_arr = [];
         }
@@ -118,12 +139,15 @@ class PHS_Action_Edit extends PHS_Action
         $pass2 = PHS_Params::_p('pass2', PHS_Params::T_ASIS);
         $email = PHS_Params::_p('email', PHS_Params::T_EMAIL);
         $level = PHS_Params::_p('level', PHS_Params::T_INT);
-        $account_roles_slugs = PHS_Params::_p('account_roles_slugs', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML]);
         $title = PHS_Params::_p('title', PHS_Params::T_NOHTML);
         $fname = PHS_Params::_p('fname', PHS_Params::T_NOHTML);
         $lname = PHS_Params::_p('lname', PHS_Params::T_NOHTML);
         $phone = PHS_Params::_p('phone', PHS_Params::T_NOHTML);
         $company = PHS_Params::_p('company', PHS_Params::T_NOHTML);
+        $account_roles_slugs = PHS_Params::_p('account_roles_slugs', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML]);
+        if (!($account_tenants = PHS_Params::_p('account_tenants', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_INT]))) {
+            $account_tenants = [];
+        }
 
         $do_submit = PHS_Params::_p('do_submit');
 
@@ -165,6 +189,7 @@ class PHS_Action_Edit extends PHS_Action
                 $edit_params_arr['fields'] = $edit_arr;
                 $edit_params_arr['{users_details}'] = $edit_details_arr;
                 $edit_params_arr['{account_roles}'] = $account_roles_slugs;
+                $edit_params_arr['{account_tenants}'] = $account_tenants;
                 $edit_params_arr['{send_confirmation_email}'] = true;
 
                 if ($accounts_model->edit($account_arr, $edit_params_arr)) {
@@ -192,28 +217,31 @@ class PHS_Action_Edit extends PHS_Action
             'back_page'    => $back_page,
             'account_data' => $account_arr,
 
-            'nick'          => $nick,
-            'pass'          => $pass,
-            'pass2'         => $pass2,
-            'level'         => $level,
-            'email'         => $email,
-            'title'         => $title,
-            'fname'         => $fname,
-            'lname'         => $lname,
-            'phone'         => $phone,
-            'company'       => $company,
-            'account_roles' => $account_roles,
+            'nick'               => $nick,
+            'pass'               => $pass,
+            'pass2'              => $pass2,
+            'level'              => $level,
+            'email'              => $email,
+            'title'              => $title,
+            'fname'              => $fname,
+            'lname'              => $lname,
+            'phone'              => $phone,
+            'company'            => $company,
+            'account_roles'      => $account_roles,
+            'db_account_tenants' => $db_account_tenants,
 
             'accounts_plugin_settings' => $accounts_plugin_settings,
             'user_levels'              => $accounts_model->get_levels(),
             'min_password_length'      => $accounts_plugin_settings['min_password_length'],
             'password_regexp'          => $accounts_plugin_settings['password_regexp'],
 
-            'roles_by_slug' => $roles_by_slug,
+            'roles_by_slug'   => $roles_by_slug,
+            'all_tenants_arr' => $all_tenants_arr,
 
-            'accounts_plugin' => $accounts_plugin,
+            'tenants_model'   => $tenants_model,
             'roles_model'     => $roles_model,
             'plugins_model'   => $plugins_model,
+            'accounts_plugin' => $accounts_plugin,
         ];
 
         return $this->quick_render_template('users/edit', $data);

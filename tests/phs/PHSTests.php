@@ -503,10 +503,9 @@ class PHSTests extends PHS_Cli
         return $configs_arr;
     }
 
-    protected function _echo_plugin_details_for_tests($plugin_name)
+    protected function _echo_plugin_details_for_tests(string $plugin_name) : bool
     {
         if (!($plugin_info = $this->_gather_plugin_test_info($plugin_name))
-         || !is_array($plugin_info)
          || !$this->_echo_plugin_details($plugin_name, $plugin_info)) {
             $this->_echo_error(self::_t('Error obtaining plugin details for plugin %s.', $this->cli_color($plugin_name, 'red')));
 
@@ -620,11 +619,11 @@ class PHSTests extends PHS_Cli
 
     /**
      * @param string $plugin_name Plugin name
-     * @param bool|\phs\libraries\PHS_Plugin $plugin_obj Plugin instance (if available)
+     * @param null|\phs\libraries\PHS_Plugin $plugin_obj Plugin instance (if available)
      *
-     * @return bool|array
+     * @return bool
      */
-    private function _install_behat_tests_for_plugin($plugin_name, $plugin_obj = false)
+    private function _install_behat_tests_for_plugin(string $plugin_name, ?PHS_Plugin $plugin_obj = null) : bool
     {
         $this->reset_error();
 
@@ -991,7 +990,7 @@ class PHSTests extends PHS_Cli
         return $files_arr;
     }
 
-    private function _gather_plugin_test_info($plugin_name)
+    private function _gather_plugin_test_info(string $plugin_name) : array
     {
         $plugin_info = [];
         if (($basic_plugin_info = $this->_gather_plugin_info($plugin_name))) {

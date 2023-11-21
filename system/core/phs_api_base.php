@@ -58,6 +58,10 @@ abstract class PHS_Api_base extends PHS_Registry
     /** @var null|array */
     protected static ?array $_incoming_monitoring_record = null;
 
+    /**
+     * Just method name which should be defined in $this when calling
+     * @see \phs\PHS_Api_base::_api_authentication_failed()
+     */
     protected static array $AUTH_METHODS_CALLBACKS = [
         // Just method name which should be defined in $this when calling
         // @see PHS_Api_base::_api_authentication_failed()
@@ -350,22 +354,20 @@ abstract class PHS_Api_base extends PHS_Registry
             $route_arr = PHS::validate_route_from_parts($route_arr, true);
 
             if (!($route = PHS::route_from_parts($route_arr))) {
-                $route
-                    = 'invalidApiRoute_'
-                    .($route_arr['p'] ?? '').'::'.($route_arr['c'] ?? '').'::'.($route_arr['a'] ?? '');
+                $route = 'invalidApiRoute_'
+                         .($route_arr['p'] ?? '').'::'.($route_arr['c'] ?? '').'::'.($route_arr['ad'] ?? '').'__'.($route_arr['a'] ?? '');
             }
 
             if (!($query_string = @http_build_query($args))) {
                 $query_string = '';
             }
 
-            if (!empty($extra['raw_args']) && is_array($extra['raw_args'])) {
-                // Parameters that shouldn't be run through http_build_query as values will be rawurlencoded,
-                // and we might add javascript code in parameters
-                // e.g. $extra['raw_args'] might be an id passed as javascript function parameter
-                if (($raw_query = array_to_query_string($extra['raw_args'], ['raw_encode_values' => false]))) {
-                    $query_string .= ($query_string !== '' ? '&' : '').$raw_query;
-                }
+            // Parameters that shouldn't be run through http_build_query as values will be rawurlencoded,
+            // and we might add javascript code in parameters
+            // e.g. $extra['raw_args'] might be an id passed as javascript function parameter
+            if (!empty($extra['raw_args']) && is_array($extra['raw_args'])
+                && ($raw_query = array_to_query_string($extra['raw_args'], ['raw_encode_values' => false]))) {
+                $query_string .= ($query_string !== '' ? '&' : '').$raw_query;
             }
 
             return PHS::get_base_url($route_arr['force_https']).'api/v'.$this->get_api_version().'/'.$route.($query_string !== '' ? '?'.$query_string : '');
