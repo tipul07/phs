@@ -43,8 +43,6 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     // What keys should be obfuscated
     private ?array $_obfuscating_keys = null;
 
-    private static ?PHS_Plugin_Admin $_admin_plugin = null;
-
     /**
      * Override this function and return an array with settings fields definition
      *
@@ -251,12 +249,12 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      */
     public function get_db_settings_as_strings(?int $tenant_id = null, bool $force = false) : array
     {
-        if( !($settings_arr = $this->get_db_settings($tenant_id, $force))
+        if (!($settings_arr = $this->get_db_settings($tenant_id, $force))
             || !($settings_structure = $this->validate_settings_structure())) {
             return [];
         }
 
-        if( !($defaults_arr = $this->get_default_settings()) ) {
+        if (!($defaults_arr = $this->get_default_settings())) {
             $defaults_arr = [];
         }
 
@@ -264,174 +262,6 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         $this->_get_db_settings_as_strings_from_fields($settings_structure, $settings_arr, $defaults_arr, $strings_arr);
 
         return $strings_arr;
-    }
-
-    private function _get_db_settings_as_strings_from_fields(
-        array $settings_structure, array $settings_arr, array $defaults_arr,
-        array &$strings_arr
-    ): void
-    {
-        foreach( $settings_structure as $field_name => $field_details ) {
-            if (self::settings_field_is_group($field_details)) {
-                $this->_get_db_settings_as_strings_from_fields($field_details['group_fields'], $settings_arr, $defaults_arr, $strings_arr);
-                continue;
-            }
-
-            if(array_key_exists($field_name, $settings_arr)) {
-                $field_value = $settings_arr[$field_name];
-            } elseif(array_key_exists($field_name, $defaults_arr)) {
-                $field_value = $defaults_arr[$field_name];
-            } else {
-                $field_value = null;
-            }
-
-            $strings_arr[$field_name] = [
-                'title' => $field_details['display_name'] ?? '',
-                'hint' => $field_details['display_hint'] ?? '',
-                'placeholder' => $field_details['display_placeholder'] ?? '',
-                'value' => $this->_get_field_value_as_string($field_name, $field_details, $field_value),
-            ];
-        }
-    }
-
-    private function _get_field_value_as_string(string $field_name, array $field_details, $field_value): string
-    {
-        $use_custom_renderer = (!empty($field_details['custom_renderer']) && is_callable($field_details['custom_renderer']));
-        $custom_renderer_get_preset_buffer = (!empty($field_details['custom_renderer_get_preset_buffer']));
-
-        $callback_params = [];
-        if ($use_custom_renderer) {
-            $callback_params = self::default_custom_renderer_params();
-            $callback_params['value_as_text'] = true;
-            $callback_params['field_id'] = $field_name;
-            $callback_params['field_name'] = $field_name;
-            $callback_params['field_details'] = $field_details;
-            $callback_params['field_value'] = $field_value;
-            $callback_params['form_data'] = [];
-            $callback_params['editable'] = (!empty($field_details['editable']));
-            $callback_params['plugin_obj'] = $this->get_plugin_instance();
-        }
-
-        if ($use_custom_renderer
-            && !$custom_renderer_get_preset_buffer) {
-            // Default settings input rendering is not required...
-            if (($string_value = @call_user_func($field_details['custom_renderer'], $callback_params)) === false
-                || $string_value === null) {
-                $string_value = '['.$this->_pt('Render settings field call failed.').']';
-            }
-
-            return $string_value;
-        }
-
-        ob_start();
-
-        if (!empty($field_details['input_type'])) {
-            switch ($field_details['input_type']) {
-                case self::INPUT_TYPE_KEY_VAL_ARRAY:
-                    if (!is_array($field_value)) {
-                        echo $this->_pt('Not a key-value array...');
-                    } else {
-                        $value_buf = '';
-                        foreach ($field_value as $field_value_key => $field_value_val) {
-                            $value_buf .= ($value_buf!==''?', ':'').
-                                          '<em>'.$field_value_key.'</em>: '.($field_value_val ?? $this->_pt('N/A'));
-                        }
-
-                        echo $value_buf ?: $this->_pt( 'N/A' );
-                    }
-                break;
-
-                case self::INPUT_TYPE_TEMPLATE:
-
-                    echo $this->_pt('Template file').': ';
-                    if (is_string($field_value)) {
-                        echo $field_value;
-                    } elseif (!empty($field_value['file'])) {
-                        echo $field_value['file'];
-                    } else {
-                        echo $this->_pt('N/A');
-                    }
-
-                    if (is_array($field_value)
-                        && !empty($field_value['extra_paths']) && is_array($field_value['extra_paths'])) {
-                        echo '<br/>'.$this->_pt('From paths').': ';
-
-                        $paths_arr = [];
-                        foreach ($field_value['extra_paths'] as $path_dir => $path_www) {
-                            $paths_arr[] = $path_dir;
-                        }
-
-                        if (empty($paths_arr)) {
-                            echo $this->_pt('N/A');
-                        } else {
-                            echo implode(', ', $paths_arr);
-                        }
-                    }
-                break;
-
-                case self::INPUT_TYPE_ONE_OR_MORE:
-                case self::INPUT_TYPE_ONE_OR_MORE_MULTISELECT:
-                    if (empty($field_details['values_arr'])
-                        || !is_array($field_details['values_arr'])) {
-                        echo $this->_pt('Values array should be provided');
-                    } else {
-                        if (empty($field_value) || !is_array($field_value)) {
-                            $field_value = [];
-                        }
-
-                        $values_arr = [];
-                        foreach ($field_details['values_arr'] as $one_more_key => $one_more_text) {
-                            if( !in_array($one_more_key, $field_value, false) ) {
-                                continue;
-                            }
-
-                            $values_arr[] = $one_more_text;
-                        }
-
-                        echo !empty( $values_arr ) ? implode( ', ', $values_arr ) : $this->_pt( 'N/A' );
-                    }
-                break;
-
-                case self::INPUT_TYPE_TEXTAREA:
-                    echo $field_value;
-                break;
-            }
-        } else {
-            if (!empty($field_details['values_arr'])
-                && is_array($field_details['values_arr'])) {
-                echo $field_details['values_arr'][$field_value] ?? $this->_pt( 'N/A' );
-            } else {
-                switch ($field_details['type']) {
-                    default:
-                        echo $field_value;
-                    break;
-
-                    case PHS_Params::T_BOOL:
-                    case PHS_Params::T_NUMERIC_BOOL:
-                        echo !empty($field_value) ? $this->_pt( 'Yes' ) : $this->_pt( 'No' );
-                    break;
-                }
-            }
-        }
-
-        if( false === ($string_value = @ob_get_clean()) ) {
-            $string_value = '';
-        }
-
-        if ($use_custom_renderer
-            && $custom_renderer_get_preset_buffer) {
-            $callback_params['preset_content'] = $string_value;
-            $callback_params['callback_params'] = (!empty($field_details['custom_renderer_params']) ? $field_details['custom_renderer_params'] : false);
-
-            if (($string_value = @call_user_func($field_details['custom_renderer'], $callback_params)) === false
-                || $string_value === null) {
-                $string_value = '['.$this->_pt('Render settings field call failed.').']';
-            }
-
-            return $string_value;
-        }
-
-        return $string_value;
     }
 
     /**
@@ -605,6 +435,173 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         }
 
         return true;
+    }
+
+    private function _get_db_settings_as_strings_from_fields(
+        array $settings_structure, array $settings_arr, array $defaults_arr,
+        array &$strings_arr
+    ) : void {
+        foreach ($settings_structure as $field_name => $field_details) {
+            if (self::settings_field_is_group($field_details)) {
+                $this->_get_db_settings_as_strings_from_fields($field_details['group_fields'], $settings_arr, $defaults_arr, $strings_arr);
+                continue;
+            }
+
+            if (array_key_exists($field_name, $settings_arr)) {
+                $field_value = $settings_arr[$field_name];
+            } elseif (array_key_exists($field_name, $defaults_arr)) {
+                $field_value = $defaults_arr[$field_name];
+            } else {
+                $field_value = null;
+            }
+
+            $strings_arr[$field_name] = [
+                'title'       => $field_details['display_name'] ?? '',
+                'hint'        => $field_details['display_hint'] ?? '',
+                'placeholder' => $field_details['display_placeholder'] ?? '',
+                'value'       => $this->_get_field_value_as_string($field_name, $field_details, $field_value),
+            ];
+        }
+    }
+
+    private function _get_field_value_as_string(string $field_name, array $field_details, $field_value) : string
+    {
+        $use_custom_renderer = (!empty($field_details['custom_renderer']) && is_callable($field_details['custom_renderer']));
+        $custom_renderer_get_preset_buffer = (!empty($field_details['custom_renderer_get_preset_buffer']));
+
+        $callback_params = [];
+        if ($use_custom_renderer) {
+            $callback_params = self::default_custom_renderer_params();
+            $callback_params['value_as_text'] = true;
+            $callback_params['field_id'] = $field_name;
+            $callback_params['field_name'] = $field_name;
+            $callback_params['field_details'] = $field_details;
+            $callback_params['field_value'] = $field_value;
+            $callback_params['form_data'] = [];
+            $callback_params['editable'] = (!empty($field_details['editable']));
+            $callback_params['plugin_obj'] = $this->get_plugin_instance();
+        }
+
+        if ($use_custom_renderer
+            && !$custom_renderer_get_preset_buffer) {
+            // Default settings input rendering is not required...
+            if (($string_value = @call_user_func($field_details['custom_renderer'], $callback_params)) === false
+                || $string_value === null) {
+                $string_value = '['.$this->_pt('Render settings field call failed.').']';
+            }
+
+            return $string_value;
+        }
+
+        ob_start();
+
+        if (!empty($field_details['input_type'])) {
+            switch ($field_details['input_type']) {
+                case self::INPUT_TYPE_KEY_VAL_ARRAY:
+                    if (!is_array($field_value)) {
+                        echo $this->_pt('Not a key-value array...');
+                    } else {
+                        $value_buf = '';
+                        foreach ($field_value as $field_value_key => $field_value_val) {
+                            $value_buf .= ($value_buf !== '' ? ', ' : '')
+                                          .'<em>'.$field_value_key.'</em>: '.($field_value_val ?? $this->_pt('N/A'));
+                        }
+
+                        echo $value_buf ?: $this->_pt('N/A');
+                    }
+                    break;
+
+                case self::INPUT_TYPE_TEMPLATE:
+
+                    echo $this->_pt('Template file').': ';
+                    if (is_string($field_value)) {
+                        echo $field_value;
+                    } elseif (!empty($field_value['file'])) {
+                        echo $field_value['file'];
+                    } else {
+                        echo $this->_pt('N/A');
+                    }
+
+                    if (is_array($field_value)
+                        && !empty($field_value['extra_paths']) && is_array($field_value['extra_paths'])) {
+                        echo '<br/>'.$this->_pt('From paths').': ';
+
+                        $paths_arr = [];
+                        foreach ($field_value['extra_paths'] as $path_dir => $path_www) {
+                            $paths_arr[] = $path_dir;
+                        }
+
+                        if (empty($paths_arr)) {
+                            echo $this->_pt('N/A');
+                        } else {
+                            echo implode(', ', $paths_arr);
+                        }
+                    }
+                    break;
+
+                case self::INPUT_TYPE_ONE_OR_MORE:
+                case self::INPUT_TYPE_ONE_OR_MORE_MULTISELECT:
+                    if (empty($field_details['values_arr'])
+                        || !is_array($field_details['values_arr'])) {
+                        echo $this->_pt('Values array should be provided');
+                    } else {
+                        if (empty($field_value) || !is_array($field_value)) {
+                            $field_value = [];
+                        }
+
+                        $values_arr = [];
+                        foreach ($field_details['values_arr'] as $one_more_key => $one_more_text) {
+                            if (!in_array($one_more_key, $field_value, false)) {
+                                continue;
+                            }
+
+                            $values_arr[] = $one_more_text;
+                        }
+
+                        echo !empty($values_arr) ? implode(', ', $values_arr) : $this->_pt('N/A');
+                    }
+                    break;
+
+                case self::INPUT_TYPE_TEXTAREA:
+                    echo $field_value;
+                    break;
+            }
+        } else {
+            if (!empty($field_details['values_arr'])
+                && is_array($field_details['values_arr'])) {
+                echo $field_details['values_arr'][$field_value] ?? $this->_pt('N/A');
+            } else {
+                switch ($field_details['type']) {
+                    default:
+                        echo $field_value;
+                        break;
+
+                    case PHS_Params::T_BOOL:
+                    case PHS_Params::T_NUMERIC_BOOL:
+                        echo !empty($field_value) ? $this->_pt('Yes') : $this->_pt('No');
+                        break;
+                }
+            }
+        }
+
+        if (false === ($string_value = @ob_get_clean())) {
+            $string_value = '';
+        }
+
+        if ($use_custom_renderer
+            && $custom_renderer_get_preset_buffer) {
+            $callback_params['preset_content'] = $string_value;
+            $callback_params['callback_params'] = (!empty($field_details['custom_renderer_params']) ? $field_details['custom_renderer_params'] : false);
+
+            if (($string_value = @call_user_func($field_details['custom_renderer'], $callback_params)) === false
+                || $string_value === null) {
+                $string_value = '['.$this->_pt('Render settings field call failed.').']';
+            }
+
+            return $string_value;
+        }
+
+        return $string_value;
     }
 
     private function _obfuscate_settings_array(array $settings_arr) : ?array
@@ -815,98 +812,6 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $context_arr;
     }
     // endregion END NEW settings section
-
-    /**
-     * OLD way which checked new settings for save
-     *
-     * @param null|\phs\libraries\PHS_Plugin $plugin_obj
-     * @param null|\phs\libraries\PHS_Model $model_obj
-     * @param null|int $tenant_id
-     * @param array $new_settings
-     * @param null|array $form_data
-     *
-     * @return null|array
-     */
-    public static function extract_custom_save_settings_fields_for_save(
-        ?PHS_Plugin $plugin_obj, ?PHS_Model $model_obj, ?int $tenant_id,
-        array $new_settings, ?array $form_data = null
-    ) : ?array {
-        self::st_reset_error();
-
-        if (!self::_load_settings_dependencies()) {
-            self::st_set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
-
-            return null;
-        }
-
-        if (!($settings_fields = self::_get_plugin_settings_as_array_fields($plugin_obj, $model_obj, $tenant_id))) {
-            self::st_set_error(self::ERR_DEPENDENCIES, self::$_admin_plugin->_pt('Error obtaining instance settings fields.'));
-
-            return null;
-        }
-
-        $settings_structure = $settings_fields['settings_structure'] ?? [];
-        $db_main_settings = $settings_fields['db_main_settings'] ?? [];
-        $db_settings = $settings_fields['db_settings'] ?? [];
-
-        $callback_params = self::st_default_custom_save_params();
-        $callback_params['plugin_obj'] = $plugin_obj;
-        $callback_params['model_obj'] = $model_obj;
-        $callback_params['form_data'] = $form_data;
-
-        $errors_arr = [];
-        $warnings_arr = [];
-
-        if (!empty($settings_structure)) {
-            self::_extract_custom_save_settings_fields_for_save_fields(
-                $settings_structure, $callback_params, $db_main_settings, $db_settings,
-                $new_settings, $errors_arr, $warnings_arr
-            );
-        }
-
-        return [
-            'new_settings' => $new_settings,
-            'errors_arr'   => $errors_arr,
-            'warnings_arr' => $warnings_arr,
-        ];
-    }
-
-    public static function extract_settings_fields_from_submit(
-        ?PHS_Plugin $plugin_obj, ?PHS_Model $model_obj = null,
-        ?int $tenant_id = null, array $form_data = [], bool $is_post = false
-    ) : ?array {
-        self::st_reset_error();
-
-        if (!self::_load_settings_dependencies()) {
-            self::st_set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
-
-            return null;
-        }
-
-        if (!($settings_fields = self::_get_plugin_settings_as_array_fields($plugin_obj, $model_obj, $tenant_id))) {
-            self::st_set_error(self::ERR_DEPENDENCIES, self::$_admin_plugin->_pt('Error obtaining instance settings fields.'));
-
-            return null;
-        }
-
-        $settings_structure = $settings_fields['settings_structure'] ?? [];
-        $default_settings = $settings_fields['default_settings'] ?? [];
-        $db_main_settings = $settings_fields['db_main_settings'] ?? [];
-        $db_settings = $settings_fields['db_settings'] ?? [];
-
-        $form_settings = [];
-
-        if (!empty($settings_structure)) {
-            self::_extract_settings_fields_from_submit_fields(
-                $settings_structure, $default_settings, $db_main_settings, $db_settings,
-                $form_settings, $form_data, $is_post);
-        }
-
-        return [
-            'form_data'     => $form_data,
-            'form_settings' => $form_settings,
-        ];
-    }
 
     /**
      * Check each fields for custom save callbacks and obtain values (V2)
@@ -1216,183 +1121,6 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $return_arr;
     }
 
-    private static function _extract_custom_save_settings_fields_for_save_fields(
-        array $settings_structure, array $callback_params, array $db_main_settings, array $db_settings,
-        array &$new_settings, array &$errors_arr, array &$warnings_arr
-    ) : void {
-        $default_custom_save_callback_result = PHS_Plugin::st_default_custom_save_callback_result();
-        if (!empty($settings_structure)) {
-            foreach ($settings_structure  as $field_name => $field_details) {
-                if (!empty($field_details['ignore_field_value'])) {
-                    continue;
-                }
-
-                if (self::settings_field_is_group($field_details)) {
-                    self::_extract_custom_save_settings_fields_for_save_fields(
-                        $field_details['group_fields'], $callback_params, $db_main_settings, $db_settings,
-                        $new_settings, $errors_arr, $warnings_arr
-                    );
-
-                    continue;
-                }
-
-                if (empty($field_details['custom_save'])
-                    || !@is_callable($field_details['custom_save'])) {
-                    continue;
-                }
-
-                $new_callback_params = $callback_params;
-                $new_callback_params['field_name'] = $field_name;
-                $new_callback_params['field_details'] = $field_details;
-                $new_callback_params['field_value'] = ($new_settings[$field_name] ?? null);
-
-                // make sure static error is reset
-                self::st_reset_error();
-                // make sure static warnings are reset
-                self::st_reset_warnings();
-
-                /**
-                 * When there is a field in instance settings which has a custom callback for saving data, it will return
-                 * either a scalar or an array to be merged with existing settings. Only keys which already exists as settings
-                 * can be provided
-                 */
-                if (null !== ($save_result = @call_user_func($field_details['custom_save'], $new_callback_params))) {
-                    if (!is_array($save_result)) {
-                        $new_settings[$field_name] = $save_result;
-                    } else {
-                        $save_result = self::merge_array_assoc($save_result, $default_custom_save_callback_result);
-                        if (!empty($save_result['{new_settings_fields}'])
-                            && is_array($save_result['{new_settings_fields}'])) {
-                            // Main settings keep all key-values pairs
-                            foreach ($db_main_settings as $s_key => $s_val) {
-                                if (array_key_exists($s_key, $save_result['{new_settings_fields}'])) {
-                                    $new_settings[$s_key] = $save_result['{new_settings_fields}'][$s_key];
-                                }
-                            }
-                        } else {
-                            if (isset($save_result['{new_settings_fields}'])) {
-                                unset($save_result['{new_settings_fields}']);
-                            }
-
-                            $new_settings[$field_name] = $save_result;
-                        }
-                    }
-                } elseif (self::st_has_error()) {
-                    $errors_arr[] = self::st_get_simple_error_message();
-                }
-
-                if (self::st_has_warnings()
-                    && ($result_warnings_arr = self::st_get_warnings())) {
-                    $warnings_arr = array_merge($warnings_arr, $result_warnings_arr);
-                }
-            }
-        }
-    }
-
-    private static function _extract_settings_fields_from_submit_fields(
-        array $settings_structure, array $default_settings, array $db_main_settings, array $db_settings,
-        array &$form_settings, array &$form_data,
-        bool $is_post = false
-    ) : void {
-        if (!empty($settings_structure)) {
-            foreach ($settings_structure  as $field_name => $field_details) {
-                if (!empty($field_details['ignore_field_value'])) {
-                    continue;
-                }
-
-                if (self::settings_field_is_group($field_details)) {
-                    self::_extract_settings_fields_from_submit_fields(
-                        $field_details['group_fields'], $default_settings, $db_main_settings, $db_settings,
-                        $form_settings, $form_data,
-                        $is_post);
-
-                    continue;
-                }
-
-                if (null === ($field_value = self::_extract_field_value_from_submit(
-                    $field_name, $field_details, $db_settings, $default_settings,
-                    $form_data,
-                    $is_post))) {
-                    continue;
-                }
-
-                $form_settings[$field_name] = $field_value;
-            }
-        }
-    }
-
-    private static function _extract_field_value_from_submit(
-        string $field_name, array $field_details, array $db_settings, array $default_settings,
-        array &$form_data,
-        bool $is_post = false, ?array $submit_arr = null
-    ) {
-        $field_value = null;
-
-        if (empty($field_details['editable'])) {
-            // Check if default values have changed (upgrading plugin might change default value)
-            if (isset($db_settings[$field_name])) {
-                $field_value = $db_settings[$field_name];
-            } elseif (isset($default_settings[$field_name])) {
-                $field_value = $default_settings[$field_name];
-            }
-
-            return $field_value;
-        }
-
-        $field_details['type'] = (int)$field_details['type'];
-
-        if (isset($submit_arr[$field_name])) {
-            $form_data[$field_name]
-                = PHS_Params::set_type($submit_arr[$field_name], $field_details['type'], $field_details['extra_type']);
-        } else {
-            $form_data[$field_name]
-                = PHS_Params::_gp($field_name, $field_details['type'], $field_details['extra_type']);
-        }
-
-        if (!empty($is_post)
-            && ($field_details['type'] === PHS_Params::T_BOOL
-                || $field_details['type'] === PHS_Params::T_NUMERIC_BOOL)
-        ) {
-            $form_data[$field_name] = (!empty($form_data[$field_name]));
-
-            if ($field_details['type'] === PHS_Params::T_NUMERIC_BOOL) {
-                $form_data[$field_name] = $form_data[$field_name] ? 1 : 0;
-            }
-        }
-
-        if (!empty($field_details['custom_save'])) {
-            return null;
-        }
-
-        switch ($field_details['input_type']) {
-            default:
-            case self::INPUT_TYPE_ONE_OR_MORE:
-            case self::INPUT_TYPE_ONE_OR_MORE_MULTISELECT:
-                if (isset($form_data[$field_name])) {
-                    $field_value = $form_data[$field_name];
-                } elseif (isset($db_settings[$field_name])) {
-                    $field_value = $db_settings[$field_name];
-                } elseif (isset($default_settings[$field_name])) {
-                    $field_value = $default_settings[$field_name];
-                }
-                break;
-
-            case self::INPUT_TYPE_TEMPLATE:
-                break;
-
-            case self::INPUT_TYPE_KEY_VAL_ARRAY:
-                if (empty($db_settings[$field_name]) && empty($default_settings[$field_name])) {
-                    $field_value = $form_data[$field_name];
-                } else {
-                    $field_value = self::validate_array_to_new_array($form_data[$field_name],
-                        $db_settings[$field_name] ?? $default_settings[$field_name]);
-                }
-                break;
-        }
-
-        return $field_value;
-    }
-
     /**
      * Extract custom save value for each field in the group (V2)
      * @param array $settings_structure
@@ -1490,57 +1218,6 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             // make sure static warnings are reset
             self::st_reset_warnings();
         }
-    }
-
-    private static function _get_plugin_settings_as_array_fields(?PHS_Plugin $plugin_obj, ?PHS_Model $model_obj = null, ?int $tenant_id = null) : ?array
-    {
-        if (!($models_arr = self::get_plugin_models_with_settings($plugin_obj))
-         || !($models_with_settings = self::_get_models_with_settings_rendering_details($models_arr, $tenant_id))) {
-            $models_with_settings = [];
-        }
-
-        if ($model_obj !== null) {
-            $instance_info = $models_with_settings[$model_obj->instance_id()] ?? [];
-        } else {
-            $instance_info = self::_extract_settings_for_instance($plugin_obj, $tenant_id);
-        }
-
-        $return_arr = [];
-        $return_arr['plugin_info'] = $plugin_obj ? $plugin_obj->get_plugin_info() : PHS_Plugin::core_plugin_details_fields();
-        $return_arr['models_with_settings'] = $models_with_settings;
-        $return_arr['instance_info'] = $instance_info;
-        $return_arr['settings_structure'] = $instance_info['settings_structure'] ?? [];
-
-        return $return_arr;
-    }
-
-    /**
-     * @param array $models_arr
-     * @param null|int $tenant_id
-     *
-     * @return array
-     */
-    private static function _get_models_with_settings_rendering_details(array $models_arr, ?int $tenant_id = null) : array
-    {
-        if (empty($models_arr)) {
-            return [];
-        }
-
-        $return_arr = [];
-        foreach ($models_arr as $model_id => $model_instance) {
-            if (!$model_instance->validate_settings_structure()) {
-                continue;
-            }
-
-            $return_arr[$model_id] = self::_extract_settings_for_instance($model_instance, $tenant_id);
-        }
-
-        return $return_arr;
-    }
-
-    private static function _load_settings_dependencies() : bool
-    {
-        return !empty(self::$_admin_plugin) || (self::$_admin_plugin = PHS_Plugin_Admin::get_instance());
     }
 
     private static function _db_details_fields_prepare_for_merge(array $db_details) : array

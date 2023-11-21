@@ -49,7 +49,7 @@ class PHS_Action_Role_add extends PHS_Action
         }
 
         if (!$admin_plugin->can_admin_manage_roles()) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to manage roles.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }

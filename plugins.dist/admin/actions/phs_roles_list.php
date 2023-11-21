@@ -64,7 +64,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
         }
 
         if (!$this->_admin_plugin->can_admin_list_roles()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list roles.'));
+            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
             return false;
         }
@@ -250,7 +250,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 }
 
                 if (!$can_manage_roles) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage roles.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -309,7 +309,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 }
 
                 if (!$can_manage_roles) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage roles.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -368,7 +368,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 }
 
                 if (!$can_manage_roles) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage roles.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -425,7 +425,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 }
 
                 if (!$can_manage_roles) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage roles.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -460,7 +460,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 }
 
                 if (!$can_manage_roles) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage roles.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -495,7 +495,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 }
 
                 if (!$can_manage_roles) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage roles.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }

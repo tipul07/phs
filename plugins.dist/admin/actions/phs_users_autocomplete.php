@@ -77,7 +77,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         }
 
         if (!$this->_admin_plugin->can_admin_list_accounts()) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to list accounts.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }

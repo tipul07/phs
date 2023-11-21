@@ -92,7 +92,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
 
         if (!$this->_remote_plugin->can_admin_list_domains()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list remote PHS domains.'));
+            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
             return false;
         }
@@ -351,7 +351,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
                 if (empty($current_user)
                  || !$remote_plugin->can_admin_manage_domains($current_user)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage remote PHS domains.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -411,7 +411,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
                 if (empty($current_user)
                  || !$remote_plugin->can_admin_manage_domains($current_user)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage remote PHS domains.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -471,7 +471,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
                 if (empty($current_user)
                  || !$remote_plugin->can_admin_manage_domains($current_user)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage remote PHS domains.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -529,7 +529,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
                 if (empty($current_user)
                  || !$remote_plugin->can_admin_manage_domains($current_user)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage remote PHS domains.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -565,7 +565,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
                 if (empty($current_user)
                  || !$remote_plugin->can_admin_manage_domains($current_user)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage remote PHS domains.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -601,7 +601,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
                 if (empty($current_user)
                  || !$remote_plugin->can_admin_manage_domains($current_user)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage remote PHS domains.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }

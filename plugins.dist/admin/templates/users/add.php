@@ -41,30 +41,30 @@ $current_user = PHS::user_logged_in();
       action="<?php echo PHS::url(['p' => 'admin', 'a' => 'add', 'ad' => 'users']); ?>">
 <input type="hidden" name="foobar" value="1" />
 
-<div class="form_container">
+    <div class="form_container">
 
-    <section class="heading-bordered">
-        <h3><?php echo $this->_pt('Add User Account'); ?></h3>
-    </section>
+        <section class="heading-bordered">
+            <h3><?php echo $this->_pt('Add User Account'); ?></h3>
+        </section>
 
-    <div class="form-group row">
-        <label for="nick" class="col-sm-2 col-form-label"><?php echo $this->_pt('Username'); ?></label>
-        <div class="col-sm-10">
-            <input type="text" id="nick" name="nick" class="form-control"
-                   required="required" autocomplete="nick"
-                   value="<?php echo form_str($this->view_var('nick')); ?>" />
+        <div class="form-group row">
+            <label for="nick" class="col-sm-2 col-form-label"><?php echo $this->_pt('Username'); ?></label>
+            <div class="col-sm-10">
+                <input type="text" id="nick" name="nick" class="form-control"
+                       required="required" autocomplete="nick"
+                       value="<?php echo form_str($this->view_var('nick')); ?>" />
+            </div>
         </div>
-    </div>
 
-    <div class="form-group row">
-        <label for="pass" class="col-sm-2 col-form-label"><?php echo $this->_pt('Password'); ?></label>
-        <div class="col-sm-10">
-            <input type="password" id="pass" name="pass" class="form-control" autocomplete="pass"
-                   <?php echo $accounts_plugin->registration_password_mandatory() ? 'required="required"' : ''; ?>
-                   value="<?php echo form_str($this->view_var('pass')); ?>" />
-            <div id="password_help" class="form-text"><?php
+        <div class="form-group row">
+            <label for="pass" class="col-sm-2 col-form-label"><?php echo $this->_pt('Password'); ?></label>
+            <div class="col-sm-10">
+                <input type="password" id="pass" name="pass" class="form-control" autocomplete="pass"
+                    <?php echo $accounts_plugin->registration_password_mandatory() ? 'required="required"' : ''; ?>
+                       value="<?php echo form_str($this->view_var('pass')); ?>" />
+                <div id="password_help" class="form-text"><?php
 
-                echo $this->_pt('Password should be at least %s characters.', $this->view_var('min_password_length'));
+                    echo $this->_pt('Password should be at least %s characters.', $this->view_var('min_password_length'));
 
 $pass_regexp = $this->view_var('password_regexp');
 if (!empty($pass_regexp)) {
@@ -77,7 +77,7 @@ if (!empty($pass_regexp)) {
         }
 
         ?><a href="https://regex101.com/?regex=<?php echo rawurlencode($regexp_parts[1]); ?>&options=<?php echo $regexp_parts[2]; ?>"
-                             title="Click for details" target="_blank"><?php echo $pass_regexp; ?></a><?php
+                                 title="Click for details" target="_blank"><?php echo $pass_regexp; ?></a><?php
     } else {
         echo $this->_pt('Password should pass regular expresion: %s.', $pass_regexp);
     }
@@ -85,28 +85,28 @@ if (!empty($pass_regexp)) {
 
 echo ' '
      .($accounts_plugin->should_setup_password_at_first_login()
-    ? $this->_pt('User will setup a password at first login.')
-    : $this->_pt('If password field is left empty, system will generate a password and will send it by email to the provided email.'));
+        ? $this->_pt('User will setup a password at first login.')
+        : $this->_pt('If password field is left empty, system will generate a password and will send it by email to the provided email.'));
 ?></div>
+            </div>
         </div>
-    </div>
 
-    <div class="form-group row">
-        <label for="email" class="col-sm-2 col-form-label"><?php echo $this->_pt('Email'); ?></label>
-        <div class="col-sm-10">
-            <input type="text" id="email" name="email" class="form-control" autocomplete="email"
-                <?php echo !empty($accounts_plugin_settings['email_mandatory']) ? 'required="required"' : ''; ?>
-                   value="<?php echo form_str($this->view_var('email')); ?>" />
+        <div class="form-group row">
+            <label for="email" class="col-sm-2 col-form-label"><?php echo $this->_pt('Email'); ?></label>
+            <div class="col-sm-10">
+                <input type="text" id="email" name="email" class="form-control" autocomplete="email"
+                    <?php echo !empty($accounts_plugin_settings['email_mandatory']) ? 'required="required"' : ''; ?>
+                       value="<?php echo form_str($this->view_var('email')); ?>" />
+            </div>
         </div>
-    </div>
 
-    <div class="form-group row">
-        <label for="level" class="col-sm-2 col-form-label"><?php echo $this->_pt('Level'); ?></label>
-        <div class="col-sm-10">
-            <select name="level" id="level" class="chosen-select-nosearch" style="min-width:260px;">
-                <option value="0"><?php echo $this->_pt(' - Choose - '); ?></option>
-                <?php
-    $current_level = (int)$this->view_var('level');
+        <div class="form-group row">
+            <label for="level" class="col-sm-2 col-form-label"><?php echo $this->_pt('Level'); ?></label>
+            <div class="col-sm-10">
+                <select name="level" id="level" class="chosen-select-nosearch" style="min-width:260px;">
+                    <option value="0"><?php echo $this->_pt(' - Choose - '); ?></option>
+                    <?php
+$current_level = (int)$this->view_var('level');
 foreach ($user_levels as $key => $level_details) {
     if ($key >= $current_user['level']) {
         break;
@@ -115,137 +115,194 @@ foreach ($user_levels as $key => $level_details) {
     ?><option value="<?php echo $key; ?>" <?php echo $current_level === $key ? 'selected="selected"' : ''; ?>><?php echo $level_details['title']; ?></option><?php
 }
 ?>
-            </select>
+                </select>
+            </div>
         </div>
+
+        <div class="form-group row">
+            <label for="account_current_roles" class="col-sm-2 col-form-label"><?php echo $this->_pt('Roles'); ?></label>
+            <div class="col-sm-10">
+                <div id="account_current_roles"></div>
+                <a href="javascript:void(0)" onclick="open_roles_dialogue();this.blur();"
+                   class="btn btn-small btn-primary"><?php echo $this->_pt('Change roles'); ?></a>
+                <div id="roles_help" class="form-text"><?php echo $this->_pt('If no roles are provided, roles will be set depending on selected level.'); ?></div>
+            </div>
+        </div>
+
+        <?php
+        if ($is_multi_tenant) {
+            ?>
+            <div class="form-group row">
+                <label for="account_current_tenants" class="col-sm-2 col-form-label"><?php echo $this->_pt('Tenants'); ?></label>
+                <div class="col-sm-10">
+                    <div id="account_current_tenants"></div>
+                    <a href="javascript:void(0)" onclick="open_tenants_dialogue();this.blur();"
+                       class="btn btn-small btn-primary"><?php echo $this->_pt('Change tenants'); ?></a>
+                </div>
+            </div>
+        <?php } ?>
+
+        <div class="form-group row">
+            <label for="title" class="col-sm-2 col-form-label"><?php echo $this->_pt('Title'); ?></label>
+            <div class="col-sm-10">
+                <input type="text" id="title" name="title" class="form-control"
+                       style="width: 60px;" autocomplete="title"
+                       value="<?php echo form_str($this->view_var('title')); ?>" />
+                <div id="roles_help" class="form-text"><?php echo $this::_t('eg. Mr., Ms., Mrs., etc'); ?></div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="fname" class="col-sm-2 col-form-label"><?php echo $this->_pt('First Name'); ?></label>
+            <div class="col-sm-10">
+                <input type="text" id="fname" name="fname" class="form-control" autocomplete="fname"
+                       value="<?php echo form_str($this->view_var('fname')); ?>" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="lname" class="col-sm-2 col-form-label"><?php echo $this->_pt('Last Name'); ?></label>
+            <div class="col-sm-10">
+                <input type="text" id="lname" name="lname" class="form-control" autocomplete="lname"
+                       value="<?php echo form_str($this->view_var('lname')); ?>" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="phone" class="col-sm-2 col-form-label"><?php echo $this->_pt('Phone Number'); ?></label>
+            <div class="col-sm-10">
+                <input type="text" id="phone" name="phone" class="form-control" autocomplete="phone"
+                       value="<?php echo form_str($this->view_var('phone')); ?>" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="company" class="col-sm-2 col-form-label"><?php echo $this->_pt('Company'); ?></label>
+            <div class="col-sm-10">
+                <input type="text" id="company" name="company" class="form-control" autocomplete="company"
+                       value="<?php echo form_str($this->view_var('company')); ?>" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <input type="submit" id="do_submit" name="do_submit"
+                   class="btn btn-primary submit-protection ignore_hidden_required"
+                   value="<?php echo $this->_pt('Create Account'); ?>" />
+        </div>
+
     </div>
 
-    <div class="form-group row">
-        <label for="account_current_roles" class="col-sm-2 col-form-label"><?php echo $this->_pt('Roles'); ?></label>
-        <div class="col-sm-10">
-            <div id="account_current_roles"></div>
-            <a href="javascript:void(0)" onclick="open_roles_dialogue();this.blur();"
-               class="btn btn-small btn-primary"><?php echo $this->_pt('Change roles'); ?></a>
-            <div id="roles_help" class="form-text"><?php echo $this->_pt('If no roles are provided, roles will be set depending on selected level.'); ?></div>
+    <div style="display: none;" id="account_roles_container">
+
+        <div>
+            <?php
+            if (!empty($roles_by_slug) && is_array($roles_by_slug)) {
+                $old_plugin = false;
+                $plugin_name = $this->_pt('Manually added');
+                $did_autofocus = false;
+                foreach ($roles_by_slug as $role_slug => $role_arr) {
+                    if ($roles_model->is_deleted($role_arr)) {
+                        continue;
+                    }
+
+                    if ($old_plugin !== $role_arr['plugin']) {
+                        if (!($plugin_name = $plugins_model->get_plugin_name_by_slug($role_arr['plugin']))) {
+                            $plugin_name = $this->_pt('Manually added');
+                        }
+
+                        if ($old_plugin !== false) {
+                            ?><div style="margin-bottom:10px;"></div><?php
+                        }
+                        ?>
+                        <section class="heading-bordered">
+                            <h4><?php echo $plugin_name; ?></h4>
+                        </section>
+                        <?php
+                        $old_plugin = $role_arr['plugin'];
+                    }
+                    ?>
+                    <div class="clearfix">
+                        <div style="float:left;"><input type="checkbox" id="account_roles_slugs_<?php echo $role_slug; ?>"
+                                                        name="account_roles_slugs[]" value="<?php echo form_str($role_slug); ?>"
+                                                        data-role-title="<?php echo form_str($role_arr['name']); ?>"
+                                                        data-role-slug="<?php echo form_str($role_slug); ?>"
+                                                        data-role-plugin="<?php echo form_str($role_arr['plugin']); ?>"
+                                                        data-role-plugin-name="<?php echo form_str($plugin_name); ?>"
+                                <?php echo !$did_autofocus ? 'autofocus="true"' : ''; ?> /></div>
+                        <label style="margin-left:5px;width: auto !important;float:left;" for="account_roles_slugs_<?php echo $role_slug; ?>">
+                            <?php echo $role_arr['name']; ?>
+                            <i class="fa fa-question-circle" title="<?php echo form_str($role_arr['description']); ?>"></i>
+                        </label>
+                    </div>
+                    <?php
+
+                    $did_autofocus = true;
+                }
+            }
+?>
+        </div>
+        <div class="float-right p-2">
+            <input type="button" id="do_close_roles_dialogue" name="do_close_roles_dialogue" class="btn btn-primary btn-small"
+                   value="<?php echo $this->_pt('Close'); ?>" onclick="close_roles_dialogue()" />
         </div>
     </div>
 
     <?php
     if ($is_multi_tenant) {
         ?>
-    <div class="form-group row">
-        <label for="account_current_tenants" class="col-sm-2 col-form-label"><?php echo $this->_pt('Tenants'); ?></label>
-        <div class="col-sm-10">
-            <div id="account_current_tenants"></div>
-            <a href="javascript:void(0)" onclick="open_tenants_dialogue();this.blur();"
-               class="btn btn-small btn-primary"><?php echo $this->_pt('Change tenants'); ?></a>
-        </div>
-    </div>
-    <?php } ?>
+    <div style="display: none;" id="account_tenants_container">
 
-    <div class="form-group row">
-        <label for="title" class="col-sm-2 col-form-label"><?php echo $this->_pt('Title'); ?></label>
-        <div class="col-sm-10">
-            <input type="text" id="title" name="title" class="form-control"
-                   style="width: 60px;" autocomplete="title"
-                   value="<?php echo form_str($this->view_var('title')); ?>" />
-            <div id="roles_help" class="form-text"><?php echo $this::_t('eg. Mr., Ms., Mrs., etc'); ?></div>
-        </div>
-    </div>
-
-    <div class="form-group row">
-        <label for="fname" class="col-sm-2 col-form-label"><?php echo $this->_pt('First Name'); ?></label>
-        <div class="col-sm-10">
-            <input type="text" id="fname" name="fname" class="form-control" autocomplete="fname"
-                   value="<?php echo form_str($this->view_var('fname')); ?>" />
-        </div>
-    </div>
-
-    <div class="form-group row">
-        <label for="lname" class="col-sm-2 col-form-label"><?php echo $this->_pt('Last Name'); ?></label>
-        <div class="col-sm-10">
-            <input type="text" id="lname" name="lname" class="form-control" autocomplete="lname"
-                   value="<?php echo form_str($this->view_var('lname')); ?>" />
-        </div>
-    </div>
-
-    <div class="form-group row">
-        <label for="phone" class="col-sm-2 col-form-label"><?php echo $this->_pt('Phone Number'); ?></label>
-        <div class="col-sm-10">
-            <input type="text" id="phone" name="phone" class="form-control" autocomplete="phone"
-                   value="<?php echo form_str($this->view_var('phone')); ?>" />
-        </div>
-    </div>
-
-    <div class="form-group row">
-        <label for="company" class="col-sm-2 col-form-label"><?php echo $this->_pt('Company'); ?></label>
-        <div class="col-sm-10">
-            <input type="text" id="company" name="company" class="form-control" autocomplete="company"
-                   value="<?php echo form_str($this->view_var('company')); ?>" />
-        </div>
-    </div>
-
-    <div class="form-group row">
-        <input type="submit" id="do_submit" name="do_submit"
-               class="btn btn-primary submit-protection ignore_hidden_required"
-               value="<?php echo $this->_pt('Create Account'); ?>" />
-    </div>
-
-</div>
-
-<div style="display: none;" id="account_roles_container">
-
-    <div>
-    <?php
-if (!empty($roles_by_slug) && is_array($roles_by_slug)) {
-    $old_plugin = false;
-    $plugin_name = $this->_pt('Manually added');
-    $did_autofocus = false;
-    foreach ($roles_by_slug as $role_slug => $role_arr) {
-        if ($roles_model->is_deleted($role_arr)) {
-            continue;
-        }
-
-        if ($old_plugin !== $role_arr['plugin']) {
-            if (!($plugin_name = $plugins_model->get_plugin_name_by_slug($role_arr['plugin']))) {
-                $plugin_name = $this->_pt('Manually added');
-            }
-
-            if ($old_plugin !== false) {
-                ?><div style="margin-bottom:10px;"></div><?php
-            }
-            ?>
-                <section class="heading-bordered">
-                    <h4><?php echo $plugin_name; ?></h4>
-                </section>
-                <?php
-            $old_plugin = $role_arr['plugin'];
-        }
-        ?>
-            <div class="clearfix">
-            <div style="float:left;"><input type="checkbox" id="account_roles_slugs_<?php echo $role_slug; ?>"
-                                            name="account_roles_slugs[]" value="<?php echo form_str($role_slug); ?>"
-                                            data-role-title="<?php echo form_str($role_arr['name']); ?>"
-                                            data-role-slug="<?php echo form_str($role_slug); ?>"
-                                            data-role-plugin="<?php echo form_str($role_arr['plugin']); ?>"
-                                            data-role-plugin-name="<?php echo form_str($plugin_name); ?>"
-                                            <?php echo !$did_autofocus ? 'autofocus="true"' : ''; ?> /></div>
-            <label style="margin-left:5px;width: auto !important;float:left;" for="account_roles_slugs_<?php echo $role_slug; ?>">
-                <?php echo $role_arr['name']; ?>
-                <i class="fa fa-question-circle" title="<?php echo form_str($role_arr['description']); ?>"></i>
-            </label>
-            </div>
+        <div>
             <?php
+                if (!empty($all_tenants_arr) && is_array($all_tenants_arr)) {
+                    $old_domain = null;
+                    $did_autofocus = false;
+                    foreach ($all_tenants_arr as $t_id => $t_arr) {
+                        if ($tenants_model && $tenants_model->is_deleted($t_arr)) {
+                            continue;
+                        }
 
-        $did_autofocus = true;
+                        if ($old_domain !== $t_arr['domain']) {
+                            if ($old_domain !== null) {
+                                ?><div style="margin-bottom:10px;"></div><?php
+                            }
+                            ?>
+                        <section class="heading-bordered">
+                            <h4><?php echo $t_arr['domain']; ?></h4>
+                        </section>
+                        <?php
+                            $old_domain = $t_arr['domain'];
+                        }
+                        ?>
+                    <div class="mb-1">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox"
+                                   name="account_tenants[]" id="account_tenants_<?php echo $t_id; ?>"
+                                   data-tenant-id="<?php echo form_str($t_id); ?>"
+                                   data-tenant-name="<?php echo form_str($t_arr['name']); ?>"
+                                   data-tenant-domain="<?php echo form_str($t_arr['domain']); ?>"
+                                   value="<?php echo form_str($t_id); ?>"
+                                <?php echo !$did_autofocus ? 'autofocus="true"' : ''; ?> />
+                            <label class="form-check-label" for="account_tenants_<?php echo $t_id; ?>">
+                                <?php echo $t_arr['name'].' ('.$t_arr['domain'].')'; ?>
+                            </label>
+                        </div>
+                    </div>
+                    <?php
+
+                        $did_autofocus = true;
+                    }
+                }
+        ?>
+        </div>
+        <div class="float-right p-2">
+            <input type="button" id="do_close_tenant_dialogue" name="do_close_tenant_dialogue" class="btn btn-primary btn-small"
+                   value="<?php echo $this->_pt('Close'); ?>" onclick="close_tenants_dialogue()" />
+        </div>
+    </div>
+    <?php
     }
-}
 ?>
-    </div>
-    <div class="float-right p-2">
-        <input type="button" id="do_close_roles_dialogue" name="do_close_roles_dialogue" class="btn btn-primary btn-small"
-               value="<?php echo $this->_pt('Close'); ?>" onclick="close_roles_dialogue()" />
-    </div>
-</div>
 </form>
 
 <script type="text/javascript">
@@ -323,58 +380,6 @@ update_selected_roles();
 <?php
 if ($is_multi_tenant) {
     ?>
-
-<div style="display: none;" id="account_tenants_container">
-
-    <div>
-    <?php
-if (!empty($all_tenants_arr) && is_array($all_tenants_arr)) {
-    $old_domain = null;
-    $did_autofocus = false;
-    foreach ($all_tenants_arr as $t_id => $t_arr) {
-        if ($tenants_model && $tenants_model->is_deleted($t_arr)) {
-            continue;
-        }
-
-        if ($old_domain !== $t_arr['domain']) {
-            if ($old_domain !== null) {
-                ?><div style="margin-bottom:10px;"></div><?php
-            }
-            ?>
-                <section class="heading-bordered">
-                    <h4><?php echo $t_arr['domain']; ?></h4>
-                </section>
-                <?php
-            $old_domain = $t_arr['domain'];
-        }
-        ?>
-        <div class="mb-1">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox"
-                       name="account_tenants[]" id="account_tenants_<?php echo $t_id; ?>"
-                       data-tenant-id="<?php echo form_str($t_id); ?>"
-                       data-tenant-name="<?php echo form_str($t_arr['name']); ?>"
-                       data-tenant-domain="<?php echo form_str($t_arr['domain']); ?>"
-                       value="<?php echo form_str($t_id); ?>"
-                       <?php echo !$did_autofocus ? 'autofocus="true"' : ''; ?> />
-                <label class="form-check-label" for="account_tenants_<?php echo $t_id; ?>">
-                    <?php echo $t_arr['name'].' ('.$t_arr['domain'].')'; ?>
-                </label>
-            </div>
-        </div>
-        <?php
-
-        $did_autofocus = true;
-    }
-}
-    ?>
-    </div>
-    <div class="float-right p-2">
-        <input type="button" id="do_close_tenant_dialogue" name="do_close_tenant_dialogue" class="btn btn-primary btn-small"
-               value="<?php echo $this->_pt('Close'); ?>" onclick="close_tenants_dialogue()" />
-    </div>
-</div>
-
 <script type="text/javascript">
 function close_tenants_dialogue()
 {
@@ -451,4 +456,3 @@ function update_selected_tenants()
 update_selected_tenants();
 </script>
 <?php } ?>
-</form>

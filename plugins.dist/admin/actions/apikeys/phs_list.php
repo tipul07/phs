@@ -73,7 +73,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
 
         if (!can(PHS_Roles::ROLEU_LIST_API_KEYS)) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list API keys.'));
+            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
             return false;
         }
@@ -348,7 +348,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
                 if (!PHS::user_logged_in()
                  || !$admin_plugin->can_admin_manage_api_keys()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage API keys.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -408,7 +408,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
                 if (!PHS::user_logged_in()
                  || !$admin_plugin->can_admin_manage_api_keys()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage API keys.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -468,7 +468,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
                 if (!PHS::user_logged_in()
                  || !$admin_plugin->can_admin_manage_api_keys()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage API keys.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -526,7 +526,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
                 if (!PHS::user_logged_in()
                  || !$admin_plugin->can_admin_manage_api_keys()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage API keys.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -562,7 +562,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
                 if (!PHS::user_logged_in()
                  || !$admin_plugin->can_admin_manage_api_keys()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage API keys.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -598,7 +598,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
                 if (!PHS::user_logged_in()
                  || !$admin_plugin->can_admin_manage_api_keys()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage API keys.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }

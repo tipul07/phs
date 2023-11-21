@@ -50,8 +50,8 @@ class PHS_Action_Registry extends PHS_Api_action
         $is_ajax_call = PHS_Scope::current_scope() === PHS_Scope::SCOPE_AJAX;
 
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
-        $pname = PHS_Params::_gp('pname', PHS_Params::T_NOHTML);
-        $tenant_id = PHS_Params::_gp('tenant_id', PHS_Params::T_INT);
+        $pname = PHS_Params::_gp('pname', PHS_Params::T_NOHTML) ?? '';
+        $tenant_id = PHS_Params::_gp('tenant_id', PHS_Params::T_INT) ?? 0;
         $back_page = PHS_Params::_gp('back_page', PHS_Params::T_NOHTML);
 
         $do_cancel = PHS_Params::_p('do_cancel');
@@ -105,7 +105,7 @@ class PHS_Action_Registry extends PHS_Api_action
                     $save_registry_arr = [];
                 }
 
-                if( (!empty( $save_registry_arr ) && null !== $plugin_obj->update_db_registry($save_registry_arr, $tenant_id))
+                if( (!empty( $save_registry_arr ) && null !== $plugin_obj->save_db_registry($save_registry_arr, $tenant_id))
                     || (empty( $save_registry_arr ) && null !== $plugin_obj->clean_db_registry($tenant_id)) ) {
                     return $this->send_api_success(['action_success' => true]);
                 }

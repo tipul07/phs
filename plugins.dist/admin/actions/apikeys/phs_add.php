@@ -83,7 +83,7 @@ class PHS_Action_Add extends PHS_Action
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
         $uid = PHS_Params::_p('uid', PHS_Params::T_INT);
         $autocomplete_uid = PHS_Params::_p('autocomplete_uid', PHS_Params::T_NOHTML);
-        $tenant_id = PHS_Params::_p('tenant_id', PHS_Params::T_INT);
+        $tenant_id = PHS_Params::_p('tenant_id', PHS_Params::T_INT) ?? 0;
         $title = PHS_Params::_p('title', PHS_Params::T_NOHTML);
         $api_key = PHS_Params::_p('api_key', PHS_Params::T_NOHTML);
         $api_secret = PHS_Params::_p('api_secret', PHS_Params::T_NOHTML);

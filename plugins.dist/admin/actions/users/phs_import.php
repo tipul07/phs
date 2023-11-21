@@ -56,7 +56,7 @@ class PHS_Action_Import extends PHS_Action
         }
 
         if (!$admin_plugin->can_admin_import_accounts()) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to import accounts.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }

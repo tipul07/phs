@@ -64,7 +64,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
 
         if (!$this->_admin_plugin->can_admin_list_tenants($current_user)) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list tenants.'));
+            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
             return false;
         }

@@ -4,6 +4,7 @@
 use phs\PHS;
 use phs\PHS_Maintenance;
 use phs\libraries\PHS_Utils;
+
 ?>
 <div class="form_container" style="margin: 20px auto;">
 
@@ -20,7 +21,7 @@ use phs\libraries\PHS_Utils;
 
     <?php
     $update_link = PHS_Maintenance::get_framework_update_url_with_token();
-    ?>
+?>
     <a href="<?php echo $update_link; ?>" target="update_win"><?php echo $update_link; ?></a>
 
 </div>

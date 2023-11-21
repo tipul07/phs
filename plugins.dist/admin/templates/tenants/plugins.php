@@ -51,20 +51,20 @@ echo $this->sub_view('ractive/bootstrap');
     </section>
 
     <?php
-    if($is_multi_tenant) {
-    ?>
+    if ($is_multi_tenant) {
+        ?>
     <div class="form-group row">
         <label for="tenant_id" class="col-sm-2 col-form-label"><?php echo $this->_pt('Choose tenant'); ?></label>
         <div class="col-sm-8">
             <select name="tenant_id" id="tenant_id" class="chosen-select" style="width: 250px;"
                     onchange="tenant_changed()">
                 <?php
-                foreach ($tenants_filter_arr as $t_id => $t_name) {
-                    ?>
+                    foreach ($tenants_filter_arr as $t_id => $t_name) {
+                        ?>
                     <option value="<?php echo $t_id; ?>" <?php echo $t_id === $tenant_id ? 'selected="selected"' : ''; ?>><?php echo $t_name; ?></option>
                     <?php
-                }
-?>
+                    }
+        ?>
             </select>
         </div>
         <input type="button" class="btn btn-primary" value="<?php echo $this->_pt('Select'); ?>" onclick="tenant_changed()" />
@@ -72,10 +72,10 @@ echo $this->sub_view('ractive/bootstrap');
     <?php
     } else {
         ?>
-        <p class="text-center"><?php echo $this->_pt( 'Current platform doesn\'t support multi-tenant setup. All changes will be done on a "Default" tenant.')?></p>
+        <p class="text-center"><?php echo $this->_pt('Current platform doesn\'t support multi-tenant setup. All changes will be done on a "Default" tenant.'); ?></p>
         <?php
     }
-    ?>
+?>
 
     <div id="PHS_RActive_Tenants_plugins_target"></div>
 
@@ -170,9 +170,9 @@ function tenant_changed()
     </tbody>
     </table>
     <div>
-        <div><small><?php echo $this->_pt( 'Selected %s plugins...', '{{selected_plugins_length}}' )?></small></div>
+        <div><small><?php echo $this->_pt('Selected %s plugins...', '{{selected_plugins_length}}'); ?></small></div>
         {{#if !all_selected_visible }}
-        <div class="alert alert-danger" role="alert"><?php echo $this->_pt( 'There are selected plugins which are not visible!' )?></div>
+        <div class="alert alert-danger" role="alert"><?php echo $this->_pt('There are selected plugins which are not visible!'); ?></div>
         {{/if}}
     </div>
     <div>
@@ -185,12 +185,12 @@ function tenant_changed()
                value="<?php echo $this->_pte('INACTIVATE Selected'); ?> ({{selected_plugins_length}})" />
     </div>
     <div style="display: none;" id="phs_plugins_registry_container">
-        <p><?php echo $this->_pt( 'Registry data for plugin %s on tenant %s.',
-                '<strong>{{plugin_details.name}}</strong>', '<strong>{{tenant_name}}</strong>' )?></p>
-        <?php if($can_manage_plugins) { ?>
+        <p><?php echo $this->_pt('Registry data for plugin %s on tenant %s.',
+            '<strong>{{plugin_details.name}}</strong>', '<strong>{{tenant_name}}</strong>'); ?></p>
+        <?php if ($can_manage_plugins) { ?>
             <p><a class="btn btn-primary" href="<?php echo PHS::url(['p' => 'admin', 'a' => 'registry', 'ad' => 'plugins'],
-                    ($is_multi_tenant ? ['tenant_id' => $tenant_id] : []),
-                    ['raw_args' => ['pname' => '{{plugin_details.plugin_name}}']]); ?>"><?php echo $this->_pt('Edit')?></a></p>
+                ($is_multi_tenant ? ['tenant_id' => $tenant_id] : []),
+                ['raw_args' => ['pname' => '{{plugin_details.plugin_name}}']]); ?>"><?php echo $this->_pt('Edit'); ?></a></p>
         <?php } ?>
         {{#each plugin_registry}}
             {{@index+1}}.
@@ -201,12 +201,12 @@ function tenant_changed()
         {{/each}}
     </div>
     <div style="display: none;" id="phs_plugins_settings_container">
-        <p><?php echo $this->_pt( 'Settings for plugin %s on tenant %s.',
-                '<strong>{{plugin_details.name}}</strong>', '<strong>{{tenant_name}}</strong>' )?></p>
-        <?php if($can_manage_plugins) { ?>
+        <p><?php echo $this->_pt('Settings for plugin %s on tenant %s.',
+            '<strong>{{plugin_details.name}}</strong>', '<strong>{{tenant_name}}</strong>'); ?></p>
+        <?php if ($can_manage_plugins) { ?>
             <p><a class="btn btn-primary" href="<?php echo PHS::url(['p' => 'admin', 'a' => 'settings', 'ad' => 'plugins'],
-                    ($is_multi_tenant ? ['tenant_id' => $tenant_id] : []),
-                    ['raw_args' => ['pid' => '{{plugin_details.id}}']]); ?>"><?php echo $this->_pt('Edit')?></a></p>
+                ($is_multi_tenant ? ['tenant_id' => $tenant_id] : []),
+                ['raw_args' => ['pid' => '{{plugin_details.id}}']]); ?>"><?php echo $this->_pt('Edit'); ?></a></p>
         <?php } ?>
         {{#if plugin_settings.length }}
         <table class="table table-hover"><tbody>

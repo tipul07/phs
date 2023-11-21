@@ -51,7 +51,7 @@ class PHS_Action_Result_files extends PHS_Action
         }
 
         if (!can($backup_plugin::ROLEU_LIST_BACKUPS)) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to list backup result files.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }
@@ -97,7 +97,7 @@ class PHS_Action_Result_files extends PHS_Action
             switch ($action) {
                 case 'delete':
                     if (!can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
-                        PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to delete backup files.'));
+                        PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
                     } elseif (empty($brfid)
                          || !($brf_flow_params = $results_model->fetch_default_flow_params(['table_name' => 'backup_results_files']))
                          || !($backup_file_arr = $results_model->get_details($brfid, $brf_flow_params))) {

@@ -79,7 +79,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
 
         if (!$this->_admin_plugin->can_admin_list_accounts()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to create accounts.'));
+            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
             return false;
         }
@@ -479,7 +479,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
                 if (!PHS::user_logged_in()
                  || !$this->_admin_plugin->can_admin_manage_accounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage accounts.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -538,7 +538,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 if (!$this->_admin_plugin->can_admin_manage_accounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage accounts.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -597,7 +597,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 if (!$this->_admin_plugin->can_admin_manage_accounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage accounts.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -656,7 +656,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 if (!$this->_admin_plugin->can_admin_manage_accounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage accounts.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -715,7 +715,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 if (!$this->_admin_plugin->can_admin_export_accounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to export accounts.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -751,7 +751,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 if (!$this->_admin_plugin->can_admin_export_accounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to export accounts.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -776,7 +776,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 if (!$this->_admin_plugin->can_admin_login_subaccounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to login as this accounts.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }

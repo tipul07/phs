@@ -167,7 +167,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $strings_arr;
     }
 
-    public function is_plugin_multi_tenant(): bool
+    public function is_plugin_multi_tenant() : bool
     {
         return PHS::is_multi_tenant()
                && ($plugin_obj = $this->get_plugin_instance())

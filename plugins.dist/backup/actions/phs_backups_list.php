@@ -99,7 +99,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 
         if (!can($backup_plugin::ROLEU_LIST_BACKUPS)
         && !$can_delete_backups) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to list backup results.'));
+            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
             return false;
         }
@@ -287,7 +287,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 
                 if (!($current_user = PHS::user_logged_in())
                  || !can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup results.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -344,7 +344,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
                 }
 
                 if (!can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage backup results.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }

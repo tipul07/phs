@@ -43,7 +43,7 @@ class PHS_Action_Rule_add extends PHS_Action
         }
 
         if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
-            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to manage backup rules.'));
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }

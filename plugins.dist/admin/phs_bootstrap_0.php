@@ -2,8 +2,8 @@
 
 use phs\PHS;
 use phs\libraries\PHS_Hooks;
-use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Logger;
+use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\events\layout\PHS_Event_Layout;
 use phs\system\core\events\layout\PHS_Event_Template;
 

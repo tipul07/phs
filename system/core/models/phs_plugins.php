@@ -1370,12 +1370,6 @@ class PHS_Model_Plugins extends PHS_Model
         $new_fields_arr = $validate_fields['data_arr'];
         // Try updating registry...
         if (!empty($new_fields_arr['registry'])) {
-            if (!empty($existing_arr['registry'])) {
-                $new_fields_arr['registry']
-                    = self::merge_array_assoc($this->_decode_registry_field($existing_arr['registry']),
-                        $this->_decode_registry_field($new_fields_arr['registry']));
-            }
-
             $new_fields_arr['registry'] = $this->_encode_registry_field($new_fields_arr['registry']);
 
             $new_fields_arr['last_update'] = $cdate;

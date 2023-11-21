@@ -14,7 +14,6 @@ use phs\libraries\PHS_Has_db_settings;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\models\PHS_Model_Tenants;
 use phs\system\core\models\PHS_Model_Plugins;
-use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Action_Settings extends PHS_Action
 {
@@ -53,9 +52,9 @@ class PHS_Action_Settings extends PHS_Action
         $is_multi_tenant = PHS::is_multi_tenant();
 
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
-        $pid = PHS_Params::_gp('pid', PHS_Params::T_NOHTML);
-        $model_id = PHS_Params::_gp('model_id', PHS_Params::T_NOHTML);
-        $tenant_id = PHS_Params::_gp('tenant_id', PHS_Params::T_INT);
+        $pid = PHS_Params::_gp('pid', PHS_Params::T_NOHTML) ?? '';
+        $model_id = PHS_Params::_gp('model_id', PHS_Params::T_NOHTML) ?? '';
+        $tenant_id = PHS_Params::_gp('tenant_id', PHS_Params::T_INT) ?? 0;
         $back_page = PHS_Params::_gp('back_page', PHS_Params::T_NOHTML);
 
         $do_submit = PHS_Params::_gp('do_submit', PHS_Params::T_NOHTML);

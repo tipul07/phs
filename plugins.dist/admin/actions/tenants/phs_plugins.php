@@ -55,14 +55,14 @@ class PHS_Action_Plugins extends PHS_Api_action
             return self::default_action_result();
         }
 
-        if(PHS_Params::_pg('plugins_activated', PHS_Params::T_INT)) {
+        if (PHS_Params::_pg('plugins_activated', PHS_Params::T_INT)) {
             PHS_Notifications::add_success_notice($this->_pt('Selected plugins activated with success.'));
         }
-        if(PHS_Params::_pg('plugins_inactivated', PHS_Params::T_INT)) {
+        if (PHS_Params::_pg('plugins_inactivated', PHS_Params::T_INT)) {
             PHS_Notifications::add_success_notice($this->_pt('Selected plugins inactivated with success.'));
         }
 
-        $tenant_id = PHS_Params::_pg('tenant_id', PHS_Params::T_INT);
+        $tenant_id = PHS_Params::_pg('tenant_id', PHS_Params::T_INT) ?? 0;
 
         $is_multi_tenant = PHS::is_multi_tenant();
         $is_ajax_call = PHS_Scope::current_scope() === PHS_Scope::SCOPE_AJAX;
@@ -171,7 +171,7 @@ class PHS_Action_Plugins extends PHS_Api_action
                  || !($plugin_obj = PHS::load_plugin($id_details['plugin_name']))) {
                     PHS_Notifications::add_error_notice($this->_pt('Please provide a valid plugin id.'));
                 } else {
-                    if (!empty($do_get_registry) ) {
+                    if (!empty($do_get_registry)) {
                         return $this->send_api_success(['registry' => $plugin_obj->get_plugin_registry($tenant_id)]);
                     }
 
@@ -188,7 +188,7 @@ class PHS_Action_Plugins extends PHS_Api_action
             'is_multi_tenant'     => $is_multi_tenant,
             'plugins_statuses'    => $plugins_statuses,
             'tenants_key_val_arr' => $tenants_key_val_arr,
-            'can_manage_plugins' => $admin_plugin->can_admin_manage_plugins(),
+            'can_manage_plugins'  => $admin_plugin->can_admin_manage_plugins(),
 
             'tenants_filter_arr'  => $tenants_filter_arr,
             'statuses_filter_arr' => $statuses_filter_arr,

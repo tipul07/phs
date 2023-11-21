@@ -128,12 +128,6 @@ echo $this->sub_view('ractive/bootstrap');
 
         ?>
         <div id="PHS_RActive_Plugins_registry_target"></div>
-        <?php
-
-        if (empty($registry_arr) || !is_array($registry_arr)) {
-            ?><p style="text-align: center;margin:30px auto;"><?php echo $this->_pt('Selected module doesn\'t have any registry data yet.'); ?></p><?php
-        }
-        ?>
     </div>
 </form>
 
