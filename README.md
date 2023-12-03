@@ -8,7 +8,9 @@
 [![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/tipul07/phs?color=green)](https://github.com/tipul07/phs/commits/master)
 [![GitHub HitCount](http://hits.dwyl.io/tipul07/phs.svg)](http://hits.dwyl.io/tipul07/phs)
 
-Latest version 1.2.0.0
+Latest version 1.2.0.1
+
+**NOTE**: until 1.2.0.0 minimum PHP version required was 7.4+. Starting with 1.2.0.1, minimum required version is 8.1+.
 
 **NOTE**: Added multi-tenant solution since 1.2.0.0. On next release, PHP 8.1.0 will be minimum required version.
 
