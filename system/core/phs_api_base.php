@@ -47,7 +47,7 @@ abstract class PHS_Api_base extends PHS_Registry
     protected array $init_query_params = [];
 
     /** @var array All allowed HTTP methods in lowercase */
-    protected array $allowed_http_methods = ['get', 'post', 'delete', 'patch'];
+    protected array $allowed_http_methods = ['get', 'post', 'delete', 'patch', 'options'];
 
     /** @var null|array Allowed authentication methods (basic, bearer), null means default ones */
     protected ?array $allowed_authentication_methods = null;
@@ -1102,36 +1102,54 @@ abstract class PHS_Api_base extends PHS_Registry
         ];
     }
 
-    /**
-     * @return bool
-     */
     public static function framework_allows_api_calls() : bool
     {
         return ($settings = self::_get_framework_api_settings()) && !empty($settings['allow_api_calls']);
     }
 
-    /**
-     * @return bool
-     */
     public static function framework_allows_api_calls_over_http() : bool
     {
         return ($settings = self::_get_framework_api_settings()) && !empty($settings['allow_api_calls_over_http']);
     }
 
-    /**
-     * @return bool
-     */
     public static function framework_api_can_simulate_web() : bool
     {
         return ($settings = self::_get_framework_api_settings()) && !empty($settings['api_can_simulate_web']);
     }
 
-    /**
-     * @return bool
-     */
     public static function framework_allow_bearer_token_authentication() : bool
     {
         return ($settings = self::_get_framework_api_settings()) && !empty($settings['allow_bearer_token_authentication']);
+    }
+
+    public static function framework_allow_cors_api_calls() : bool
+    {
+        return ($settings = self::_get_framework_api_settings()) && !empty($settings['allow_cors_api_calls']);
+    }
+
+    public static function framework_monitor_cors_options_calls() : bool
+    {
+        return ($settings = self::_get_framework_api_settings()) && !empty($settings['monitor_cors_options_calls']);
+    }
+
+    public static function framework_cors_origins() : string
+    {
+        return (($settings = self::_get_framework_api_settings()) && isset($settings['cors_origins'])) ? $settings['cors_origins'] : '';
+    }
+
+    public static function framework_cors_methods() : string
+    {
+        return (($settings = self::_get_framework_api_settings()) && isset($settings['cors_methods'])) ? $settings['cors_methods'] : '';
+    }
+
+    public static function framework_cors_headers() : string
+    {
+        return (($settings = self::_get_framework_api_settings()) && isset($settings['cors_headers'])) ? $settings['cors_headers'] : '';
+    }
+
+    public static function framework_cors_max_age() : int
+    {
+        return (($settings = self::_get_framework_api_settings()) && isset($settings['cors_max_age'])) ? (int)$settings['cors_max_age'] : -1;
     }
 
     /**
@@ -1335,7 +1353,12 @@ abstract class PHS_Api_base extends PHS_Registry
             'allow_api_calls'                   => false,
             'allow_api_calls_over_http'         => false,
             'api_can_simulate_web'              => false,
-            'allow_bearer_token_authentication' => false,
+            'allow_cors_api_calls' => false,
+            'monitor_cors_options_calls' => false,
+            'cors_origins' => '',
+            'cors_methods' => '',
+            'cors_headers' => '',
+            'cors_max_age' => 0,
         ];
     }
 
@@ -1350,7 +1373,7 @@ abstract class PHS_Api_base extends PHS_Registry
 
         self::$_framework_settings = self::_default_framework_api_settings();
 
-        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
+        /** @var PHS_Plugin_Admin $admin_plugin */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($admin_plugin_settings = $admin_plugin->get_plugin_settings())) {
             return self::$_framework_settings;
@@ -1360,6 +1383,14 @@ abstract class PHS_Api_base extends PHS_Registry
         self::$_framework_settings['allow_api_calls_over_http'] = (!empty($admin_plugin_settings['allow_api_calls_over_http']));
         self::$_framework_settings['api_can_simulate_web'] = (!empty($admin_plugin_settings['api_can_simulate_web']));
         self::$_framework_settings['allow_bearer_token_authentication'] = (!empty($admin_plugin_settings['allow_bearer_token_authentication']));
+
+        // CORS settings
+        self::$_framework_settings['allow_cors_api_calls'] = (!empty($admin_plugin_settings['allow_cors_api_calls']));
+        self::$_framework_settings['monitor_cors_options_calls'] = $admin_plugin->monitor_api_incoming_cors_calls();
+        self::$_framework_settings['cors_origins'] = $admin_plugin_settings['cors_origins'] ?? '';
+        self::$_framework_settings['cors_methods'] = $admin_plugin_settings['cors_methods'] ?? '';
+        self::$_framework_settings['cors_headers'] = $admin_plugin_settings['cors_headers'] ?? '';
+        self::$_framework_settings['cors_max_age'] = $admin_plugin_settings['cors_max_age'] ?? 0;
 
         return self::$_framework_settings;
     }

@@ -180,6 +180,11 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                 'extra_records_style' => 'width:120px;text-align:center;word-break:break-word;',
             ],
             [
+                'column_title'        => $this->_pt('Method'),
+                'record_field'        => 'method',
+                'extra_records_style' => 'text-align:right;',
+            ],
+            [
                 'column_title'        => $this->_pt('External Route'),
                 'record_field'        => 'external_route',
                 'extra_records_style' => 'text-align:left;',

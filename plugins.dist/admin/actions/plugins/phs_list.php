@@ -799,10 +799,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 ><i class="fa fa-arrow-circle-o-up action-icons" title="<?php echo $this->_pt('Upgrade plugin'); ?>"></i></a>
                 <?php
             }
+            if ($params['record']['id'] !== PHS_Instantiable::CORE_PLUGIN ) {
+                ?>
+                <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'registry', 'ad' => 'plugins'],
+                    ['pname' => $params['record']['plugin_name'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
+                ><i class="fa fa-database action-icons" title="<?php echo $this->_pt('Plugin Registry'); ?>"></i></a>
+                <?php
+            }
             ?>
-            <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'registry', 'ad' => 'plugins'],
-                ['pname' => $params['record']['plugin_name'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
-            ><i class="fa fa-database action-icons" title="<?php echo $this->_pt('Plugin Registry'); ?>"></i></a>
             <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'settings', 'ad' => 'plugins'],
                 ['pid' => $params['record']['id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
             ><i class="fa fa-wrench action-icons" title="<?php echo $this->_pt('Plugin Settings'); ?>"></i></a>

@@ -48,6 +48,47 @@ class PHS_Plugin_Admin extends PHS_Plugin
                     ],
                 ],
             ],
+            'cors_settings_group' => [
+                'display_name' => $this->_pt('API CORS settings'),
+                'display_hint' => $this->_pt('<strong>WARNING</strong>: High risk security settings! Change them if you know what you are doing!'),
+                'group_fields' => [
+                    'allow_cors_api_calls' => [
+                        'display_name' => $this->_pt('Allow CORS calls'),
+                        'display_hint' => $this->_pt('Is platform accepting CORS calls? Usually front-end applications from other domains.'),
+                        'type'         => PHS_Params::T_BOOL,
+                        'default'      => false,
+                        'only_main_tenant_value' => true,
+                    ],
+                    'cors_origins' => [
+                        'display_name'           => $this->_pt('CORS Origin'),
+                        'display_hint'           => $this->_pt('Comma separated domains from which platform accepts CORS calls. * - accept from all, empty - platform will send as origin what was sent in request (Access-Control-Allow-Origin)'),
+                        'type'                   => PHS_Params::T_NOHTML,
+                        'default'                => '',
+                        'only_main_tenant_value' => true,
+                    ],
+                    'cors_methods' => [
+                        'display_name'           => $this->_pt('CORS Methods'),
+                        'display_hint'           => $this->_pt('Comma separated HTTP methods which platform accepts for CORS calls. * - accept all methods, empty - doesn\'t respond with this header (Access-Control-Allow-Methods)'),
+                        'type'                   => PHS_Params::T_NOHTML,
+                        'default'                => '',
+                        'only_main_tenant_value' => true,
+                    ],
+                    'cors_headers' => [
+                        'display_name'           => $this->_pt('CORS Headers'),
+                        'display_hint'           => $this->_pt('Comma separated HTTP headers which platform accepts for CORS calls. * - accept all headers, empty - doesn\'t respond with this header (Access-Control-Allow-Headers)'),
+                        'type'                   => PHS_Params::T_NOHTML,
+                        'default'                => '',
+                        'only_main_tenant_value' => true,
+                    ],
+                    'cors_max_age' => [
+                        'display_name'           => $this->_pt('CORS Max Age (seconds)'),
+                        'display_hint'           => $this->_pt('Preflight requests can be cached. This represents how much time should a client cache OPTIONS response. -1 - do not send this header (Access-Control-Max-Age)'),
+                        'type'                   => PHS_Params::T_INT,
+                        'default'                => -1,
+                        'only_main_tenant_value' => true,
+                    ],
+                ],
+            ],
             'api_settings_group' => [
                 'display_name' => $this->_pt('API settings'),
                 'display_hint' => $this->_pt('Settings related to REST API calls made to this platform.'),
@@ -79,6 +120,12 @@ class PHS_Plugin_Admin extends PHS_Plugin
                     'monitor_api_incoming_calls' => [
                         'display_name' => $this->_pt('Monitor incoming calls'),
                         'display_hint' => $this->_pt('Incoming API calls will be saved in a special monitoring table.'),
+                        'type'         => PHS_Params::T_BOOL,
+                        'default'      => false,
+                    ],
+                    'monitor_api_incoming_cors_calls' => [
+                        'display_name' => $this->_pt('Monitor incoming CORS calls'),
+                        'display_hint' => $this->_pt('Should framework also log incoming CORS OPTIONS method calls?'),
                         'type'         => PHS_Params::T_BOOL,
                         'default'      => false,
                     ],
@@ -127,45 +174,36 @@ class PHS_Plugin_Admin extends PHS_Plugin
         return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['current_theme_as_default_in_admin']);
     }
 
-    /**
-     * @return bool
-     */
     public function monitor_agent_jobs() : bool
     {
         return ($settings_arr = $this->get_plugin_settings())
                && !empty($settings_arr['monitor_agent_jobs']);
     }
 
-    /**
-     * @return bool
-     */
     public function monitor_api_incoming_calls() : bool
     {
         return ($settings_arr = $this->get_plugin_settings())
                && !empty($settings_arr['monitor_api_incoming_calls']);
     }
 
-    /**
-     * @return bool
-     */
+    public function monitor_api_incoming_cors_calls() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings())
+               && !empty($settings_arr['monitor_api_incoming_cors_calls']);
+    }
+
     public function monitor_api_outgoing_calls() : bool
     {
         return ($settings_arr = $this->get_plugin_settings())
                && !empty($settings_arr['monitor_api_outgoing_calls']);
     }
 
-    /**
-     * @return bool
-     */
     public function monitor_api_full_request_body() : bool
     {
         return ($settings_arr = $this->get_plugin_settings())
                && !empty($settings_arr['monitor_api_full_request_body']);
     }
 
-    /**
-     * @return bool
-     */
     public function monitor_api_full_response_body() : bool
     {
         return ($settings_arr = $this->get_plugin_settings())
