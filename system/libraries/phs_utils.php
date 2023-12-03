@@ -919,31 +919,19 @@ class PHS_Utils extends PHS_Language
     public static function myparse_url(string $str) : array
     {
         $ret = [];
-        $ret['scheme'] = '';
         $ret['user'] = '';
         $ret['pass'] = '';
         $ret['host'] = '';
         $ret['port'] = '';
         $ret['path'] = '';
-        $ret['query'] = '';
-        $ret['anchor'] = '';
 
         $mystr = $str;
-
         $res = explode('#', $mystr, 2);
-        if (isset($res[1])) {
-            $ret['anchor'] = $res[1];
-        } else {
-            $ret['anchor'] = '';
-        }
+        $ret['anchor'] = $res[1] ?? '';
         $mystr = $res[0];
 
         $res = explode('?', $mystr, 2);
-        if (isset($res[1])) {
-            $ret['query'] = $res[1];
-        } else {
-            $ret['query'] = '';
-        }
+        $ret['query'] = $res[1] ?? '';
         $mystr = $res[0];
 
         $res = explode('://', $mystr, 2);
@@ -1018,7 +1006,6 @@ class PHS_Utils extends PHS_Language
                 $host_port = $res[1];
             } else {
                 $host_port = $mystr;
-                $user_pass = '';
             }
         }
 
@@ -1047,9 +1034,9 @@ class PHS_Utils extends PHS_Language
         return $ret;
     }
 
-    public static function rebuild_url($url_parts)
+    public static function rebuild_url(array $url_parts): string
     {
-        if (empty($url_parts) || !is_array($url_parts)) {
+        if (empty($url_parts)) {
             return '';
         }
 
