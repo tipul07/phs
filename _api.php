@@ -76,8 +76,7 @@ if (!$api_obj->extract_api_request_details()) {
     exit;
 }
 
-if( PHS_Api::framework_allow_cors_api_calls()
-    && $api_obj->http_method() === 'options' ) {
+if( PHS_Api::framework_allow_cors_api_calls() ) {
     if( '' === ($origin_response = PHS_Api::framework_cors_origins())) {
         if (($request_origin = $_SERVER['HTTP_ORIGIN'] ?? null)
             && ($origin_details = PHS_Utils::myparse_url($request_origin))
@@ -99,14 +98,16 @@ if( PHS_Api::framework_allow_cors_api_calls()
         @header('Access-Control-Max-Age: '.$cors_max_age);
     }
 
-    PHS_Api_base::http_header_response(PHS_Api_base::H_CODE_OK_NO_CONTENT);
+    if( $api_obj->http_method() === 'options' ) {
+        PHS_Api_base::http_header_response(PHS_Api_base::H_CODE_OK_NO_CONTENT);
 
-    if(PHS_Api::framework_monitor_cors_options_calls()) {
-        PHS_Api::incoming_monitoring_record(PHS_Model_Api_monitor::api_incoming_request_started());
-        PHS_Model_Api_monitor::api_incoming_request_success(PHS_Api_base::H_CODE_OK_NO_CONTENT);
+        if(PHS_Api::framework_monitor_cors_options_calls()) {
+            PHS_Api::incoming_monitoring_record(PHS_Model_Api_monitor::api_incoming_request_started());
+            PHS_Model_Api_monitor::api_incoming_request_success(PHS_Api_base::H_CODE_OK_NO_CONTENT);
+        }
+
+        exit;
     }
-
-    exit;
 }
 
 $api_obj->set_api_credentials();
