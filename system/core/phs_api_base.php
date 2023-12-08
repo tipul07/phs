@@ -1350,15 +1350,15 @@ abstract class PHS_Api_base extends PHS_Registry
     private static function _default_framework_api_settings() : array
     {
         return [
-            'allow_api_calls'                   => false,
-            'allow_api_calls_over_http'         => false,
-            'api_can_simulate_web'              => false,
-            'allow_cors_api_calls' => false,
+            'allow_api_calls'            => false,
+            'allow_api_calls_over_http'  => false,
+            'api_can_simulate_web'       => false,
+            'allow_cors_api_calls'       => false,
             'monitor_cors_options_calls' => false,
-            'cors_origins' => '',
-            'cors_methods' => '',
-            'cors_headers' => '',
-            'cors_max_age' => 0,
+            'cors_origins'               => '',
+            'cors_methods'               => '',
+            'cors_headers'               => '',
+            'cors_max_age'               => 0,
         ];
     }
 

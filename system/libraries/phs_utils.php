@@ -1034,7 +1034,7 @@ class PHS_Utils extends PHS_Language
         return $ret;
     }
 
-    public static function rebuild_url(array $url_parts): string
+    public static function rebuild_url(array $url_parts) : string
     {
         if (empty($url_parts)) {
             return '';
