@@ -1228,6 +1228,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         }
 
         if (empty($instance_details['plugin_is_setup'])) {
+            var_dump($instance_details);
             self::st_set_error(self::ERR_PLUGIN_SETUP, self::_t('Plugin %s is not setup.', $instance_details['plugin_name'] ?? '-'));
 
             return null;
