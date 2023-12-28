@@ -53,10 +53,10 @@ class PHS_Plugin_Admin extends PHS_Plugin
                 'display_hint' => $this->_pt('<strong>WARNING</strong>: High risk security settings! Change them if you know what you are doing!'),
                 'group_fields' => [
                     'allow_cors_api_calls' => [
-                        'display_name' => $this->_pt('Allow CORS calls'),
-                        'display_hint' => $this->_pt('Is platform accepting CORS calls? Usually front-end applications from other domains.'),
-                        'type'         => PHS_Params::T_BOOL,
-                        'default'      => false,
+                        'display_name'           => $this->_pt('Allow CORS calls'),
+                        'display_hint'           => $this->_pt('Is platform accepting CORS calls? Usually front-end applications from other domains.'),
+                        'type'                   => PHS_Params::T_BOOL,
+                        'default'                => false,
                         'only_main_tenant_value' => true,
                     ],
                     'cors_origins' => [

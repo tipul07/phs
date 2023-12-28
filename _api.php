@@ -14,10 +14,10 @@ define('PHS_SCRIPT_SCOPE', 'api');
 
 include_once 'main.php';
 
-use phs\libraries\PHS_Utils;
 use phs\PHS;
 use phs\PHS_Api;
 use phs\PHS_Api_base;
+use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\system\core\models\PHS_Model_Api_monitor;
@@ -76,8 +76,8 @@ if (!$api_obj->extract_api_request_details()) {
     exit;
 }
 
-if( PHS_Api::framework_allow_cors_api_calls() ) {
-    if( '' === ($origin_response = PHS_Api::framework_cors_origins())) {
+if (PHS_Api::framework_allow_cors_api_calls()) {
+    if ('' === ($origin_response = PHS_Api::framework_cors_origins())) {
         if (($request_origin = $_SERVER['HTTP_ORIGIN'] ?? null)
             && ($origin_details = PHS_Utils::myparse_url($request_origin))
             && !empty($origin_details['host'])) {
@@ -85,23 +85,23 @@ if( PHS_Api::framework_allow_cors_api_calls() ) {
         }
     }
 
-    if( $origin_response !== '' ) {
-        @header('Access-Control-Allow-Origin: ' . $origin_response);
+    if ($origin_response !== '') {
+        @header('Access-Control-Allow-Origin: '.$origin_response);
     }
-    if( '' !== ($cors_methods = PHS_Api::framework_cors_methods())) {
+    if ('' !== ($cors_methods = PHS_Api::framework_cors_methods())) {
         @header('Access-Control-Allow-Methods: '.$cors_methods);
     }
-    if( '' !== ($cors_headers = PHS_Api::framework_cors_headers())) {
+    if ('' !== ($cors_headers = PHS_Api::framework_cors_headers())) {
         @header('Access-Control-Allow-Headers: '.$cors_headers);
     }
-    if( -1 !== ($cors_max_age = PHS_Api::framework_cors_max_age())) {
+    if (-1 !== ($cors_max_age = PHS_Api::framework_cors_max_age())) {
         @header('Access-Control-Max-Age: '.$cors_max_age);
     }
 
-    if( $api_obj->http_method() === 'options' ) {
+    if ($api_obj->http_method() === 'options') {
         PHS_Api_base::http_header_response(PHS_Api_base::H_CODE_OK_NO_CONTENT);
 
-        if(PHS_Api::framework_monitor_cors_options_calls()) {
+        if (PHS_Api::framework_monitor_cors_options_calls()) {
             PHS_Api::incoming_monitoring_record(PHS_Model_Api_monitor::api_incoming_request_started());
             PHS_Model_Api_monitor::api_incoming_request_success(PHS_Api_base::H_CODE_OK_NO_CONTENT);
         }

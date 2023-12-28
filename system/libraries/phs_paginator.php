@@ -1704,19 +1704,18 @@ class PHS_Paginator extends PHS_Registry
         return $column_name;
     }
 
-    public function render_column_for_record($render_params)
+    public function render_column_for_record(array $render_params)
     {
-        if (empty($render_params) || !is_array($render_params)) {
-            $render_params = [];
-        }
+        $render_params ??= [];
+        $render_params['for_scope'] = (int)($render_params['for_scope'] ?? 0);
 
         if (empty($render_params['request_render_type'])
-         || !self::valid_render_type($render_params['request_render_type'])) {
+            || !self::valid_render_type($render_params['request_render_type'])) {
             $render_params['request_render_type'] = self::CELL_RENDER_HTML;
         }
 
         if (empty($render_params['record']) || !is_array($render_params['record'])
-         || empty($render_params['column']) || !is_array($render_params['column'])) {
+            || empty($render_params['column']) || !is_array($render_params['column'])) {
             return '!'.self::_t('Unkown column or invalid record').'!';
         }
 
@@ -1743,7 +1742,7 @@ class PHS_Paginator extends PHS_Registry
         && empty($column_arr['record_api_field'])
         && empty($column_arr['display_callback'])) {
             $cell_content = '!'.self::_t('Bad column setup').'!';
-        } elseif ((int)$render_params['for_scope'] !== PHS_Scope::SCOPE_API
+        } elseif ($render_params['for_scope'] !== PHS_Scope::SCOPE_API
              || empty($field_exists_in_record)) {
             if (!empty($column_arr['display_key_value'])
             && is_array($column_arr['display_key_value'])
@@ -1778,10 +1777,10 @@ class PHS_Paginator extends PHS_Registry
         if ($cell_content === null
         && !empty($field_name)
         && $field_exists_in_record) {
-            $cell_content = $record_arr[$field_name];
+            $cell_content = $record_arr[$field_name] ?? $column_arr['invalid_value'] ?? '';
         }
 
-        if (($cell_content === null || (int)$render_params['for_scope'] !== PHS_Scope::SCOPE_API)
+        if (($cell_content === null || $render_params['for_scope'] !== PHS_Scope::SCOPE_API)
         && !empty($column_arr['display_callback'])) {
             if (!@is_callable($column_arr['display_callback'])) {
                 $cell_content = '!'.self::_t('Cell callback failed.').'!';
@@ -1799,37 +1798,36 @@ class PHS_Paginator extends PHS_Registry
                 $cell_callback_params['extra_callback_params'] = (!empty($column_arr['extra_callback_params']) ? $column_arr['extra_callback_params'] : false);
 
                 if (($cell_content = @call_user_func($column_arr['display_callback'], $cell_callback_params)) === false
-                 || $cell_content === null) {
-                    $cell_content = '!'.$this::_t('Render cell call failed.').'!';
+                    || $cell_content === null) {
+                    $cell_content = $column_arr['invalid_value'] ?? '!'.$this::_t('Render cell call failed.').'!';
                 }
             }
         }
 
         // Allow display_callback parameter on checkbox fields...
-        if ($render_params['for_scope'] != PHS_Scope::SCOPE_API
-        && $this->get_checkbox_name_for_column($column_arr)) {
+        if ($render_params['for_scope'] !== PHS_Scope::SCOPE_API
+            && $this->get_checkbox_name_for_column($column_arr)) {
             if (empty($field_name)
-             || !isset($record_arr[$field_name])
-             || !($field_details = $model_obj->table_field_details($field_name))
-             || !is_array($field_details)) {
+                || !isset($record_arr[$field_name])
+                || !($field_details = $model_obj->table_field_details($field_name))
+                || !is_array($field_details)) {
                 $field_details = false;
             }
 
             $cell_callback_params = $render_params;
             $cell_callback_params['table_field'] = $field_details;
-            $cell_callback_params['preset_content'] = ($cell_content === null ? '' : $cell_content);
+            $cell_callback_params['preset_content'] = $cell_content ?? '';
 
             if (($checkbox_content = $this->display_checkbox_column($cell_callback_params)) !== false
-            && $checkbox_content !== null && is_string($checkbox_content)) {
+                && $checkbox_content !== null
+                && is_string($checkbox_content)) {
                 $cell_content = $checkbox_content;
             }
         }
 
-        // if( empty( $cell_content )
-        if ($cell_content === null) {
-            if ($column_arr['invalid_value'] !== null) {
-                $cell_content = $column_arr['invalid_value'];
-            }
+        if (($cell_content === null)
+            && $column_arr['invalid_value'] !== null) {
+            $cell_content = $column_arr['invalid_value'];
         }
 
         return $cell_content;

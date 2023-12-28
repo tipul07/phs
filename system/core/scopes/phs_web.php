@@ -227,21 +227,34 @@ class PHS_Scope_Web extends PHS_Scope
     {
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tfa $tfa_model */
-        return ($accounts_plugin = PHS_Plugin_Accounts::get_instance())
-               && !$accounts_plugin->tfa_policy_is_off()
-               && ($tfa_model = PHS_Model_Accounts_tfa::get_instance())
-               && ($current_user = PHS::user_logged_in())
-               && !$tfa_model->is_device_tfa_valid()
-               && !$tfa_model->is_session_tfa_valid()
-               && (
-                   (($tfa_arr = $tfa_model->get_tfa_data_for_account($current_user))
-                    && !empty($tfa_arr['tfa_data']) && $tfa_model->is_setup_completed($tfa_arr['tfa_data']))
-                   || ($accounts_plugin->tfa_policy_is_enforced()
-                    && ($settings_arr = $accounts_plugin->get_plugin_settings())
-                    && (empty($settings_arr['2fa_policy_account_level'])
-                        || in_array((int)$current_user['level'], $settings_arr['2fa_policy_account_level'], true))
-                   )
-               );
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+            || !($tfa_model = PHS_Model_Accounts_tfa::get_instance())
+            || $accounts_plugin->tfa_policy_is_off()
+            || !($current_user = PHS::user_logged_in())
+            || $tfa_model->is_device_tfa_valid()
+            || $tfa_model->is_session_tfa_valid()
+            || !($settings_arr = $accounts_plugin->get_plugin_settings())
+            // TFA exceptions
+            || (!empty($settings_arr['2fa_policy_account_exceptions'])
+             && (
+                 (($ints_arr = self::extract_integers_from_comma_separated($settings_arr['2fa_policy_account_exceptions']))
+                  && in_array((int)$current_user['id'], $ints_arr, true))
+                 || (($strings_arr = self::extract_strings_from_comma_separated($settings_arr['2fa_policy_account_exceptions']))
+                  && in_array($current_user['nick'], $strings_arr, true))
+             ))
+        ) {
+            return false;
+        }
+
+        return
+            // TFA is enforced for user level
+            ($accounts_plugin->tfa_policy_is_enforced()
+             && (empty($settings_arr['2fa_policy_account_level'])
+                 || in_array((int)$current_user['level'], $settings_arr['2fa_policy_account_level'], true)))
+            // User has already TFA enabled
+            || (($tfa_arr = $tfa_model->get_tfa_data_for_account($current_user))
+                && !empty($tfa_arr['tfa_data'])
+                && $tfa_model->is_setup_completed($tfa_arr['tfa_data']));
     }
 
     private function _should_setup_tfa_for_account() : bool
