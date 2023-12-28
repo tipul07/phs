@@ -290,6 +290,12 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                         'values_arr'   => $accounts_levels_arr,
                         'default'      => [],
                     ],
+                    '2fa_policy_account_exceptions' => [
+                        'display_name' => $this->_pt('2FA account exceptions'),
+                        'display_hint' => $this->_pt('Comma separated account IDs or nicknames which will always skip 2FA flow.'),
+                        'type'         => PHS_Params::T_NOHTML,
+                        'default'      => '',
+                    ],
                     '2fa_session_length' => [
                         'display_name' => $this->_pt('2FA session length (hours)'),
                         'display_hint' => $this->_pt('How many hours should 2FA not be required on current session. 0 means forever'),
@@ -637,23 +643,17 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
     /**
      * @param int|array $account_data
-     * @param false|array $params
+     * @param null|array $params
      *
-     * @return array|bool
+     * @return null|array
      */
-    public function do_login($account_data, $params = false)
+    public function do_login($account_data, ?array $params = null) : ?array
     {
         $this->reset_error();
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
+        $params ??= [];
 
-        if (empty($params['expire_mins'])) {
-            $params['expire_mins'] = 0;
-        } else {
-            $params['expire_mins'] = (int)$params['expire_mins'];
-        }
+        $params['expire_mins'] = (int)($params['expire_mins'] ?? 0);
 
         if (empty($params['force_session_id']) || !is_string($params['force_session_id'])) {
             $params['force_session_id'] = '';
@@ -665,15 +665,15 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
             $this->set_error(self::ERR_LOGIN, $this->_pt('Couldn\'t load accounts model.'));
 
-            return false;
+            return null;
         }
 
         if (empty($account_data)
-         || !($account_arr = $accounts_model->data_to_array($account_data))
-         || !$accounts_model->is_active($account_arr)) {
+            || !($account_arr = $accounts_model->data_to_array($account_data))
+            || !$accounts_model->is_active($account_arr)) {
             $this->set_error(self::ERR_LOGIN, $this->_pt('Unknown or inactive account.'));
 
-            return false;
+            return null;
         }
 
         $login_params = [];
@@ -688,7 +688,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                 $this->set_error(self::ERR_LOGIN, $this->_pt('Login failed. Please try again.'));
             }
 
-            return false;
+            return null;
         }
 
         if (!PHS::prevent_session()
@@ -697,7 +697,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
             $this->set_error(self::ERR_LOGIN, $this->_pt('Login failed. Please try again.'));
 
-            return false;
+            return null;
         }
 
         if ($this->should_log_account_logins()) {
@@ -715,11 +715,16 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      * @param null|string $reason
      * @param null|array $params
      *
-     * @return array|false
+     * @return null|array
      */
-    public function get_confirmation_params($account_data, ?string $reason = null, ?array $params = null)
+    public function get_confirmation_params($account_data, ?string $reason = null, ?array $params = null) : ?array
     {
         $this->reset_error();
+
+        $params ??= [];
+
+        // 0 means it doesn't expire
+        $params['link_expire_seconds'] = (int)($params['link_expire_seconds'] ?? 0);
 
         if ($reason === null) {
             $reason = self::CONF_REASON_ACTIVATION;
@@ -728,27 +733,19 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         if (!$this->valid_confirmation_reason($reason)) {
             $this->set_error(self::ERR_CONFIRMATION, $this->_pt('Invalid confirmation reason.'));
 
-            return false;
+            return null;
         }
 
         if (!$this->_load_dependencies()) {
-            return false;
+            return null;
         }
 
         if (empty($account_data)
          || !($account_arr = $this->_accounts_model->data_to_array($account_data))) {
             $this->set_error(self::ERR_CONFIRMATION, $this->_pt('Unknown account.'));
 
-            return false;
+            return null;
         }
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if (empty($params['link_expire_seconds'])) {
-            $params['link_expire_seconds'] = 0;
-        } // 0 means it doesn't expire
 
         $link_expire_seconds = 0;
         if (!empty($params['link_expire_seconds'])) {
@@ -757,15 +754,13 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         $pub_key = str_replace('.', '', microtime(true));
 
-        if (false === ($encoded_part
-                = PHS_Crypt::quick_encode(
-                    $account_arr['id'].'::'.$reason.'::'.$link_expire_seconds.'::'
-                    .md5($account_arr['nick'].':'.$pub_key.':'.$account_arr['email'])
-                ))
+        if (!($encoded_part = PHS_Crypt::quick_encode(
+            $account_arr['id'].'::'.$reason.'::'.$link_expire_seconds.'::'
+            .md5($account_arr['nick'].':'.$pub_key.':'.$account_arr['email'])))
         ) {
             $this->set_error(self::ERR_CONFIRMATION, $this->_pt('Error obtaining confirmation parameter. Please try again.'));
 
-            return false;
+            return null;
         }
 
         return [

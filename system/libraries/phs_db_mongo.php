@@ -409,22 +409,22 @@ class PHS_Db_mongo extends PHS_Db_class
         return $queries_no;
     }
 
-    public function fetch_assoc($qid)
+    public function fetch_assoc($qid) : ?array
     {
         if (empty($qid)
             // MongoDB\Driver\Cursor
          || @gettype($qid) !== 'object'
          || !($qid instanceof Cursor)) {
-            return false;
+            return null;
         }
 
         try {
             if (!($result_arr = $qid->toArray())
              || empty($result_arr[0])) {
-                return false;
+                return null;
             }
         } catch (\Exception $e) {
-            return false;
+            return null;
         }
 
         return $result_arr[0];

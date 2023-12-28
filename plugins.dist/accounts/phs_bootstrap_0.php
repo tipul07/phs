@@ -54,8 +54,28 @@ if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
             'authentication_required' => true,
             'authentication_methods'  => [PHS_Api_base::AUTH_METHOD_BEARER, ],
             'method'                  => 'get',
-            'name'                    => 'Login using bearer authentication',
-            'description'             => 'Login using API calls with bearer authentication in headers',
+            'name'                    => 'Logout using bearer authentication',
+            'description'             => 'Logout using API calls with bearer authentication in headers',
+        ]
+    );
+
+    // GET /users/session Get account details
+    PHS_Api::register_api_route([
+        ['exact_match' => 'users', ],
+        ['exact_match' => 'session', ],
+    ],
+        [
+            'p'  => 'accounts',
+            'c'  => 'index_api',
+            'a'  => 'session',
+            'ad' => 'api',
+        ],
+        [
+            'authentication_required' => true,
+            'authentication_methods'  => [PHS_Api_base::AUTH_METHOD_BEARER, ],
+            'method'                  => 'get',
+            'name'                    => 'Session details using bearer authentication',
+            'description'             => 'Get logged in user session details using API calls with bearer authentication in headers',
         ]
     );
 

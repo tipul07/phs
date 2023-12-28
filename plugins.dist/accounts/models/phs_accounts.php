@@ -226,15 +226,21 @@ class PHS_Model_Accounts extends PHS_Model
         $this->reset_error();
 
         if (!($account_arr = $this->data_to_array($account_data))
-         || $this->is_deleted($account_arr)) {
+            || $this->is_deleted($account_arr)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
 
             return null;
         }
 
-        // Check account lockout policy..
+        // Check account lockout policy.
         if (($new_account = $this->_check_lockout_policy($account_arr))) {
             $account_arr = $new_account;
+        }
+
+        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
+            PHS_Logger::notice('PASSWORD Account #'.$account_arr['id'].': '.$account_arr['nick'].' wrong password.',
+                $accounts_plugin::LOG_SECURITY);
         }
 
         return $account_arr;
@@ -2849,19 +2855,22 @@ class PHS_Model_Accounts extends PHS_Model
         $account_failed_count = $account_arr['failed_logins'] ?? 0;
 
         $extra_sql = '';
-        if ($account_failed_count + 1 >= $lockout_failed_count) {
+        if (!$this->is_locked($account_arr)
+            && !empty($account_arr['locked_date'])) {
+            // Reset account locking even if we have a password failure as locking time passed
+            $account_failed_count = 0;
+            $extra_sql = 'failed_logins = 1, locked_date = NULL';
+        } elseif ($account_failed_count + 1 >= $lockout_failed_count) {
             $lockout_period_minutes = $settings_arr['lockout_period_minutes'] ?? 15;
 
             $locked_date = date(self::DATETIME_DB, (time() + $lockout_period_minutes * 60));
 
-            $extra_sql = ', locked_date = \''.$locked_date.'\'';
+            $extra_sql = 'failed_logins = failed_logins + 1, locked_date = \''.$locked_date.'\'';
             $account_arr['locked_date'] = $locked_date;
         }
 
         // Low level query, so we don't trigger other actions...
-        db_query('UPDATE `'.$users_table.'` SET failed_logins = failed_logins + 1'
-                  .$extra_sql
-                  .' WHERE id = \''.$account_arr['id'].'\'',
+        db_query('UPDATE `'.$users_table.'` SET '.$extra_sql.' WHERE id = \''.$account_arr['id'].'\'',
             $flow_arr['db_connection']);
 
         $account_arr['failed_logins'] = $account_failed_count + 1;

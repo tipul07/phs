@@ -1798,7 +1798,7 @@ class PHS_Paginator extends PHS_Registry
                 $cell_callback_params['extra_callback_params'] = (!empty($column_arr['extra_callback_params']) ? $column_arr['extra_callback_params'] : false);
 
                 if (($cell_content = @call_user_func($column_arr['display_callback'], $cell_callback_params)) === false
-                 || $cell_content === null) {
+                    || $cell_content === null) {
                     $cell_content = $column_arr['invalid_value'] ?? '!'.$this::_t('Render cell call failed.').'!';
                 }
             }
@@ -1806,11 +1806,11 @@ class PHS_Paginator extends PHS_Registry
 
         // Allow display_callback parameter on checkbox fields...
         if ($render_params['for_scope'] !== PHS_Scope::SCOPE_API
-        && $this->get_checkbox_name_for_column($column_arr)) {
+            && $this->get_checkbox_name_for_column($column_arr)) {
             if (empty($field_name)
-             || !isset($record_arr[$field_name])
-             || !($field_details = $model_obj->table_field_details($field_name))
-             || !is_array($field_details)) {
+                || !isset($record_arr[$field_name])
+                || !($field_details = $model_obj->table_field_details($field_name))
+                || !is_array($field_details)) {
                 $field_details = false;
             }
 
@@ -1819,16 +1819,15 @@ class PHS_Paginator extends PHS_Registry
             $cell_callback_params['preset_content'] = $cell_content ?? '';
 
             if (($checkbox_content = $this->display_checkbox_column($cell_callback_params)) !== false
-            && $checkbox_content !== null && is_string($checkbox_content)) {
+                && $checkbox_content !== null
+                && is_string($checkbox_content)) {
                 $cell_content = $checkbox_content;
             }
         }
 
-        // if( empty( $cell_content )
-        if ($cell_content === null) {
-            if ($column_arr['invalid_value'] !== null) {
-                $cell_content = $column_arr['invalid_value'];
-            }
+        if (($cell_content === null)
+            && $column_arr['invalid_value'] !== null) {
+            $cell_content = $column_arr['invalid_value'];
         }
 
         return $cell_content;
