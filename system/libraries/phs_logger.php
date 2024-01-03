@@ -3,6 +3,7 @@ namespace phs\libraries;
 
 use phs\PHS;
 use phs\PHS_Scope;
+use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\events\generic\PHS_Event_Log;
 
 // ! Class which handles all logging in platform
@@ -11,10 +12,10 @@ class PHS_Logger extends PHS_Registry
     public const L_DEBUG = 1, L_INFO = 2, L_NOTICE = 3, L_WARNING = 4, L_ERROR = 5, L_CRITICAL = 6, L_ALERT = 7, L_EMERGENCY = 8;
 
     public const TYPE_MAINTENANCE = 'maintenance.log', TYPE_ERROR = 'errors.log', TYPE_DEBUG = 'debug.log', TYPE_INFO = 'info.log',
-    TYPE_BACKGROUND = 'background.log', TYPE_AJAX = 'ajax.log', TYPE_AGENT = 'agent.log', TYPE_API = 'api.log',
-    TYPE_TESTS = 'phs_tests.log', TYPE_CLI = 'phs_cli.log', TYPE_REMOTE = 'phs_remote.log',
-    // these constants are used only to tell log_channels() method it should log redefined sets of channels
-    TYPE_DEF_ALL = 'log_all', TYPE_DEF_DEBUG = 'log_debug', TYPE_DEF_PRODUCTION = 'log_production';
+        TYPE_BACKGROUND = 'background.log', TYPE_AJAX = 'ajax.log', TYPE_AGENT = 'agent.log', TYPE_API = 'api.log',
+        TYPE_TESTS = 'phs_tests.log', TYPE_CLI = 'phs_cli.log', TYPE_REMOTE = 'phs_remote.log',
+        // these constants are used only to tell log_channels() method it should log redefined sets of channels
+        TYPE_DEF_ALL = 'log_all', TYPE_DEF_DEBUG = 'log_debug', TYPE_DEF_PRODUCTION = 'log_production';
 
     /** @var array|array[] */
     protected static array $LEVELS_ARR = [
@@ -48,6 +49,11 @@ class PHS_Logger extends PHS_Registry
 
     /** @var bool|string */
     private static $_request_identifier = false;
+
+    private static ?PHS_Plugin_Admin $admin_plugin = null;
+
+    /** @var null|bool|array */
+    private static $logged_in_user = null;
 
     /**
      * @param false|string $lang
@@ -646,6 +652,10 @@ class PHS_Logger extends PHS_Registry
             return false;
         }
 
+        if( self::$admin_plugin === null ) {
+            self::$admin_plugin = PHS_Plugin_Admin::get_instance();
+        }
+
         $log_file = $logs_dir.$channel;
 
         if (substr($channel, -4) !== '.log') {
@@ -672,8 +682,8 @@ class PHS_Logger extends PHS_Registry
             'request_ip'         => $request_ip,
             'str'                => $str,
         ]))
-            && !($output_arr = $event_obj->get_output())) {
-            $stop_logging = (!empty($output_arr['stop_logging']));
+            && ($output_arr = $event_obj->get_output())) {
+            $stop_logging = !empty($output_arr['stop_logging']);
             if (!empty($output_arr['request_ip'])) {
                 $request_ip = $output_arr['request_ip'];
             }
@@ -684,6 +694,18 @@ class PHS_Logger extends PHS_Registry
 
         if ($stop_logging) {
             return true;
+        }
+
+        if(self::$admin_plugin ) {
+            if( self::$admin_plugin->is_log_rotation_enabled()
+                && ($new_log_file = self::_get_rotation_log_filename($log_file))) {
+                $log_file = $new_log_file;
+            }
+
+            if(empty(self::$logged_in_user)
+               && self::$admin_plugin->log_add_loggedin_user()) {
+                self::$logged_in_user = PHS::user_logged_in();
+            }
         }
 
         @clearstatcache();
@@ -708,12 +730,49 @@ class PHS_Logger extends PHS_Registry
             .($log_details['log_title'] ?? '   ').' | '
             .(!empty(self::$_request_identifier) ? str_pad(self::$_request_identifier, 15, ' ', STR_PAD_LEFT).' | ' : '')
             .str_pad($request_ip, 15, ' ', STR_PAD_LEFT).' | '
-            .$str."\n");
+            .'#'.(self::$logged_in_user['id'] ?? 0).' '.(self::$logged_in_user['nick'] ?? '(System)')."\n"
+            .$str
+            ."\n\n"
+        );
 
         @fflush($fil);
         @fclose($fil);
 
         return true;
+    }
+
+    private static function _get_rotation_log_filename(string $log_file) : string
+    {
+        if (!($rotate_suffix = self::_get_rotation_log_file_suffix())) {
+            return $log_file;
+        }
+
+        if( substr($log_file, -4 ) === '.log' ) {
+            $log_file = substr($log_file, 0, -4);
+        }
+
+        return $log_file.'_'.$rotate_suffix.'.log';
+    }
+
+    private static function _get_rotation_log_file_suffix() : ?string
+    {
+        if (!self::$admin_plugin
+            || !($policy = self::$admin_plugin->log_rotation_policy())) {
+            return null;
+        }
+
+        switch ( $policy ) {
+            case self::$admin_plugin::LOG_ROTATE_DAILY:
+                return date('Ymd');
+            case self::$admin_plugin::LOG_ROTATE_WEEKELY:
+                return date('YW');
+            case self::$admin_plugin::LOG_ROTATE_MONTHLY:
+                return date('Ym');
+            case self::$admin_plugin::LOG_ROTATE_YEARLY:
+                return date('Y');
+        };
+
+        return null;
     }
 
     private static function _regenerate_request_identifier() : void
