@@ -21,8 +21,14 @@ class PHS_Plugin_Admin extends PHS_Plugin
 
     public const EXPORT_TO_FILE = 1, EXPORT_TO_OUTPUT = 2, EXPORT_TO_BROWSER = 3;
 
-    /** @var bool|\phs\plugins\accounts\models\PHS_Model_Accounts */
-    private $_accounts_model = false;
+    public const LOG_ROTATE_DAILY = 1, LOG_ROTATE_WEEKELY = 2, LOG_ROTATE_MONTHLY = 3, LOG_ROTATE_YEARLY = 4;
+
+    private static array $LOG_ROTATE_ARR = [
+        self::LOG_ROTATE_DAILY   => 'Daily',
+        self::LOG_ROTATE_WEEKELY    => 'Weekly',
+        self::LOG_ROTATE_MONTHLY  => 'Monthly',
+        self::LOG_ROTATE_YEARLY  => 'Yearly',
+    ];
 
     /**
      * @inheritdoc
@@ -161,6 +167,25 @@ class PHS_Plugin_Admin extends PHS_Plugin
                     ],
                 ],
             ],
+            'logs_settings_group' => [
+                'display_name' => $this->_pt('System Logs Settings'),
+                'display_hint' => $this->_pt('Settings related to how system should handle logs'),
+                'group_fields' => [
+                    'logs_rotation_enabled' => [
+                        'display_name' => 'Logs rotation enabled',
+                        'display_hint' => 'Tells if system should rotate log files',
+                        'type'         => PHS_params::T_BOOL,
+                        'default'      => false,
+                    ],
+                    'log_rotate_policy' => [
+                        'display_name' => 'Log rotate policy',
+                        'display_hint' => 'How should system handle log files rotation (if enabled)',
+                        'type'         => PHS_params::T_INT,
+                        'values_arr'   => self::$LOG_ROTATE_ARR,
+                        'default'      => self::LOG_ROTATE_MONTHLY,
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -208,6 +233,18 @@ class PHS_Plugin_Admin extends PHS_Plugin
     {
         return ($settings_arr = $this->get_plugin_settings())
                && !empty($settings_arr['monitor_api_full_response_body']);
+    }
+
+    public function is_log_rotation_enabled() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['logs_rotation_enabled']);
+    }
+
+    public function log_rotation_policy() : int
+    {
+        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_rotate_policy'])
+            ?(int)$settings_arr['log_rotate_policy']
+            :0;
     }
 
     /**
@@ -396,6 +433,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
         return $return_arr;
     }
 
+    //region Can_* section
     /**
      * @param null|int|array $user_data
      *
@@ -585,6 +623,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
     {
         return can(PHS_Roles::ROLEU_TENANTS_MANAGE, null, $user_data);
     }
+    //endregion Can_* section
 
     /**
      * @param bool $include_core
@@ -660,7 +699,13 @@ class PHS_Plugin_Admin extends PHS_Plugin
 
         return $settings_arr;
     }
+    //
+    // endregion Import plugin settings
+    //
 
+    //
+    // region Export plugin settings
+    //
     /**
      * @param string $crypting_key
      * @param string[] $plugins_arr
@@ -670,16 +715,14 @@ class PHS_Plugin_Admin extends PHS_Plugin
      */
     public function export_plugin_settings(string $crypting_key, array $plugins_arr = [], ?array $export_params = null) : bool
     {
-        if (empty($export_params)) {
-            $export_params = [];
-        }
+        $export_params ??= [];
 
         if (empty($export_params['export_file_dir'])) {
             $export_params['export_file_dir'] = '';
         }
 
         if (empty($export_params['export_to'])
-         || !self::valid_export_to($export_params['export_to'])) {
+            || !self::valid_export_to($export_params['export_to'])) {
             $export_params['export_to'] = self::EXPORT_TO_BROWSER;
         }
 
@@ -968,20 +1011,6 @@ class PHS_Plugin_Admin extends PHS_Plugin
         return true;
     }
 
-    private function _load_dependencies() : bool
-    {
-        $this->reset_error();
-
-        if (empty($this->_accounts_model)
-         && !($this->_accounts_model = PHS_Model_Accounts::get_instance())) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
     /**
      * @param string $model_name
      * @param null|string $plugin
@@ -1011,19 +1040,13 @@ class PHS_Plugin_Admin extends PHS_Plugin
             'settings'    => $settings_arr,
         ];
     }
-    //
-    // endregion Import plugin settings
-    //
 
-    //
-    // region Export plugin settings
-    //
     /**
      * @param int $export_to
      *
      * @return bool
      */
-    public static function valid_export_to($export_to)
+    public static function valid_export_to(int $export_to): bool
     {
         return !empty($export_to)
                 && in_array($export_to, [self::EXPORT_TO_FILE, self::EXPORT_TO_OUTPUT, self::EXPORT_TO_BROWSER], true);
