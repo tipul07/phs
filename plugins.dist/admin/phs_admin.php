@@ -171,6 +171,12 @@ class PHS_Plugin_Admin extends PHS_Plugin
                 'display_name' => $this->_pt('System Logs Settings'),
                 'display_hint' => $this->_pt('Settings related to how system should handle logs'),
                 'group_fields' => [
+                    'log_add_loggedin_user' => [
+                        'display_name' => 'Log logged-in user',
+                        'display_hint' => 'Should logged-in user be added in generated logs?',
+                        'type'         => PHS_params::T_BOOL,
+                        'default'      => false,
+                    ],
                     'logs_rotation_enabled' => [
                         'display_name' => 'Logs rotation enabled',
                         'display_hint' => 'Tells if system should rotate log files',
@@ -238,6 +244,11 @@ class PHS_Plugin_Admin extends PHS_Plugin
     public function is_log_rotation_enabled() : bool
     {
         return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['logs_rotation_enabled']);
+    }
+
+    public function log_add_loggedin_user() : bool
+    {
+        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_add_loggedin_user']);
     }
 
     public function log_rotation_policy() : int

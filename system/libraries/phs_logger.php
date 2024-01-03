@@ -52,6 +52,9 @@ class PHS_Logger extends PHS_Registry
 
     private static ?PHS_Plugin_Admin $admin_plugin = null;
 
+    /** @var null|bool|array */
+    private static $logged_in_user = null;
+
     /**
      * @param false|string $lang
      *
@@ -693,10 +696,16 @@ class PHS_Logger extends PHS_Registry
             return true;
         }
 
-        if(self::$admin_plugin
-           && self::$admin_plugin->is_log_rotation_enabled()
-           && ($new_log_file = self::_get_rotation_log_filename($log_file))) {
-            $log_file = $new_log_file;
+        if(self::$admin_plugin ) {
+            if( self::$admin_plugin->is_log_rotation_enabled()
+                && ($new_log_file = self::_get_rotation_log_filename($log_file))) {
+                $log_file = $new_log_file;
+            }
+
+            if(empty(self::$logged_in_user)
+               && self::$admin_plugin->log_add_loggedin_user()) {
+                self::$logged_in_user = PHS::user_logged_in();
+            }
         }
 
         @clearstatcache();
@@ -721,7 +730,10 @@ class PHS_Logger extends PHS_Registry
             .($log_details['log_title'] ?? '   ').' | '
             .(!empty(self::$_request_identifier) ? str_pad(self::$_request_identifier, 15, ' ', STR_PAD_LEFT).' | ' : '')
             .str_pad($request_ip, 15, ' ', STR_PAD_LEFT).' | '
-            .$str."\n");
+            .'#'.(self::$logged_in_user['id'] ?? 0).' '.(self::$logged_in_user['nick'] ?? '(System)')."\n"
+            .$str
+            ."\n\n"
+        );
 
         @fflush($fil);
         @fclose($fil);
