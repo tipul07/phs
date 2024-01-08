@@ -2854,7 +2854,7 @@ class PHS_Model_Accounts extends PHS_Model
         $lockout_failed_count = $settings_arr['lockout_failed_count'] ?? 5;
         $account_failed_count = $account_arr['failed_logins'] ?? 0;
 
-        $extra_sql = '';
+        $extra_sql = 'failed_logins = failed_logins + 1';
         if (!$this->is_locked($account_arr)
             && !empty($account_arr['locked_date'])) {
             // Reset account locking even if we have a password failure as locking time passed
