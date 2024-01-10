@@ -311,7 +311,7 @@ class PHS_Logger extends PHS_Registry
     public static function get_file_header_arr() : array
     {
         return [
-            '          Date          | Lvl |    Identifier   |      IP         |  Log',
+            '          Date          | Lvl |    Identifier   |      IP         |  Account (if available)',
             '------------------------+-----+-----------------+-----------------+---------------------------------------------------',
         ];
     }
