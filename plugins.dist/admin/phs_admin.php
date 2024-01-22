@@ -25,8 +25,8 @@ class PHS_Plugin_Admin extends PHS_Plugin
 
     private static array $LOG_ROTATE_ARR = [
         self::LOG_ROTATE_DAILY   => 'Daily',
-        self::LOG_ROTATE_WEEKELY    => 'Weekly',
-        self::LOG_ROTATE_MONTHLY  => 'Monthly',
+        self::LOG_ROTATE_WEEKELY => 'Weekly',
+        self::LOG_ROTATE_MONTHLY => 'Monthly',
         self::LOG_ROTATE_YEARLY  => 'Yearly',
     ];
 
@@ -254,8 +254,8 @@ class PHS_Plugin_Admin extends PHS_Plugin
     public function log_rotation_policy() : int
     {
         return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_rotate_policy'])
-            ?(int)$settings_arr['log_rotate_policy']
-            :0;
+            ? (int)$settings_arr['log_rotate_policy']
+            : 0;
     }
 
     /**
@@ -444,7 +444,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
         return $return_arr;
     }
 
-    //region Can_* section
+    // region Can_* section
     /**
      * @param null|int|array $user_data
      *
@@ -634,7 +634,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
     {
         return can(PHS_Roles::ROLEU_TENANTS_MANAGE, null, $user_data);
     }
-    //endregion Can_* section
+    // endregion Can_* section
 
     /**
      * @param bool $include_core
@@ -1057,7 +1057,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
      *
      * @return bool
      */
-    public static function valid_export_to(int $export_to): bool
+    public static function valid_export_to(int $export_to) : bool
     {
         return !empty($export_to)
                 && in_array($export_to, [self::EXPORT_TO_FILE, self::EXPORT_TO_OUTPUT, self::EXPORT_TO_BROWSER], true);
