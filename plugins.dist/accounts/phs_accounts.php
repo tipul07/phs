@@ -1141,8 +1141,9 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         $hook_args['session_db_data'] = $online_db_details;
         $hook_args['user_db_data'] = $user_db_details;
 
-        // Password expiration (if required)...
-        if (!($hook_args['password_expired_data'] = $accounts_model->is_password_expired($user_db_details))) {
+        // Password expiration (if required)... But only when not logged into account as admin
+        if (!empty($online_db_details['auid'])
+            || !($hook_args['password_expired_data'] = $accounts_model->is_password_expired($user_db_details))) {
             $hook_args['password_expired_data'] = PHS_Hooks::default_password_expiration_data();
         }
         // END Password expiration (if required)...
