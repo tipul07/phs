@@ -12,10 +12,10 @@ class PHS_Logger extends PHS_Registry
     public const L_DEBUG = 1, L_INFO = 2, L_NOTICE = 3, L_WARNING = 4, L_ERROR = 5, L_CRITICAL = 6, L_ALERT = 7, L_EMERGENCY = 8;
 
     public const TYPE_MAINTENANCE = 'maintenance.log', TYPE_ERROR = 'errors.log', TYPE_DEBUG = 'debug.log', TYPE_INFO = 'info.log',
-        TYPE_BACKGROUND = 'background.log', TYPE_AJAX = 'ajax.log', TYPE_AGENT = 'agent.log', TYPE_API = 'api.log',
-        TYPE_TESTS = 'phs_tests.log', TYPE_CLI = 'phs_cli.log', TYPE_REMOTE = 'phs_remote.log',
-        // these constants are used only to tell log_channels() method it should log redefined sets of channels
-        TYPE_DEF_ALL = 'log_all', TYPE_DEF_DEBUG = 'log_debug', TYPE_DEF_PRODUCTION = 'log_production';
+    TYPE_BACKGROUND = 'background.log', TYPE_AJAX = 'ajax.log', TYPE_AGENT = 'agent.log', TYPE_API = 'api.log',
+    TYPE_TESTS = 'phs_tests.log', TYPE_CLI = 'phs_cli.log', TYPE_REMOTE = 'phs_remote.log',
+    // these constants are used only to tell log_channels() method it should log redefined sets of channels
+    TYPE_DEF_ALL = 'log_all', TYPE_DEF_DEBUG = 'log_debug', TYPE_DEF_PRODUCTION = 'log_production';
 
     /** @var array|array[] */
     protected static array $LEVELS_ARR = [
@@ -53,7 +53,7 @@ class PHS_Logger extends PHS_Registry
     private static ?PHS_Plugin_Admin $admin_plugin = null;
 
     /** @var null|bool|array */
-    private static $logged_in_user = null;
+    private static $logged_in_user;
 
     /**
      * @param false|string $lang
@@ -311,7 +311,7 @@ class PHS_Logger extends PHS_Registry
     public static function get_file_header_arr() : array
     {
         return [
-            '          Date          | Lvl |    Identifier   |      IP         |  Log',
+            '          Date          | Lvl |    Identifier   |      IP         |  Account (if available)',
             '------------------------+-----+-----------------+-----------------+---------------------------------------------------',
         ];
     }
@@ -652,7 +652,7 @@ class PHS_Logger extends PHS_Registry
             return false;
         }
 
-        if( self::$admin_plugin === null ) {
+        if (self::$admin_plugin === null) {
             self::$admin_plugin = PHS_Plugin_Admin::get_instance();
         }
 
@@ -696,13 +696,13 @@ class PHS_Logger extends PHS_Registry
             return true;
         }
 
-        if(self::$admin_plugin ) {
-            if( self::$admin_plugin->is_log_rotation_enabled()
+        if (self::$admin_plugin) {
+            if (self::$admin_plugin->is_log_rotation_enabled()
                 && ($new_log_file = self::_get_rotation_log_filename($log_file))) {
                 $log_file = $new_log_file;
             }
 
-            if(empty(self::$logged_in_user)
+            if (empty(self::$logged_in_user)
                && self::$admin_plugin->log_add_loggedin_user()) {
                 self::$logged_in_user = PHS::user_logged_in();
             }
@@ -747,7 +747,7 @@ class PHS_Logger extends PHS_Registry
             return $log_file;
         }
 
-        if( substr($log_file, -4 ) === '.log' ) {
+        if (substr($log_file, -4) === '.log') {
             $log_file = substr($log_file, 0, -4);
         }
 
@@ -761,7 +761,7 @@ class PHS_Logger extends PHS_Registry
             return null;
         }
 
-        switch ( $policy ) {
+        switch ($policy) {
             case self::$admin_plugin::LOG_ROTATE_DAILY:
                 return date('Ymd');
             case self::$admin_plugin::LOG_ROTATE_WEEKELY:
@@ -770,7 +770,7 @@ class PHS_Logger extends PHS_Registry
                 return date('Ym');
             case self::$admin_plugin::LOG_ROTATE_YEARLY:
                 return date('Y');
-        };
+        }
 
         return null;
     }

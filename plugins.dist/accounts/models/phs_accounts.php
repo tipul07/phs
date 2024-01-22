@@ -1297,9 +1297,9 @@ class PHS_Model_Accounts extends PHS_Model
      * @param int|array $account_data
      * @param bool|array $params
      *
-     * @return array|bool|mixed
+     * @return null|array
      */
-    public function activate_account($account_data, $params = false)
+    public function activate_account($account_data, $params = false) : ?array
     {
         $this->reset_error();
 
@@ -1314,7 +1314,7 @@ class PHS_Model_Accounts extends PHS_Model
          || !($account_arr = $this->data_to_array($account_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Unknown account.'));
 
-            return false;
+            return null;
         }
 
         if (empty($params) || !is_array($params)) {
