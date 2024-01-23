@@ -41,7 +41,7 @@ class PHS_Language extends PHS_Error
     {
         /** @var PHS_Plugin|PHS_Library $this */
         if ((!($this instanceof PHS_Instantiable) && !($this instanceof PHS_Library))
-         || !($plugin_obj = $this->get_plugin_instance())) {
+            || !($plugin_obj = $this->get_plugin_instance())) {
             return self::_t(func_get_args());
         }
 
@@ -59,7 +59,7 @@ class PHS_Language extends PHS_Error
      *
      * @return PHS_Language_Container
      */
-    public static function language_container() : ?PHS_Language_Container
+    public static function language_container() : PHS_Language_Container
     {
         if (empty(self::$lang_callable_obj)) {
             self::$lang_callable_obj = new PHS_Language_Container();
@@ -279,7 +279,7 @@ class PHS_Language extends PHS_Error
             return false;
         }
 
-        return $return_arr;
+        return true;
     }
 
     public static function get_language_file_header_arr() : array

@@ -5,7 +5,6 @@ use phs\PHS;
 use phs\PHS_Db;
 use phs\PHS_Agent;
 use phs\PHS_Maintenance;
-use phs\libraries\PHS_Roles;
 use phs\system\core\views\PHS_View;
 use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\models\PHS_Model_Agent_jobs;
@@ -239,7 +238,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     public function include_plugin_language_files() : void
     {
         if (!($current_language = self::get_current_language())
-         || !empty($this->_custom_lang_files_included[$current_language])) {
+            || !empty($this->_custom_lang_files_included[$current_language])) {
             return;
         }
 
@@ -257,13 +256,13 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     /**
      * @param bool $slash_ended
      *
-     * @return bool|string
+     * @return string
      */
-    final public function get_plugin_libraries_www(bool $slash_ended = true)
+    final public function get_plugin_libraries_www(bool $slash_ended = true): string
     {
         if ($this->instance_is_core()
          || !($prefix = $this->instance_plugin_www())) {
-            return false;
+            return '';
         }
 
         return $prefix.self::LIBRARIES_DIR.($slash_ended ? '/' : '');
@@ -285,106 +284,92 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
     /**
      * @param string $library
-     * @param bool|array $params
+     * @param null|array $params
      *
-     * @return bool|string
+     * @return string
      */
-    public function get_library_full_path($library, $params = false)
+    public function get_library_full_path(string $library, array $params = []): string
     {
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if (empty($params['path_in_lib_dir'])) {
-            $params['path_in_lib_dir'] = '';
-        } else {
-            $params['path_in_lib_dir'] = trim(str_replace('.', '', $params['path_in_lib_dir']), '\\/').'/';
-        }
+        $params['path_in_lib_dir'] = $this->_prepare_path_in_lib_dir($params['path_in_lib_dir'] ??  '');
 
         $library = self::safe_escape_library_name($library);
         if (empty($library)
-         || !($dir_path = $this->get_plugin_libraries_path(false))
-         || !@is_dir($dir_path.(!empty($params['path_in_lib_dir']) ? '/'.$params['path_in_lib_dir'] : ''))
-         || !@file_exists($dir_path.'/'.$params['path_in_lib_dir'].$library.'.php')) {
-            return false;
+            || !($dir_path = $this->get_plugin_libraries_path(false))
+            || !@is_dir($dir_path.(!empty($params['path_in_lib_dir']) ? '/'.$params['path_in_lib_dir'] : ''))
+            || !@file_exists($dir_path.'/'.$params['path_in_lib_dir'].$library.'.php')) {
+            return '';
         }
 
         return $dir_path.'/'.$params['path_in_lib_dir'].$library.'.php';
     }
 
     /**
-     * @param string $library
-     * @param bool|array $params
+     * @param  string  $library
+     * @param null|array $params
      *
-     * @return bool|string
+     * @return null|string
      */
-    public function get_library_full_www($library, $params = false)
+    public function get_library_full_www(string $library, array $params = []): string
     {
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if (empty($params['path_in_lib_dir'])) {
-            $params['path_in_lib_dir'] = '';
-        } else {
-            $params['path_in_lib_dir'] = trim(str_replace('.', '', $params['path_in_lib_dir']), '\\/').'/';
-        }
+        $params['path_in_lib_dir'] = $this->_prepare_path_in_lib_dir($params['path_in_lib_dir'] ??  '');
 
         $library = self::safe_escape_library_name($library);
         if (empty($library)
          || !($dir_path = $this->get_plugin_libraries_path(false))
          || !@is_dir($dir_path.(!empty($params['path_in_lib_dir']) ? '/'.$params['path_in_lib_dir'] : ''))
          || !@file_exists($dir_path.'/'.$params['path_in_lib_dir'].$library.'.php')) {
-            return false;
+            return '';
         }
 
         return $this->get_plugin_libraries_www(true).$params['path_in_lib_dir'].$library.'.php';
     }
 
+    private function _prepare_path_in_lib_dir(string $path): string
+    {
+        if($path === '') {
+            return '';
+        }
+
+        return trim(str_replace('.', '', $path), '\\/').'/';
+    }
+
     /**
      * @param string $library
-     * @param bool|array $params
+     * @param null|array $params
      *
-     * @return bool|mixed|PHS_Library
+     * @return null|PHS_Library
      */
-    public function load_library(string $library, $params = false)
+    public function load_library(string $library, array $params = null): ?PHS_Library
     {
         $this->reset_error();
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
+        $params ??= [];
 
         // We assume $library represents class name without namespace (otherwise it won't be a valid library name)
         // so class name is from "root" namespace
         if (empty($params['full_class_name'])) {
             $params['full_class_name'] = '\\'.ltrim($library, '\\');
         }
-        if (empty($params['init_params'])) {
-            $params['init_params'] = false;
-        }
-        if (empty($params['as_singleton'])) {
-            $params['as_singleton'] = true;
-        }
-        if (empty($params['path_in_lib_dir'])) {
-            $params['path_in_lib_dir'] = '';
-        }
+
+        $params['init_params'] = !empty($params['init_params']);
+        $params['as_singleton'] = !empty($params['as_singleton']);
+        $params['path_in_lib_dir'] ??= '';
 
         if (!($library = self::safe_escape_library_name($library))) {
             $this->set_error(self::ERR_LIBRARY, self::_t('Couldn\'t load library from plugin [%s]', $this->instance_plugin_name()));
 
-            return false;
+            return null;
         }
 
         if (!empty($params['as_singleton'])
-         && !empty($this->_libraries_instances[$library])) {
+            && !empty($this->_libraries_instances[$library])) {
             return $this->_libraries_instances[$library];
         }
 
         if (!($file_path = $this->get_library_full_path($library, ['path_in_lib_dir' => $params['path_in_lib_dir']]))) {
             $this->set_error(self::ERR_LIBRARY, self::_t('Couldn\'t load library [%s] from plugin [%s]', $library, $this->instance_plugin_name()));
 
-            return false;
+            return null;
         }
 
         ob_start();
@@ -394,7 +379,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         if (!@class_exists($params['full_class_name'], false)) {
             $this->set_error(self::ERR_LIBRARY, self::_t('Couldn\'t instantiate library class for library [%s] from plugin [%s]', $library, $this->instance_plugin_name()));
 
-            return false;
+            return null;
         }
 
         /** @var \phs\libraries\PHS_Library $library_instance */
@@ -407,13 +392,13 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         if (!($library_instance instanceof PHS_Library)) {
             $this->set_error(self::ERR_LIBRARY, self::_t('Library [%s] from plugin [%s] is not a PHS library.', $library, $this->instance_plugin_name()));
 
-            return false;
+            return null;
         }
 
         if (!$library_instance->parent_plugin($this)) {
             $this->set_error(self::ERR_LIBRARY, self::_t('Library [%s] from plugin [%s] couldn\'t set plugin parent.', $library, $this->instance_plugin_name()));
 
-            return false;
+            return null;
         }
 
         $location_details = $library_instance::get_library_default_location_paths();
@@ -424,7 +409,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         if (!$library_instance->set_library_location_paths($location_details)) {
             $this->set_error(self::ERR_LIBRARY, self::_t('Library [%s] from plugin [%s] couldn\'t set location paths.', $library, $this->instance_plugin_name()));
 
-            return false;
+            return null;
         }
 
         if (!empty($params['as_singleton'])) {
@@ -434,7 +419,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $library_instance;
     }
 
-    public function email_template_resource_from_file($file) : array
+    public function email_template_resource_from_file(string $file) : array
     {
         if (!($init_arr = $this->instance_plugin_themes_email_templates_pairs())) {
             $init_arr = [];
@@ -453,7 +438,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $template_arr;
     }
 
-    public function template_resource_from_file($file) : array
+    public function template_resource_from_file(string $file) : array
     {
         return [
             'file'        => $file,
