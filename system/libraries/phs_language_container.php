@@ -206,7 +206,7 @@ class PHS_Language_Container extends PHS_Error
 
         $dir = rtrim(PHS::from_relative_path(PHS::relative_path($dir)), '/\\');
         if (empty($dir)
-         || !@is_dir($dir) || !@is_readable($dir)) {
+            || !@is_dir($dir) || !@is_readable($dir)) {
             return false;
         }
 
@@ -233,7 +233,7 @@ class PHS_Language_Container extends PHS_Error
 
         $lang = self::prepare_lang_index($lang);
         if (empty($lang)
-         || !($lang = self::st_valid_language($lang))) {
+            || !($lang = self::st_valid_language($lang))) {
             $this->set_error(self::ERR_LANGUAGE_LOAD, 'Language not defined.');
 
             return false;
@@ -282,12 +282,6 @@ class PHS_Language_Container extends PHS_Error
         if (empty($lang)
          || !($lang = self::st_valid_language($lang))) {
             $this->set_error(self::ERR_LANGUAGE_LOAD, 'Language not defined.');
-
-            return false;
-        }
-
-        if (!is_array($files_arr)) {
-            $this->set_error(self::ERR_LANGUAGE_DEFINITION, 'You should provide an array of files to be added to language ['.$lang.'].');
 
             return false;
         }
@@ -527,8 +521,8 @@ class PHS_Language_Container extends PHS_Error
             $buf = rtrim($buf, "\r\n");
 
             if (!($csv_line = @str_getcsv($buf, $csv_settings['columns_delimiter'], $csv_settings['columns_enclosure'], $csv_settings['enclosure_escape']))
-             || !is_array($csv_line)
-             || count($csv_line) !== 2) {
+                || !is_array($csv_line)
+                || count($csv_line) !== 2) {
                 continue;
             }
 

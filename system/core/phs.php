@@ -736,12 +736,12 @@ final class PHS extends PHS_Registry
     /**
      * @param bool $force_https
      *
-     * @return bool|string
+     * @return string
      */
-    public static function get_base_url(bool $force_https = false)
+    public static function get_base_url(bool $force_https = false) : string
     {
         if (!empty($force_https)
-         || self::is_secured_request()) {
+            || self::is_secured_request()) {
             // if domain settings are set
             if (defined('PHS_HTTPS')) {
                 return PHS_HTTPS;
@@ -763,7 +763,7 @@ final class PHS extends PHS_Registry
             }
         }
 
-        return false;
+        return '';
     }
 
     /**
@@ -1881,7 +1881,7 @@ final class PHS extends PHS_Registry
         return $url;
     }
 
-    public static function from_relative_url($url, $force_https = false)
+    public static function from_relative_url(string $url, bool $force_https = false) : string
     {
         if (($base_url = self::get_base_url($force_https))
          && strpos($url, $base_url) === 0) {
@@ -1891,10 +1891,10 @@ final class PHS extends PHS_Registry
         return $base_url.$url;
     }
 
-    public static function relative_path($path)
+    public static function relative_path(string $path) : string
     {
         if (($base_len = strlen(PHS_PATH))
-         && strpos($path, PHS_PATH) === 0) {
+            && strpos($path, PHS_PATH) === 0) {
             return substr($path, $base_len);
         }
 
