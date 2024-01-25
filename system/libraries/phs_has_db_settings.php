@@ -1029,6 +1029,10 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         if ($is_post) {
             if (isset($form_data[$field_name])) {
                 $field_value = $form_data[$field_name];
+            } elseif ($field_details['input_type'] === self::INPUT_TYPE_ONE_OR_MORE_MULTISELECT) {
+                if (!is_array(($field_value = $default_settings[$field_name] ?? []))) {
+                    $field_value = [];
+                }
             }
         } elseif ($field_for_tenant) {
             $field_value = $tenant_settings[$field_name] ?? $db_settings[$field_name] ?? $default_settings[$field_name] ?? null;

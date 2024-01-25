@@ -258,7 +258,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      *
      * @return string
      */
-    final public function get_plugin_libraries_www(bool $slash_ended = true): string
+    final public function get_plugin_libraries_www(bool $slash_ended = true) : string
     {
         if ($this->instance_is_core()
          || !($prefix = $this->instance_plugin_www())) {
@@ -288,9 +288,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      *
      * @return string
      */
-    public function get_library_full_path(string $library, array $params = []): string
+    public function get_library_full_path(string $library, array $params = []) : string
     {
-        $params['path_in_lib_dir'] = $this->_prepare_path_in_lib_dir($params['path_in_lib_dir'] ??  '');
+        $params['path_in_lib_dir'] = $this->_prepare_path_in_lib_dir($params['path_in_lib_dir'] ?? '');
 
         $library = self::safe_escape_library_name($library);
         if (empty($library)
@@ -304,14 +304,14 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     }
 
     /**
-     * @param  string  $library
+     * @param string $library
      * @param null|array $params
      *
      * @return null|string
      */
-    public function get_library_full_www(string $library, array $params = []): string
+    public function get_library_full_www(string $library, array $params = []) : string
     {
-        $params['path_in_lib_dir'] = $this->_prepare_path_in_lib_dir($params['path_in_lib_dir'] ??  '');
+        $params['path_in_lib_dir'] = $this->_prepare_path_in_lib_dir($params['path_in_lib_dir'] ?? '');
 
         $library = self::safe_escape_library_name($library);
         if (empty($library)
@@ -324,22 +324,13 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $this->get_plugin_libraries_www(true).$params['path_in_lib_dir'].$library.'.php';
     }
 
-    private function _prepare_path_in_lib_dir(string $path): string
-    {
-        if($path === '') {
-            return '';
-        }
-
-        return trim(str_replace('.', '', $path), '\\/').'/';
-    }
-
     /**
      * @param string $library
      * @param null|array $params
      *
      * @return null|PHS_Library
      */
-    public function load_library(string $library, array $params = null): ?PHS_Library
+    public function load_library(string $library, ?array $params = null) : ?PHS_Library
     {
         $this->reset_error();
 
@@ -1697,6 +1688,15 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     protected function custom_after_update($old_version, $new_version)
     {
         return true;
+    }
+
+    private function _prepare_path_in_lib_dir(string $path) : string
+    {
+        if ($path === '') {
+            return '';
+        }
+
+        return trim(str_replace('.', '', $path), '\\/').'/';
     }
 
     public static function role_unit_structure()

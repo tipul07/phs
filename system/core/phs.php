@@ -738,7 +738,7 @@ final class PHS extends PHS_Registry
      *
      * @return string
      */
-    public static function get_base_url(bool $force_https = false): string
+    public static function get_base_url(bool $force_https = false) : string
     {
         if (!empty($force_https)
             || self::is_secured_request()) {
@@ -1881,7 +1881,7 @@ final class PHS extends PHS_Registry
         return $url;
     }
 
-    public static function from_relative_url(string $url, bool $force_https = false): string
+    public static function from_relative_url(string $url, bool $force_https = false) : string
     {
         if (($base_url = self::get_base_url($force_https))
          && strpos($url, $base_url) === 0) {
@@ -1891,7 +1891,7 @@ final class PHS extends PHS_Registry
         return $base_url.$url;
     }
 
-    public static function relative_path(string $path): string
+    public static function relative_path(string $path) : string
     {
         if (($base_len = strlen(PHS_PATH))
             && strpos($path, PHS_PATH) === 0) {
