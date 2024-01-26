@@ -165,6 +165,12 @@ class PHS_Plugin_Admin extends PHS_Plugin
                         'type'         => PHS_Params::T_BOOL,
                         'default'      => false,
                     ],
+                    'agent_jobs_allowance_interval' => [
+                        'display_name' => $this->_pt('Jobs allowance interval'),
+                        'display_hint' => $this->_pt('(seconds) When calculating next time agent job has to run, substract this time iterval. This should be big for slow servers. Crontab interval should be biger than this value!'),
+                        'type'         => PHS_Params::T_INT,
+                        'default'      => 300,
+                    ],
                 ],
             ],
             'logs_settings_group' => [
@@ -209,6 +215,13 @@ class PHS_Plugin_Admin extends PHS_Plugin
     {
         return ($settings_arr = $this->get_plugin_settings())
                && !empty($settings_arr['monitor_agent_jobs']);
+    }
+
+    public function agent_jobs_allowance_interval() : int
+    {
+        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['agent_jobs_allowance_interval'])
+            ? (int)$settings_arr['agent_jobs_allowance_interval']
+            : 60;
     }
 
     public function monitor_api_incoming_calls() : bool

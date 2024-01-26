@@ -293,6 +293,13 @@ class PHS_Model_Agent_jobs extends PHS_Model
     {
         $this->reset_error();
 
+        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
+        if (!($admin_plugin = PHS_Plugin_Admin::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
+
+            return null;
+        }
+
         $params ??= [];
         $params['last_error'] ??= null;
         $params['last_error_code'] ??= 0;
@@ -313,7 +320,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         // Remove one minute to be sure we're not at the limit with few seconds (time which took to bootstrap agent job)
         // One minute doesn't affect time unit at which scripts can run as linux crontab can run at minimum every minute
         if (!empty($job_arr['timed_seconds'])) {
-            $next_time += (int)$job_arr['timed_seconds'] - 60;
+            $next_time += (int)$job_arr['timed_seconds'] - $admin_plugin->agent_jobs_allowance_interval();
         }
 
         if (!($new_params = $this->_reset_job_parameters_on_stop($job_arr['params']))) {
@@ -332,10 +339,8 @@ class PHS_Model_Agent_jobs extends PHS_Model
             return null;
         }
 
-        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
         /** @var \phs\system\core\models\PHS_Model_Agent_jobs_monitor $jobs_monitor_model */
-        if (($admin_plugin = PHS_Plugin_Admin::get_instance())
-            && $admin_plugin->monitor_agent_jobs()
+        if ($admin_plugin->monitor_agent_jobs()
             && ($jobs_monitor_model = PHS_Model_Agent_jobs_monitor::get_instance())) {
             if (empty($params['last_error'])) {
                 if (!$jobs_monitor_model->job_success($job_arr)) {
