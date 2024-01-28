@@ -75,7 +75,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load required models.'));
 
@@ -130,7 +130,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load required models.'));
 
@@ -230,8 +230,8 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        /** @var \phs\plugins\mobileapi\models\PHS_Model_Api_online $online_model */
+        /** @var PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Api_online $online_model */
         if (!($online_model = PHS_Model_Api_online::get_instance())
             || !($accounts_model = PHS_Model_Accounts::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Couldn\'t load required models.'));
@@ -304,8 +304,8 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\mobileapi\models\PHS_Model_Api_online $online_model */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Api_online $online_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($online_model = PHS_Model_Api_online::get_instance())
             || !($accounts_model = PHS_Model_Accounts::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Couldn\'t load required models.'));
@@ -327,16 +327,22 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
             return false;
         }
 
-        /** @var \phs\PHS_Api $api_obj */
+        /** @var PHS_Api $api_obj */
         $api_obj = $params['api_obj'];
 
-        if (!($api_key = $api_obj->api_flow_value('api_user'))
-         || !($api_secret = $api_obj->api_flow_value('api_pass'))
-         || !($session_arr = $online_model->get_session_by_apikey($api_key, ['include_device_data' => true]))
-         // If we cannot obtain session device might be unlinked from account... ask user to login again...
-         || !($device_arr = $online_model->get_session_device($session_arr))
-         || !$online_model->check_session_authentication($session_arr, $api_secret)
-         || (int)$device_arr['uid'] !== (int)$session_arr['uid']) {
+        if ((!($api_key = $api_obj->api_flow_value('api_user'))
+                || !($api_secret = $api_obj->api_flow_value('api_pass')))
+            && !empty($params['api_route']['authentication_is_optional'])) {
+            return true;
+        }
+
+        if (empty($api_key)
+            || empty($api_secret)
+            || !($session_arr = $online_model->get_session_by_apikey($api_key, ['include_device_data' => true]))
+            // If we cannot obtain session device might be unlinked from account... ask user to login again...
+            || !($device_arr = $online_model->get_session_device($session_arr))
+            || !$online_model->check_session_authentication($session_arr, $api_secret)
+            || (int)$device_arr['uid'] !== (int)$session_arr['uid']) {
             if (!$api_obj->send_header_response($api_obj::H_CODE_UNAUTHORIZED)) {
                 $this->set_error($api_obj::ERR_AUTHENTICATION, $this->_pt('Not authorized.'));
 
@@ -384,8 +390,8 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
             $params = [];
         }
 
-        /** @var \phs\plugins\mobileapi\models\PHS_Model_Api_online $apionline_model */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Api_online $apionline_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($apionline_model = PHS_Model_Api_online::get_instance())
             || !($accounts_model = PHS_Model_Accounts::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Couldn\'t load required models.'));
@@ -458,7 +464,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
             return false;
         }
 
-        /** @var \phs\plugins\mobileapi\models\PHS_Model_Api_online $apionline_model */
+        /** @var PHS_Model_Api_online $apionline_model */
         $apionline_model = $params['apionline_model'];
 
         if (!($devices_flow = $apionline_model->fetch_default_flow_params(['table_name' => 'mobileapi_devices']))) {

@@ -389,7 +389,7 @@ abstract class PHS_Api_base extends PHS_Registry
 
         $account_arr = null;
         /** @var \phs\system\core\models\PHS_Model_Api_keys $apikeys_model */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (empty($apikey)
          || !($apikeys_model = PHS_Model_Api_keys::get_instance())
          || !($accounts_model = PHS_Model_Accounts::get_instance())
@@ -737,7 +737,7 @@ abstract class PHS_Api_base extends PHS_Registry
         return $response_arr;
     }
 
-    protected function _api_authentication_failed(?array $auth_methods = null) : ?array
+    protected function _api_authentication_failed(?array $auth_methods = null, bool $authentication_is_optional = false) : ?array
     {
         if (empty($auth_methods)
          && !($auth_methods = $this->allowed_authentication_methods())) {
@@ -754,14 +754,15 @@ abstract class PHS_Api_base extends PHS_Registry
 
             $callback_called = true;
             $method_name = self::$AUTH_METHODS_CALLBACKS[$auth_method]['method'];
-            if (!($authentication_failed = $this->$method_name())) {
+            if (!($authentication_failed = $this->$method_name($authentication_is_optional))) {
                 // Make sure $authentication_failed is null
                 $authentication_failed = null;
                 break;
             }
         }
 
-        if (!$callback_called) {
+        if (!$callback_called
+            && !$authentication_is_optional) {
             return [
                 'http_code' => self::H_CODE_UNAUTHORIZED,
                 'error_msg' => $this->_pt('No authentication available'),
@@ -771,12 +772,12 @@ abstract class PHS_Api_base extends PHS_Registry
         return $authentication_failed;
     }
 
-    protected function _bearer_api_authentication_failed() : ?array
+    protected function _bearer_api_authentication_failed(bool $authentication_is_optional = false) : ?array
     {
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
-         || !($accounts_model = PHS_Model_Accounts::get_instance())) {
+            || !($accounts_model = PHS_Model_Accounts::get_instance())) {
             return [
                 'http_code' => self::H_CODE_UNAUTHORIZED,
                 'error_msg' => $this->_pt('Please provide credentials'),
@@ -784,6 +785,11 @@ abstract class PHS_Api_base extends PHS_Registry
         }
 
         if (!($token = $this->api_flow_value('bearer_token'))
+            && $authentication_is_optional) {
+            return null;
+        }
+
+        if (empty($token)
          || !($token_arr = $accounts_plugin->decode_bearer_token($token))
          || !($online_arr = $accounts_model->get_details_fields(['wid' => $token], ['table_name' => 'online']))
          || empty($online_arr['uid'])
@@ -818,10 +824,14 @@ abstract class PHS_Api_base extends PHS_Registry
         return null;
     }
 
-    protected function _basic_api_authentication_failed() : ?array
+    protected function _basic_api_authentication_failed(bool $authentication_is_optional = false) : ?array
     {
         if (!($api_user = $this->api_flow_value('api_user'))
-         || null === ($api_pass = $this->api_flow_value('api_pass'))) {
+            || null === ($api_pass = $this->api_flow_value('api_pass'))) {
+            if ($authentication_is_optional) {
+                return null;
+            }
+
             return [
                 'http_code' => self::H_CODE_UNAUTHORIZED,
                 'error_msg' => $this->_pt('Please provide credentials'),
@@ -829,8 +839,8 @@ abstract class PHS_Api_base extends PHS_Registry
         }
 
         if (!($apikey_details = $this->get_apikey_by_apikey($api_user))
-         || !($apikey_arr = ($apikey_details['apikey'] ?? null))
-         || (string)$apikey_arr['api_secret'] !== (string)$api_pass) {
+            || !($apikey_arr = ($apikey_details['apikey'] ?? null))
+            || (string)$apikey_arr['api_secret'] !== (string)$api_pass) {
             return [
                 'http_code' => self::H_CODE_UNAUTHORIZED,
                 'error_msg' => $this->_pt('Not authorized.'),
@@ -839,7 +849,7 @@ abstract class PHS_Api_base extends PHS_Registry
         $account_arr = ($apikey_details['account'] ?? null);
 
         if (empty($apikey_arr['allow_sw'])
-         && $this->is_web_simulation()) {
+            && $this->is_web_simulation()) {
             PHS_Logger::warning('Web simulation not allowed (#'.$apikey_arr['id'].').', PHS_Logger::TYPE_API);
 
             return [
@@ -851,7 +861,7 @@ abstract class PHS_Api_base extends PHS_Registry
         $http_method = $this->http_method();
 
         if (!empty($apikey_arr['allowed_methods'])
-         && !in_array($http_method, self::extract_strings_from_comma_separated($apikey_arr['allowed_methods'], ['to_lowercase' => true]), true)) {
+            && !in_array($http_method, self::extract_strings_from_comma_separated($apikey_arr['allowed_methods'], ['to_lowercase' => true]), true)) {
             PHS_Logger::warning('Method not allowed (#'.$apikey_arr['id'].', '.$http_method.').', PHS_Logger::TYPE_API);
 
             return [
@@ -861,9 +871,9 @@ abstract class PHS_Api_base extends PHS_Registry
         }
 
         if (!empty($apikey_arr['denied_methods'])
-         && (empty($http_method)
-             || in_array($http_method, self::extract_strings_from_comma_separated($apikey_arr['denied_methods'], ['to_lowercase' => true]), true)
-         )) {
+            && (empty($http_method)
+                || in_array($http_method, self::extract_strings_from_comma_separated($apikey_arr['denied_methods'], ['to_lowercase' => true]), true)
+            )) {
             PHS_Logger::warning('Method denied (#'.$apikey_arr['id'].', '.$http_method.').', PHS_Logger::TYPE_API);
 
             return [
@@ -874,7 +884,7 @@ abstract class PHS_Api_base extends PHS_Registry
 
         $request_ip = request_ip();
         if (!empty($apikey_arr['allowed_ips'])
-         && !in_array($request_ip, self::extract_strings_from_comma_separated($apikey_arr['allowed_ips'], ['to_lowercase' => true]), true)) {
+            && !in_array($request_ip, self::extract_strings_from_comma_separated($apikey_arr['allowed_ips'], ['to_lowercase' => true]), true)) {
             PHS_Logger::warning('IP denied (#'.$apikey_arr['id'].', '.$request_ip.').', PHS_Logger::TYPE_API);
 
             return [

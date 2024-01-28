@@ -1,10 +1,8 @@
 <?php
 namespace phs;
 
-use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
-use phs\libraries\PHS_Notifications;
 use phs\system\core\models\PHS_Model_Api_monitor;
 use phs\system\core\events\api\PHS_Event_Api_instance;
 use phs\system\core\events\api\PHS_Event_Api_route_tokens;
@@ -15,15 +13,12 @@ class PHS_Api extends PHS_Api_base
 {
     public const ERR_API_INIT = 40000, ERR_API_ROUTE = 40001;
 
-    /** @var array */
     private static array $_api_routes = [];
 
     // Last API instance obtained with self::api_factory()
-    /** @var null|\phs\PHS_Api_base */
     private static ?PHS_Api_base $_last_api_obj = null;
 
     // THE API instance that should respond to current request
-    /** @var null|\phs\PHS_Api_base */
     private static ?PHS_Api_base $_global_api_obj = null;
 
     public function __construct(?array $init_query_params = null)
@@ -31,8 +26,8 @@ class PHS_Api extends PHS_Api_base
         parent::__construct();
 
         if ($init_query_params !== null
-         && !($this->_init_api_query_params($init_query_params))
-         && !$this->has_error()) {
+            && !($this->_init_api_query_params($init_query_params))
+            && !$this->has_error()) {
             $this->set_error(self::ERR_API_INIT, self::_t('Couldn\'t initialize API object.'));
         }
 
@@ -235,7 +230,8 @@ class PHS_Api extends PHS_Api_base
     {
         $this->reset_error();
 
-        if (empty($api_route['authentication_required'])) {
+        if (empty($api_route['authentication_required'])
+            && empty($api_route['authentication_is_optional'])) {
             if (PHS::st_debugging_mode()) {
                 PHS_Logger::debug('Authentication not required!', PHS_Logger::TYPE_API);
             }
@@ -251,7 +247,7 @@ class PHS_Api extends PHS_Api_base
                                            || !is_array($api_route['authentication_callback_cascade'])));
 
         if (empty($api_route) || $no_authentication_callback) {
-            if (($authentication_failed = $this->_api_authentication_failed())) {
+            if (($authentication_failed = $this->_api_authentication_failed(null, !empty($api_route['authentication_is_optional'])))) {
                 if (!$this->has_error()) {
                     $this->set_error(self::ERR_RUN_ROUTE, self::_t('Authentication failed.'));
                 }
@@ -424,6 +420,8 @@ class PHS_Api extends PHS_Api_base
 
             // If API route doesn't require authentication to run put this to false
             'authentication_required' => true,
+            // If API route can serve both authenticated or non-authenticated requests
+            'authentication_is_optional' => false,
             // If API route requires special API authentication you can define here what method/function to call to do the authentication
             // Method receives as parameters an array (like PHS_Api_base::default_api_authentication_callback_params()) and should return false
             // in case authentication failed, or it can safetly send headers back to browser and exit directly
