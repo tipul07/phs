@@ -2206,9 +2206,7 @@ final class PHS extends PHS_Registry
     {
         self::st_reset_error();
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
+        $params ??= [];
 
         // We assume $library represents class name without namespace (otherwise it won't be a valid library name)
         // so class name is from "root" namespace
@@ -2216,11 +2214,9 @@ final class PHS extends PHS_Registry
             $params['full_class_name'] = '\\'.ltrim($library, '\\');
         }
         if (empty($params['init_params'])) {
-            $params['init_params'] = false;
+            $params['init_params'] = null;
         }
-        if (empty($params['as_singleton'])) {
-            $params['as_singleton'] = true;
-        }
+        $params['as_singleton'] = !empty($params['as_singleton']);
 
         if (!($library = PHS_Instantiable::safe_escape_library_name($library))) {
             self::st_set_error(self::ERR_LIBRARY, self::_t('Couldn\'t load core library.'));

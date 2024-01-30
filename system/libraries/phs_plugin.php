@@ -342,7 +342,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             $params['full_class_name'] = '\\'.ltrim($library, '\\');
         }
 
-        $params['init_params'] = !empty($params['init_params']);
+        if (empty($params['init_params'])) {
+            $params['init_params'] = null;
+        }
         $params['as_singleton'] = !empty($params['as_singleton']);
         $params['path_in_lib_dir'] ??= '';
 

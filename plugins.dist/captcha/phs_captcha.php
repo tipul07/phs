@@ -8,6 +8,7 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
 use phs\system\core\views\PHS_View;
+use phs\plugins\captcha\libraries\PHS_Image_code;
 
 class PHS_Plugin_Captcha extends PHS_Plugin
 {
@@ -33,7 +34,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_keys_to_obfuscate()
+    public function get_settings_keys_to_obfuscate() : array
     {
         return ['reference_code', ];
     }
@@ -41,7 +42,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         return [
             // default template
@@ -91,106 +92,104 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         ];
     }
 
-    public function indexes_to_vars()
-    {
-        return ['default_width' => 'w', 'default_height' => 'h'];
-    }
-
-    public function vars_to_indexes()
-    {
-        $return_arr = [];
-        foreach ($this->indexes_to_vars() as $index => $var) {
-            $return_arr[$var] = $index;
-        }
-
-        return $return_arr;
-    }
-
-    public function get_font_full_path($font)
+    public function get_font_full_path($font) : ?string
     {
         $font = make_sure_is_filename($font);
         if (empty($font)
          || !($dir_path = $this->instance_plugin_path())
          || !@is_dir($dir_path.self::FONT_DIR)
          || !@file_exists($dir_path.self::FONT_DIR.'/'.$font)) {
-            return false;
+            return null;
         }
 
         return $dir_path.self::FONT_DIR.'/'.$font;
     }
 
-    public function check_captcha_code($code)
+    public function check_captcha_code(string $code) : bool
     {
-        $this->reset_error();
-
-        if (!($settings_arr = $this->get_plugin_settings())) {
-            $this->set_error(self::ERR_TEMPLATE, $this->_pt('Couldn\'t load template from plugin settings.'));
-
+        if (!($img_library = $this->load_image_library(true))) {
             return false;
         }
 
-        if (($cimage_code = PHS_Session::_g(self::SESSION_VAR)) === null) {
-            $cimage_code = '';
-        }
-
-        $library_params = [];
-        $library_params['full_class_name'] = '\\phs\\plugins\\captcha\\libraries\\PHS_Image_code';
-        $library_params['init_params'] = [
-            'cnumbers'     => $settings_arr['characters_count'],
-            'param_code'   => $cimage_code,
-            'img_type'     => $settings_arr['image_format'],
-            'code_timeout' => 3600,
-        ];
-        $library_params['as_singleton'] = false;
-
-        /** @var \phs\plugins\captcha\libraries\PHS_Image_code $img_library */
-        if (!($img_library = $this->load_library('phs_image_code', $library_params))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading image captcha library.'));
-            }
-
-            return false;
-        }
+        var_dump($code, $img_library->get_public_code());
 
         $code_valid = false;
         if (!empty($code)
-         && $img_library->check_input($code)) {
+            && $img_library->check_input($code)) {
             $code_valid = true;
-            if ($img_library->refresh_public_code()) {
-                $cimage_code = $img_library->get_public_code();
-            }
+            $img_library->refresh_public_code();
         } else {
             $img_library->regenerate_public_code();
-            $cimage_code = $img_library->get_public_code();
         }
 
-        PHS_Session::_s(self::SESSION_VAR, $cimage_code);
+        PHS_Session::_s(self::SESSION_VAR, $img_library->get_public_code());
 
         return $code_valid;
     }
 
-    public function captcha_regeneration()
+    public function captcha_regeneration() : bool
     {
+        if (!($img_library = $this->load_image_library())) {
+            return false;
+        }
+
+        $img_library->regenerate_public_code();
+
+        PHS_Session::_s(self::SESSION_VAR, $img_library->get_public_code());
+
+        return true;
+    }
+
+    public function generate_or_refresh_public_code() : bool
+    {
+        if (!($img_library = $this->load_image_library(true))) {
+            return false;
+        }
+
+        if (!$img_library->refresh_public_code()) {
+            return $this->captcha_regeneration();
+        }
+
+        PHS_Session::_s(self::SESSION_VAR, $img_library->get_public_code());
+
+        return true;
+    }
+
+    public function load_image_library(bool $force_code_check = false) : ?PHS_Image_code
+    {
+        static $img_library = null;
+
+        if ($img_library !== null) {
+            if ($force_code_check
+                && ($cimage_code = PHS_Session::_g(self::SESSION_VAR))) {
+                $img_library->set_public_code($cimage_code);
+            }
+
+            return $img_library;
+        }
+
         $this->reset_error();
 
         if (!($settings_arr = $this->get_plugin_settings())) {
             $this->set_error(self::ERR_TEMPLATE, $this->_pt('Couldn\'t load template from plugin settings.'));
 
-            return false;
+            return null;
         }
 
-        if (($cimage_code = PHS_Session::_g(self::SESSION_VAR)) === null) {
+        if (!($cimage_code = PHS_Session::_g(self::SESSION_VAR))) {
             $cimage_code = '';
         }
 
         $library_params = [];
-        $library_params['full_class_name'] = '\\phs\\plugins\\captcha\\libraries\\PHS_Image_code';
+        $library_params['full_class_name'] = PHS_Image_code::class;
         $library_params['init_params'] = [
-            'cnumbers'   => $settings_arr['characters_count'],
-            'param_code' => $cimage_code,
-            'img_type'   => $settings_arr['image_format'],
+            'cnumbers'       => $settings_arr['characters_count'],
+            'public_code'    => $cimage_code,
+            'img_type'       => $settings_arr['image_format'],
+            'reference_code' => $settings_arr['reference_code'] ?? '',
+            'code_timeout'   => 1800,
         ];
-        $library_params['as_singleton'] = false;
+        $library_params['as_singleton'] = true;
 
         /** @var \phs\plugins\captcha\libraries\PHS_Image_code $img_library */
         if (!($img_library = $this->load_library('phs_image_code', $library_params))) {
@@ -198,18 +197,13 @@ class PHS_Plugin_Captcha extends PHS_Plugin
                 $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading image captcha library.'));
             }
 
-            return false;
+            return null;
         }
 
-        $img_library->regenerate_public_code();
-        $cimage_code = $img_library->get_public_code();
-
-        PHS_Session::_s(self::SESSION_VAR, $cimage_code);
-
-        return true;
+        return $img_library;
     }
 
-    public function get_captcha_check_hook_args($hook_args)
+    public function get_captcha_check_hook_args($hook_args) : array
     {
         $this->reset_error();
 
@@ -217,7 +211,8 @@ class PHS_Plugin_Captcha extends PHS_Plugin
 
         $hook_args['check_valid'] = true;
         if (empty($hook_args['check_code'])
-         || !$this->check_captcha_code($hook_args['check_code'])) {
+            || !is_string($hook_args['check_code'])
+            || !$this->check_captcha_code($hook_args['check_code'])) {
             $hook_args['check_valid'] = false;
         }
 
@@ -243,7 +238,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         return $hook_args;
     }
 
-    public function get_captcha_display_hook_args($hook_args)
+    public function get_captcha_display_hook_args($hook_args) : array
     {
         $this->reset_error();
 
@@ -253,7 +248,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
          || empty($settings_arr['template'])) {
             $this->set_error(self::ERR_TEMPLATE, $this->_pt('Couldn\'t load template from plugin settings.'));
 
-            $hook_args['hook_errors'] = self::validate_array($this->get_error(), PHS_Error::default_error_array());
+            $hook_args['hook_errors'] = $this->get_error();
 
             return $hook_args;
         }
@@ -261,7 +256,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         if (!($captcha_template = PHS_View::validate_template_resource($settings_arr['template']))) {
             $this->set_error(self::ERR_TEMPLATE, $this->_pt('Failed validating captcha template file.'));
 
-            $hook_args['hook_errors'] = self::validate_array($this->get_error(), PHS_Error::default_error_array());
+            $hook_args['hook_errors'] = $this->get_error();
 
             return $hook_args;
         }
@@ -288,29 +283,27 @@ class PHS_Plugin_Captcha extends PHS_Plugin
                 $this->copy_static_error();
             }
 
-            $hook_args['hook_errors'] = self::validate_array($this->get_error(), PHS_Error::default_error_array());
+            $hook_args['hook_errors'] = $this->get_error();
 
             return $hook_args;
         }
 
-        if (($hook_args['captcha_buffer'] = $view_obj->render()) === null) {
+        if (null === ($hook_args['captcha_buffer'] = $view_obj->render())) {
             // Make sure buffer is a string
             $hook_args['captcha_buffer'] = '';
 
             if ($view_obj->has_error()) {
-                $this->copy_error($view_obj);
+                $this->copy_error($view_obj, self::ERR_RENDER);
             } else {
                 $this->set_error(self::ERR_RENDER, $this->_pt('Error rendering template [%s].', $view_obj->get_template()));
             }
 
-            $hook_args['hook_errors'] = self::validate_array($this->get_error(), PHS_Error::default_error_array());
+            $hook_args['hook_errors'] = $this->get_error();
 
             return $hook_args;
         }
 
-        if (empty($hook_args['captcha_buffer'])) {
-            $hook_args['captcha_buffer'] = '';
-        }
+        $hook_args['captcha_buffer'] ??= '';
 
         return $hook_args;
     }

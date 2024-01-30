@@ -1,7 +1,9 @@
 <?php
 namespace phs\plugins\captcha\libraries;
 
+use phs\PHS_Session;
 use phs\libraries\PHS_Library;
+use phs\plugins\captcha\PHS_Plugin_Captcha;
 
 // ! /version 1.53
 
@@ -12,26 +14,26 @@ class PHS_Image_code extends PHS_Library
     public const OUTPUT_JPG = 1, OUTPUT_GIF = 2, OUTPUT_PNG = 3;
 
     // reference code used to compare input codes
-    public $reference_code;
+    private string $reference_code;
 
     // this code will be passed as parameter to the class to check if the input is correct
-    public $public_code;
+    private string $public_code = '';
 
     // number of chars that will be displayed
-    public $character_number;
+    private int $character_number = 5;
 
     // type of output image (gif, jpeg or png)
-    public $output_type;
+    private int $output_type = self::OUTPUT_PNG;
 
     // Code timeout
-    public $code_timeout;
+    private int $code_timeout = 1800;
 
-    public $image_quality = 95;
+    private int $image_quality = 95;
 
     /**
      * @param false|array $params
      */
-    public function __construct($params = false)
+    public function __construct($params = null)
     {
         parent::__construct();
 
@@ -45,26 +47,14 @@ class PHS_Image_code extends PHS_Library
             $params = [];
         }
 
-        if (empty($params['cnumbers'])) {
-            $params['cnumbers'] = 5;
-        }
-        if (empty($params['param_code'])) {
-            $params['param_code'] = '';
-        }
-        if (empty($params['img_quality'])) {
-            $params['img_quality'] = 95;
-        } else {
-            $params['img_quality'] = (int)$params['img_quality'];
-        }
-        if (empty($params['img_type'])) {
-            $params['img_type'] = self::OUTPUT_JPG;
-        }
+        $params['public_code'] ??= '';
+        $params['cnumbers'] = (int)($params['cnumbers'] ?? 5);
+        $params['img_quality'] = (int)($params['img_quality'] ?? 95);
+        $params['code_timeout'] = (int)($params['code_timeout'] ?? 1800);
 
-        if (empty($params['code_timeout'])) {
-            $params['code_timeout'] = 1800;
-        } // expire the code after 30 mins
-        else {
-            $params['code_timeout'] = (int)$params['code_timeout'];
+        if (empty($params['img_type'])
+            || !in_array($params['img_type'], [self::OUTPUT_JPG, self::OUTPUT_GIF, self::OUTPUT_PNG], true)) {
+            $params['img_type'] = self::OUTPUT_JPG;
         }
 
         if (empty($params['reference_code'])) {
@@ -73,38 +63,31 @@ class PHS_Image_code extends PHS_Library
             $params['reference_code'] = trim($params['reference_code']);
         }
 
-        $this->image_quality = $params['img_quality'];
-
         if ($params['cnumbers'] < 3) {
             $params['cnumbers'] = 3;
         }
 
+        $this->image_quality = $params['img_quality'];
+
         $this->char_numbers($params['cnumbers']);
-
-        if (empty($params['img_type'])
-         || !in_array((int)$params['img_type'], [self::OUTPUT_JPG, self::OUTPUT_GIF, self::OUTPUT_PNG], true)) {
-            $this->output_format(self::OUTPUT_JPG);
-        } else {
-            $this->output_format($params['img_type']);
-        }
-
+        $this->output_format($params['img_type']);
         $this->set_code_timeout($params['code_timeout']);
 
         // this code should be same for all instances of the class (u can read a file content)
         // this is like a private key for the class
         $this->reference_code = $params['reference_code'];
 
-        if (empty($params['param_code'])) {
+        if (empty($params['public_code']) || !is_string($params['public_code'])) {
             $this->regenerate_public_code();
         } else {
-            $this->public_code = $params['param_code'];
-            $this->refresh_public_code();
+            $this->set_public_code($params['public_code']);
+            // $this->refresh_public_code();
         }
     }
 
-    public function set_code_timeout($seconds = false)
+    public function set_code_timeout(?int $seconds = null) : int
     {
-        if ($seconds === false) {
+        if ($seconds === null) {
             return $this->code_timeout;
         }
 
@@ -113,14 +96,14 @@ class PHS_Image_code extends PHS_Library
         return $seconds;
     }
 
-    public function regenerate_public_code()
+    public function regenerate_public_code() : void
     {
-        $this->public_code = $this->generate_public_code();
+        $this->public_code = $this->_generate_public_code();
     }
 
-    public function refresh_public_code()
+    public function refresh_public_code() : bool
     {
-        if (($my_public_code = $this->decode_public_code()) === false) {
+        if (!($my_public_code = $this->_decode_public_code())) {
             return false;
         }
 
@@ -129,37 +112,34 @@ class PHS_Image_code extends PHS_Library
         return true;
     }
 
-    public function check_public_code()
+    public function valid_public_code() : bool
     {
-        return !(($my_public_code = $this->decode_public_code()) === false
-         || time() - $this->code_timeout > $my_public_code['time']);
+        return ($my_public_code = $this->_decode_public_code())
+               && time() - $this->code_timeout < $my_public_code['time'];
     }
 
-    public function generate_public_code()
-    {
-        return base_convert(time(), 10, 35).':'.md5(uniqid(rand(), true));
-    }
-
-    public function decode_public_code()
-    {
-        if (empty($this->public_code) || strpos($this->public_code, ':') === false
-         || ($result_arr = explode(':', $this->public_code)) === false
-         || count($result_arr) !== 2 || empty($result_arr[0]) || empty($result_arr[1])
-         || !is_numeric(($time_var = base_convert($result_arr[0], 35, 10)))) {
-            return false;
-        }
-
-        return ['time' => $time_var, 'code' => $result_arr[1]];
-    }
-
-    public function get_public_code()
+    public function get_public_code() : string
     {
         return $this->public_code;
     }
 
-    public function output_format($format = false)
+    public function set_public_code(string $code) : bool
     {
-        if ($format === false) {
+        $old_code = $this->public_code;
+        $this->public_code = $code;
+
+        if (!$this->_decode_public_code()) {
+            $this->public_code = $old_code;
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public function output_format(?int $format = null) : int
+    {
+        if ($format === null) {
             return $this->output_type;
         }
 
@@ -168,9 +148,9 @@ class PHS_Image_code extends PHS_Library
         return $format;
     }
 
-    public function char_numbers($char_number = false)
+    public function char_numbers(?int $char_number = null) : int
     {
-        if ($char_number === false) {
+        if ($char_number === null) {
             return $this->character_number;
         }
 
@@ -179,13 +159,13 @@ class PHS_Image_code extends PHS_Library
         return $char_number;
     }
 
-    public function generate_image_code()
+    public function generate_image_code() : string
     {
         if ($this->has_error()) {
             return '';
         }
 
-        if (($decoded_public_code = $this->decode_public_code()) === false) {
+        if (!($decoded_public_code = $this->_decode_public_code())) {
             $used_public_code = $this->public_code;
         } else {
             $used_public_code = $decoded_public_code['code'];
@@ -206,17 +186,17 @@ class PHS_Image_code extends PHS_Library
         return $ret;
     }
 
-    public function check_input($input)
+    public function check_input(string $input) : bool
     {
         if ($this->has_error()
-         || !$this->check_public_code()) {
+         || !$this->valid_public_code()) {
             return false;
         }
 
         return strtolower($input) === strtolower($this->generate_image_code());
     }
 
-    public function generate_image($imgw, $imgh, $font_file = '', $font_size = 0)
+    public function generate_image(int $imgw, int $imgh, string $font_file = '', int $font_size = 0) : void
     {
         if ($this->has_error()) {
             return;
@@ -228,9 +208,9 @@ class PHS_Image_code extends PHS_Library
             return;
         }
 
-        $bg_colorr = round(rand(230, 240));
-        $bg_colorg = round(rand(230, 240));
-        $bg_colorb = round(rand(230, 240));
+        $bg_colorr = round(mt_rand(230, 240));
+        $bg_colorg = round(mt_rand(230, 240));
+        $bg_colorb = round(mt_rand(230, 240));
 
         $bg_color = @imagecolorallocate($im, $bg_colorr, $bg_colorg, $bg_colorb);
         @imagefilledrectangle($im, 0, 0, $imgw, $imgh, $bg_color);
@@ -244,7 +224,7 @@ class PHS_Image_code extends PHS_Library
          && @function_exists('imageftbbox') && @function_exists('imagettftext')) {
             $ttf_usage = true;
             if (empty($font_size)) {
-                $size = round(rand(18, 22));
+                $size = round(mt_rand(18, 22));
             } else {
                 $size = $font_size;
             }
@@ -262,16 +242,16 @@ class PHS_Image_code extends PHS_Library
         $x = $startx;
         $y = round($imgh / 2);
         for ($i = 0; $i < $len; $i++) {
-            $r1 = round(rand(140, 150));
-            $g1 = round(rand(140, 150));
-            $b1 = round(rand(140, 150));
+            $r1 = round(mt_rand(140, 150));
+            $g1 = round(mt_rand(140, 150));
+            $b1 = round(mt_rand(140, 150));
 
-            $r2 = round(rand(190, 200));
-            $g2 = round(rand(190, 200));
-            $b2 = round(rand(190, 200));
+            $r2 = round(mt_rand(190, 200));
+            $g2 = round(mt_rand(190, 200));
+            $b2 = round(mt_rand(190, 200));
 
             if ($ttf_usage) {
-                $angle = (int)rand(-20, 20);
+                $angle = mt_rand(-20, 20);
 
                 $c1 = @imagecolorallocate($im, $r1, $g1, $b1);
                 $c2 = @imagecolorallocate($im, $r2, $g2, $b2);
@@ -284,7 +264,6 @@ class PHS_Image_code extends PHS_Library
 
                 $x += $bbwidth + 10;
             } else {
-                // imagettftext( $im, round(rand(17, 20)), $angle, $x,24,$color,$this->font_file,$text);
                 if (!isset($colors)) {
                     $colors = [];
                 }
@@ -301,7 +280,7 @@ class PHS_Image_code extends PHS_Library
                 $colors[2][1] = $bg_colorg;
                 $colors[2][2] = $bg_colorb;
 
-                $angle = (int)rand(-10, 10);
+                $angle = mt_rand(-10, 10);
 
                 if (!$this->create_nottf_charimg($im, $angle, $x, $y - round($bbheight / 2) - 7, $str[$i], $colors, $bbwidth, $bbheight)) {
                     $this->set_error(self::ERR_NOIMG, 'Error while creating image.');
@@ -313,8 +292,8 @@ class PHS_Image_code extends PHS_Library
         }
 
         for ($i = 0; $i < $imgw; $i += 20) {
-            $c1 = @imagecolorallocate($im, round(rand(150, 225)), round(rand(150, 225)), round(rand(150, 225)));
-            $c2 = @imagecolorallocate($im, round(rand(150, 225)), round(rand(150, 225)), round(rand(150, 225)));
+            $c1 = @imagecolorallocate($im, round(mt_rand(150, 225)), round(mt_rand(150, 225)), round(mt_rand(150, 225)));
+            $c2 = @imagecolorallocate($im, round(mt_rand(150, 225)), round(mt_rand(150, 225)), round(mt_rand(150, 225)));
 
             $style = [$c1, $c1, $c1, $c1, $c1, $c2, $c2, $c2, $c2, $c2];
             @imagesetstyle($im, $style);
@@ -322,12 +301,12 @@ class PHS_Image_code extends PHS_Library
         }
 
         for ($i = 0; $i < $imgh; $i += 10) {
-            $c1 = @imagecolorallocate($im, round(rand(150, 225)), round(rand(150, 225)), round(rand(150, 225)));
-            $c2 = @imagecolorallocate($im, round(rand(150, 225)), round(rand(150, 225)), round(rand(150, 225)));
+            $c1 = @imagecolorallocate($im, round(mt_rand(150, 225)), round(mt_rand(150, 225)), round(mt_rand(150, 225)));
+            $c2 = @imagecolorallocate($im, round(mt_rand(150, 225)), round(mt_rand(150, 225)), round(mt_rand(150, 225)));
 
             $style = [$c1, $c1, $c1, $c1, $c1, $c2, $c2, $c2, $c2, $c2];
             @imagesetstyle($im, $style);
-            @imageline($im, 0, $i, $imgw, $i + round(rand(-3, 8)), IMG_COLOR_STYLED);
+            @imageline($im, 0, $i, $imgw, $i + round(mt_rand(-3, 8)), IMG_COLOR_STYLED);
         }
 
         switch ($this->output_type) {
@@ -358,7 +337,7 @@ class PHS_Image_code extends PHS_Library
         imagedestroy($im);
     }
 
-    public function create_nottf_charimg($im, $angle, $x, $y, $char, $colors, $letter_w, $letter_h)
+    public function create_nottf_charimg($im, $angle, $x, $y, $char, $colors, $letter_w, $letter_h) : bool
     {
         $percent = 2; // how much to 'zoom' the letter (2 = 200%)
         if (!($chimg = @imagecreatetruecolor($letter_w, $letter_h))) {
@@ -391,5 +370,22 @@ class PHS_Image_code extends PHS_Library
         imagedestroy($chimgrot);
 
         return true;
+    }
+
+    private function _generate_public_code() : string
+    {
+        return base_convert(time(), 10, 35).':'.md5(uniqid(mt_rand(), true));
+    }
+
+    private function _decode_public_code() : ?array
+    {
+        if (empty($this->public_code) || !str_contains($this->public_code, ':')
+         || !($result_arr = explode(':', $this->public_code, 2))
+         || count($result_arr) !== 2 || empty($result_arr[0]) || empty($result_arr[1])
+         || !is_numeric(($time_var = base_convert($result_arr[0], 35, 10)))) {
+            return null;
+        }
+
+        return ['time' => (int)$time_var, 'code' => $result_arr[1]];
     }
 }

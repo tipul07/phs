@@ -2,89 +2,50 @@
 namespace phs\plugins\captcha\actions;
 
 use phs\PHS_Scope;
-use phs\PHS_Session;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
+use JetBrains\PhpStorm\NoReturn;
 use phs\plugins\captcha\PHS_Plugin_Captcha;
 
 class PHS_Action_Index extends PHS_Action
 {
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
 
-    public function execute()
+    #[NoReturn]
+    public function execute() : void
     {
-        /** @var \phs\plugins\captcha\PHS_Plugin_Captcha $plugin_instance */
-        if (!($plugin_instance = PHS_Plugin_Captcha::get_instance())
-         || !$plugin_instance->plugin_active()
-         || !($plugin_settings = $plugin_instance->get_plugin_settings())) {
-            echo $this->_pt('Couldn\'t obtain plugin settings.');
-            exit;
-        }
-
-        $params = [];
-        if (($vars_check = $plugin_instance->vars_to_indexes())) {
-            foreach ($vars_check as $var => $index) {
-                $var_val = PHS_Params::_g($var, PHS_Params::T_INT);
-
-                $params[$index] = $var_val;
-            }
-        }
-
-        if (!($params = self::validate_array($plugin_settings, $params))) {
-            $params = [];
-        }
-
-        if (empty($params['default_width']) || $params['default_width'] < 100) {
-            $params['default_width'] = $plugin_settings['default_width'];
-        }
-        if (empty($params['default_height']) || $params['default_height'] < 30) {
-            $params['default_height'] = $plugin_settings['default_height'];
-        }
-
         if (!@function_exists('imagecreatetruecolor')) {
             echo $this->_pt('Function imagecreatetruecolor doesn\'t exist. Maybe gd library is not installed or doesn\'t support this function.');
             exit;
         }
 
-        if (empty($params['font'])
-         || !($font_file = $plugin_instance->get_font_full_path($params['font']))) {
-            echo $this->_pt('Font couldn\'t be found.');
+        /** @var PHS_Plugin_Captcha $captcha_plugin */
+        if (!($captcha_plugin = PHS_Plugin_Captcha::get_instance())
+            || !$captcha_plugin->plugin_active()
+            || !($plugin_settings = $captcha_plugin->get_plugin_settings())
+            || !($img_library = $captcha_plugin->load_image_library())) {
+            echo $this->_pt('Error loading required resources.');
             exit;
         }
 
-        if (($cimage_code = PHS_Session::_g($plugin_instance::SESSION_VAR)) === null) {
-            $cimage_code = '';
-        }
-
-        $library_params = [];
-        $library_params['full_class_name'] = '\\phs\\plugins\\captcha\\libraries\\PHS_Image_code';
-        $library_params['init_params'] = [
-            'cnumbers'   => $params['characters_count'],
-            'param_code' => $cimage_code,
-            'img_type'   => $params['image_format'],
-        ];
-        $library_params['as_singleton'] = false;
-
-        /** @var \phs\plugins\captcha\libraries\PHS_Image_code $img_library */
-        if (!($img_library = $plugin_instance->load_library('phs_image_code', $library_params))) {
-            if ($plugin_instance->has_error()) {
-                echo $plugin_instance->get_error_message();
-            } else {
-                echo $this->_pt('Error loading image captcha library.');
-            }
-
+        if (empty($plugin_settings['font'])
+            || !($font_file = $captcha_plugin->get_font_full_path($plugin_settings['font']))) {
+            echo $this->_pt('Font file not found.');
             exit;
         }
 
-        if (empty($cimage_code)) {
-            $cimage_code = $img_library->get_public_code();
-            PHS_Session::_s($plugin_instance::SESSION_VAR, $cimage_code);
+        if (!$captcha_plugin->generate_or_refresh_public_code()) {
+            echo $this->_pt('Error refreshing public code. Please try again.');
+            exit;
         }
 
-        $img_library->generate_image($params['default_width'], $params['default_height'], $font_file);
+        $img_width = PHS_Params::_g('w', PHS_Params::T_INT) ?: $plugin_settings['default_width'] ?? 200;
+        $img_height = PHS_Params::_g('h', PHS_Params::T_INT) ?: $plugin_settings['default_height'] ?? 50;
+
+        $img_library->generate_image($img_width, $img_height, $font_file);
         exit;
     }
 }

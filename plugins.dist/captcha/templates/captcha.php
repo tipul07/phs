@@ -11,36 +11,15 @@ if (!($settings_arr = $this->view_var('settings_arr'))) {
     $settings_arr = [];
 }
 
+$img_width = $hook_args['default_width'] ?? $settings_arr['default_width'] ?? 200;
+$img_height = $hook_args['default_height'] ?? $settings_arr['default_height'] ?? 50;
+
 $url_params = [];
-/** @var \phs\plugins\captcha\PHS_Plugin_Captcha $plugin_instance */
-if (($plugin_instance = $this->get_plugin_instance())) {
-    $check_fields = $plugin_instance->indexes_to_vars();
-} else {
-    $check_fields = [];
+if ((int)$img_width !== (int)$settings_arr['default_width']) {
+    $url_params['w'] = $img_width;
 }
-
-foreach ($check_fields as $field => $url_param) {
-    if (array_key_exists($field, $hook_args)) {
-        $exists_in_settings = array_key_exists($field, $settings_arr);
-        if (!$exists_in_settings
-         || ($exists_in_settings && $settings_arr[$field] != $hook_args[$field])) {
-            $url_params[$url_param] = $hook_args[$field];
-        }
-    }
-}
-
-if (!empty($hook_args['default_width'])) {
-    $img_width = $hook_args['default_width'];
-}
-if (!empty($hook_args['default_height'])) {
-    $img_height = $hook_args['default_height'];
-}
-
-if (empty($img_width)) {
-    $img_width = 200;
-}
-if (empty($img_height)) {
-    $img_height = 50;
+if ((int)$img_height !== (int)$settings_arr['default_height']) {
+    $url_params['h'] = $img_height;
 }
 
 ?><img src="<?php echo PHS::url(['p' => 'captcha'], $url_params); ?>" style="width: <?php echo $img_width; ?>px;height: <?php echo $img_height; ?>px;<?php echo !empty($hook_args['extra_img_style']) ? $hook_args['extra_img_style'] : ''; ?>" <?php echo !empty($hook_args['extra_img_attrs']) ? $hook_args['extra_img_attrs'] : ''; ?> class="captcha-img" />
