@@ -111,8 +111,6 @@ class PHS_Plugin_Captcha extends PHS_Plugin
             return false;
         }
 
-        var_dump($code, $img_library->get_public_code());
-
         $code_valid = false;
         if (!empty($code)
             && $img_library->check_input($code)) {
