@@ -25,10 +25,10 @@ class PHS_Paginator extends PHS_Registry
     private array $_filters = [];
 
     // Variables as provided in post or get
-    private $_originals = [];
+    private array $_originals = [];
 
     // Parsed variables extracted from request
-    private $_scope = [];
+    private array $_scope = [];
 
     // Action request (if any)
     private $_action = false;
@@ -43,7 +43,7 @@ class PHS_Paginator extends PHS_Registry
     private array $_columns_definition_arr = [];
 
     // Array with records to be displayed (limit set based on paginator parameters from model or provided array of records from external source)
-    private $_records_arr = [];
+    private array $_records_arr = [];
 
     // If exporting records, we store query result here,
     // so we can iterate results rather than obtaining a huge (maybe) array with all records
@@ -379,7 +379,7 @@ class PHS_Paginator extends PHS_Registry
         return $flow_params_arr['form_prefix'].'paginator_list_form';
     }
 
-    public function get_filters_form_name()
+    public function get_filters_form_name() : string
     {
         if (!($flow_params_arr = $this->flow_params())) {
             return '';
@@ -388,12 +388,11 @@ class PHS_Paginator extends PHS_Registry
         return $flow_params_arr['form_prefix'].'paginator_filters_form';
     }
 
-    public function get_checkbox_name_for_column($column_arr)
+    public function get_checkbox_name_for_column(array $column_arr) : string
     {
-        if (empty($column_arr) || !is_array($column_arr)
-         || empty($column_arr['checkbox_record_index_key']) || !is_array($column_arr['checkbox_record_index_key'])
-         || empty($column_arr['checkbox_record_index_key']['key'])
-         || !($flow_params_arr = $this->flow_params())) {
+        if (empty($column_arr)
+            || empty($column_arr['checkbox_record_index_key']['key'])
+            || !$this->flow_params()) {
             return '';
         }
 
@@ -404,10 +403,9 @@ class PHS_Paginator extends PHS_Registry
         return @sprintf($this->get_checkbox_name_format(), $column_arr['checkbox_record_index_key']['checkbox_name']);
     }
 
-    public function display_checkbox_column($params)
+    public function display_checkbox_column(array $params)
     {
         if (!($params = self::validate_array($params, $this->default_cell_render_call_params()))
-         || !is_array($params)
          || empty($params['record']) || !is_array($params['record'])
          || empty($params['column']) || !is_array($params['column'])
          || !($checkbox_name = $this->get_checkbox_name_for_column($params['column']))
@@ -418,9 +416,7 @@ class PHS_Paginator extends PHS_Registry
             return false;
         }
 
-        if (empty($params['preset_content'])) {
-            $params['preset_content'] = '';
-        }
+        $params['preset_content'] ??= '';
 
         if (!empty($params['request_render_type'])) {
             switch ($params['request_render_type']) {
@@ -647,7 +643,7 @@ class PHS_Paginator extends PHS_Registry
         return $url;
     }
 
-    public function get_records()
+    public function get_records() : array
     {
         return $this->_records_arr;
     }
@@ -977,7 +973,7 @@ class PHS_Paginator extends PHS_Registry
         return $this->_bulk_actions;
     }
 
-    public function get_scope()
+    public function get_scope() : array
     {
         if (empty($this->_originals)) {
             $this->extract_filters_scope();
@@ -986,7 +982,7 @@ class PHS_Paginator extends PHS_Registry
         return $this->_scope;
     }
 
-    public function get_originals()
+    public function get_originals() : array
     {
         if (empty($this->_originals)) {
             $this->extract_filters_scope();
@@ -1455,13 +1451,11 @@ class PHS_Paginator extends PHS_Registry
             return false;
         }
 
-        if (!($scope_arr = $this->get_scope())
-         || !is_array($scope_arr)) {
+        if (!($scope_arr = $this->get_scope())) {
             $scope_arr = [];
         }
 
-        if (!($filters_arr = $this->get_filters())
-         || !is_array($filters_arr)) {
+        if (!($filters_arr = $this->get_filters())) {
             $filters_arr = [];
         }
 
@@ -1489,6 +1483,7 @@ class PHS_Paginator extends PHS_Registry
 
         $list_arr['extra_sql'] = '';
         $count_list_arr['extra_sql'] = '';
+        $fields_to_be_removed = [];
 
         foreach ($filters_arr as $filter_arr) {
             // Accept empty $filter_arr['record_field'], but this means it will be a raw query...
@@ -1568,12 +1563,20 @@ class PHS_Paginator extends PHS_Registry
 
             // Accept empty $filter_arr['record_field'], but this means it will be a raw query...
             if (empty($filter_arr['record_field'])) {
-                if (strpos($filter_arr['raw_query'], '%s') !== false) {
-                    $filter_arr['raw_query'] = self::sprintf_all($filter_arr['raw_query'], $scope_arr[$filter_arr['var_name']]);
+                if (!empty($filter_arr['raw_query'])) {
+                    if (strpos($filter_arr['raw_query'], '%s') !== false) {
+                        $filter_arr['raw_query'] = self::sprintf_all($filter_arr['raw_query'], $scope_arr[$filter_arr['var_name']]);
+                    }
+
+                    $list_arr['fields'][] = ['raw' => $filter_arr['raw_query']];
+                    $count_list_arr['fields'][] = ['raw' => $filter_arr['raw_query']];
                 }
 
-                $list_arr['fields'][] = ['raw' => $filter_arr['raw_query']];
-                $count_list_arr['fields'][] = ['raw' => $filter_arr['raw_query']];
+                if (!empty($filter_arr['remove_fields']) && is_array($filter_arr['remove_fields'])) {
+                    foreach ($filter_arr['remove_fields'] as $rem_field) {
+                        $fields_to_be_removed[$rem_field] = true;
+                    }
+                }
             } else {
                 // If in initial list we were passed predefined filters and now we have an end-user filter,
                 // discard predefined filter and use what end-user passed us
@@ -1609,6 +1612,17 @@ class PHS_Paginator extends PHS_Registry
                 } else {
                     $list_arr['fields'][$filter_arr['record_field']] = $check_value;
                     $count_list_arr['fields'][$filter_arr['record_field']] = $check_value;
+                }
+            }
+        }
+
+        if (!empty($fields_to_be_removed)) {
+            foreach ($fields_to_be_removed as $rem_field => $junk) {
+                if (array_key_exists($rem_field, $list_arr['fields'])) {
+                    unset($list_arr['fields'][$rem_field]);
+                }
+                if (array_key_exists($rem_field, $count_list_arr['fields'])) {
+                    unset($count_list_arr['fields'][$rem_field]);
                 }
             }
         }
@@ -2102,7 +2116,8 @@ class PHS_Paginator extends PHS_Registry
         // Extract any checkboxes...
         if (!empty($columns_arr)) {
             foreach ($columns_arr as $column_arr) {
-                if (!($checkbox_name = $this->get_checkbox_name_for_column($column_arr))) {
+                if (empty($column_arr) || !is_array($column_arr)
+                    || !($checkbox_name = $this->get_checkbox_name_for_column($column_arr))) {
                     continue;
                 }
 
@@ -2255,6 +2270,8 @@ class PHS_Paginator extends PHS_Registry
             // If this is an array and 'value' key is not provided, script will create a 'value' key with value which coresponds from _scope array.
             // If 'value' key is passed it should contain a %s placeholder which will be replaced with value from _scope array.
             'record_check' => false,
+            // If this is a raw_query filter, tell paginator to exclude specific fields (if set) - array of fields to be removed
+            'remove_fields' => [],
             // This is similar with 'record_check', but if an array is provided at this key it will be used "as-it-is" for the field
             'raw_record_check' => false,
             // In case record_check parameter refers to other model, provide model to be used
