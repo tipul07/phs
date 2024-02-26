@@ -20,7 +20,7 @@ class PHS_Action_Change_password extends PHS_Api_action
     /**
      * @inheritdoc
      */
-    public function action_roles()
+    public function action_roles() : array
     {
         return [self::ACT_ROLE_CHANGE_PASSWORD];
     }

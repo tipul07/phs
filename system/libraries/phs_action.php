@@ -75,9 +75,9 @@ abstract class PHS_Action extends PHS_Instantiable
      * @param string $role_key
      * @param array $role_arr Role definition array
      *
-     * @return array|bool
+     * @return null|array
      */
-    final public function define_action_role(string $role_key, array $role_arr)
+    final public function define_action_role(string $role_key, array $role_arr) : ?array
     {
         $this->reset_error();
 
@@ -88,7 +88,7 @@ abstract class PHS_Action extends PHS_Instantiable
         if (empty($role_key)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Role key should be a string.'));
 
-            return false;
+            return null;
         }
 
         $role_arr = self::merge_array_assoc($role_arr, self::default_action_role_definition_array());
@@ -106,11 +106,11 @@ abstract class PHS_Action extends PHS_Instantiable
      * Checks if current action has provided role(s)
      *
      * @param string[]|string $role_check action role (string) or action roles (array of strings) to be checked
-     * @param array|bool $params Method extra parameters
+     * @param null|array $params Method extra parameters
      *
-     * @return array|bool Return false if provided roles are not for current action or a list of matching action roles
+     * @return null|array Return null if provided roles are not for current action or a list of matching action roles
      */
-    final public function action_role_is($role_check, $params = false)
+    final public function action_role_is(string | array $role_check, ?array $params = null) : ?array
     {
         if (!is_array($role_check)) {
             $role_check = [$role_check];
@@ -124,16 +124,9 @@ abstract class PHS_Action extends PHS_Instantiable
             $action_roles = [$action_roles];
         }
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
+        $params ??= [];
         // Action has all provided roles
-        if (empty($params['all_provided'])) {
-            $params['all_provided'] = false;
-        } else {
-            $params['all_provided'] = (!empty($params['all_provided']));
-        }
+        $params['all_provided'] = !empty($params['all_provided']);
 
         $return_arr = [];
         foreach ($role_check as $role_key) {
@@ -145,11 +138,11 @@ abstract class PHS_Action extends PHS_Instantiable
 
             // Role is not for current action
             if (!empty($params['all_provided'])) {
-                return false;
+                return null;
             }
         }
 
-        return empty($return_arr) ? false : $return_arr;
+        return empty($return_arr) ? null : $return_arr;
     }
 
     /**

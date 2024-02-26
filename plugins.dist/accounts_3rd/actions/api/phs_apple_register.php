@@ -18,7 +18,7 @@ class PHS_Action_Apple_register extends PHS_Api_action
     /**
      * @inheritdoc
      */
-    public function action_roles()
+    public function action_roles() : array
     {
         return [self::ACT_ROLE_REGISTER];
     }
@@ -28,7 +28,7 @@ class PHS_Action_Apple_register extends PHS_Api_action
      *
      * @return array If empty array, action is allowed in all scopes...
      */
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_API];
     }

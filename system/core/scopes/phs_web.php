@@ -32,11 +32,13 @@ class PHS_Scope_Web extends PHS_Scope
 
         $action_result = PHS_Action::validate_action_result($action_result);
 
+        $should_be_in_tfa_flow = $this->_should_redirect_to_tfa_flow();
+
         // TFA preceeds password expiration...
         /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        if ($this->_should_redirect_to_tfa_flow()
-            && (empty($action_obj)
-                || !$action_obj->action_role_is([$action_obj::ACT_ROLE_TFA_SETUP, $action_obj::ACT_ROLE_TFA_VERIFY, ]))
+        if ($should_be_in_tfa_flow
+             && (empty($action_obj)
+                 || !$action_obj->action_role_is([$action_obj::ACT_ROLE_TFA_SETUP, $action_obj::ACT_ROLE_TFA_VERIFY, ]))
         ) {
             $args = [];
             if (!empty($action_result['redirect_to_url'])) {
@@ -50,7 +52,8 @@ class PHS_Scope_Web extends PHS_Scope
             } else {
                 $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'verify', 'ad' => 'tfa'], $args);
             }
-        } elseif (($expiration_arr = $this->_password_expired_for_current_account())) {
+        } elseif (!$should_be_in_tfa_flow
+                  && ($expiration_arr = $this->_password_expired_for_current_account())) {
             if (!empty($action_obj)
                 && $action_obj->action_role_is([$action_obj::ACT_ROLE_CHANGE_PASSWORD, $action_obj::ACT_ROLE_LOGIN,
                     $action_obj::ACT_ROLE_LOGOUT, $action_obj::ACT_ROLE_PASSWORD_EXPIRED, ])
@@ -69,8 +72,8 @@ class PHS_Scope_Web extends PHS_Scope
             }
 
             if (empty($expiration_arr['show_only_warning'])
-             && !empty($action_obj)
-             && !$in_special_page) {
+                && !empty($action_obj)
+                && !$in_special_page) {
                 $args = [];
                 $args['password_expired'] = 1;
 
@@ -90,7 +93,7 @@ class PHS_Scope_Web extends PHS_Scope
         }
 
         if (!empty($action_result['redirect_to_url'])
-         && !@headers_sent()) {
+            && !@headers_sent()) {
             @header('Location: '.$action_result['redirect_to_url']);
             exit;
         }
@@ -107,7 +110,7 @@ class PHS_Scope_Web extends PHS_Scope
         }
 
         if (empty($action_obj)
-         && empty($action_result['page_template'])) {
+            && empty($action_result['page_template'])) {
             echo 'No running action to render page template.';
             exit;
         }

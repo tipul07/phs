@@ -14,12 +14,12 @@ class PHS_Action_Verify_email_bg extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function action_roles()
+    public function action_roles() : array
     {
         return [self::ACT_ROLE_ACTIVATION];
     }
 
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_BACKGROUND];
     }
