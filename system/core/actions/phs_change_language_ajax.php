@@ -10,7 +10,7 @@ use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Action_Change_language_ajax extends PHS_Action
 {
-    public function action_roles()
+    public function action_roles() : array
     {
         return [self::ACT_ROLE_CHANGE_LANGUAGE, ];
     }
@@ -18,7 +18,7 @@ class PHS_Action_Change_language_ajax extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_AJAX];
     }

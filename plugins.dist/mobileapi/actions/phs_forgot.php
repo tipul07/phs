@@ -16,24 +16,20 @@ class PHS_Action_Forgot extends PHS_Api_action
     /**
      * @inheritdoc
      */
-    public function action_roles()
+    public function action_roles() : array
     {
         return [self::ACT_ROLE_FORGOT_PASSWORD];
     }
 
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_API];
     }
 
     public function execute()
     {
-        /** @var \phs\plugins\mobileapi\models\PHS_Model_Api_online $online_model */
-        /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobile_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (!($online_model = PHS_Model_Api_online::get_instance())
-         || !($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())
-         || !($accounts_model = PHS_Model_Accounts::get_instance())) {
+        if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
             return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                 $this->_pt('Error loading required resources.'));
         }
@@ -44,7 +40,7 @@ class PHS_Action_Forgot extends PHS_Api_action
         }
 
         if (empty($request_arr['email'])
-         || !($account_arr = $accounts_model->get_details_fields(['email' => $request_arr['email'], 'status' => $accounts_model::STATUS_ACTIVE]))) {
+            || !($account_arr = $accounts_model->get_details_fields(['email' => $request_arr['email'], 'status' => $accounts_model::STATUS_ACTIVE]))) {
             // Because of security reasons, let them think it's ok
             return $this->send_api_success(
                 ['email_queued' => true],

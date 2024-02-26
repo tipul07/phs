@@ -19,7 +19,7 @@ class PHS_Action_Login extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function action_roles()
+    public function action_roles() : array
     {
         return [self::ACT_ROLE_LOGIN];
     }
@@ -29,7 +29,7 @@ class PHS_Action_Login extends PHS_Action
      *
      * @return array If empty array, action is allowed in all scopes...
      */
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_WEB];
     }

@@ -7,6 +7,8 @@ use phs\PHS_Scope;
 use phs\PHS_Api_base;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Api_action;
+use phs\plugins\mobileapi\PHS_Plugin_Mobileapi;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Action_Register extends PHS_Api_action
 {
@@ -15,26 +17,22 @@ class PHS_Action_Register extends PHS_Api_action
     /**
      * @inheritdoc
      */
-    public function action_roles()
+    public function action_roles() : array
     {
         return [self::ACT_ROLE_REGISTER];
     }
 
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_API];
     }
 
     public function execute()
     {
-        /** @var \phs\plugins\mobileapi\models\PHS_Model_Api_online $online_model */
         /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobile_plugin */
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (!($online_model = PHS::load_model('api_online', 'mobileapi'))
-         || !($mobile_plugin = PHS::load_plugin('mobileapi'))
-         || !($accounts_plugin = PHS::load_plugin('accounts'))
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))) {
+        if (!($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())
+         || !($accounts_model = PHS_Model_Accounts::get_instance())) {
             return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                 $this->_pt('Error loading required resources.'));
         }
@@ -45,9 +43,9 @@ class PHS_Action_Register extends PHS_Api_action
         }
 
         if (!($request_arr = PHS_Api::get_request_body_as_json_array())
-         || empty($request_arr['nick'])
-         || empty($request_arr['email'])
-         || !isset($request_arr['pass'])) {
+            || empty($request_arr['nick'])
+            || empty($request_arr['email'])
+            || !isset($request_arr['pass'])) {
             return $this->send_api_error(PHS_Api_base::H_CODE_BAD_REQUEST, self::ERR_PARAMETERS,
                 $this->_pt('Please provide required fields.'));
         }
@@ -73,14 +71,8 @@ class PHS_Action_Register extends PHS_Api_action
         }
 
         if (!($account_arr = $accounts_model->insert($insert_arr))) {
-            if ($accounts_model->has_error()) {
-                $error_msg = $accounts_model->get_simple_error_message();
-            } else {
-                $error_msg = $this->_pt('Couldn\'t register user. Please try again.');
-            }
-
             return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_REGISTRATION,
-                $error_msg);
+                $accounts_model->get_simple_error_message($this->_pt('Couldn\'t register user. Please try again.')));
         }
 
         $response_arr = [
