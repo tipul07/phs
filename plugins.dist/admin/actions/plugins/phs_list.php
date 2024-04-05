@@ -9,20 +9,17 @@ use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
 use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\models\PHS_Model_Tenants;
-use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 /** @property \phs\system\core\models\PHS_Model_Plugins $_paginator_model */
 class PHS_Action_List extends PHS_Action_Generic_list
 {
-    /** @var null|\phs\plugins\admin\PHS_Plugin_Admin */
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
-    /** @var null|\phs\system\core\models\PHS_Model_Tenants */
     private ?PHS_Model_Tenants $_tenants_model = null;
 
     private array $_tenants_key_val_arr = [];
 
-    public function load_depencies()
+    public function load_depencies(): bool
     {
         if (!($this->_admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($this->_tenants_model = PHS_Model_Tenants::get_instance())
@@ -36,9 +33,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
     }
 
     /**
-     * @return array|bool Should return false if execution should continue or an array with an action result which should be returned by execute() method
+     * @inheritdoc
      */
-    public function should_stop_execution()
+    public function should_stop_execution(): ?array
     {
         PHS::page_settings('page_title', $this->_pt('Plugins List'));
 
@@ -48,7 +45,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return action_request_login();
         }
 
-        return false;
+        return null;
     }
 
     // Do any actions required after paginator was instantiated and initialized (eg. columns, filters, model and bulk actions were set)
@@ -116,7 +113,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function load_paginator_params()
+    public function load_paginator_params(): ?array
     {
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -127,7 +124,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         if (!$this->_admin_plugin->can_admin_list_plugins()) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
-            return false;
+            return null;
         }
 
         $is_multi_tenant = PHS::is_multi_tenant();
@@ -323,18 +320,18 @@ class PHS_Action_List extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function manage_action($action)
+    public function manage_action($action): null|bool|array
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+        if (empty($this->_paginator_model)
+            && !$this->load_depencies()) {
             return false;
         }
 
         $action_result_params = $this->_paginator->default_action_params();
 
-        if (empty($action) || !is_array($action)
-         || empty($action['action'])) {
+        if (empty($action['action'])) {
             return $action_result_params;
         }
 
@@ -850,6 +847,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         {
             if( confirm( "<?php echo self::_e('Are you sure you want to install this plugin?', '"'); ?>" ) )
             {
+                show_submit_protection("<?php echo $this->_pte('Please wait...')?>");
                 <?php
                 $url_params = [];
         $url_params['action'] = [
@@ -864,6 +862,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             if( confirm( "<?php echo self::_e('Are you sure you want to uninstall this plugin?', '"'); ?>" + "\n" +
                          "<?php echo self::_e('NOTE: Plugin settings will be deleted. Some plugins will also delete information stored in database!', '"'); ?>" ) )
             {
+                show_submit_protection("<?php echo $this->_pte('Please wait...')?>");
                 <?php
         $url_params = [];
         $url_params['action'] = [
@@ -877,6 +876,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         {
             if( confirm( "<?php echo self::_e('Are you sure you want to activate this plugin?', '"'); ?>" ) )
             {
+                show_submit_protection("<?php echo $this->_pte('Please wait...')?>");
                 <?php
         $url_params = [];
         $url_params['action'] = [
@@ -890,6 +890,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         {
             if( confirm( "<?php echo self::_e('Are you sure you want to inactivate this plugin?', '"'); ?>" ) )
             {
+                show_submit_protection("<?php echo $this->_pte('Please wait...')?>");
                 <?php
         $url_params = [];
         $url_params['action'] = [
@@ -903,6 +904,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         {
             if( confirm( "<?php echo self::_e('Are you sure you want to upgrade this plugin?', '"'); ?>" ) )
             {
+                show_submit_protection("<?php echo $this->_pte('Please wait...')?>");
                 <?php
         $url_params = [];
         $url_params['action'] = [
@@ -917,6 +919,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             if( confirm( "<?php echo self::_e('Are you sure you want to DELETE this plugin?', '"'); ?>" + "\n" +
                          "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
             {
+                show_submit_protection("<?php echo $this->_pte('Please wait...')?>");
                 <?php
         $url_params = [];
         $url_params['action'] = [
@@ -1011,6 +1014,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
             // Give DOM time to update...
             setTimeout(function(){
+                show_submit_protection("<?php echo $this->_pte('Please wait...')?>");
                 $("#phs_export_plugin_settings_crypt_key").val( crypt_key_text );
 
                 const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");

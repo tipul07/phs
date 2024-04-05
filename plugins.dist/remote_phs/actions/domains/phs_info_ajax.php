@@ -3,24 +3,17 @@ namespace phs\plugins\remote_phs\actions\domains;
 
 use phs\PHS;
 use phs\PHS_Scope;
-use phs\PHS_bg_jobs;
-use phs\libraries\PHS_Hooks;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_params;
-use phs\libraries\PHS_line_params;
 use phs\libraries\PHS_Notifications;
 
 class PHS_Action_Info_ajax extends PHS_Action
 {
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_AJAX];
     }
 
-    /**
-     * @return array|bool
-     */
     public function execute()
     {
         PHS::page_settings('page_title', $this->_pt('Ping Remote Domain'));

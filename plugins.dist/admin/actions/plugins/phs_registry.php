@@ -14,7 +14,7 @@ use phs\system\core\models\PHS_Model_Plugins;
 
 class PHS_Action_Registry extends PHS_Api_action
 {
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }

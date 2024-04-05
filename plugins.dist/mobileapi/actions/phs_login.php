@@ -12,9 +12,6 @@ use phs\plugins\mobileapi\models\PHS_Model_Api_online;
 
 class PHS_Action_Login extends PHS_Api_action
 {
-    /**
-     * @inheritdoc
-     */
     public function action_roles() : array
     {
         return [self::ACT_ROLE_LOGIN];

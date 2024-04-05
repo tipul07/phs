@@ -12,19 +12,11 @@ use phs\plugins\phs_libs\PHS_Plugin_Phs_libs;
 
 class PHS_Action_Qr extends PHS_Action
 {
-    /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
-     */
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
 
-    /**
-     * @return array|bool
-     */
     public function execute()
     {
         $download = PHS_params::_g('download', PHS_params::T_INT);

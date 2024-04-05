@@ -14,19 +14,11 @@ use phs\system\core\models\PHS_Model_Tenants;
 
 class PHS_Action_Plugins extends PHS_Api_action
 {
-    /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
-     */
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
 
-    /**
-     * @return array|bool
-     */
     public function execute()
     {
         PHS::page_settings('page_title', $this->_pt('Manage Tenant\'s Plugins'));

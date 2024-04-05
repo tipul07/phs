@@ -11,19 +11,11 @@ use phs\plugins\s2p_libraries\libraries\S2P_Countries;
 
 class PHS_Action_Edit extends PHS_Action
 {
-    /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
-     */
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_WEB];
     }
 
-    /**
-     * @return array|bool
-     */
     public function execute()
     {
         PHS::page_settings('page_title', $this->_pt('Edit Remote PHS Domain'));

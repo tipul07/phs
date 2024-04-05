@@ -9,10 +9,7 @@ use phs\system\core\events\layout\PHS_Event_Template;
 
 class PHS_Action_Index extends PHS_Action
 {
-    /**
-     * @inheritdoc
-     */
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_WEB];
     }

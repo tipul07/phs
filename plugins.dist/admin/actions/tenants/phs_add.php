@@ -2,9 +2,7 @@
 namespace phs\plugins\admin\actions\tenants;
 
 use phs\PHS;
-use phs\PHS_Api;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
@@ -13,12 +11,7 @@ use phs\system\core\models\PHS_Model_Tenants;
 
 class PHS_Action_Add extends PHS_Action
 {
-    /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
-     */
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }

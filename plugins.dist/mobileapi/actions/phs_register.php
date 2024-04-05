@@ -14,9 +14,6 @@ class PHS_Action_Register extends PHS_Api_action
 {
     public const ERR_DEPENDENCIES = 1, ERR_MODEL_DATA = 2, ERR_REGISTRATION = 3;
 
-    /**
-     * @inheritdoc
-     */
     public function action_roles() : array
     {
         return [self::ACT_ROLE_REGISTER];

@@ -12,10 +12,9 @@ use phs\system\core\models\PHS_Model_Agent_jobs_monitor;
 /** @property \phs\system\core\models\PHS_Model_Agent_jobs_monitor $_paginator_model */
 class PHS_Action_Report extends PHS_Action_Generic_list
 {
-    /** @var null|\phs\plugins\admin\PHS_Plugin_Admin */
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
-    public function load_depencies()
+    public function load_depencies() : bool
     {
         if (!($this->_admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($this->_paginator_model = PHS_Model_Agent_jobs_monitor::get_instance())) {
@@ -28,9 +27,9 @@ class PHS_Action_Report extends PHS_Action_Generic_list
     }
 
     /**
-     * @return array|bool Should return false if execution should continue or an array with an action result which should be returned by execute() method
+     * @inheritdoc
      */
-    public function should_stop_execution()
+    public function should_stop_execution() : ?array
     {
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -50,26 +49,26 @@ class PHS_Action_Report extends PHS_Action_Generic_list
             return self::default_action_result();
         }
 
-        return false;
+        return null;
     }
 
     /**
      * @inheritdoc
      */
-    public function load_paginator_params()
+    public function load_paginator_params() : ?array
     {
         PHS::page_settings('page_title', $this->_pt('Agent Jobs Report'));
 
         if (!PHS::user_logged_in()) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
 
-            return false;
+            return null;
         }
 
         if (!$this->_admin_plugin->can_admin_list_agent_jobs()) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
-            return false;
+            return null;
         }
 
         $flow_params = [
@@ -214,20 +213,18 @@ class PHS_Action_Report extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function manage_action($action)
+    public function manage_action($action) : null | bool | array
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model)
+            && !$this->load_depencies()) {
+            return false;
         }
 
         $action_result_params = $this->_paginator->default_action_params();
 
-        if (empty($action) || !is_array($action)
-         || empty($action['action'])) {
+        if (empty($action['action'])) {
             return $action_result_params;
         }
 

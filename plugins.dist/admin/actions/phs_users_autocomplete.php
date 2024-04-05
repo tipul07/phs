@@ -47,17 +47,11 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         'search_term' => '',
     ];
 
-    /**
-     * @inheritdoc
-     */
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_AJAX];
     }
 
-    /**
-     * @return array|bool
-     */
     public function execute()
     {
         if (!PHS::user_logged_in()) {

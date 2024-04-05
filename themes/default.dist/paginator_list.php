@@ -13,7 +13,7 @@ if (!($paginator_obj = $this->view_var('paginator'))) {
 }
 
 if (!($model_obj = $paginator_obj->get_model())) {
-    $model_obj = false;
+    $model_obj = null;
 }
 
 if (!($base_url = $paginator_obj->base_url())) {

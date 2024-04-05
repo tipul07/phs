@@ -1677,16 +1677,16 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * @param array $flow_params
      *
-     * @return array|bool
+     * @return null|array
      */
-    private function _all_fields_definition(array $flow_params)
+    private function _all_fields_definition(array $flow_params) : ?array
     {
         $this->reset_error();
 
         if (!($flow_params = $this->fetch_default_flow_params($flow_params))) {
             $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Failed validating flow parameters.'));
 
-            return false;
+            return null;
         }
 
         $fields_arr = $this->fields_definition($flow_params);

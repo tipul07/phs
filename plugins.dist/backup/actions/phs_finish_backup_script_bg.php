@@ -10,7 +10,7 @@ use phs\plugins\backup\models\PHS_Model_Results;
 
 class PHS_Action_Finish_backup_script_bg extends PHS_Action
 {
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_BACKGROUND];
     }

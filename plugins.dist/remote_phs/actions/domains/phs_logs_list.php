@@ -13,13 +13,12 @@ use phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains;
 /** @property \phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains $_paginator_model */
 class PHS_Action_Logs_list extends PHS_Action_Generic_list
 {
-    /** @var null|\phs\plugins\remote_phs\PHS_Plugin_Remote_phs */
     private ?PHS_Plugin_Remote_phs $_remote_plugin = null;
 
     /**
      * @inheritdoc
      */
-    public function load_depencies()
+    public function load_depencies() : bool
     {
         if (!($this->_remote_plugin = PHS_Plugin_Remote_phs::get_instance())
             || !($this->_paginator_model = PHS_Model_Phs_remote_domains::get_instance())) {
@@ -34,7 +33,7 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function should_stop_execution()
+    public function should_stop_execution() : ?array
     {
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -49,33 +48,33 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
         }
 
         if (!$this->_remote_plugin->can_admin_list_logs()
-         && !$this->_remote_plugin->can_admin_manage_logs()) {
+            && !$this->_remote_plugin->can_admin_manage_logs()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }
 
-        return false;
+        return null;
     }
 
     /**
      * @inheritdoc
      */
-    public function load_paginator_params()
+    public function load_paginator_params() : ?array
     {
         PHS::page_settings('page_title', $this->_pt('Remote PHS Domains Logs List'));
 
         if (!PHS::user_logged_in()) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
 
-            return false;
+            return null;
         }
 
         if (!$this->_remote_plugin->can_admin_list_logs()
          && !$this->_remote_plugin->can_admin_manage_logs()) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
-            return false;
+            return null;
         }
 
         $domains_model = $this->_paginator_model;
@@ -115,7 +114,7 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
         }
 
         if (!$this->_remote_plugin->can_admin_manage_logs()) {
-            $bulk_actions = false;
+            $bulk_actions = null;
         } else {
             $bulk_actions = [
                 [
@@ -241,14 +240,13 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function manage_action($action)
+    public function manage_action($action) : null | bool | array
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model)
+            && !$this->load_depencies()) {
+            return false;
         }
 
         if (!($current_user = PHS::user_logged_in())) {
@@ -259,8 +257,7 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
 
         $action_result_params = $this->_paginator->default_action_params();
 
-        if (empty($action) || !is_array($action)
-         || empty($action['action'])) {
+        if (empty($action['action'])) {
             return $action_result_params;
         }
 

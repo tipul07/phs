@@ -8,35 +8,28 @@ abstract class PHS_Action_Generic_list extends PHS_Action
 {
     public const ERR_DEPENCIES = 50000, ERR_ACTION = 50001;
 
-    /** @var bool|PHS_Paginator */
-    protected $_paginator = false;
+    protected ?PHS_Paginator $_paginator = null;
 
-    /** @var \phs\libraries\PHS_Model */
-    protected $_paginator_model = false;
+    protected ?PHS_Model $_paginator_model = null;
 
     /**
      * @return bool true if all depencies were loaded successfully, false if any error (set_error should be used to pass error message)
      */
-    abstract public function load_depencies();
+    abstract public function load_depencies() : bool;
 
     /**
-     * @return array|bool Returns an array with flow_parameters, bulk_actions, filters_arr and columns_arr keys containing arrays with definitions for paginator class
+     * @return null|array Returns an array with flow_parameters, bulk_actions, filters_arr and columns_arr keys containing arrays with definitions for paginator class
      */
-    abstract public function load_paginator_params();
+    abstract public function load_paginator_params() : ?array;
 
     /**
      * @param array $action Action to be managed
      *
-     * @return mixed
+     * @return null|bool|array
      */
     abstract public function manage_action($action);
 
-    /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
-     */
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
@@ -54,11 +47,11 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     }
 
     /**
-     * @return array|bool Should return false if execution should continue or an array with an action result which should be returned by execute() method
+     * @return null|array Should return false if execution should continue or an array with an action result which should be returned by execute() method
      */
-    public function should_stop_execution()
+    public function should_stop_execution() : ?array
     {
-        return false;
+        return null;
     }
 
     /**
@@ -151,11 +144,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         }
 
         if (!$this->load_depencies()) {
-            if ($this->has_error()) {
-                PHS_Notifications::add_error_notice($this->get_simple_error_message());
-            } else {
-                PHS_Notifications::add_error_notice(self::_t('Couldn\'t load action depencies.'));
-            }
+            PHS_Notifications::add_error_notice($this->get_simple_error_message(self::_t('Couldn\'t load action depencies.')));
 
             return self::default_action_result();
         }
@@ -199,12 +188,8 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         }
 
         if (!($this->_paginator = new PHS_Paginator($paginator_params['base_url'], $paginator_params['flow_parameters']))
-         || !$this->we_have_paginator()) {
-            if ($this->has_error()) {
-                PHS_Notifications::add_error_notice($this->get_simple_error_message());
-            } else {
-                PHS_Notifications::add_error_notice(self::_t('Couldn\'t instantiate paginator class.'));
-            }
+            || !$this->we_have_paginator()) {
+            PHS_Notifications::add_error_notice($this->get_simple_error_message(self::_t('Couldn\'t instantiate paginator class.')));
 
             return self::default_action_result();
         }
@@ -212,6 +197,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         $init_went_ok = true;
         if (!$this->_paginator->set_columns($paginator_params['columns_arr'])
          || (!empty($paginator_params['filters_arr'])
+             && is_array($paginator_params['filters_arr'])
              && !$this->_paginator->set_filters($paginator_params['filters_arr']))
          || (!empty($this->_paginator_model)
              && !$this->_paginator->set_model($this->_paginator_model))
@@ -309,12 +295,12 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     {
         return [
             'base_url'        => '',
-            'flow_parameters' => false,
-            'bulk_actions'    => false,
-            'filters_arr'     => false,
-            'columns_arr'     => false,
-            // an action result array or false
-            'force_action_result' => false,
+            'flow_parameters' => [],
+            'bulk_actions'    => [],
+            'filters_arr'     => [],
+            'columns_arr'     => [],
+            // an action result array or null
+            'force_action_result' => null,
         ];
     }
 }

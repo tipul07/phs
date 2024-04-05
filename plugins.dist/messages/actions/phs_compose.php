@@ -10,12 +10,7 @@ use phs\libraries\PHS_Notifications;
 
 class PHS_Action_Compose extends PHS_Action
 {
-    /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
-     */
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }

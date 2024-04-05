@@ -9,7 +9,7 @@ use phs\libraries\PHS_Logger;
 
 class PHS_Action_Connect_bg extends PHS_Action
 {
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_BACKGROUND];
     }

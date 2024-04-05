@@ -10,7 +10,7 @@ class PHS_Action_Run_backups_ag extends PHS_Action
 {
     public const ERR_DEPENDENCIES = 1;
 
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_AGENT];
     }

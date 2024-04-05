@@ -15,9 +15,6 @@ class PHS_Action_Change_language_ajax extends PHS_Action
         return [self::ACT_ROLE_CHANGE_LANGUAGE, ];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_AJAX];
