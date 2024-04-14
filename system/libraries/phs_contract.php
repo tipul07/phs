@@ -497,7 +497,7 @@ abstract class PHS_Contract extends PHS_Instantiable
              || empty($node_arr['nodes']) || !is_array($node_arr['nodes'])
              || empty($node_arr['data_model_obj'])
              || !(($model_obj = $node_arr['data_model_obj']) instanceof PHS_Model)
-             || !($flow_arr = $model_obj->fetch_default_flow_params((!empty($node_arr['data_flow_arr']) ? $node_arr['data_flow_arr'] : false)))
+             || !($flow_arr = $model_obj->fetch_default_flow_params($node_arr['data_flow_arr'] ?: []))
              || empty($data_arr[$node_key][$flow_arr['table_index']])
              || !($model_id = $model_obj->instance_id())) {
                 continue;
@@ -534,7 +534,7 @@ abstract class PHS_Contract extends PHS_Instantiable
          || !isset($inside_data[$node_arr['data_primary_key']])
          || !($primary_key = (int)$inside_data[$node_arr['data_primary_key']])
          || !(($model_obj = $node_arr['data_model_obj']) instanceof PHS_Model)
-         || !($flow_arr = $model_obj->fetch_default_flow_params((!empty($node_arr['data_flow_arr']) ? $node_arr['data_flow_arr'] : false)))
+         || !($flow_arr = $model_obj->fetch_default_flow_params($node_arr['data_flow_arr'] ?: []))
          || !($model_id = $model_obj->instance_id())
          || empty($this->_data_cache[$model_id])
          || !is_array($this->_data_cache[$model_id])
@@ -564,7 +564,7 @@ abstract class PHS_Contract extends PHS_Instantiable
          || empty($node_arr['data_primary_key'])
          || empty($node_arr['data_model_obj'])
          || !(($model_obj = $node_arr['data_model_obj']) instanceof PHS_Model)
-         || !($flow_arr = $model_obj->fetch_default_flow_params((!empty($node_arr['data_flow_arr']) ? $node_arr['data_flow_arr'] : false)))
+         || !($flow_arr = $model_obj->fetch_default_flow_params($node_arr['data_flow_arr'] ?: []))
          || !isset($data_arr[$flow_arr['table_index']])
          || !($primary_key = (int)$data_arr[$flow_arr['table_index']])
          || !($model_id = $model_obj->instance_id())
@@ -1135,7 +1135,7 @@ abstract class PHS_Contract extends PHS_Instantiable
 
                     if (empty($db_record_arr)
                      && (($model_obj = $node_arr['data_model_obj']) instanceof PHS_Model)
-                     && ($flow_arr = $model_obj->fetch_default_flow_params((!empty($node_arr['data_flow_arr']) ? $node_arr['data_flow_arr'] : false)))
+                     && ($flow_arr = $model_obj->fetch_default_flow_params($node_arr['data_flow_arr'] ?: []))
                      && ($db_record_arr = $model_obj->get_details($inside_data[$node_arr['data_primary_key']], $flow_arr))) {
                         $this->_set_cache_data_for_node($node_arr, $db_record_arr);
                     }

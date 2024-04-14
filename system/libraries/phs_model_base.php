@@ -102,12 +102,12 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @param int $type Field type
      *
-     * @return array Data type details array
+     * @return null|array Data type details array
      */
-    abstract public function valid_field_type($type);
+    abstract public function valid_field_type(int $type) : ?array;
 
     /**
-     * Retrieve one record from database by it's primary key (model specific functionality)
+     * Retrieve one record from database by its primary key (model specific functionality)
      *
      * @param string|int $id Id of record we want to get from database
      * @param bool|array $params Flow parameters
@@ -325,13 +325,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      */
     public function get_table_name($params = false) : string
     {
-        if (!empty($params) && is_array($params)
-         && !empty($params['table_name'])) {
-            return $params['table_name'];
-        }
-
-        // return default table...
-        return $this->get_main_table_name();
+        return $params['table_name'] ?? $this->get_main_table_name();
     }
 
     /**
@@ -1750,7 +1744,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * Validate a single table definition (provided in flow parameters)
      *
-     * @param bool|array $params Flow parameters
+     * @param null|array $params Flow parameters
      *
      * @return bool True on success, false on failure
      */
@@ -1775,6 +1769,10 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         $this->_definition[$params['table_name']] = [];
         foreach ($model_fields as $field_name => $field_arr) {
+            if (!is_array($field_arr)) {
+                continue;
+            }
+
             if ($field_name === self::T_DETAILS_KEY) {
                 $this->_definition[$params['table_name']][$field_name] = $this->_validate_table_details($field_arr);
                 continue;
@@ -1810,16 +1808,16 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * @return string Returns version of base model (abstract class)
      */
-    final public static function get_model_base_version()
+    final public static function get_model_base_version() : string
     {
         return '1.0.4';
     }
 
     /**
      * Default hook parameters
-     * @return array|bool
+     * @return array
      */
-    final public static function default_table_fields_hook_args()
+    final public static function default_table_fields_hook_args() : array
     {
         return PHS_Hooks::hook_args_definition([
             'model_id'    => '',
@@ -1835,7 +1833,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      */
     protected static function get_cached_db_tables_structure_for_driver(string $driver) : array
     {
-        return !empty(self::$tables_arr[$driver]) ? self::$tables_arr[$driver] : [];
+        return self::$tables_arr[$driver] ?? [];
     }
 
     /**
@@ -1846,7 +1844,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      */
     protected static function get_cached_db_table_structure(string $table_name, string $driver) : array
     {
-        return !empty(self::$tables_arr[$driver][$table_name]) ? self::$tables_arr[$driver][$table_name] : [];
+        return self::$tables_arr[$driver][$table_name] ?? [];
     }
 
     /**

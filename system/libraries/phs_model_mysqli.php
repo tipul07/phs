@@ -97,8 +97,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
     /**
      * @inheritdoc
-     * @return int|string
-     *                    Default primary key an INT, override this method if otherwise
+     * @return int
+     *             Default primary key an INT, override this method if otherwise
      */
     public function prepare_primary_key($id, $params = false)
     {
@@ -116,12 +116,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    public function valid_field_type($type)
+    public function valid_field_type(int $type) : ?array
     {
         if (empty($type)
-         || !($fields_arr = $this->get_field_types())
-         || empty($fields_arr[$type]) || !is_array($fields_arr[$type])) {
-            return false;
+            || !($fields_arr = $this->get_field_types())
+            || empty($fields_arr[$type]) || !is_array($fields_arr[$type])) {
+            return null;
         }
 
         return $fields_arr[$type];
@@ -202,10 +202,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    final public function alter_table_add_column($field_name, $field_details, $flow_params = false, $params = false) : bool
+    final public function alter_table_add_column(string $field_name, array $field_details, $flow_params = false, $params = false) : bool
     {
         $this->reset_error();
 
+        $params ??= [];
         $field_details = self::validate_array($field_details, self::_default_field_arr());
 
         if (empty($field_name)
@@ -231,10 +232,6 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             $this->set_error(self::ERR_ALTER, self::_t('Column [%s] already exists.', $field_name));
 
             return false;
-        }
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
         }
 
         if (empty($params['after_column']) || strtolower(trim($params['after_column'])) === '`first`') {
@@ -1243,8 +1240,10 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         $all_fields_str = '';
         $keys_str = '';
         foreach ($table_definition as $field_name => $field_details) {
-            if (!($field_definition = $this->_get_mysql_field_definition($field_name, $field_details))
-             || !is_array($field_definition) || empty($field_definition['field_str'])) {
+            if (!is_array($field_details)
+                || !($field_definition = $this->_get_mysql_field_definition($field_name, $field_details))
+                || !is_array($field_definition) || empty($field_definition['field_str'])
+            ) {
                 continue;
             }
 
@@ -1468,8 +1467,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         $fields_found_in_old_structure = [];
         // First we add or remove missing fields
         foreach ($table_definition as $field_name => $field_definition) {
-            if ($field_name === self::T_DETAILS_KEY
-             || $field_name === self::EXTRA_INDEXES_KEY) {
+            if (!is_array($field_definition)
+                || $field_name === self::T_DETAILS_KEY
+                || $field_name === self::EXTRA_INDEXES_KEY) {
                 continue;
             }
 
@@ -2937,9 +2937,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      * @param string $field_name Name of mysql field
      * @param array $field_details Field details array
      *
-     * @return bool|array Returns an array containing mysql statement for provided field and key string (if required) or false on failure
+     * @return null|array Returns an array containing mysql statement for provided field and key string (if required) or false on failure
      */
-    private function _get_mysql_field_definition($field_name, $field_details)
+    private function _get_mysql_field_definition(string $field_name, array $field_details) : ?array
     {
         $field_details = self::validate_array($field_details, self::_default_field_arr());
 
@@ -2949,7 +2949,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
          || !($field_details = $this->_validate_field($field_details))
          || !($type_details = $this->valid_field_type($field_details['type']))
         ) {
-            return false;
+            return null;
         }
 
         $field_str = '';
