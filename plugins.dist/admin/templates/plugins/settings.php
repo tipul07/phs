@@ -239,8 +239,10 @@ function toggle_obfuscated_settings_field(id)
     const el = document.getElementById(id);
     if( el.type === "text" ) {
         el.type = "password";
+        $('#settings_eye_'+id).removeClass( 'fa-eye-slash' ).addClass( 'fa-eye' );
     } else {
         el.type = 'text';
+        $('#settings_eye_'+id).removeClass( 'fa-eye' ).addClass( 'fa-eye-slash' );
     }
 }
 <?php
@@ -586,10 +588,11 @@ function phs_display_plugin_settings_get_field_input($field_value, string $field
                     <?php
                     if($should_obfuscate) {
                         ?>
-                        <div class="input-group-append" style="padding: 5px; color: inherit;">
-                            <div class="input-group-text"><a href="javascript:void(0)" class="fa fa-eye" style='color: inherit;'
-                                                             onclick="toggle_obfuscated_settings_field('<?php echo $field_name; ?>')"
-                                                             onfocus="this.blur()"></a></div>
+                        <div class="input-group-append" style="color: inherit;">
+                            <div class="input-group-text"><span href="javascript:void(0)" class="fa fa-eye" style='margin: 3px;cursor:pointer;vertical-align: middle'
+                                                                id="settings_eye_<?php echo $field_name; ?>"
+                                                                onclick="toggle_obfuscated_settings_field('<?php echo $field_name; ?>')"
+                                                                onfocus="this.blur()"></span></div>
                         </div>
                     </div>
                     <?php
