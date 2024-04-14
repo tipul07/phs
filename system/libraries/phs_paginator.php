@@ -31,12 +31,11 @@ class PHS_Paginator extends PHS_Registry
     private array $_scope = [];
 
     // Action request (if any)
-    private $_action = false;
+    private array $_action = [];
 
-    /** @var bool|\phs\libraries\PHS_Model */
-    private $_model = false;
+    private ?PHS_Model $_model = null;
 
-    private $_flow_params_arr = [];
+    private array $_flow_params_arr = [];
 
     private array $_pagination_params_arr = [];
 
@@ -106,8 +105,8 @@ class PHS_Paginator extends PHS_Registry
             'column'                => false,
             'table_field'           => false,
             'preset_content'        => '',
-            'model_obj'             => false,
-            'paginator_obj'         => false,
+            'model_obj'             => null,
+            'paginator_obj'         => null,
             'extra_callback_params' => false,
             'for_scope'             => false,
         ];
@@ -231,7 +230,7 @@ class PHS_Paginator extends PHS_Registry
         return $this->_flow_params_arr;
     }
 
-    public function flow_param(string $key, $val = null)
+    public function flow_param(string $key, $val = null) : mixed
     {
         if (empty($this->_flow_params_arr)) {
             $this->_flow_params_arr = $this->default_flow_params();
@@ -252,7 +251,7 @@ class PHS_Paginator extends PHS_Registry
 
     public function reset_paginator() : void
     {
-        $this->_model = false;
+        $this->_model = null;
 
         $this->_base_url = '';
 
@@ -471,10 +470,10 @@ class PHS_Paginator extends PHS_Registry
         return $this->_base_url;
     }
 
-    public function get_action_parameter_names()
+    public function get_action_parameter_names() : ?array
     {
         if (!($flow_params = $this->flow_params())) {
-            return false;
+            return null;
         }
 
         $action_key = $flow_params['form_prefix'].self::ACTION_PARAM_NAME;
@@ -496,7 +495,7 @@ class PHS_Paginator extends PHS_Registry
     public function parse_action_parameter($action)
     {
         if (empty($action)
-         || !($action_parameter_names = $this->get_action_parameter_names())) {
+            || !($action_parameter_names = $this->get_action_parameter_names())) {
             return false;
         }
 
@@ -993,35 +992,27 @@ class PHS_Paginator extends PHS_Registry
 
     public function reset_model() : void
     {
-        $this->_model = false;
+        $this->_model = null;
     }
 
-    public function get_model()
+    public function get_model() : ?PHS_Model
     {
         return $this->_model;
     }
 
     /**
      * @param \phs\libraries\PHS_Model $model Model object which should provide records for listing
-     *
-     * @return bool True if everything went ok or false on error when setting model
      */
-    public function set_model($model)
+    public function set_model(PHS_Model $model) : bool
     {
         $this->reset_error();
-
-        if (empty($model) || !($model instanceof PHS_Model)) {
-            $this->set_error(self::ERR_MODEL, self::_t('Model is invalid.'));
-
-            return false;
-        }
 
         $this->_model = $model;
 
         return true;
     }
 
-    public function get_current_action()
+    public function get_current_action() : array
     {
         if (empty($this->_action)) {
             $this->extract_action_from_request();
@@ -1533,7 +1524,7 @@ class PHS_Paginator extends PHS_Registry
                 elseif (isset($filter_arr['record_check']['fields'])) {
                     $check_model_obj = $model_obj;
                     if (!empty($filter_arr['record_check_model'])
-                     && ($filter_arr['record_check_model'] instanceof PHS_Model)) {
+                        && ($filter_arr['record_check_model'] instanceof PHS_Model)) {
                         $check_model_obj = $filter_arr['record_check_model'];
                     }
 
@@ -1737,7 +1728,7 @@ class PHS_Paginator extends PHS_Registry
         $record_arr = $render_params['record'];
 
         if (!($model_obj = $this->get_model())) {
-            $model_obj = false;
+            $model_obj = null;
         }
 
         if (!($field_name = $this->get_column_name($column_arr, $render_params['for_scope']))) {
@@ -1998,12 +1989,12 @@ class PHS_Paginator extends PHS_Registry
         $this->_query_id = false;
     }
 
-    private function extract_action_from_request() : bool
+    private function extract_action_from_request() : void
     {
         $this->_action = $this->default_action_params();
 
         if (!($flow_params = $this->flow_params())) {
-            return false;
+            return;
         }
 
         if (!($bulk_select_name = $this->get_bulk_action_select_name())) {
@@ -2024,7 +2015,7 @@ class PHS_Paginator extends PHS_Registry
                 $this->flow_param('bulk_action_area', 'bottom');
                 $action = $bulk_action;
             } else {
-                return true;
+                return;
             }
         }
 
@@ -2039,8 +2030,6 @@ class PHS_Paginator extends PHS_Registry
 
         $this->_action['action_params'] = $action_params;
         $this->_action['action_result'] = $action_result;
-
-        return true;
     }
 
     private function extract_filters_scope()

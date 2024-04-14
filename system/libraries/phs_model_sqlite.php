@@ -116,12 +116,12 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    public function valid_field_type($type)
+    public function valid_field_type(int $type) : ?array
     {
         if (empty($type)
          || !($fields_arr = $this->get_field_types())
          || empty($fields_arr[$type]) || !is_array($fields_arr[$type])) {
-            return false;
+            return null;
         }
 
         return $fields_arr[$type];

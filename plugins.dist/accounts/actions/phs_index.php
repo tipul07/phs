@@ -6,7 +6,7 @@ use phs\libraries\PHS_Action;
 
 class PHS_Action_Index extends PHS_Action
 {
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_WEB];
     }

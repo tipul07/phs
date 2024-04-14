@@ -83,10 +83,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
      */
     abstract public function format_data($data = false, $format = false, $as_html = true);
 
-    /**
-     * @inheritdoc
-     */
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_AJAX];
     }

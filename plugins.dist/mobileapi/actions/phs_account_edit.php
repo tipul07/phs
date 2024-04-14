@@ -9,9 +9,6 @@ use phs\libraries\PHS_Api_action;
 
 class PHS_Action_Account_edit extends PHS_Api_action
 {
-    /**
-     * @inheritdoc
-     */
     public function action_roles() : array
     {
         return [self::ACT_ROLE_EDIT_PROFILE];

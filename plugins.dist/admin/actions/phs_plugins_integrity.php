@@ -17,7 +17,7 @@ class PHS_Action_Plugins_integrity extends PHS_Action
 {
     public const HOOK_LOG_ACTIONS = 'phs_system_logs_actions';
 
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }

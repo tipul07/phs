@@ -3,56 +3,27 @@ namespace phs\plugins\backup\actions;
 
 use phs\PHS;
 use phs\PHS_Ajax;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\backup\PHS_Plugin_Backup;
 use phs\libraries\PHS_Action_Generic_list;
 use phs\plugins\backup\models\PHS_Model_Rules;
 use phs\plugins\backup\models\PHS_Model_Results;
-use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 /** @property \phs\plugins\backup\models\PHS_Model_Results $_paginator_model */
 class PHS_Action_Backups_list extends PHS_Action_Generic_list
 {
-    /** @var \phs\plugins\accounts\models\PHS_Model_Accounts */
-    private $_accounts_model;
+    private ?PHS_Plugin_Backup $_backup_plugin = null;
 
-    /** @var \phs\plugins\backup\PHS_Plugin_Backup */
-    private $_backup_plugin;
+    private ?PHS_Model_Rules $_rules_model = null;
 
-    /** @var \phs\plugins\backup\models\PHS_Model_Rules */
-    private $_rules_model;
-
-    /** @var array */
-    private $_cuser_details_arr = [];
-
-    public function load_depencies()
+    public function load_depencies() : bool
     {
-        if (empty($this->_backup_plugin)
-        && !($this->_backup_plugin = PHS_Plugin_Backup::get_instance())) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('Couldn\'t load backup plugin.'));
-
-            return false;
-        }
-
-        if (empty($this->_accounts_model)
-        && !($this->_accounts_model = PHS_Model_Accounts::get_instance())) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Couldn\'t load accounts model.'));
-
-            return false;
-        }
-
-        if (empty($this->_paginator_model)
-        && !($this->_paginator_model = PHS_Model_Results::get_instance())) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Couldn\'t load backup results model.'));
-
-            return false;
-        }
-
-        if (empty($this->_rules_model)
-        && !($this->_rules_model = PHS_Model_Rules::get_instance())) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Couldn\'t load backup rules model.'));
+        if ((!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Results::get_instance()))
+            || (!$this->_backup_plugin && !($this->_backup_plugin = PHS_Plugin_Backup::get_instance()))
+            || (!$this->_rules_model && !($this->_rules_model = PHS_Model_Rules::get_instance()))
+        ) {
+            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
         }
@@ -61,9 +32,9 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
     }
 
     /**
-     * @return array|bool Should return false if execution should continue or an array with an action result which should be returned by execute() method
+     * @inheritdoc
      */
-    public function should_stop_execution()
+    public function should_stop_execution() : ?array
     {
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -77,31 +48,31 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
             return self::default_action_result();
         }
 
-        return false;
+        return null;
     }
 
     /**
      * @inheritdoc
      */
-    public function load_paginator_params()
+    public function load_paginator_params() : ?array
     {
         PHS::page_settings('page_title', $this->_pt('Backup Results List'));
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
 
-            return false;
+            return null;
         }
 
         $backup_plugin = $this->_backup_plugin;
 
         $can_delete_backups = can($backup_plugin::ROLEU_DELETE_BACKUPS);
 
-        if (!can($backup_plugin::ROLEU_LIST_BACKUPS)
-        && !$can_delete_backups) {
+        if (!$can_delete_backups
+            && !can($backup_plugin::ROLEU_LIST_BACKUPS)) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
-            return false;
+            return null;
         }
 
         $results_model = $this->_paginator_model;
@@ -135,7 +106,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
         }
 
         if (!$can_delete_backups) {
-            $bulk_actions = false;
+            $bulk_actions = null;
         } else {
             $bulk_actions = [
                 [
@@ -246,11 +217,12 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function manage_action($action)
+    public function manage_action($action) : null | bool | array
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+        if (empty($this->_paginator_model)
+            && !$this->load_depencies()) {
             return false;
         }
 
@@ -258,8 +230,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 
         $action_result_params = $this->_paginator->default_action_params();
 
-        if (empty($action) || !is_array($action)
-         || empty($action['action'])) {
+        if (empty($action['action'])) {
             return $action_result_params;
         }
 

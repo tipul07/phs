@@ -81,12 +81,12 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    public function valid_field_type($type)
+    public function valid_field_type(int $type) : ?array
     {
         if (empty($type)
          || !($fields_arr = $this->get_field_types())
          || empty($fields_arr[$type]) || !is_array($fields_arr[$type])) {
-            return false;
+            return null;
         }
 
         return $fields_arr[$type];
@@ -852,16 +852,13 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
             $params = $common_arr['params'];
         }
 
-        // var_dump( $common_arr['qid'] );
-        // var_dump( $params );
-
         /** @var \MongoDB\Driver\Cursor $qid */
         $qid = $common_arr['qid'];
 
-        if ($params['result_type'] == 'single') {
+        if ($params['result_type'] === 'single') {
             try {
                 if (!($result_arr = $qid->toArray())
-                 || !is_array($result_arr) || empty($result_arr[0])) {
+                 || empty($result_arr[0])) {
                     return false;
                 }
 
@@ -2032,30 +2029,30 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         );
     }
 
-    private function _table_details_changed($details1_arr, $details2_arr)
+    private function _table_details_changed(array $details1_arr, array $details2_arr) : ?array
     {
         $default_table_details = $this->_default_table_details_arr();
 
         if (!($details1_arr = self::validate_array($details1_arr, $default_table_details))
-         || !($details2_arr = self::validate_array($details2_arr, $default_table_details))) {
+            || !($details2_arr = self::validate_array($details2_arr, $default_table_details))) {
             return array_keys($default_table_details);
         }
 
         $keys_changed = [];
-        if (strtolower(trim($details1_arr['engine'])) != strtolower(trim($details2_arr['engine']))) {
+        if (strtolower(trim($details1_arr['engine'])) !== strtolower(trim($details2_arr['engine']))) {
             $keys_changed['engine'] = $details2_arr['engine'];
         }
-        if (strtolower(trim($details1_arr['charset'])) != strtolower(trim($details2_arr['charset']))) {
+        if (strtolower(trim($details1_arr['charset'])) !== strtolower(trim($details2_arr['charset']))) {
             $keys_changed['charset'] = $details2_arr['charset'];
         }
-        if (strtolower(trim($details1_arr['collate'])) != strtolower(trim($details2_arr['collate']))) {
+        if (strtolower(trim($details1_arr['collate'])) !== strtolower(trim($details2_arr['collate']))) {
             $keys_changed['collate'] = $details2_arr['collate'];
         }
-        if (trim($details1_arr['comment']) != trim($details2_arr['comment'])) {
+        if (trim($details1_arr['comment']) !== trim($details2_arr['comment'])) {
             $keys_changed['comment'] = $details2_arr['comment'];
         }
 
-        return !empty($keys_changed) ? $keys_changed : false;
+        return !empty($keys_changed) ? $keys_changed : null;
     }
 
     /**
@@ -2070,8 +2067,8 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     {
         $field_details = self::validate_array($field_details, self::_default_field_arr());
 
-        if ($field_name == self::T_DETAILS_KEY
-         || $field_name == self::EXTRA_INDEXES_KEY
+        if ($field_name === self::T_DETAILS_KEY
+         || $field_name === self::EXTRA_INDEXES_KEY
          || empty($field_details) || !is_array($field_details)
          || !($type_details = $this->valid_field_type($field_details['type']))
          || !($field_details = $this->_validate_field($field_details))) {

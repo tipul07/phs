@@ -19,6 +19,8 @@ if (!($context_arr = $this->view_var('context_arr'))
     return $this->_pt('Error loading required resources.');
 }
 
+const SETTINGS_OBFUSCATE_MASK_STR = '**********';
+
 $tenant_id = $this->view_var('tenant_id') ?: 0;
 $back_page = $this->view_var('back_page') ?: PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'plugins']);
 $tenants_arr = $this->view_var('tenants_arr') ?: [];
@@ -231,6 +233,18 @@ function phs_toggle_settings_group( id )
 
     $("#phs_group_content_"+id).toggle();
 }
+
+function toggle_obfuscated_settings_field(id)
+{
+    const el = document.getElementById(id);
+    if( el.type === "text" ) {
+        el.type = "password";
+        $('#settings_eye_'+id).removeClass( 'fa-eye-slash' ).addClass( 'fa-eye' );
+    } else {
+        el.type = 'text';
+        $('#settings_eye_'+id).removeClass( 'fa-eye' ).addClass( 'fa-eye-slash' );
+    }
+}
 <?php
 if($is_multitenant) {
     ?>
@@ -299,7 +313,7 @@ function phs_display_plugin_settings_all_fields( array $settings_fields, array $
  * @param \phs\system\core\views\PHS_View $fthis
  * @param \phs\libraries\PHS_Plugin $plugin_obj
  */
-function phs_display_plugin_settings_field(string $field_name, array $field_details, array $context_arr, PHS_View $fthis, ?PHS_Plugin $plugin_obj)
+function phs_display_plugin_settings_field(string $field_name, array $field_details, array $context_arr, PHS_View $fthis, ?PHS_Plugin $plugin_obj): void
 {
     if (!empty($field_details['skip_rendering'])) {
         return;
@@ -380,10 +394,12 @@ function phs_display_plugin_settings_get_field_input($field_value, string $field
 
     $use_custom_renderer = (!empty($field_details['custom_renderer']) && is_callable($field_details['custom_renderer']));
     $custom_renderer_get_preset_buffer = (!empty($field_details['custom_renderer_get_preset_buffer']));
+    $should_obfuscate = in_array($field_name, $context_arr['settings_keys_to_obfuscate'], true);
 
     $callback_params = [];
     if ($use_custom_renderer) {
         $callback_params = PHS_Plugin::default_custom_renderer_params();
+        $callback_params['should_obfuscate'] = $should_obfuscate;
         $callback_params['value_as_text'] = false;
         $callback_params['field_id'] = $field_name;
         $callback_params['field_name'] = $field_name;
@@ -560,15 +576,27 @@ function phs_display_plugin_settings_get_field_input($field_value, string $field
                 break;
 
                 default:
-                    // if (empty($field_details['extra_style'])) {
-                    //     $field_details['extra_style'] = 'width:100%';
-                    // }
+                    if($should_obfuscate) {
+                        ?><div class='input-group' style='display: flex;'><?php
+                    }
                     ?>
-                    <input type="text" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>"
-                           class="form-control  style="<?php echo $field_details['extra_style']; ?>" <?php echo $field_details['extra_classes']; ?>"
+                    <input type="<?php echo $should_obfuscate?'password':'text'?>" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>"
+                           class="form-control"  style="<?php echo $field_details['extra_style']; ?> <?php echo $field_details['extra_classes']; ?>"
                     value="<?php echo form_str($field_value); ?>"
                     <?php echo !empty($field_placeholder) ? 'placeholder="'.form_str($field_placeholder).'"' : ''; ?>
-                    <?php echo empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''; ?> /><?php
+                    <?php echo empty($field_details['editable']) ? 'disabled="disabled" readonly="readonly"' : ''; ?> />
+                    <?php
+                    if($should_obfuscate) {
+                        ?>
+                        <div class="input-group-append" style="color: inherit;">
+                            <div class="input-group-text"><span href="javascript:void(0)" class="fa fa-eye" style='margin: 3px;cursor:pointer;vertical-align: middle'
+                                                                id="settings_eye_<?php echo $field_name; ?>"
+                                                                onclick="toggle_obfuscated_settings_field('<?php echo $field_name; ?>')"
+                                                                onfocus="this.blur()"></span></div>
+                        </div>
+                    </div>
+                    <?php
+                    }
                 break;
             }
         }
@@ -606,10 +634,12 @@ function phs_display_plugin_settings_get_field_value_as_string($field_value, str
 
     $use_custom_renderer = (!empty($field_details['custom_renderer']) && is_callable($field_details['custom_renderer']));
     $custom_renderer_get_preset_buffer = (!empty($field_details['custom_renderer_get_preset_buffer']));
+    $should_obfuscate = in_array($field_name, $context_arr['settings_keys_to_obfuscate'], true);
 
     $callback_params = [];
     if ($use_custom_renderer) {
         $callback_params = PHS_Plugin::default_custom_renderer_params();
+        $callback_params['should_obfuscate'] = $should_obfuscate;
         $callback_params['value_as_text'] = true;
         $callback_params['field_id'] = $field_name;
         $callback_params['field_name'] = $field_name;
@@ -643,7 +673,7 @@ function phs_display_plugin_settings_get_field_value_as_string($field_value, str
                     $value_buf = '';
                     foreach ($field_value as $field_value_key => $field_value_val) {
                         $value_buf .= ($value_buf!==''?', ':'').
-                                      '<em>'.$field_value_key.'</em>: '.($field_value_val ?? $fthis->_pt('N/A'));
+                                      '<em>'.$field_value_key.'</em>: '.($should_obfuscate ? SETTINGS_OBFUSCATE_MASK_STR : ($field_value_val ?? $fthis->_pt('N/A')));
                     }
 
                     echo $value_buf ?: $fthis->_pt( 'N/A' );
@@ -697,27 +727,33 @@ function phs_display_plugin_settings_get_field_value_as_string($field_value, str
                         $values_arr[] = $one_more_text;
                     }
 
-                    echo !empty( $values_arr ) ? implode( ', ', $values_arr ) : $fthis->_pt( 'N/A' );
+                    echo ($should_obfuscate
+                        ? SETTINGS_OBFUSCATE_MASK_STR
+                        : (!empty( $values_arr ) ? implode( ', ', $values_arr ) : $fthis->_pt( 'N/A' )));
                 }
             break;
 
             case PHS_Has_db_settings::INPUT_TYPE_TEXTAREA:
-                echo $field_value;
+                echo ($should_obfuscate ? SETTINGS_OBFUSCATE_MASK_STR : $field_value);
             break;
         }
     } else {
         if (!empty($field_details['values_arr'])
             && is_array($field_details['values_arr'])) {
-            echo $field_details['values_arr'][$field_value] ?? $fthis->_pt( 'N/A' );
+            echo ($should_obfuscate
+                ? SETTINGS_OBFUSCATE_MASK_STR
+                : ($field_details['values_arr'][$field_value] ?? $fthis->_pt( 'N/A' )));
         } else {
             switch ($field_details['type']) {
                 default:
-                    echo $field_value;
+                    echo ($should_obfuscate ? SETTINGS_OBFUSCATE_MASK_STR : $field_value);
                 break;
 
                 case PHS_Params::T_BOOL:
                 case PHS_Params::T_NUMERIC_BOOL:
-                    echo !empty($field_value) ? $fthis->_pt( 'Yes' ) : $fthis->_pt( 'No' );
+                    echo ($should_obfuscate
+                        ? SETTINGS_OBFUSCATE_MASK_STR
+                        : (!empty($field_value) ? $fthis->_pt( 'Yes' ) : $fthis->_pt( 'No' )));
                 break;
             }
         }

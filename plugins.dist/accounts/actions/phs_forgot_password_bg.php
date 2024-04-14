@@ -6,13 +6,12 @@ use phs\PHS_Scope;
 use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
-use phs\libraries\PHS_Logger;
 
 class PHS_Action_Forgot_password_bg extends PHS_Action
 {
     public const ERR_UNKNOWN_ACCOUNT = 40000, ERR_SEND_EMAIL = 40001;
 
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_BACKGROUND];
     }

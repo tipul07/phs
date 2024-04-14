@@ -11,7 +11,7 @@ class PHS_Action_Write_message_bg extends PHS_Action
 {
     public const ERR_UNKNOWN_MESSAGE = 40000, ERR_FINISH_ERROR = 40001;
 
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_BACKGROUND];
     }

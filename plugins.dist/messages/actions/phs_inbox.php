@@ -6,41 +6,28 @@ use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\libraries\PHS_Action_Generic_list;
+use phs\system\core\models\PHS_Model_Roles;
+use phs\plugins\messages\PHS_Plugin_Messages;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\messages\models\PHS_Model_Messages;
 
 /** @property \phs\plugins\messages\models\PHS_Model_Messages $_paginator_model */
 class PHS_Action_Inbox extends PHS_Action_Generic_list
 {
-    /** @var \phs\system\core\models\PHS_Model_Roles */
-    private $_roles_model;
+    private ?PHS_Model_Roles $_roles_model = null;
 
-    /** @var \phs\plugins\accounts\models\PHS_Model_Accounts */
-    private $_accounts_model;
+    private ?PHS_Model_Accounts $_accounts_model = null;
 
-    /** @var \phs\plugins\messages\PHS_Plugin_Messages */
-    private $_messages_plugin;
+    private ?PHS_Plugin_Messages $_messages_plugin = null;
 
-    public function load_depencies()
+    public function load_depencies() : bool
     {
-        if (!($this->_messages_plugin = $this->get_plugin_instance())) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('Couldn\'t load messages plugin.'));
-
-            return false;
-        }
-
-        if (!($this->_accounts_model = PHS::load_model('accounts', 'accounts'))) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Couldn\'t load accounts model.'));
-
-            return false;
-        }
-
-        if (!($this->_roles_model = PHS::load_model('roles'))) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Couldn\'t load roles model.'));
-
-            return false;
-        }
-
-        if (!($this->_paginator_model = PHS::load_model('messages', 'messages'))) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Couldn\'t load messages model.'));
+        if ((!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Messages::get_instance()))
+            || (!$this->_accounts_model && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
+            || (!$this->_roles_model && !($this->_roles_model = PHS_Model_Roles::get_instance()))
+            || (!$this->_messages_plugin && !($this->_messages_plugin = PHS_Plugin_Messages::get_instance()))
+        ) {
+            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
         }
@@ -49,9 +36,9 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
     }
 
     /**
-     * @return array|bool Should return false if execution should continue or an array with an action result which should be returned by execute() method
+     * @inheritdoc
      */
-    public function should_stop_execution()
+    public function should_stop_execution() : ?array
     {
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -65,28 +52,26 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
             return self::default_action_result();
         }
 
-        $messages_plugin = $this->_messages_plugin;
-
-        if (!can($messages_plugin::ROLEU_READ_MESSAGE)) {
+        if (!can($this->_messages_plugin::ROLEU_READ_MESSAGE)) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }
 
-        return false;
+        return null;
     }
 
     /**
      * @inheritdoc
      */
-    public function load_paginator_params()
+    public function load_paginator_params() : ?array
     {
         PHS::page_settings('page_title', $this->_pt('Inbox'));
 
         if (!($current_user = PHS::user_logged_in())) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
 
-            return false;
+            return null;
         }
 
         $messages_plugin = $this->_messages_plugin;
@@ -102,13 +87,13 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
          || !($m_table_name = $messages_model->get_flow_table_name($m_flow_params))) {
             $this->set_error(self::ERR_ACTION, $this->_pt('Couldn\'t load required functionality.'));
 
-            return false;
+            return null;
         }
 
         if (!can($messages_plugin::ROLEU_READ_MESSAGE)) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
-            return false;
+            return null;
         }
 
         $list_fields_arr = [];
@@ -146,7 +131,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         }
 
         if (!can($messages_plugin::ROLEU_WRITE_MESSAGE)) {
-            $bulk_actions = false;
+            $bulk_actions = null;
         } else {
             $bulk_actions = [
                 [
@@ -268,11 +253,12 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function manage_action($action)
+    public function manage_action($action) : null | bool | array
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+        if (empty($this->_paginator_model)
+            && !$this->load_depencies()) {
             return false;
         }
 
@@ -280,8 +266,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
         $action_result_params = $this->_paginator->default_action_params();
 
-        if (empty($action) || !is_array($action)
-         || empty($action['action'])) {
+        if (empty($action['action'])) {
             return $action_result_params;
         }
 

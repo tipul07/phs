@@ -9,7 +9,7 @@ use phs\libraries\PHS_Api_action;
 
 class PHS_Action_Device_session_details extends PHS_Api_action
 {
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_API];
     }

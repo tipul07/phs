@@ -17,21 +17,17 @@ use phs\plugins\accounts\models\PHS_Model_Accounts_tenants;
 /** @property \phs\plugins\accounts\models\PHS_Model_Accounts $_paginator_model */
 class PHS_Action_List extends PHS_Action_Generic_list
 {
-    /** @var null|\phs\plugins\admin\PHS_Plugin_Admin */
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
-    /** @var null|\phs\plugins\accounts\PHS_Plugin_Accounts */
     private ?PHS_Plugin_Accounts $_accounts_plugin = null;
 
-    /** @var null|\phs\plugins\accounts\models\PHS_Model_Accounts_tenants */
     private ?PHS_Model_Accounts_tenants $_account_tenants_model = null;
 
-    /** @var null|\phs\system\core\models\PHS_Model_Tenants */
     private ?PHS_Model_Tenants $_tenants_model = null;
 
     private array $_tenants_list_arr = [];
 
-    public function load_depencies()
+    public function load_depencies() : bool
     {
         if ((!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Accounts::get_instance()))
          || (!$this->_account_tenants_model && !($this->_account_tenants_model = PHS_Model_Accounts_tenants::get_instance()))
@@ -48,9 +44,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
     }
 
     /**
-     * @return array|bool Should return false if execution should continue or an array with an action result which should be returned by execute() method
+     * @inheritdoc
      */
-    public function should_stop_execution()
+    public function should_stop_execution() : ?array
     {
         PHS::page_settings('page_title', $this->_pt('List Users'));
 
@@ -60,28 +56,28 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return action_request_login();
         }
 
-        return false;
+        return null;
     }
 
     /**
      * @inheritdoc
      */
-    public function load_paginator_params()
+    public function load_paginator_params() : ?array
     {
         if (!($current_user = PHS::user_logged_in())) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
 
-            return false;
+            return null;
         }
 
         if (!$this->load_depencies()) {
-            return false;
+            return null;
         }
 
         if (!$this->_admin_plugin->can_admin_list_accounts()) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
-            return false;
+            return null;
         }
 
         $platform_is_multitenant = PHS::is_multi_tenant();
@@ -440,18 +436,18 @@ class PHS_Action_List extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function manage_action($action)
+    public function manage_action($action) : null | bool | array
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+        if (empty($this->_paginator_model)
+            && !$this->load_depencies()) {
             return false;
         }
 
         $action_result_params = $this->_paginator->default_action_params();
 
-        if (empty($action) || !is_array($action)
-         || empty($action['action'])) {
+        if (empty($action['action'])) {
             return $action_result_params;
         }
 

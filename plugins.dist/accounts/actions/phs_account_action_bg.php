@@ -11,7 +11,7 @@ class PHS_Action_Account_action_bg extends PHS_Action
 {
     public const ERR_UNKNOWN_ACCOUNT = 1, ERR_TRIGGER = 2;
 
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_BACKGROUND];
     }

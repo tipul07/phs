@@ -5,11 +5,10 @@ use phs\PHS;
 use phs\PHS_Scope;
 use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Action;
-use phs\libraries\PHS_Notifications;
 
 class PHS_Action_Plugins_integrity_bg extends PHS_Action
 {
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_BACKGROUND];
     }

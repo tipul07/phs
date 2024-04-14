@@ -665,11 +665,12 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             'field_value'   => null,
             'form_data'     => [],
             // Any extra parameters sent from field (if any)
-            'callback_params' => false,
-            'editable'        => true,
-            'preset_content'  => '',
-            'plugin_obj'      => null,
-            'value_as_text'   => false,
+            'callback_params'  => false,
+            'editable'         => true,
+            'preset_content'   => '',
+            'plugin_obj'       => null,
+            'value_as_text'    => false,
+            'should_obfuscate' => false,
         ];
     }
 
@@ -766,7 +767,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
         if (!empty($model)
             && (!in_array($model, $context_arr['models_arr'], true)
-                || !($model_obj = PHS::load_model($model, $plugin_obj ? $plugin_obj->instance_plugin_name() : null))
+                || !($model_obj = PHS::load_model($model, $plugin_obj?->instance_plugin_name()))
             )
         ) {
             $context_arr['stop_executon'] = true;
@@ -892,6 +893,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
         $context_arr['db_version'] = '0.0.0';
         $context_arr['script_version'] = '0.0.0';
+
+        $context_arr['settings_keys_to_obfuscate'] = [];
 
         $context_arr['default_settings'] = [];
         $context_arr['db_main_settings'] = [];
@@ -1077,6 +1080,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             $db_settings = [];
             $db_version = $core_info['db_version'] ?? '0.0.0';
             $script_version = $core_info['script_version'] ?? '0.0.0';
+
+            $settings_keys_to_obfuscate = [];
         } else {
             if (!($settings_structure_arr = $instance_obj->validate_settings_structure())) {
                 $settings_structure_arr = [];
@@ -1107,6 +1112,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
                 $db_settings = $db_main_settings;
             }
             $db_version = $instance_obj->get_db_version();
+
+            $settings_keys_to_obfuscate = $instance_obj->get_all_settings_keys_to_obfuscate();
         }
 
         $return_arr = [];
@@ -1118,6 +1125,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         $return_arr['db_main_settings'] = $db_main_settings;
         $return_arr['db_tenant_settings'] = $db_tenant_settings;
         $return_arr['db_settings'] = $db_settings;
+
+        $return_arr['settings_keys_to_obfuscate'] = $settings_keys_to_obfuscate;
 
         // Temporary TO BE DELETED
         $return_arr['instance'] = $instance_obj;

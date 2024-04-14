@@ -10,7 +10,7 @@ use phs\libraries\PHS_Notifications;
 
 class PHS_Action_Cookie_notice_ajax extends PHS_Action
 {
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_AJAX];
     }

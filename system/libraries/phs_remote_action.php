@@ -2,16 +2,12 @@
 namespace phs\libraries;
 
 use phs\PHS_Scope;
+use phs\PHS_Api_base;
 use phs\PHS_Api_remote;
 
 abstract class PHS_Remote_action extends PHS_Api_action
 {
-    /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
-     */
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_REMOTE];
     }
@@ -19,7 +15,7 @@ abstract class PHS_Remote_action extends PHS_Api_action
     /**
      * @return null|\phs\PHS_Api_base
      */
-    public function get_action_api_instance() : ?\phs\PHS_Api_base
+    public function get_action_api_instance() : ?PHS_Api_base
     {
         if (!$this->api_obj
          && PHS_Scope::current_scope() === PHS_Scope::SCOPE_REMOTE) {

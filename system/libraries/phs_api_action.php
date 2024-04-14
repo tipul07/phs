@@ -13,23 +13,18 @@ abstract class PHS_Api_action extends PHS_Action
     /** @var null|\phs\PHS_Api_base */
     protected ?PHS_Api_base $api_obj = null;
 
-    /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
-     */
-    public function allowed_scopes()
+    public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_API, PHS_Scope::SCOPE_AJAX];
     }
 
     /**
-     * @return bool|\phs\PHS_Api_base
+     * @return null|\phs\PHS_Api_base
      */
     public function get_action_api_instance()
     {
         if (!$this->api_obj
-         && PHS_Scope::current_scope() === PHS_Scope::SCOPE_API) {
+            && PHS_Scope::current_scope() === PHS_Scope::SCOPE_API) {
             $this->api_obj = PHS_Api::global_api_instance();
         }
 
