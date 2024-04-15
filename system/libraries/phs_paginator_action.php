@@ -15,12 +15,12 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     /**
      * @return bool true if all depencies were loaded successfully, false if any error (set_error should be used to pass error message)
      */
-    abstract public function load_depencies() : bool;
+    abstract public function load_depencies();// : bool;
 
     /**
      * @return null|array Returns an array with flow_parameters, bulk_actions, filters_arr and columns_arr keys containing arrays with definitions for paginator class
      */
-    abstract public function load_paginator_params() : ?array;
+    abstract public function load_paginator_params();// : ?array;
 
     /**
      * @param array $action Action to be managed
@@ -35,13 +35,13 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     }
 
     // Do any actions required immediately after paginator was instantiated
-    public function we_have_paginator() : bool
+    public function we_have_paginator()// : bool
     {
         return true;
     }
 
     // Do any actions required after paginator was instantiated and initialized (eg. columns, filters, model and bulk actions were set)
-    public function we_initialized_paginator() : bool
+    public function we_initialized_paginator()// : bool
     {
         return true;
     }
@@ -49,7 +49,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     /**
      * @return null|array Should return false if execution should continue or an array with an action result which should be returned by execute() method
      */
-    public function should_stop_execution() : ?array
+    public function should_stop_execution()// : ?array
     {
         return null;
     }
