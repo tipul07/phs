@@ -5,7 +5,7 @@ use phs\PHS_Scope;
 
 abstract class PHS_Controller_Index extends PHS_Controller
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes()
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
