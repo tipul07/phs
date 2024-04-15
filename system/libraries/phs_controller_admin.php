@@ -13,7 +13,7 @@ abstract class PHS_Controller_Admin extends PHS_Controller
         return true;
     }
 
-    public function allowed_scopes() : array
+    public function allowed_scopes()
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
