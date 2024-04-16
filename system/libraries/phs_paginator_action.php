@@ -29,7 +29,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
      */
     abstract public function manage_action($action);
 
-    public function allowed_scopes() : array
+    public function allowed_scopes()
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
