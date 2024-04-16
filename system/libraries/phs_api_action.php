@@ -13,7 +13,7 @@ abstract class PHS_Api_action extends PHS_Action
     /** @var null|\phs\PHS_Api_base */
     protected ?PHS_Api_base $api_obj = null;
 
-    public function allowed_scopes() : array
+    public function allowed_scopes()
     {
         return [PHS_Scope::SCOPE_API, PHS_Scope::SCOPE_AJAX];
     }
