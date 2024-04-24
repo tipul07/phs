@@ -21,7 +21,7 @@ abstract class PHS_Api_action extends PHS_Action
     /**
      * @return null|\phs\PHS_Api_base
      */
-    public function get_action_api_instance()
+    public function get_action_api_instance() : ?PHS_Api_base
     {
         if (!$this->api_obj
             && PHS_Scope::current_scope() === PHS_Scope::SCOPE_API) {

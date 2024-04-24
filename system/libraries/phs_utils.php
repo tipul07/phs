@@ -25,7 +25,7 @@ class PHS_Utils extends PHS_Language
      * @param string|int|float $num2
      * @return int
      */
-    public static function numeric_string_compare($num1, $num2)
+    public static function numeric_string_compare($num1, $num2) : int
     {
         if (!is_string($num1)) {
             $num1 = (string)$num1;
@@ -41,8 +41,8 @@ class PHS_Utils extends PHS_Language
             $num2 = '0';
         }
 
-        if (strpos($num1, '.') !== false
-         && ($num1_arr = @explode('.', $num1))) {
+        if (str_contains($num1, '.')
+            && ($num1_arr = @explode('.', $num1))) {
             $num1_int = ($num1_arr[0] === '' ? '0' : $num1_arr[0]);
             if ('0' === ($num1_digits = ($num1_arr[1] === '' ? '0' : rtrim($num1_arr[1], '0')))) {
                 $num1_digits = '0';
@@ -52,8 +52,8 @@ class PHS_Utils extends PHS_Language
             $num1_digits = '0';
         }
 
-        if (strpos($num2, '.') !== false
-         && ($num2_arr = @explode('.', $num2))) {
+        if (str_contains($num2, '.')
+            && ($num2_arr = @explode('.', $num2))) {
             $num2_int = ($num2_arr[0] === '' ? '0' : $num2_arr[0]);
             if ('' === ($num2_digits = ($num2_arr[1] === '' ? '0' : rtrim($num2_arr[1], '0')))) {
                 $num2_digits = '0';
@@ -175,16 +175,15 @@ class PHS_Utils extends PHS_Language
      * @param int $pid Process id
      * @return array|false
      */
-    public static function get_process_details($pid)
+    public static function get_process_details(int $pid) : ?array
     {
-        $pid = (int)$pid;
         if (empty($pid)
          || !@is_dir('/proc')
          || !@is_readable('/proc')
          || !@is_dir('/proc/'.$pid)
          || !@is_readable('/proc/'.$pid)
          || !@file_exists('/proc/'.$pid.'/status')) {
-            return false;
+            return null;
         }
 
         $cmd_line = '';
@@ -231,34 +230,16 @@ class PHS_Utils extends PHS_Language
         return $return_arr;
     }
 
-    /**
-     * @param $seconds_span
-     * @param bool|array $params
-     *
-     * @return string
-     */
-    public static function parse_period($seconds_span, $params = false)
+    public static function parse_period(int $seconds_span, array $params = []) : string
     {
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
+        $params['only_big_part'] = !empty($params['only_big_part']);
+        $params['big_part_if_zero'] = !empty($params['big_part_if_zero']);
+        $params['start_timestamp'] = (int)($params['start_timestamp'] ?? time());
 
-        if (empty($params['only_big_part'])) {
-            $params['only_big_part'] = false;
-        }
-        if (empty($params['big_part_if_zero'])) {
-            $params['big_part_if_zero'] = false;
-        }
         if (empty($params['show_period']) || $params['show_period'] > self::PERIOD_YEARS) {
             $params['show_period'] = self::PERIOD_FULL;
         }
-        if (empty($params['start_timestamp'])) {
-            $params['start_timestamp'] = time();
-        } else {
-            $params['start_timestamp'] = (int)$params['start_timestamp'];
-        }
 
-        $seconds_span = (int)$seconds_span;
         $nowtime = $params['start_timestamp'];
         $pasttime = $nowtime - $seconds_span;
 
@@ -323,12 +304,8 @@ class PHS_Utils extends PHS_Language
                 }
 
                 return implode(', ', $return_arr);
-                break;
-
             case self::PERIOD_SECONDS:
                 return $seconds_span.' '.($seconds_span > 1 ? self::_t('seconds') : self::_t('second'));
-                break;
-
             case self::PERIOD_MINUTES:
                 $minutes_diff = floor($seconds_span / 60);
                 if ($minutes_diff === 0.0
@@ -340,8 +317,6 @@ class PHS_Utils extends PHS_Language
                 }
 
                 return $minutes_diff.' '.($minutes_diff > 1 ? self::_t('minutes') : self::_t('minute'));
-                break;
-
             case self::PERIOD_HOURS:
                 $hours_diff = floor($seconds_span / 3600);
                 if ($hours_diff === 0.0
@@ -353,8 +328,6 @@ class PHS_Utils extends PHS_Language
                 }
 
                 return $hours_diff.' '.($hours_diff > 1 ? self::_t('hours') : self::_t('hour'));
-                break;
-
             case self::PERIOD_DAYS:
                 $days_diff = floor($seconds_span / 86400);
                 if ($days_diff === 0.0
@@ -366,8 +339,6 @@ class PHS_Utils extends PHS_Language
                 }
 
                 return $days_diff.' '.($days_diff > 1 ? self::_t('days') : self::_t('day'));
-                break;
-
             case self::PERIOD_WEEKS:
                 $weeks_diff = floor($seconds_span / 604800);
                 if ($weeks_diff === 0.0
@@ -379,8 +350,6 @@ class PHS_Utils extends PHS_Language
                 }
 
                 return $weeks_diff.' '.($weeks_diff > 1 ? self::_t('weeks') : self::_t('week'));
-                break;
-
             case self::PERIOD_MONTHS:
                 if ($months === 0
                  && !empty($params['big_part_if_zero'])) {
@@ -391,8 +360,6 @@ class PHS_Utils extends PHS_Language
                 }
 
                 return $months.' '.($months > 1 ? self::_t('months') : self::_t('month'));
-                break;
-
             case self::PERIOD_YEARS:
                 if ($years === 0
                  && !empty($params['big_part_if_zero'])) {
@@ -403,7 +370,6 @@ class PHS_Utils extends PHS_Language
                 }
 
                 return $years.' '.($years > 1 ? self::_t('years') : self::_t('year'));
-                break;
         }
     }
 
@@ -1243,6 +1209,7 @@ class PHS_Utils extends PHS_Language
 
         $params['ssl_verification'] = !empty($params['ssl_verification']);
         $params['follow_location'] = !empty($params['follow_location']);
+        $params['inhibit_100_continue'] = (bool)($params['inhibit_100_continue'] ?? true);
         $params['timeout'] = (int)($params['timeout'] ?? 30);
 
         if (empty($params['userpass']) || !is_array($params['userpass'])
@@ -1316,11 +1283,11 @@ class PHS_Utils extends PHS_Language
         }
 
         if (count($params['extra_get_params'])) {
-            if (false === strpos($url, '?')) {
+            if (!str_contains($url, '?')) {
                 $url .= '?';
             }
 
-            $ends_in_qmark = ('?' === substr($url, -1));
+            $ends_in_qmark = (str_ends_with($url, '?'));
             $first_and = true;
             foreach ($params['extra_get_params'] as $key => $val) {
                 $url .= ((!$first_and || !$ends_in_qmark) ? '&' : '').$key.'='.rawurlencode($val);
@@ -1328,10 +1295,18 @@ class PHS_Utils extends PHS_Language
             }
         }
 
+        $has_expect_header = false;
         if (!empty($params['header_keys_arr']) && is_array($params['header_keys_arr'])) {
             foreach ($params['header_keys_arr'] as $key => $val) {
+                if (strtolower($key) === 'expect') {
+                    $has_expect_header = true;
+                }
                 $params['header_arr'][] = $key.': '.$val;
             }
+        }
+
+        if (!$has_expect_header && $params['inhibit_100_continue']) {
+            $params['header_arr'][] = 'Expect:';
         }
 
         if (!empty($params['header_arr']) && is_array($params['header_arr'])) {

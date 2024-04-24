@@ -15,12 +15,12 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     /**
      * @return bool true if all depencies were loaded successfully, false if any error (set_error should be used to pass error message)
      */
-    abstract public function load_depencies();// : bool;
+    abstract public function load_depencies(); // : bool;
 
     /**
      * @return null|array Returns an array with flow_parameters, bulk_actions, filters_arr and columns_arr keys containing arrays with definitions for paginator class
      */
-    abstract public function load_paginator_params();// : ?array;
+    abstract public function load_paginator_params(); // : ?array;
 
     /**
      * @param array $action Action to be managed
