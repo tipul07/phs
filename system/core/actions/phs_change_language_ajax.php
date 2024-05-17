@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\system\core\actions;
 
 use phs\PHS;
@@ -41,7 +42,7 @@ class PHS_Action_Change_language_ajax extends PHS_Action
             return $action_result;
         }
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (($accounts_model = PHS_Model_Accounts::get_instance())
          && ($current_user = PHS::user_logged_in())
          && (!($account_language = $accounts_model->get_account_language($current_user))

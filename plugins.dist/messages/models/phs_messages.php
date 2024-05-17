@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\messages\models;
 
 use phs\PHS;
@@ -16,7 +17,7 @@ class PHS_Model_Messages extends PHS_Model
     public const ERR_READ = 10000, ERR_WRITE = 10001;
 
     public const DEST_TYPE_USERS_IDS = 1, DEST_TYPE_HANDLERS = 2, DEST_TYPE_USERS = 3, DEST_TYPE_LEVEL = 4,
-    DEST_TYPE_ROLE = 5, DEST_TYPE_ROLE_UNIT = 6;
+        DEST_TYPE_ROLE = 5, DEST_TYPE_ROLE_UNIT = 6;
 
     public const TYPE_NORMAL = 'msg_normal';
 
@@ -2245,12 +2246,10 @@ class PHS_Model_Messages extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false)
+    final public function fields_definition($params = false) : ?array
     {
-        // $params should be flow parameters...
-        if (empty($params) || !is_array($params)
-         || empty($params['table_name'])) {
-            return false;
+        if (empty($params['table_name'])) {
+            return null;
         }
 
         $return_arr = [];

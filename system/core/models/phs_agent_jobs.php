@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\system\core\models;
 
 use phs\PHS;
@@ -293,7 +294,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
+        /** @var PHS_Plugin_Admin $admin_plugin */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
@@ -339,7 +340,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
             return null;
         }
 
-        /** @var \phs\system\core\models\PHS_Model_Agent_jobs_monitor $jobs_monitor_model */
+        /** @var PHS_Model_Agent_jobs_monitor $jobs_monitor_model */
         if ($admin_plugin->monitor_agent_jobs()
             && ($jobs_monitor_model = PHS_Model_Agent_jobs_monitor::get_instance())) {
             if (empty($params['last_error'])) {
@@ -475,7 +476,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $this->get_stalling_minutes();
     }
 
-    public function get_job_seconds_since_last_action($job_data) : ?int
+    public function get_job_seconds_since_last_action(int | array $job_data) : ?int
     {
         $this->reset_error();
 
@@ -486,28 +487,23 @@ class PHS_Model_Agent_jobs extends PHS_Model
             return null;
         }
 
-        if (empty($job_arr['last_action'])
-         || empty_db_date($job_arr['last_action'])) {
-            return 0;
-        }
-
-        return seconds_passed($job_arr['last_action']);
+        return !empty($job_arr['last_action']) ? seconds_passed($job_arr['last_action']) : 0;
     }
 
-    public function job_is_stalling($job_data) : ?bool
+    public function job_is_stalling(int | array $job_data) : ?bool
     {
         $this->reset_error();
 
         if (empty($job_data)
-         || !($job_arr = $this->data_to_array($job_data))) {
-            $this->set_error(self::ERR_DB_JOB, self::_t('Couldn\'t get agent jobs details.'));
+            || !($job_arr = $this->data_to_array($job_data))) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t get agent jobs details.'));
 
             return null;
         }
 
-        return !(!$this->job_is_running($job_arr)
-         || !($minutes_to_stall = $this->get_job_stalling_minutes($job_arr))
-         || floor($this->get_job_seconds_since_last_action($job_arr) / 60) < $minutes_to_stall);
+        return $this->job_is_running($job_arr)
+               && ($minutes_to_stall = $this->get_job_stalling_minutes($job_arr))
+               && floor($this->get_job_seconds_since_last_action($job_arr) / 60) >= $minutes_to_stall;
     }
 
     public function job_runs_async($job_data) : bool
@@ -549,12 +545,10 @@ class PHS_Model_Agent_jobs extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false)
+    final public function fields_definition($params = false) : ?array
     {
-        // $params should be flow parameters...
-        if (empty($params) || !is_array($params)
-         || empty($params['table_name'])) {
-            return false;
+        if (empty($params['table_name'])) {
+            return null;
         }
 
         $return_arr = [];

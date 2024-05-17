@@ -1,4 +1,5 @@
 <?php
+
 namespace phs;
 
 use phs\PHS_Scope;
@@ -44,7 +45,7 @@ class PHS_Bg_jobs extends PHS_Registry
             return $stalling_minutes;
         }
 
-        /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
+        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
         if (!($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())
          || !($stalling_minutes = $bg_jobs_model->get_stalling_minutes())) {
             $stalling_minutes = 0;
@@ -53,24 +54,16 @@ class PHS_Bg_jobs extends PHS_Registry
         return $stalling_minutes;
     }
 
-    public static function refresh_current_job(?array $extra = null)
+    public static function refresh_current_job(array $extra = []) : ?array
     {
         self::st_reset_error();
 
-        if (empty($extra) || !is_array($extra)) {
-            $extra = [];
-        }
-
-        /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
-        if (!empty($extra['bg_jobs_model'])) {
-            $bg_jobs_model = $extra['bg_jobs_model'];
-        } else {
-            $bg_jobs_model = PHS_Model_Bg_jobs::get_instance();
-        }
+        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
+        $bg_jobs_model = $extra['bg_jobs_model'] ?? PHS_Model_Bg_jobs::get_instance();
 
         if (empty($bg_jobs_model)
-         || !($job_data = self::current_job_data())
-         || !($job_arr = $bg_jobs_model->data_to_array($job_data))) {
+            || !($job_data = self::current_job_data())
+            || !($job_arr = $bg_jobs_model->data_to_array($job_data))) {
             if ($bg_jobs_model->has_error()) {
                 self::st_copy_error($bg_jobs_model);
             }
@@ -79,7 +72,7 @@ class PHS_Bg_jobs extends PHS_Registry
                 self::st_set_error(self::ERR_JOB_DB, self::_t('Couldn\'t get background job details.'));
             }
 
-            return false;
+            return null;
         }
 
         if (!($new_job = $bg_jobs_model->refresh_job($job_arr))) {
@@ -91,7 +84,7 @@ class PHS_Bg_jobs extends PHS_Registry
                 self::st_set_error(self::ERR_JOB_DB, self::_t('Couldn\'t refresh background job details.'));
             }
 
-            return false;
+            return null;
         }
 
         return $new_job;
@@ -154,7 +147,7 @@ class PHS_Bg_jobs extends PHS_Registry
             return false;
         }
 
-        /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
+        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
         if (!($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())) {
             if (!self::st_has_error()) {
                 self::st_set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t load background jobs model.'));
@@ -317,7 +310,7 @@ class PHS_Bg_jobs extends PHS_Registry
             $extra = [];
         }
 
-        /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
+        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
         if (!empty($extra['bg_jobs_model'])) {
             $bg_jobs_model = $extra['bg_jobs_model'];
         } else {
@@ -389,7 +382,7 @@ class PHS_Bg_jobs extends PHS_Registry
         $crypted_data = $parts_arr[0];
         $pub_key = $parts_arr[1];
 
-        /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
+        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
         if (!($decrypted_data = PHS_Crypt::quick_decode($crypted_data))
          || !($decrypted_parts = explode('::', $decrypted_data, 2))
          || empty($decrypted_parts[0]) || empty($decrypted_parts[1])
@@ -415,19 +408,15 @@ class PHS_Bg_jobs extends PHS_Registry
      *
      * @return null|array
      */
-    public static function bg_run_job($job_data, ?array $extra = null) : ?array
+    public static function bg_run_job(int | array $job_data, ?array $extra = null) : ?array
     {
         self::st_reset_error();
 
         $extra ??= [];
         $extra['force_run'] = !empty($extra['force_run']);
 
-        /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
-        if (!empty($extra['bg_jobs_model'])) {
-            $bg_jobs_model = $extra['bg_jobs_model'];
-        } else {
-            $bg_jobs_model = PHS_Model_Bg_jobs::get_instance();
-        }
+        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
+        $bg_jobs_model = $extra['bg_jobs_model'] ?? PHS_Model_Bg_jobs::get_instance();
 
         if (empty($bg_jobs_model)) {
             self::st_set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
@@ -491,11 +480,8 @@ class PHS_Bg_jobs extends PHS_Registry
             return null;
         }
 
-        $execution_params = [];
-        $execution_params['die_on_error'] = false;
-
         $technical_error = null;
-        if (!($action_result = PHS::execute_route($execution_params))
+        if (!($action_result = PHS::execute_route(['die_on_error' => false]))
             || (($technical_error = PHS_Action::get_technical_error_from_action_result($action_result))
                 && self::arr_has_error($technical_error))
         ) {
@@ -505,11 +491,9 @@ class PHS_Bg_jobs extends PHS_Registry
 
             $error_arr = $technical_error ?? self::st_get_error();
 
-            $error_params = [];
-            $error_params['last_error'] = self::arr_get_simple_error_message($error_arr);
-            $error_params['last_error_code'] = self::arr_get_error_code($error_arr);
-
-            $bg_jobs_model->job_error_stop($job_arr, $error_params);
+            $bg_jobs_model->job_error_stop($job_arr,
+                ['last_error' => self::arr_get_simple_error_message($error_arr)]
+            );
 
             self::st_copy_error_from_array($error_arr);
 

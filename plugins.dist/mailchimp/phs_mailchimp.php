@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\mailchimp;
 
 use phs\libraries\PHS_Logger;
@@ -11,7 +12,7 @@ class PHS_Plugin_Mailchimp extends PHS_Plugin
     /**
      * Returns an instance of Mailchimp class
      *
-     * @return bool|\phs\plugins\mailchimp\libraries\Mailchimp
+     * @return bool|libraries\Mailchimp
      */
     public function get_mailchimp_instance()
     {
@@ -25,7 +26,7 @@ class PHS_Plugin_Mailchimp extends PHS_Plugin
         $library_params['full_class_name'] = '\\phs\\plugins\\mailchimp\\libraries\\Mailchimp';
         $library_params['as_singleton'] = true;
 
-        /** @var \phs\plugins\mailchimp\libraries\Mailchimp $loaded_library */
+        /** @var libraries\Mailchimp $loaded_library */
         if (!($loaded_library = $this->load_library('phs_mailchimp', $library_params))) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading MailChimp library.'));

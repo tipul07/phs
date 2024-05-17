@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\phs_libs;
 
 use phs\PHS;
@@ -52,7 +53,7 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
     /**
      * Returns an instance of QR code library
      *
-     * @return null|\phs\plugins\phs_libs\libraries\Phs_qr_code
+     * @return null|Phs_qr_code
      */
     public function get_qr_code_instance() : ?Phs_qr_code
     {
@@ -66,7 +67,7 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
         $library_params['full_class_name'] = Phs_qr_code::class;
         $library_params['as_singleton'] = true;
 
-        /** @var \phs\plugins\phs_libs\libraries\Phs_qr_code $loaded_library */
+        /** @var Phs_qr_code $loaded_library */
         if (!($loaded_library = $this->load_library('phs_qr_code', $library_params))) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading QR code library.'));
@@ -109,23 +110,23 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
 
             switch ($from) {
                 case 'gp':
-                    $crypted_data = PHS_params::_gp(self::QR_PARAM_NAME, PHS_params::T_NOHTML);
+                    $crypted_data = PHS_Params::_gp(self::QR_PARAM_NAME, PHS_Params::T_NOHTML);
                     break;
                 case 'pg':
-                    $crypted_data = PHS_params::_pg(self::QR_PARAM_NAME, PHS_params::T_NOHTML);
+                    $crypted_data = PHS_Params::_pg(self::QR_PARAM_NAME, PHS_Params::T_NOHTML);
                     break;
                 case 'p':
-                    $crypted_data = PHS_params::_p(self::QR_PARAM_NAME, PHS_params::T_NOHTML);
+                    $crypted_data = PHS_Params::_p(self::QR_PARAM_NAME, PHS_Params::T_NOHTML);
                     break;
                 default:
                 case 'g':
-                    $crypted_data = PHS_params::_g(self::QR_PARAM_NAME, PHS_params::T_NOHTML);
+                    $crypted_data = PHS_Params::_g(self::QR_PARAM_NAME, PHS_Params::T_NOHTML);
                     break;
             }
         }
 
         if (empty($crypted_data)
-            || !($decrypted_param = PHS_crypt::quick_decode($crypted_data))
+            || !($decrypted_param = PHS_Crypt::quick_decode($crypted_data))
             || !($parts_arr = @json_decode($decrypted_param, true))
             || count($parts_arr) !== 5
         ) {

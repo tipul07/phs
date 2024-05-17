@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\cli\apps;
 
 include_once PHS_CORE_DIR.'phs_cli_plugins_trait.php';
@@ -18,8 +19,8 @@ class PHSMaintenance extends PHS_Cli
     use PHS_Cli_plugins_trait, PHS_Export_import;
 
     public const APP_NAME = 'PHSMaintenance',
-    APP_VERSION = '1.1.0',
-    APP_DESCRIPTION = 'Manage framework functionality and plugins.';
+        APP_VERSION = '1.1.0',
+        APP_DESCRIPTION = 'Manage framework functionality and plugins.';
 
     public function get_app_dir() : string
     {

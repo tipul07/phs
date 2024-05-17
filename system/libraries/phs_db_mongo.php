@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS_Db;
@@ -26,15 +27,11 @@ class PHS_Db_mongo extends PHS_Db_class
     private $last_errors_arr;
 
     // ! Hold last query id
-    /** @var bool|\MongoDB\Driver\Cursor */
+    /** @var bool|Cursor */
     private $query_id;
 
     // ! Query result details...
-    private $last_inserted_id,
-
-    $inserted_rows,
-
-    $updated_rows;
+    private $last_inserted_id, $inserted_rows, $updated_rows;
 
     public function __construct($mysql_settings = null)
     {
@@ -115,7 +112,7 @@ class PHS_Db_mongo extends PHS_Db_class
     /**
      * @param false|string $connection_name
      *
-     * @return bool|\MongoDB\Driver\Manager Connection manager
+     * @return bool|Manager Connection manager
      */
     public function is_connected($connection_name = false)
     {
@@ -127,7 +124,7 @@ class PHS_Db_mongo extends PHS_Db_class
          || empty($this->managers_obj[$connection_name])
          || $this->my_settings === false
          || !@is_object($this->managers_obj[$connection_name])
-         || !($this->managers_obj[$connection_name] instanceof \MongoDB\Driver\Manager)) {
+         || !($this->managers_obj[$connection_name] instanceof Manager)) {
             return false;
         }
 
@@ -143,7 +140,7 @@ class PHS_Db_mongo extends PHS_Db_class
     /**
      * @param false|string $connection_name
      *
-     * @return bool|\MongoDB\Driver\Manager
+     * @return bool|Manager
      */
     public function connect($connection_name = false)
     {
@@ -270,7 +267,7 @@ class PHS_Db_mongo extends PHS_Db_class
      * @param array $query_arr
      * @param false|string $connection_name
      *
-     * @return bool|\MongoDB\Driver\Cursor
+     * @return bool|Cursor
      */
     public function query($query_arr, $connection_name = false)
     {

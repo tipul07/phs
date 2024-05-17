@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\messages;
 
 use phs\PHS;
@@ -20,18 +21,18 @@ class PHS_Plugin_Messages extends PHS_Plugin
     public const UD_COLUMN_MSG_HANDLER = 'msg_handler';
 
     public const ROLE_MESSAGE_READER = 'phs_messages_reader', ROLE_MESSAGE_WRITER = 'phs_messages_writer',
-    // Normal users with special priviledges
-    ROLE_MESSAGE_ALL = 'phs_messages_user_all',
-    // Role which sums all role units for platform admins
-    ROLE_MESSAGE_ADMIN = 'phs_messages_admin';
+        // Normal users with special priviledges
+        ROLE_MESSAGE_ALL = 'phs_messages_user_all',
+        // Role which sums all role units for platform admins
+        ROLE_MESSAGE_ADMIN = 'phs_messages_admin';
 
     public const ROLEU_READ_MESSAGE = 'phs_messages_read', ROLEU_REPLY_MESSAGE = 'phs_messages_reply', ROLEU_FOLLOWUP_MESSAGE = 'phs_messages_followup',
-    ROLEU_WRITE_MESSAGE = 'phs_messages_write',
-    ROLEU_HANDLER_CHANGE = 'phs_messages_handler_change', ROLEU_HANDLER_AUTOCOMPLETE = 'phs_messages_handler_autocomplete',
-    ROLEU_ALL_DESTINATIONS = 'phs_messages_all_destinations', ROLEU_SEND_ANONYMOUS = 'phs_messages_send_anonymous',
-    ROLEU_NO_REPLY_OPTION = 'phs_messages_no_reply_opt',
-    ROLEU_SET_TYPE_IN_COMPOSE = 'phs_messages_type_in_compose',
-    ROLEU_VIEW_ALL_MESSAGES = 'phs_messages_view_all_messages', ROLEU_CAN_REPLY_TO_ALL = 'phs_messages_can_reply_to_all';
+        ROLEU_WRITE_MESSAGE = 'phs_messages_write',
+        ROLEU_HANDLER_CHANGE = 'phs_messages_handler_change', ROLEU_HANDLER_AUTOCOMPLETE = 'phs_messages_handler_autocomplete',
+        ROLEU_ALL_DESTINATIONS = 'phs_messages_all_destinations', ROLEU_SEND_ANONYMOUS = 'phs_messages_send_anonymous',
+        ROLEU_NO_REPLY_OPTION = 'phs_messages_no_reply_opt',
+        ROLEU_SET_TYPE_IN_COMPOSE = 'phs_messages_type_in_compose',
+        ROLEU_VIEW_ALL_MESSAGES = 'phs_messages_view_all_messages', ROLEU_CAN_REPLY_TO_ALL = 'phs_messages_can_reply_to_all';
 
     /**
      * @inheritdoc
@@ -185,7 +186,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
             return $hook_args;
         }
 
-        /** @var \phs\plugins\messages\models\PHS_Model_Messages $messages_model */
+        /** @var models\PHS_Model_Messages $messages_model */
         if (!($messages_model = PHS::load_model('messages', 'messages'))) {
             $this->set_error(self::ERR_TEMPLATE, $this->_pt('Failed loading messages model.'));
 
@@ -337,8 +338,8 @@ class PHS_Plugin_Messages extends PHS_Plugin
 
         $account_arr = $hook_args['account_data'];
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts_details $accounts_details_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (($accounts_details_model = PHS_Model_Accounts_details::get_instance())
          && ($accounts_model = PHS_Model_Accounts::get_instance())
          && $accounts_details_model->check_column_exists(self::UD_COLUMN_MSG_HANDLER, ['table_name' => 'users_details'])
@@ -366,7 +367,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
     {
         $hook_args = self::validate_array($hook_args, PHS_Hooks::default_user_registration_roles_hook_args());
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS_Model_Accounts::get_instance())
          || empty($hook_args['account_data'])
          || !($account_arr = $accounts_model->data_to_array($hook_args['account_data']))) {
@@ -397,7 +398,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
     {
         $hook_args = self::validate_array($hook_args, PHS_Hooks::default_user_account_fields_hook_args());
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (empty($hook_args['account_data'])
          || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($accounts_details_model = PHS_Model_Accounts_details::get_instance())
@@ -433,7 +434,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
     {
         $hook_args = self::validate_array($hook_args, PHS_Hooks::default_user_account_hook_args());
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (empty($hook_args['account_data'])
          || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($account_arr = $accounts_model->data_to_array($hook_args['account_data']))) {
@@ -463,8 +464,8 @@ class PHS_Plugin_Messages extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts_details $accounts_details_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_details_model = PHS::load_model('accounts_details', 'accounts'))
          || !($accounts_model = PHS::load_model('accounts', 'accounts'))) {
             $this->set_error(self::ERR_INSTALL, $this->_pt('Error instantiating accounts details model.'));
@@ -521,7 +522,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
 
     protected function custom_uninstall()
     {
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
+        /** @var PHS_Model_Accounts_details $accounts_details_model */
         if (!($accounts_details_model = PHS_Model_Accounts_details::get_instance())) {
             $this->set_error(self::ERR_INSTALL, $this->_pt('Error instantiating accounts details model.'));
 

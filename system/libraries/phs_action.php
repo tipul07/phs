@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS;
@@ -7,16 +8,16 @@ use phs\system\core\views\PHS_View;
 
 abstract class PHS_Action extends PHS_Instantiable
 {
-    public const ERR_CONTROLLER_INSTANCE = 40000, ERR_RUN_ACTION = 40001, ERR_RENDER = 40002, ERR_SCOPE = 40003, ERR_RIGHTS = 40004;
+    public const ERR_CONTROLLER_INSTANCE = 40000, ERR_RUN_ACTION = 40001, ERR_RENDER = 40002, ERR_SCOPE = 40003;
 
     public const ACT_ROLE_PAGE = 'phs_page', ACT_ROLE_LOGIN = 'phs_login', ACT_ROLE_LOGOUT = 'phs_logout',
-    ACT_ROLE_REGISTER = 'phs_register', ACT_ROLE_ACTIVATION = 'phs_activation',
-    ACT_ROLE_CHANGE_PASSWORD = 'phs_change_password', ACT_ROLE_PASSWORD_EXPIRED = 'phs_password_expired',
-    ACT_ROLE_FORGOT_PASSWORD = 'phs_forgot_password',
-    ACT_ROLE_EDIT_PROFILE = 'phs_edit_profile', ACT_ROLE_CHANGE_LANGUAGE = 'phs_change_language',
-    ACT_ROLE_SESSION_DETAILS = 'phs_session_details',
-    ACT_ROLE_REMOTE_PHS_CALL = 'phs_remote_phs_call',
-    ACT_ROLE_TFA_SETUP = 'phs_tfa_setup', ACT_ROLE_TFA_VERIFY = 'phs_tfa_verify', ACT_ROLE_TFA_SETTINGS = 'phs_tfa_settings';
+        ACT_ROLE_REGISTER = 'phs_register', ACT_ROLE_ACTIVATION = 'phs_activation',
+        ACT_ROLE_CHANGE_PASSWORD = 'phs_change_password', ACT_ROLE_PASSWORD_EXPIRED = 'phs_password_expired',
+        ACT_ROLE_FORGOT_PASSWORD = 'phs_forgot_password',
+        ACT_ROLE_EDIT_PROFILE = 'phs_edit_profile', ACT_ROLE_CHANGE_LANGUAGE = 'phs_change_language',
+        ACT_ROLE_SESSION_DETAILS = 'phs_session_details',
+        ACT_ROLE_REMOTE_PHS_CALL = 'phs_remote_phs_call',
+        ACT_ROLE_TFA_SETUP = 'phs_tfa_setup', ACT_ROLE_TFA_VERIFY = 'phs_tfa_verify', ACT_ROLE_TFA_SETTINGS = 'phs_tfa_settings';
 
     /** @var null|PHS_Controller */
     private ?PHS_Controller $_controller_obj = null;

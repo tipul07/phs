@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\emails\libraries;
 
 use phs\libraries\PHS_Library;
@@ -14,7 +15,7 @@ class PHS_Smtp extends PHS_Library
 
     // ! /descr Class was initialised succesfully
     public const ERR_CONNECT = 1, ERR_AUTHENTICATION = 2, ERR_EMAIL_DETAILS = 3, ERR_NOT_EXPECTED = 4,
-    ERR_FROM = 5, ERR_TO = 6, ERR_DATA = 7, ERR_BODY = 8, ERR_NOOP = 9;
+        ERR_FROM = 5, ERR_TO = 6, ERR_DATA = 7, ERR_BODY = 8, ERR_NOOP = 9;
 
     public const EOL = "\r\n";
 

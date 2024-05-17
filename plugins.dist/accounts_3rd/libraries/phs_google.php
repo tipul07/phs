@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\accounts_3rd\libraries;
 
 use phs\PHS;
@@ -14,8 +15,6 @@ class Google extends PHS_Library
     public const ACTION_LOGIN = 'login', ACTION_REGISTER = 'register';
 
     public const AUTH_PLATFORM_ANDROID = 'android', AUTH_PLATFORM_IOS = 'ios';
-
-    public const ERR_DEPENDENCIES = 1, ERR_SETTINGS = 2;
 
     public const SDK_DIR = 'google';
 

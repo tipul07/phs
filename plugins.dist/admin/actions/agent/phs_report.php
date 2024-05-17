@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\admin\actions\agent;
 
 use phs\PHS;
@@ -9,7 +10,7 @@ use phs\libraries\PHS_Action_Generic_list;
 use phs\libraries\PHS_Paginator_exporter_library;
 use phs\system\core\models\PHS_Model_Agent_jobs_monitor;
 
-/** @property \phs\system\core\models\PHS_Model_Agent_jobs_monitor $_paginator_model */
+/** @property PHS_Model_Agent_jobs_monitor $_paginator_model */
 class PHS_Action_Report extends PHS_Action_Generic_list
 {
     private ?PHS_Plugin_Admin $_admin_plugin = null;

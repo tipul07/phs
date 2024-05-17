@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\traits;
 
 use phs\PHS;
@@ -13,7 +14,7 @@ use phs\system\core\models\PHS_Model_Plugins;
  */
 trait PHS_Cli_plugins_trait
 {
-    /** @var null|\phs\system\core\models\PHS_Model_Plugins */
+    /** @var null|PHS_Model_Plugins */
     protected ?PHS_Model_Plugins $_plugins_model = null;
 
     public function get_plugins_as_dirs()
@@ -166,7 +167,11 @@ trait PHS_Cli_plugins_trait
             $this->_echo('  '.self::_t('N/A'));
         } else {
             foreach ($plugin_info['agent_jobs'] as $job_arr) {
-                $route_str = PHS::route_from_parts(PHS::convert_route_to_short_parts($job_arr['route']));
+                if(empty($job_arr['route']) || !is_array($job_arr['route'])) {
+                    $route_str = 'N/A';
+                } else {
+                    $route_str = PHS::route_from_parts(PHS::convert_route_to_short_parts($job_arr['route']));
+                }
 
                 $this->_echo('  - '.$this->cli_color($job_arr['title'], 'green').', '
                               .self::_t('Route').': '.$route_str.', '

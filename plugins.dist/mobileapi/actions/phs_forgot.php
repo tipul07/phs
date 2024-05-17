@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\mobileapi\actions;
 
 use phs\PHS;
@@ -25,7 +26,7 @@ class PHS_Action_Forgot extends PHS_Api_action
 
     public function execute()
     {
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
             return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                 $this->_pt('Error loading required resources.'));

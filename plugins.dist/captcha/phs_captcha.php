@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\captcha;
 
 use phs\PHS;
@@ -189,7 +190,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         ];
         $library_params['as_singleton'] = true;
 
-        /** @var \phs\plugins\captcha\libraries\PHS_Image_code $img_library */
+        /** @var PHS_Image_code $img_library */
         if (!($img_library = $this->load_library('phs_image_code', $library_params))) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading image captcha library.'));

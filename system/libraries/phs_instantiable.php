@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS;
@@ -9,16 +10,17 @@ abstract class PHS_Instantiable extends PHS_Registry
     public const ERR_INSTANCE = 20000, ERR_INSTANCE_ID = 20001, ERR_INSTANCE_CLASS = 20002, ERR_CLASS_NAME = 20003, ERR_JSON_DETAILS = 20004;
 
     public const INSTANCE_TYPE_UNDEFINED = 'undefined',
-    INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller',
-    INSTANCE_TYPE_ACTION = 'action', INSTANCE_TYPE_VIEW = 'view', INSTANCE_TYPE_SCOPE = 'scope',
-    INSTANCE_TYPE_CONTRACT = 'contract', INSTANCE_TYPE_EVENT = 'event';
+        INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller',
+        INSTANCE_TYPE_ACTION = 'action', INSTANCE_TYPE_VIEW = 'view', INSTANCE_TYPE_SCOPE = 'scope',
+        INSTANCE_TYPE_CONTRACT = 'contract', INSTANCE_TYPE_EVENT = 'event';
 
-    public const CORE_PLUGIN = 'core', TEMPLATES_DIR = 'templates', LANGUAGES_DIR = 'languages', THEMES_PLUGINS_TEMPLATES_DIR = 'plugins',
-    TESTS_DIR = 'tests',
-    // Behat features directory in tests directory of plugin
-    BEHAT_DIR = 'behat',
-    // Files required for test unit (eg. PHPUnit)
-    TESTUNIT_DIR = 'testunit';
+    public const CORE_PLUGIN = 'core', TEMPLATES_DIR = 'templates', LANGUAGES_DIR = 'languages', MIGRATIONS_DIR = 'migrations',
+        THEMES_PLUGINS_TEMPLATES_DIR = 'plugins',
+        TESTS_DIR = 'tests',
+        // Behat features directory in tests directory of plugin
+        BEHAT_DIR = 'behat',
+        // Files required for test unit (eg. PHPUnit)
+        TESTUNIT_DIR = 'testunit';
 
     private array $instance_details = [];
 
@@ -61,20 +63,21 @@ abstract class PHS_Instantiable extends PHS_Registry
     /**
      * @param bool|PHS_Plugin $plugin_obj
      *
-     * @return null|bool|PHS_Plugin
+     * @return null|PHS_Plugin
      */
-    final public function parent_plugin($plugin_obj = false)
+    final public function parent_plugin(null|bool|PHS_Plugin $plugin_obj = null): ?PHS_Plugin
     {
         if ($this->instance_type() === self::INSTANCE_TYPE_UNDEFINED) {
             return null;
         }
 
-        if ($plugin_obj === false) {
+        // cover null or false
+        if (empty($plugin_obj)) {
             return $this->_parent_plugin;
         }
 
         if (!($plugin_obj instanceof PHS_Plugin)) {
-            return false;
+            return null;
         }
 
         $this->_parent_plugin = $plugin_obj;
@@ -104,8 +107,8 @@ abstract class PHS_Instantiable extends PHS_Registry
         }
 
         if (!($plugin_name = $this->instance_plugin_name())
-         || $plugin_name === self::CORE_PLUGIN
-         || !($plugin_obj = PHS::load_plugin($plugin_name))) {
+            || $plugin_name === self::CORE_PLUGIN
+            || !($plugin_obj = PHS::load_plugin($plugin_name))) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
             }
@@ -199,7 +202,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_id() : string
     {
         if (empty($this->instance_details)
-         || empty($this->instance_details['instance_id'])) {
+            || empty($this->instance_details['instance_id'])) {
             return '';
         }
 
@@ -222,7 +225,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_name() : string
     {
         if (empty($this->instance_details)
-         || empty($this->instance_details['instance_name'])) {
+            || empty($this->instance_details['instance_name'])) {
             return '';
         }
 
@@ -230,13 +233,13 @@ abstract class PHS_Instantiable extends PHS_Registry
     }
 
     /**
-     * @return false|string
+     * @return null|string
      */
-    final public function instance_plugin_name()
+    final public function instance_plugin_name(): string
     {
         if (empty($this->instance_details)
-         || empty($this->instance_details['plugin_name'])) {
-            return false;
+            || empty($this->instance_details['plugin_name'])) {
+            return '';
         }
 
         return $this->instance_details['plugin_name'];
@@ -248,29 +251,23 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_www() : string
     {
         if (empty($this->instance_details)
-         || empty($this->instance_details['plugin_www'])) {
+            || empty($this->instance_details['plugin_www'])) {
             return '';
         }
 
         return $this->instance_details['plugin_www'];
     }
 
-    /**
-     * @return string
-     */
     final public function instance_plugin_path() : string
     {
         if (empty($this->instance_details)
-         || empty($this->instance_details['plugin_path'])) {
+            || empty($this->instance_details['plugin_path'])) {
             return '';
         }
 
         return $this->instance_details['plugin_path'];
     }
 
-    /**
-     * @return string
-     */
     final public function instance_subdir() : string
     {
         if (empty($this->instance_details)
@@ -287,20 +284,17 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_templates_www() : string
     {
         if ($this->instance_is_core()
-         || !($prefix = $this->instance_plugin_www())) {
+            || !($prefix = $this->instance_plugin_www())) {
             return '';
         }
 
         return $prefix.self::TEMPLATES_DIR.'/';
     }
 
-    /**
-     * @return string
-     */
     final public function instance_plugin_templates_path() : string
     {
         if ($this->instance_is_core()
-         || !($prefix = $this->instance_plugin_path())) {
+            || !($prefix = $this->instance_plugin_path())) {
             return '';
         }
 
@@ -313,7 +307,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_tests_www() : string
     {
         if ($this->instance_is_core()
-         || !($prefix = $this->instance_plugin_www())) {
+            || !($prefix = $this->instance_plugin_www())) {
             return '';
         }
 
@@ -326,7 +320,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     final public function instance_plugin_tests_path() : string
     {
         if ($this->instance_is_core()
-         || !($prefix = $this->instance_plugin_path())) {
+            || !($prefix = $this->instance_plugin_path())) {
             return '';
         }
 
@@ -399,6 +393,40 @@ abstract class PHS_Instantiable extends PHS_Registry
         }
 
         return $prefix.self::TESTUNIT_DIR.'/';
+    }
+
+    final public function instance_plugin_migrations_path() : string
+    {
+        if ($this->instance_is_core()
+            || !($prefix = $this->instance_plugin_path())) {
+            return '';
+        }
+
+        return $prefix.self::MIGRATIONS_DIR.'/';
+    }
+
+    final public function instance_namespace() : string
+    {
+        if (empty($this->instance_details)
+            || empty($this->instance_details['instance_namespace'])) {
+            return '';
+        }
+
+        return $this->instance_details['instance_namespace'];
+    }
+
+    final public function instance_plugin_namespace() : string
+    {
+        if (!($plugin_obj = $this->get_plugin_instance())) {
+            return '';
+        }
+
+        return $plugin_obj->instance_namespace();
+    }
+
+    final public function instance_plugin_migrations_namespace() : string
+    {
+        return $this->instance_plugin_namespace().self::MIGRATIONS_DIR.'\\';
     }
 
     /**
@@ -661,6 +689,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             'instance_subdir'               => '',
             'instance_path'                 => '',
             'instance_full_class'           => '',
+            'instance_namespace'            => '',
             'instance_class'                => '',
             'instance_name'                 => '',
             // Including subdir as namespace
@@ -741,25 +770,25 @@ abstract class PHS_Instantiable extends PHS_Registry
         $return_arr['instance_type_accepts_subdirs'] = $instance_type_accepts_subdirs;
         $return_arr['instance_subdir'] = $subdir_path;
         $return_arr['instance_class'] = $class;
-        $return_arr['instance_full_class'] = '\\phs\\';
+        $return_arr['instance_namespace'] = '\\phs\\';
 
         if ($plugin_name === self::CORE_PLUGIN) {
-            $return_arr['instance_full_class'] .= 'system\\core\\';
+            $return_arr['instance_namespace'] .= 'system\\core\\';
         } else {
-            $return_arr['instance_full_class'] .= 'plugins\\'.$plugin_name.'\\';
+            $return_arr['instance_namespace'] .= 'plugins\\'.$plugin_name.'\\';
         }
 
         if (!($instance_type_dir = self::instance_type_dir($instance_type))) {
             $instance_type_dir = '';
         } else {
-            $return_arr['instance_full_class'] .= $instance_type_dir.'\\';
+            $return_arr['instance_namespace'] .= $instance_type_dir.'\\';
         }
 
         if (!empty($subdir_namespace)) {
-            $return_arr['instance_full_class'] .= $subdir_namespace.'\\';
+            $return_arr['instance_namespace'] .= $subdir_namespace.'\\';
         }
 
-        $return_arr['instance_full_class'] .= $class;
+        $return_arr['instance_full_class'] = $return_arr['instance_namespace'].$class;
 
         switch ($instance_type) {
             default:
@@ -981,6 +1010,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             if ($return_arr['plugin_name'] !== self::CORE_PLUGIN) {
                 $return_arr['plugin_paths'][self::TEMPLATES_DIR] = $path_prefix.self::TEMPLATES_DIR.'/';
                 $return_arr['plugin_paths'][self::LANGUAGES_DIR] = $path_prefix.self::LANGUAGES_DIR.'/';
+                $return_arr['plugin_paths'][self::MIGRATIONS_DIR] = $path_prefix.self::MIGRATIONS_DIR.'/';
             }
         }
 
@@ -1281,7 +1311,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         self::st_reset_error();
 
         if ($class_name === null) {
-            if (!($class_details = self::extract_details_from_full_namespace_name(@get_called_class()))) {
+            if (!($class_details = self::extract_details_from_full_namespace_name(@static::class))) {
                 return null;
             }
 

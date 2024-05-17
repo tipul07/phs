@@ -1,4 +1,5 @@
 <?php
+
 namespace phs;
 
 use phs\libraries\PHS_Utils;
@@ -13,8 +14,8 @@ final class PHS_Session extends PHS_Registry
     public const SESS_DIR_LENGTH = 2, SESS_DIR_MAX_SEGMENTS = 4;
 
     public const SESS_DATA = 'sess_data',
-    SESS_DIR = 'sess_dir', SESS_NAME = 'sess_name', SESS_COOKIE_LIFETIME = 'sess_cookie_lifetime', SESS_COOKIE_PATH = 'sess_cookie_path',
-    SESS_SAMESITE = 'sess_samesite', SESS_AUTOSTART = 'sess_autostart', SESS_STARTED = 'sess_started';
+        SESS_DIR = 'sess_dir', SESS_NAME = 'sess_name', SESS_COOKIE_LIFETIME = 'sess_cookie_lifetime', SESS_COOKIE_PATH = 'sess_cookie_path',
+        SESS_SAMESITE = 'sess_samesite', SESS_AUTOSTART = 'sess_autostart', SESS_STARTED = 'sess_started';
 
     // Make sure session is not considered garbage by adding a parameter in session with a "random" number
     public const SESS_TIME_PARAM_NAME = '__phs_t';

@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\system\core\views;
 
 use phs\PHS;
@@ -12,7 +13,7 @@ use phs\libraries\PHS_Instantiable;
 class PHS_View extends PHS_Instantiable
 {
     public const ERR_BAD_CONTROLLER = 40000, ERR_BAD_ACTION = 40001, ERR_BAD_TEMPLATE = 40002,
-    ERR_BAD_THEME = 40003, ERR_TEMPLATE_DIRS = 40004, ERR_INIT_VIEW = 40005;
+        ERR_BAD_THEME = 40003, ERR_TEMPLATE_DIRS = 40004, ERR_INIT_VIEW = 40005;
 
     public const VIEW_CONTEXT_DATA_KEY = 'phs_view_context';
 
@@ -80,7 +81,7 @@ class PHS_View extends PHS_Instantiable
         $this->reset_error();
 
         if (!empty($view_obj)
-         && !($view_obj instanceof self)) {
+            && !($view_obj instanceof self)) {
             $this->set_error(self::ERR_BAD_ACTION, self::_t('Not a view instance.'));
 
             return false;
@@ -97,7 +98,7 @@ class PHS_View extends PHS_Instantiable
     }
 
     /**
-     * @return bool|\phs\libraries\PHS_Controller Controller that "owns" this view or false if no controller
+     * @return bool|PHS_Controller Controller that "owns" this view or false if no controller
      */
     public function get_controller()
     {
@@ -105,7 +106,7 @@ class PHS_View extends PHS_Instantiable
     }
 
     /**
-     * @return bool|\phs\libraries\PHS_Action Action that "owns" this view or false if no action
+     * @return bool|PHS_Action Action that "owns" this view or false if no action
      */
     final public function get_action()
     {
@@ -126,7 +127,7 @@ class PHS_View extends PHS_Instantiable
     public function get_action_result() : array
     {
         $default_action_result = PHS_Action::default_action_result();
-        /** @var \phs\libraries\PHS_Action $action */
+        /** @var PHS_Action $action */
         if (!($action = $this->get_action())) {
             return $default_action_result;
         }
@@ -391,11 +392,7 @@ class PHS_View extends PHS_Instantiable
 
         $subview_obj = clone $this;
 
-        if (empty($force_theme)) {
-            $view_theme = $this->get_theme();
-        } else {
-            $view_theme = $force_theme;
-        }
+        $view_theme = $force_theme ?? $this->get_theme();
 
         if (!$subview_obj->set_theme($view_theme)) {
             if ($subview_obj->has_error()) {
@@ -409,11 +406,8 @@ class PHS_View extends PHS_Instantiable
 
         $subview_obj->set_parent_view($this);
 
-        $template_params = [];
-        $template_params['theme'] = $view_theme;
-
-        if (!($subview_template = $subview_obj->set_template($template, $template_params))
-         || ($subview_buffer = $subview_obj->render($template)) === null) {
+        if (!($subview_template = $subview_obj->set_template($template, ['theme' => $view_theme]))
+            || ($subview_buffer = $subview_obj->render($template)) === null) {
             if ($subview_obj->has_error()) {
                 $this->copy_error($subview_obj);
             } else {
@@ -557,7 +551,7 @@ class PHS_View extends PHS_Instantiable
         if (!empty($this->_template_file)
          && @file_exists($this->_template_file)) {
             ob_start();
-            if (!($resulting_buf = include($this->_template_file))) {
+            if (!($resulting_buf = include ($this->_template_file))) {
                 $resulting_buf = '';
             }
 
@@ -901,36 +895,21 @@ class PHS_View extends PHS_Instantiable
      * @param string|array $template
      * @param null|array $params
      *
-     * @return null|\phs\system\core\views\PHS_View
+     * @return null|PHS_View
      */
-    public static function init_view($template, ?array $params = null) : ?self
+    public static function init_view($template, array $params = []) : ?self
     {
-        if (empty($params)) {
-            $params = [];
-        }
-
         if (empty($params['theme']) || !is_string($params['theme'])) {
             $params['theme'] = '';
         }
-        if (empty($params['view_class'])) {
-            $params['view_class'] = false;
-        }
-        if (empty($params['plugin'])) {
-            $params['plugin'] = false;
-        }
-        if (empty($params['as_singleton'])) {
-            $params['as_singleton'] = false;
-        }
 
-        if (empty($params['action_obj'])) {
-            $params['action_obj'] = false;
-        }
-        if (empty($params['controller_obj'])) {
-            $params['controller_obj'] = false;
-        }
-        if (empty($params['parent_plugin_obj'])) {
-            $params['parent_plugin_obj'] = null;
-        }
+        $params['view_class'] ??= null;
+        $params['plugin'] ??= null;
+        $params['as_singleton'] = !empty($params['as_singleton']);
+
+        $params['action_obj'] ??= null;
+        $params['controller_obj'] ??= null;
+        $params['parent_plugin_obj'] ??= null;
 
         if (empty($params['template_data']) || !is_array($params['template_data'])) {
             $params['template_data'] = null;

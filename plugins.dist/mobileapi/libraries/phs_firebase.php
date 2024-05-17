@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\mobileapi\libraries;
 
 use phs\PHS;
@@ -10,8 +11,6 @@ class PHS_Firebase extends PHS_Library
 {
     // Maximum of tokens to send notification to (allowed by Firebase)
     public const MAX_TOKENS_IN_NOTIFICATION = 1000;
-
-    public const ERR_DEPENDENCIES = 1;
 
     /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi */
     private $_mobileapi_plugin = false;

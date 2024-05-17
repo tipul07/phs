@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS_Scope;
@@ -13,7 +14,7 @@ abstract class PHS_Remote_action extends PHS_Api_action
     }
 
     /**
-     * @return null|\phs\PHS_Api_base
+     * @return null|PHS_Api_base
      */
     public function get_action_api_instance() : ?PHS_Api_base
     {

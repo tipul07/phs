@@ -262,6 +262,7 @@ $finder = Finder::create()
         __DIR__,
     ])
     ->name('*.php')
+    ->notPath(['main.dist.php'])
     ->exclude(['vendor', 'plugins', 'contexts', 'features', '_uploads', 'system/logs', 'plugins.dist/phs_libs/libraries/qrcode'])
     ->ignoreDotFiles(true)
     ->ignoreVCS(true);

@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\admin;
 
 use phs\PHS;
@@ -180,19 +181,19 @@ class PHS_Plugin_Admin extends PHS_Plugin
                     'log_add_loggedin_user' => [
                         'display_name' => 'Log logged-in user',
                         'display_hint' => 'Should logged-in user be added in generated logs?',
-                        'type'         => PHS_params::T_BOOL,
+                        'type'         => PHS_Params::T_BOOL,
                         'default'      => false,
                     ],
                     'logs_rotation_enabled' => [
                         'display_name' => 'Logs rotation enabled',
                         'display_hint' => 'Tells if system should rotate log files',
-                        'type'         => PHS_params::T_BOOL,
+                        'type'         => PHS_Params::T_BOOL,
                         'default'      => false,
                     ],
                     'log_rotate_policy' => [
                         'display_name' => 'Log rotate policy',
                         'display_hint' => 'How should system handle log files rotation (if enabled)',
-                        'type'         => PHS_params::T_INT,
+                        'type'         => PHS_Params::T_INT,
                         'values_arr'   => self::$LOG_ROTATE_ARR,
                         'default'      => self::LOG_ROTATE_MONTHLY,
                     ],
@@ -658,7 +659,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        /** @var PHS_Model_Plugins $plugins_model */
         if (!($plugins_model = PHS_Model_Plugins::get_instance())) {
             $this->set_error(self::ERR_RESOURCES, $this->_pt('Error loading required resources.'));
 
@@ -902,7 +903,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
 
     /**
      * @param null|string $plugin_name
-     * @param null|\phs\libraries\PHS_Plugin $plugin_instance
+     * @param null|PHS_Plugin $plugin_instance
      *
      * @return null|array
      */
@@ -995,7 +996,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
     }
 
     /**
-     * @param \phs\system\core\events\layout\PHS_Event_Layout $event_obj
+     * @param PHS_Event_Layout $event_obj
      *
      * @return bool
      */

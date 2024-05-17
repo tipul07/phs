@@ -4,7 +4,7 @@ use phs\PHS;
 use phs\libraries\PHS_Hooks;
 use phs\plugins\notifications\PHS_Plugin_Notifications;
 
-/** @var \phs\plugins\notifications\PHS_Plugin_Notifications $notifications_plugin */
+/** @var PHS_Plugin_Notifications $notifications_plugin */
 if (($notifications_plugin = PHS_Plugin_Notifications::get_instance())) {
     PHS::register_hook(
         PHS_Hooks::H_NOTIFICATIONS_DISPLAY,

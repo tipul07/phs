@@ -1,11 +1,9 @@
 <?php
+
 namespace phs\libraries;
 
 class PHS_File_upload extends PHS_Registry
 {
-    // ! /descr Class was initialised successfully
-    public const ERR_OK = 0;
-
     // ! Error related to parameters sent to method
     public const ERR_PARAMS = 1;
 

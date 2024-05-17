@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\setup\libraries;
 
 class PHS_Setup_layout extends PHS_Setup_view
@@ -11,7 +12,7 @@ class PHS_Setup_layout extends PHS_Setup_view
 
     private $notices_arr = [];
 
-    /** @var bool|\phs\setup\libraries\PHS_Setup_layout */
+    /** @var bool|PHS_Setup_layout */
     private static $layout_instance_obj = false;
 
     public function __construct()

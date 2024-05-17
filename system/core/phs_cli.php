@@ -1,4 +1,5 @@
 <?php
+
 namespace phs;
 
 use phs\libraries\PHS_Registry;
@@ -6,8 +7,8 @@ use phs\libraries\PHS_Registry;
 abstract class PHS_Cli extends PHS_Registry
 {
     public const APP_NAME = 'PHSCLIAPP',
-    APP_VERSION = '1.0.0',
-    APP_DESCRIPTION = 'This is a PHS CLI application.';
+        APP_VERSION = '1.0.0',
+        APP_DESCRIPTION = 'This is a PHS CLI application.';
 
     // Verbose levels... 0 means quiet, Higher level, more details
     public const VERBOSE_L0 = 0, VERBOSE_L1 = 1, VERBOSE_L2 = 2, VERBOSE_L3 = 3;
@@ -1172,7 +1173,7 @@ abstract class PHS_Cli extends PHS_Registry
     /**
      * @param bool|string $app_class_name
      *
-     * @return bool|\phs\PHS_Cli
+     * @return bool|PHS_Cli
      */
     public static function get_instance($app_class_name = false)
     {
@@ -1191,7 +1192,7 @@ abstract class PHS_Cli extends PHS_Registry
             return self::$_my_instances[$app_class_name];
         }
 
-        /** @var \phs\PHS_Cli $app_instance */
+        /** @var PHS_Cli $app_instance */
         $app_instance = new $app_class_name();
         if ($app_instance->has_error()) {
             self::st_copy_error($app_instance);

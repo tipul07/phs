@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\admin\actions\tenants;
 
 use phs\PHS;
@@ -29,8 +30,8 @@ class PHS_Action_Add extends PHS_Action
             return action_request_login();
         }
 
-        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-        /** @var \phs\system\core\models\PHS_Model_Tenants $tenants_model */
+        /** @var PHS_Plugin_Admin $admin_plugin */
+        /** @var PHS_Model_Tenants $tenants_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($tenants_model = PHS_Model_Tenants::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));

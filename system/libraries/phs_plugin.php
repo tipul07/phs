@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS;
@@ -12,7 +13,7 @@ use phs\system\core\models\PHS_Model_Agent_jobs;
 abstract class PHS_Plugin extends PHS_Has_db_registry
 {
     public const ERR_MODEL = 50000, ERR_INSTALL = 50001, ERR_UPDATE = 50002, ERR_UNINSTALL = 50003, ERR_CHANGES = 50004, ERR_LIBRARY = 50005, ERR_RENDER = 50006,
-    ERR_ACTIVATE = 50007, ERR_INACTIVATE = 50008;
+        ERR_ACTIVATE = 50007, ERR_INACTIVATE = 50008;
 
     public const LIBRARIES_DIR = 'libraries';
 
@@ -155,7 +156,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      * @param string|array $template
      * @param null|array $template_data
      *
-     * @return false|\phs\system\core\views\PHS_View
+     * @return false|PHS_View
      */
     final public function quick_init_view_instance($template, ?array $template_data = null)
     {
@@ -375,7 +376,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return null;
         }
 
-        /** @var \phs\libraries\PHS_Library $library_instance */
+        /** @var PHS_Library $library_instance */
         if (empty($params['init_params'])) {
             $library_instance = new $params['full_class_name']();
         } else {
@@ -895,7 +896,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         PHS_Maintenance::output('['.$this->instance_plugin_name().'] Installing agent jobs...');
 
-        /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
+        /** @var PHS_Model_Agent_jobs $agent_jobs_model */
         if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t load agent jobs model.'));
 
@@ -1212,7 +1213,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         if (!empty($old_plugin_arr)) {
             // Performs any necessary actions when updating model from old version to new version
-            if (version_compare($old_plugin_arr['version'], $plugin_arr['version'], '<')) {
+            if (version_compare($old_plugin_arr['version'], $plugin_arr['version'], '!=')) {
                 PHS_Maintenance::output('['.$this->instance_plugin_name().'] Calling update method from version ['.$old_plugin_arr['version'].'] to version ['.$plugin_arr['version'].']');
 
                 // Installed version is bigger than what we already had in database... update...
@@ -1440,7 +1441,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         if (($models_arr = $this->get_models())) {
             foreach ($models_arr as $model_name) {
-                /** @var \phs\libraries\PHS_Model $model_obj */
+                /** @var PHS_Model $model_obj */
                 if (!($model_obj = PHS::load_model($model_name, $this->instance_plugin_name()))) {
                     if (PHS::st_has_error()) {
                         $this->copy_static_error(self::ERR_UPDATE);

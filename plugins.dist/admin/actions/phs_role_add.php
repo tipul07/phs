@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\admin\actions;
 
 use phs\PHS;
@@ -32,9 +33,9 @@ class PHS_Action_Role_add extends PHS_Action
             return action_request_login();
         }
 
-        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-        /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        /** @var PHS_Plugin_Admin $admin_plugin */
+        /** @var PHS_Model_Roles $roles_model */
+        /** @var PHS_Model_Plugins $plugins_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($roles_model = PHS_Model_Roles::get_instance())
          || !($plugins_model = PHS_Model_Plugins::get_instance())) {

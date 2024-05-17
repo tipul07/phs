@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\admin\actions;
 
 use phs\PHS;
@@ -24,7 +25,7 @@ class PHS_Action_Framework_updates extends PHS_Action
             return action_request_login();
         }
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts model.'));
 

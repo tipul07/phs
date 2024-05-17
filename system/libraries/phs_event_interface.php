@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 interface PHS_Event_interface

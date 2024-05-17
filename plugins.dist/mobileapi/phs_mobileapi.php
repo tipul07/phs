@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\mobileapi;
 
 use phs\PHS;
@@ -14,17 +15,15 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
 {
     public const ACCOUNT_DETAILS_KEY = '{users_details}';
 
-    public const ERR_DEPENDENCIES = 60000;
-
     public const API_KEY_INPUT = 1, API_KEY_OUTPUT = 2, API_KEY_BOTH = 3;
 
     public const LOG_CHANNEL = 'mobileapi.log', LOG_FIREBASE = 'firebase.log';
 
     public const H_EXPORT_ACCOUNT_DATA = 'phs_mobileapi_export_account_data', H_EXPORT_SESSION_DATA = 'phs_mobileapi_export_session_data',
-    // export account and session details to 3rd party API calls/apps
-    H_EXPORT_ACCOUNT_SESSION = 'phs_mobileapi_export_account_session',
-    // hook called when saving account data through 3rd party API calls/apps
-    H_IMPORT_ACCOUNT_DATA = 'phs_mobileapi_import_account_data';
+        // export account and session details to 3rd party API calls/apps
+        H_EXPORT_ACCOUNT_SESSION = 'phs_mobileapi_export_account_session',
+        // hook called when saving account data through 3rd party API calls/apps
+        H_IMPORT_ACCOUNT_DATA = 'phs_mobileapi_import_account_data';
 
     /**
      * @inheritdoc
@@ -534,7 +533,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
     /**
      * Returns an instance of PHS_Firebase class
      *
-     * @return bool|\phs\plugins\mobileapi\libraries\PHS_Firebase
+     * @return bool|libraries\PHS_Firebase
      */
     public function get_firebase_instance()
     {
@@ -548,7 +547,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         $library_params['full_class_name'] = '\\phs\\plugins\\mobileapi\\libraries\\PHS_Firebase';
         $library_params['as_singleton'] = true;
 
-        /** @var \phs\plugins\mobileapi\libraries\PHS_Firebase $loaded_library */
+        /** @var libraries\PHS_Firebase $loaded_library */
         if (!($loaded_library = $this->load_library('phs_firebase', $library_params))) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading Firebase library.'));

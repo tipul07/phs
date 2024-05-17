@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS;
@@ -7,8 +8,8 @@ use phs\PHS_Db;
 abstract class PHS_Model_Mongo extends PHS_Model_Core_base
 {
     public const FTYPE_DOUBLE = 1, FTYPE_STRING = 2, FTYPE_OBJECT = 3, FTYPE_ARRAY = 4, FTYPE_BINARY_DATA = 5, FTYPE_UNDEFINED = 6,
-    FTYPE_OBJECT_ID = 7, FTYPE_BOOLEAN = 8, FTYPE_DATE = 9, FTYPE_NULL = 10, FTYPE_REGULAR_EXPRESSION = 11, FTYPE_JAVASCRIPT = 12,
-    FTYPE_SYMBOL = 13, FTYPE_SCOPE_JAVASCRIPT = 14, FTYPE_INTEGER = 15, FTYPE_TIMESTAMP = 16, FTYPE_MIN_KEY = 17, FTYPE_MAX_KEY = 18;
+        FTYPE_OBJECT_ID = 7, FTYPE_BOOLEAN = 8, FTYPE_DATE = 9, FTYPE_NULL = 10, FTYPE_REGULAR_EXPRESSION = 11, FTYPE_JAVASCRIPT = 12,
+        FTYPE_SYMBOL = 13, FTYPE_SCOPE_JAVASCRIPT = 14, FTYPE_INTEGER = 15, FTYPE_TIMESTAMP = 16, FTYPE_MIN_KEY = 17, FTYPE_MAX_KEY = 18;
 
     private static $FTYPE_ARR = [
         self::FTYPE_DOUBLE             => ['title' => 'Double', 'type_ids' => [1], 'default_value' => 0, ],
@@ -792,7 +793,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
 
         $db_connection = $this->get_db_connection($params);
 
-        /** @var \phs\libraries\PHS_Db_mongo $mongo_driver */
+        /** @var PHS_Db_mongo $mongo_driver */
         if (empty($id)
          || !($mongo_driver = PHS_Db::db($db_connection))) {
             return false;
@@ -914,7 +915,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         && array_key_exists($flow_table_name, self::$tables_arr[$my_driver]));
     }
 
-    protected function _install_table_for_model($flow_params) : bool
+    protected function _install_table_for_model(array $flow_params) : bool
     {
         $this->reset_error();
 
@@ -922,7 +923,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
             return false;
         }
 
-        if (empty($this->_definition) || !is_array($this->_definition)
+        if (empty($this->_definition)
          || !($flow_params = $this->fetch_default_flow_params($flow_params))
          || empty($flow_params['table_name'])
          || !($full_table_name = $this->get_flow_table_name($flow_params))) {
@@ -997,7 +998,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         return true;
     }
 
-    protected function _update_table_for_model($flow_params) : bool
+    protected function _update_table_for_model(array $flow_params) : bool
     {
         $this->reset_error();
 
@@ -1260,7 +1261,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         return true;
     }
 
-    protected function _update_missing_table_for_model($flow_params) : bool
+    protected function _install_missing_table_for_model(array $flow_params) : bool
     {
         return $this->_install_table_for_model($flow_params);
     }
@@ -1776,7 +1777,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
 
         $db_connection = $this->get_db_connection($params);
 
-        /** @var \phs\libraries\PHS_Db_mongo $mongo_driver */
+        /** @var PHS_Db_mongo $mongo_driver */
         if (empty($constrain_arr) || !is_array($constrain_arr)
          || !($mongo_driver = PHS_Db::db($db_connection))) {
             return false;

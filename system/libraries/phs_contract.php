@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 abstract class PHS_Contract extends PHS_Instantiable
@@ -128,7 +129,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      * Also you will have to provide model flow parameters (if required) overriding PHS_Contract->get_parsing_data_model_flow().
      * Contract will use table_name and primary_key from the flow parameters.
      *
-     * @return \phs\libraries\PHS_Model|false
+     * @return PHS_Model|false
      */
     public function get_parsing_data_model()
     {
@@ -264,7 +265,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      * and which are not related necessary to a node in current contract definition, you can use this method to add data to cache in order
      * to limit number of queries to database
      *
-     * @param \phs\libraries\PHS_Model $model_obj
+     * @param PHS_Model $model_obj
      * @param array $data_arr
      * @param bool|array $flow_arr
      *
@@ -272,7 +273,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      */
     public function add_data_to_cache($model_obj, $data_arr, $flow_arr = false)
     {
-        /** @var \phs\libraries\PHS_Model $model_obj */
+        /** @var PHS_Model $model_obj */
         if (empty($model_obj)
          || empty($data_arr) || !is_array($data_arr)
          || !($model_obj instanceof PHS_Model)
@@ -492,7 +493,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         }
 
         foreach ($this->_definition_arr as $node_key => $node_arr) {
-            /** @var \phs\libraries\PHS_Model $model_obj */
+            /** @var PHS_Model $model_obj */
             if (empty($data_arr[$node_key])
              || empty($node_arr['nodes']) || !is_array($node_arr['nodes'])
              || empty($node_arr['data_model_obj'])
@@ -526,7 +527,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      */
     protected function _get_cache_data_for_node($node_arr, $inside_data)
     {
-        /** @var \phs\libraries\PHS_Model $model_obj */
+        /** @var PHS_Model $model_obj */
         if (empty($node_arr) || !is_array($node_arr)
          || empty($node_arr['nodes']) || !is_array($node_arr['nodes'])
          || empty($node_arr['data_primary_key'])
@@ -558,7 +559,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      */
     protected function _set_cache_data_for_node($node_arr, $data_arr)
     {
-        /** @var \phs\libraries\PHS_Model $model_obj */
+        /** @var PHS_Model $model_obj */
         if (empty($node_arr) | !is_array($node_arr)
          || empty($node_arr['nodes']) || !is_array($node_arr['nodes'])
          || empty($node_arr['data_primary_key'])
@@ -665,7 +666,7 @@ abstract class PHS_Contract extends PHS_Instantiable
 
             $node_arr = self::validate_array($node_arr, $node_definition);
 
-            /** @var \phs\libraries\PHS_Contract $contract_obj */
+            /** @var PHS_Contract $contract_obj */
             if (($contract_obj = $node_arr['nodes_from_contract'])
              && !($contract_obj instanceof self)) {
                 $this->set_error(self::ERR_PARAMETERS, self::_t('Node %s in contract definition doesn\'t provide a valid contract.', $int_key));
@@ -689,7 +690,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                 $node_arr['nodes'] = false;
             }
 
-            /** @var \phs\libraries\PHS_Model $model_obj */
+            /** @var PHS_Model $model_obj */
             $model_obj = null;
             $model_flow_arr = false;
             if (!empty($node_arr['data_model_obj'])) {
@@ -813,7 +814,7 @@ abstract class PHS_Contract extends PHS_Instantiable
 
         $this->_processing_data = $outside_data;
 
-        /** @var \phs\libraries\PHS_Contract $lvl_contract */
+        /** @var PHS_Contract $lvl_contract */
         if (($lvl_contract = $params['lvl_contract'])) {
             if (null === ($new_outside_data = $lvl_contract->pre_processing_from_outside_source($outside_data, $params['pre_processing_params'], $processing_params))) {
                 // in case validation fails, and we have an error set, copy the error and propagate it...
@@ -896,7 +897,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                     }
 
                     // Check if we have data post-processing to do
-                    /** @var \phs\libraries\PHS_Contract $contract_obj */
+                    /** @var PHS_Contract $contract_obj */
                     if (($contract_obj = $node_arr['nodes_from_contract'])) {
                         // If post-processing returns null, we ignore this record
                         if (null === ($result_item = $contract_obj->post_processing_from_outside_source($result_item, $params['post_processing_params'], $processing_params))) {
@@ -967,7 +968,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                 }
 
                 // Check if we have data post-processing to do
-                /** @var \phs\libraries\PHS_Contract $contract_obj */
+                /** @var PHS_Contract $contract_obj */
                 if ($result_item !== null
                  && ($contract_obj = $node_arr['nodes_from_contract'])) {
                     // If post-processing returns null, we ignore this record
@@ -1077,7 +1078,7 @@ abstract class PHS_Contract extends PHS_Instantiable
 
         $this->_processing_data = $inside_data;
 
-        /** @var \phs\libraries\PHS_Contract $lvl_contract */
+        /** @var PHS_Contract $lvl_contract */
         if (($lvl_contract = $params['lvl_contract'])) {
             if (null === ($new_inside_data = $lvl_contract->pre_processing_from_inside_source($inside_data, $params['pre_processing_params'], $processing_params))) {
                 // in case validation fails, and we have an error set, copy the error and propagate it...
@@ -1122,7 +1123,7 @@ abstract class PHS_Contract extends PHS_Instantiable
 
                 // This should be an "object", but we are provided no data for it,
                 // check if we have an associated model from where we can take the data
-                /** @var \phs\libraries\PHS_Model $model_obj */
+                /** @var PHS_Model $model_obj */
                 if (!empty($node_arr['nodes']) && is_array($node_arr['nodes'])
                  && !empty($node_arr['data_model_obj'])
                  && !empty($node_arr['data_primary_key'])
@@ -1161,7 +1162,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                             }
 
                             // Check if we have data post-processing to do
-                            /** @var \phs\libraries\PHS_Contract $contract_obj */
+                            /** @var PHS_Contract $contract_obj */
                             if ($result_item !== null
                              && ($contract_obj = $node_arr['nodes_from_contract'])) {
                                 if (null === ($result_item = $contract_obj->post_processing_from_inside_source($result_item, $params['post_processing_params'], $processing_params))) {
@@ -1235,7 +1236,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                     }
 
                     // Check if we have data post-processing to do
-                    /** @var \phs\libraries\PHS_Contract $contract_obj */
+                    /** @var PHS_Contract $contract_obj */
                     if (($contract_obj = $node_arr['nodes_from_contract'])) {
                         // If post-processing returns null, we ignore this record
                         if (null === ($result_item = $contract_obj->post_processing_from_inside_source($result_item, $params['post_processing_params'], $processing_params))) {
@@ -1306,7 +1307,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                 }
 
                 // Check if we have data post-processing to do
-                /** @var \phs\libraries\PHS_Contract $contract_obj */
+                /** @var PHS_Contract $contract_obj */
                 if ($result_item !== null
                  && ($contract_obj = $node_arr['nodes_from_contract'])) {
                     if (null === ($result_item = $contract_obj->post_processing_from_inside_source($result_item, $params['post_processing_params'], $processing_params))) {

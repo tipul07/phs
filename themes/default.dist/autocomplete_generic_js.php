@@ -1,5 +1,5 @@
 <?php
-/** @var \phs\system\core\views\PHS_View $this */
+/** @var phs\system\core\views\PHS_View $this */
 if (!($include_js_script_tags = $this->view_var('include_js_script_tags'))) {
     $include_js_script_tags = false;
 }

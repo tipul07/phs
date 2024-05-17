@@ -1,4 +1,5 @@
 <?php
+
 namespace phs;
 
 use phs\libraries\PHS_Logger;
@@ -43,7 +44,7 @@ final class PHS_Maintenance extends PHS_Registry
         return self::$low_level_db_structure_cache > 0;
     }
 
-    public static function output($msg) : void
+    public static function output(string $msg) : void
     {
         // We don't need to output anything else than SQL statements
         if (PHS_Db::dry_update()) {
@@ -73,7 +74,7 @@ final class PHS_Maintenance extends PHS_Registry
      *
      * @return bool|callable
      */
-    public static function output_callback($callback = null)
+    public static function output_callback(null | bool | callable $callback = null) : bool | callable
     {
         /** @var false|callable $output_callback */
         static $output_callback = false;
@@ -91,7 +92,7 @@ final class PHS_Maintenance extends PHS_Registry
         }
 
         if (empty($callback)
-         || !is_callable($callback)) {
+            || !is_callable($callback)) {
             self::st_set_error(self::ERR_PARAMETERS, 'Maintenance output callback is not a callable.');
 
             return false;

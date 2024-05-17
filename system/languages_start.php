@@ -48,7 +48,7 @@ if (($url_lang = PHS_Params::_gp(PHS_Language::LANG_URL_PARAMETER))
 }
 
 // Checking current user's selected language only for session scopes
-/** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+/** @var PHS_Model_Accounts $accounts_model */
 if (!PHS::prevent_session()
  && ($accounts_model = PHS_Model_Accounts::get_instance())
  && ($current_user = PHS::user_logged_in())) {

@@ -37,7 +37,7 @@ function action_request_login() : array
  *
  * @return array
  */
-function action_redirect($path = '', ?array $args = null, ?array $extra = null) : array
+function action_redirect(array | string $path = '', ?array $args = null, ?array $extra = null) : array
 {
     $action_result = PHS_Action::default_action_result();
     if (is_string($path)) {
@@ -203,7 +203,7 @@ function generate_guid() : string
         return sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', random_int(0, 65535), random_int(0, 65535),
             random_int(0, 65535), random_int(16384, 20479), random_int(32768, 49151), random_int(0, 65535), random_int(0, 65535),
             random_int(0, 65535));
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
         return sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', mt_rand(0, 65535), mt_rand(0, 65535),
             mt_rand(0, 65535), mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535),
             mt_rand(0, 65535));

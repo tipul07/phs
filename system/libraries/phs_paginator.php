@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS;
@@ -1001,7 +1002,7 @@ class PHS_Paginator extends PHS_Registry
     }
 
     /**
-     * @param \phs\libraries\PHS_Model $model Model object which should provide records for listing
+     * @param PHS_Model $model Model object which should provide records for listing
      */
     public function set_model(PHS_Model $model) : bool
     {
@@ -1156,7 +1157,7 @@ class PHS_Paginator extends PHS_Registry
             }
         }
 
-        /** @var \phs\libraries\PHS_Paginator_exporter_library $exporter_library_obj */
+        /** @var PHS_Paginator_exporter_library $exporter_library_obj */
         if (!($exporter_library_obj = $params['exporter_library'])
          || !($exporter_library_obj instanceof PHS_Paginator_exporter_library)) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Provided library is not a paginator export library.'));

@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\accounts\models;
 
 use phs\PHS;
@@ -32,7 +33,7 @@ class PHS_Model_Accounts extends PHS_Model
     public const STATUS_INACTIVE = 1, STATUS_ACTIVE = 2, STATUS_SUSPENDED = 3, STATUS_DELETED = 4;
 
     public const LVL_GUEST = 0, LVL_MEMBER = 1,
-    LVL_OPERATOR = 10, LVL_ADMIN = 11, LVL_SUPERADMIN = 12, LVL_DEVELOPER = 13;
+        LVL_OPERATOR = 10, LVL_ADMIN = 11, LVL_SUPERADMIN = 12, LVL_DEVELOPER = 13;
 
     protected static array $STATUSES_ARR = [
         self::STATUS_INACTIVE  => ['title' => 'Inactive'],
@@ -237,7 +238,7 @@ class PHS_Model_Accounts extends PHS_Model
             $account_arr = $new_account;
         }
 
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
         if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
             PHS_Logger::notice('PASSWORD Account #'.$account_arr['id'].': '.$account_arr['nick'].' wrong password.',
                 $accounts_plugin::LOG_SECURITY);
@@ -268,7 +269,7 @@ class PHS_Model_Accounts extends PHS_Model
         $structure_hook_args = PHS_Hooks::default_account_structure_hook_args();
         $structure_hook_args['account_data'] = $account_arr;
 
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $plugin_obj */
+        /** @var PHS_Plugin_Accounts $plugin_obj */
         if (($plugin_obj = $this->get_plugin_instance())
          && ($account_structure = $plugin_obj->get_account_structure($structure_hook_args))
          && !empty($account_structure['account_structure'])) {
@@ -434,7 +435,7 @@ class PHS_Model_Accounts extends PHS_Model
             $params['populate_with_empty_data'] = false;
         }
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
+        /** @var PHS_Model_Accounts_details $accounts_details_model */
         if (!($accounts_details_model = PHS::load_model('accounts_details', 'accounts'))) {
             return false;
         }
@@ -1257,7 +1258,7 @@ class PHS_Model_Accounts extends PHS_Model
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 
@@ -1303,7 +1304,7 @@ class PHS_Model_Accounts extends PHS_Model
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 
@@ -1364,7 +1365,7 @@ class PHS_Model_Accounts extends PHS_Model
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 
@@ -1422,7 +1423,7 @@ class PHS_Model_Accounts extends PHS_Model
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 
@@ -1665,7 +1666,7 @@ class PHS_Model_Accounts extends PHS_Model
             return null;
         }
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
+        /** @var PHS_Model_Accounts_details $accounts_details_model */
         if (!($accounts_details_model = PHS_Model_Accounts_details::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error obtaining account details model instance.'));
 
@@ -1763,12 +1764,10 @@ class PHS_Model_Accounts extends PHS_Model
      * @param bool|array $params
      * @return bool|array
      */
-    final public function fields_definition($params = false)
+    final public function fields_definition($params = false) : ?array
     {
-        // $params should be flow parameters...
-        if (empty($params) || !is_array($params)
-         || empty($params['table_name'])) {
-            return false;
+        if (empty($params['table_name'])) {
+            return null;
         }
 
         $return_arr = [];
@@ -2024,7 +2023,7 @@ class PHS_Model_Accounts extends PHS_Model
      */
     protected function get_insert_prepare_params_users($params)
     {
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
         if (empty($params) || !is_array($params)
          || !($accounts_plugin = $this->get_plugin_instance())) {
             if (!$this->has_error()) {
@@ -2235,8 +2234,8 @@ class PHS_Model_Accounts extends PHS_Model
         $insert_arr['{users_details}'] = false;
         $insert_arr['{pass_salt}'] = false;
 
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $accounts_details_model */
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Model_Accounts_details $accounts_details_model */
         if (!($accounts_details_model = PHS_Model_Accounts_details::get_instance())
             || !($accounts_plugin = $this->get_plugin_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
@@ -2299,7 +2298,7 @@ class PHS_Model_Accounts extends PHS_Model
             PHS_Roles::link_roles_to_user($insert_arr, $roles_arr);
         }
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tenants $accounts_tenants_model */
+        /** @var PHS_Model_Accounts_tenants $accounts_tenants_model */
         if (!empty($params['{account_tenants}'])
          && ($accounts_tenants_model = PHS_Model_Accounts_tenants::get_instance())) {
             $accounts_tenants_model->link_tenants_to_account($insert_arr, $params['{account_tenants}']);
@@ -2355,7 +2354,7 @@ class PHS_Model_Accounts extends PHS_Model
 
     protected function get_edit_prepare_params_users($existing_data, $params)
     {
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
         if (empty($params) || !is_array($params)
          || !($accounts_plugin = $this->get_plugin_instance())) {
             if (!$this->has_error()) {
@@ -2543,7 +2542,7 @@ class PHS_Model_Accounts extends PHS_Model
 
     protected function edit_after_users($existing_data, $edit_arr, $params)
     {
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $plugin_obj */
+        /** @var PHS_Plugin_Accounts $plugin_obj */
         if (!($plugin_obj = PHS_Plugin_Accounts::get_instance())) {
             $plugin_obj = null;
         }
@@ -2559,7 +2558,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if (!empty($params['{account_roles}']) && is_array($params['{account_roles}'])) {
-            /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
+            /** @var PHS_Model_Roles $roles_model */
             if (!($roles_model = PHS_Model_Roles::get_instance())
              || !$roles_model->link_roles_to_user($existing_data, $params['{account_roles}'], ['append_roles' => false])) {
                 if ($roles_model->has_error()) {
@@ -2580,7 +2579,7 @@ class PHS_Model_Accounts extends PHS_Model
 
         if (PHS::is_multi_tenant()
             && isset($params['{account_tenants}']) && is_array($params['{account_tenants}'])) {
-            /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tenants $account_tenants_model */
+            /** @var PHS_Model_Accounts_tenants $account_tenants_model */
             if (!($account_tenants_model = PHS_Model_Accounts_tenants::get_instance())
                 || !$account_tenants_model->link_tenants_to_account($existing_data, $params['{account_tenants}'], ['append_tenants' => false])) {
                 if ($account_tenants_model->has_error()) {
@@ -2701,7 +2700,7 @@ class PHS_Model_Accounts extends PHS_Model
                     case 'include_account_details':
 
                         $old_error_arr = PHS::st_stack_error();
-                        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_details $account_details_model */
+                        /** @var PHS_Model_Accounts_details $account_details_model */
                         if ($params['table_name'] !== 'users'
                          || !($account_details_model = PHS::load_model('accounts_details', 'accounts'))
                          || !($user_details_table = $account_details_model->get_flow_table_name())) {
@@ -2753,7 +2752,7 @@ class PHS_Model_Accounts extends PHS_Model
          || !empty($params['one_of_role'])
          || !empty($params['all_roles'])) {
             $old_error_arr = PHS::st_stack_error();
-            /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
+            /** @var PHS_Model_Roles $roles_model */
             if (!($roles_model = PHS::load_model('roles'))
              || !($roles_users_flow = $roles_model->fetch_default_flow_params(['table_name' => 'roles_users']))
              || !($roles_users_table = $roles_model->get_flow_table_name($roles_users_flow))
@@ -2841,7 +2840,7 @@ class PHS_Model_Accounts extends PHS_Model
 
     private function _check_lockout_policy(array $account_arr) : ?array
     {
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
         if ($this->is_locked($account_arr)
             || !($flow_arr = $this->fetch_default_flow_params(['table_name' => 'users']))
             || !($users_table = $this->get_flow_table_name($flow_arr))

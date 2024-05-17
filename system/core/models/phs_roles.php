@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\system\core\models;
 
 use phs\PHS;
@@ -22,7 +23,7 @@ class PHS_Model_Roles extends PHS_Model
         self::STATUS_SUSPENDED => ['title' => 'Suspended'],
     ];
 
-    /** @var bool|\phs\plugins\accounts\models\PHS_Model_Accounts */
+    /** @var bool|PHS_Model_Accounts */
     private static $_accounts_model = false;
 
     /**
@@ -1284,12 +1285,10 @@ class PHS_Model_Roles extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false)
+    final public function fields_definition($params = false) : ?array
     {
-        // $params should be flow parameters...
-        if (empty($params) || !is_array($params)
-         || empty($params['table_name'])) {
-            return false;
+        if (empty($params['table_name'])) {
+            return null;
         }
 
         $return_arr = [];

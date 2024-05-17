@@ -43,14 +43,14 @@ $can_manage_logs = (!empty($view_rights['admin']['manage_logs']));
         </li>
         <?php
     }
-    if ($can_list_logs || $can_manage_logs) {
-        ?>
+if ($can_list_logs || $can_manage_logs) {
+    ?>
         <li><a href="<?php echo PHS::url([
             'a' => 'logs_list', 'ad' => 'domains', 'c' => 'admin', 'p' => 'remote_phs',
         ]); ?>"><?php echo $this->_pt('List Logs'); ?></a>
         </li>
         <?php
-    }
+}
 ?>
     </ul>
     </li>

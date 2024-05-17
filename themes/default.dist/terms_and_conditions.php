@@ -1,5 +1,5 @@
 <?php
-/** @var \phs\system\core\views\PHS_View $this */
+/** @var phs\system\core\views\PHS_View $this */
 ?>
 <div style="min-width:700px;max-width:1000px;margin: 0 auto;">
 

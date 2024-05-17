@@ -10,8 +10,8 @@ use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\system\core\events\layout\PHS_Event_Layout;
 
 $accounts_plugin_settings = [];
-/** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-/** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+/** @var PHS_Model_Accounts $accounts_model */
+/** @var PHS_Plugin_Accounts $accounts_plugin */
 if (!($accounts_model = PHS_Model_Accounts::get_instance())
     || !($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
     PHS_Notifications::add_error_notice($this::_t('Couldn\'t load accounts model. Please contact support.'));
@@ -164,7 +164,7 @@ echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::ADMIN_TEMPLATE_PAGE_HEAD);
 ?>
 </head>
 
-<body<?php echo(($page_body_class = PHS::page_settings('page_body_class')) ? ' class="'.$page_body_class.'" ' : '').$action_result['page_body_extra_tags']; ?>>
+<body<?php echo (($page_body_class = PHS::page_settings('page_body_class')) ? ' class="'.$page_body_class.'" ' : '').$action_result['page_body_extra_tags']; ?>>
 <?php
 echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::ADMIN_TEMPLATE_PAGE_START);
 

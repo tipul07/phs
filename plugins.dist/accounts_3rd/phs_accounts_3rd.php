@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\accounts_3rd;
 
 use phs\libraries\PHS_Hooks;
@@ -12,7 +13,7 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
     public const LOG_CHANNEL = 'phs_accounts_3rd_party.log', LOG_ERR_CHANNEL = 'phs_accounts_3rd_party_err.log';
 
     public const H_ACCOUNTS_3RD_REGISTER_BUFFER = 'phs_accounts_3rd_register_buffer',
-    H_ACCOUNTS_3RD_LOGIN_BUFFER = 'phs_accounts_3rd_login_buffer';
+        H_ACCOUNTS_3RD_LOGIN_BUFFER = 'phs_accounts_3rd_login_buffer';
 
     public function get_settings_keys_to_obfuscate()
     {
@@ -156,7 +157,7 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
     /**
      * Returns an instance of Google 3rd party services class
      *
-     * @return bool|\phs\plugins\accounts_3rd\libraries\Google
+     * @return bool|libraries\Google
      */
     public function get_google_instance()
     {
@@ -172,7 +173,7 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
         $library_params['full_class_name'] = '\\phs\\plugins\\accounts_3rd\\libraries\\Google';
         $library_params['as_singleton'] = true;
 
-        /** @var \phs\plugins\accounts_3rd\libraries\Google $loaded_library */
+        /** @var libraries\Google $loaded_library */
         if (!($loaded_library = $this->load_library('phs_google', $library_params))) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading Google 3rd party library.'));
@@ -189,7 +190,7 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
     /**
      * Returns an instance of Apple 3rd party services class
      *
-     * @return bool|\phs\plugins\accounts_3rd\libraries\Apple
+     * @return bool|libraries\Apple
      */
     public function get_apple_instance()
     {
@@ -205,7 +206,7 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
         $library_params['full_class_name'] = '\\phs\\plugins\\accounts_3rd\\libraries\\Apple';
         $library_params['as_singleton'] = true;
 
-        /** @var \phs\plugins\accounts_3rd\libraries\Apple $loaded_library */
+        /** @var libraries\Apple $loaded_library */
         if (!($loaded_library = $this->load_library('phs_apple', $library_params))) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading Apple 3rd party library.'));

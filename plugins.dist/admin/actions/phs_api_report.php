@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\admin\actions;
 
 use phs\PHS;
@@ -8,7 +9,7 @@ use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
 use phs\system\core\models\PHS_Model_Api_monitor;
 
-/** @property \phs\system\core\models\PHS_Model_Api_monitor $_paginator_model */
+/** @property PHS_Model_Api_monitor $_paginator_model */
 class PHS_Action_Api_report extends PHS_Action_Generic_list
 {
     private ?PHS_Plugin_Admin $_admin_plugin = null;

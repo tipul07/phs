@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 if (!defined('PHS_VERSION')
@@ -9,8 +10,8 @@ if (!defined('PHS_VERSION')
 class PHS_Error
 {
     public const ERR_OK = 0, ERR_PARAMETERS = 10000, ERR_FUNCTIONALITY = 10001,
-    ERR_SERVER = 10002, ERR_WEB_SERVER = 10003, ERR_FRAMEWORK = 10004, ERR_RESOURCES = 10005,
-    ERR_DEPENDENCIES = 10006, ERR_PLUGIN_SETUP = 10007;
+        ERR_SERVER = 10002, ERR_WEB_SERVER = 10003, ERR_FRAMEWORK = 10004, ERR_RESOURCES = 10005,
+        ERR_DEPENDENCIES = 10006, ERR_PLUGIN_SETUP = 10007, ERR_RIGHTS = 10008, ERR_SETTINGS = 10009;
 
     public const WARNING_NOTAG = -1;
 
@@ -1057,7 +1058,7 @@ class PHS_Error
     }
 
     /**
-     * @return \phs\libraries\PHS_Error
+     * @return PHS_Error
      */
     public static function get_error_static_instance() : self
     {

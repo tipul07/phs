@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\sendgrid;
 
 use phs\PHS;
@@ -14,7 +15,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
 
     public const LOG_CHANNEL = 'sendgrid.log';
 
-    /** @var \phs\plugins\sendgrid\libraries\PHS_Sendgrid */
+    /** @var libraries\PHS_Sendgrid */
     private $sendgrid_library = false;
 
     public function get_settings_keys_to_obfuscate()
@@ -484,7 +485,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         $library_params['full_class_name'] = '\\phs\\plugins\\sendgrid\\libraries\\PHS_Sendgrid';
         $library_params['as_singleton'] = false;
 
-        /** @var \phs\plugins\sendgrid\libraries\PHS_Sendgrid $smtp_library */
+        /** @var libraries\PHS_Sendgrid $smtp_library */
         if (!($this->sendgrid_library = $this->load_library('phs_sendgrid', $library_params))) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading SendGrid library.'));

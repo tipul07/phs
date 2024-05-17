@@ -1,5 +1,5 @@
 <?php
-/** @var \phs\system\core\views\PHS_View $this */
+/** @var phs\system\core\views\PHS_View $this */
 if (!($current_user = $this->view_var('current_user'))) {
     $current_user = ['nick' => $this->_pt('N/A')];
 }

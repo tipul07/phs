@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\setup\libraries;
 
 class PHS_Setup_utils

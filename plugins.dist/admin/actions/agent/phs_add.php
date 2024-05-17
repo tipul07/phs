@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\admin\actions\agent;
 
 use phs\PHS;
@@ -39,8 +40,8 @@ class PHS_Action_Add extends PHS_Action
             return action_request_login();
         }
 
-        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-        /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
+        /** @var PHS_Plugin_Admin $admin_plugin */
+        /** @var PHS_Model_Agent_jobs $agent_jobs_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));

@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\admin\actions\apikeys;
 
 use phs\PHS;
@@ -57,9 +58,9 @@ class PHS_Action_Edit extends PHS_Action
 
         $is_multi_tenant = PHS::is_multi_tenant();
 
-        /** @var \phs\system\core\models\PHS_Model_Api_keys $apikeys_model */
-        /** @var \phs\plugins\admin\actions\PHS_Action_Users_autocomplete $users_autocomplete_action */
-        /** @var \phs\system\core\models\PHS_Model_Tenants $tenants_model */
+        /** @var PHS_Model_Api_keys $apikeys_model */
+        /** @var PHS_Action_Users_autocomplete $users_autocomplete_action */
+        /** @var PHS_Model_Tenants $tenants_model */
         if (!($apikeys_model = PHS_Model_Api_keys::get_instance())
             || !($users_autocomplete_action = PHS_Action_Users_autocomplete::get_instance())
             || ($is_multi_tenant

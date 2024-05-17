@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\admin\actions\users;
 
 use phs\PHS;
@@ -31,11 +32,11 @@ class PHS_Action_Import extends PHS_Action
             return action_request_login();
         }
 
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Plugin_Admin $admin_plugin */
+        /** @var PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Roles $roles_model */
+        /** @var PHS_Model_Plugins $plugins_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
          || !($admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($accounts_plugin_settings = $accounts_plugin->get_plugin_settings())

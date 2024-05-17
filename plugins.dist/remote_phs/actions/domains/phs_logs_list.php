@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\remote_phs\actions\domains;
 
 use phs\PHS;
@@ -10,7 +11,7 @@ use phs\plugins\remote_phs\PHS_Plugin_Remote_phs;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains;
 
-/** @property \phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains $_paginator_model */
+/** @property PHS_Model_Phs_remote_domains $_paginator_model */
 class PHS_Action_Logs_list extends PHS_Action_Generic_list
 {
     private ?PHS_Plugin_Remote_phs $_remote_plugin = null;
@@ -131,7 +132,7 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
                 'display_name' => $this->_pt('PHS Remote Domain'),
                 'var_name'     => 'fdomain_id',
                 'record_field' => 'domain_id',
-                'type'         => PHS_params::T_INT,
+                'type'         => PHS_Params::T_INT,
                 'default'      => 0,
                 'values_arr'   => $filter_domains_arr,
             ],
@@ -141,14 +142,14 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
                 'var_name'     => 'ftitle',
                 'record_field' => 'title',
                 'record_check' => ['check' => 'LIKE', 'value' => '%%%s%%'],
-                'type'         => PHS_params::T_NOHTML,
+                'type'         => PHS_Params::T_NOHTML,
                 'default'      => '',
             ],
             [
                 'display_name' => $this->_pt('Log Type'),
                 'var_name'     => 'flog_type',
                 'record_field' => 'type',
-                'type'         => PHS_params::T_INT,
+                'type'         => PHS_Params::T_INT,
                 'default'      => 0,
                 'values_arr'   => $filter_log_types_arr,
             ],
@@ -156,7 +157,7 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
                 'display_name' => $this->_pt('Status'),
                 'var_name'     => 'fstatus',
                 'record_field' => 'status',
-                'type'         => PHS_params::T_INT,
+                'type'         => PHS_Params::T_INT,
                 'default'      => 0,
                 'values_arr'   => $filter_statuses_arr,
             ],
@@ -223,7 +224,7 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
         if ($this->_remote_plugin->can_admin_manage_logs()) {
             $columns_arr[0]['checkbox_record_index_key'] = [
                 'key'  => 'id',
-                'type' => PHS_params::T_INT,
+                'type' => PHS_Params::T_INT,
             ];
         }
 

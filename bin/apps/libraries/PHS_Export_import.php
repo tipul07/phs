@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\cli\apps\libraries;
 
 use phs\PHS;
@@ -147,8 +148,8 @@ trait PHS_Export_import
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        /** @var PHS_Plugin_Admin $admin_plugin */
+        /** @var PHS_Model_Plugins $plugins_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($plugins_model = PHS_Model_Plugins::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));

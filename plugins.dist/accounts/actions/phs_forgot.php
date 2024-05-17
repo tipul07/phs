@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\accounts\actions;
 
 use phs\PHS;
@@ -43,7 +44,7 @@ class PHS_Action_Forgot extends PHS_Action
 
         PHS::page_settings('page_title', $this->_pt('Forgot Password'));
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
@@ -66,7 +67,7 @@ class PHS_Action_Forgot extends PHS_Action
         }
 
         if (!empty($do_submit)) {
-            /** @var \phs\plugins\captcha\PHS_Plugin_Captcha $captcha_plugin */
+            /** @var PHS_Plugin_Captcha $captcha_plugin */
             if (!($captcha_plugin = PHS_Plugin_Captcha::get_instance())) {
                 PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
             } elseif (($hook_result = PHS_Hooks::trigger_captcha_check($vcode)) !== null

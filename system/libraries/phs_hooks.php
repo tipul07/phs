@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS;
@@ -13,127 +14,127 @@ class PHS_Hooks extends PHS_Registry
     //
     public const H_AFTER_BOOTSTRAP = 'after_bootstrap', H_BEFORE_ACTION_EXECUTE = 'before_action_execute', H_AFTER_ACTION_EXECUTE = 'after_action_execute',
 
-    // Language hooks
-    H_LANGUAGE_DEFINITION = 'phs_language_definition',
+        // Language hooks
+        H_LANGUAGE_DEFINITION = 'phs_language_definition',
 
-    // Model hooks
-    H_MODEL_EMPTY_DATA = 'phs_model_empty_data', H_MODEL_VALIDATE_DATA_FIELDS = 'phs_model_validate_data_fields',
-    // low level insert and edit
-    H_MODEL_INSERT_DATA = 'phs_model_insert_data', H_MODEL_EDIT_DATA = 'phs_model_edit_data', H_MODEL_HARD_DELETE_DATA = 'phs_model_hard_delete_data',
+        // Model hooks
+        H_MODEL_EMPTY_DATA = 'phs_model_empty_data', H_MODEL_VALIDATE_DATA_FIELDS = 'phs_model_validate_data_fields',
+        // low level insert and edit
+        H_MODEL_INSERT_DATA = 'phs_model_insert_data', H_MODEL_EDIT_DATA = 'phs_model_edit_data', H_MODEL_HARD_DELETE_DATA = 'phs_model_hard_delete_data',
 
-    // Paginator hooks
-    H_PAGINATOR_ACTION_PARAMETERS = 'phs_paginator_action_parameters',
+        // Paginator hooks
+        H_PAGINATOR_ACTION_PARAMETERS = 'phs_paginator_action_parameters',
 
-    // Plugins hooks
-    H_PLUGIN_REGISTRY = 'phs_plugin_registry',
+        // Plugins hooks
+        H_PLUGIN_REGISTRY = 'phs_plugin_registry',
 
-    // Logging hooks
-    H_LOG = 'phs_logger',
+        // Logging hooks
+        H_LOG = 'phs_logger',
 
-    // Location / Scripts hooks
-    H_PAGE_INDEX = 'phs_page_index', H_PAGE_REGISTER = 'phs_page_register',
+        // Location / Scripts hooks
+        H_PAGE_INDEX = 'phs_page_index', H_PAGE_REGISTER = 'phs_page_register',
 
-    // Email hooks
-    H_EMAIL_INIT = 'phs_email_init',
+        // Email hooks
+        H_EMAIL_INIT = 'phs_email_init',
 
-    // Notifications' hooks
-    H_NOTIFICATIONS_DISPLAY = 'phs_notifications_display',
+        // Notifications' hooks
+        H_NOTIFICATIONS_DISPLAY = 'phs_notifications_display',
 
-    // Cookie notice hooks
-    H_COOKIE_NOTICE_DISPLAY = 'phs_cookie_notice_display',
+        // Cookie notice hooks
+        H_COOKIE_NOTICE_DISPLAY = 'phs_cookie_notice_display',
 
-    // Messages hooks
-    H_MSG_GET_SUMMARY = 'phs_messages_summary', H_MSG_TYPES = 'phs_messages_types',
-    H_MSG_SINGLE_DISPLAY_TYPES_ACTIONS = 'phs_messages_single_types_actions',
-    // Alter write message form
-    H_MSG_RENDER_WRITE_FORM = 'phs_messages_render_write_form',
-    // Used before sending messages to users
-    H_MSG_BEFORE_MESSAGES = 'phs_messages_before_messages',
-    // Used after messages were sent to users
-    H_MSG_MESSAGES_SENT = 'phs_messages_messages_sent',
-    // If any plugin wants to set custom settings for current message that was written
-    H_MSG_MESSAGES_CUSTOM_SETTINGS = 'phs_messages_custom_settings',
+        // Messages hooks
+        H_MSG_GET_SUMMARY = 'phs_messages_summary', H_MSG_TYPES = 'phs_messages_types',
+        H_MSG_SINGLE_DISPLAY_TYPES_ACTIONS = 'phs_messages_single_types_actions',
+        // Alter write message form
+        H_MSG_RENDER_WRITE_FORM = 'phs_messages_render_write_form',
+        // Used before sending messages to users
+        H_MSG_BEFORE_MESSAGES = 'phs_messages_before_messages',
+        // Used after messages were sent to users
+        H_MSG_MESSAGES_SENT = 'phs_messages_messages_sent',
+        // If any plugin wants to set custom settings for current message that was written
+        H_MSG_MESSAGES_CUSTOM_SETTINGS = 'phs_messages_custom_settings',
 
-    // Captcha hooks
-    H_CAPTCHA_DISPLAY = 'phs_captcha_display', H_CAPTCHA_CHECK = 'phs_captcha_check', H_CAPTCHA_REGENERATE = 'phs_captcha_regenerate',
+        // Captcha hooks
+        H_CAPTCHA_DISPLAY = 'phs_captcha_display', H_CAPTCHA_CHECK = 'phs_captcha_check', H_CAPTCHA_REGENERATE = 'phs_captcha_regenerate',
 
-    // Roles hooks
-    H_GUEST_ROLES_SLUGS = 'phs_guest_roles_slugs',
+        // Roles hooks
+        H_GUEST_ROLES_SLUGS = 'phs_guest_roles_slugs',
 
-    // API hooks
-    H_API_REQUEST_ENDED = 'phs_api_request_ended',
-    H_API_API_INITED = 'phs_api_inited',
-    H_API_ACTION_INITED = 'phs_api_action_inited', H_API_ACTION_ENDED = 'phs_api_action_ended',
+        // API hooks
+        H_API_REQUEST_ENDED = 'phs_api_request_ended',
+        H_API_API_INITED = 'phs_api_inited',
+        H_API_ACTION_INITED = 'phs_api_action_inited', H_API_ACTION_ENDED = 'phs_api_action_ended',
 
-    // User account hooks
-    H_USER_DB_DETAILS = 'phs_user_db_details', H_USER_LEVELS = 'phs_user_levels', H_USER_STATUSES = 'phs_user_statuses',
-    // triggered to obtain an account structure for a given int, array (obtained from database) or false (for guest accounts)
-    H_USER_ACCOUNT_STRUCTURE = 'phs_user_account_structure',
-    // triggered when an action is performed on provided account (insert, edit, etc)
-    H_USER_ACCOUNT_ACTION = 'phs_user_account_action',
-    // triggered to get list of roles to assign to new users
-    H_USER_REGISTRATION_ROLES = 'phs_user_registration_roles',
-    // triggered to manage user fields at registration
-    H_USERS_REGISTRATION = 'phs_users_registration',
-    // triggered before user details get updated (used to change user details fields)
-    H_USERS_DETAILS_FIELDS = 'phs_users_details_fields',
-    // triggered after user details are updated
-    H_USERS_DETAILS_UPDATED = 'phs_users_details_updated',
-    // triggered when encoding user passwords
-    H_USERS_ENCODE_PASS = 'phs_users_encode_pass',
-    // triggered when generating user passwords
-    H_USERS_GENERATE_PASS = 'phs_users_generate_pass',
-    // triggered after user logs in successfully
-    H_USERS_AFTER_LOGIN = 'phs_users_after_login',
-    // triggered right when execute() function of login action is called
-    H_USERS_LOGIN_ACTION_START = 'phs_users_login_action_start',
-    // triggered right when execute() function of logout action is called
-    H_USERS_LOGOUT_ACTION_START = 'phs_users_logout_action_start',
-    // triggered right when execute() function of edit profile action is called
-    H_USERS_EDIT_PROFILE_ACTION_START = 'phs_users_edit_profile_action_start',
-    // triggered right when execute() function of change password action is called
-    H_USERS_CHANGE_PASSWORD_ACTION_START = 'phs_users_change_password_action_start',
-    // triggered right when execute() function of forgot password action is called
-    H_USERS_FORGOT_PASSWORD_ACTION_START = 'phs_users_forgot_password_action_start',
-    // triggered right when execute() function of register action is called
-    H_USERS_REGISTER_ACTION_START = 'phs_users_register_action_start',
-    // When importing accounts, ask validation for import data (DB format)
-    H_USERS_IMPORT_DB_FIELDS_VALIDATE = 'phs_users_db_fields_validate',
+        // User account hooks
+        H_USER_DB_DETAILS = 'phs_user_db_details', H_USER_LEVELS = 'phs_user_levels', H_USER_STATUSES = 'phs_user_statuses',
+        // triggered to obtain an account structure for a given int, array (obtained from database) or false (for guest accounts)
+        H_USER_ACCOUNT_STRUCTURE = 'phs_user_account_structure',
+        // triggered when an action is performed on provided account (insert, edit, etc)
+        H_USER_ACCOUNT_ACTION = 'phs_user_account_action',
+        // triggered to get list of roles to assign to new users
+        H_USER_REGISTRATION_ROLES = 'phs_user_registration_roles',
+        // triggered to manage user fields at registration
+        H_USERS_REGISTRATION = 'phs_users_registration',
+        // triggered before user details get updated (used to change user details fields)
+        H_USERS_DETAILS_FIELDS = 'phs_users_details_fields',
+        // triggered after user details are updated
+        H_USERS_DETAILS_UPDATED = 'phs_users_details_updated',
+        // triggered when encoding user passwords
+        H_USERS_ENCODE_PASS = 'phs_users_encode_pass',
+        // triggered when generating user passwords
+        H_USERS_GENERATE_PASS = 'phs_users_generate_pass',
+        // triggered after user logs in successfully
+        H_USERS_AFTER_LOGIN = 'phs_users_after_login',
+        // triggered right when execute() function of login action is called
+        H_USERS_LOGIN_ACTION_START = 'phs_users_login_action_start',
+        // triggered right when execute() function of logout action is called
+        H_USERS_LOGOUT_ACTION_START = 'phs_users_logout_action_start',
+        // triggered right when execute() function of edit profile action is called
+        H_USERS_EDIT_PROFILE_ACTION_START = 'phs_users_edit_profile_action_start',
+        // triggered right when execute() function of change password action is called
+        H_USERS_CHANGE_PASSWORD_ACTION_START = 'phs_users_change_password_action_start',
+        // triggered right when execute() function of forgot password action is called
+        H_USERS_FORGOT_PASSWORD_ACTION_START = 'phs_users_forgot_password_action_start',
+        // triggered right when execute() function of register action is called
+        H_USERS_REGISTER_ACTION_START = 'phs_users_register_action_start',
+        // When importing accounts, ask validation for import data (DB format)
+        H_USERS_IMPORT_DB_FIELDS_VALIDATE = 'phs_users_db_fields_validate',
 
-    // Layout hooks
-    H_WEB_TEMPLATE_RENDERING = 'phs_web_template_rendering',
-    H_WEB_SUBVIEW_RENDERING = 'phs_web_subview_rendering',
-    H_ADMIN_TEMPLATE_PAGE_HEAD = 'phs_admin_template_page_head',
-    H_ADMIN_TEMPLATE_PAGE_START = 'phs_admin_template_page_start',
-    H_ADMIN_TEMPLATE_PAGE_END = 'phs_admin_template_page_end',
-    // Triggered when main container which holds page content is rendered
-    H_ADMIN_TEMPLATE_PAGE_FIRST_CONTENT = 'phs_admin_template_page_first_content',
+        // Layout hooks
+        H_WEB_TEMPLATE_RENDERING = 'phs_web_template_rendering',
+        H_WEB_SUBVIEW_RENDERING = 'phs_web_subview_rendering',
+        H_ADMIN_TEMPLATE_PAGE_HEAD = 'phs_admin_template_page_head',
+        H_ADMIN_TEMPLATE_PAGE_START = 'phs_admin_template_page_start',
+        H_ADMIN_TEMPLATE_PAGE_END = 'phs_admin_template_page_end',
+        // Triggered when main container which holds page content is rendered
+        H_ADMIN_TEMPLATE_PAGE_FIRST_CONTENT = 'phs_admin_template_page_first_content',
 
-    H_ADMIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_admin_template_before_left_menu',
-    H_ADMIN_TEMPLATE_AFTER_LEFT_MENU = 'phs_admin_template_after_left_menu',
-    H_ADMIN_TEMPLATE_BEFORE_RIGHT_MENU = 'phs_admin_template_before_right_menu',
-    H_ADMIN_TEMPLATE_AFTER_RIGHT_MENU = 'phs_admin_template_after_right_menu',
+        H_ADMIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_admin_template_before_left_menu',
+        H_ADMIN_TEMPLATE_AFTER_LEFT_MENU = 'phs_admin_template_after_left_menu',
+        H_ADMIN_TEMPLATE_BEFORE_RIGHT_MENU = 'phs_admin_template_before_right_menu',
+        H_ADMIN_TEMPLATE_AFTER_RIGHT_MENU = 'phs_admin_template_after_right_menu',
 
-    H_ADMIN_TEMPLATE_BEFORE_MAIN_MENU = 'phs_admin_template_before_main_menu',
-    H_ADMIN_TEMPLATE_AFTER_MAIN_MENU = 'phs_admin_template_after_main_menu',
+        H_ADMIN_TEMPLATE_BEFORE_MAIN_MENU = 'phs_admin_template_before_main_menu',
+        H_ADMIN_TEMPLATE_AFTER_MAIN_MENU = 'phs_admin_template_after_main_menu',
 
-    H_MAIN_TEMPLATE_PAGE_HEAD = 'phs_main_template_page_head',
-    H_MAIN_TEMPLATE_PAGE_START = 'phs_main_template_page_start',
-    H_MAIN_TEMPLATE_PAGE_END = 'phs_main_template_page_end',
-    // Triggered when main container which holds page content is rendered
-    H_MAIN_TEMPLATE_PAGE_FIRST_CONTENT = 'phs_main_template_page_first_content',
+        H_MAIN_TEMPLATE_PAGE_HEAD = 'phs_main_template_page_head',
+        H_MAIN_TEMPLATE_PAGE_START = 'phs_main_template_page_start',
+        H_MAIN_TEMPLATE_PAGE_END = 'phs_main_template_page_end',
+        // Triggered when main container which holds page content is rendered
+        H_MAIN_TEMPLATE_PAGE_FIRST_CONTENT = 'phs_main_template_page_first_content',
 
-    H_MAIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_main_template_before_left_menu',
-    H_MAIN_TEMPLATE_AFTER_LEFT_MENU = 'phs_main_template_after_left_menu',
-    H_MAIN_TEMPLATE_BEFORE_RIGHT_MENU = 'phs_main_template_before_right_menu',
-    H_MAIN_TEMPLATE_AFTER_RIGHT_MENU = 'phs_main_template_after_right_menu',
+        H_MAIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_main_template_before_left_menu',
+        H_MAIN_TEMPLATE_AFTER_LEFT_MENU = 'phs_main_template_after_left_menu',
+        H_MAIN_TEMPLATE_BEFORE_RIGHT_MENU = 'phs_main_template_before_right_menu',
+        H_MAIN_TEMPLATE_AFTER_RIGHT_MENU = 'phs_main_template_after_right_menu',
 
-    H_MAIN_TEMPLATE_BEFORE_MAIN_MENU = 'phs_main_template_before_main_menu',
-    H_MAIN_TEMPLATE_AFTER_MAIN_MENU = 'phs_main_template_after_main_menu',
-    H_MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_IN = 'phs_main_template_before_main_menu_logged_in',
-    H_MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_IN = 'phs_main_template_after_main_menu_logged_in',
-    H_MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_OUT = 'phs_main_template_before_main_menu_logged_out',
-    H_MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_OUT = 'phs_main_template_after_main_menu_logged_out';
+        H_MAIN_TEMPLATE_BEFORE_MAIN_MENU = 'phs_main_template_before_main_menu',
+        H_MAIN_TEMPLATE_AFTER_MAIN_MENU = 'phs_main_template_after_main_menu',
+        H_MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_IN = 'phs_main_template_before_main_menu_logged_in',
+        H_MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_IN = 'phs_main_template_after_main_menu_logged_in',
+        H_MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_OUT = 'phs_main_template_before_main_menu_logged_out',
+        H_MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_OUT = 'phs_main_template_after_main_menu_logged_out';
     //
     // endregion Framework hooks definition
     //

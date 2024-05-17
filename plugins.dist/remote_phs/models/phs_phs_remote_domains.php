@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\remote_phs\models;
 
 use phs\PHS;
@@ -15,7 +16,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     use PHS_Model_Trait_statuses;
 
     public const STATUS_NOT_CONNECTED = 1, STATUS_WAITING_CONNECTION = 2, STATUS_CONNECTED = 3,
-    STATUS_CONNECTION_ERROR = 4, STATUS_SUSPENDED = 5, STATUS_DELETED = 6;
+        STATUS_CONNECTION_ERROR = 4, STATUS_SUSPENDED = 5, STATUS_DELETED = 6;
 
     public const LOG_STATUS_SENDING = 1, LOG_STATUS_SENT = 2, LOG_STATUS_ERROR = 3, LOG_STATUS_RECEIVED = 4;
 
@@ -1213,12 +1214,10 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false)
+    final public function fields_definition($params = false) : ?array
     {
-        // $params should be flow parameters...
-        if (empty($params) || !is_array($params)
-         || empty($params['table_name'])) {
-            return false;
+        if (empty($params['table_name'])) {
+            return null;
         }
 
         $return_arr = [];

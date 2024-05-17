@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS;
@@ -649,7 +650,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
             return $callback;
         }
 
-        /** @var \phs\libraries\PHS_Instantiable $listener_obj */
+        /** @var PHS_Instantiable $listener_obj */
         if (!is_string($callback[0])
          || !($listener_obj = $callback[0]::get_instance())
          || !($listener_obj instanceof PHS_Instantiable)

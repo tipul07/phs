@@ -6,9 +6,9 @@ use phs\libraries\PHS_Model;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\messages\PHS_Plugin_Messages;
 
-/** @var \phs\plugins\messages\PHS_Plugin_Messages $messages_plugin */
+/** @var PHS_Plugin_Messages $messages_plugin */
 if (($messages_plugin = PHS_Plugin_Messages::get_instance())) {
-    /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+    /** @var PHS_Plugin_Accounts $accounts_plugin */
     if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
         PHS::register_hook(
             PHS_Model::HOOK_TABLE_FIELDS.'_'.$accounts_plugin->instance_id(),

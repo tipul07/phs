@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\accounts\actions\api;
 
 use phs\PHS;
@@ -35,8 +36,8 @@ class PHS_Action_Session extends PHS_Api_action
             return $this->send_api_success(['account' => null]);
         }
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        /** @var \phs\plugins\accounts\contracts\PHS_Contract_Account_basic $account_contract */
+        /** @var PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Contract_Account_basic $account_contract */
         if (!($accounts_model = PHS_Model_Accounts::get_instance())
          || !($account_contract = PHS_Contract_Account_basic::get_instance())) {
             return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,

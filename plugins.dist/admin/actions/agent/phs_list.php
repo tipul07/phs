@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\admin\actions\agent;
 
 use phs\PHS;
@@ -11,7 +12,7 @@ use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
 use phs\system\core\models\PHS_Model_Agent_jobs;
 
-/** @property \phs\system\core\models\PHS_Model_Agent_jobs $_paginator_model */
+/** @property PHS_Model_Agent_jobs $_paginator_model */
 class PHS_Action_List extends PHS_Action_Generic_list
 {
     private ?PHS_Plugin_Admin $_admin_plugin = null;
@@ -553,7 +554,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return false;
                 }
 
-                /** @var \phs\PHS_Agent $agent_obj */
+                /** @var PHS_Agent $agent_obj */
                 if (!($agent_obj = new PHS_Agent())) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Cannot instantiate agent class.'));
 

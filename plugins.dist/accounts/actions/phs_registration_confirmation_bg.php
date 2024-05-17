@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\accounts\actions;
 
 use phs\PHS;
@@ -28,8 +29,8 @@ class PHS_Action_Registration_confirmation_bg extends PHS_Action
 
     public function execute()
     {
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
         if (!($params = PHS_Bg_jobs::get_current_job_parameters())
          || !is_array($params)
          || empty($params['uid'])

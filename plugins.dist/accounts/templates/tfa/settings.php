@@ -44,10 +44,10 @@ if (!($tfa_arr = $this->view_var('tfa_data'))) {
         <?php
     }
 
-    if (!empty($tfa_arr)
-        && $tfa_model->is_setup_completed($tfa_arr)
-        && ($recovery_codes = $tfa_model->get_recovery_codes($tfa_arr))) {
-        ?>
+if (!empty($tfa_arr)
+    && $tfa_model->is_setup_completed($tfa_arr)
+    && ($recovery_codes = $tfa_model->get_recovery_codes($tfa_arr))) {
+    ?>
         <form id="tfa_settings_download" name="tfa_settings_download" method="post"
               action="<?php echo PHS::url(['p' => 'accounts', 'a' => 'settings', 'ad' => 'tfa']); ?>">
             <input type="hidden" name="foobar" value="1" />
@@ -177,7 +177,7 @@ if (!($tfa_arr = $this->view_var('tfa_data'))) {
             }
         </script>
         <?php
-    }
+}
 ?>
 </div>
 

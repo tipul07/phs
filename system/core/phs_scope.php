@@ -1,4 +1,5 @@
 <?php
+
 namespace phs;
 
 use phs\libraries\PHS_Action;
@@ -14,7 +15,7 @@ abstract class PHS_Scope extends PHS_Instantiable
     public const SCOPE_VAR_PREFIX = '__scp_pre_';
 
     public const SCOPE_WEB = 1, SCOPE_BACKGROUND = 2, SCOPE_AJAX = 3, SCOPE_API = 4,
-    SCOPE_AGENT = 5, SCOPE_TESTS = 6, SCOPE_CLI = 7, SCOPE_REMOTE = 8;
+        SCOPE_AGENT = 5, SCOPE_TESTS = 6, SCOPE_CLI = 7, SCOPE_REMOTE = 8;
 
     /** @var array */
     private static array $SCOPES_ARR = [
@@ -116,7 +117,7 @@ abstract class PHS_Scope extends PHS_Instantiable
         $this->reset_error();
 
         if (empty($action_result)) {
-            /** @var \phs\libraries\PHS_Action $action_obj */
+            /** @var PHS_Action $action_obj */
             if (!($action_obj = PHS::running_action())) {
                 $action_result = PHS_Action::default_action_result();
                 $action_result['buffer'] = self::_t('Unknown running action.');

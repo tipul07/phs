@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\emails;
 
 use phs\PHS;
@@ -21,7 +22,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
     public const LOG_CHANNEL = 'emails.log';
 
-    /** @var \phs\plugins\emails\libraries\PHS_Smtp */
+    /** @var PHS_Smtp */
     private $smtp_library = false;
 
     public static $MAIL_AUTH_KEY = 'XMailAuth';
@@ -668,7 +669,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $library_params['full_class_name'] = '\\phs\\plugins\\emails\\libraries\\PHS_Smtp';
         $library_params['as_singleton'] = false;
 
-        /** @var \phs\plugins\emails\libraries\PHS_Smtp $smtp_library */
+        /** @var PHS_Smtp $smtp_library */
         if (!($this->smtp_library = $this->load_library('phs_smtp', $library_params))) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading SMTP library.'));
@@ -704,7 +705,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $library_params['full_class_name'] = '\\phs\\plugins\\emails\\libraries\\PHS_Smtp';
         $library_params['as_singleton'] = false;
 
-        /** @var \phs\plugins\emails\libraries\PHS_Smtp $smtp_library */
+        /** @var PHS_Smtp $smtp_library */
         if (!($smtp_library = $this->load_library('phs_smtp', $library_params))) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading SMTP library.'));

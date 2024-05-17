@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\accounts\contracts;
 
 use phs\PHS;
@@ -8,7 +9,7 @@ use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Contract_Account_basic extends PHS_Contract
 {
-    /** @var null|\phs\plugins\accounts\models\PHS_Model_Accounts */
+    /** @var null|PHS_Model_Accounts */
     private ?PHS_Model_Accounts $_accounts_model = null;
 
     /**

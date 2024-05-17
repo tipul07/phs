@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\phs_libs\actions;
 
 use phs\PHS_Scope;
@@ -8,8 +9,6 @@ use phs\plugins\phs_libs\PHS_Plugin_Phs_libs;
 
 class Phs_Action_Clean_qrcodes_ag extends PHS_Action
 {
-    public const ERR_DEPENDENCIES = 1;
-
     public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_AGENT];
@@ -17,7 +16,7 @@ class Phs_Action_Clean_qrcodes_ag extends PHS_Action
 
     public function execute()
     {
-        /** @var \phs\plugins\phs_libs\PHS_Plugin_Phs_libs $libs_plugin */
+        /** @var PHS_Plugin_Phs_libs $libs_plugin */
         if (!($libs_plugin = PHS_Plugin_Phs_libs::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 

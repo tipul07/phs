@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS;
@@ -8,12 +9,12 @@ use phs\PHS_Maintenance;
 abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
 {
     public const FTYPE_UNKNOWN = 0,
-    FTYPE_TINYINT = 1, FTYPE_SMALLINT = 2, FTYPE_MEDIUMINT = 3, FTYPE_INT = 4, FTYPE_BIGINT = 5, FTYPE_DECIMAL = 6, FTYPE_FLOAT = 7, FTYPE_DOUBLE = 8, FTYPE_REAL = 9,
-    FTYPE_DATE = 10, FTYPE_DATETIME = 11, FTYPE_TIMESTAMP = 12,
-    FTYPE_CHAR = 13, FTYPE_VARCHAR = 14, FTYPE_TEXT = 15, FTYPE_MEDIUMTEXT = 16, FTYPE_LONGTEXT = 17,
-    FTYPE_BINARY = 18, FTYPE_VARBINARY = 19,
-    FTYPE_TINYBLOB = 20, FTYPE_MEDIUMBLOB = 21, FTYPE_BLOB = 22, FTYPE_LONGBLOB = 23,
-    FTYPE_ENUM = 24;
+        FTYPE_TINYINT = 1, FTYPE_SMALLINT = 2, FTYPE_MEDIUMINT = 3, FTYPE_INT = 4, FTYPE_BIGINT = 5, FTYPE_DECIMAL = 6, FTYPE_FLOAT = 7, FTYPE_DOUBLE = 8, FTYPE_REAL = 9,
+        FTYPE_DATE = 10, FTYPE_DATETIME = 11, FTYPE_TIMESTAMP = 12,
+        FTYPE_CHAR = 13, FTYPE_VARCHAR = 14, FTYPE_TEXT = 15, FTYPE_MEDIUMTEXT = 16, FTYPE_LONGTEXT = 17,
+        FTYPE_BINARY = 18, FTYPE_VARBINARY = 19,
+        FTYPE_TINYBLOB = 20, FTYPE_MEDIUMBLOB = 21, FTYPE_BLOB = 22, FTYPE_LONGBLOB = 23,
+        FTYPE_ENUM = 24;
 
     public const RECORD_NEW_INSERT_KEY = '{new_in_db}';
 
@@ -1162,7 +1163,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * @return bool
      */
-    protected function _install_table_for_model($flow_params) : bool
+    protected function _install_table_for_model(array $flow_params) : bool
     {
         $this->reset_error();
 
@@ -1170,7 +1171,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
             return false;
         }
 
-        if (empty($this->_definition) || !is_array($this->_definition)
+        if (empty($this->_definition)
          || !($flow_params = $this->fetch_default_flow_params($flow_params))
          || empty($flow_params['table_name'])
          || !($full_table_name = $this->get_flow_table_name($flow_params))) {
@@ -1282,7 +1283,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * @return bool
      */
-    protected function _update_table_for_model($flow_params) : bool
+    protected function _update_table_for_model(array $flow_params) : bool
     {
         $this->reset_error();
 
@@ -1609,7 +1610,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * @return bool
      */
-    protected function _update_missing_table_for_model($flow_params) : bool
+    protected function _install_missing_table_for_model(array $flow_params) : bool
     {
         return $this->_install_table_for_model($flow_params);
     }
@@ -1621,7 +1622,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     {
         $this->reset_error();
 
-        if (empty($this->_definition) || !is_array($this->_definition)
+        if (empty($this->_definition)
          || !($flow_params = $this->fetch_default_flow_params($flow_params))
          || !($db_connection = $this->get_db_connection($flow_params))
          || !($full_table_name = $this->get_flow_table_name($flow_params))) {

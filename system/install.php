@@ -1,15 +1,16 @@
 <?php
 
 if (!defined('PHS_VERSION')
- || !defined('PHS_INSTALLING_FLOW') || !constant('PHS_INSTALLING_FLOW')) {
+    || !defined('PHS_INSTALLING_FLOW') || !constant('PHS_INSTALLING_FLOW')) {
     exit;
 }
 
 use phs\PHS;
 use phs\PHS_Maintenance;
+use phs\libraries\PHS_Model;
 use phs\system\core\models\PHS_Model_Plugins;
 
-/** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+/** @var PHS_Model_Plugins $plugins_model */
 if (!($plugins_model = PHS_Model_Plugins::get_instance())) {
     if (!PHS::st_has_error()) {
         PHS::st_set_error(-1, PHS::_t('Error instantiating plugins model.'));
@@ -32,6 +33,7 @@ if (!$plugins_model->check_installation()) {
 
 if (($core_models = PHS::get_core_models())) {
     foreach ($core_models as $core_model) {
+        /** @var PHS_Model $model_obj */
         if (($model_obj = PHS::load_model($core_model))) {
             $model_obj->check_installation();
         } else {

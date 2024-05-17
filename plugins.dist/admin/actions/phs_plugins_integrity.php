@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\admin\actions;
 
 use phs\PHS;
@@ -32,8 +33,8 @@ class PHS_Action_Plugins_integrity extends PHS_Action
             return action_request_login();
         }
 
-        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_instance */
+        /** @var PHS_Plugin_Admin $admin_plugin */
+        /** @var PHS_Model_Plugins $plugins_instance */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($plugins_instance = PHS_Model_Plugins::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load plugins model.'));

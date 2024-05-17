@@ -94,7 +94,7 @@ if (!empty($thread_messages_arr) && is_array($thread_messages_arr)) {
                         echo $this->_pt('1 message');
                     }
 
-                    echo ', ';
+            echo ', ';
 
             if ($messages_before_new != 1) {
                 echo $this->_pt('%s new messages', $messages_before_new);
@@ -107,7 +107,7 @@ if (!empty($thread_messages_arr) && is_array($thread_messages_arr)) {
             <?php
         }
 
-        echo $this->sub_view('view_single_message');
+echo $this->sub_view('view_single_message');
 
 if (!empty($messages_after)) {
     ?>
@@ -120,7 +120,7 @@ if (!empty($messages_after)) {
                 echo $this->_pt('1 message');
             }
 
-            echo ', ';
+    echo ', ';
 
     if ($messages_after_new != 1) {
         echo $this->_pt('%s new messages', $messages_after_new);

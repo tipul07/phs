@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\system\core\models;
 
 use phs\PHS;
@@ -250,7 +251,7 @@ class PHS_Model_Tenants extends PHS_Model
 
     public function can_user_edit($record_data, $account_data) : ?array
     {
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (empty($record_data) || empty($account_data)
          || !PHS::is_multi_tenant()
          || !($tenant_arr = $this->data_to_array($record_data))
@@ -306,11 +307,10 @@ class PHS_Model_Tenants extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false)
+    final public function fields_definition($params = false) : ?array
     {
-        if (empty($params) || !is_array($params)
-         || empty($params['table_name'])) {
-            return false;
+        if (empty($params['table_name'])) {
+            return null;
         }
 
         $return_arr = [];

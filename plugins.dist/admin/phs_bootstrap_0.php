@@ -7,7 +7,7 @@ use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\events\layout\PHS_Event_Layout;
 use phs\system\core\events\layout\PHS_Event_Template;
 
-/** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
+/** @var PHS_Plugin_Admin $admin_plugin */
 if (($admin_plugin = PHS_Plugin_Admin::get_instance())) {
     PHS_Logger::define_channel($admin_plugin::LOG_API_MONITOR);
 

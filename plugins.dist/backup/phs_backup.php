@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\backup;
 
 use phs\PHS;
@@ -19,7 +20,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
     public const ROLE_BACKUP_MANAGER = 'phs_backup_manager', ROLE_BACKUP_OPERATOR = 'phs_backup_operator';
 
     public const ROLEU_MANAGE_RULES = 'phs_backups_manage_rules', ROLEU_LIST_RULES = 'phs_backups_list_rules',
-    ROLEU_LIST_BACKUPS = 'phs_backups_list_backups', ROLEU_DELETE_BACKUPS = 'phs_backups_delete_backups';
+        ROLEU_LIST_BACKUPS = 'phs_backups_list_backups', ROLEU_DELETE_BACKUPS = 'phs_backups_delete_backups';
 
     /**
      * @inheritdoc
@@ -354,8 +355,8 @@ class PHS_Plugin_Backup extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
-        /** @var \phs\plugins\backup\models\PHS_Model_Results $results_model */
+        /** @var models\PHS_Model_Rules $rules_model */
+        /** @var models\PHS_Model_Results $results_model */
         if (!($rules_model = PHS::load_model('rules', 'backup'))
          || !($results_model = PHS::load_model('results', 'backup'))
          || !($r_flow_params = $rules_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
@@ -623,8 +624,8 @@ class PHS_Plugin_Backup extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
-        /** @var \phs\plugins\backup\models\PHS_Model_Results $results_model */
+        /** @var models\PHS_Model_Rules $rules_model */
+        /** @var models\PHS_Model_Results $results_model */
         if (!($rules_model = PHS::load_model('rules', 'backup'))
          || !($results_model = PHS::load_model('results', 'backup'))
          || !($r_flow_params = $rules_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
@@ -693,7 +694,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
+        /** @var models\PHS_Model_Rules $rules_model */
         if (!($rules_model = PHS::load_model('rules', 'backup'))
          || !($r_flow_params = $rules_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
          || !($r_table_name = $rules_model->get_flow_table_name($r_flow_params))
@@ -786,7 +787,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
     protected function custom_after_install()
     {
         // Even if we get an error when adding predefined backup rules don't break the install...
-        /** @var \phs\plugins\backup\models\PHS_Model_Rules $backup_rules_model */
+        /** @var models\PHS_Model_Rules $backup_rules_model */
         if (!($backup_rules_model = PHS::load_model('rules', 'backup'))
          || !($flow_params = $backup_rules_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
          || !($rules_days = $backup_rules_model->get_rule_days())) {
@@ -826,7 +827,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\backup\models\PHS_Model_Rules $backup_rules_model */
+        /** @var models\PHS_Model_Rules $backup_rules_model */
         if (!($backup_rules_model = PHS::load_model('rules', 'backup'))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load backup rules model.'));
 
@@ -850,7 +851,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\backup\models\PHS_Model_Rules $backup_rules_model */
+        /** @var models\PHS_Model_Rules $backup_rules_model */
         if (!($backup_rules_model = PHS::load_model('rules', 'backup'))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load backup rules model.'));
 

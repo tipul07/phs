@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\accounts_3rd\libraries;
 
 use phs\PHS;
@@ -13,7 +14,7 @@ class Apple extends PHS_Library
 
     public const ACTION_LOGIN = 'login', ACTION_REGISTER = 'register';
 
-    public const ERR_DEPENDENCIES = 1, ERR_SETTINGS = 2, ERR_API_INIT = 3;
+    public const ERR_API_INIT = 1;
 
     /** @var bool|\phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd */
     private $_accounts_3rd_plugin = false;
@@ -155,7 +156,7 @@ class Apple extends PHS_Library
             $payload_str = @json_encode($post_arr);
         }
 
-        if (!($api_response = PHS_Utils::quick_curl($full_url, $curl_params))
+        if (!($api_response = PHS_utils::quick_curl($full_url, $curl_params))
          || !is_array($api_response)) {
             PHS_Logger::error('[APPLE] Error initiating call to Apple service API.', $plugin_obj::LOG_ERR_CHANNEL);
 
