@@ -5,7 +5,7 @@ use phs\libraries\PHS_Model;
 
 class PHS_Model_Accounts_tenants extends PHS_Model
 {
-    /** @var bool|\phs\plugins\accounts\models\PHS_Model_Accounts */
+    /** @var bool|PHS_Model_Accounts */
     private static $_accounts_model = false;
 
     /**

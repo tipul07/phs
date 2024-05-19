@@ -50,7 +50,7 @@ $current_user = PHS::user_logged_in();
                     $max_size = '20M';
                 }
 
-                echo $this->_pt('Current maximum upload file size %s.', $max_size); ?>
+echo $this->_pt('Current maximum upload file size %s.', $max_size); ?>
             </div>
         </div>
     </div>

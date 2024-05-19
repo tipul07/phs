@@ -29,9 +29,9 @@ class PHS_Action_Result_files extends PHS_Action
         }
 
         /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        /** @var \phs\plugins\backup\models\PHS_Model_Results $results_model */
-        /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
+        /** @var PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Results $results_model */
+        /** @var PHS_Model_Rules $rules_model */
         if (!($backup_plugin = $this->get_plugin_instance())
             || !($accounts_model = PHS_Model_Accounts::get_instance())
             || !($results_model = PHS_Model_Results::get_instance())

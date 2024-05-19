@@ -63,8 +63,8 @@ class PHS_Action_Login extends PHS_Action
             PHS_Notifications::add_warning_notice($this->_pt('Your session expired. Please login again into your account.'));
         }
 
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tfa $tfa_model */
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Model_Accounts_tfa $tfa_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
             || !($tfa_model = PHS_Model_Accounts_tfa::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
@@ -112,7 +112,7 @@ class PHS_Action_Login extends PHS_Action
             $plugin_settings['session_expire_minutes_normal'] = 0;
         } // till browser closes
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!empty($do_submit)
          && !PHS_Notifications::have_notifications_errors()) {
             if (empty($nick) || empty($pass)) {

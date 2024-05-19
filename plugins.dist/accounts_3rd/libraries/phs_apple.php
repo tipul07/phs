@@ -155,7 +155,7 @@ class Apple extends PHS_Library
             $payload_str = @json_encode($post_arr);
         }
 
-        if (!($api_response = PHS_Utils::quick_curl($full_url, $curl_params))
+        if (!($api_response = PHS_utils::quick_curl($full_url, $curl_params))
          || !is_array($api_response)) {
             PHS_Logger::error('[APPLE] Error initiating call to Apple service API.', $plugin_obj::LOG_ERR_CHANNEL);
 

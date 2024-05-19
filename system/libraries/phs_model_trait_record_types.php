@@ -14,7 +14,7 @@ trait PHS_Model_Trait_record_types
      *
      * @return array
      */
-    public function get_record_types($lang = false)
+    public function get_record_types(bool | string $lang = false) : array
     {
         static $record_types_arr = [];
 
@@ -23,7 +23,7 @@ trait PHS_Model_Trait_record_types
         }
 
         if ($lang === false
-         && !empty($record_types_arr)) {
+            && !empty($record_types_arr)) {
             return $record_types_arr;
         }
 
@@ -41,12 +41,12 @@ trait PHS_Model_Trait_record_types
      *
      * @return array
      */
-    public function get_record_types_as_key_val($lang = false)
+    public function get_record_types_as_key_val(bool | string $lang = false) : array
     {
-        static $record_types_key_val_arr = false;
+        static $record_types_key_val_arr = [];
 
         if ($lang === false
-         && $record_types_key_val_arr !== false) {
+            && !empty($record_types_key_val_arr)) {
             return $record_types_key_val_arr;
         }
 
@@ -72,35 +72,31 @@ trait PHS_Model_Trait_record_types
      * @param string $record_type
      * @param bool|string $lang
      *
-     * @return bool|array
+     * @return null|array
      */
-    public function valid_record_type($record_type, $lang = false)
+    public function valid_record_type(string $record_type, bool | string $lang = false) : ?array
     {
         $all_record_types = $this->get_record_types($lang);
         if (empty($record_type)
-         || !isset($all_record_types[$record_type])) {
-            return false;
+            || !isset($all_record_types[$record_type])) {
+            return null;
         }
 
         return $all_record_types[$record_type];
     }
 
     /**
-     * @param int|array $record_data
+     * @param int|string|array $record_data
      * @param string $record_type
-     * @param bool|array $params_arr
+     * @param array $params_arr
      *
      * @return array|bool
      */
-    public function record_data_to_array($record_data, $record_type, $params_arr = false)
+    public function record_data_to_array(int | string | array $record_data, string $record_type, array $params_arr = []) : ?array
     {
-        if (empty($params_arr) || !is_array($params_arr)) {
-            $params_arr = [];
-        }
-
         if (!($record_table = $this->_record_type_to_table_name($record_type))
          || !($record_arr = $this->data_to_array($record_data, self::merge_array_assoc($params_arr, ['table_name' => $record_table])))) {
-            return false;
+            return null;
         }
 
         return $record_arr;
@@ -109,37 +105,29 @@ trait PHS_Model_Trait_record_types
     /**
      * @param array $constrain_arr
      * @param string $record_type
-     * @param bool|array $params_arr
+     * @param array $params_arr
      *
-     * @return array|bool
+     * @return null|array
      */
-    public function record_get_details_fields($constrain_arr, $record_type, $params_arr = false)
+    public function record_get_details_fields(array $constrain_arr, string $record_type, array $params_arr = []) : ?array
     {
-        if (empty($params_arr) || !is_array($params_arr)) {
-            $params_arr = [];
-        }
-
         if (!($record_table = $this->_record_type_to_table_name($record_type))
-         || !($record_arr = $this->get_details_fields($constrain_arr, self::merge_array_assoc($params_arr, ['table_name' => $record_table])))) {
-            return false;
+            || !($record_arr = $this->get_details_fields($constrain_arr, self::merge_array_assoc($params_arr, ['table_name' => $record_table])))) {
+            return null;
         }
 
         return $record_arr;
     }
 
     /**
-     * @param int|array $record_data
+     * @param int|string|array $record_data
      * @param string $record_type
-     * @param bool|array $params_arr
+     * @param array $params_arr
      *
-     * @return array|bool
+     * @return bool
      */
-    public function record_hard_delete($record_data, $record_type, $params_arr = false)
+    public function record_hard_delete(int | string | array $record_data, string $record_type, array $params_arr = []) : bool
     {
-        if (empty($params_arr) || !is_array($params_arr)) {
-            $params_arr = [];
-        }
-
         if (!($record_table = $this->_record_type_to_table_name($record_type))) {
             return false;
         }
@@ -148,22 +136,19 @@ trait PHS_Model_Trait_record_types
     }
 
     /**
-     * @param int $record_id
+     * @param int|string $record_id
      * @param string $record_type
-     * @param bool|array $params_arr
+     * @param array $params_arr
      *
-     * @return array|bool
+     * @return null|array
      */
-    public function record_get_details($record_id, $record_type, $params_arr = false)
+    public function record_get_details(int | string $record_id, string $record_type, array $params_arr = []) : ?array
     {
-        if (empty($params_arr) || !is_array($params_arr)) {
-            $params_arr = [];
-        }
-
         if (empty($record_id)
-         || !($record_table = $this->_record_type_to_table_name($record_type))
-         || !($record_arr = $this->get_details($record_id, self::merge_array_assoc($params_arr, ['table_name' => $record_table])))) {
-            return false;
+            || !($record_table = $this->_record_type_to_table_name($record_type))
+            || !($record_arr = $this->get_details($record_id, self::merge_array_assoc($params_arr, ['table_name' => $record_table])))
+        ) {
+            return null;
         }
 
         return $record_arr;
@@ -172,9 +157,9 @@ trait PHS_Model_Trait_record_types
     /**
      * @param string $record_type
      *
-     * @return bool|string
+     * @return null|string
      */
-    public function record_type_to_table_name($record_type)
+    public function record_type_to_table_name(string $record_type) : ?string
     {
         return $this->_record_type_to_table_name($record_type);
     }
@@ -182,15 +167,15 @@ trait PHS_Model_Trait_record_types
     /**
      * @param string $record_type
      *
-     * @return bool|string
+     * @return null|string
      */
-    protected function _record_type_to_table_name($record_type)
+    protected function _record_type_to_table_name(string $record_type) : ?string
     {
-        if (!($record_type = $this->valid_record_type($record_type))
-         || empty($record_type['table_name'])) {
-            return false;
+        if (!($record_type_arr = $this->valid_record_type($record_type))
+            || empty($record_type_arr['table_name'])) {
+            return null;
         }
 
-        return $record_type['table_name'];
+        return $record_type_arr['table_name'];
     }
 }

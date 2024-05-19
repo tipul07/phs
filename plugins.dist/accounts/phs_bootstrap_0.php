@@ -8,7 +8,7 @@ use phs\libraries\PHS_Logger;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\system\core\events\plugins\PHS_Event_Plugin_settings_saved;
 
-/** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+/** @var PHS_Plugin_Accounts $accounts_plugin */
 if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
     PHS_Logger::define_channel($accounts_plugin::LOG_SECURITY);
     PHS_Logger::define_channel($accounts_plugin::LOG_IMPORT);

@@ -19,7 +19,7 @@ class PHS_Controller_Index extends PHS_Controller_Admin
     {
         $this->is_admin_controller(true);
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
             $this->set_error(self::ERR_RUN_ACTION, $this->_pt('Error loading required resources.'));
 

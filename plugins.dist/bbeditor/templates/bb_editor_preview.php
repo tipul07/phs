@@ -1,8 +1,8 @@
 <?php
 
-/** @var \phs\system\core\views\PHS_View $this */
+/** @var phs\system\core\views\PHS_View $this */
 
-/** @var \phs\plugins\bbeditor\libraries\Bbcode $bb_code_obj */
+/** @var phs\plugins\bbeditor\libraries\Bbcode $bb_code_obj */
 if (!($bb_code_obj = $this->view_var('bb_code_obj'))) {
     return $this->_pt('Couldn\'t initialize BB code editor.');
 }

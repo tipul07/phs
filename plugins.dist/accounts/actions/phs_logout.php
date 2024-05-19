@@ -50,7 +50,7 @@ class PHS_Action_Logout extends PHS_Action
             return action_redirect();
         }
 
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts plugin.'));
 

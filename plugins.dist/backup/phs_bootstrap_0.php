@@ -5,7 +5,7 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
 use phs\plugins\backup\PHS_Plugin_Backup;
 
-/** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
+/** @var PHS_Plugin_Backup $backup_plugin */
 if (($backup_plugin = PHS_Plugin_Backup::get_instance())) {
     PHS_Logger::define_channel($backup_plugin::LOG_CHANNEL);
 

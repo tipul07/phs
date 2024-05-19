@@ -38,13 +38,13 @@ $register_required = (bool)$this->view_var('register_required');
         if (!empty($display_error_msg)) {
             ?><p style="padding:10px;"><?php echo $display_error_msg; ?></p><?php
         }
-        if (!empty($display_message_msg)) {
-            ?><p style="padding:10px;"><?php echo $display_message_msg; ?></p><?php
-        }
+if (!empty($display_message_msg)) {
+    ?><p style="padding:10px;"><?php echo $display_message_msg; ?></p><?php
+}
 
-        if (!empty($retry_action)
-         && $apple_lib->prepare_instance_for_login()) {
-            ?>
+if (!empty($retry_action)
+ && $apple_lib->prepare_instance_for_login()) {
+    ?>
             <fieldset class="login_button">
                 <a href="<?php echo $apple_lib->get_url($apple_lib::ACTION_LOGIN); ?>"
                    class="btn btn-success btn-medium phs_3rdparty_login_button phs_3rdparty_login_apple">
@@ -52,11 +52,11 @@ $register_required = (bool)$this->view_var('register_required');
                 </a>
             </fieldset>
             <?php
-        }
+}
 
-        if (!empty($register_required)
-         && !empty($phs_gal_code)) {
-            ?>
+if (!empty($register_required)
+ && !empty($phs_gal_code)) {
+    ?>
             <form id="apple_login_form" name="apple_login_form" method="post"
                   action="<?php echo PHS::url(['p' => 'accounts_3rd', 'a' => 'apple_login']); ?>">
                 <input type="hidden" name="phs_gal_code" value="<?php echo form_str($phs_gal_code); ?>" />
@@ -69,7 +69,7 @@ $register_required = (bool)$this->view_var('register_required');
                 </fieldset>
             </form>
             <?php
-        }
+}
 ?>
 
     </div>

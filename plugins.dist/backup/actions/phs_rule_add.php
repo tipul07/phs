@@ -47,7 +47,7 @@ class PHS_Action_Rule_add extends PHS_Action
             return self::default_action_result();
         }
 
-        /** @var \phs\plugins\backup\models\PHS_Model_Rules $rules_model */
+        /** @var PHS_Model_Rules $rules_model */
         if (!($rules_model = PHS_Model_Rules::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load backup rules model.'));
 

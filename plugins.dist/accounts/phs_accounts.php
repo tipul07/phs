@@ -30,7 +30,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     public const PARAM_CONFIRMATION = '_a';
 
     public const CONF_REASON_ACTIVATION = 'activation', CONF_REASON_EMAIL = 'email', CONF_REASON_FORGOT = 'forgot',
-    CONF_REASON_PASS_SETUP = 'pass_setup';
+        CONF_REASON_PASS_SETUP = 'pass_setup';
 
     // After how many seconds from last request should we clean up sessions?
     // !!! should be less than 'session_expire_minutes_normal' config value
@@ -39,10 +39,10 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     // Password is mandatory, generate password if none is provided or ask user to setup a password at first login
     public const PASS_POLICY_MANDATORY = 1, PASS_POLICY_GENERATE = 2, PASS_POLICY_SETUP = 3;
 
-    /** @var null|\phs\plugins\accounts\models\PHS_Model_Accounts */
+    /** @var null|PHS_Model_Accounts */
     private ?PHS_Model_Accounts $_accounts_model = null;
 
-    /** @var null|\phs\plugins\accounts\models\PHS_Model_Accounts_details */
+    /** @var null|PHS_Model_Accounts_details */
     private ?PHS_Model_Accounts_details $_accounts_details_model = null;
 
     protected static array $PASSWORD_POLICY_ARR = [
@@ -64,7 +64,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      */
     public function get_settings_structure()
     {
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         $accounts_levels_arr = [];
         if (($accounts_model = PHS_Model_Accounts::get_instance())) {
             $accounts_levels_arr = $accounts_model->get_levels_as_key_val();
@@ -462,7 +462,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         // preserve previous errors...
         $prev_errors = $this->stack_all_errors();
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
             $this->restore_errors($prev_errors);
 
@@ -547,7 +547,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return $this->do_logout_subaccount();
         }
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
@@ -591,7 +591,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!$this->_load_dependencies()) {
             $this->set_error(self::ERR_TOKEN, $this->_pt('Error loading required resources.'));
 
@@ -661,7 +661,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             $params['force_session_id'] = trim($params['force_session_id']);
         }
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
             $this->set_error(self::ERR_LOGIN, $this->_pt('Couldn\'t load accounts model.'));
 
@@ -792,7 +792,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         $crypted_data = $parts_arr[0];
         $pub_key = $parts_arr[1];
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($decrypted_data = PHS_Crypt::quick_decode($crypted_data))
          || !($decrypted_parts = explode('::', $decrypted_data, 4))
          || empty($decrypted_parts[0]) || empty($decrypted_parts[1]) || !isset($decrypted_parts[2]) || empty($decrypted_parts[3])
@@ -892,7 +892,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
             $this->set_error(self::ERR_CONFIRMATION, $this->_pt('Couldn\'t load accounts model.'));
 
@@ -988,7 +988,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return $empty_structure;
         }
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS::load_model('accounts', $this->instance_plugin_name()))) {
             return false;
         }
@@ -1069,7 +1069,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return $check_result;
         }
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
             return $hook_args;
         }
@@ -1161,7 +1161,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     public function listen_plugin_settings_saved(PHS_Event_Plugin_settings_saved $event_obj) : bool
     {
         // Check if accounts plugin settings were saved...
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($input_arr = $event_obj->get_input())
          || empty($input_arr['instance_id'])
          || $input_arr['instance_id'] !== $this->instance_id()
@@ -1985,7 +1985,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return $online_db_details;
         }
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (empty($params['accounts_model'])) {
             $accounts_model = PHS_Model_Accounts::get_instance();
         } else {
