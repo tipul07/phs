@@ -1,13 +1,13 @@
 <?php
-/** @var \phs\system\core\views\PHS_View $this */
+/** @var phs\system\core\views\PHS_View $this */
 if (!($email_routes = $this->view_var('email_routes'))) {
     $email_routes = [];
 }
-/** @var \phs\plugins\emails\libraries\PHS_Smtp $smtp_library */
+/** @var phs\plugins\emails\libraries\PHS_Smtp $smtp_library */
 if (!($smtp_library = $this->view_var('smtp_library'))) {
     $smtp_library = false;
 }
-/** @var \phs\plugins\emails\PHS_Plugin_Emails $emails_plugin */
+/** @var phs\plugins\emails\PHS_Plugin_Emails $emails_plugin */
 if (!($emails_plugin = $this->get_plugin_instance())) {
     $emails_plugin = false;
 }

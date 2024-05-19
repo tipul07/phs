@@ -1,5 +1,5 @@
 <?php
-/** @var \phs\system\core\views\PHS_View $this */
+/** @var PHS_View $this */
 
 use phs\PHS;
 use phs\system\core\views\PHS_View;

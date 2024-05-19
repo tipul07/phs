@@ -47,13 +47,13 @@ class PHS_Encdec extends PHS_Language
 
     private $internal_keys_count,
 
-    $internal_keys_len;
+        $internal_keys_len;
 
     private $private_key,
 
-    $encoded_private_key,
+        $encoded_private_key,
 
-    $encoded_private_key_len;
+        $encoded_private_key_len;
 
     /**
      *  If strings passed to this class are multi-byte strings use base64 encoding to preserve them as multi-byte strings...

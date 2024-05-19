@@ -1,5 +1,5 @@
 <?php
-/** @var \phs\system\core\views\PHS_View $this */
+/** @var phs\system\core\views\PHS_View $this */
 ?>
 <script id="PHS_RActive_autocomplete_inputs" type="text/html">
 {{ # !hide_component }}

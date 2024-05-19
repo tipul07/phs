@@ -21,21 +21,21 @@ abstract class PHS_Api_base extends PHS_Registry
 
     // Most used HTTP error codes
     public const H_CODE_OK = 200, H_CODE_OK_CREATED = 201, H_CODE_OK_ACCEPTED = 202, H_CODE_OK_NO_CONTENT = 204,
-    H_CODE_MOVED_PERMANENTLY = 301, H_CODE_NOT_MODIFIED = 304, H_CODE_TEMPORARY_REDIRECT = 307, H_CODE_PERMANENT_REDIRECT = 308,
-    H_CODE_BAD_REQUEST = 400, H_CODE_UNAUTHORIZED = 401, H_CODE_FORBIDDEN = 403, H_CODE_NOT_FOUND = 404, H_CODE_METHOD_NOT_ALLOWED = 405,
-    H_CODE_NOT_ACCEPTABLE = 406, H_CODE_CONFLICT = 409, H_CODE_UNSUPPORTED_MEDIA_TYPE = 415, H_CODE_TOO_MANY_REQUESTS = 429,
-    H_CODE_INTERNAL_SERVER_ERROR = 500, H_CODE_NOT_IMPLEMENTED = 501, H_CODE_BAD_GATEWAY = 502, H_CODE_SERVICE_UNAVAILABLE = 503, H_CODE_GATEWAY_TIMEOUT = 504,
-    H_CODE_INSUFFICIENT_STORAGE = 507;
+        H_CODE_MOVED_PERMANENTLY = 301, H_CODE_NOT_MODIFIED = 304, H_CODE_TEMPORARY_REDIRECT = 307, H_CODE_PERMANENT_REDIRECT = 308,
+        H_CODE_BAD_REQUEST = 400, H_CODE_UNAUTHORIZED = 401, H_CODE_FORBIDDEN = 403, H_CODE_NOT_FOUND = 404, H_CODE_METHOD_NOT_ALLOWED = 405,
+        H_CODE_NOT_ACCEPTABLE = 406, H_CODE_CONFLICT = 409, H_CODE_UNSUPPORTED_MEDIA_TYPE = 415, H_CODE_TOO_MANY_REQUESTS = 429,
+        H_CODE_INTERNAL_SERVER_ERROR = 500, H_CODE_NOT_IMPLEMENTED = 501, H_CODE_BAD_GATEWAY = 502, H_CODE_SERVICE_UNAVAILABLE = 503, H_CODE_GATEWAY_TIMEOUT = 504,
+        H_CODE_INSUFFICIENT_STORAGE = 507;
 
     // API version
     public const PARAM_VERSION = 'v',
-    // This is an API route (NOT necessary PHS route) This can be translated from aliases into a PHS route (if required) by plugins
-    PARAM_API_ROUTE = '_ar',
-    // Tells API class to arrange request parameters in such way that normal SCOPE_WEB actions can be used in API calls
-    PARAM_WEB_SIMULATION = '_sw',
-    // Tells API class that original request was done using apache mod_rewrite (or similar).
-    // This parameter is appended to the request in rewrite rule
-    PARAM_USING_REWRITE = '_rw';
+        // This is an API route (NOT necessary PHS route) This can be translated from aliases into a PHS route (if required) by plugins
+        PARAM_API_ROUTE = '_ar',
+        // Tells API class to arrange request parameters in such way that normal SCOPE_WEB actions can be used in API calls
+        PARAM_WEB_SIMULATION = '_sw',
+        // Tells API class that original request was done using apache mod_rewrite (or similar).
+        // This parameter is appended to the request in rewrite rule
+        PARAM_USING_REWRITE = '_rw';
 
     // Built-in authentication methods
     public const AUTH_METHOD_BASIC = 'basic', AUTH_METHOD_BEARER = 'bearer';
@@ -388,7 +388,7 @@ abstract class PHS_Api_base extends PHS_Registry
         $this->reset_error();
 
         $account_arr = null;
-        /** @var \phs\system\core\models\PHS_Model_Api_keys $apikeys_model */
+        /** @var PHS_Model_Api_keys $apikeys_model */
         /** @var PHS_Model_Accounts $accounts_model */
         if (empty($apikey)
          || !($apikeys_model = PHS_Model_Api_keys::get_instance())

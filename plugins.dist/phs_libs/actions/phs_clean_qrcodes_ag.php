@@ -17,7 +17,7 @@ class Phs_Action_Clean_qrcodes_ag extends PHS_Action
 
     public function execute()
     {
-        /** @var \phs\plugins\phs_libs\PHS_Plugin_Phs_libs $libs_plugin */
+        /** @var PHS_Plugin_Phs_libs $libs_plugin */
         if (!($libs_plugin = PHS_Plugin_Phs_libs::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 

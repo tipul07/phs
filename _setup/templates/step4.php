@@ -1,5 +1,5 @@
 <?php
-/** @var \phs\setup\libraries\PHS_Setup_view $this */
+/** @var phs\setup\libraries\PHS_Setup_view $this */
 $this->set_context('page_title', $this->_pt('Step 4'));
 
 if (!($phs_crypt_key = $this->get_context('phs_crypt_key'))) {
@@ -25,7 +25,7 @@ if (!($phs_crypt_internal_keys_arr = $this->get_context('phs_crypt_internal_keys
         <?php
         for ($i = 0; $i < 34; $i++) {
             ?>
-            <div style="width:40px;float:left;"><?php echo($i + 1).'. '; ?></div>
+            <div style="width:40px;float:left;"><?php echo ($i + 1).'. '; ?></div>
             <div style="float:left;"><input type="text" class="form-control" style="width: 350px;"
                    id="phs_crypt_internal_keys_arr<?php echo $i; ?>" name="phs_crypt_internal_keys_arr[]"
                    value="<?php echo !empty($phs_crypt_internal_keys_arr[$i]) ? form_str($phs_crypt_internal_keys_arr[$i]) : ''; ?>" />

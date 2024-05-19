@@ -16,7 +16,7 @@ class PHS_Action_Trigger_event_bg extends PHS_Action
 
     public function execute()
     {
-        /** @var \phs\libraries\PHS_Event $event_obj */
+        /** @var PHS_Event $event_obj */
         if (!($params = PHS_Bg_jobs::get_current_job_parameters())
          || !($event_class = ($params['event'] ?? ''))
          || !($listeners = ($params['listeners'] ?? []))

@@ -7,28 +7,28 @@ class PHS_Event_Layout extends PHS_Event_Layout_buffer
 {
     public const
         ADMIN_TEMPLATE_PAGE_HEAD = 'phs_admin_template_page_head',
-    ADMIN_TEMPLATE_PAGE_START = 'phs_admin_template_page_start',
-    ADMIN_TEMPLATE_PAGE_FIRST_CONTENT = 'phs_admin_template_page_first_content',
+        ADMIN_TEMPLATE_PAGE_START = 'phs_admin_template_page_start',
+        ADMIN_TEMPLATE_PAGE_FIRST_CONTENT = 'phs_admin_template_page_first_content',
 
-    ADMIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_admin_template_before_left_menu',
-    ADMIN_TEMPLATE_AFTER_LEFT_MENU = 'phs_admin_template_after_left_menu',
-    ADMIN_TEMPLATE_BEFORE_RIGHT_MENU = 'phs_admin_template_before_right_menu',
-    ADMIN_TEMPLATE_AFTER_RIGHT_MENU = 'phs_admin_template_after_right_menu',
+        ADMIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_admin_template_before_left_menu',
+        ADMIN_TEMPLATE_AFTER_LEFT_MENU = 'phs_admin_template_after_left_menu',
+        ADMIN_TEMPLATE_BEFORE_RIGHT_MENU = 'phs_admin_template_before_right_menu',
+        ADMIN_TEMPLATE_AFTER_RIGHT_MENU = 'phs_admin_template_after_right_menu',
 
-    ADMIN_TEMPLATE_BEFORE_MAIN_MENU = 'phs_admin_template_before_main_menu',
-    ADMIN_TEMPLATE_AFTER_MAIN_MENU = 'phs_admin_template_after_main_menu',
+        ADMIN_TEMPLATE_BEFORE_MAIN_MENU = 'phs_admin_template_before_main_menu',
+        ADMIN_TEMPLATE_AFTER_MAIN_MENU = 'phs_admin_template_after_main_menu',
 
-    MAIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_main_template_before_left_menu',
-    MAIN_TEMPLATE_AFTER_LEFT_MENU = 'phs_main_template_after_left_menu',
-    MAIN_TEMPLATE_BEFORE_RIGHT_MENU = 'phs_main_template_before_right_menu',
-    MAIN_TEMPLATE_AFTER_RIGHT_MENU = 'phs_main_template_after_right_menu',
+        MAIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_main_template_before_left_menu',
+        MAIN_TEMPLATE_AFTER_LEFT_MENU = 'phs_main_template_after_left_menu',
+        MAIN_TEMPLATE_BEFORE_RIGHT_MENU = 'phs_main_template_before_right_menu',
+        MAIN_TEMPLATE_AFTER_RIGHT_MENU = 'phs_main_template_after_right_menu',
 
-    MAIN_TEMPLATE_BEFORE_MAIN_MENU = 'phs_main_template_before_main_menu',
-    MAIN_TEMPLATE_AFTER_MAIN_MENU = 'phs_main_template_after_main_menu',
-    MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_IN = 'phs_main_template_before_main_menu_logged_in',
-    MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_IN = 'phs_main_template_after_main_menu_logged_in',
-    MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_OUT = 'phs_main_template_before_main_menu_logged_out',
-    MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_OUT = 'phs_main_template_after_main_menu_logged_out';
+        MAIN_TEMPLATE_BEFORE_MAIN_MENU = 'phs_main_template_before_main_menu',
+        MAIN_TEMPLATE_AFTER_MAIN_MENU = 'phs_main_template_after_main_menu',
+        MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_IN = 'phs_main_template_before_main_menu_logged_in',
+        MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_IN = 'phs_main_template_after_main_menu_logged_in',
+        MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_OUT = 'phs_main_template_before_main_menu_logged_out',
+        MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_OUT = 'phs_main_template_after_main_menu_logged_out';
 
     public const OLD_HOOKS = [
         self::ADMIN_TEMPLATE_PAGE_HEAD          => [PHS_Hooks::H_ADMIN_TEMPLATE_PAGE_HEAD],

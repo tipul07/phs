@@ -10,8 +10,8 @@ use phs\system\core\events\layout\PHS_Event_Layout;
 
 $cuser_arr = PHS::user_logged_in();
 
-/** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-/** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+/** @var PHS_Plugin_Accounts $accounts_plugin */
+/** @var PHS_Model_Accounts $accounts_model */
 if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
  || !($accounts_model = PHS_Model_Accounts::get_instance())) {
     $accounts_model = null;
@@ -42,7 +42,7 @@ if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
         }
     }
 
-    echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::MAIN_TEMPLATE_BEFORE_RIGHT_MENU);
+echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::MAIN_TEMPLATE_BEFORE_RIGHT_MENU);
 
 if (!empty($cuser_arr)) {
     ?>

@@ -17,7 +17,7 @@ abstract class PHS_Contract_list extends PHS_Contract
 
     /**
      * If nodes in list are defined in a contract, return contract instance here
-     * @return null|\phs\libraries\PHS_Contract
+     * @return null|PHS_Contract
      */
     public function get_list_node_contract()
     {

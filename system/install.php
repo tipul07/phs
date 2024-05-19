@@ -9,7 +9,7 @@ use phs\PHS;
 use phs\PHS_Maintenance;
 use phs\system\core\models\PHS_Model_Plugins;
 
-/** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+/** @var PHS_Model_Plugins $plugins_model */
 if (!($plugins_model = PHS_Model_Plugins::get_instance())) {
     if (!PHS::st_has_error()) {
         PHS::st_set_error(-1, PHS::_t('Error instantiating plugins model.'));

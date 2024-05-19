@@ -15,8 +15,8 @@ class PHSTests extends PHS_Cli
     use PHS_Cli_plugins_trait;
 
     public const APP_NAME = 'PHSTests',
-    APP_VERSION = '1.0.0',
-    APP_DESCRIPTION = 'Manage framework test cases.';
+        APP_VERSION = '1.0.0',
+        APP_DESCRIPTION = 'Manage framework test cases.';
 
     public const DIR_BEHAT = 'behat', DIR_PHPUNIT = 'phpunit';
 
@@ -570,7 +570,7 @@ class PHSTests extends PHS_Cli
 
     /**
      * @param string $plugin_name
-     * @param bool|\phs\libraries\PHS_Plugin $plugin_obj
+     * @param bool|PHS_Plugin $plugin_obj
      *
      * @return bool|array
      */
@@ -619,7 +619,7 @@ class PHSTests extends PHS_Cli
 
     /**
      * @param string $plugin_name Plugin name
-     * @param null|\phs\libraries\PHS_Plugin $plugin_obj Plugin instance (if available)
+     * @param null|PHS_Plugin $plugin_obj Plugin instance (if available)
      *
      * @return bool
      */
@@ -789,7 +789,7 @@ class PHSTests extends PHS_Cli
 
     /**
      * @param string $plugin_name Plugin name
-     * @param bool|\phs\libraries\PHS_Plugin $plugin_obj Plugin instance (if available)
+     * @param bool|PHS_Plugin $plugin_obj Plugin instance (if available)
      *
      * @return bool|array
      */
@@ -926,7 +926,7 @@ class PHSTests extends PHS_Cli
 
     /**
      * @param string $plugin_name
-     * @param bool|\phs\libraries\PHS_Plugin $plugin_obj
+     * @param bool|PHS_Plugin $plugin_obj
      *
      * @return bool|array
      */
@@ -959,7 +959,7 @@ class PHSTests extends PHS_Cli
 
     /**
      * @param string $plugin_name
-     * @param bool|\phs\libraries\PHS_Plugin $plugin_obj
+     * @param bool|PHS_Plugin $plugin_obj
      *
      * @return bool|array
      */

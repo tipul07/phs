@@ -44,7 +44,7 @@ class PHS_Bg_jobs extends PHS_Registry
             return $stalling_minutes;
         }
 
-        /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
+        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
         if (!($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())
          || !($stalling_minutes = $bg_jobs_model->get_stalling_minutes())) {
             $stalling_minutes = 0;
@@ -61,7 +61,7 @@ class PHS_Bg_jobs extends PHS_Registry
             $extra = [];
         }
 
-        /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
+        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
         if (!empty($extra['bg_jobs_model'])) {
             $bg_jobs_model = $extra['bg_jobs_model'];
         } else {
@@ -154,7 +154,7 @@ class PHS_Bg_jobs extends PHS_Registry
             return false;
         }
 
-        /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
+        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
         if (!($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())) {
             if (!self::st_has_error()) {
                 self::st_set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t load background jobs model.'));
@@ -317,7 +317,7 @@ class PHS_Bg_jobs extends PHS_Registry
             $extra = [];
         }
 
-        /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
+        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
         if (!empty($extra['bg_jobs_model'])) {
             $bg_jobs_model = $extra['bg_jobs_model'];
         } else {
@@ -389,7 +389,7 @@ class PHS_Bg_jobs extends PHS_Registry
         $crypted_data = $parts_arr[0];
         $pub_key = $parts_arr[1];
 
-        /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
+        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
         if (!($decrypted_data = PHS_Crypt::quick_decode($crypted_data))
          || !($decrypted_parts = explode('::', $decrypted_data, 2))
          || empty($decrypted_parts[0]) || empty($decrypted_parts[1])
@@ -422,7 +422,7 @@ class PHS_Bg_jobs extends PHS_Registry
         $extra ??= [];
         $extra['force_run'] = !empty($extra['force_run']);
 
-        /** @var \phs\system\core\models\PHS_Model_Bg_jobs $bg_jobs_model */
+        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
         if (!empty($extra['bg_jobs_model'])) {
             $bg_jobs_model = $extra['bg_jobs_model'];
         } else {

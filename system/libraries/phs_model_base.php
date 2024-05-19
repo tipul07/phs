@@ -9,14 +9,14 @@ use phs\system\core\models\PHS_Model_Plugins;
 abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 {
     public const ERR_MODEL_FIELDS = 40000, ERR_TABLE_GENERATE = 40001, ERR_INSTALL = 40002, ERR_UPDATE = 40003, ERR_UNINSTALL = 40004,
-    ERR_INSERT = 40005, ERR_EDIT = 40006, ERR_DELETE_BY_INDEX = 40007, ERR_ALTER = 40008, ERR_DELETE = 40009, ERR_UPDATE_TABLE = 40010,
-    ERR_UNINSTALL_TABLE = 40011, ERR_READ_DB_STRUCTURE = 40012;
+        ERR_INSERT = 40005, ERR_EDIT = 40006, ERR_DELETE_BY_INDEX = 40007, ERR_ALTER = 40008, ERR_DELETE = 40009, ERR_UPDATE_TABLE = 40010,
+        ERR_UNINSTALL_TABLE = 40011, ERR_READ_DB_STRUCTURE = 40012;
 
     public const HOOK_RAW_PARAMETERS = 'phs_model_raw_parameters', HOOK_INSERT_BEFORE_DB = 'phs_model_insert_before_db',
-    HOOK_TABLES = 'phs_model_tables', HOOK_TABLE_FIELDS = 'phs_model_table_fields', HOOK_HARD_DELETE = 'phs_model_hard_delete';
+        HOOK_TABLES = 'phs_model_tables', HOOK_TABLE_FIELDS = 'phs_model_table_fields', HOOK_HARD_DELETE = 'phs_model_hard_delete';
 
     public const DATE_EMPTY = '0000-00-00', DATETIME_EMPTY = '0000-00-00 00:00:00',
-    DATE_DB = 'Y-m-d', DATETIME_DB = 'Y-m-d H:i:s';
+        DATE_DB = 'Y-m-d', DATETIME_DB = 'Y-m-d H:i:s';
 
     public const T_DETAILS_KEY = '{details}', EXTRA_INDEXES_KEY = '{indexes}';
 
@@ -855,7 +855,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         PHS_Maintenance::lock_db_structure_read();
 
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+        /** @var PHS_Model_Plugins $plugins_model */
         if ($this_instance_id === $plugins_model_id) {
             $plugins_model = $this;
 

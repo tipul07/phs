@@ -147,7 +147,7 @@ class PHS_Model_Api_keys extends PHS_Model
 
     public function can_user_edit($record_data, $account_data)
     {
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (empty($record_data) || empty($account_data)
          || !($apikey_arr = $this->data_to_array($record_data))
          || $this->is_deleted($apikey_arr)
@@ -461,7 +461,7 @@ class PHS_Model_Api_keys extends PHS_Model
                 switch ($flag) {
                     case 'include_account_details':
 
-                        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+                        /** @var PHS_Model_Accounts $accounts_model */
                         if (!($accounts_model = PHS_Model_Accounts::get_instance())
                          || !($accounts_table = $accounts_model->get_flow_table_name(['table_name' => 'users']))) {
                             continue 2;

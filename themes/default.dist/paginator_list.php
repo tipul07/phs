@@ -163,38 +163,38 @@ if ($is_api_scope) {
 		<?php
     }
 
-    if (!empty($flow_params_arr['display_top_bulk_actions'])
-     && !empty($bulk_select_name)
-     && !empty($bulk_actions)) {
-        $select_name = $bulk_select_name.'top';
-        $select_with_action = (!empty($flow_params_arr['bulk_action_area']) && $flow_params_arr['bulk_action_area'] === 'top');
+if (!empty($flow_params_arr['display_top_bulk_actions'])
+ && !empty($bulk_select_name)
+ && !empty($bulk_actions)) {
+    $select_name = $bulk_select_name.'top';
+    $select_with_action = (!empty($flow_params_arr['bulk_action_area']) && $flow_params_arr['bulk_action_area'] === 'top');
 
-        if (empty($bulk_top_actions_arr)) {
-            ?><input type="hidden" name="<?php echo $select_name; ?>" id="<?php echo $select_name; ?>" value="" /><?php
-        } else {
-            ?><div style="margin-bottom:5px;float:left;">
+    if (empty($bulk_top_actions_arr)) {
+        ?><input type="hidden" name="<?php echo $select_name; ?>" id="<?php echo $select_name; ?>" value="" /><?php
+    } else {
+        ?><div style="margin-bottom:5px;float:left;">
             <select name="<?php echo $select_name; ?>" id="<?php echo $select_name; ?>" class="chosen-select-nosearch" style="min-width:150px;">
                 <option value=""><?php echo $this::_t(' - Bulk Actions - '); ?></option>
                 <?php
-                foreach ($bulk_top_actions_arr as $action_arr) {
-                    $selected_option = '';
-                    if ($select_with_action
-                    && !empty($flow_params_arr['bulk_action'])
-                    && $action_arr['action'] === $flow_params_arr['bulk_action']) {
-                        $selected_option = 'selected="selected"';
-                    }
-
-                    ?><option value="<?php echo $action_arr['action']; ?>" <?php echo $selected_option; ?>><?php echo $action_arr['display_name']; ?></option><?php
+            foreach ($bulk_top_actions_arr as $action_arr) {
+                $selected_option = '';
+                if ($select_with_action
+                && !empty($flow_params_arr['bulk_action'])
+                && $action_arr['action'] === $flow_params_arr['bulk_action']) {
+                    $selected_option = 'selected="selected"';
                 }
-            ?>
+
+                ?><option value="<?php echo $action_arr['action']; ?>" <?php echo $selected_option; ?>><?php echo $action_arr['display_name']; ?></option><?php
+            }
+        ?>
             </select>
             <input type="submit" class="btn btn-primary btn-small ignore_hidden_required" onclick="this.blur();return submit_bulk_action( 'top' );" value="<?php echo form_str($this::_t('Apply')); ?>" />
             </div>
             <?php
-        }
     }
+}
 
-    $per_page_var_name = $flow_params_arr['form_prefix'].$pagination_arr['per_page_var_name'];
+$per_page_var_name = $flow_params_arr['form_prefix'].$pagination_arr['per_page_var_name'];
 
 ?><div style="margin-bottom:5px;float:right;">
 	<?php echo $this::_t('%s per page', ucfirst($flow_params_arr['term_plural'])); ?>
@@ -257,7 +257,7 @@ if (!$is_api_scope
             $field_name = $column_arr['record_field'];
         }
 
-        ?><th class="<?php echo(!empty($column_arr['sortable']) ? 'sortable' : '').' '.$column_arr['extra_classes']; ?>"
+        ?><th class="<?php echo (!empty($column_arr['sortable']) ? 'sortable' : '').' '.$column_arr['extra_classes']; ?>"
                   <?php if (!empty($column_arr['extra_style'])) {
                       echo 'style="'.$column_arr['extra_style'].'"';
                   } ?>
@@ -288,16 +288,16 @@ if (!$is_api_scope
 				<?php
             }
 
-            if (!empty($column_arr['sortable'])) {
-                $column_sort_url = add_url_params($sort_url, [
-                    $flow_params_arr['form_prefix'].'sort'    => ($current_sort ? '0' : '1'),
-                    $flow_params_arr['form_prefix'].'sort_by' => $field_name,
-                ]);
+        if (!empty($column_arr['sortable'])) {
+            $column_sort_url = add_url_params($sort_url, [
+                $flow_params_arr['form_prefix'].'sort'    => ($current_sort ? '0' : '1'),
+                $flow_params_arr['form_prefix'].'sort_by' => $field_name,
+            ]);
 
-                ?><a href="<?php echo $column_sort_url; ?>"><?php
-            }
+            ?><a href="<?php echo $column_sort_url; ?>"><?php
+        }
 
-            echo $column_arr['column_title'];
+        echo $column_arr['column_title'];
 
         if (!empty($column_arr['sortable'])) {
             ?></a><?php

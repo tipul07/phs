@@ -1,5 +1,5 @@
 <?php
-/** @var \phs\system\core\views\PHS_View $this */
+/** @var phs\system\core\views\PHS_View $this */
 ?>
 <link href="<?php echo $this->get_resource_url('jquery-ui.css'); ?>" rel="stylesheet" type="text/css" />
 <link href="<?php echo $this->get_resource_url('jquery-ui.theme.css'); ?>" rel="stylesheet" type="text/css" />

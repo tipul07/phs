@@ -16,7 +16,7 @@ class PHS_Model_Messages extends PHS_Model
     public const ERR_READ = 10000, ERR_WRITE = 10001;
 
     public const DEST_TYPE_USERS_IDS = 1, DEST_TYPE_HANDLERS = 2, DEST_TYPE_USERS = 3, DEST_TYPE_LEVEL = 4,
-    DEST_TYPE_ROLE = 5, DEST_TYPE_ROLE_UNIT = 6;
+        DEST_TYPE_ROLE = 5, DEST_TYPE_ROLE_UNIT = 6;
 
     public const TYPE_NORMAL = 'msg_normal';
 

@@ -5,7 +5,7 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
 use phs\plugins\sendgrid\PHS_Plugin_Sendgrid;
 
-/** @var \phs\plugins\sendgrid\PHS_Plugin_Sendgrid $sendgrid_plugin */
+/** @var PHS_Plugin_Sendgrid $sendgrid_plugin */
 if (($sendgrid_plugin = PHS_Plugin_Sendgrid::get_instance())) {
     PHS_Logger::define_channel($sendgrid_plugin::LOG_CHANNEL);
 

@@ -1,5 +1,5 @@
 <?php
-/** @var \phs\system\core\views\PHS_View $this */
+/** @var phs\system\core\views\PHS_View $this */
 if (!($test_email_sending_error = $this->view_var('test_email_sending_error'))) {
     $test_email_sending_error = '';
 }

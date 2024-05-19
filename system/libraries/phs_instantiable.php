@@ -9,16 +9,16 @@ abstract class PHS_Instantiable extends PHS_Registry
     public const ERR_INSTANCE = 20000, ERR_INSTANCE_ID = 20001, ERR_INSTANCE_CLASS = 20002, ERR_CLASS_NAME = 20003, ERR_JSON_DETAILS = 20004;
 
     public const INSTANCE_TYPE_UNDEFINED = 'undefined',
-    INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller',
-    INSTANCE_TYPE_ACTION = 'action', INSTANCE_TYPE_VIEW = 'view', INSTANCE_TYPE_SCOPE = 'scope',
-    INSTANCE_TYPE_CONTRACT = 'contract', INSTANCE_TYPE_EVENT = 'event';
+        INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller',
+        INSTANCE_TYPE_ACTION = 'action', INSTANCE_TYPE_VIEW = 'view', INSTANCE_TYPE_SCOPE = 'scope',
+        INSTANCE_TYPE_CONTRACT = 'contract', INSTANCE_TYPE_EVENT = 'event';
 
     public const CORE_PLUGIN = 'core', TEMPLATES_DIR = 'templates', LANGUAGES_DIR = 'languages', THEMES_PLUGINS_TEMPLATES_DIR = 'plugins',
-    TESTS_DIR = 'tests',
-    // Behat features directory in tests directory of plugin
-    BEHAT_DIR = 'behat',
-    // Files required for test unit (eg. PHPUnit)
-    TESTUNIT_DIR = 'testunit';
+        TESTS_DIR = 'tests',
+        // Behat features directory in tests directory of plugin
+        BEHAT_DIR = 'behat',
+        // Files required for test unit (eg. PHPUnit)
+        TESTUNIT_DIR = 'testunit';
 
     private array $instance_details = [];
 

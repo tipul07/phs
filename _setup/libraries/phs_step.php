@@ -5,7 +5,7 @@ use phs\libraries\PHS_Registry;
 
 abstract class PHS_Step extends PHS_Registry
 {
-    /** @var bool|\phs\setup\libraries\PHS_Setup */
+    /** @var bool|PHS_Setup */
     private $setup_obj = false;
 
     private $config_file_loaded = false;
