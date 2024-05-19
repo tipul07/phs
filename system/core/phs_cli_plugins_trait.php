@@ -13,7 +13,7 @@ use phs\system\core\models\PHS_Model_Plugins;
  */
 trait PHS_Cli_plugins_trait
 {
-    /** @var null|\phs\system\core\models\PHS_Model_Plugins */
+    /** @var null|PHS_Model_Plugins */
     protected ?PHS_Model_Plugins $_plugins_model = null;
 
     public function get_plugins_as_dirs()

@@ -8,7 +8,7 @@ class PHS_Plugin_Bbeditor extends PHS_Plugin
     /**
      * Returns an instance of Bbcode class
      *
-     * @return bool|\phs\plugins\bbeditor\libraries\Bbcode
+     * @return bool|libraries\Bbcode
      */
     public function get_bbcode_instance()
     {
@@ -22,7 +22,7 @@ class PHS_Plugin_Bbeditor extends PHS_Plugin
         $library_params['full_class_name'] = '\\phs\\plugins\\bbeditor\\libraries\\Bbcode';
         $library_params['as_singleton'] = true;
 
-        /** @var \phs\plugins\bbeditor\libraries\Bbcode $loaded_library */
+        /** @var libraries\Bbcode $loaded_library */
         if (!($loaded_library = $this->load_library('phs_bbcode', $library_params))) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading BB code library.'));

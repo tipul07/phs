@@ -1,5 +1,5 @@
 <?php
-/** @var \phs\setup\libraries\PHS_Setup_view $this */
+/** @var phs\setup\libraries\PHS_Setup_view $this */
 $this->set_context('page_title', 'Step 1');
 ?>
 <form id="phs_setup_step1" name="phs_setup_step1" method="post">

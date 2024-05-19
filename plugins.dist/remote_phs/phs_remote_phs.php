@@ -18,8 +18,8 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
     public const ROLE_OPERATOR = 'phs_remote_operator', ROLE_MANAGER = 'phs_remote_manager';
 
     public const ROLEU_ADM_LIST_DOMAINS = 'phs_remote_adm_list_domains', ROLEU_ADM_MANAGE_DOMAINS = 'phs_remote_adm_manage_domains',
-    ROLEU_ADM_PING_DOMAIN = 'phs_remote_adm_ping_domain',
-    ROLEU_ADM_LIST_LOGS = 'phs_remote_adm_list_logs', ROLEU_ADM_MANAGE_LOGS = 'phs_remote_adm_manage_logs';
+        ROLEU_ADM_PING_DOMAIN = 'phs_remote_adm_ping_domain',
+        ROLEU_ADM_LIST_LOGS = 'phs_remote_adm_list_logs', ROLEU_ADM_MANAGE_LOGS = 'phs_remote_adm_manage_logs';
 
     /** @var bool|\phs\plugins\accounts\models\PHS_Model_Accounts */
     private $_accounts_model = false;

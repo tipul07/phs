@@ -250,7 +250,7 @@ class PHS_Model_Tenants extends PHS_Model
 
     public function can_user_edit($record_data, $account_data) : ?array
     {
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (empty($record_data) || empty($account_data)
          || !PHS::is_multi_tenant()
          || !($tenant_arr = $this->data_to_array($record_data))
@@ -526,7 +526,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $params;
     }
 
-    protected function insert_after_phs_tenants($insert_arr, $params)
+    protected function insert_after_phs_tenants(array $insert_arr, array $params) : ?array
     {
         if (!empty($params['fields']['is_default'])
          && ($flow_arr = $this->fetch_default_flow_params(['table_name' => 'phs_tenants']))

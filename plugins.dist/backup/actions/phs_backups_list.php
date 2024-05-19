@@ -10,7 +10,7 @@ use phs\libraries\PHS_Action_Generic_list;
 use phs\plugins\backup\models\PHS_Model_Rules;
 use phs\plugins\backup\models\PHS_Model_Results;
 
-/** @property \phs\plugins\backup\models\PHS_Model_Results $_paginator_model */
+/** @property PHS_Model_Results $_paginator_model */
 class PHS_Action_Backups_list extends PHS_Action_Generic_list
 {
     private ?PHS_Plugin_Backup $_backup_plugin = null;

@@ -1,7 +1,7 @@
 <?php
-/** @var \phs\system\core\views\PHS_View $this */
+/** @var phs\system\core\views\PHS_View $this */
 
-/** @var \phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd $plugin_obj */
+/** @var phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd $plugin_obj */
 if (!($plugin_obj = $this->get_plugin_instance())) {
     return $this->_pt('Couldn\'t get parent plugin object.');
 }

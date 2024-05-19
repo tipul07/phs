@@ -126,7 +126,7 @@ if (!empty($error_msg)) {
                 <?php
 $selected_hour = $this->view_var('hour');
 for ($hour = 0; $hour < 24; $hour++) {
-    ?><option value="<?php echo $hour; ?>" <?php echo ($selected_hour !== false && $selected_hour == $hour) ? 'selected="selected"' : ''; ?>><?php echo($hour < 10 ? '0' : '').$hour; ?></option><?php
+    ?><option value="<?php echo $hour; ?>" <?php echo ($selected_hour !== false && $selected_hour == $hour) ? 'selected="selected"' : ''; ?>><?php echo ($hour < 10 ? '0' : '').$hour; ?></option><?php
 }
 ?></select><br/>
                 <small><?php echo $this->_pt('Current server time %s', date('d-m-Y H:i:s (PT)')); ?></small>
@@ -183,12 +183,12 @@ foreach ($targets_arr as $target_id => $target_name) {
         if (($selected_delete_after_days = $this->view_var('delete_after_days')) === false) {
             $selected_delete_after_days = 0;
         }
-        if (!($cdelete_after_days = $this->view_var('cdelete_after_days'))
-         || $cdelete_after_days < 0) {
-            $cdelete_after_days = 1;
-        }
+if (!($cdelete_after_days = $this->view_var('cdelete_after_days'))
+ || $cdelete_after_days < 0) {
+    $cdelete_after_days = 1;
+}
 
-        $selected_delete_after_days = (int)$selected_delete_after_days;
+$selected_delete_after_days = (int)$selected_delete_after_days;
 ?>
             <fieldset class="form-group">
                 <label for="delete_after_days"><?php echo $this->_pt('Delete backups'); ?>:</label>
@@ -219,7 +219,7 @@ foreach ($targets_arr as $target_id => $target_name) {
             $selected_copy_results = 0;
         }
 
-        $selected_copy_results = (int)$selected_copy_results;
+$selected_copy_results = (int)$selected_copy_results;
 ?>
             <fieldset class="form-group">
                 <label for="copy_results"><?php echo $this->_pt('Copy results'); ?>:</label>
@@ -252,9 +252,9 @@ foreach ($targets_arr as $target_id => $target_name) {
             $selected_connection_mode = 0;
         }
 
-        foreach ($ftp_connection_modes_arr as $ctype_id => $ctype_text) {
-            ?><option value="<?php echo $ctype_id; ?>" <?php echo $selected_connection_mode === $ctype_id ? 'selected="selected"' : ''; ?>><?php echo $ctype_text; ?></option><?php
-        }
+foreach ($ftp_connection_modes_arr as $ctype_id => $ctype_text) {
+    ?><option value="<?php echo $ctype_id; ?>" <?php echo $selected_connection_mode === $ctype_id ? 'selected="selected"' : ''; ?>><?php echo $ctype_text; ?></option><?php
+}
 ?>
                             </select></div>
                         </div>

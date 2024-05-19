@@ -98,7 +98,7 @@ if (empty($rule_location)
                 <?php
 $selected_hour = (int)$this->view_var('hour');
 for ($hour = 0; $hour < 24; $hour++) {
-    ?><option value="<?php echo $hour; ?>" <?php echo ($selected_hour !== false && $selected_hour === $hour) ? 'selected="selected"' : ''; ?>><?php echo($hour < 10 ? '0' : '').$hour; ?></option><?php
+    ?><option value="<?php echo $hour; ?>" <?php echo ($selected_hour !== false && $selected_hour === $hour) ? 'selected="selected"' : ''; ?>><?php echo ($hour < 10 ? '0' : '').$hour; ?></option><?php
 }
 ?></select><br/>
                 <small><?php echo $this->_pt('Current server time %s', date('d-m-Y H:i:s (PT)')); ?></small>
@@ -223,9 +223,9 @@ $selected_delete_after_days = (int)$selected_delete_after_days;
                     $selected_connection_mode = 0;
                 }
 
-                foreach ($ftp_connection_modes_arr as $ctype_id => $ctype_text) {
-                    ?><option value="<?php echo $ctype_id; ?>" <?php echo $selected_connection_mode === $ctype_id ? 'selected="selected"' : ''; ?>><?php echo $ctype_text; ?></option><?php
-                }
+foreach ($ftp_connection_modes_arr as $ctype_id => $ctype_text) {
+    ?><option value="<?php echo $ctype_id; ?>" <?php echo $selected_connection_mode === $ctype_id ? 'selected="selected"' : ''; ?>><?php echo $ctype_text; ?></option><?php
+}
 ?>
                                 </select></div>
                         </div>

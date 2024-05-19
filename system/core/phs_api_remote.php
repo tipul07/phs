@@ -13,10 +13,10 @@ class PHS_Api_remote extends PHS_Api_base
 {
     public const ERR_API_INIT = 40000, ERR_API_ROUTE = 40001, ERR_REMOTE_MESSAGE = 40002;
 
-    /** @var false|\phs\PHS_Api_remote */
+    /** @var false|PHS_Api_remote */
     private static $_api_obj = false;
 
-    /** @var false|\phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains */
+    /** @var false|PHS_Model_Phs_remote_domains */
     private static $_domains_model = false;
 
     public function __construct(?array $init_query_params = null)

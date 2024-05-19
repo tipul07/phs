@@ -16,10 +16,10 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     public const ERR_PLUGINS_MODEL = 40000;
 
     public const INPUT_TYPE_TEMPLATE = 'template', INPUT_TYPE_ONE_OR_MORE = 'one_or_more',
-    INPUT_TYPE_ONE_OR_MORE_MULTISELECT = 'one_or_more_multiselect', INPUT_TYPE_KEY_VAL_ARRAY = 'key_val_array',
-    INPUT_TYPE_TEXTAREA = 'textarea';
+        INPUT_TYPE_ONE_OR_MORE_MULTISELECT = 'one_or_more_multiselect', INPUT_TYPE_KEY_VAL_ARRAY = 'key_val_array',
+        INPUT_TYPE_TEXTAREA = 'textarea';
 
-    /** @var bool|\phs\system\core\models\PHS_Model_Plugins */
+    /** @var bool|PHS_Model_Plugins */
     protected $_plugins_instance = false;
 
     // Validated settings fields structure array
@@ -414,7 +414,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
     public function db_record_active() : bool
     {
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugin_obj */
+        /** @var PHS_Model_Plugins $plugin_obj */
         return $this->_load_plugins_instance()
                 && ($db_details = $this->get_merged_db_details())
                 && isset($db_details['status'])
@@ -845,7 +845,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     }
 
     /**
-     * @param null|\phs\libraries\PHS_Plugin $plugin_obj
+     * @param null|PHS_Plugin $plugin_obj
      *
      * @return array
      */
@@ -1060,7 +1060,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
     /**
      * Details required when rendering settings (V2)
-     * @param null|\phs\libraries\PHS_Has_db_settings $instance_obj
+     * @param null|PHS_Has_db_settings $instance_obj
      * @param null|int $tenant_id
      *
      * @return array

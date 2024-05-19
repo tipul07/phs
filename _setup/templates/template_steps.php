@@ -1,7 +1,7 @@
 <?php
-/** @var \phs\setup\libraries\PHS_Setup_view $this */
+/** @var phs\setup\libraries\PHS_Setup_view $this */
 
-/** @var \phs\setup\libraries\PHS_Setup $setup_obj */
+/** @var phs\setup\libraries\PHS_Setup $setup_obj */
 if (!($setup_obj = $this->get_context('phs_setup_obj'))) {
     echo 'Couldn\'t obtain setup instance...';
     exit;
@@ -56,7 +56,7 @@ if ($setup_obj->all_steps_passed()) {
 
 echo '<br/>';
 
-/** @var \phs\setup\libraries\PHS_Step $step_obj */
+/** @var phs\setup\libraries\PHS_Step $step_obj */
 if (($step_obj = $this->get_context('step_instance'))
  && ($step_details = $step_obj->step_details())) {
     ?>

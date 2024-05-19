@@ -21,10 +21,10 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
     public const LOG_CHANNEL = 'mobileapi.log', LOG_FIREBASE = 'firebase.log';
 
     public const H_EXPORT_ACCOUNT_DATA = 'phs_mobileapi_export_account_data', H_EXPORT_SESSION_DATA = 'phs_mobileapi_export_session_data',
-    // export account and session details to 3rd party API calls/apps
-    H_EXPORT_ACCOUNT_SESSION = 'phs_mobileapi_export_account_session',
-    // hook called when saving account data through 3rd party API calls/apps
-    H_IMPORT_ACCOUNT_DATA = 'phs_mobileapi_import_account_data';
+        // export account and session details to 3rd party API calls/apps
+        H_EXPORT_ACCOUNT_SESSION = 'phs_mobileapi_export_account_session',
+        // hook called when saving account data through 3rd party API calls/apps
+        H_IMPORT_ACCOUNT_DATA = 'phs_mobileapi_import_account_data';
 
     /**
      * @inheritdoc
@@ -76,8 +76,8 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         $this->reset_error();
 
         /** @var PHS_Model_Accounts $accounts_model */
-        if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load required models.'));
+        if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 
             return false;
         }
@@ -105,8 +105,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
 
         if (($hook_result = PHS::trigger_hooks(self::H_EXPORT_ACCOUNT_DATA, $hook_args))
         && is_array($hook_result)) {
-            if (!empty($hook_result['account_data'])
-            && is_array($hook_result['account_data']) && !empty($hook_result['account_data']['id'])) {
+            if (!empty($hook_result['account_data']['id'])) {
                 $account_arr = $hook_result['account_data'];
             }
 
@@ -131,8 +130,8 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         $this->reset_error();
 
         /** @var PHS_Model_Accounts $accounts_model */
-        if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load required models.'));
+        if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 
             return false;
         }
@@ -208,11 +207,8 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         $trigger_args['stop_on_first_error'] = true;
 
         if (($hook_result = PHS::trigger_hooks(self::H_IMPORT_ACCOUNT_DATA, $hook_args, $trigger_args))
-         && is_array($hook_result)) {
-            if (!empty($hook_result['account_data'])
-             && is_array($hook_result['account_data']) && !empty($hook_result['account_data']['id'])) {
-                $account_arr = $hook_result['account_data'];
-            }
+            && !empty($hook_result['account_data']['id'])) {
+            $account_arr = $hook_result['account_data'];
         }
 
         if (!empty($hook_result)
@@ -534,7 +530,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
     /**
      * Returns an instance of PHS_Firebase class
      *
-     * @return bool|\phs\plugins\mobileapi\libraries\PHS_Firebase
+     * @return bool|libraries\PHS_Firebase
      */
     public function get_firebase_instance()
     {
@@ -548,7 +544,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         $library_params['full_class_name'] = '\\phs\\plugins\\mobileapi\\libraries\\PHS_Firebase';
         $library_params['as_singleton'] = true;
 
-        /** @var \phs\plugins\mobileapi\libraries\PHS_Firebase $loaded_library */
+        /** @var libraries\PHS_Firebase $loaded_library */
         if (!($loaded_library = $this->load_library('phs_firebase', $library_params))) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading Firebase library.'));
@@ -772,7 +768,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         return $return_arr;
     }
 
-    public static function get_api_data_account_fields()
+    public static function get_api_data_account_fields() : array
     {
         return [
             'id' => [
@@ -852,7 +848,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         ];
     }
 
-    public static function get_api_data_account_details_fields()
+    public static function get_api_data_account_details_fields() : array
     {
         return [
             'title' => [

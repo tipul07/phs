@@ -21,7 +21,7 @@ class PHS_Scope_Web extends PHS_Scope
 
     public function process_action_result($action_result, $static_error_arr = false)
     {
-        /** @var \phs\libraries\PHS_Action $action_obj */
+        /** @var PHS_Action $action_obj */
         if (!($action_obj = PHS::running_action())) {
             $action_obj = false;
         }
@@ -35,7 +35,7 @@ class PHS_Scope_Web extends PHS_Scope
         $should_be_in_tfa_flow = $this->_should_redirect_to_tfa_flow();
 
         // TFA preceeds password expiration...
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
         if ($should_be_in_tfa_flow
              && (empty($action_obj)
                  || !$action_obj->action_role_is([$action_obj::ACT_ROLE_TFA_SETUP, $action_obj::ACT_ROLE_TFA_VERIFY, ]))
@@ -211,8 +211,8 @@ class PHS_Scope_Web extends PHS_Scope
 
     private function _update_tfa_device_cookie_if_required() : void
     {
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tfa $tfa_model */
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Model_Accounts_tfa $tfa_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
             || $accounts_plugin->tfa_policy_is_off()
             || !$accounts_plugin->tfa_remember_device_length()
@@ -230,8 +230,8 @@ class PHS_Scope_Web extends PHS_Scope
 
     private function _should_redirect_to_tfa_flow() : bool
     {
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tfa $tfa_model */
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Model_Accounts_tfa $tfa_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
             || !($tfa_model = PHS_Model_Accounts_tfa::get_instance())
             || $accounts_plugin->tfa_policy_is_off()
@@ -266,7 +266,7 @@ class PHS_Scope_Web extends PHS_Scope
 
     private function _should_setup_tfa_for_account() : bool
     {
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts_tfa $tfa_model */
+        /** @var PHS_Model_Accounts_tfa $tfa_model */
         return ($tfa_model = PHS_Model_Accounts_tfa::get_instance())
                && PHS::current_user()
                && ($session_data = PHS::current_user_session())

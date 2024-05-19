@@ -11,7 +11,7 @@ use phs\plugins\messages\PHS_Plugin_Messages;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\messages\models\PHS_Model_Messages;
 
-/** @property \phs\plugins\messages\models\PHS_Model_Messages $_paginator_model */
+/** @property PHS_Model_Messages $_paginator_model */
 class PHS_Action_Inbox extends PHS_Action_Generic_list
 {
     private ?PHS_Model_Roles $_roles_model = null;

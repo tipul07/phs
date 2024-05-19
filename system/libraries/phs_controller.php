@@ -190,7 +190,7 @@ abstract class PHS_Controller extends PHS_Instantiable
 
         self::st_reset_error();
 
-        /** @var \phs\system\core\actions\PHS_Action_Foobar $foobar_action_obj */
+        /** @var PHS_Action_Foobar $foobar_action_obj */
         if (!($foobar_action_obj = PHS_Action_Foobar::get_instance())) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
@@ -230,7 +230,7 @@ abstract class PHS_Controller extends PHS_Instantiable
         }
 
         if ($this->should_user_have_any_of_defined_role_units()) {
-            /** @var \phs\libraries\PHS_Plugin $plugin_obj */
+            /** @var PHS_Plugin $plugin_obj */
             if (!($plugin_obj = $this->get_plugin_instance())) {
                 PHS_Notifications::add_warning_notice($this->_pt('Couldn\'t obtain plugin instance.'));
 
@@ -248,7 +248,7 @@ abstract class PHS_Controller extends PHS_Instantiable
             $action_dir = '';
         }
 
-        /** @var \phs\libraries\PHS_Action $action_obj */
+        /** @var PHS_Action $action_obj */
         if (!($action_obj = PHS::load_action($action, $plugin, $action_dir))) {
             if (self::st_has_error()) {
                 $this->copy_static_error();

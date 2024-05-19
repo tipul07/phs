@@ -4,7 +4,7 @@ use phs\PHS;
 use phs\libraries\PHS_Hooks;
 use phs\plugins\captcha\PHS_Plugin_Captcha;
 
-/** @var \phs\plugins\captcha\PHS_Plugin_Captcha $captcha_plugin */
+/** @var PHS_Plugin_Captcha $captcha_plugin */
 if (($captcha_plugin = PHS_Plugin_Captcha::get_instance())) {
     PHS::register_hook(
         PHS_Hooks::H_CAPTCHA_DISPLAY,

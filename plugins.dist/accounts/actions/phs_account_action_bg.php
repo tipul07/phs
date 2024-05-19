@@ -18,7 +18,7 @@ class PHS_Action_Account_action_bg extends PHS_Action
 
     public function execute()
     {
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($params = PHS_Bg_jobs::get_current_job_parameters())
          || !($hook_args = self::validate_array($params, PHS_Hooks::default_account_action_hook_args()))
          || empty($hook_args['account_data'])

@@ -1,5 +1,5 @@
 <?php
-/** @var \phs\setup\libraries\PHS_Setup_view $this */
+/** @var phs\setup\libraries\PHS_Setup_view $this */
 $this->set_context('page_title', 'Step 2');
 
 if (!($db_drivers_arr = $this->get_context('db_drivers_arr'))) {

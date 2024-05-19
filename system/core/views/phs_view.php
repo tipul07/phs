@@ -12,7 +12,7 @@ use phs\libraries\PHS_Instantiable;
 class PHS_View extends PHS_Instantiable
 {
     public const ERR_BAD_CONTROLLER = 40000, ERR_BAD_ACTION = 40001, ERR_BAD_TEMPLATE = 40002,
-    ERR_BAD_THEME = 40003, ERR_TEMPLATE_DIRS = 40004, ERR_INIT_VIEW = 40005;
+        ERR_BAD_THEME = 40003, ERR_TEMPLATE_DIRS = 40004, ERR_INIT_VIEW = 40005;
 
     public const VIEW_CONTEXT_DATA_KEY = 'phs_view_context';
 
@@ -97,7 +97,7 @@ class PHS_View extends PHS_Instantiable
     }
 
     /**
-     * @return bool|\phs\libraries\PHS_Controller Controller that "owns" this view or false if no controller
+     * @return bool|PHS_Controller Controller that "owns" this view or false if no controller
      */
     public function get_controller()
     {
@@ -105,7 +105,7 @@ class PHS_View extends PHS_Instantiable
     }
 
     /**
-     * @return bool|\phs\libraries\PHS_Action Action that "owns" this view or false if no action
+     * @return bool|PHS_Action Action that "owns" this view or false if no action
      */
     final public function get_action()
     {
@@ -126,7 +126,7 @@ class PHS_View extends PHS_Instantiable
     public function get_action_result() : array
     {
         $default_action_result = PHS_Action::default_action_result();
-        /** @var \phs\libraries\PHS_Action $action */
+        /** @var PHS_Action $action */
         if (!($action = $this->get_action())) {
             return $default_action_result;
         }
@@ -557,7 +557,7 @@ class PHS_View extends PHS_Instantiable
         if (!empty($this->_template_file)
          && @file_exists($this->_template_file)) {
             ob_start();
-            if (!($resulting_buf = include($this->_template_file))) {
+            if (!($resulting_buf = include ($this->_template_file))) {
                 $resulting_buf = '';
             }
 
@@ -901,7 +901,7 @@ class PHS_View extends PHS_Instantiable
      * @param string|array $template
      * @param null|array $params
      *
-     * @return null|\phs\system\core\views\PHS_View
+     * @return null|PHS_View
      */
     public static function init_view($template, ?array $params = null) : ?self
     {

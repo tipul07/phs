@@ -202,7 +202,7 @@ class PHS_Model_Agent_jobs_monitor extends PHS_Model
     {
         $this->reset_error();
 
-        /** @var \phs\system\core\models\PHS_Model_Agent_jobs $agent_jobs_model */
+        /** @var PHS_Model_Agent_jobs $agent_jobs_model */
         if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             $this->set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
 

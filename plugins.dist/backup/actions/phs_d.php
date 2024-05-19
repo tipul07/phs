@@ -32,7 +32,7 @@ class PHS_Action_D extends PHS_Action
             return self::default_action_result();
         }
 
-        /** @var \phs\plugins\backup\models\PHS_Model_Results $results_model */
+        /** @var PHS_Model_Results $results_model */
         if (!($results_model = PHS_Model_Results::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load results model.'));
 

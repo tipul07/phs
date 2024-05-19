@@ -57,12 +57,12 @@ if (!empty($message_arr['message_user'])
         $destination_str = '['.$this->_pt('Unknown destination').']';
     }
 
-    if (!empty($message_arr['message_user'])
-    && !empty($message_arr['message_user']['user_id'])
-    && $message_arr['message_user']['user_id'] == $current_user['id']
-    && empty($message_arr['message_user']['is_author'])) {
-        $destination_str = $this->_pt('You (%s)', $destination_str);
-    }
+if (!empty($message_arr['message_user'])
+&& !empty($message_arr['message_user']['user_id'])
+&& $message_arr['message_user']['user_id'] == $current_user['id']
+&& empty($message_arr['message_user']['is_author'])) {
+    $destination_str = $this->_pt('You (%s)', $destination_str);
+}
 
 ?>
 	<div class="message_header">
@@ -125,7 +125,7 @@ if (($hook_actions_arr = PHS::trigger_hooks(PHS_Hooks::H_MSG_SINGLE_DISPLAY_TYPE
 
 if (!empty($msg_actions_arr) && is_array($msg_actions_arr)) {
     foreach ($msg_actions_arr as $action_key => $action_arr) {
-        ?> <a class="btn btn-primary btn-small<?php echo !empty($action_arr['extra_classes']) ? ' '.$action_arr['extra_classes'] : ''; ?>" href="<?php echo !empty($action_arr['action_link']) ? $action_arr['action_link'] : ''; ?>"><?php echo(!empty($action_arr['action_icon']) ? '<i class="fa '.$action_arr['action_icon'].'"></i> ' : '').(!empty($action_arr['action_label']) ? ' '.$action_arr['action_label'] : ''); ?></a> <?php
+        ?> <a class="btn btn-primary btn-small<?php echo !empty($action_arr['extra_classes']) ? ' '.$action_arr['extra_classes'] : ''; ?>" href="<?php echo !empty($action_arr['action_link']) ? $action_arr['action_link'] : ''; ?>"><?php echo (!empty($action_arr['action_icon']) ? '<i class="fa '.$action_arr['action_icon'].'"></i> ' : '').(!empty($action_arr['action_label']) ? ' '.$action_arr['action_label'] : ''); ?></a> <?php
     }
 }
 ?>

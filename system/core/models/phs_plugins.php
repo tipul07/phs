@@ -322,7 +322,7 @@ class PHS_Model_Plugins extends PHS_Model
 
     public function get_record_details_from_name_for_paginator(string $plugin_name) : ?array
     {
-        /** @var \phs\libraries\PHS_Plugin $plugin_instance */
+        /** @var PHS_Plugin $plugin_instance */
         if (!($plugin_instance = PHS::load_plugin($plugin_name))) {
             return null;
         }
@@ -388,7 +388,7 @@ class PHS_Model_Plugins extends PHS_Model
             return null;
         }
 
-        /** @var \phs\libraries\PHS_Plugin $plugin_instance */
+        /** @var PHS_Plugin $plugin_instance */
         foreach ($dirs_list as $dir_name) {
             if (!($dir_name = basename($dir_name))
                 || !($plugin_instance = PHS::load_plugin($dir_name))) {
@@ -1309,7 +1309,7 @@ class PHS_Model_Plugins extends PHS_Model
 
     private function _populate_plugins_db_registry_from_event(string $instance_id, int $tenant_id, array $registry_arr) : array
     {
-        /** @var \phs\system\core\events\plugins\PHS_Event_Plugin_registry $event_obj */
+        /** @var PHS_Event_Plugin_registry $event_obj */
         if (($event_obj = PHS_Event_Plugin_registry::trigger([
             'instance_id'  => $instance_id,
             'tenant_id'    => $tenant_id,

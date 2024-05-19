@@ -21,10 +21,10 @@ class PHS_Model_Accounts_tfa extends PHS_Model
 
     private const TFA_ALGO = 'SHA1';
 
-    /** @var null|\phs\plugins\accounts\PHS_Plugin_Accounts */
+    /** @var null|PHS_Plugin_Accounts */
     private ?PHS_Plugin_Accounts $_accounts_plugin = null;
 
-    /** @var null|\phs\plugins\accounts\models\PHS_Model_Accounts */
+    /** @var null|PHS_Model_Accounts */
     private ?PHS_Model_Accounts $_accounts_model = null;
 
     private static array $SECRET_CHARS_ARR = [
@@ -569,7 +569,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
 
         $params['link_expiration_seconds'] ??= 60;
 
-        /** @var \phs\plugins\phs_libs\PHS_Plugin_Phs_libs $libs_plugin */
+        /** @var PHS_Plugin_Phs_libs $libs_plugin */
         if (!($libs_plugin = PHS_Plugin_Phs_libs::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 

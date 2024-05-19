@@ -7,7 +7,7 @@ use phs\libraries\PHS_Action;
 class PHS_Event_Action_after extends PHS_Event_Action
 {
     public const LOGIN = 'phs_accounts_login', TFA_VERIFIED = 'phs_accounts_tfa_verified',
-    TFA_SETUP = 'phs_accounts_tfa_setup';
+        TFA_SETUP = 'phs_accounts_tfa_setup';
 
     protected const OLD_HOOKS = [
         self::LOGIN => [PHS_Hooks::H_USERS_AFTER_LOGIN],
@@ -15,7 +15,7 @@ class PHS_Event_Action_after extends PHS_Event_Action
 
     /**
      * @param string $action
-     * @param null|\phs\libraries\PHS_Action $action_obj
+     * @param null|PHS_Action $action_obj
      *
      * @return null|array{"stop_execution":bool, "action_result": ?array}
      */

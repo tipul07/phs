@@ -293,7 +293,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
+        /** @var PHS_Plugin_Admin $admin_plugin */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
@@ -339,7 +339,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
             return null;
         }
 
-        /** @var \phs\system\core\models\PHS_Model_Agent_jobs_monitor $jobs_monitor_model */
+        /** @var PHS_Model_Agent_jobs_monitor $jobs_monitor_model */
         if ($admin_plugin->monitor_agent_jobs()
             && ($jobs_monitor_model = PHS_Model_Agent_jobs_monitor::get_instance())) {
             if (empty($params['last_error'])) {

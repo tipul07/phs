@@ -15,13 +15,13 @@ class PHS_Action_Users_autocomplete extends PHS_Action
 {
     public const FORMAT_NICK_EMAIL_ID = 1, FORMAT_NICK_NAME_ID = 2;
 
-    /** @var bool|\phs\plugins\admin\PHS_Plugin_Admin */
+    /** @var bool|PHS_Plugin_Admin */
     private $_admin_plugin = false;
 
-    /** @var bool|\phs\plugins\accounts\models\PHS_Model_Accounts */
+    /** @var bool|PHS_Model_Accounts */
     private $_accounts_model = false;
 
-    /** @var bool|\phs\plugins\accounts\models\PHS_Model_Accounts_details */
+    /** @var bool|PHS_Model_Accounts_details */
     private $_account_details_model = false;
 
     private $autocomplete_params = [

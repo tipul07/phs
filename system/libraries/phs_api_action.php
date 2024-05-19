@@ -10,7 +10,7 @@ abstract class PHS_Api_action extends PHS_Action
 {
     public const ERR_API_INIT = 40000, ERR_AUTHENTICATION = 40001;
 
-    /** @var null|\phs\PHS_Api_base */
+    /** @var null|PHS_Api_base */
     protected ?PHS_Api_base $api_obj = null;
 
     public function allowed_scopes()
@@ -19,7 +19,7 @@ abstract class PHS_Api_action extends PHS_Action
     }
 
     /**
-     * @return null|\phs\PHS_Api_base
+     * @return null|PHS_Api_base
      */
     public function get_action_api_instance() : ?PHS_Api_base
     {
@@ -251,7 +251,7 @@ abstract class PHS_Api_action extends PHS_Action
             // Scope ID if you want to force a scope
             'force_scope' => false,
             // API instance (if already instanciated)
-            /** @var null|\phs\PHS_Api $api_obj */
+            /** @var null|PHS_Api $api_obj */
             'api_obj' => null,
 
             // An array which will be JSON encoded as response

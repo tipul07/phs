@@ -21,7 +21,7 @@ class PHS_Action_Qr extends PHS_Action
     {
         $download = PHS_params::_g('download', PHS_params::T_INT);
 
-        /** @var \phs\plugins\phs_libs\PHS_Plugin_Phs_libs $libs_plugin */
+        /** @var PHS_Plugin_Phs_libs $libs_plugin */
         if (!($libs_plugin = PHS_Plugin_Phs_libs::get_instance())
          || !($libs_obj = $libs_plugin->get_qr_code_instance())) {
             echo $this->_pt('Error loading required resources.');

@@ -252,7 +252,7 @@ if (can($messages_plugin::ROLEU_SET_TYPE_IN_COMPOSE)) {
         <?php
     }
 
-    $hook_args = PHS_Hooks::default_buffer_hook_args();
+$hook_args = PHS_Hooks::default_buffer_hook_args();
 $hook_args['view_obj'] = $this;
 $hook_args['buffer_data'] = $this->get_all_view_vars();
 

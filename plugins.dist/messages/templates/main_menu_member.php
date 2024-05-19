@@ -25,10 +25,10 @@ if (!$can_read_messages && !$can_write_messages) {
             'a' => 'inbox',
         ]); ?>" onfocus="this.blur();"><?php echo $this->_pt('Inbox'); ?></a></li><?php
     }
-    if ($can_write_messages) {
-        ?><li><a href="<?php echo PHS::url([
-            'p' => 'messages',
-            'a' => 'compose',
-        ]); ?>" onfocus="this.blur();"><?php echo $this->_pt('Compose'); ?></a></li><?php
-    }
+if ($can_write_messages) {
+    ?><li><a href="<?php echo PHS::url([
+        'p' => 'messages',
+        'a' => 'compose',
+    ]); ?>" onfocus="this.blur();"><?php echo $this->_pt('Compose'); ?></a></li><?php
+}
 ?></ul></li>

@@ -11,7 +11,7 @@ final class PHS_Db extends PHS_Registry
     public const ERR_DATABASE = 2000;
 
     public const DB_DEFAULT_CONNECTION = 'db_default_connection', DB_DEFAULT_DRIVER = 'db_default_driver', DB_SETTINGS = 'db_settings',
-    DB_MYSQLI_INSTANCE = 'db_mysqli_instance', DB_MONGO_INSTANCE = 'db_mongo_instance', DB_SQLITE_INSTANCE = 'db_sqlite_instance';
+        DB_MYSQLI_INSTANCE = 'db_mysqli_instance', DB_MONGO_INSTANCE = 'db_mongo_instance', DB_SQLITE_INSTANCE = 'db_sqlite_instance';
 
     public const DB_DRIVER_MYSQLI = 'mysqli', DB_DRIVER_MONGO = 'mongo', DB_DRIVER_SQLITE = 'sqlite';
 
@@ -375,7 +375,7 @@ final class PHS_Db extends PHS_Registry
     /**
      * @param string $driver What driver should be instantiated
      *
-     * @return bool|\phs\libraries\PHS_Db_interface Returns new or cached database driver instance
+     * @return bool|libraries\PHS_Db_interface Returns new or cached database driver instance
      */
     public static function get_db_driver_instance(string $driver)
     {
@@ -489,7 +489,7 @@ final class PHS_Db extends PHS_Registry
      *
      * @param bool|string $connection_name Connection used with database
      *
-     * @return bool|\phs\libraries\PHS_Db_interface Returns database driver instance
+     * @return bool|libraries\PHS_Db_interface Returns database driver instance
      */
     public static function db($connection_name = false)
     {

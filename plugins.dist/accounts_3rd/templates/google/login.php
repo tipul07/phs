@@ -39,13 +39,13 @@ $register_required = (bool)$this->view_var('register_required');
         if (!empty($display_error_msg)) {
             ?><p style="padding:10px;"><?php echo $display_error_msg; ?></p><?php
         }
-        if (!empty($display_message_msg)) {
-            ?><p style="padding:10px;"><?php echo $display_message_msg; ?></p><?php
-        }
+if (!empty($display_message_msg)) {
+    ?><p style="padding:10px;"><?php echo $display_message_msg; ?></p><?php
+}
 
-        if (!empty($retry_action)
-         && ($google_client = $google_lib->get_web_instance_for_login())) {
-            ?>
+if (!empty($retry_action)
+ && ($google_client = $google_lib->get_web_instance_for_login())) {
+    ?>
             <fieldset class="login_button">
                 <a href="<?php echo $google_client->createAuthUrl(); ?>"
                    class="btn btn-success btn-medium phs_3rdparty_login_button phs_3rdparty_login_google">
@@ -53,11 +53,11 @@ $register_required = (bool)$this->view_var('register_required');
                 </a>
             </fieldset>
             <?php
-        }
+}
 
-        if (!empty($register_required)
-         && !empty($phs_gal_code)) {
-            ?>
+if (!empty($register_required)
+ && !empty($phs_gal_code)) {
+    ?>
             <form id="google_login_form" name="google_login_form" method="post"
                   action="<?php echo PHS::url(['p' => 'accounts_3rd', 'a' => 'google_login']); ?>">
                 <input type="hidden" name="phs_gal_code" value="<?php echo form_str($phs_gal_code); ?>" />
@@ -70,7 +70,7 @@ $register_required = (bool)$this->view_var('register_required');
                 </fieldset>
             </form>
             <?php
-        }
+}
 ?>
 
     </div>

@@ -400,7 +400,7 @@ if (PHS::is_multi_tenant()) {
     include_once PHS_SYSTEM_DIR.'tenants_init.php';
 }
 
-/** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
+/** @var PHS_Model_Plugins $plugins_model */
 if (!($plugins_model = PHS_Model_Plugins::get_instance())) {
     echo PHS::_t('ERROR Instantiating plugins model.')."\n";
     if (PHS::st_debugging_mode()) {

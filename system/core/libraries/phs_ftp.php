@@ -14,60 +14,60 @@ class PHS_Ftp extends PHS_Library
 {
     // Hooks...
     public const H_BEFORE_CONNECT = 'phs_ftp_before_connect', H_AFTER_CONNECT = 'phs_ftp_after_connect',
-    H_BEFORE_CLOSE = 'phs_ftp_before_close', H_AFTER_CLOSE = 'phs_ftp_after_close',
-    H_BEFORE_GET = 'phs_ftp_before_get', H_AFTER_GET = 'phs_ftp_after_get',
-    H_BEFORE_PUT = 'phs_ftp_before_put', H_AFTER_PUT = 'phs_ftp_after_put',
-    H_BEFORE_DELETE = 'phs_ftp_before_delete', H_AFTER_DELETE = 'phs_ftp_after_delete',
-    H_BEFORE_RENAME = 'phs_ftp_before_rename', H_AFTER_RENAME = 'phs_ftp_after_rename',
-    H_BEFORE_MKDIR = 'phs_ftp_before_mkdir', H_AFTER_MKDIR = 'phs_ftp_after_mkdir',
-    H_CHDIR = 'phs_ftp_chdir', H_LS = 'phs_ftp_ls', H_LOCALDIR = 'phs_ftp_local_dir';
+        H_BEFORE_CLOSE = 'phs_ftp_before_close', H_AFTER_CLOSE = 'phs_ftp_after_close',
+        H_BEFORE_GET = 'phs_ftp_before_get', H_AFTER_GET = 'phs_ftp_after_get',
+        H_BEFORE_PUT = 'phs_ftp_before_put', H_AFTER_PUT = 'phs_ftp_after_put',
+        H_BEFORE_DELETE = 'phs_ftp_before_delete', H_AFTER_DELETE = 'phs_ftp_after_delete',
+        H_BEFORE_RENAME = 'phs_ftp_before_rename', H_AFTER_RENAME = 'phs_ftp_after_rename',
+        H_BEFORE_MKDIR = 'phs_ftp_before_mkdir', H_AFTER_MKDIR = 'phs_ftp_after_mkdir',
+        H_CHDIR = 'phs_ftp_chdir', H_LS = 'phs_ftp_ls', H_LOCALDIR = 'phs_ftp_local_dir';
 
     public const
         // ! Error related to connection to server
         ERR_CONNECTION = 2,
-    // ! Error related to authentication
-    ERR_AUTHENTICATION = 3,
-    // ! Error related to remote location (file or dir)
-    ERR_REMOTE_LOCATION = 4,
-    // ! Error related to 'local' location (file or dir)
-    ERR_LOCAL_LOCATION = 5;
+        // ! Error related to authentication
+        ERR_AUTHENTICATION = 3,
+        // ! Error related to remote location (file or dir)
+        ERR_REMOTE_LOCATION = 4,
+        // ! Error related to 'local' location (file or dir)
+        ERR_LOCAL_LOCATION = 5;
 
     public const // ! Used for ASCII file transfer
         TRANSFER_MODE_ASCII = 1,
-    // ! Used for binary file transfer
-    TRANSFER_MODE_BINARY = 2;
+        // ! Used for binary file transfer
+        TRANSFER_MODE_BINARY = 2;
 
     public const // ! Normal file
         TYPE_FILE = 1,
-    // ! Directory
-    TYPE_DIRECTORY = 2,
-    // ! Symlink
-    TYPE_SYM_LINK = 3;
+        // ! Directory
+        TYPE_DIRECTORY = 2,
+        // ! Symlink
+        TYPE_SYM_LINK = 3;
 
     public const // ! Unknown listing type
         LIST_TYPE_UNKNOWN = 0,
-    // ! Cloud raw listing type
-    LIST_TYPE_CLOUD = 1,
-    // ! Linux server listing type
-    LIST_TYPE_LINUX = 2,
-    // ! Linux server listing type
-    LIST_TYPE_CUSTOM = 3;
+        // ! Cloud raw listing type
+        LIST_TYPE_CLOUD = 1,
+        // ! Linux server listing type
+        LIST_TYPE_LINUX = 2,
+        // ! Linux server listing type
+        LIST_TYPE_CUSTOM = 3;
 
     public const // ! Connect 'normally'
         CON_TYPE_NORMAL = 1,
-    // ! SSL connection using ftp_ssl_connect
-    CON_TYPE_NORMAL_SSL = 2,
-    // ! Normal connection using CURL
-    CON_TYPE_CURL = 3,
-    // ! Secure connection using CURL
-    CON_TYPE_CURL_SSL = 4,
-    // ! Secure connection using CURL
-    CON_TYPE_SSH = 5;
+        // ! SSL connection using ftp_ssl_connect
+        CON_TYPE_NORMAL_SSL = 2,
+        // ! Normal connection using CURL
+        CON_TYPE_CURL = 3,
+        // ! Secure connection using CURL
+        CON_TYPE_CURL_SSL = 4,
+        // ! Secure connection using CURL
+        CON_TYPE_SSH = 5;
 
     // ! ftp connection details
     private $ftp_settings,
 
-    $settings_passed;
+        $settings_passed;
 
     // ! CURL ftp connection details (if needed)
     private $ftp_curl_settings;

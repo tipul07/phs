@@ -1,5 +1,5 @@
 <?php
-/** @var \phs\setup\libraries\PHS_Setup_view $this */
+/** @var phs\setup\libraries\PHS_Setup_view $this */
 $this->set_context('page_title', $this->_pt('Step 3'));
 
 if (!($timezones_arr = $this->get_context('timezones_arr'))) {
@@ -19,9 +19,9 @@ $offset = floor((parse_db_date($now_date) - parse_db_date($now_gmdate)) / 3600);
         if (!($selected_continent = $this->get_context('phs_timezone_continent'))) {
             $selected_continent = '';
         }
-        if (!($selected_city = $this->get_context('phs_timezone_city'))) {
-            $selected_city = '';
-        }
+if (!($selected_city = $this->get_context('phs_timezone_city'))) {
+    $selected_city = '';
+}
 ?>
         <select id="phs_timezone_continent" name="phs_timezone_continent" onchange="document.phs_setup_step3.submit()">
         <option value=""> - <?php echo $this->_pt('Choose'); ?> - </option>

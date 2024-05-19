@@ -9,7 +9,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
     private array $_export_registry = [];
 
     // Paginator object which started export
-    /** @var null|\phs\libraries\PHS_Paginator */
+    /** @var null|PHS_Paginator */
     private ?PHS_Paginator $_paginator_obj = null;
 
     /**

@@ -89,13 +89,13 @@ if (!empty($do_ping)
             echo $this->_pt('Remote domain timezone').': '.$ping_result['timezone'].'<br/>';
         }
 
-        if (!empty($ping_result['has_error'])) {
-            echo $this->_pt('Remote domain error').': '.(!empty($ping_result['error_msg']) ? $ping_result['error_msg'] : $this->_pt('N/A')).'<br/>';
-        } else {
-            ?>
+    if (!empty($ping_result['has_error'])) {
+        echo $this->_pt('Remote domain error').': '.(!empty($ping_result['error_msg']) ? $ping_result['error_msg'] : $this->_pt('N/A')).'<br/>';
+    } else {
+        ?>
                 <pre><?php var_dump($ping_result['result']); ?></pre>
                 <?php
-        }
+    }
     ?></div>
         </fieldset>
         <?php
@@ -123,7 +123,7 @@ function phs_remote_domain_do_ping( id )
 
         title: "<?php echo $this::_e($this->_pt('Remote Domain Details')); ?>",
         method: "GET",
-        url: "<?php echo PHS_Ajax::url(['p' => 'remote_phs', 'a' => 'info_ajax', 'ad' => 'domains']); ?>",
+        url: "<?php echo PHS_ajax::url(['p' => 'remote_phs', 'a' => 'info_ajax', 'ad' => 'domains']); ?>",
         url_data: { domain_id: id, do_ping: 1 },
 
         onsuccess: function() {

@@ -23,8 +23,8 @@ class PHS_Action_Logout_others extends PHS_Api_action
 
     public function execute()
     {
-        /** @var \phs\plugins\mobileapi\models\PHS_Model_Api_online $online_model */
-        /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobile_plugin */
+        /** @var PHS_Model_Api_online $online_model */
+        /** @var PHS_Plugin_Mobileapi $mobile_plugin */
         if (!($online_model = PHS_Model_Api_online::get_instance())
             || !($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,

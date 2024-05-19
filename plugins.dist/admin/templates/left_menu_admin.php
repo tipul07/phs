@@ -6,7 +6,7 @@ use phs\libraries\PHS_Hooks;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
-/** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
+/** @var PHS_Plugin_Admin $admin_plugin */
 if (!($admin_plugin = PHS_Plugin_Admin::get_instance())) {
     return $this->_pt('Error loading required resources.');
 }
@@ -50,12 +50,12 @@ if ($is_multi_tenant
                     ><?php echo $this::_t('Add Tenant'); ?></a></li>
                 <?php
             }
-            if ($can_list_tenants) {
-                ?>
+    if ($can_list_tenants) {
+        ?>
                 <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'tenants', 'p' => 'admin']); ?>"
                     ><?php echo $this::_t('List Tenants'); ?></a></li>
                 <?php
-            }
+    }
     ?>
         </ul>
     </li><?php
@@ -72,18 +72,18 @@ if ($can_list_accounts || $can_manage_accounts || $can_import_accounts) {
                     ><?php echo $this::_t('Add Account'); ?></a></li>
                 <?php
             }
-            if ($can_list_accounts) {
-                ?>
+    if ($can_list_accounts) {
+        ?>
                 <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'users', 'p' => 'admin']); ?>"
                     ><?php echo $this::_t('Manage Accounts'); ?></a></li>
                 <?php
-            }
-            if ($can_import_accounts) {
-                ?>
+    }
+    if ($can_import_accounts) {
+        ?>
                 <li><a href="<?php echo PHS::url(['a' => 'import', 'ad' => 'users', 'p' => 'admin']); ?>"
                     ><?php echo $this::_t('Import Accounts'); ?></a></li>
                 <?php
-            }
+    }
     ?>
         </ul>
     </li>
@@ -155,16 +155,16 @@ if ($can_list_api_keys || $can_manage_api_keys || $can_view_api_monitoring_repor
                 <li><a href="<?php echo PHS::url(['a' => 'add', 'ad' => 'apikeys', 'p' => 'admin']); ?>"><?php echo $this::_t('Add API Key'); ?></a></li>
                 <?php
             }
-            if ($can_list_api_keys || $can_manage_api_keys) {
-                ?>
+    if ($can_list_api_keys || $can_manage_api_keys) {
+        ?>
                 <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'apikeys', 'p' => 'admin']); ?>"><?php echo $this::_t('List API Keys'); ?></a></li>
                 <?php
-            }
-            if ($can_view_api_monitoring_report) {
-                ?>
+    }
+    if ($can_view_api_monitoring_report) {
+        ?>
                 <li><a href="<?php echo PHS::url(['a' => 'api_report', 'p' => 'admin']); ?>"><?php echo $this::_t('API Monitoring Report'); ?></a></li>
                 <?php
-            }
+    }
     ?>
         </ul>
     </li>
@@ -180,7 +180,7 @@ if ($can_view_logs) {
     <?php
 }
 
-/** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+/** @var PHS_Model_Accounts $accounts_model */
 if (($accounts_model = PHS_Model_Accounts::get_instance())
     && ($cuser_arr = PHS::user_logged_in())
     && $accounts_model->acc_is_developer($cuser_arr)) {

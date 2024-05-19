@@ -42,9 +42,9 @@ class PHS_Setup
                 if (!defined('PHS_SETUP_PATH')) {
                     ?><li><em>PHS_SETUP_PATH</em> - not defined correctly</li><?php
                 }
-                if (!defined('PHS_SETUP_CONFIG_DIR') || !constant('PHS_SETUP_CONFIG_DIR')) {
-                    ?><li><em>PHS_SETUP_CONFIG_DIR</em> - not defined or empty</li><?php
-                }
+            if (!defined('PHS_SETUP_CONFIG_DIR') || !constant('PHS_SETUP_CONFIG_DIR')) {
+                ?><li><em>PHS_SETUP_CONFIG_DIR</em> - not defined or empty</li><?php
+            }
             ?>
             </ul>
             Please try setting up _setup/main.php file manually (recommended) or setup the framework manually skipping setup script.
@@ -150,7 +150,7 @@ class PHS_Setup
     }
 
     /**
-     * @return bool|\phs\setup\libraries\PHS_Step
+     * @return bool|PHS_Step
      */
     public function get_current_step_instance()
     {
@@ -171,7 +171,7 @@ class PHS_Setup
 
     /**
      * @param mixed $step
-     * @return bool|\phs\setup\libraries\PHS_Step
+     * @return bool|PHS_Step
      */
     public function get_step_instance($step)
     {
@@ -212,7 +212,7 @@ class PHS_Setup
             exit;
         }
 
-        /** @var \phs\setup\libraries\PHS_Step $step_obj */
+        /** @var PHS_Step $step_obj */
         if (!($step_obj = new $class_name($this))) {
             echo 'Couldn\'t instantiate class for step '.$step.'...';
             exit;

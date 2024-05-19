@@ -14,9 +14,9 @@ class PHS_Model_Api_online extends PHS_Model
 
     public const DEVICE_KEY = '{device_data}';
 
-    public const SOURCE_NATIVE = 'native';
-
     public const DEV_TYPE_ANDROID = 1, DEV_TYPE_IOS = 2, DEV_TYPE_UNDEFINED = 3;
+
+    public const SOURCE_NATIVE = 'native';
 
     protected static array $DEVICE_TYPES_ARR = [
         self::DEV_TYPE_ANDROID   => ['title' => 'Android'],
@@ -33,7 +33,7 @@ class PHS_Model_Api_online extends PHS_Model
     /**
      * @return string Returns version of model
      */
-    public function get_model_version()
+    public function get_model_version() : string
     {
         return '1.1.0';
     }
@@ -41,7 +41,7 @@ class PHS_Model_Api_online extends PHS_Model
     /**
      * @return array of string Returns an array of strings containing tables that model will handle
      */
-    public function get_table_names()
+    public function get_table_names() : array
     {
         return ['mobileapi_online', 'mobileapi_devices'];
     }
@@ -49,19 +49,14 @@ class PHS_Model_Api_online extends PHS_Model
     /**
      * @return string Returns main table name used when calling insert with no table name
      */
-    public function get_main_table_name()
+    public function get_main_table_name() : string
     {
         return 'mobileapi_online';
     }
 
-    public function valid_source($source)
+    public function valid_source(string $source) : ?array
     {
-        if (empty(self::$_sources_arr) || !is_array(self::$_sources_arr)
-         || empty(self::$_sources_arr[$source])) {
-            return false;
-        }
-
-        return self::$_sources_arr[$source];
+        return self::$_sources_arr[$source] ?? null;
     }
 
     /**
@@ -70,10 +65,9 @@ class PHS_Model_Api_online extends PHS_Model
      *
      * @return bool true on success, false on error
      */
-    public function define_source($source, $source_arr) : bool
+    public function define_source(string $source, array $source_arr) : bool
     {
-        if (empty($source) || !is_string($source)
-         || empty($source_arr) || !is_array($source_arr)) {
+        if (empty($source) || empty($source_arr)) {
             return false;
         }
 
@@ -82,18 +76,18 @@ class PHS_Model_Api_online extends PHS_Model
         self::$_sources_arr[$source] = $source_arr;
 
         // Force recaching sources...
-        $this->get_sources_as_key_val(false, true);
+        $this->get_sources_as_key_val(null, true);
 
         return true;
     }
 
-    public function get_sources($lang = false, $force = false) : array
+    public function get_sources(null | bool | string $lang = null, bool $force = false) : array
     {
         static $sources_arr = [];
 
         if (empty($force)
-         && $lang === false
-         && !empty($sources_arr)) {
+            && empty($lang)
+            && !empty($sources_arr)) {
             return $sources_arr;
         }
 
@@ -102,20 +96,20 @@ class PHS_Model_Api_online extends PHS_Model
 
         $result_arr = $this->translate_array_keys(self::$_sources_arr, ['title'], $lang);
 
-        if ($lang === false) {
+        if (empty($lang)) {
             $sources_arr = $result_arr;
         }
 
         return $result_arr;
     }
 
-    final public function get_sources_as_key_val($lang = false, $force = false)
+    final public function get_sources_as_key_val(null | bool | string $lang = null, bool $force = false) : array
     {
-        static $sources_key_val_arr = false;
+        static $sources_key_val_arr = [];
 
         if (empty($force)
-         && $lang === false
-         && $sources_key_val_arr !== false) {
+            && empty($lang)
+            && !empty($sources_key_val_arr)) {
             return $sources_key_val_arr;
         }
 
@@ -130,19 +124,19 @@ class PHS_Model_Api_online extends PHS_Model
             }
         }
 
-        if ($lang === false) {
+        if (empty($lang)) {
             $sources_key_val_arr = $key_val_arr;
         }
 
         return $key_val_arr;
     }
 
-    final public function get_device_types($lang = false)
+    final public function get_device_types(null | bool | string $lang = null) : array
     {
         static $device_types = [];
 
-        if ($lang === false
-         && !empty($device_types)) {
+        if (empty($lang)
+            && !empty($device_types)) {
             return $device_types;
         }
 
@@ -153,19 +147,19 @@ class PHS_Model_Api_online extends PHS_Model
 
         $result_arr = $this->translate_array_keys(self::$DEVICE_TYPES_ARR, ['title'], $lang);
 
-        if ($lang === false) {
+        if (empty($lang)) {
             $device_types = $result_arr;
         }
 
         return $result_arr;
     }
 
-    final public function get_device_types_as_key_val($lang = false)
+    final public function get_device_types_as_key_val(null | bool | string $lang = null) : array
     {
-        static $device_types_key_val_arr = false;
+        static $device_types_key_val_arr = [];
 
-        if ($lang === false
-         && $device_types_key_val_arr !== false) {
+        if (empty($lang)
+            && !empty($device_types_key_val_arr)) {
             return $device_types_key_val_arr;
         }
 
@@ -180,26 +174,25 @@ class PHS_Model_Api_online extends PHS_Model
             }
         }
 
-        if ($lang === false) {
+        if (empty($lang)) {
             $device_types_key_val_arr = $key_val_arr;
         }
 
         return $key_val_arr;
     }
 
-    public function valid_device_type($type, $lang = false)
+    public function valid_device_type(int $type, null | bool | string $lang = null) : ?array
     {
-        $type = (int)$type;
         $all_device_types = $this->get_device_types($lang);
         if (empty($type)
-         || empty($all_device_types[$type])) {
-            return false;
+            || empty($all_device_types[$type])) {
+            return null;
         }
 
         return $all_device_types[$type];
     }
 
-    public function act_delete($record_data)
+    public function act_delete(int | array $record_data) : bool
     {
         $this->reset_error();
 
@@ -1241,12 +1234,12 @@ class PHS_Model_Api_online extends PHS_Model
         return $params;
     }
 
-    protected function insert_after_mobileapi_online($insert_arr, $params)
+    protected function insert_after_mobileapi_online(array $insert_arr, array $params) : ?array
     {
         if (!empty($params[self::DEVICE_KEY]) && is_array($params[self::DEVICE_KEY])) {
             // Update contact address
             if (!($new_device_arr = $this->update_session_device($insert_arr, $params[self::DEVICE_KEY]))) {
-                return false;
+                return null;
             }
 
             $insert_arr['device_id'] = $new_device_arr['id'];

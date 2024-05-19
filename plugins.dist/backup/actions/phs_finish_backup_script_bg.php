@@ -24,7 +24,7 @@ class PHS_Action_Finish_backup_script_bg extends PHS_Action
             return false;
         }
 
-        /** @var \phs\plugins\backup\models\PHS_Model_Results $results_model */
+        /** @var PHS_Model_Results $results_model */
         if (!($params = PHS_Bg_jobs::get_current_job_parameters())
          || !is_array($params)
          || empty($params['result_id'])

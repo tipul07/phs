@@ -110,7 +110,7 @@ echo !empty($log_arr['error_log']) ? $log_arr['error_log'] : $this->_pt('N/A');
         echo $this->_pt('N/A');
     }
 
-    echo ' - ';
+echo ' - ';
 
 if (empty($log_arr['status_date']) || empty_db_date($log_arr['status_date'])) {
     echo $this->_pt('N/A');

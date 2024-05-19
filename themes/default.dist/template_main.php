@@ -8,7 +8,7 @@ use phs\libraries\PHS_Notifications;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 $accounts_plugin_settings = [];
-/** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+/** @var PHS_Model_Accounts $accounts_model */
 if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
     PHS_Notifications::add_error_notice($this::_t('Couldn\'t load accounts model. Please contact support.'));
     $accounts_model = false;
@@ -56,7 +56,7 @@ if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_MAIN_TEMPLATE_PAGE_HEAD, PHS_H
 ?>
 </head>
 
-<body<?php echo(($page_body_class = PHS::page_settings('page_body_class')) ? ' class="'.$page_body_class.'" ' : '').$action_result['page_body_extra_tags']; ?>>
+<body<?php echo (($page_body_class = PHS::page_settings('page_body_class')) ? ' class="'.$page_body_class.'" ' : '').$action_result['page_body_extra_tags']; ?>>
 <?php
 
 if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_MAIN_TEMPLATE_PAGE_START, PHS_Hooks::default_buffer_hook_args()))
@@ -106,13 +106,13 @@ if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_MAIN_TEMPLATE_PAGE_FIRST_CONTE
     <div id="main_content"><?php
 }
 
-        if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_NOTIFICATIONS_DISPLAY, PHS_Hooks::default_notifications_hook_args()))
-        && is_array($hook_args)
-        && !empty($hook_args['notifications_buffer'])) {
-            echo $hook_args['notifications_buffer'];
-        }
+if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_NOTIFICATIONS_DISPLAY, PHS_Hooks::default_notifications_hook_args()))
+&& is_array($hook_args)
+&& !empty($hook_args['notifications_buffer'])) {
+    echo $hook_args['notifications_buffer'];
+}
 
-        echo $action_result['buffer'];
+echo $action_result['buffer'];
 
 if (empty($action_result['page_settings']['page_only_buffer'])) {
     ?></div>

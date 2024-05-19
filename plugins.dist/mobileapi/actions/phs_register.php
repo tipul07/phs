@@ -26,8 +26,8 @@ class PHS_Action_Register extends PHS_Api_action
 
     public function execute()
     {
-        /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobile_plugin */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Plugin_Mobileapi $mobile_plugin */
+        /** @var PHS_Model_Accounts $accounts_model */
         if (!($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())
          || !($accounts_model = PHS_Model_Accounts::get_instance())) {
             return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,

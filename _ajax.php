@@ -36,7 +36,7 @@ try {
                           .' bootstrap: '.number_format($debug_data['bootstrap_time'], 6, '.', '').'s, '
                           .' running: '.number_format($debug_data['running_time'], 6, '.', '').'s', PHS_Logger::TYPE_AJAX);
     }
-} catch (\Exception $e) {
+} catch (Exception $e) {
     PHS::error_handler($e->getCode(), $e->getMessage(), $e->getFile(), $e->getLine());
 }
 
