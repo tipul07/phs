@@ -919,18 +919,7 @@ class PHS_Model_Results extends PHS_Model
         return $params;
     }
 
-    /**
-     * Called right after a successfull insert in database. Some model need more database work after successfully adding records in database or eventually chaining
-     * database inserts. If one chain fails function should return false so all records added before to be hard-deleted. In case of success, function will return an array with all
-     * key-values added in database.
-     *
-     * @param array $insert_arr Data array added with success in database
-     * @param array $params Flow parameters
-     *
-     * @return array|false Returns data array added in database (with changes, if required) or false if record should be deleted from database.
-     *                     Deleted record will be hard-deleted
-     */
-    protected function insert_after_backup_results($insert_arr, $params)
+    protected function insert_after_backup_results(array $insert_arr, array $params) : ?array
     {
         $insert_arr['{result_files}'] = [];
 
@@ -940,7 +929,7 @@ class PHS_Model_Results extends PHS_Model
                     $this->set_error(self::ERR_INSERT, $this->_pt('Error linking result files to backup result.'));
                 }
 
-                return false;
+                return null;
             }
 
             if (!empty($result_files_arr['files']) && is_array($result_files_arr['files'])) {
@@ -960,7 +949,7 @@ class PHS_Model_Results extends PHS_Model
                                 $this->_pt('Error linking result files to backup result.'));
                         }
 
-                        return false;
+                        return null;
                     }
 
                     $insert_arr['size'] = $result_files_arr['total_size'];

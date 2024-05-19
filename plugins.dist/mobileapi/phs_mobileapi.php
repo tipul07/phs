@@ -75,8 +75,8 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         $this->reset_error();
 
         /** @var PHS_Model_Accounts $accounts_model */
-        if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load required models.'));
+        if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 
             return false;
         }
@@ -104,8 +104,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
 
         if (($hook_result = PHS::trigger_hooks(self::H_EXPORT_ACCOUNT_DATA, $hook_args))
         && is_array($hook_result)) {
-            if (!empty($hook_result['account_data'])
-            && is_array($hook_result['account_data']) && !empty($hook_result['account_data']['id'])) {
+            if (!empty($hook_result['account_data']['id'])) {
                 $account_arr = $hook_result['account_data'];
             }
 
@@ -130,8 +129,8 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         $this->reset_error();
 
         /** @var PHS_Model_Accounts $accounts_model */
-        if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load required models.'));
+        if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 
             return false;
         }
@@ -207,11 +206,8 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         $trigger_args['stop_on_first_error'] = true;
 
         if (($hook_result = PHS::trigger_hooks(self::H_IMPORT_ACCOUNT_DATA, $hook_args, $trigger_args))
-         && is_array($hook_result)) {
-            if (!empty($hook_result['account_data'])
-             && is_array($hook_result['account_data']) && !empty($hook_result['account_data']['id'])) {
-                $account_arr = $hook_result['account_data'];
-            }
+            && !empty($hook_result['account_data']['id'])) {
+            $account_arr = $hook_result['account_data'];
         }
 
         if (!empty($hook_result)
@@ -771,7 +767,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         return $return_arr;
     }
 
-    public static function get_api_data_account_fields()
+    public static function get_api_data_account_fields() : array
     {
         return [
             'id' => [
@@ -851,7 +847,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         ];
     }
 
-    public static function get_api_data_account_details_fields()
+    public static function get_api_data_account_details_fields() : array
     {
         return [
             'title' => [

@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\models;
 
 use phs\PHS;
@@ -23,13 +22,12 @@ class PHS_Model_Roles extends PHS_Model
         self::STATUS_SUSPENDED => ['title' => 'Suspended'],
     ];
 
-    /** @var bool|PHS_Model_Accounts */
-    private static $_accounts_model = false;
+    private static ?PHS_Model_Accounts $_accounts_model = null;
 
     /**
      * @return string Returns version of model
      */
-    public function get_model_version()
+    public function get_model_version() : string
     {
         return '1.0.2';
     }
@@ -37,7 +35,7 @@ class PHS_Model_Roles extends PHS_Model
     /**
      * @return array of string Returns an array of strings containing tables that model will handle
      */
-    public function get_table_names()
+    public function get_table_names() : array
     {
         return ['roles', 'roles_units', 'roles_units_links', 'roles_users'];
     }
@@ -45,12 +43,12 @@ class PHS_Model_Roles extends PHS_Model
     /**
      * @return string Returns main table name used when calling insert with no table name
      */
-    public function get_main_table_name()
+    public function get_main_table_name() : string
     {
         return 'roles';
     }
 
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         return [
             'roles_cache_size' => [
@@ -68,123 +66,120 @@ class PHS_Model_Roles extends PHS_Model
         ];
     }
 
-    public function is_active($role_data)
+    public function is_active(int | array $role_data) : bool
     {
-        if (!($role_arr = $this->data_to_array($role_data))
-         || (int)$role_arr['status'] !== self::STATUS_ACTIVE) {
-            return false;
-        }
-
-        return $role_arr;
+        return ($role_arr = $this->data_to_array($role_data))
+               && (int)$role_arr['status'] === self::STATUS_ACTIVE;
     }
 
-    public function is_inactive($role_data)
+    public function is_inactive(int | array $role_data) : bool
     {
-        if (!($role_arr = $this->data_to_array($role_data))
-         || (int)$role_arr['status'] !== self::STATUS_INACTIVE) {
-            return false;
-        }
-
-        return $role_arr;
+        return ($role_arr = $this->data_to_array($role_data))
+               && (int)$role_arr['status'] === self::STATUS_INACTIVE;
     }
 
-    public function is_deleted($role_data)
+    public function is_deleted(int | array $role_data) : bool
     {
-        if (!($role_arr = $this->data_to_array($role_data))
-         || (int)$role_arr['status'] !== self::STATUS_DELETED) {
-            return false;
-        }
-
-        return $role_arr;
+        return ($role_arr = $this->data_to_array($role_data))
+               && (int)$role_arr['status'] === self::STATUS_DELETED;
     }
 
-    public function is_suspended($role_data)
+    public function is_suspended(int | array $role_data) : bool
     {
-        if (!($role_arr = $this->data_to_array($role_data))
-         || (int)$role_arr['status'] !== self::STATUS_SUSPENDED) {
-            return false;
-        }
-
-        return $role_arr;
+        return ($role_arr = $this->data_to_array($role_data))
+               && (int)$role_arr['status'] === self::STATUS_SUSPENDED;
     }
 
-    public function is_predefined($role_data)
+    public function is_predefined(int | array $role_data) : bool
     {
-        if (!($role_arr = $this->data_to_array($role_data))
-         || empty($role_arr['predefined'])) {
-            return false;
-        }
-
-        return $role_arr;
+        return ($role_arr = $this->data_to_array($role_data))
+               && !empty($role_arr['predefined']);
     }
 
-    public function activate_role($role_data, $params = false)
+    public function activate_role(int | array $role_data) : ?array
     {
+        $this->reset_error();
+
         if (empty($role_data)
          || !($role_arr = $this->data_to_array($role_data))) {
-            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Unknown account.'));
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Role not found in database.'));
 
-            return false;
+            return null;
         }
 
         if ($this->is_active($role_arr)) {
             return $role_arr;
         }
 
-        $edit_arr = [];
-        $edit_arr['status'] = self::STATUS_ACTIVE;
-
         $edit_params = $this->fetch_default_flow_params(['table_name' => 'roles']);
-        $edit_params['fields'] = $edit_arr;
+        $edit_params['fields'] = [
+            'status' => self::STATUS_ACTIVE,
+        ];
 
-        return $this->edit($role_arr, $edit_params);
+        if (!($new_role = $this->edit($role_arr, $edit_params))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error saving role details in database.'));
+
+            return null;
+        }
+
+        return $new_role;
     }
 
-    public function inactivate_role($role_data, $params = false)
+    public function inactivate_role(int | array $role_data) : ?array
     {
+        $this->reset_error();
+
         if (empty($role_data)
          || !($role_arr = $this->data_to_array($role_data))) {
-            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Unknown account.'));
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Role not found in database.'));
 
-            return false;
+            return null;
         }
 
         if ($this->is_inactive($role_arr)) {
             return $role_arr;
         }
 
-        $edit_arr = [];
-        $edit_arr['status'] = self::STATUS_INACTIVE;
-
         $edit_params = $this->fetch_default_flow_params(['table_name' => 'roles']);
-        $edit_params['fields'] = $edit_arr;
+        $edit_params['fields'] = [
+            'status' => self::STATUS_INACTIVE,
+        ];
 
-        return $this->edit($role_arr, $edit_params);
+        if (!($new_role = $this->edit($role_arr, $edit_params))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error saving role details in database.'));
+
+            return null;
+        }
+
+        return $new_role;
     }
 
-    public function delete_role($role_data, $params = false)
+    public function delete_role(int | array $role_data) : ?array
     {
+        $this->reset_error();
+
         if (empty($role_data)
          || !($role_arr = $this->data_to_array($role_data))) {
-            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Unknown account.'));
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Role not found in database.'));
 
-            return false;
+            return null;
         }
 
         if ($this->is_deleted($role_arr)) {
             return $role_arr;
         }
 
-        $edit_arr = [];
-        $edit_arr['name'] = $role_arr['name'].'-DELETED-'.time();
-        $edit_arr['slug'] = $role_arr['slug'].'-DELETED-'.time();
-        $edit_arr['status'] = self::STATUS_DELETED;
-
-        $edit_params = [];
-        $edit_params['fields'] = $edit_arr;
+        $edit_params = $this->fetch_default_flow_params(['table_name' => 'roles']);
+        $edit_params['fields'] = [
+            'name'   => $role_arr['name'].'-DELETED-'.time(),
+            'slug'   => $role_arr['slug'].'-DELETED-'.time(),
+            'status' => self::STATUS_DELETED,
+        ];
 
         if (!($edit_result = $this->edit($role_arr, $edit_params))) {
-            return false;
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error saving role details in database.'));
+
+            return null;
         }
 
         $this->unlink_all_role_units_from_role($role_arr);
@@ -569,18 +564,19 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return bool True on success, false on fail
      */
-    public function unlink_all_role_units_from_role($role_data) : bool
+    public function unlink_all_role_units_from_role(int | array $role_data) : bool
     {
         $this->reset_error();
 
-        if (!($role_arr = $this->data_to_array($role_data))) {
+        if (empty($role_data)
+            || !($role_arr = $this->data_to_array($role_data))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Role not found in database.'));
 
             return false;
         }
 
         if (!($flow_params = $this->fetch_default_flow_params(['table_name' => 'roles_units_links']))
-         || !db_query('DELETE FROM `'.$this->get_flow_table_name($flow_params).'` WHERE role_id = \''.$role_arr['id'].'\'', $this->get_db_connection($flow_params))) {
+            || !db_query('DELETE FROM `'.$this->get_flow_table_name($flow_params).'` WHERE role_id = \''.$role_arr['id'].'\'', $this->get_db_connection($flow_params))) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t unlink role units from role.'));
 
             return false;
@@ -810,18 +806,20 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return bool
      */
-    public function unlink_role_from_all_users($role_data) : bool
+    public function unlink_role_from_all_users(int | array $role_data) : bool
     {
         $this->reset_error();
 
-        if (!($role_arr = $this->data_to_array($role_data))) {
+        if (empty($role_data)
+            || !($role_arr = $this->data_to_array($role_data))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Role not found in database.'));
 
             return false;
         }
 
         if (!($flow_params = $this->fetch_default_flow_params(['table_name' => 'roles_users']))
-         || !db_query('DELETE FROM `'.$this->get_flow_table_name($flow_params).'` WHERE role_id = \''.$role_arr['id'].'\'', $this->get_db_connection($flow_params))) {
+            || !db_query('DELETE FROM `'.$this->get_flow_table_name($flow_params).'` WHERE role_id = \''.$role_arr['id'].'\'',
+                $this->get_db_connection($flow_params))) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t unlink role from all accounts.'));
 
             return false;
@@ -1501,7 +1499,7 @@ class PHS_Model_Roles extends PHS_Model
         return $params;
     }
 
-    protected function insert_after_roles($insert_arr, $params)
+    protected function insert_after_roles(array $insert_arr, array $params) : ?array
     {
         if (!empty($params['{role_units}']) && is_array($params['{role_units}'])) {
             if (empty($params['{role_units_params}'])) {
@@ -1509,7 +1507,7 @@ class PHS_Model_Roles extends PHS_Model
             }
 
             if (!$this->link_role_units_to_role($insert_arr, $params['{role_units}'], $params['{role_units_params}'])) {
-                return false;
+                return null;
             }
         }
 

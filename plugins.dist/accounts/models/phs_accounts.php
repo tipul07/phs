@@ -2214,18 +2214,7 @@ class PHS_Model_Accounts extends PHS_Model
         return $params;
     }
 
-    /**
-     * Called right after a successful insert in database. Some model need more database work after successfully adding records in database or eventually chaining
-     * database inserts. If one chain fails function should return false so all records added before to be hard-deleted. In case of success, function will return an array with all
-     * key-values added in database.
-     *
-     * @param array $insert_arr Data array added with success in database
-     * @param array $params Flow parameters
-     *
-     * @return array|false Returns data array added in database (with changes, if required) or false if record should be deleted from database.
-     *                     Deleted record will be hard-deleted
-     */
-    protected function insert_after_users($insert_arr, $params)
+    protected function insert_after_users(array $insert_arr, array $params) : ?array
     {
         if (empty($params['{accounts_settings}']) || !is_array($params['{accounts_settings}'])) {
             $params['{accounts_settings}'] = [];
@@ -2240,18 +2229,18 @@ class PHS_Model_Accounts extends PHS_Model
             || !($accounts_plugin = $this->get_plugin_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 
-            return false;
+            return null;
         }
 
         if (!empty($params['{pass_salt}'])) {
-            $salt_insert_arr = $this->fetch_default_flow_params(['table_name' => 'users_pass_salts']);
+            $salt_insert_arr = $this->fetch_default_flow_params(['table_name' => 'users_pass_salts']) ?: [];
             $salt_insert_arr['fields']['uid'] = $insert_arr['id'];
             $salt_insert_arr['fields']['pass_salt'] = $params['{pass_salt}'];
 
             if (!($salt_arr = $this->insert($salt_insert_arr))) {
                 $this->set_error(self::ERR_INSERT, $this->_pt('Error saving account password. Please try again.'));
 
-                return false;
+                return null;
             }
 
             $insert_arr['{pass_salt}'] = $salt_arr;
@@ -2263,7 +2252,7 @@ class PHS_Model_Accounts extends PHS_Model
                 $this->set_error(self::ERR_INSERT, $this->_pt('Error saving account details in database. Please try again.'));
             }
 
-            return false;
+            return null;
         }
 
         $roles_arr = [];
@@ -2324,7 +2313,7 @@ class PHS_Model_Accounts extends PHS_Model
 
                 $accounts_details_model->hard_delete($insert_arr['{users_details}']);
 
-                return false;
+                return null;
             }
         }
 

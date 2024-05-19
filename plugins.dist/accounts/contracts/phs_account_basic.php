@@ -1,8 +1,8 @@
 <?php
-
 namespace phs\plugins\accounts\contracts;
 
 use phs\PHS;
+use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Contract;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
@@ -15,10 +15,10 @@ class PHS_Contract_Account_basic extends PHS_Contract
     /**
      * @inheritdoc
      */
-    public function get_parsing_data_model()
+    public function get_parsing_data_model() : ?PHS_Model
     {
         if (!$this->_load_dependencies()) {
-            return false;
+            return null;
         }
 
         return $this->_accounts_model;

@@ -526,7 +526,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $params;
     }
 
-    protected function insert_after_phs_tenants($insert_arr, $params)
+    protected function insert_after_phs_tenants(array $insert_arr, array $params) : ?array
     {
         if (!empty($params['fields']['is_default'])
          && ($flow_arr = $this->fetch_default_flow_params(['table_name' => 'phs_tenants']))

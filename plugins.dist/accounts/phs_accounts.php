@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\accounts;
 
 use phs\PHS;
@@ -40,10 +39,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     // Password is mandatory, generate password if none is provided or ask user to setup a password at first login
     public const PASS_POLICY_MANDATORY = 1, PASS_POLICY_GENERATE = 2, PASS_POLICY_SETUP = 3;
 
-    /** @var null|PHS_Model_Accounts */
     private ?PHS_Model_Accounts $_accounts_model = null;
 
-    /** @var null|PHS_Model_Accounts_details */
     private ?PHS_Model_Accounts_details $_accounts_details_model = null;
 
     protected static array $PASSWORD_POLICY_ARR = [
