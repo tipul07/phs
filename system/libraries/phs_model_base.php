@@ -975,16 +975,15 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         $model_version = $this->get_model_version();
 
         /** @var null|PHS_Event_Migration_models $event_obj */
-        if( ($event_obj = PHS_Event_Migration_models::trigger_before_missing(
-                model_obj: $this, old_version: '0.0.0', new_version: $model_version, is_dry_update: $is_dry_update
-            ))
-            && $event_obj->result_has_error() ) {
-
+        if ( ($event_obj = PHS_Event_Migration_models::trigger_before_missing(
+            model_obj: $this, old_version: '0.0.0', new_version: $model_version, is_dry_update: $is_dry_update
+        ))
+        && $event_obj->result_has_error() ) {
             $this->set_error(self::ERR_UPDATE, self::_t('Error in migrations before installing tables for model %s.', $model_id));
             PHS_Logger::error('Error in migrations before installing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before installing tables: '.
-                                    $event_obj->get_result_errors_as_string() ?: 'Unknown error.');
+            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before installing tables: '
+                                    .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
 
             return false;
         }
@@ -997,16 +996,15 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             }
 
             /** @var null|PHS_Event_Migration_models $event_obj */
-            if( ($event_obj = PHS_Event_Migration_models::trigger_before_missing(
-                    model_obj: $this, table_name: $table_name, old_version: '0.0.0', new_version: $model_version, is_dry_update: $is_dry_update
-                ))
-                && $event_obj->result_has_error() ) {
-
+            if ( ($event_obj = PHS_Event_Migration_models::trigger_before_missing(
+                model_obj: $this, table_name: $table_name, old_version: '0.0.0', new_version: $model_version, is_dry_update: $is_dry_update
+            ))
+            && $event_obj->result_has_error() ) {
                 $this->set_error(self::ERR_UPDATE, self::_t('Error in migrations before installing table %s, model %s.', $full_table_name, $model_id));
                 PHS_Logger::error('Error in migrations before installing table ['.$full_table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-                PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before installing table ['.$table_name.']: '.
-                                        $event_obj->get_result_errors_as_string() ?: 'Unknown error.');
+                PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before installing table ['.$table_name.']: '
+                                        .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
 
                 return false;
             }
@@ -1023,32 +1021,30 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             }
 
             /** @var null|PHS_Event_Migration_models $event_obj */
-            if( ($event_obj = PHS_Event_Migration_models::trigger_after_missing(
-                    model_obj: $this, table_name: $table_name, old_version: '0.0.0', new_version: $model_version, is_dry_update: $is_dry_update
-                ))
-                && $event_obj->result_has_error() ) {
-
+            if ( ($event_obj = PHS_Event_Migration_models::trigger_after_missing(
+                model_obj: $this, table_name: $table_name, old_version: '0.0.0', new_version: $model_version, is_dry_update: $is_dry_update
+            ))
+            && $event_obj->result_has_error() ) {
                 $this->set_error(self::ERR_INSTALL, self::_t('Error in migrations after installing table %s, model %s.', $full_table_name, $model_id));
                 PHS_Logger::error('Error in migrations after installing table ['.$full_table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-                PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations after installing table ['.$table_name.']: '.
-                                        $event_obj->get_result_errors_as_string() ?: 'Unknown error.');
+                PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations after installing table ['.$table_name.']: '
+                                        .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
 
                 return false;
             }
         }
 
         /** @var null|PHS_Event_Migration_models $event_obj */
-        if( ($event_obj = PHS_Event_Migration_models::trigger_after_missing(
-                model_obj: $this, old_version: '0.0.0', new_version: $model_version, is_dry_update: $is_dry_update
-            ))
-            && $event_obj->result_has_error() ) {
-
+        if ( ($event_obj = PHS_Event_Migration_models::trigger_after_missing(
+            model_obj: $this, old_version: '0.0.0', new_version: $model_version, is_dry_update: $is_dry_update
+        ))
+        && $event_obj->result_has_error() ) {
             $this->set_error(self::ERR_UPDATE, self::_t('Error in migrations after installing tables for model %s.', $model_id));
             PHS_Logger::error('Error in migrations after installing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations after installing tables: '.
-                                    $event_obj->get_result_errors_as_string() ?: 'Unknown error.');
+            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations after installing tables: '
+                                    .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
 
             return false;
         }
@@ -1093,16 +1089,15 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         $is_dry_update = PHS_Db::dry_update();
 
         /** @var null|PHS_Event_Migration_models $event_obj */
-        if( ($event_obj = PHS_Event_Migration_models::trigger_before_update(
-                model_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
-            ))
-            && $event_obj->result_has_error() ) {
-
+        if ( ($event_obj = PHS_Event_Migration_models::trigger_before_update(
+            model_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
+        ))
+        && $event_obj->result_has_error() ) {
             $this->set_error(self::ERR_UPDATE, self::_t('Error in migrations before updating tables for model %s.', $model_id));
             PHS_Logger::error('Error in migrations before updating tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before updating tables: '.
-                                    $event_obj->get_result_errors_as_string() ?: 'Unknown error.');
+            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before updating tables: '
+                                    .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
 
             return false;
         }
@@ -1120,16 +1115,15 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             }
 
             /** @var null|PHS_Event_Migration_models $event_obj */
-            if( ($event_obj = PHS_Event_Migration_models::trigger_before_update(
-                    model_obj: $this, table_name: $table_name, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
-                ))
-                && $event_obj->result_has_error() ) {
-
+            if ( ($event_obj = PHS_Event_Migration_models::trigger_before_update(
+                model_obj: $this, table_name: $table_name, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
+            ))
+            && $event_obj->result_has_error() ) {
                 $this->set_error(self::ERR_UPDATE, self::_t('Error in migrations before updating table %s for model %s.', $full_table_name, $model_id));
                 PHS_Logger::error('Error in migrations before updating table ['.$full_table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-                PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before updating table ['.$full_table_name.']: '.
-                                        $event_obj->get_result_errors_as_string() ?: 'Unknown error.');
+                PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before updating table ['.$full_table_name.']: '
+                                        .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
 
                 return false;
             }
@@ -1147,32 +1141,30 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             }
 
             /** @var null|PHS_Event_Migration_models $event_obj */
-            if( ($event_obj = PHS_Event_Migration_models::trigger_after_update(
-                    model_obj: $this, table_name: $table_name, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
-                ))
-                && $event_obj->result_has_error() ) {
-
+            if ( ($event_obj = PHS_Event_Migration_models::trigger_after_update(
+                model_obj: $this, table_name: $table_name, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
+            ))
+            && $event_obj->result_has_error() ) {
                 $this->set_error(self::ERR_UPDATE, self::_t('Error in migrations after updating table %s for model %s.', $full_table_name, $model_id));
                 PHS_Logger::error('Error in migrations after updating table ['.$full_table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-                PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations after updating table ['.$full_table_name.']: '.
-                                        $event_obj->get_result_errors_as_string() ?: 'Unknown error.');
+                PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations after updating table ['.$full_table_name.']: '
+                                        .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
 
                 return false;
             }
         }
 
         /** @var null|PHS_Event_Migration_models $event_obj */
-        if( ($event_obj = PHS_Event_Migration_models::trigger_after_update(
-                model_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
-            ))
-            && $event_obj->result_has_error() ) {
-
+        if ( ($event_obj = PHS_Event_Migration_models::trigger_after_update(
+            model_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
+        ))
+        && $event_obj->result_has_error() ) {
             $this->set_error(self::ERR_UPDATE, self::_t('Error in migrations after updating tables for model %s.', $model_id));
             PHS_Logger::error('Error in migrations after updating tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations after updating tables: '.
-                                    $event_obj->get_result_errors_as_string() ?: 'Unknown error.');
+            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations after updating tables: '
+                                    .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
 
             return false;
         }
@@ -1190,6 +1182,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * Install missing tables when doing updates on this model
      *
+     * @param string $old_version
+     * @param string $new_version
      * @return null|array Array of tables created on success or false on failure
      */
     final public function install_missing_tables(string $old_version, string $new_version) : ?array
@@ -1211,16 +1205,15 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         $is_dry_update = PHS_Db::dry_update();
 
         /** @var null|PHS_Event_Migration_models $event_obj */
-        if( ($event_obj = PHS_Event_Migration_models::trigger_before_missing(
-                model_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
-            ))
-            && $event_obj->result_has_error() ) {
-
+        if ( ($event_obj = PHS_Event_Migration_models::trigger_before_missing(
+            model_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
+        ))
+        && $event_obj->result_has_error() ) {
             $this->set_error(self::ERR_UPDATE, self::_t('Error in migrations before installing missing tables for model %s.', $model_id));
             PHS_Logger::error('Error in migrations before installing missing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before installing missing tables: '.
-                                    $event_obj->get_result_errors_as_string() ?: 'Unknown error.');
+            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before installing missing tables: '
+                                    .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
 
             return null;
         }
@@ -1238,16 +1231,15 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             }
 
             /** @var null|PHS_Event_Migration_models $event_obj */
-            if( ($event_obj = PHS_Event_Migration_models::trigger_before_missing(
-                    model_obj: $this, table_name: $table_name, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
-                ))
-                && $event_obj->result_has_error() ) {
-
+            if ( ($event_obj = PHS_Event_Migration_models::trigger_before_missing(
+                model_obj: $this, table_name: $table_name, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
+            ))
+            && $event_obj->result_has_error() ) {
                 $this->set_error(self::ERR_UPDATE, self::_t('Error in migrations before installing table %s, model %s.', $full_table_name, $model_id));
                 PHS_Logger::error('Error in migrations before installing table ['.$full_table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-                PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before installing table ['.$table_name.']: '.
-                                        $event_obj->get_result_errors_as_string() ?: 'Unknown error.');
+                PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before installing table ['.$table_name.']: '
+                                        .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
 
                 return null;
             }
@@ -1268,32 +1260,30 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             }
 
             /** @var null|PHS_Event_Migration_models $event_obj */
-            if( ($event_obj = PHS_Event_Migration_models::trigger_after_missing(
-                    model_obj: $this, table_name: $table_name, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
-                ))
-                && $event_obj->result_has_error() ) {
-
+            if ( ($event_obj = PHS_Event_Migration_models::trigger_after_missing(
+                model_obj: $this, table_name: $table_name, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
+            ))
+            && $event_obj->result_has_error() ) {
                 $this->set_error(self::ERR_UPDATE, self::_t('Error in migrations after installing table %s, model %s.', $full_table_name, $model_id));
                 PHS_Logger::error('Error in migrations after installing table ['.$full_table_name.'], model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-                PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations after installing table ['.$full_table_name.']: '.
-                                        $event_obj->get_result_errors_as_string() ?: 'Unknown error.');
+                PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations after installing table ['.$full_table_name.']: '
+                                        .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
 
                 return null;
             }
         }
 
         /** @var null|PHS_Event_Migration_models $event_obj */
-        if( ($event_obj = PHS_Event_Migration_models::trigger_after_missing(
-                model_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
-            ))
-            && $event_obj->result_has_error() ) {
-
+        if ( ($event_obj = PHS_Event_Migration_models::trigger_after_missing(
+            model_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
+        ))
+        && $event_obj->result_has_error() ) {
             $this->set_error(self::ERR_UPDATE, self::_t('Error in migrations after installing missing tables for model %s.', $model_id));
             PHS_Logger::error('Error in migrations after installing missing tables for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
-            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before installing missing tables: '.
-                                    $event_obj->get_result_errors_as_string() ?: 'Unknown error.');
+            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before installing missing tables: '
+                                    .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
 
             return null;
         }

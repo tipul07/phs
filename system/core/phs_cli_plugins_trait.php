@@ -17,21 +17,20 @@ trait PHS_Cli_plugins_trait
     /** @var null|PHS_Model_Plugins */
     protected ?PHS_Model_Plugins $_plugins_model = null;
 
-    public function get_plugins_as_dirs()
+    public function get_plugins_as_dirs() : ?array
     {
         if (!($plugins_model = $this->_get_plugins_model())) {
-            return false;
+            return null;
         }
 
-        if (($plugins_arr = $plugins_model->get_all_plugin_names_from_dir()) === false
-         || !is_array($plugins_arr)) {
+        if (null === ($plugins_arr = $plugins_model->get_all_plugin_names_from_dir())) {
             if (!$plugins_model->has_error()) {
                 $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error obtaining plugins list.'));
             } else {
                 $this->copy_error($plugins_model);
             }
 
-            return false;
+            return null;
         }
 
         return $plugins_arr;
@@ -167,7 +166,7 @@ trait PHS_Cli_plugins_trait
             $this->_echo('  '.self::_t('N/A'));
         } else {
             foreach ($plugin_info['agent_jobs'] as $job_arr) {
-                if(empty($job_arr['route']) || !is_array($job_arr['route'])) {
+                if (empty($job_arr['route']) || !is_array($job_arr['route'])) {
                     $route_str = 'N/A';
                 } else {
                     $route_str = PHS::route_from_parts(PHS::convert_route_to_short_parts($job_arr['route']));

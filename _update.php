@@ -20,7 +20,11 @@ if (@file_exists(PHS_SYSTEM_DIR.'install.php')) {
 
     if ($system_install_result !== true) {
         echo PHS::_t('ERROR while running system install script [%s]:', 'CORE INSTALL');
-        var_dump($system_install_result);
+        if ( is_string($system_install_result) ) {
+            echo PHS::_t('ERROR: %s', $system_install_result );
+        } else {
+            var_dump($system_install_result);
+        }
         echo '</pre>';
         exit;
     }
@@ -39,7 +43,11 @@ foreach ([PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR] as $bstrap_dir) {
 
             if ($install_result !== null) {
                 echo PHS::_t('ERROR while running system install script [%s]:', $install_script);
-                var_dump($install_result);
+                if ( is_string($install_result) ) {
+                    echo PHS::_t('ERROR: %s', $install_result );
+                } else {
+                    var_dump($install_result);
+                }
             }
         }
     }

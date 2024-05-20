@@ -8,32 +8,32 @@ use phs\libraries\PHS_Plugin;
 
 abstract class PHS_Event_Migration extends PHS_Event
 {
-    public function result_has_error(): bool
+    public function result_has_error() : bool
     {
         return (bool)$this->get_output('has_error');
     }
 
-    public function get_result_errors(): array
+    public function get_result_errors() : array
     {
         return $this->get_output('errors_arr') ?: [];
     }
 
-    public function get_result_errors_as_string(): string
+    public function get_result_errors_as_string() : string
     {
         return implode( "\n\t- ", $this->get_result_errors());
     }
 
-    public function is_dry_update(): bool
+    public function is_dry_update() : bool
     {
         return (bool)$this->get_input('is_dry_update');
     }
 
-    public function is_forced(): bool
+    public function is_forced() : bool
     {
         return (bool)$this->get_input('is_forced');
     }
 
-    public function add_result_error(string $error_msg): void
+    public function add_result_error(string $error_msg) : void
     {
         $output_arr = $this->get_output() ?: [];
         $output_arr['has_error'] = true;
@@ -57,18 +57,18 @@ abstract class PHS_Event_Migration extends PHS_Event
             // Tells if migration script is forced from interface or CLI
             'is_forced' => false,
             // Tells if migration script runs in a dry update run
-            'is_dry_update' => false,
-            'old_version' => '',
-            'new_version' => '',
+            'is_dry_update'      => false,
+            'old_version'        => '',
+            'new_version'        => '',
             'plugin_instance_id' => '',
-            'plugin_class' => '',
+            'plugin_class'       => '',
         ];
     }
 
     protected function _output_parameters() : array
     {
         return [
-            'has_error' => false,
+            'has_error'  => false,
             'errors_arr' => [],
         ];
     }

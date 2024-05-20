@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\accounts\migrations;
 
 use phs\PHS_Maintenance;
@@ -9,7 +10,7 @@ use phs\system\core\events\migrations\PHS_Event_Migration_models;
 
 class PHS_First_migration extends PHS_Migration
 {
-    public function bootstrap(): bool
+    public function bootstrap() : bool
     {
         $this->before_missing_table(
             [$this, 'before_missing_table_phs_migrations'],
@@ -40,42 +41,49 @@ class PHS_First_migration extends PHS_Migration
 
     public function before_missing_table_phs_migrations(PHS_Event_Migration_models $event_obj) : bool
     {
-        PHS_Maintenance::output("\t".'Before missing table trigger on model '.
-                                ($event_obj->get_input('model_instance_id') ?? 'N/A').
-                                ', table '.
-                                ($event_obj->get_input('table_name') ?? 'N/A').
-                                '.');
+        PHS_Maintenance::output("\t".'Before missing table trigger on model '
+                                .($event_obj->get_input('model_instance_id') ?? 'N/A')
+                                .', table '
+                                .($event_obj->get_input('table_name') ?? 'N/A')
+                                .'.');
+
+        return true;
     }
 
     public function after_missing_table_phs_migrations(PHS_Event_Migration_models $event_obj) : bool
     {
-        PHS_Maintenance::output("\t".'After missing table trigger on model '.
-                                ($event_obj->get_input('model_instance_id') ?? 'N/A').
-                                ', table '.
-                                ($event_obj->get_input('table_name') ?? 'N/A').
-                                '.');
+        PHS_Maintenance::output("\t".'After missing table trigger on model '
+                                .($event_obj->get_input('model_instance_id') ?? 'N/A')
+                                .', table '
+                                .($event_obj->get_input('table_name') ?? 'N/A')
+                                .'.');
+
+        return true;
     }
 
     public function before_update_table_users_details(PHS_Event_Migration_models $event_obj) : bool
     {
-        PHS_Maintenance::output("\t".'Before update table trigger on model '.
-                                ($event_obj->get_input('model_instance_id') ?? 'N/A').
-                                ', table '.
-                                ($event_obj->get_input('table_name') ?? 'N/A').
-                                '.');
+        PHS_Maintenance::output("\t".'Before update table trigger on model '
+                                .($event_obj->get_input('model_instance_id') ?? 'N/A')
+                                .', table '
+                                .($event_obj->get_input('table_name') ?? 'N/A')
+                                .'.');
+
+        return true;
     }
 
     public function after_update_table_users_details(PHS_Event_Migration_models $event_obj) : bool
     {
-        PHS_Maintenance::output("\t".'After update table trigger on model '.
-                                ($event_obj->get_input('model_instance_id') ?? 'N/A').
-                                ', table '.
-                                ($event_obj->get_input('table_name') ?? 'N/A').
-                                '.');
+        PHS_Maintenance::output("\t".'After update table trigger on model '
+                                .($event_obj->get_input('model_instance_id') ?? 'N/A')
+                                .', table '
+                                .($event_obj->get_input('table_name') ?? 'N/A')
+                                .'.');
+
+        return true;
     }
 
-    private function _load_dependencies(): bool
+    private function _load_dependencies() : bool
     {
-
     }
 }

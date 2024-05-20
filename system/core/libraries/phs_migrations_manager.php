@@ -8,13 +8,16 @@ use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Library;
 use phs\libraries\PHS_Registry;
 use phs\libraries\PHS_Migration;
+use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\models\PHS_Model_Migrations;
 
 class PHS_Migrations_manager extends PHS_Library
 {
-    const FILE_TIMESTAMP_FORMAT = 'YmdHis';
+    public const FILE_TIMESTAMP_FORMAT = 'YmdHis';
 
     private ?PHS_Model_Migrations $_migrations_model = null;
+
+    private ?PHS_Model_Plugins $_plugins_model = null;
 
     private static ?array $_existing_migrations = null;
 
@@ -38,6 +41,13 @@ class PHS_Migrations_manager extends PHS_Library
         return self::$_existing_migrations_per_plugin;
     }
 
+    public function get_existing_migrations_for_plugin(string $plugin_name) : array
+    {
+        return ($migrations_arr = $this->get_existing_migrations_per_plugin()) && !empty($migrations_arr[$plugin_name])
+            ? $migrations_arr[$plugin_name]
+            : [];
+    }
+
     public function get_existing_migrations() : array
     {
         if (self::$_existing_migrations === null) {
@@ -47,82 +57,121 @@ class PHS_Migrations_manager extends PHS_Library
         return self::$_existing_migrations;
     }
 
-    private function _load_existing_migrations() : bool
+    public function register_migrations_for_plugins(array $plugin_names) : ?array
+    {
+        if ( null === ($migrations_arr = $this->get_migration_scripts_to_be_run_for_plugins($plugin_names)) ) {
+            return null;
+        }
+
+        $return_arr = [
+            'plugins' => 0,
+            'scripts' => 0,
+        ];
+
+        if (!$migrations_arr) {
+            return $return_arr;
+        }
+
+        foreach ($migrations_arr as $scripts_arr) {
+            foreach ($scripts_arr as $script_details) {
+                if ( !$this->_register_script_details($script_details)) {
+                    if ($this->has_error()) {
+                        return null;
+                    }
+
+                    continue;
+                }
+
+                $return_arr['scripts']++;
+            }
+
+            $return_arr['plugins']++;
+        }
+
+        return $return_arr;
+    }
+
+    public function get_migration_scripts_to_be_run_for_plugins(array $plugin_names) : ?array
     {
         if (!$this->_load_dependencies()) {
-            return false;
+            return null;
         }
 
-        // Cover false and null as result...
-        if (!($migrations_arr = $this->_migrations_model->get_list(['table_name' => 'phs_migrations']))
-            && !is_array($migrations_arr)) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error obtaining a list of migration scripts.'));
-
-            return false;
-        }
-
-        self::$_existing_migrations = [];
-        self::$_existing_migrations_per_plugin = [];
-        foreach ($migrations_arr as $m_id => $m_arr) {
-            if (empty($m_arr['plugin'])) {
+        $scripts_arr = [];
+        foreach ($plugin_names as $plugin_name) {
+            if ( empty($plugin_name)
+                || !($migrations_arr = $this->get_migration_scripts_to_be_run_for_one_plugin($plugin_name)) ) {
                 continue;
             }
 
-            self::$_existing_migrations[(int)$m_id] = $m_arr;
-            self::$_existing_migrations_per_plugin[$m_arr['plugin']] = $m_arr['script'];
+            $scripts_arr[$plugin_name] = $migrations_arr;
         }
 
-        return true;
+        return $scripts_arr;
     }
 
-    private function _load_dependencies() : bool
+    public function get_migration_scripts_to_be_run_for_one_plugin(string $plugin_name) : ?array
     {
-        $this->reset_error();
-
-        if ($this->_migrations_model === null && !($this->_migrations_model = PHS_Model_Migrations::get_instance())) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
+        if (!$this->_load_dependencies()) {
+            return null;
         }
 
-        return true;
+        /**
+         * @var PHS_Plugin $plugin_obj
+         */
+        if ( !($plugin_obj = $this->_plugins_model->plugin_name_is_instantiable($plugin_name))
+            || !($migrations = $this->get_migrations_scripts_from_plugin_instance($plugin_obj))) {
+            return [];
+        }
+
+        $migrations_arr = [];
+        foreach ($migrations as $migration_details) {
+            if (empty($migration_details['script'])
+               || $this->_migration_script_already_run($plugin_name, $migration_details['script'])) {
+                continue;
+            }
+
+            $migrations_arr[] = $migration_details;
+        }
+
+        return $migrations_arr;
     }
 
-    public static function get_migrations_scripts_from_plugin_class(string $plugin_class, array $params = []) : ?array
+    public function get_migrations_scripts_from_plugin_class(string $plugin_class, array $params = []) : ?array
     {
         self::st_reset_error();
 
         if (empty($plugin_class)
             || !($plugin_obj = $plugin_class::get_instance())) {
-            if ( !self::st_has_error()) {
-                self::st_set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t obtain a plugin instance.'));
-            }
+            $this->set_error(self::ERR_PARAMETERS,
+                self::_t('Couldn\'t obtain a plugin instance: %s',
+                    self::st_get_simple_error_message(self::_t('Unknown error.'))));
 
             return null;
         }
 
-        return self::get_migrations_scripts_from_plugin_instance($plugin_obj, $params);
+        return $this->get_migrations_scripts_from_plugin_instance($plugin_obj, $params);
     }
 
-    public static function get_migrations_scripts_from_plugin_name(string $plugin_name, array $params = []) : ?array
+    public function get_migrations_scripts_from_plugin_name(string $plugin_name, array $params = []) : ?array
     {
-        self::st_reset_error();
+        $this->reset_error();
 
         if (empty($plugin_name)
             || !($plugin_obj = PHS::load_plugin($plugin_name))) {
-            if ( !self::st_has_error()) {
-                self::st_set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t obtain a plugin instance.'));
-            }
+            $this->set_error(self::ERR_PARAMETERS,
+                self::_t('Couldn\'t obtain a plugin instance: %s',
+                    self::st_get_simple_error_message(self::_t('Unknown error.'))));
 
             return null;
         }
 
-        return self::get_migrations_scripts_from_plugin_instance($plugin_obj, $params);
+        return $this->get_migrations_scripts_from_plugin_instance($plugin_obj, $params);
     }
 
-    public static function get_migrations_scripts_from_plugin_instance(PHS_Plugin $plugin_obj, array $params = []) : ?array
+    public function get_migrations_scripts_from_plugin_instance(PHS_Plugin $plugin_obj, array $params = []) : ?array
     {
-        self::st_reset_error();
+        $this->reset_error();
 
         if (!($migrations_dir = $plugin_obj->instance_plugin_migrations_path())
             || !@file_exists($migrations_dir)
@@ -141,10 +190,10 @@ class PHS_Migrations_manager extends PHS_Library
 
         $migrations_arr = [];
         foreach ( $files_arr as $file) {
-            if( !($script_details = self::get_migration_file_details($file, $plugin_obj))) {
-                if($params['maintenance_output']) {
-                    PHS_Maintenance::output("\t".'WARNING: Plugin '.$plugin_obj->instance_plugin_name().', migration script '.(basename($file) ?: $file).': '.
-                                            self::st_get_simple_error_message('Error loading migration script.'));
+            if ( !($script_details = $this->_get_migration_file_details($file, $plugin_obj))) {
+                if ($params['maintenance_output']) {
+                    PHS_Maintenance::output("\t".'WARNING: Plugin '.$plugin_obj->instance_plugin_name().', migration script '.(basename($file) ?: $file).': '
+                                            .$this->get_simple_error_message('Error loading migration script.'));
                 }
 
                 continue;
@@ -154,100 +203,123 @@ class PHS_Migrations_manager extends PHS_Library
         }
 
         // Do not propagate errors...
-        self::st_reset_error();
+        $this->reset_error();
 
         return $migrations_arr;
     }
 
-    public static function get_migration_file_details(string $file, PHS_Plugin $plugin_obj): ?array
+    private function _register_script_details(array $script_details) : bool
     {
-        self::st_reset_error();
+        $this->reset_error();
 
-        if( !($filename = basename($file))
-            || !@preg_match('/([0-9]{14})_([a-zA-Z0-9_]+)\.php/', $filename, $matches) ) {
-            self::st_set_error(self::ERR_RESOURCES, self::_t('Bad migration script naming format.'));
+        if (empty($script_details['full_classname'])) {
+            return false;
+        }
+
+        /** @var PHS_Migration $migration_obj */
+        $migration_obj = new $script_details['full_classname']($script_details);
+
+        if ( !$migration_obj->register() ) {
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                self::_t('Error registering script %s, plugin %s.',
+                    $script_details['script'], $script_details['plugin']));
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function _migration_script_already_run(string $plugin_name, string $script) : bool
+    {
+        return ($scripts_arr = $this->get_existing_migrations_for_plugin($plugin_name))
+               && in_array($script, $scripts_arr, true);
+    }
+
+    private function _get_migration_file_details(string $file, PHS_Plugin $plugin_obj) : ?array
+    {
+        $this->reset_error();
+
+        if ( !($script = basename($file))
+             || !@preg_match('/([0-9]{14})_([a-zA-Z0-9_]+)\.php/', $script, $matches) ) {
+            $this->set_error(self::ERR_RESOURCES, self::_t('Bad migration script naming format.'));
+
             return null;
         }
 
-        if( !($filestamp = $matches[1] ?? '')
-            || !($timestamp = self::_filestamp_to_timestamp($filestamp)) ) {
-            if( !self::st_has_error() ) {
-                self::st_set_error(self::ERR_RESOURCES, self::_t('Filestamp failed verification.'));
+        if ( !($filestamp = $matches[1] ?? '')
+             || !($timestamp = $this->_filestamp_to_timestamp($filestamp)) ) {
+            if ( !$this->has_error() ) {
+                $this->set_error(self::ERR_RESOURCES, self::_t('Filestamp failed verification.'));
             }
+
             return null;
         }
 
-        if( !($file_class_name = $matches[2] ?? '')
-            || !($class_validation = self::_validate_file_and_classname($file, $file_class_name, $plugin_obj))
-            || empty($class_validation['full_classname'])) {
-            if( !self::st_has_error() ) {
-                self::st_set_error(self::ERR_RESOURCES, self::_t('Error loading migration script.'));
+        if ( !($file_class_name = $matches[2] ?? '')
+             || !($class_validation = $this->_validate_file_and_classname($file, $file_class_name, $plugin_obj))
+             || empty($class_validation['full_classname'])) {
+            if ( !$this->has_error() ) {
+                $this->set_error(self::ERR_RESOURCES, self::_t('Error loading migration script.'));
             }
+
             return null;
         }
 
         return [
-            'basename' => $filename,
-            'timestamp' => $timestamp,
-            'file' => $file,
+            'plugin'         => $plugin_obj->instance_plugin_name(),
+            'version'        => $plugin_obj->get_plugin_version(),
+            'script'         => $script,
+            'timestamp'      => $timestamp,
+            'file'           => $file,
             'full_classname' => $class_validation['full_classname'],
         ];
     }
 
-    public static function is_migration_classname_safe(string $class_name): bool
+    private function _validate_file_and_classname(string $file, string $file_class_name, PHS_Plugin $plugin_obj) : ?array
     {
-        return !empty($class_name)
-               && !preg_match('/[^a-zA-Z0-9_]/', $class_name);
-    }
+        $this->reset_error();
 
-    public static function get_current_filestamp(): string
-    {
-        return self::timestamp_to_filestamp(time());
-    }
+        if (!$this->_is_migration_classname_safe($file_class_name)) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Bad file name format.'));
 
-    public static function timestamp_to_filestamp(int $timestamp): string
-    {
-        return date(self::FILE_TIMESTAMP_FORMAT, $timestamp);
-    }
-
-    private static function _validate_file_and_classname(string $file, string $file_class_name, PHS_Plugin $plugin_obj): ?array
-    {
-        self::st_reset_error();
-
-        if(!self::is_migration_classname_safe($file_class_name)) {
-            self::st_set_error(self::ERR_PARAMETERS, self::_t('Bad file name format.'));
             return null;
         }
 
         ob_start();
-        include_once($file);
+        include_once $file;
         @ob_end_clean();
 
         $class_name = $plugin_obj->instance_plugin_migrations_namespace().'PHS_'.ucfirst(strtolower($file_class_name));
 
-        if( !@class_exists($class_name, false) ) {
-            self::st_set_error(self::ERR_PARAMETERS, self::_t('Class %s does not exist.', $class_name));
+        if ( !@class_exists($class_name, false) ) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Class %s does not exist.', $class_name));
+
             return null;
         }
 
         try {
             if (!($reflection = new \ReflectionClass($class_name))) {
-                self::st_set_error(self::ERR_PARAMETERS, self::_t('Error checking class %s.', $class_name));
+                $this->set_error(self::ERR_PARAMETERS, self::_t('Error checking class %s.', $class_name));
+
                 return null;
             }
 
             if ($reflection->isAbstract()) {
-                self::st_set_error(self::ERR_PARAMETERS, self::_t('Cannot use an abstract class %s.', $class_name));
+                $this->set_error(self::ERR_PARAMETERS, self::_t('Cannot use an abstract class %s.', $class_name));
+
                 return null;
             }
 
             if (!($parent_class = $reflection->getParentClass())
                 || $parent_class->getName() !== PHS_Migration::class) {
-                self::st_set_error(self::ERR_PARAMETERS, self::_t('Class %s does not look like a migration class.', $class_name));
+                $this->set_error(self::ERR_PARAMETERS, self::_t('Class %s does not look like a migration class.', $class_name));
+
                 return null;
             }
         } catch (\Exception $e) {
-            self::st_set_error(self::ERR_PARAMETERS, self::_t('Could not determine details of class %s.', $class_name));
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Could not determine details of class %s.', $class_name));
+
             return null;
         }
 
@@ -256,11 +328,17 @@ class PHS_Migrations_manager extends PHS_Library
         ];
     }
 
-    private static function _filestamp_to_timestamp(string $filestamp): ?int
+    private function _is_migration_classname_safe(string $class_name) : bool
     {
-        self::st_reset_error();
+        return !empty($class_name)
+               && !preg_match('/[^a-zA-Z0-9_]/', $class_name);
+    }
 
-        if((string)((int)$filestamp) !== $filestamp
+    private function _filestamp_to_timestamp(string $filestamp) : ?int
+    {
+        $this->reset_error();
+
+        if ((string)((int)$filestamp) !== $filestamp
            || strlen($filestamp) !== 14
            || !(int)($year = substr($filestamp, 0, 4))
            || !(int)($month = substr($filestamp, 4, 2))
@@ -271,10 +349,70 @@ class PHS_Migrations_manager extends PHS_Library
            || !($my_timestamp = mktime($hours, $minutes, $seconds, $month, $day, $year))
            || date(self::FILE_TIMESTAMP_FORMAT, $my_timestamp) !== (string)$filestamp
         ) {
-            self::st_set_error(self::ERR_PARAMETERS, self::_t('Bad file timestamp format.'));
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Bad file timestamp format.'));
+
             return null;
         }
 
         return $my_timestamp;
+    }
+
+    private function _load_existing_migrations() : bool
+    {
+        if (!$this->_load_dependencies()) {
+            return false;
+        }
+
+        $list_arr = $this->_migrations_model->fetch_default_flow_params(['table_name' => 'phs_migrations']) ?: [];
+        $list_arr['order_by'] = 'plugin ASC, cdate DESC';
+
+        // Cover false and null as result...
+        if (!($migrations_arr = $this->_migrations_model->get_list($list_arr))
+            && !is_array($migrations_arr)) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error obtaining a list of migration scripts.'));
+
+            return false;
+        }
+
+        self::$_existing_migrations = [];
+        self::$_existing_migrations_per_plugin = [];
+        foreach ($migrations_arr as $m_id => $m_arr) {
+            if (empty($m_arr['plugin'])) {
+                continue;
+            }
+
+            self::$_existing_migrations[(int)$m_id] = $m_arr;
+
+            self::$_existing_migrations_per_plugin[$m_arr['plugin']] ??= [];
+            self::$_existing_migrations_per_plugin[$m_arr['plugin']][] = $m_arr['script'];
+        }
+
+        return true;
+    }
+
+    private function _load_dependencies() : bool
+    {
+        $this->reset_error();
+
+        if (
+            ($this->_migrations_model === null && !($this->_migrations_model = PHS_Model_Migrations::get_instance()))
+            || ($this->_plugins_model === null && !($this->_plugins_model = PHS_Model_Plugins::get_instance()))
+        ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public static function get_current_filestamp() : string
+    {
+        return self::timestamp_to_filestamp(time());
+    }
+
+    public static function timestamp_to_filestamp(int $timestamp) : string
+    {
+        return date(self::FILE_TIMESTAMP_FORMAT, $timestamp);
     }
 }

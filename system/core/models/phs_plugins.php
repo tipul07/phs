@@ -275,17 +275,17 @@ class PHS_Model_Plugins extends PHS_Model
     /**
      * @return array|bool False on error or array containing plugin names (without instantiating plugins)
      */
-    public function get_all_plugin_names_from_dir()
+    public function get_all_plugin_names_from_dir() : ?array
     {
         $this->reset_error();
 
         @clearstatcache();
 
-        if (($dirs_list = @glob(PHS_PLUGINS_DIR.'*', GLOB_ONLYDIR)) === false
-         || !is_array($dirs_list)) {
+        if (false === ($dirs_list = @glob(PHS_PLUGINS_DIR.'*', GLOB_ONLYDIR))
+            || !is_array($dirs_list)) {
             $this->set_error(self::ERR_DIR_DETAILS, self::_t('Couldn\'t get a list of plugin directories.'));
 
-            return false;
+            return null;
         }
 
         $return_arr = [];
@@ -400,6 +400,13 @@ class PHS_Model_Plugins extends PHS_Model
         }
 
         return self::$dir_plugins;
+    }
+
+    public function plugin_name_is_instantiable(string $plugin_name) : ?PHS_Plugin
+    {
+        $this->cache_all_dir_details();
+
+        return self::$dir_plugins[$plugin_name] ?? null;
     }
 
     public function get_all_db_details(bool $force = false) : array

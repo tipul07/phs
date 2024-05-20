@@ -39,8 +39,8 @@ class PHSMaintenance extends PHS_Cli
     {
         $this->reset_error();
 
-        if (false === ($plugins_dirs_arr = $this->get_plugins_as_dirs())) {
-            $this->_echo_error(self::_t('Couldn\'t obtaining plugins list: %s', $this->get_simple_error_message()));
+        if (null === ($plugins_dirs_arr = $this->get_plugins_as_dirs())) {
+            $this->_echo_error(self::_t('Couldn\'t obtain plugins list: %s', $this->get_simple_error_message()));
 
             return false;
         }
@@ -325,8 +325,8 @@ class PHSMaintenance extends PHS_Cli
     {
         $this->reset_error();
 
-        if (false === ($plugins_dirs_arr = $this->get_plugins_as_dirs())) {
-            $this->_echo_error(self::_t('Couldn\'t obtaining plugins list: %s', $this->get_simple_error_message()));
+        if (null === ($plugins_dirs_arr = $this->get_plugins_as_dirs())) {
+            $this->_echo_error(self::_t('Couldn\'t obtain plugins list: %s', $this->get_simple_error_message()));
 
             return false;
         }

@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\accounts\contracts;
 
 use phs\PHS;

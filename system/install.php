@@ -8,6 +8,7 @@ if (!defined('PHS_VERSION')
 use phs\PHS;
 use phs\PHS_Maintenance;
 use phs\libraries\PHS_Model;
+use phs\libraries\PHS_Plugin;
 use phs\system\core\models\PHS_Model_Plugins;
 
 /** @var PHS_Model_Plugins $plugins_model */
@@ -93,9 +94,23 @@ foreach ($plugins_arr as $plugin_name => $plugin_obj) {
     $installing_plugins_arr[$plugin_name] = $plugin_obj;
 }
 
+if ( !($migrations_manager = migrations_manager()) ) {
+    return PHS::_t('Error instantiating migrations manager.');
+}
+
+if ( ($plugin_names = array_keys($installing_plugins_arr)) ) {
+    if ( null === ($migrations_arr = $migrations_manager->register_migrations_for_plugins($plugin_names)) ) {
+        return PHS::_t('Error registering migration scripts: %s.',
+            $migrations_manager->get_simple_error_message(PHS::_t('Unknown error.')));
+    }
+
+    PHS_Maintenance::output(PHS::_t('Registered %s migration scripts from %s plugins.',
+        $migrations_arr['scripts'] ?? 0, $migrations_arr['plugins'] ?? 0));
+}
+
 /**
  * @var string $plugin_name
- * @var \phs\libraries\PHS_Plugin $plugin_obj
+ * @var PHS_Plugin $plugin_obj
  */
 foreach ($installing_plugins_arr as $plugin_name => $plugin_obj) {
     if (!$plugin_obj->check_installation()) {

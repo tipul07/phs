@@ -1138,7 +1138,7 @@ final class PHS extends PHS_Registry
         return true;
     }
 
-    public static function safe_escape_root_script(string $script): ?string
+    public static function safe_escape_root_script(string $script) : ?string
     {
         if (empty($script)
             || preg_match('@[^a-zA-Z0-9_\-]@', $script)) {
@@ -1148,7 +1148,7 @@ final class PHS extends PHS_Registry
         return $script;
     }
 
-    public static function safe_escape_route_parts($part): ?string
+    public static function safe_escape_route_parts($part) : ?string
     {
         if (empty($part) || !is_string($part)
             || preg_match('@[^a-zA-Z0-9_]@', $part)) {
@@ -1159,7 +1159,7 @@ final class PHS extends PHS_Registry
     }
 
     // No _ allowed in action directories
-    public static function safe_escape_route_action_dir($part): ?string
+    public static function safe_escape_route_action_dir($part) : ?string
     {
         if (empty($part) || !is_string($part)
             || preg_match('@[^a-zA-Z0-9/_]@', $part)) {
@@ -1199,7 +1199,7 @@ final class PHS extends PHS_Registry
      *
      * @return string
      */
-    public static function background_script(?string $script = null): string
+    public static function background_script(?string $script = null) : string
     {
         if ($script === null) {
             return self::$_BACKGROUND_SCRIPT.'.php';
@@ -1222,7 +1222,7 @@ final class PHS extends PHS_Registry
      *
      * @return string
      */
-    public static function agent_script(?string $script = null): string
+    public static function agent_script(?string $script = null) : string
     {
         if ($script === null) {
             return self::$_AGENT_SCRIPT.'.php';
@@ -1245,7 +1245,7 @@ final class PHS extends PHS_Registry
      *
      * @return string
      */
-    public static function ajax_script(?string $script = null): string
+    public static function ajax_script(?string $script = null) : string
     {
         if ($script === null) {
             return self::$_AJAX_SCRIPT.'.php';
@@ -1268,7 +1268,7 @@ final class PHS extends PHS_Registry
      *
      * @return string
      */
-    public static function api_script(?string $script = null): string
+    public static function api_script(?string $script = null) : string
     {
         if ($script === null) {
             return self::$_API_SCRIPT.'.php';
@@ -1291,7 +1291,7 @@ final class PHS extends PHS_Registry
      *
      * @return string
      */
-    public static function remote_script(?string $script = null): string
+    public static function remote_script(?string $script = null) : string
     {
         if ($script === null) {
             return self::$_REMOTE_SCRIPT.'.php';
@@ -1314,7 +1314,7 @@ final class PHS extends PHS_Registry
      *
      * @return string
      */
-    public static function update_script(?string $script = null): string
+    public static function update_script(?string $script = null) : string
     {
         if ($script === null) {
             return self::$_UPDATE_SCRIPT.'.php';
@@ -1406,7 +1406,7 @@ final class PHS extends PHS_Registry
         return $base_url.self::ajax_script();
     }
 
-    public static function get_ajax_path(): string
+    public static function get_ajax_path() : string
     {
         return PHS_PATH.self::ajax_script();
     }
@@ -1597,9 +1597,9 @@ final class PHS extends PHS_Registry
      * Convert route from long plugin, controller and action names into p, c, a, ad names
      * @param array $route_arr
      *
-     * @return array|null
+     * @return null|array
      */
-    public static function convert_route_to_short_parts(array $route_arr): ?array
+    public static function convert_route_to_short_parts(array $route_arr) : ?array
     {
         if (empty($route_arr)
          || (empty($route_arr['plugin']) && empty($route_arr['controller']) && empty($route_arr['action']) && empty($route_arr['action_dir']))) {
@@ -1632,9 +1632,9 @@ final class PHS extends PHS_Registry
      * @param array $route_arr
      * @param bool $check_if_empty
      *
-     * @return array|null
+     * @return null|array
      */
-    public static function validate_short_name_route_parts(array $route_arr, bool $check_if_empty = true): ?array
+    public static function validate_short_name_route_parts(array $route_arr, bool $check_if_empty = true) : ?array
     {
         if ((!empty($check_if_empty)
              && empty($route_arr['p']) && empty($route_arr['c']) && empty($route_arr['a']))
@@ -2277,7 +2277,7 @@ final class PHS extends PHS_Registry
         self::st_reset_error();
 
         if (empty($core_library)
-         || !PHS_Instantiable::safe_escape_library_name($core_library)) {
+            || !PHS_Instantiable::safe_escape_library_name($core_library)) {
             self::st_set_error(self::ERR_LIBRARY, self::_t('Couldn\'t load core library.'));
 
             return null;
@@ -2335,8 +2335,8 @@ final class PHS extends PHS_Registry
     /**
      * Returns an instance of a view. If view is part of a plugin $plugin will contain name of that plugin.
      *
-     * @param string|null $view View to be loaded (part of class name after PHS_View_)
-     * @param string|null $plugin Plugin where view is located (false means a core view)
+     * @param null|string $view View to be loaded (part of class name after PHS_View_)
+     * @param null|string $plugin Plugin where view is located (false means a core view)
      * @param bool $as_singleton Tells if view instance should be loaded as singleton or new instance
      *
      * @return null|PHS_View Returns false on error or an instance of loaded view

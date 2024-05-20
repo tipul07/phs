@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS;
@@ -64,7 +65,7 @@ abstract class PHS_Instantiable extends PHS_Registry
      *
      * @return null|PHS_Plugin
      */
-    final public function parent_plugin(null|bool|PHS_Plugin $plugin_obj = null): ?PHS_Plugin
+    final public function parent_plugin(null | bool | PHS_Plugin $plugin_obj = null) : ?PHS_Plugin
     {
         if ($this->instance_type() === self::INSTANCE_TYPE_UNDEFINED) {
             return null;
@@ -234,7 +235,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     /**
      * @return null|string
      */
-    final public function instance_plugin_name(): string
+    final public function instance_plugin_name() : string
     {
         if (empty($this->instance_details)
             || empty($this->instance_details['plugin_name'])) {
