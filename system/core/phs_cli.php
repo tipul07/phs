@@ -16,8 +16,8 @@ abstract class PHS_Cli extends PHS_Registry
     /** @var int How much verbosity do we need */
     protected int $_verbose_level = self::VERBOSE_L1;
 
-    /** @var int|bool Instead of sending verbose level for each echo, we can set it as long as we don't change it again */
-    protected $_block_verbose = false;
+    /** @var null|int Instead of sending verbose level for each echo, we can set it as long as we don't change it again */
+    protected ?int $_block_verbose = null;
 
     /** @var bool Flush _echo commands as soon as received without buffering output */
     protected bool $_continous_flush = false;
@@ -143,8 +143,8 @@ abstract class PHS_Cli extends PHS_Registry
     public function run() : void
     {
         if (empty($_SERVER) || !is_array($_SERVER)
-         || empty($_SERVER['argc'])
-         || empty($_SERVER['argv']) || !is_array($_SERVER['argv'])) {
+            || empty($_SERVER['argc'])
+            || empty($_SERVER['argv']) || !is_array($_SERVER['argv'])) {
             $this->_echo($this->cli_color('ERROR', 'red').': '.'argv and argc are not set.');
             $this->_output_result_and_exit();
         }
@@ -157,7 +157,7 @@ abstract class PHS_Cli extends PHS_Registry
         $this->_process_app_options_on_run();
 
         if (!$this->_had_option_as_command()
-         && !$this->get_app_command()) {
+            && !$this->get_app_command()) {
             $this->_echo($this->cli_color('ERROR', 'red').': '.self::_t('Please provide a command.'));
 
             $this->cli_option_help();
@@ -167,7 +167,7 @@ abstract class PHS_Cli extends PHS_Registry
             $this->_reset_output();
 
             if (empty($command_arr['callback'])
-             && !@is_callable($command_arr['callback'])) {
+                || !@is_callable($command_arr['callback'])) {
                 $this->_echo($this->cli_color('ERROR', 'red').': '
                               .self::_t('Provided command doesn\'t have a callback function.'));
                 $this->_output_result_and_exit();
@@ -393,7 +393,7 @@ abstract class PHS_Cli extends PHS_Registry
         }
 
         if (!isset($params['verbose_lvl'])) {
-            if (false === ($params['verbose_lvl'] = $this->_verbosity_block())) {
+            if (null === ($params['verbose_lvl'] = $this->_verbosity_block())) {
                 $params['verbose_lvl'] = self::VERBOSE_L1;
             }
         } else {
@@ -700,7 +700,7 @@ abstract class PHS_Cli extends PHS_Registry
         return [
             'help' => [
                 'description' => 'Gets more help about commands. Try help {other command}.',
-                'callback'    => [$this, 'cli_command_help'],
+                'callback'    => [$this, 'cli_option_help'],
             ],
         ];
     }
@@ -745,17 +745,17 @@ abstract class PHS_Cli extends PHS_Registry
 
     /**
      * When passing another verbosity level, old verbosity level is returned
-     * @param bool|int $lvl
-     * @return int
+     * @param null|int $lvl
+     * @return null|int
      */
-    protected function _verbosity_block($lvl = false)
+    protected function _verbosity_block(?int $lvl = null) : ?int
     {
-        if ($lvl === false) {
+        if ($lvl === null) {
             return $this->_block_verbose;
         }
 
-        $old_verbosity = ($this->_block_verbose === false ? $this->get_app_verbosity() : $this->_block_verbose);
-        $this->_block_verbose = (int)$lvl;
+        $old_verbosity = ($this->_block_verbose ?? $this->get_app_verbosity());
+        $this->_block_verbose = $lvl;
 
         return $old_verbosity;
     }

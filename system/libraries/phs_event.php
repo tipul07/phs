@@ -2,6 +2,7 @@
 
 namespace phs\libraries;
 
+use Closure;
 use phs\PHS;
 use phs\PHS_Bg_jobs;
 
@@ -553,22 +554,32 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
 
         $return_arr = [];
         $return_arr['callback'] = $callback;
-        $return_arr['callback_id'] = '';
 
-        if (is_string($callback)) {
-            $return_arr['callback_id'] = $callback.'()';
-        } elseif (is_array($callback)
-                  && !empty($callback[0]) && !empty($callback[1])
-                  && is_string($callback[0]) && is_string($callback[1])) {
-            // Call id is only used to unique identify this callable, not for triggering the callable...
-            $return_arr['callback_id'] = '\\'.ltrim($callback[0], '\\').'::'.$callback[1].'()';
-        }
-
-        if (empty($return_arr['callback_id'])) {
+        if (!($return_arr['callback_id'] = $this->_get_callback_id($callback))) {
             return null;
         }
 
         return $return_arr;
+    }
+
+    private function _get_callback_id($callback) : string
+    {
+        if ($callback instanceof Closure) {
+            return Closure::class.'::__invoke('.microtime().')';
+        }
+
+        if (is_string($callback)) {
+            return $callback.'()';
+        }
+
+        if (is_array($callback)
+            && !empty($callback[0]) && !empty($callback[1])
+            && is_string($callback[0]) && is_string($callback[1])) {
+            // Call id is only used to unique identify this callable, not for triggering the callable...
+            return '\\'.ltrim($callback[0], '\\').'::'.$callback[1].'()';
+        }
+
+        return '';
     }
 
     /**
@@ -588,7 +599,8 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
             return null;
         }
 
-        if (is_string($callback)) {
+        if (is_string($callback)
+            || $callback instanceof Closure ) {
             return $callback;
         }
 
@@ -646,7 +658,8 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
             return null;
         }
 
-        if (is_string($callback)) {
+        if (is_string($callback)
+            || $callback instanceof Closure) {
             return $callback;
         }
 

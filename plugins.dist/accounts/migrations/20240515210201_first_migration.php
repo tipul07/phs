@@ -10,35 +10,6 @@ use phs\system\core\events\migrations\PHS_Event_Migration_models;
 
 class PHS_First_migration extends PHS_Migration
 {
-    public function bootstrap() : bool
-    {
-        $this->before_missing_table(
-            [$this, 'before_missing_table_phs_migrations'],
-            PHS_Model_Migrations::class,
-            'phs_migrations'
-        );
-
-        $this->after_missing_table(
-            [$this, 'after_missing_table_phs_migrations'],
-            PHS_Model_Migrations::class,
-            'phs_migrations'
-        );
-
-        $this->before_update_table(
-            [$this, 'before_update_table_users_details'],
-            PHS_Model_Accounts_details::class,
-            'users_details'
-        );
-
-        $this->after_update_table(
-            [$this, 'after_update_table_users_details'],
-            PHS_Model_Accounts_details::class,
-            'users_details'
-        );
-
-        return true;
-    }
-
     public function before_missing_table_phs_migrations(PHS_Event_Migration_models $event_obj) : bool
     {
         PHS_Maintenance::output("\t".'Before missing table trigger on model '
@@ -79,6 +50,35 @@ class PHS_First_migration extends PHS_Migration
                                 .', table '
                                 .($event_obj->get_input('table_name') ?? 'N/A')
                                 .'.');
+
+        return true;
+    }
+
+    protected function bootstrap(bool $forced = false) : bool
+    {
+        $this->before_missing_table(
+            [$this, 'before_missing_table_phs_migrations'],
+            PHS_Model_Migrations::class,
+            'phs_migrations'
+        );
+
+        $this->after_missing_table(
+            [$this, 'after_missing_table_phs_migrations'],
+            PHS_Model_Migrations::class,
+            'phs_migrations'
+        );
+
+        $this->before_update_table(
+            [$this, 'before_update_table_users_details'],
+            PHS_Model_Accounts_details::class,
+            'users_details'
+        );
+
+        $this->after_update_table(
+            [$this, 'after_update_table_users_details'],
+            PHS_Model_Accounts_details::class,
+            'users_details'
+        );
 
         return true;
     }

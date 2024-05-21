@@ -208,7 +208,7 @@ class PHS_Migrations_manager extends PHS_Library
         return $migrations_arr;
     }
 
-    private function _register_script_details(array $script_details) : bool
+    private function _register_script_details(array $script_details, bool $forced = false) : bool
     {
         $this->reset_error();
 
@@ -219,7 +219,7 @@ class PHS_Migrations_manager extends PHS_Library
         /** @var PHS_Migration $migration_obj */
         $migration_obj = new $script_details['full_classname']($script_details);
 
-        if ( !$migration_obj->register() ) {
+        if ( !$migration_obj->register($forced) ) {
             $this->set_error(self::ERR_FUNCTIONALITY,
                 self::_t('Error registering script %s, plugin %s.',
                     $script_details['script'], $script_details['plugin']));
@@ -363,6 +363,13 @@ class PHS_Migrations_manager extends PHS_Library
             return false;
         }
 
+        self::$_existing_migrations = [];
+        self::$_existing_migrations_per_plugin = [];
+
+        if ( !$this->_migrations_model->migration_model_is_installed() ) {
+            return true;
+        }
+
         $list_arr = $this->_migrations_model->fetch_default_flow_params(['table_name' => 'phs_migrations']) ?: [];
         $list_arr['order_by'] = 'plugin ASC, cdate DESC';
 
@@ -374,8 +381,6 @@ class PHS_Migrations_manager extends PHS_Library
             return false;
         }
 
-        self::$_existing_migrations = [];
-        self::$_existing_migrations_per_plugin = [];
         foreach ($migrations_arr as $m_id => $m_arr) {
             if (empty($m_arr['plugin'])) {
                 continue;

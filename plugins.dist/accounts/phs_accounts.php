@@ -61,7 +61,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         /** @var PHS_Model_Accounts $accounts_model */
         $accounts_levels_arr = [];

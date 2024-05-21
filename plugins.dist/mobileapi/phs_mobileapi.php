@@ -28,7 +28,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         return [
             'firebase_settings_group' => [

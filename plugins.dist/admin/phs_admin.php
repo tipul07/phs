@@ -275,7 +275,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_roles_definition()
+    public function get_roles_definition() : array
     {
         $return_arr = [
             PHS_Roles::ROLE_GUEST => [

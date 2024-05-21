@@ -18,7 +18,7 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         return [
             // default template

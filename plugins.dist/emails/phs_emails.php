@@ -30,7 +30,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         return [
             // default template

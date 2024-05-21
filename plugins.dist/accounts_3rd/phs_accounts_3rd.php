@@ -23,16 +23,16 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         if (!($google_lib = $this->get_google_instance())) {
             $this->reset_error();
-            $google_lib = false;
+            $google_lib = null;
         }
 
         if (!($apple_lib = $this->get_apple_instance())) {
             $this->reset_error();
-            $apple_lib = false;
+            $apple_lib = null;
         }
 
         return [

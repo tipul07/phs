@@ -5,82 +5,102 @@ namespace phs\system\core\events\migrations;
 include_once 'phs_migration.php';
 
 use phs\libraries\PHS_Plugin;
-use phs\libraries\PHS_Model_Core_base;
 
-class PHS_Event_Migration_models extends PHS_Event_Migration
+class PHS_Event_Migration_plugins extends PHS_Event_Migration
 {
-    public const EP_BEFORE_MISSING = 'before_missing', EP_AFTER_MISSING = 'after_missing',
-        EP_BEFORE_UPDATE = 'before_update', EP_AFTER_UPDATE = 'after_update';
-    // endregion Listeners
-
-    protected function _input_parameters() : array
-    {
-        return array_merge(parent::_input_parameters(), [
-            'model_instance_id' => '',
-            'model_class'       => '',
-            'table_name'        => '',
-            'flow_params'       => [],
-            'model_obj'         => null,
-        ]);
-    }
+    public const EP_INSTALLING = 'installing', EP_START = 'start', EP_FINISH = 'finish',
+        EP_AFTER_ROLES = 'after_roles', EP_AFTER_JOBS = 'after_jobs';
 
     // region Triggers
-    public static function trigger_before_missing(
-        PHS_Model_Core_base $model_obj,
-        string $table_name = '',
+
+    /**
+     * This will be triggered only when installing plugin. Normal updates will not trigger this.
+     *
+     * @param PHS_Plugin $plugin_obj
+     * @param string $old_version
+     * @param string $new_version
+     * @param bool $is_dry_update
+     * @param bool $is_forced
+     *
+     * @return null|self
+     */
+    public static function trigger_installing(
+        PHS_Plugin $plugin_obj,
         string $old_version = '',
         string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
         return self::trigger(
-            self::_generate_event_input($model_obj, $table_name, $old_version, $new_version, $is_dry_update, $is_forced),
-            $model_obj::class.'_'.self::EP_BEFORE_MISSING.'_'.$table_name,
+            self::_generate_event_input($plugin_obj, $old_version, $new_version, $is_dry_update, $is_forced),
+            $plugin_obj::class.'_'.self::EP_INSTALLING,
             ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
         );
     }
 
-    public static function trigger_after_missing(
-        PHS_Model_Core_base $model_obj,
-        string $table_name = '',
+    /**
+     * This is triggered when starting plugin update OR installation. At installation `trigger_installing()` will be called first, then this trigger.
+     *
+     * @param PHS_Plugin $plugin_obj
+     * @param string $old_version
+     * @param string $new_version
+     * @param bool $is_dry_update
+     * @param bool $is_forced
+     *
+     * @return null|self
+     */
+    public static function trigger_start(
+        PHS_Plugin $plugin_obj,
         string $old_version = '',
         string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
         return self::trigger(
-            self::_generate_event_input($model_obj, $table_name, $old_version, $new_version, $is_dry_update, $is_forced),
-            $model_obj::class.'_'.self::EP_AFTER_MISSING.'_'.$table_name,
+            self::_generate_event_input($plugin_obj, $old_version, $new_version, $is_dry_update, $is_forced),
+            $plugin_obj::class.'_'.self::EP_START,
             ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
         );
     }
 
-    public static function trigger_before_update(
-        PHS_Model_Core_base $model_obj,
-        string $table_name = '',
+    public static function trigger_finish(
+        PHS_Plugin $plugin_obj,
         string $old_version = '',
         string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
         return self::trigger(
-            self::_generate_event_input($model_obj, $table_name, $old_version, $new_version, $is_dry_update, $is_forced),
-            $model_obj::class.'_'.self::EP_BEFORE_UPDATE.'_'.$table_name,
+            self::_generate_event_input($plugin_obj, $old_version, $new_version, $is_dry_update, $is_forced),
+            $plugin_obj::class.'_'.self::EP_FINISH,
             ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
         );
     }
 
-    public static function trigger_after_update(
-        PHS_Model_Core_base $model_obj,
-        string $table_name = '',
+    public static function trigger_after_roles(
+        PHS_Plugin $plugin_obj,
         string $old_version = '',
         string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
         return self::trigger(
-            self::_generate_event_input($model_obj, $table_name, $old_version, $new_version, $is_dry_update, $is_forced),
-            $model_obj::class.'_'.self::EP_BEFORE_UPDATE.'_'.$table_name,
+            self::_generate_event_input($plugin_obj, $old_version, $new_version, $is_dry_update, $is_forced),
+            $plugin_obj::class.'_'.self::EP_AFTER_ROLES,
+            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
+        );
+    }
+
+    public static function trigger_after_jobs(
+        PHS_Plugin $plugin_obj,
+        string $old_version = '',
+        string $new_version = '',
+        bool $is_dry_update = false,
+        bool $is_forced = false,
+    ) : ?self {
+        return self::trigger(
+            self::_generate_event_input($plugin_obj, $old_version, $new_version, $is_dry_update, $is_forced),
+            $plugin_obj::class.'_'.self::EP_AFTER_JOBS,
             ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
         );
     }
@@ -138,30 +158,22 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
             ['priority' => $priority]
         );
     }
+    // endregion Listeners
 
     private static function _generate_event_input(
-        PHS_Model_Core_base $model_obj,
-        string $table_name,
+        PHS_Plugin $plugin_obj,
         string $old_version = '',
         string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : array {
-        /** @var null|PHS_Plugin $plugin_obj */
-        $plugin_obj = $model_obj->get_plugin_instance();
-
         return [
             'is_forced'          => $is_forced,
             'is_dry_update'      => $is_dry_update,
             'old_version'        => $old_version,
             'new_version'        => $new_version,
-            'model_instance_id'  => $model_obj->instance_id(),
-            'model_class'        => $model_obj::class,
-            'plugin_instance_id' => $plugin_obj ? $plugin_obj->instance_id() : '',
-            'plugin_class'       => $plugin_obj ? $plugin_obj::class : '',
-            'table_name'         => $table_name,
-            'flow_params'        => ['table_name' => $table_name],
-            'model_obj'          => $model_obj,
+            'plugin_instance_id' => $plugin_obj->instance_id(),
+            'plugin_class'       => $plugin_obj::class,
         ];
     }
 }

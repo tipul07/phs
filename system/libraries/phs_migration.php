@@ -2,6 +2,8 @@
 
 namespace phs\libraries;
 
+use phs\PHS_Db;
+use phs\PHS_Maintenance;
 use phs\system\core\models\PHS_Model_Migrations;
 use phs\system\core\events\migrations\PHS_Event_Migration_models;
 
@@ -21,26 +23,27 @@ abstract class PHS_Migration extends PHS_Registry
     public function __construct(array $script_details)
     {
         parent::__construct();
-        self::_load_dependencies();
+        $this->_load_dependencies();
         $this->_validate_script_details($script_details);
     }
 
-    abstract public function bootstrap() : bool;
+    abstract protected function bootstrap(bool $forced = false) : bool;
 
-    final public function register() : bool
+    final public function register(bool $forced = false) : bool
     {
-        if ( !$this->bootstrap() ) {
-            if ( !$this->has_error() ) {
-                $this->set_error(self::ERR_BOOTSTRAP, self::_t('Error in bootstrap call.'));
-            }
+        if ( !$this->bootstrap($forced) ) {
+            $this->set_error_if_not_set(self::ERR_BOOTSTRAP, self::_t('Error in bootstrap call.'));
 
             return false;
         }
 
-        if ( !$this->_record_migration_script() ) {
-            if ( !$this->has_error() ) {
-                $this->set_error(self::ERR_BOOTSTRAP, self::_t('Error creating migration record.'));
-            }
+        if ( ($is_dry_update = PHS_Db::dry_update()) ) {
+            PHS_Maintenance::output(self::_t('Script %s registered, but running in dry update mode.', static::class));
+        }
+
+        if ( !$is_dry_update
+             && !$this->_record_migration_script($forced) ) {
+            $this->set_error_if_not_set(self::ERR_BOOTSTRAP, self::_t('Error creating migration record.'));
 
             return false;
         }
@@ -48,6 +51,7 @@ abstract class PHS_Migration extends PHS_Registry
         return true;
     }
 
+    // region Model listeners
     /**
      * Execute callable before installing missing specific $model_class table or before installing all missing tables
      *
@@ -69,7 +73,12 @@ abstract class PHS_Migration extends PHS_Registry
             ['model_obj' => fn () => $model_class::get_instance(), 'table_name' => $table_name, 'is_forced' => true]
         );
 
-        return PHS_Event_Migration_models::listen_before_missing($callback, $model_class, $table_name, $priority);
+        return PHS_Event_Migration_models::listen_before_missing(
+            fn (PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper($event_obj, $callback),
+            $model_class,
+            $table_name,
+            $priority
+        );
     }
 
     /**
@@ -93,7 +102,12 @@ abstract class PHS_Migration extends PHS_Registry
             ['model_obj' => fn () => $model_class::get_instance(), 'table_name' => $table_name, 'is_forced' => true]
         );
 
-        return PHS_Event_Migration_models::listen_after_missing($callback, $model_class, $table_name, $priority);
+        return PHS_Event_Migration_models::listen_after_missing(
+            fn (PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper($event_obj, $callback),
+            $model_class,
+            $table_name,
+            $priority
+        );
     }
 
     /**
@@ -117,7 +131,12 @@ abstract class PHS_Migration extends PHS_Registry
             ['model_obj' => fn () => $model_class::get_instance(), 'table_name' => $table_name, 'is_forced' => true]
         );
 
-        return PHS_Event_Migration_models::listen_before_missing($callback, $model_class, $table_name, $priority);
+        return PHS_Event_Migration_models::listen_before_missing(
+            fn (PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper($event_obj, $callback),
+            $model_class,
+            $table_name,
+            $priority
+        );
     }
 
     /**
@@ -141,7 +160,81 @@ abstract class PHS_Migration extends PHS_Registry
             ['model_obj' => fn () => $model_class::get_instance(), 'table_name' => $table_name, 'is_forced' => true]
         );
 
-        return PHS_Event_Migration_models::listen_after_update($callback, $model_class, $table_name, $priority);
+        return PHS_Event_Migration_models::listen_after_update(
+            fn (PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper($event_obj, $callback),
+            $model_class,
+            $table_name,
+            $priority
+        );
+    }
+
+    final public function model_event_listener_wrapper(PHS_Event_Migration_models $event_obj, callable $callback) : bool
+    {
+        if (!$event_obj->is_dry_update()) {
+            $this->refresh_migration_record();
+        }
+
+        if (!$callback($event_obj)) {
+            if (!$event_obj->is_dry_update()) {
+                $this->migration_error($this->get_simple_error_message(self::_t('Unknown error.')));
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+    // endregion Model listeners
+
+    protected function refresh_migration_record() : bool
+    {
+        if ( !$this->_we_have_migration_record() ) {
+            return false;
+        }
+
+        if (!($new_migration_record = self::$_migrations_model->refresh_migration($this->_migration_record))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error updating migration details.'));
+
+            return false;
+        }
+
+        $this->_migration_record = $new_migration_record;
+
+        return true;
+    }
+
+    protected function migration_error(string $error_msg) : bool
+    {
+        if ( !$this->_we_have_migration_record() ) {
+            return false;
+        }
+
+        if (!($new_migration_record = self::$_migrations_model->migration_error($this->_migration_record, $error_msg))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error updating migration details.'));
+
+            return false;
+        }
+
+        $this->_migration_record = $new_migration_record;
+
+        return true;
+    }
+
+    private function _we_have_migration_record() : bool
+    {
+        if (!$this->_load_dependencies()) {
+            $this->copy_or_set_static_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
+
+            return false;
+        }
+
+        if ( empty( $this->_migration_record['id'] ) ) {
+            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Migration record not present.'));
+
+            return false;
+        }
+
+        return true;
     }
 
     private function _validate_script_details(array $script_details) : void
@@ -156,46 +249,29 @@ abstract class PHS_Migration extends PHS_Registry
         ];
     }
 
-    private function _record_migration_script() : bool
+    private function _record_migration_script(bool $forced = false) : bool
     {
-        $this->reset_error();
-
-        if (empty(self::$_migrations_model)
-           || !($flow_arr = self::$_migrations_model->fetch_default_flow_params(['table_name' => 'phs_migrations']))) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('Error loading required resources while registering record for migration script.'));
+        if (!$this->_load_dependencies()) {
+            $this->set_error_if_not_set(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
             return false;
         }
 
         if ( empty( $this->_script_details['plugin'] )
-            || empty( $this->_script_details['script'] )) {
+             || empty( $this->_script_details['script'] )) {
             $this->set_error(self::ERR_PARAMETERS,
                 self::_t('Required details missing while registering record for migration script.'));
 
             return false;
         }
 
-        $action_arr = $flow_arr;
-        $action_arr['fields'] = [];
-
-        if ( !($existing_arr = self::$_migrations_model->get_details_fields([
-            'plugin' => $this->_script_details['plugin'],
-            'script' => $this->_script_details['script'],
-        ], $flow_arr)) ) {
-            $existing_arr = null;
-
-            $action_arr['fields']['plugin'] = $this->_script_details['plugin'];
-            $action_arr['fields']['script'] = $this->_script_details['script'];
-        }
-
-        $action_arr['fields']['run_at_version'] = $this->_script_details['version'];
-        $action_arr['fields']['start_run'] = date(self::$_migrations_model::DATETIME_DB);
-
-        $record_arr = null;
-        if ( (empty($existing_arr) && !($record_arr = self::$_migrations_model->insert($action_arr)))
-            || (!empty($existing_arr) && !($record_arr = self::$_migrations_model->edit($existing_arr, $action_arr))) ) {
-            $this->set_error(self::ERR_PARAMETERS,
-                self::_t('Required details missing while registering record for migration script.'));
+        if (!($record_arr = self::$_migrations_model->start_migration(
+            $this->_script_details['plugin'],
+            $this->_script_details['script'],
+            $this->_script_details['version'],
+            $forced)) ) {
+            $this->copy_or_set_error(self::$_migrations_model,
+                self::ERR_PARAMETERS, self::_t('Error loading required resources while registering record for migration script.'));
 
             return false;
         }
@@ -213,13 +289,13 @@ abstract class PHS_Migration extends PHS_Registry
         ];
     }
 
-    private static function _load_dependencies() : bool
+    private function _load_dependencies() : bool
     {
-        self::st_reset_error();
+        $this->reset_error();
 
         if ( !self::$_migrations_model
             && !(self::$_migrations_model = PHS_Model_Migrations::get_instance())) {
-            self::st_set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
+            $this->set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
             return false;
         }

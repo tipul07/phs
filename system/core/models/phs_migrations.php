@@ -7,6 +7,8 @@ use phs\libraries\PHS_Params;
 
 class PHS_Model_Migrations extends PHS_Model
 {
+    private static ?bool $_model_installed = null;
+
     /**
      * @return string Returns version of model
      */
@@ -43,9 +45,26 @@ class PHS_Model_Migrations extends PHS_Model
         ];
     }
 
+    public function migration_model_is_installed() : bool
+    {
+        if ( null !== self::$_model_installed ) {
+            return self::$_model_installed;
+        }
+
+        self::$_model_installed = $this->check_table_exists(['table_name' => 'phs_migrations']);
+
+        return self::$_model_installed;
+    }
+
     public function start_migration(string $plugin, string $script, string $version, bool $force = false) : ?array
     {
         $this->reset_error();
+
+        if ( !$this->migration_model_is_installed() ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Migrations model is not installed.'));
+
+            return null;
+        }
 
         $fields_arr = [];
         if (($existing_migration = $this->get_details_fields(['plugin' => $plugin, 'script' => $script]))) {
@@ -80,6 +99,12 @@ class PHS_Model_Migrations extends PHS_Model
     {
         $this->reset_error();
 
+        if ( !$this->migration_model_is_installed() ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Migrations model is not installed.'));
+
+            return null;
+        }
+
         if (empty($migration_data)
             || !($migration_arr = $this->data_to_array($migration_data))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Migration not found in database.'));
@@ -107,9 +132,15 @@ class PHS_Model_Migrations extends PHS_Model
         return $new_job_arr;
     }
 
-    public function migration_error_stop(int | array $migration_data, $params) : ?array
+    public function migration_error(int | array $migration_data, string $error_msg) : ?array
     {
         $this->reset_error();
+
+        if ( !$this->migration_model_is_installed() ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Migrations model is not installed.'));
+
+            return null;
+        }
 
         if (empty($migration_data)
             || !($migration_arr = $this->data_to_array($migration_data))) {
@@ -118,12 +149,41 @@ class PHS_Model_Migrations extends PHS_Model
             return null;
         }
 
-        $params['last_error'] ??= self::_t('Unknown error.');
+        $edit_arr = [];
+        $edit_arr['pid'] = 0;
+        $edit_arr['last_error'] = $error_msg;
+        $edit_arr['last_action'] = date(self::DATETIME_DB);
+
+        if (!($new_job_arr = $this->edit($migration_arr, ['fields' => $edit_arr]))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error updating migration details.'));
+
+            return null;
+        }
+
+        return $new_job_arr;
+    }
+
+    public function migration_finish(int | array $migration_data) : ?array
+    {
+        $this->reset_error();
+
+        if ( !$this->migration_model_is_installed() ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Migrations model is not installed.'));
+
+            return null;
+        }
+
+        if (empty($migration_data)
+            || !($migration_arr = $this->data_to_array($migration_data))) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Migration not found in database.'));
+
+            return null;
+        }
 
         $edit_arr = [];
         $edit_arr['pid'] = 0;
-        $edit_arr['last_error'] = $params['last_error'];
-        $edit_arr['last_action'] = date(self::DATETIME_DB);
+        $edit_arr['last_error'] = null;
+        $edit_arr['end_run'] = $edit_arr['last_action'] = date(self::DATETIME_DB);
 
         if (!($new_job_arr = $this->edit($migration_arr, ['fields' => $edit_arr]))) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error updating migration details.'));
@@ -153,6 +213,12 @@ class PHS_Model_Migrations extends PHS_Model
     {
         $this->reset_error();
 
+        if ( !$this->migration_model_is_installed() ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Migrations model is not installed.'));
+
+            return null;
+        }
+
         if (empty($migration_data)
             || !($migration_arr = $this->data_to_array($migration_data))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Migration not found in database.'));
@@ -166,6 +232,12 @@ class PHS_Model_Migrations extends PHS_Model
     public function migration_is_stalling(int | array $migration_data) : ?bool
     {
         $this->reset_error();
+
+        if ( !$this->migration_model_is_installed() ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Migrations model is not installed.'));
+
+            return null;
+        }
 
         if (empty($migration_data)
          || !($migration_arr = $this->data_to_array($migration_data))) {
@@ -181,9 +253,10 @@ class PHS_Model_Migrations extends PHS_Model
 
     public function migration_is_running(int | array $migration_data) : bool
     {
-        return !empty($migration_data)
-               && ($migration_arr = $this->data_to_array($migration_data))
-               && !empty($migration_arr['pid']);
+        return !$this->migration_model_is_installed()
+               || (!empty($migration_data)
+                   && ($migration_arr = $this->data_to_array($migration_data))
+                   && !empty($migration_arr['pid']));
     }
 
     /**
@@ -234,6 +307,9 @@ class PHS_Model_Migrations extends PHS_Model
                     ],
                     'last_action' => [
                         'type' => self::FTYPE_DATETIME,
+                    ],
+                    'last_error' => [
+                        'type' => self::FTYPE_TEXT,
                     ],
                     'cdate' => [
                         'type' => self::FTYPE_DATETIME,

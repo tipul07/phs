@@ -149,7 +149,7 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_roles_definition()
+    public function get_roles_definition() : array
     {
         $return_arr = [];
 
@@ -209,7 +209,7 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         return [
             'enable_remotes' => [

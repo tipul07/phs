@@ -867,9 +867,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             if (!$this->_load_plugins_instance()) {
                 PHS_Logger::error('!!! Error instantiating plugins model. ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE);
 
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_INSTALL, self::_t('Error instantiating plugins model.'));
-                }
+                $this->set_error_if_not_set(self::ERR_INSTALL, self::_t('Error instantiating plugins model.'));
 
                 PHS_Maintenance::unlock_db_structure_read();
 
@@ -877,11 +875,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             }
 
             if (!$this->_plugins_instance->check_install_plugins_db()) {
-                if ($this->_plugins_instance->has_error()) {
-                    $this->copy_error($this->_plugins_instance);
-                } else {
-                    $this->set_error(self::ERR_INSTALL, self::_t('Error installing plugins model.'));
-                }
+                $this->copy_or_set_error($this->_plugins_instance,
+                    self::ERR_INSTALL, self::_t('Error installing plugins model.'));
 
                 PHS_Logger::error('!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE);
 
@@ -899,23 +894,18 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return false;
         }
 
-        if (($plugin_obj = $this->get_plugin_instance())
-            && ($plugin_info = $plugin_obj->get_plugin_info())
-            && !empty($plugin_info['name'])) {
-            $plugin_name = $plugin_info['name'];
-        } else {
-            $plugin_name = $this->instance_plugin_name();
-        }
+        $plugin_name = ($plugin_obj = $this->get_plugin_instance())
+                       && ($plugin_info = $plugin_obj->get_plugin_info())
+                       && !empty($plugin_info['name'])
+            ? $plugin_info['name']
+            : $this->instance_plugin_name();
 
         if (!($db_details = $this->_plugins_instance->install_record($this_instance_id,
             $this->instance_plugin_name(), $plugin_name, $this->instance_type(), $this->instance_is_core(),
             $this->get_default_settings(), $this->get_model_version()))
             || empty($db_details['new_data'])) {
-            if ($this->_plugins_instance->has_error()) {
-                $this->copy_error($this->_plugins_instance);
-            } else {
-                $this->set_error(self::ERR_INSTALL, self::_t('Error saving plugin details to database.'));
-            }
+            $this->copy_or_set_error($this->_plugins_instance,
+                self::ERR_INSTALL, self::_t('Error saving plugin details to database.'));
 
             PHS_Logger::error('!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE);
 
@@ -929,7 +919,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         // Performs any necessary actions when updating model from old version to new version
         if (!empty($old_plugin_arr)
-         && version_compare($old_plugin_arr['version'], $plugin_arr['version'], '!=')) {
+            && version_compare($old_plugin_arr['version'], $plugin_arr['version'], '!=')) {
             PHS_Logger::notice('Calling update method from version ['.$old_plugin_arr['version'].'] to version ['.$plugin_arr['version'].'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE);
 
             // Installed version is different from what we already had in database... update...
@@ -1099,6 +1089,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before updating tables: '
                                     .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
 
+            PHS_Maintenance::unlock_db_structure_read();
+
             return false;
         }
 
@@ -1124,6 +1116,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
                 PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before updating table ['.$full_table_name.']: '
                                         .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
+
+                PHS_Maintenance::unlock_db_structure_read();
 
                 return false;
             }
@@ -1151,6 +1145,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
                 PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations after updating table ['.$full_table_name.']: '
                                         .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
 
+                PHS_Maintenance::unlock_db_structure_read();
+
                 return false;
             }
         }
@@ -1165,6 +1161,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
             PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations after updating tables: '
                                     .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
+
+            PHS_Maintenance::unlock_db_structure_read();
 
             return false;
         }
@@ -1215,6 +1213,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before installing missing tables: '
                                     .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
 
+            PHS_Maintenance::unlock_db_structure_read();
+
             return null;
         }
 
@@ -1240,6 +1240,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
                 PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before installing table ['.$table_name.']: '
                                         .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
+
+                PHS_Maintenance::unlock_db_structure_read();
 
                 return null;
             }
@@ -1270,6 +1272,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
                 PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations after installing table ['.$full_table_name.']: '
                                         .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
 
+                PHS_Maintenance::unlock_db_structure_read();
+
                 return null;
             }
         }
@@ -1284,6 +1288,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
             PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations before installing missing tables: '
                                     .$event_obj->get_result_errors_as_string() ?: 'Unknown error.');
+
+            PHS_Maintenance::unlock_db_structure_read();
 
             return null;
         }
@@ -1477,9 +1483,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         // If it is a dry update, don't trigger custom updates
         if (!$is_dry_update
             && !$this->custom_update($old_version, $new_version)) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_UPDATE, self::_t('Model custom update functionality failed.'));
-            }
+            $this->set_error_if_not_set(self::ERR_UPDATE, self::_t('Model custom update functionality failed.'));
 
             PHS_Maintenance::unlock_db_structure_read();
 
@@ -1489,9 +1493,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         }
 
         if (!$this->_load_plugins_instance()) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_UPDATE, self::_t('Error instantiating plugins model.'));
-            }
+            $this->set_error_if_not_set(self::ERR_UPDATE, self::_t('Error instantiating plugins model.'));
 
             PHS_Maintenance::unlock_db_structure_read();
 
@@ -1511,10 +1513,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         if (!$is_dry_update
             && !$this->custom_after_missing_tables_update($old_version, $new_version, $custom_after_missing_tables_updates_params)) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_UPDATE,
-                    self::_t('Model custom after missing tables update functionality failed.'));
-            }
+            $this->set_error_if_not_set(self::ERR_UPDATE,
+                self::_t('Model custom after missing tables update functionality failed.'));
 
             PHS_Maintenance::unlock_db_structure_read();
 
@@ -1534,9 +1534,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         if (!$is_dry_update
             && !$this->custom_after_update($old_version, $new_version)) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_UPDATE, self::_t('Model custom after update functionality failed.'));
-            }
+            $this->set_error_if_not_set(self::ERR_UPDATE, self::_t('Model custom after update functionality failed.'));
 
             PHS_Maintenance::unlock_db_structure_read();
 
@@ -1547,24 +1545,19 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         PHS_Maintenance::unlock_db_structure_read();
 
-        if (($plugin_obj = $this->get_plugin_instance())
-            && ($plugin_info = $plugin_obj->get_plugin_info())
-            && !empty($plugin_info['name'])) {
-            $plugin_name = $plugin_info['name'];
-        } else {
-            $plugin_name = $this->instance_plugin_name();
-        }
+        $plugin_name = ($plugin_obj = $this->get_plugin_instance())
+                       && ($plugin_info = $plugin_obj->get_plugin_info())
+                       && !empty($plugin_info['name'])
+            ? $plugin_info['name']
+            : $this->instance_plugin_name();
 
         if (!$is_dry_update
          && (!($db_details = $this->_plugins_instance->update_record(
              $this_instance_id, $plugin_name, $this->instance_is_core(), $this->get_model_version()))
              || empty($db_details['new_data']))
         ) {
-            if ($this->_plugins_instance->has_error()) {
-                $this->copy_error($this->_plugins_instance);
-            } else {
-                $this->set_error(self::ERR_UPDATE, self::_t('Error saving model details to database.'));
-            }
+            $this->copy_or_set_error($this->_plugins_instance,
+                self::ERR_UPDATE, self::_t('Error saving model details to database.'));
 
             PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error updating model details in database: '.$this->get_error_message());
 

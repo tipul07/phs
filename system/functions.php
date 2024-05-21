@@ -79,7 +79,12 @@ function can($role_units, ?array $roles_params = null, $account_structure = null
 
 function migrations_manager() : ?PHS_Migrations_manager
 {
-    return PHS::get_core_library_instance('migrations_manager', ['as_singleton' => true]);
+    /** @var PHS_Migrations_manager $manager */
+    if ( !($manager = PHS::get_core_library_instance('migrations_manager', ['as_singleton' => true])) ) {
+        return null;
+    }
+
+    return $manager;
 }
 // endregion Helper functions
 

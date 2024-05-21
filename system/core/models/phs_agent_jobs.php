@@ -133,7 +133,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $all_policies[$policy];
     }
 
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         if (!($policies_arr = $this->get_stalling_policies_as_key_val())) {
             $policies_arr = [];

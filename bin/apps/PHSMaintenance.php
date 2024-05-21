@@ -119,9 +119,8 @@ class PHSMaintenance extends PHS_Cli
 
             case 'install':
                 if (!$this->_install_plugin($plugin_name)) {
-                    if ($this->has_error()) {
-                        $this->_echo($this->cli_color(self::_t('ERROR'), 'red').': '.$this->get_simple_error_message());
-                    }
+                    $this->_echo($this->cli_color(self::_t('ERROR'), 'red').': '
+                                 .$this->get_simple_error_message(self::_t('Unknown error.')));
 
                     return false;
                 }
@@ -133,9 +132,8 @@ class PHSMaintenance extends PHS_Cli
 
             case 'uninstall':
                 if (!$this->_uninstall_plugin($plugin_name)) {
-                    if ($this->has_error()) {
-                        $this->_echo($this->cli_color(self::_t('ERROR'), 'red').': '.$this->get_simple_error_message());
-                    }
+                    $this->_echo($this->cli_color(self::_t('ERROR'), 'red').': '
+                                 .$this->get_simple_error_message(self::_t('Unknown error.')));
 
                     return false;
                 }
@@ -441,7 +439,7 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    private function _install_plugin($plugin_name)
+    private function _install_plugin(string $plugin_name) : bool
     {
         if (!($plugin_obj = PHS::load_plugin($plugin_name))) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error instantiating plugin.'));
@@ -449,17 +447,21 @@ class PHSMaintenance extends PHS_Cli
             return false;
         }
 
-        if ($plugin_obj->plugin_is_installed()) {
+        if (null === ($is_installed = $plugin_obj->plugin_is_installed())) {
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                $plugin_obj->get_simple_error_message(self::_t('Error instantiating plugin.')));
+
+            return false;
+        }
+
+        if ($is_installed) {
             return true;
         }
 
         if (!$plugin_obj->install()) {
-            $error_msg = self::_t('Error installing plugin');
-            if ($plugin_obj->has_error()) {
-                $error_msg .= ': '.$plugin_obj->get_simple_error_message();
-            }
-
-            $this->set_error(self::ERR_FUNCTIONALITY, $error_msg);
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                self::_t('Error installing plugin: %s',
+                    $plugin_obj->get_simple_error_message(self::_t('Unknown error.'))));
 
             return false;
         }
@@ -467,7 +469,7 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    private function _uninstall_plugin($plugin_name)
+    private function _uninstall_plugin(string $plugin_name) : bool
     {
         if (!($plugin_obj = PHS::load_plugin($plugin_name))) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error instantiating plugin.'));
@@ -475,17 +477,21 @@ class PHSMaintenance extends PHS_Cli
             return false;
         }
 
-        if ($plugin_obj->plugin_is_installed()) {
+        if (null === ($is_installed = $plugin_obj->plugin_is_installed())) {
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                $plugin_obj->get_simple_error_message(self::_t('Error instantiating plugin.')));
+
+            return false;
+        }
+
+        if (!$is_installed) {
             return true;
         }
 
         if (!$plugin_obj->uninstall()) {
-            $error_msg = self::_t('Error uninstalling plugin');
-            if ($plugin_obj->has_error()) {
-                $error_msg .= ': '.$plugin_obj->get_simple_error_message();
-            }
-
-            $this->set_error(self::ERR_FUNCTIONALITY, $error_msg);
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                self::_t('Error uninstalling plugin: %s',
+                    $plugin_obj->get_simple_error_message(self::_t('Unknown error.'))));
 
             return false;
         }
