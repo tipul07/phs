@@ -23,8 +23,9 @@ if (@file_exists(PHS_SYSTEM_DIR.'install.php')) {
         if ( is_string($system_install_result) ) {
             echo PHS::_t('ERROR: %s', $system_install_result );
         } else {
-            var_dump($system_install_result);
+            echo PHS::arr_get_simple_error_message($system_install_result);
         }
+
         echo '</pre>';
         exit;
     }

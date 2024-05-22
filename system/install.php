@@ -10,12 +10,13 @@ use phs\PHS_Maintenance;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Plugin;
 use phs\system\core\models\PHS_Model_Plugins;
+use phs\system\core\models\PHS_Model_Migrations;
 
 /** @var PHS_Model_Plugins $plugins_model */
-if (!($plugins_model = PHS_Model_Plugins::get_instance())) {
-    if (!PHS::st_has_error()) {
-        PHS::st_set_error(-1, PHS::_t('Error instantiating plugins model.'));
-    }
+/** @var PHS_Model_Migrations $migrations_model */
+if (!($plugins_model = PHS_Model_Plugins::get_instance())
+    || !($migrations_model = PHS_Model_Migrations::get_instance())) {
+    PHS::st_set_error(-1, PHS::_t('Error instantiating required core models.'));
 
     return PHS::st_get_error();
 }
@@ -23,14 +24,24 @@ if (!($plugins_model = PHS_Model_Plugins::get_instance())) {
 PHS_Maintenance::lock_db_structure_read();
 
 if (!$plugins_model->check_installation()) {
-    if ($plugins_model->has_error()) {
-        return $plugins_model->get_error();
-    }
-
     PHS_Maintenance::unlock_db_structure_read();
 
-    return PHS::arr_set_error(-1, PHS::_t('Error while checking plugins model installation.'));
+    return PHS::arr_set_error(-1,
+        PHS::_t('Error while checking plugins model installation: %s',
+            $plugins_model->get_simple_error_message(PHS::_t('Unknown error.'))));
 }
+
+if (!$migrations_model->check_installation()) {
+    PHS_Maintenance::unlock_db_structure_read();
+
+    return PHS::arr_set_error(-1,
+        PHS::_t('Error while checking migrations model installation: %s',
+            $migrations_model->get_simple_error_message(PHS::_t('Unknown error.'))));
+}
+
+PHS_Maintenance::unlock_db_structure_read();
+$migrations_model->migration_model_is_installed(true);
+PHS_Maintenance::lock_db_structure_read();
 
 if (($core_models = PHS::get_core_models())) {
     foreach ($core_models as $core_model) {
@@ -38,9 +49,7 @@ if (($core_models = PHS::get_core_models())) {
         if (($model_obj = PHS::load_model($core_model))) {
             $model_obj->check_installation();
         } else {
-            if (!PHS::st_has_error()) {
-                PHS::st_set_error(-1, PHS::_t('Error instantiating core model [%s].', $core_model));
-            }
+            PHS::st_set_error_if_not_set(-1, PHS::_t('Error instantiating core model [%s].', $core_model));
 
             PHS_Maintenance::unlock_db_structure_read();
 
@@ -50,11 +59,7 @@ if (($core_models = PHS::get_core_models())) {
 }
 
 if (($plugins_arr = $plugins_model->cache_all_dir_details()) === null) {
-    if (!$plugins_model->has_error()) {
-        PHS::st_set_error(-1, PHS::_t('Error obtaining plugins list.'));
-    } else {
-        PHS::st_copy_error($plugins_model);
-    }
+    PHS::st_copy_or_set_error($plugins_model, -1, PHS::_t('Error obtaining plugins list.'));
 
     PHS_Maintenance::unlock_db_structure_read();
 
@@ -95,13 +100,14 @@ foreach ($plugins_arr as $plugin_name => $plugin_obj) {
 }
 
 if ( !($migrations_manager = migrations_manager()) ) {
-    return PHS::_t('Error instantiating migrations manager.');
+    return PHS::arr_set_error(-1, PHS::_t('Error instantiating migrations manager.'));
 }
 
 if ( ($plugin_names = array_keys($installing_plugins_arr)) ) {
     if ( null === ($migrations_arr = $migrations_manager->register_migrations_for_plugins($plugin_names)) ) {
-        return PHS::_t('Error registering migration scripts: %s.',
-            $migrations_manager->get_simple_error_message(PHS::_t('Unknown error.')));
+        return PHS::arr_set_error(-1,
+            PHS::_t('Error registering migration scripts: %s',
+                $migrations_manager->get_simple_error_message(PHS::_t('Unknown error.'))));
     }
 
     PHS_Maintenance::output(PHS::_t('Registered %s migration scripts from %s plugins.',

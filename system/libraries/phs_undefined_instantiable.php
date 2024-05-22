@@ -2,7 +2,7 @@
 
 namespace phs\libraries;
 
-use phpDocumentor\Reflection\Types\Null_;
+use Closure;
 
 class PHS_Undefined_instantiable extends PHS_Instantiable implements PHS_Event_interface
 {
@@ -25,7 +25,7 @@ class PHS_Undefined_instantiable extends PHS_Instantiable implements PHS_Event_i
      * @inheritdoc
      */
     // region Event methods
-    public static function listen($callback, string $event_prefix = '', array $options = []) : ?self
+    public static function listen(callable | array | string | Closure $callback, string $event_prefix = '', array $options = []) : ?self
     {
         return null;
     }
@@ -33,7 +33,7 @@ class PHS_Undefined_instantiable extends PHS_Instantiable implements PHS_Event_i
     /**
      * @inheritdoc
      */
-    public static function listen_in_background($callback, string $event_prefix = '', array $options = []) : ?self
+    public static function listen_in_background(callable | array | string $callback, string $event_prefix = '', array $options = []) : ?self
     {
         return null;
     }

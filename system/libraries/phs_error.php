@@ -735,18 +735,10 @@ class PHS_Error
      *
      * @return array|false|\stdClass|string
      */
-    public static function var_dump($var, $params = false)
+    public static function var_dump(mixed $var, array $params = [])
     {
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if (empty($params['level'])) {
-            $params['level'] = 0;
-        }
-        if (!isset($params['max_level'])) {
-            $params['max_level'] = 3;
-        }
+        $params['level'] ??= 0;
+        $params['max_level'] ??= 3;
 
         if ($params['level'] >= $params['max_level']) {
             if (is_scalar($var)) {
@@ -928,6 +920,18 @@ class PHS_Error
         return self::get_error_static_instance()->copy_error($obj, $force_error_code);
     }
 
+    public static function st_copy_or_set_error(?self $obj, int $error_no, string $error_msg, string $error_debug_msg = '') : bool
+    {
+        if ($obj === null
+            || !$obj->has_error()) {
+            self::st_set_error($error_no, $error_msg, $error_debug_msg);
+
+            return true;
+        }
+
+        return self::st_copy_error($obj, $error_no);
+    }
+
     public static function st_get_error_code(int $default_code = self::ERR_OK) : int
     {
         return self::get_error_static_instance()->get_error_code($default_code);
@@ -1044,6 +1048,26 @@ class PHS_Error
         $append_error_arr = self::arr_set_error($error_code, $error_msg);
 
         return self::arr_merge_error_to_array($error_arr, $append_error_arr);
+    }
+
+    public static function arr_copy_error(?self $obj, ?int $force_error_code = null) : ?array
+    {
+        if ($obj === null
+            || !$obj->has_error()) {
+            return null;
+        }
+
+        return $obj->get_error();
+    }
+
+    public static function arr_copy_or_set_error(?self $obj, int $error_no, string $error_msg, string $error_debug_msg = '') : ?array
+    {
+        if ($obj === null
+            || !$obj->has_error()) {
+            return self::arr_set_error($error_no, $error_msg, $error_debug_msg);
+        }
+
+        return $obj->get_error();
     }
 
     public static function st_stack_error() : array

@@ -4,6 +4,7 @@ namespace phs\system\core\events\migrations;
 
 include_once 'phs_migration.php';
 
+use Closure;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Model_Core_base;
 
@@ -11,7 +12,6 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
 {
     public const EP_BEFORE_MISSING = 'before_missing', EP_AFTER_MISSING = 'after_missing',
         EP_BEFORE_UPDATE = 'before_update', EP_AFTER_UPDATE = 'after_update';
-    // endregion Listeners
 
     protected function _input_parameters() : array
     {
@@ -35,7 +35,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
     ) : ?self {
         return self::trigger(
             self::_generate_event_input($model_obj, $table_name, $old_version, $new_version, $is_dry_update, $is_forced),
-            $model_obj::class.'_'.self::EP_BEFORE_MISSING.'_'.$table_name,
+            $model_obj::class.'::'.self::EP_BEFORE_MISSING.'::'.$table_name,
             ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
         );
     }
@@ -50,7 +50,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
     ) : ?self {
         return self::trigger(
             self::_generate_event_input($model_obj, $table_name, $old_version, $new_version, $is_dry_update, $is_forced),
-            $model_obj::class.'_'.self::EP_AFTER_MISSING.'_'.$table_name,
+            $model_obj::class.'::'.self::EP_AFTER_MISSING.'::'.$table_name,
             ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
         );
     }
@@ -65,7 +65,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
     ) : ?self {
         return self::trigger(
             self::_generate_event_input($model_obj, $table_name, $old_version, $new_version, $is_dry_update, $is_forced),
-            $model_obj::class.'_'.self::EP_BEFORE_UPDATE.'_'.$table_name,
+            $model_obj::class.'::'.self::EP_BEFORE_UPDATE.'::'.$table_name,
             ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
         );
     }
@@ -80,7 +80,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
     ) : ?self {
         return self::trigger(
             self::_generate_event_input($model_obj, $table_name, $old_version, $new_version, $is_dry_update, $is_forced),
-            $model_obj::class.'_'.self::EP_BEFORE_UPDATE.'_'.$table_name,
+            $model_obj::class.'::'.self::EP_BEFORE_UPDATE.'::'.$table_name,
             ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
         );
     }
@@ -88,56 +88,57 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
 
     // region Listeners
     public static function listen_before_missing(
-        callable $callback,
+        callable | array | string | Closure $callback,
         string $model_class,
         string $table_name = '',
         int $priority = 10
     ) : ?self {
         return self::listen(
             $callback,
-            $model_class.'_'.self::EP_BEFORE_MISSING.'_'.$table_name,
+            $model_class.'::'.self::EP_BEFORE_MISSING.'::'.$table_name,
             ['priority' => $priority]
         );
     }
 
     public static function listen_after_missing(
-        callable $callback,
+        callable | array | string | Closure $callback,
         string $model_class,
         string $table_name = '',
         int $priority = 10
     ) : ?self {
         return self::listen(
             $callback,
-            $model_class.'_'.self::EP_AFTER_MISSING.'_'.$table_name,
+            $model_class.'::'.self::EP_AFTER_MISSING.'::'.$table_name,
             ['priority' => $priority]
         );
     }
 
     public static function listen_before_update(
-        callable $callback,
+        callable | array | string | Closure $callback,
         string $model_class,
         string $table_name,
         int $priority = 10
     ) : ?self {
         return self::listen(
             $callback,
-            $model_class.'_'.self::EP_BEFORE_UPDATE.'_'.$table_name,
+            $model_class.'::'.self::EP_BEFORE_UPDATE.'::'.$table_name,
             ['priority' => $priority]
         );
     }
 
     public static function listen_after_update(
-        callable $callback,
+        callable | array | string | Closure $callback,
         string $model_class,
         string $table_name,
         int $priority = 10
     ) : ?self {
         return self::listen(
             $callback,
-            $model_class.'_'.self::EP_AFTER_UPDATE.'_'.$table_name,
+            $model_class.'::'.self::EP_AFTER_UPDATE.'::'.$table_name,
             ['priority' => $priority]
         );
     }
+    // endregion Listeners
 
     private static function _generate_event_input(
         PHS_Model_Core_base $model_obj,

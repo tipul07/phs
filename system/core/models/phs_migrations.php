@@ -45,13 +45,14 @@ class PHS_Model_Migrations extends PHS_Model
         ];
     }
 
-    public function migration_model_is_installed() : bool
+    public function migration_model_is_installed(bool $force = false) : bool
     {
-        if ( null !== self::$_model_installed ) {
+        if ( empty($force)
+             && null !== self::$_model_installed ) {
             return self::$_model_installed;
         }
 
-        self::$_model_installed = $this->check_table_exists(['table_name' => 'phs_migrations']);
+        self::$_model_installed = $this->check_table_exists(['table_name' => 'phs_migrations'], $force);
 
         return self::$_model_installed;
     }
@@ -68,7 +69,8 @@ class PHS_Model_Migrations extends PHS_Model
 
         $fields_arr = [];
         if (($existing_migration = $this->get_details_fields(['plugin' => $plugin, 'script' => $script]))) {
-            if (!$force) {
+            if (!$force
+                && $this->is_finished($existing_migration)) {
                 $this->set_error(self::ERR_PARAMETERS, $this->_pt('This migration was already considered.'));
 
                 return null;
@@ -229,7 +231,7 @@ class PHS_Model_Migrations extends PHS_Model
         return !empty($migration_arr['last_action']) ? seconds_passed($migration_arr['last_action']) : 0;
     }
 
-    public function migration_is_stalling(int | array $migration_data) : ?bool
+    public function is_stalling(int | array $migration_data) : ?bool
     {
         $this->reset_error();
 
@@ -246,17 +248,27 @@ class PHS_Model_Migrations extends PHS_Model
             return null;
         }
 
-        return $this->migration_is_running($migration_arr)
+        return $this->is_running($migration_arr)
                && ($minutes_to_stall = $this->get_stalling_minutes())
                && floor($this->get_seconds_since_last_action($migration_arr) / 60) >= $minutes_to_stall;
     }
 
-    public function migration_is_running(int | array $migration_data) : bool
+    public function is_running(int | array $migration_data) : bool
     {
         return !$this->migration_model_is_installed()
                || (!empty($migration_data)
                    && ($migration_arr = $this->data_to_array($migration_data))
                    && !empty($migration_arr['pid']));
+    }
+
+    public function is_finished(int | array $migration_data) : bool
+    {
+        return !$this->migration_model_is_installed()
+               || (!empty($migration_data)
+                   && ($migration_arr = $this->data_to_array($migration_data))
+                   && empty($migration_arr['pid'])
+                   && !empty($migration_arr['end_run'])
+               );
     }
 
     /**

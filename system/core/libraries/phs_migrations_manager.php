@@ -221,8 +221,10 @@ class PHS_Migrations_manager extends PHS_Library
 
         if ( !$migration_obj->register($forced) ) {
             $this->set_error(self::ERR_FUNCTIONALITY,
-                self::_t('Error registering script %s, plugin %s.',
-                    $script_details['script'], $script_details['plugin']));
+                self::_t('Error registering script %s, plugin %s: %s',
+                    $script_details['script'], $script_details['plugin'],
+                    $migration_obj->get_simple_error_message(self::_t('Unknown error.'))),
+            );
 
             return false;
         }
@@ -382,7 +384,8 @@ class PHS_Migrations_manager extends PHS_Library
         }
 
         foreach ($migrations_arr as $m_id => $m_arr) {
-            if (empty($m_arr['plugin'])) {
+            if (empty($m_arr['plugin'])
+                || !$this->_migrations_model->is_finished($m_arr)) {
                 continue;
             }
 

@@ -264,7 +264,11 @@ class PHSMaintenance extends PHS_Cli
 
             if ($system_install_result !== true) {
                 $this->_echo_error('Error while running system install script [CORE INSTALL]:');
-                $this->_echo(self::arr_get_simple_error_message($system_install_result));
+                if (is_array($system_install_result)) {
+                    $system_install_result = self::arr_get_simple_error_message($system_install_result);
+                }
+
+                $this->_echo($system_install_result);
 
                 return true;
             }

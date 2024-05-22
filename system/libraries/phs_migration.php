@@ -2,10 +2,12 @@
 
 namespace phs\libraries;
 
+use Closure;
 use phs\PHS_Db;
 use phs\PHS_Maintenance;
 use phs\system\core\models\PHS_Model_Migrations;
 use phs\system\core\events\migrations\PHS_Event_Migration_models;
+use phs\system\core\events\migrations\PHS_Event_Migration_plugins;
 
 abstract class PHS_Migration extends PHS_Registry
 {
@@ -38,7 +40,7 @@ abstract class PHS_Migration extends PHS_Registry
         }
 
         if ( ($is_dry_update = PHS_Db::dry_update()) ) {
-            PHS_Maintenance::output(self::_t('Script %s registered, but running in dry update mode.', static::class));
+            PHS_Maintenance::output(self::_t('Migration script %s registered, but running in dry update mode.', static::class));
         }
 
         if ( !$is_dry_update
@@ -51,11 +53,162 @@ abstract class PHS_Migration extends PHS_Registry
         return true;
     }
 
+    // region Plugins listeners
+
+    /**
+     * Execute callable when starting plugin installation
+     *
+     * @param string|callable|array|Closure $callback Callable
+     * @param string $plugin_class
+     * @param int $priority
+     *
+     * @return null|PHS_Event_Migration_plugins
+     */
+    final public function plugin_install(
+        string | callable | array | Closure $callback,
+        string $plugin_class,
+        int $priority = 10
+    ) : ?PHS_Event_Migration_plugins {
+        $this->_keep_listener(
+            [PHS_Event_Migration_plugins::class, 'trigger_install'],
+            ['plugin_obj' => fn () => $plugin_class::get_instance(), 'is_forced' => true]
+        );
+
+        return PHS_Event_Migration_plugins::listen_install(
+            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper($event_obj, $callback),
+            $plugin_class,
+            $priority
+        );
+    }
+
+    /**
+     * Execute callable when starting a plugin installation or a plugin update.
+     * At installation start event is called after install event
+     *
+     * @param string|callable|array|Closure $callback Callable
+     * @param string $plugin_class
+     * @param int $priority
+     *
+     * @return null|PHS_Event_Migration_plugins
+     */
+    final public function plugin_start(
+        string | callable | array | Closure $callback,
+        string $plugin_class,
+        int $priority = 10
+    ) : ?PHS_Event_Migration_plugins {
+        $this->_keep_listener(
+            [PHS_Event_Migration_plugins::class, 'trigger_start'],
+            ['plugin_obj' => fn () => $plugin_class::get_instance(), 'is_forced' => true]
+        );
+
+        return PHS_Event_Migration_plugins::listen_start(
+            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper($event_obj, $callback),
+            $plugin_class,
+            $priority
+        );
+    }
+
+    /**
+     * Execute callable at plugin installation or update after roles were installed
+     *
+     * @param string|callable|array|Closure $callback Callable
+     * @param string $plugin_class
+     * @param int $priority
+     *
+     * @return null|PHS_Event_Migration_plugins
+     */
+    final public function plugin_after_roles(
+        string | callable | array | Closure $callback,
+        string $plugin_class,
+        int $priority = 10
+    ) : ?PHS_Event_Migration_plugins {
+        $this->_keep_listener(
+            [PHS_Event_Migration_plugins::class, 'trigger_after_roles'],
+            ['plugin_obj' => fn () => $plugin_class::get_instance(), 'is_forced' => true]
+        );
+
+        return PHS_Event_Migration_plugins::listen_after_roles(
+            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper($event_obj, $callback),
+            $plugin_class,
+            $priority
+        );
+    }
+
+    /**
+     * Execute callable at plugin installation or update after agent jobs were installed
+     *
+     * @param string|callable|array|Closure $callback Callable
+     * @param string $plugin_class
+     * @param int $priority
+     *
+     * @return null|PHS_Event_Migration_plugins
+     */
+    final public function plugin_after_jobs(
+        string | callable | array | Closure $callback,
+        string $plugin_class,
+        int $priority = 10
+    ) : ?PHS_Event_Migration_plugins {
+        $this->_keep_listener(
+            [PHS_Event_Migration_plugins::class, 'trigger_after_jobs'],
+            ['plugin_obj' => fn () => $plugin_class::get_instance(), 'is_forced' => true]
+        );
+
+        return PHS_Event_Migration_plugins::listen_after_jobs(
+            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper($event_obj, $callback),
+            $plugin_class,
+            $priority
+        );
+    }
+
+    /**
+     * Execute callable when plugin installation or plugin update is finished (after models are updated)
+     *
+     * @param string|callable|array|Closure $callback Callable
+     * @param string $plugin_class
+     * @param int $priority
+     *
+     * @return null|PHS_Event_Migration_plugins
+     */
+    final public function plugin_finish(
+        string | callable | array | Closure $callback,
+        string $plugin_class,
+        int $priority = 10
+    ) : ?PHS_Event_Migration_plugins {
+        $this->_keep_listener(
+            [PHS_Event_Migration_plugins::class, 'trigger_finish'],
+            ['plugin_obj' => fn () => $plugin_class::get_instance(), 'is_forced' => true]
+        );
+
+        return PHS_Event_Migration_plugins::listen_finish(
+            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper($event_obj, $callback),
+            $plugin_class,
+            $priority
+        );
+    }
+
+    final public function plugin_event_listener_wrapper(PHS_Event_Migration_plugins $event_obj, string | callable | array | Closure $callback) : bool
+    {
+        if (!$event_obj->is_dry_update()) {
+            $this->refresh_migration_record();
+        }
+
+        if (!$callback($event_obj)) {
+            if (!$event_obj->is_dry_update()) {
+                $this->migration_error($this->get_simple_error_message(self::_t('Unknown error.')));
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+    // endregion Plugins listeners
+
     // region Model listeners
     /**
      * Execute callable before installing missing specific $model_class table or before installing all missing tables
      *
-     * @param callable $callback Callable
+     * @param string|callable|array|Closure $callback Callable
      * @param string $model_class What's the model for which we want to run this migration
      * @param string $table_name Empty table_name means running before installing all missing tables for model
      * @param int $priority
@@ -63,7 +216,7 @@ abstract class PHS_Migration extends PHS_Registry
      * @return null|PHS_Event_Migration_models
      */
     final public function before_missing_table(
-        callable $callback,
+        string | callable | array | Closure $callback,
         string $model_class,
         string $table_name = '',
         int $priority = 10
@@ -84,7 +237,7 @@ abstract class PHS_Migration extends PHS_Registry
     /**
      * Execute callable after installing missing specific $model_class table or after installing all missing tables
      *
-     * @param callable $callback Callable
+     * @param string|callable|array|Closure $callback Callable
      * @param string $model_class What's the model for which we want to run this migration
      * @param string $table_name Empty table_name means running after installing all missing tables for model
      * @param int $priority
@@ -92,7 +245,7 @@ abstract class PHS_Migration extends PHS_Registry
      * @return null|PHS_Event_Migration_models
      */
     final public function after_missing_table(
-        callable $callback,
+        string | callable | array | Closure $callback,
         string $model_class,
         string $table_name = '',
         int $priority = 10
@@ -113,7 +266,7 @@ abstract class PHS_Migration extends PHS_Registry
     /**
      * Execute callable before updating specific $model_class table or before updating all tables
      *
-     * @param callable $callback Callable
+     * @param string|callable|array|Closure $callback Callable
      * @param string $model_class What's the model for which we want to run this migration
      * @param string $table_name Empty table_name means running before updating all tables for model
      * @param int $priority
@@ -121,7 +274,7 @@ abstract class PHS_Migration extends PHS_Registry
      * @return null|PHS_Event_Migration_models
      */
     final public function before_update_table(
-        callable $callback,
+        string | callable | array | Closure $callback,
         string $model_class,
         string $table_name = '',
         int $priority = 10
@@ -131,7 +284,7 @@ abstract class PHS_Migration extends PHS_Registry
             ['model_obj' => fn () => $model_class::get_instance(), 'table_name' => $table_name, 'is_forced' => true]
         );
 
-        return PHS_Event_Migration_models::listen_before_missing(
+        return PHS_Event_Migration_models::listen_before_update(
             fn (PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper($event_obj, $callback),
             $model_class,
             $table_name,
@@ -142,7 +295,7 @@ abstract class PHS_Migration extends PHS_Registry
     /**
      * Execute callable after updating specific $model_class table or after updating all tables
      *
-     * @param callable $callback Callable
+     * @param string|callable|array|Closure $callback Callable
      * @param string $model_class What's the model for which we want to run this migration
      * @param string $table_name Empty table_name means running after updating all tables for model
      * @param int $priority
@@ -150,7 +303,7 @@ abstract class PHS_Migration extends PHS_Registry
      * @return null|PHS_Event_Migration_models
      */
     final public function after_update_table(
-        callable $callback,
+        string | callable | array | Closure $callback,
         string $model_class,
         string $table_name = '',
         int $priority = 10
@@ -168,7 +321,7 @@ abstract class PHS_Migration extends PHS_Registry
         );
     }
 
-    final public function model_event_listener_wrapper(PHS_Event_Migration_models $event_obj, callable $callback) : bool
+    final public function model_event_listener_wrapper(PHS_Event_Migration_models $event_obj, string | callable | array | Closure $callback) : bool
     {
         if (!$event_obj->is_dry_update()) {
             $this->refresh_migration_record();
@@ -281,7 +434,7 @@ abstract class PHS_Migration extends PHS_Registry
         return true;
     }
 
-    private function _keep_listener(callable $trigger_callable, array $args = []) : void
+    private function _keep_listener(string | callable | array | Closure $trigger_callable, array $args = []) : void
     {
         $this->_callbacks[] = [
             'trigger_callable' => $trigger_callable,

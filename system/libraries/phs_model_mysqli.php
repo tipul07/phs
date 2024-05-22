@@ -2688,12 +2688,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         }
 
         if (!empty($force)
-         && PHS_Maintenance::db_structure_is_locked()) {
+            && PHS_Maintenance::db_structure_is_locked()) {
             $force = false;
         }
 
         if (empty($force)
-         && self::get_cached_db_tables_structure_for_driver($my_driver)) {
+            && self::get_cached_db_tables_structure_for_driver($my_driver)) {
             return true;
         }
 
