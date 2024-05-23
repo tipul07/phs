@@ -114,8 +114,8 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
 
         $this->event_listeners_ids[] = $callback_details['callback_id'];
 
-        $event_prefix = self::_prepare_event_prefix($event_prefix);
         $callback_index = $this->_get_callback_index();
+        $event_prefix = self::_prepare_event_prefix($event_prefix);
 
         $callback_data = [];
         $callback_data['callback'] = $callback_details['callback'];
@@ -163,11 +163,13 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         $this->reset_error();
         $this->_reset_output();
 
+        $event_prefix = self::_prepare_event_prefix($event_prefix);
+
         $are_we_in_background = PHS::are_we_in_a_background_thread();
 
-        $params['stop_on_first_error'] = (!empty($params['stop_on_first_error']));
-        $params['force_sync_trigger'] = (!empty($params['force_sync_trigger']));
-        $params['only_background_listeners'] = (!empty($params['only_background_listeners']));
+        $params['stop_on_first_error'] = !empty($params['stop_on_first_error']);
+        $params['force_sync_trigger'] = !empty($params['force_sync_trigger']);
+        $params['only_background_listeners'] = !empty($params['only_background_listeners']);
         $params['include_listeners_without_prefix'] = (!isset($params['include_listeners_without_prefix'])
                                                        || !empty($params['include_listeners_without_prefix']));
 
@@ -260,6 +262,8 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
 
     public function get_callbacks(string $event_prefix = '', bool $listeners_without_prefix = false) : ?array
     {
+        $event_prefix = self::_prepare_event_prefix($event_prefix);
+
         if (!($callback_index = $this->_get_callback_index())
          || empty(self::$callbacks[$callback_index])) {
             return null;
@@ -647,7 +651,8 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
     private function _get_callback_id(null | callable | array | string | Closure $callback) : string
     {
         if ($callback instanceof Closure) {
-            return Closure::class.'::__invoke('.microtime().')';
+            // Cannot determine uniqueness of closures
+            return Closure::class.'::__invoke('.microtime(true).')';
         }
 
         if (is_string($callback)) {
@@ -695,45 +700,6 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
     public static function get_all_callbacks() : array
     {
         return self::$callbacks;
-    }
-
-    public static function get_listeners(?string $event_prefix = null, bool $listeners_without_prefix = false) : ?array
-    {
-        var_dump(
-            self::$callbacks['phs\system\core\events\migrations\PHS_Event_Migration_plugins'],
-            self::$callbacks['phs\system\core\events\migrations\PHS_Event_Migration_models']
-        );
-
-        return null;
-        if (!($callback_index = static::class)
-            || empty(self::$callbacks[$callback_index])) {
-            return null;
-        }
-
-        if ($event_prefix === null) {
-            return self::$callbacks[$callback_index];
-        }
-
-        $callbacks_arr = [];
-        if (!empty(self::$callbacks[$callback_index][$event_prefix])) {
-            $callbacks_arr = self::$callbacks[$callback_index][$event_prefix];
-        }
-
-        if ($listeners_without_prefix
-            && $event_prefix !== ''
-            && !empty(self::$callbacks[$callback_index][''])) {
-            foreach (self::$callbacks[$callback_index][''] as $priority => $priority_callbacks) {
-                if (empty($callbacks_arr[$priority])) {
-                    $callbacks_arr[$priority] = [];
-                }
-
-                $callbacks_arr[$priority] = array_merge($callbacks_arr[$priority], $priority_callbacks);
-            }
-
-            ksort($callbacks_arr, SORT_NUMERIC);
-        }
-
-        return $callbacks_arr;
     }
 
     /**

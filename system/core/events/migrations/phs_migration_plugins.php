@@ -57,11 +57,6 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
-        var_dump(self::_generate_event_input($plugin_obj, $old_version, $new_version, $is_dry_update, $is_forced),
-            $plugin_obj::class.'::'.self::EP_START);
-
-        echo self::var_dump(self::get_listeners(), ['max_level' => 3]);
-
         return self::trigger(
             self::_generate_event_input($plugin_obj, $old_version, $new_version, $is_dry_update, $is_forced),
             $plugin_obj::class.'::'.self::EP_START,

@@ -20,18 +20,26 @@ class PHS_First_migration extends PHS_Migration
                                 .($event_obj->get_input('plugin_class') ?? 'N/A')
                                 .'.');
 
+        PHS_Maintenance::output(
+            "\t".'Forced: '.($event_obj->is_forced() ? 'Yes' : 'No')
+            .', Dry Update: '.($event_obj->is_dry_update() ? 'Yes' : 'No').'.'
+        );
+
         return true;
     }
 
     public function migration_plugin_start(PHS_Event_Migration_plugins $event_obj) : bool
     {
-        var_dump('IIIIIINNNNN');
-
         PHS_Maintenance::output("\t".'Migration plugin start '
                                 .($event_obj->get_input('plugin_instance_id') ?? 'N/A')
                                 .', class '
                                 .($event_obj->get_input('plugin_class') ?? 'N/A')
                                 .'.');
+
+        PHS_Maintenance::output(
+            "\t".'Forced: '.($event_obj->is_forced() ? 'Yes' : 'No')
+            .', Dry Update: '.($event_obj->is_dry_update() ? 'Yes' : 'No').'.'
+        );
 
         return true;
     }
@@ -44,6 +52,11 @@ class PHS_First_migration extends PHS_Migration
                                 .($event_obj->get_input('plugin_class') ?? 'N/A')
                                 .'.');
 
+        PHS_Maintenance::output(
+            "\t".'Forced: '.($event_obj->is_forced() ? 'Yes' : 'No')
+            .', Dry Update: '.($event_obj->is_dry_update() ? 'Yes' : 'No').'.'
+        );
+
         return true;
     }
 
@@ -54,6 +67,11 @@ class PHS_First_migration extends PHS_Migration
                                 .', class '
                                 .($event_obj->get_input('plugin_class') ?? 'N/A')
                                 .'.');
+
+        PHS_Maintenance::output(
+            "\t".'Forced: '.($event_obj->is_forced() ? 'Yes' : 'No')
+            .', Dry Update: '.($event_obj->is_dry_update() ? 'Yes' : 'No').'.'
+        );
 
         return true;
     }
@@ -66,6 +84,11 @@ class PHS_First_migration extends PHS_Migration
                                 .($event_obj->get_input('plugin_class') ?? 'N/A')
                                 .'.');
 
+        PHS_Maintenance::output(
+            "\t".'Forced: '.($event_obj->is_forced() ? 'Yes' : 'No')
+            .', Dry Update: '.($event_obj->is_dry_update() ? 'Yes' : 'No').'.'
+        );
+
         return true;
     }
 
@@ -76,6 +99,11 @@ class PHS_First_migration extends PHS_Migration
                                 .', table '
                                 .($event_obj->get_input('table_name') ?? 'N/A')
                                 .'.');
+
+        PHS_Maintenance::output(
+            "\t".'Forced: '.($event_obj->is_forced() ? 'Yes' : 'No')
+            .', Dry Update: '.($event_obj->is_dry_update() ? 'Yes' : 'No').'.'
+        );
 
         return true;
     }
@@ -88,6 +116,11 @@ class PHS_First_migration extends PHS_Migration
                                 .($event_obj->get_input('table_name') ?? 'N/A')
                                 .'.');
 
+        PHS_Maintenance::output(
+            "\t".'Forced: '.($event_obj->is_forced() ? 'Yes' : 'No')
+            .', Dry Update: '.($event_obj->is_dry_update() ? 'Yes' : 'No').'.'
+        );
+
         return true;
     }
 
@@ -99,6 +132,11 @@ class PHS_First_migration extends PHS_Migration
                                 .($event_obj->get_input('table_name') ?? 'N/A')
                                 .'.');
 
+        PHS_Maintenance::output(
+            "\t".'Forced: '.($event_obj->is_forced() ? 'Yes' : 'No')
+            .', Dry Update: '.($event_obj->is_dry_update() ? 'Yes' : 'No').'.'
+        );
+
         return true;
     }
 
@@ -109,6 +147,11 @@ class PHS_First_migration extends PHS_Migration
                                 .', table '
                                 .($event_obj->get_input('table_name') ?? 'N/A')
                                 .'.');
+
+        PHS_Maintenance::output(
+            "\t".'Forced: '.($event_obj->is_forced() ? 'Yes' : 'No')
+            .', Dry Update: '.($event_obj->is_dry_update() ? 'Yes' : 'No').'.'
+        );
 
         return true;
     }

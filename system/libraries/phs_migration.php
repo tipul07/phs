@@ -8,10 +8,11 @@ use phs\PHS_Maintenance;
 use phs\system\core\models\PHS_Model_Migrations;
 use phs\system\core\events\migrations\PHS_Event_Migration_models;
 use phs\system\core\events\migrations\PHS_Event_Migration_plugins;
+use phs\system\core\events\migrations\PHS_Event_Migrations_finish;
 
 abstract class PHS_Migration extends PHS_Registry
 {
-    public const ERR_BOOTSTRAP = 20000;
+    public const ERR_BOOTSTRAP = 20000, ERR_LISTENER = 20001;
 
     // Keep all event listeners in order to emulate the triggers if required
     private array $_callbacks = [];
@@ -50,6 +51,8 @@ abstract class PHS_Migration extends PHS_Registry
             return false;
         }
 
+        PHS_Event_Migrations_finish::listen([$this, 'finish_migration_record']);
+
         return true;
     }
 
@@ -69,16 +72,25 @@ abstract class PHS_Migration extends PHS_Registry
         string $plugin_class,
         int $priority = 10
     ) : ?PHS_Event_Migration_plugins {
+        $this->reset_error();
+
         $this->_keep_listener(
             [PHS_Event_Migration_plugins::class, 'trigger_install'],
             ['plugin_obj' => fn () => $plugin_class::get_instance(), 'is_forced' => true]
         );
 
-        return PHS_Event_Migration_plugins::listen_install(
-            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper($event_obj, $callback),
+        if ( !($listen_obj = PHS_Event_Migration_plugins::listen_install(
+            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper(PHS_Event_Migration_plugins::EP_INSTALL, $event_obj, $callback),
             $plugin_class,
             $priority
-        );
+        )) ) {
+            $this->set_error(self::ERR_LISTENER,
+                self::st_get_simple_error_message(self::_t('Error installing migration listener event.')));
+
+            return null;
+        }
+
+        return $listen_obj;
     }
 
     /**
@@ -96,16 +108,25 @@ abstract class PHS_Migration extends PHS_Registry
         string $plugin_class,
         int $priority = 10
     ) : ?PHS_Event_Migration_plugins {
+        $this->reset_error();
+
         $this->_keep_listener(
             [PHS_Event_Migration_plugins::class, 'trigger_start'],
             ['plugin_obj' => fn () => $plugin_class::get_instance(), 'is_forced' => true]
         );
 
-        return PHS_Event_Migration_plugins::listen_start(
-            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper($event_obj, $callback),
+        if ( !($listen_obj = PHS_Event_Migration_plugins::listen_start(
+            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper(PHS_Event_Migration_plugins::EP_START, $event_obj, $callback),
             $plugin_class,
             $priority
-        );
+        )) ) {
+            $this->set_error(self::ERR_LISTENER,
+                self::st_get_simple_error_message(self::_t('Error installing migration listener event.')));
+
+            return null;
+        }
+
+        return $listen_obj;
     }
 
     /**
@@ -122,16 +143,25 @@ abstract class PHS_Migration extends PHS_Registry
         string $plugin_class,
         int $priority = 10
     ) : ?PHS_Event_Migration_plugins {
+        $this->reset_error();
+
         $this->_keep_listener(
             [PHS_Event_Migration_plugins::class, 'trigger_after_roles'],
             ['plugin_obj' => fn () => $plugin_class::get_instance(), 'is_forced' => true]
         );
 
-        return PHS_Event_Migration_plugins::listen_after_roles(
-            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper($event_obj, $callback),
+        if ( !($listen_obj = PHS_Event_Migration_plugins::listen_after_roles(
+            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper(PHS_Event_Migration_plugins::EP_AFTER_ROLES, $event_obj, $callback),
             $plugin_class,
             $priority
-        );
+        )) ) {
+            $this->set_error(self::ERR_LISTENER,
+                self::st_get_simple_error_message(self::_t('Error installing migration listener event.')));
+
+            return null;
+        }
+
+        return $listen_obj;
     }
 
     /**
@@ -148,16 +178,25 @@ abstract class PHS_Migration extends PHS_Registry
         string $plugin_class,
         int $priority = 10
     ) : ?PHS_Event_Migration_plugins {
+        $this->reset_error();
+
         $this->_keep_listener(
             [PHS_Event_Migration_plugins::class, 'trigger_after_jobs'],
             ['plugin_obj' => fn () => $plugin_class::get_instance(), 'is_forced' => true]
         );
 
-        return PHS_Event_Migration_plugins::listen_after_jobs(
-            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper($event_obj, $callback),
+        if ( !($listen_obj = PHS_Event_Migration_plugins::listen_after_jobs(
+            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper(PHS_Event_Migration_plugins::EP_AFTER_JOBS, $event_obj, $callback),
             $plugin_class,
             $priority
-        );
+        )) ) {
+            $this->set_error(self::ERR_LISTENER,
+                self::st_get_simple_error_message(self::_t('Error installing migration listener event.')));
+
+            return null;
+        }
+
+        return $listen_obj;
     }
 
     /**
@@ -174,31 +213,46 @@ abstract class PHS_Migration extends PHS_Registry
         string $plugin_class,
         int $priority = 10
     ) : ?PHS_Event_Migration_plugins {
+        $this->reset_error();
+
         $this->_keep_listener(
             [PHS_Event_Migration_plugins::class, 'trigger_finish'],
             ['plugin_obj' => fn () => $plugin_class::get_instance(), 'is_forced' => true]
         );
 
-        return PHS_Event_Migration_plugins::listen_finish(
-            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper($event_obj, $callback),
+        if ( !($listen_obj = PHS_Event_Migration_plugins::listen_finish(
+            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper(PHS_Event_Migration_plugins::EP_FINISH, $event_obj, $callback),
             $plugin_class,
             $priority
-        );
+        )) ) {
+            $this->set_error(self::ERR_LISTENER,
+                self::st_get_simple_error_message(self::_t('Error installing migration listener event.')));
+
+            return null;
+        }
+
+        return $listen_obj;
     }
 
-    final public function plugin_event_listener_wrapper(PHS_Event_Migration_plugins $event_obj, string | callable | array | Closure $callback) : bool
+    final public function plugin_event_listener_wrapper(string $trigger_name, PHS_Event_Migration_plugins $event_obj, string | callable | array | Closure $callback) : bool
     {
         if (!$event_obj->is_dry_update()) {
             $this->refresh_migration_record();
         }
 
+        PHS_Maintenance::output("\t".'START migration script '.$this->get_migration_script().' for plugin trigger '.$trigger_name);
+
         if (!$callback($event_obj)) {
+            PHS_Maintenance::output("\t".'ERROR migration script '.$this->get_migration_script().' for plugin trigger '.$trigger_name);
+
             if (!$event_obj->is_dry_update()) {
                 $this->migration_error($this->get_simple_error_message(self::_t('Unknown error.')));
             }
 
             return false;
         }
+
+        PHS_Maintenance::output("\t".'FINISH migration script '.$this->get_migration_script().' for plugin trigger '.$trigger_name);
 
         return true;
     }
@@ -221,17 +275,26 @@ abstract class PHS_Migration extends PHS_Registry
         string $table_name = '',
         int $priority = 10
     ) : ?PHS_Event_Migration_models {
+        $this->reset_error();
+
         $this->_keep_listener(
             [PHS_Event_Migration_models::class, 'trigger_before_missing'],
             ['model_obj' => fn () => $model_class::get_instance(), 'table_name' => $table_name, 'is_forced' => true]
         );
 
-        return PHS_Event_Migration_models::listen_before_missing(
-            fn (PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper($event_obj, $callback),
+        if ( !($listen_obj = PHS_Event_Migration_models::listen_before_missing(
+            fn (PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper(PHS_Event_Migration_models::EP_BEFORE_MISSING, $event_obj, $callback),
             $model_class,
             $table_name,
             $priority
-        );
+        )) ) {
+            $this->set_error(self::ERR_LISTENER,
+                self::st_get_simple_error_message(self::_t('Error installing migration listener event.')));
+
+            return null;
+        }
+
+        return $listen_obj;
     }
 
     /**
@@ -250,17 +313,26 @@ abstract class PHS_Migration extends PHS_Registry
         string $table_name = '',
         int $priority = 10
     ) : ?PHS_Event_Migration_models {
+        $this->reset_error();
+
         $this->_keep_listener(
             [PHS_Event_Migration_models::class, 'trigger_after_missing'],
             ['model_obj' => fn () => $model_class::get_instance(), 'table_name' => $table_name, 'is_forced' => true]
         );
 
-        return PHS_Event_Migration_models::listen_after_missing(
-            fn (PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper($event_obj, $callback),
+        if ( !($listen_obj = PHS_Event_Migration_models::listen_after_missing(
+            fn (PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper(PHS_Event_Migration_models::EP_AFTER_MISSING, $event_obj, $callback),
             $model_class,
             $table_name,
             $priority
-        );
+        )) ) {
+            $this->set_error(self::ERR_LISTENER,
+                self::st_get_simple_error_message(self::_t('Error installing migration listener event.')));
+
+            return null;
+        }
+
+        return $listen_obj;
     }
 
     /**
@@ -279,17 +351,26 @@ abstract class PHS_Migration extends PHS_Registry
         string $table_name = '',
         int $priority = 10
     ) : ?PHS_Event_Migration_models {
+        $this->reset_error();
+
         $this->_keep_listener(
             [PHS_Event_Migration_models::class, 'trigger_before_update'],
             ['model_obj' => fn () => $model_class::get_instance(), 'table_name' => $table_name, 'is_forced' => true]
         );
 
-        return PHS_Event_Migration_models::listen_before_update(
-            fn (PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper($event_obj, $callback),
+        if ( !($listen_obj = PHS_Event_Migration_models::listen_before_update(
+            fn (PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper(PHS_Event_Migration_models::EP_BEFORE_UPDATE, $event_obj, $callback),
             $model_class,
             $table_name,
             $priority
-        );
+        )) ) {
+            $this->set_error(self::ERR_LISTENER,
+                self::st_get_simple_error_message(self::_t('Error installing migration listener event.')));
+
+            return null;
+        }
+
+        return $listen_obj;
     }
 
     /**
@@ -308,26 +389,39 @@ abstract class PHS_Migration extends PHS_Registry
         string $table_name = '',
         int $priority = 10
     ) : ?PHS_Event_Migration_models {
+        $this->reset_error();
+
         $this->_keep_listener(
             [PHS_Event_Migration_models::class, 'trigger_after_update'],
             ['model_obj' => fn () => $model_class::get_instance(), 'table_name' => $table_name, 'is_forced' => true]
         );
 
-        return PHS_Event_Migration_models::listen_after_update(
-            fn (PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper($event_obj, $callback),
+        if ( !($listen_obj = PHS_Event_Migration_models::listen_after_update(
+            fn (PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper(PHS_Event_Migration_models::EP_AFTER_UPDATE, $event_obj, $callback),
             $model_class,
             $table_name,
             $priority
-        );
+        )) ) {
+            $this->set_error(self::ERR_LISTENER,
+                self::st_get_simple_error_message(self::_t('Error installing migration listener event.')));
+
+            return null;
+        }
+
+        return $listen_obj;
     }
 
-    final public function model_event_listener_wrapper(PHS_Event_Migration_models $event_obj, string | callable | array | Closure $callback) : bool
+    final public function model_event_listener_wrapper(string $trigger_name, PHS_Event_Migration_models $event_obj, string | callable | array | Closure $callback) : bool
     {
         if (!$event_obj->is_dry_update()) {
             $this->refresh_migration_record();
         }
 
+        PHS_Maintenance::output("\t".'START migration script '.$this->get_migration_script().' for model trigger '.$trigger_name);
+
         if (!$callback($event_obj)) {
+            PHS_Maintenance::output("\t".'ERROR migration script '.$this->get_migration_script().' for model trigger '.$trigger_name);
+
             if (!$event_obj->is_dry_update()) {
                 $this->migration_error($this->get_simple_error_message(self::_t('Unknown error.')));
             }
@@ -335,9 +429,34 @@ abstract class PHS_Migration extends PHS_Registry
             return false;
         }
 
+        PHS_Maintenance::output("\t".'FINISH migration script '.$this->get_migration_script().' for model trigger '.$trigger_name);
+
         return true;
     }
     // endregion Model listeners
+
+    final public function finish_migration_record(PHS_Event_Migrations_finish $event_obj) : bool
+    {
+        var_dump('ERRRROOORRRRRR');
+        $event_obj->add_result_error('WARNING: Error updating migration script: '.$this->get_migration_script());
+
+        return false;
+        if ( !$this->_we_have_migration_record() ) {
+            return true;
+        }
+
+        if (!($new_migration_record = self::$_migrations_model->migration_finish($this->_migration_record))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error updating migration details.'));
+
+            $event_obj->add_result_error('WARNING: Error updating migration script: '.$this->get_migration_script());
+
+            return false;
+        }
+
+        $this->_migration_record = $new_migration_record;
+
+        return true;
+    }
 
     protected function refresh_migration_record() : bool
     {
@@ -371,6 +490,11 @@ abstract class PHS_Migration extends PHS_Registry
         $this->_migration_record = $new_migration_record;
 
         return true;
+    }
+
+    protected function get_migration_script() : string
+    {
+        return $this->_script_details['script'] ?? '';
     }
 
     private function _we_have_migration_record() : bool

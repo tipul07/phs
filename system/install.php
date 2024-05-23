@@ -6,11 +6,13 @@ if (!defined('PHS_VERSION')
 }
 
 use phs\PHS;
+use phs\PHS_Db;
 use phs\PHS_Maintenance;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Plugin;
 use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\models\PHS_Model_Migrations;
+use phs\system\core\events\migrations\PHS_Event_Migrations_finish;
 
 /** @var PHS_Model_Plugins $plugins_model */
 /** @var PHS_Model_Migrations $migrations_model */
@@ -19,6 +21,10 @@ if (!($plugins_model = PHS_Model_Plugins::get_instance())
     PHS::st_set_error(-1, PHS::_t('Error instantiating required core models.'));
 
     return PHS::st_get_error();
+}
+
+if ( !($migrations_manager = migrations_manager()) ) {
+    return PHS::arr_set_error(-1, PHS::_t('Error instantiating migrations manager.'));
 }
 
 PHS_Maintenance::lock_db_structure_read();
@@ -46,19 +52,19 @@ PHS_Maintenance::lock_db_structure_read();
 if (($core_models = PHS::get_core_models())) {
     foreach ($core_models as $core_model) {
         /** @var PHS_Model $model_obj */
-        if (($model_obj = PHS::load_model($core_model))) {
-            $model_obj->check_installation();
-        } else {
+        if (!($model_obj = PHS::load_model($core_model))) {
             PHS::st_set_error_if_not_set(-1, PHS::_t('Error instantiating core model [%s].', $core_model));
 
             PHS_Maintenance::unlock_db_structure_read();
 
             return PHS::st_get_error();
         }
+
+        $model_obj->check_installation();
     }
 }
 
-if (($plugins_arr = $plugins_model->cache_all_dir_details()) === null) {
+if (null === ($plugins_arr = $plugins_model->cache_all_dir_details())) {
     PHS::st_copy_or_set_error($plugins_model, -1, PHS::_t('Error obtaining plugins list.'));
 
     PHS_Maintenance::unlock_db_structure_read();
@@ -84,7 +90,7 @@ $dist_plugins = PHS::get_distribution_plugins();
 
 foreach ($dist_plugins as $plugin_name) {
     if (isset($installing_plugins_arr[$plugin_name])
-     || !isset($plugins_arr[$plugin_name])) {
+        || !isset($plugins_arr[$plugin_name])) {
         continue;
     }
 
@@ -97,10 +103,6 @@ foreach ($plugins_arr as $plugin_name => $plugin_obj) {
     }
 
     $installing_plugins_arr[$plugin_name] = $plugin_obj;
-}
-
-if ( !($migrations_manager = migrations_manager()) ) {
-    return PHS::arr_set_error(-1, PHS::_t('Error instantiating migrations manager.'));
 }
 
 if ( ($plugin_names = array_keys($installing_plugins_arr)) ) {
@@ -127,5 +129,12 @@ foreach ($installing_plugins_arr as $plugin_name => $plugin_obj) {
 }
 
 PHS_Maintenance::unlock_db_structure_read();
+
+/** @var PHS_Event_Migrations_finish $event_obj */
+if ( ($event_obj = PHS_Event_Migrations_finish::trigger(['is_dry_update' => PHS_Db::dry_update()]))
+    && $event_obj->result_has_error() ) {
+    PHS_Maintenance::output(PHS::_t('There were some errors while finializing migration scripts:'."\n\n".'%s',
+        $event_obj->get_result_errors_as_string()));
+}
 
 return true;
