@@ -23,6 +23,7 @@ class PHS_Roles extends PHS_Registry
         ROLEU_MANAGE_API_KEYS = 'phs_manage_api_keys', ROLEU_LIST_API_KEYS = 'phs_list_api_keys',
         ROLEU_API_MONITORING_REPORT = 'phs_api_monitor_report',
         ROLEU_VIEW_LOGS = 'phs_view_logs',
+        ROLEU_MANAGE_MIGRATIONS = 'phs_manage_migrations', ROLEU_LIST_MIGRATIONS = 'phs_list_migrations',
 
         // Tenant role units
         ROLEU_TENANTS_LIST = 'phs_list_tenants', ROLEU_TENANTS_MANAGE = 'phs_manage_tenants';

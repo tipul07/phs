@@ -14,7 +14,7 @@ class PHS_Model_Migrations extends PHS_Model
      */
     public function get_model_version() : string
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     /**
@@ -83,6 +83,7 @@ class PHS_Model_Migrations extends PHS_Model
         }
 
         $fields_arr['pid'] = @getmypid() ?: -1;
+        $fields_arr['start_run'] = date(self::DATETIME_DB);
         $fields_arr['run_at_version'] = $version;
 
         $new_migration = null;
@@ -97,7 +98,7 @@ class PHS_Model_Migrations extends PHS_Model
         return $new_migration;
     }
 
-    public function refresh_migration(int | array $migration_data) : ?array
+    public function refresh_migration(int | array $migration_data, ?int $total_count = null, ?int $current_count = null) : ?array
     {
         $this->reset_error();
 
@@ -121,6 +122,13 @@ class PHS_Model_Migrations extends PHS_Model
             }
 
             $edit_arr['pid'] = $pid;
+        }
+
+        if ( $total_count !== null ) {
+            $edit_arr['total_count'] = $total_count;
+        }
+        if ( $current_count !== null ) {
+            $edit_arr['current_count'] = $current_count;
         }
 
         $edit_arr['last_action'] = date(self::DATETIME_DB);
@@ -310,6 +318,14 @@ class PHS_Model_Migrations extends PHS_Model
                         'length'   => 50,
                         'nullable' => true,
                         'default'  => null,
+                    ],
+                    'total_count' => [
+                        'type'    => self::FTYPE_INT,
+                        'comment' => 'Total steps for completion',
+                    ],
+                    'current_count' => [
+                        'type'    => self::FTYPE_INT,
+                        'comment' => 'Current step',
                     ],
                     'start_run' => [
                         'type' => self::FTYPE_DATETIME,

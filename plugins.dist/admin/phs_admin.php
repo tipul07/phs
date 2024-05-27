@@ -445,6 +445,16 @@ class PHS_Plugin_Admin extends PHS_Plugin
                         'name'        => 'Accounts Import',
                         'description' => 'Allow user to import user accounts',
                     ],
+
+                    // Migrations...
+                    PHS_Roles::ROLEU_LIST_MIGRATIONS => [
+                        'name'        => 'List migrations',
+                        'description' => 'Allow user to list migration scripts',
+                    ],
+                    PHS_Roles::ROLEU_MANAGE_MIGRATIONS => [
+                        'name'        => 'Manage migrations',
+                        'description' => 'Allow user to manage migration scripts',
+                    ],
                 ],
             ],
         ];
@@ -459,194 +469,109 @@ class PHS_Plugin_Admin extends PHS_Plugin
     }
 
     // region Can_* section
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_manage_roles($user_data = null) : bool
+    public function can_admin_manage_roles(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_ROLES, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_list_roles($user_data = null) : bool
+    public function can_admin_list_roles(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_LIST_ROLES, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_manage_plugins($user_data = null) : bool
+    public function can_admin_manage_plugins(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_PLUGINS, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_list_plugins($user_data = null) : bool
+    public function can_admin_list_plugins(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_LIST_PLUGINS, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_import_plugins_settings($user_data = null) : bool
+    public function can_admin_import_plugins_settings(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_IMPORT_PLUGINS_SETTINGS, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_export_plugins_settings($user_data = null) : bool
+    public function can_admin_export_plugins_settings(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_EXPORT_PLUGINS_SETTINGS, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_manage_accounts($user_data = null) : bool
+    public function can_admin_manage_accounts(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_ACCOUNTS, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_list_accounts($user_data = null) : bool
+    public function can_admin_list_accounts(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_LIST_ACCOUNTS, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_login_subaccounts($user_data = null) : bool
+    public function can_admin_login_subaccounts(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_LOGIN_SUBACCOUNT, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_export_accounts($user_data = null) : bool
+    public function can_admin_export_accounts(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_EXPORT_ACCOUNTS, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_import_accounts($user_data = null) : bool
+    public function can_admin_import_accounts(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_IMPORT_ACCOUNTS, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_manage_agent_jobs($user_data = null) : bool
+    public function can_admin_manage_agent_jobs(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_list_agent_jobs($user_data = null) : bool
+    public function can_admin_list_agent_jobs(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_LIST_AGENT_JOBS, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_manage_api_keys($user_data = null) : bool
+    public function can_admin_manage_api_keys(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_API_KEYS, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_list_api_keys($user_data = null) : bool
+    public function can_admin_list_api_keys(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_LIST_API_KEYS, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_view_api_monitoring_report($user_data = null) : bool
+    public function can_admin_view_api_monitoring_report(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_API_MONITORING_REPORT, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_view_logs($user_data = null) : bool
+    public function can_admin_view_logs(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_VIEW_LOGS, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_list_tenants($user_data = null) : bool
+    public function can_admin_list_tenants(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_TENANTS_LIST, null, $user_data);
     }
 
-    /**
-     * @param null|int|array $user_data
-     *
-     * @return bool
-     */
-    public function can_admin_manage_tenants($user_data = null) : bool
+    public function can_admin_manage_tenants(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_TENANTS_MANAGE, null, $user_data);
+    }
+
+    public function can_admin_list_migrations(bool | null | int | array $user_data = null) : bool
+    {
+        return can(PHS_Roles::ROLEU_LIST_MIGRATIONS, null, $user_data);
+    }
+
+    public function can_admin_manage_migrations(bool | null | int | array $user_data = null) : bool
+    {
+        return can(PHS_Roles::ROLEU_MANAGE_MIGRATIONS, null, $user_data);
     }
     // endregion Can_* section
 

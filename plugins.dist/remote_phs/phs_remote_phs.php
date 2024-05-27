@@ -11,6 +11,7 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Plugin_Remote_phs extends PHS_Plugin
 {
@@ -22,59 +23,48 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
         ROLEU_ADM_PING_DOMAIN = 'phs_remote_adm_ping_domain',
         ROLEU_ADM_LIST_LOGS = 'phs_remote_adm_list_logs', ROLEU_ADM_MANAGE_LOGS = 'phs_remote_adm_manage_logs';
 
-    /** @var bool|\phs\plugins\accounts\models\PHS_Model_Accounts */
-    private $_accounts_model = false;
+    private ?PHS_Model_Accounts $_accounts_model = null;
 
     //
     // region is_* and can_* functions
     //
-    public function is_operator($user_data)
+    public function is_operator(int | array $user_data) : bool
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role($user_arr, self::ROLE_OPERATOR)) {
-            return false;
-        }
-
-        return $user_arr;
+        return !empty($user_data)
+               && $this->_load_dependencies()
+               && ($user_arr = $this->_accounts_model->data_to_array($user_data))
+               && PHS_Roles::user_has_role($user_arr, self::ROLE_OPERATOR);
     }
 
-    public function is_manager($user_data)
+    public function is_manager(int | array $user_data) : bool
     {
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))
-         || !PHS_Roles::user_has_role($user_arr, self::ROLE_MANAGER)) {
-            return false;
-        }
-
-        return $user_arr;
+        return !empty($user_data)
+               && $this->_load_dependencies()
+               && ($user_arr = $this->_accounts_model->data_to_array($user_data))
+               && PHS_Roles::user_has_role($user_arr, self::ROLE_MANAGER);
     }
 
-    public function can_admin_list_domains($user_data = null) : bool
+    public function can_admin_list_domains(bool | null | int | array $user_data = null) : bool
     {
         return can(self::ROLEU_ADM_LIST_DOMAINS, null, $user_data);
     }
 
-    public function can_admin_manage_domains($user_data = null) : bool
+    public function can_admin_manage_domains(bool | null | int | array $user_data = null) : bool
     {
         return can(self::ROLEU_ADM_MANAGE_DOMAINS, null, $user_data);
     }
 
-    public function can_admin_ping_domains($user_data = null) : bool
+    public function can_admin_ping_domains(bool | null | int | array $user_data = null) : bool
     {
         return can(self::ROLEU_ADM_PING_DOMAIN, null, $user_data);
     }
 
-    public function can_admin_list_logs($user_data = null) : bool
+    public function can_admin_list_logs(bool | null | int | array $user_data = null) : bool
     {
         return can(self::ROLEU_ADM_LIST_LOGS, null, $user_data);
     }
 
-    public function can_admin_manage_logs($user_data = null) : bool
+    public function can_admin_manage_logs(bool | null | int | array $user_data = null) : bool
     {
         return can(self::ROLEU_ADM_MANAGE_LOGS, null, $user_data);
     }
@@ -85,67 +75,6 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
     //
     // region Manage platform rights and roles
     //
-    public function default_user_platform_rights() : array
-    {
-        return [
-            'has_any_rights'        => false,
-            'has_any_admin_rights'  => false,
-            'has_any_member_rights' => false,
-            'member'                => [
-            ],
-            'admin' => [
-                'manage_domains' => false,
-                'list_domains'   => false,
-                'ping_domains'   => false,
-                'manage_logs'    => false,
-                'list_logs'      => false,
-            ],
-        ];
-    }
-
-    public function get_user_platform_rights($user_data)
-    {
-        static $cuser_rights = false;
-
-        if (empty($user_data)
-         || !$this->_load_dependencies()
-         || !($accounts_model = $this->_accounts_model)
-         || !($user_arr = $accounts_model->data_to_array($user_data))) {
-            return false;
-        }
-
-        if (($cuser_arr = PHS::user_logged_in())) {
-            if ((int)$cuser_arr['id'] === (int)$user_arr['id']
-             && $cuser_rights !== false) {
-                return $cuser_rights;
-            }
-        }
-
-        $view_rights = $this->default_user_platform_rights();
-
-        if ($this->can_admin_manage_domains($user_arr)) {
-            $view_rights['admin']['manage_domains'] = $view_rights['has_any_admin_rights'] = $view_rights['has_any_rights'] = true;
-        }
-        if ($this->can_admin_list_domains($user_arr)) {
-            $view_rights['admin']['list_domains'] = $view_rights['has_any_admin_rights'] = $view_rights['has_any_rights'] = true;
-        }
-        if ($this->can_admin_ping_domains($user_arr)) {
-            $view_rights['admin']['ping_domains'] = $view_rights['has_any_admin_rights'] = $view_rights['has_any_rights'] = true;
-        }
-        if ($this->can_admin_manage_logs($user_arr)) {
-            $view_rights['admin']['manage_logs'] = $view_rights['has_any_admin_rights'] = $view_rights['has_any_rights'] = true;
-        }
-        if ($this->can_admin_list_logs($user_arr)) {
-            $view_rights['admin']['list_logs'] = $view_rights['has_any_admin_rights'] = $view_rights['has_any_rights'] = true;
-        }
-
-        if ((int)$cuser_arr['id'] === (int)$user_arr['id']) {
-            $cuser_rights = $view_rights;
-        }
-
-        return $view_rights;
-    }
-
     /**
      * @inheritdoc
      */
@@ -265,9 +194,7 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
     {
         $hook_args = self::validate_array($hook_args, PHS_Hooks::default_buffer_hook_args());
 
-        $data = [];
-
-        $hook_args['buffer'] = $this->quick_render_template_for_buffer('layout/left_menu_admin', $data);
+        $hook_args['buffer'] = $this->quick_render_template_for_buffer('layout/left_menu_admin', []);
 
         return $hook_args;
     }
@@ -281,10 +208,9 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
     {
         $hook_args = self::validate_array($hook_args, PHS_Hooks::default_user_registration_roles_hook_args());
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (!($accounts_model = PHS::load_model('accounts', 'accounts'))
-         || empty($hook_args['account_data'])
-         || !($account_arr = $accounts_model->data_to_array($hook_args['account_data']))) {
+        if (empty($hook_args['account_data'])
+            || !$this->_load_dependencies()
+            || !($account_arr = $this->_accounts_model->data_to_array($hook_args['account_data']))) {
             return $hook_args;
         }
 
@@ -292,21 +218,21 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
             $hook_args['roles_arr'] = [];
         }
 
-        if ($accounts_model->acc_is_developer($account_arr)) {
+        if ($this->_accounts_model->acc_is_developer($account_arr)) {
             $hook_args['roles_arr'][] = self::ROLE_MANAGER;
-        } elseif ($accounts_model->acc_is_admin($account_arr)) {
+        } elseif ($this->_accounts_model->acc_is_admin($account_arr)) {
             $hook_args['roles_arr'][] = self::ROLE_OPERATOR;
         }
 
         return $hook_args;
     }
 
-    private function _load_dependencies()
+    private function _load_dependencies() : bool
     {
         $this->reset_error();
 
         if (empty($this->_accounts_model)
-         && !($this->_accounts_model = PHS::load_model('accounts', 'accounts'))) {
+         && !($this->_accounts_model = PHS_Model_Accounts::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading accounts model.'));
 
             return false;

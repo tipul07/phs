@@ -14,6 +14,10 @@ abstract class PHS_Migration extends PHS_Registry
 {
     public const ERR_BOOTSTRAP = 20000, ERR_LISTENER = 20001;
 
+    // ! Once how many steps should the migration script call PHS_Maintenance::output() to keep the connection alive
+    // ! (in case of long-running scripts) You can overwrite this in your migration script
+    protected int $_progress_step = 50;
+
     // Keep all event listeners in order to emulate the triggers if required
     private array $_callbacks = [];
 
@@ -437,10 +441,6 @@ abstract class PHS_Migration extends PHS_Registry
 
     final public function finish_migration_record(PHS_Event_Migrations_finish $event_obj) : bool
     {
-        var_dump('ERRRROOORRRRRR');
-        $event_obj->add_result_error('WARNING: Error updating migration script: '.$this->get_migration_script());
-
-        return false;
         if ( !$this->_we_have_migration_record() ) {
             return true;
         }
@@ -448,7 +448,8 @@ abstract class PHS_Migration extends PHS_Registry
         if (!($new_migration_record = self::$_migrations_model->migration_finish($this->_migration_record))) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error updating migration details.'));
 
-            $event_obj->add_result_error('WARNING: Error updating migration script: '.$this->get_migration_script());
+            $event_obj->add_result_error('WARNING: Error updating migration script: '.$this->get_migration_script()
+                                         .', plugin: '.$this->get_migration_plugin());
 
             return false;
         }
@@ -458,13 +459,20 @@ abstract class PHS_Migration extends PHS_Registry
         return true;
     }
 
-    protected function refresh_migration_record() : bool
+    protected function refresh_migration_record(?int $total_count = null, ?int $current_count = null) : bool
     {
+        if ( $current_count !== null
+            && $this->_progress_step !== 0
+            && $current_count % $this->_progress_step === 0 ) {
+            PHS_Maintenance::output("\t".'Script '.$this->get_migration_script().', plugin '.$this->get_migration_plugin()
+                                    .', progress '.$current_count.($total_count !== null ? '/'.$total_count : '').'.');
+        }
+
         if ( !$this->_we_have_migration_record() ) {
             return false;
         }
 
-        if (!($new_migration_record = self::$_migrations_model->refresh_migration($this->_migration_record))) {
+        if (!($new_migration_record = self::$_migrations_model->refresh_migration($this->_migration_record, $total_count, $current_count))) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error updating migration details.'));
 
             return false;
@@ -490,6 +498,16 @@ abstract class PHS_Migration extends PHS_Registry
         $this->_migration_record = $new_migration_record;
 
         return true;
+    }
+
+    protected function get_migration_plugin() : string
+    {
+        return $this->_script_details['plugin'] ?? '';
+    }
+
+    protected function get_migration_plugin_version() : string
+    {
+        return $this->_script_details['version'] ?? '';
     }
 
     protected function get_migration_script() : string

@@ -66,7 +66,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
     {
         PHS::page_settings('page_title', $this->_pt('Remote PHS Domains List'));
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
 
             return null;
@@ -120,7 +120,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
             unset($statuses_arr[$domains_model::STATUS_DELETED]);
         }
 
-        if (!$this->_remote_plugin->can_admin_manage_domains($current_user)) {
+        $can_manage = $this->_remote_plugin->can_admin_manage_domains();
+
+        if (!$can_manage) {
             $bulk_actions = null;
         } else {
             $bulk_actions = [
@@ -264,7 +266,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             ],
         ];
 
-        if ($this->_remote_plugin->can_admin_manage_domains($current_user)) {
+        if ($can_manage) {
             $columns_arr[0]['checkbox_record_index_key'] = [
                 'key'  => 'id',
                 'type' => PHS_params::T_INT,
@@ -293,12 +295,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return false;
         }
 
-        if (!($current_user = PHS::user_logged_in())) {
-            $current_user = false;
-        }
-
-        $remote_plugin = $this->_remote_plugin;
-
         $action_result_params = $this->_paginator->default_action_params();
 
         if (empty($action['action'])) {
@@ -312,8 +308,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
 
                 return true;
-                break;
-
             case 'bulk_suspend':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
@@ -327,8 +321,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (empty($current_user)
-                 || !$remote_plugin->can_admin_manage_domains($current_user)) {
+                if (!$this->_remote_plugin->can_admin_manage_domains()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -387,8 +380,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (empty($current_user)
-                 || !$remote_plugin->can_admin_manage_domains($current_user)) {
+                if (!$this->_remote_plugin->can_admin_manage_domains()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -447,8 +439,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (empty($current_user)
-                 || !$remote_plugin->can_admin_manage_domains($current_user)) {
+                if (!$this->_remote_plugin->can_admin_manage_domains()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -505,8 +496,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (empty($current_user)
-                 || !$remote_plugin->can_admin_manage_domains($current_user)) {
+                if (!$this->_remote_plugin->can_admin_manage_domains()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -541,8 +531,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (empty($current_user)
-                 || !$remote_plugin->can_admin_manage_domains($current_user)) {
+                if (!$this->_remote_plugin->can_admin_manage_domains()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -577,8 +566,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (empty($current_user)
-                 || !$remote_plugin->can_admin_manage_domains($current_user)) {
+                if (!$this->_remote_plugin->can_admin_manage_domains()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -654,11 +642,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return false;
         }
 
-        if (!($current_user = PHS::current_user())) {
-            $current_user = false;
-        }
-
-        if (!$this->_remote_plugin->can_admin_manage_domains($current_user)) {
+        if (!$this->_remote_plugin->can_admin_manage_domains()) {
             return '-';
         }
 
@@ -709,8 +693,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return false;
         }
 
-        if (!($current_user = PHS::current_user())
-         || !$this->_remote_plugin->can_admin_manage_domains($current_user)) {
+        if (!$this->_remote_plugin->can_admin_manage_domains()) {
             return '';
         }
 

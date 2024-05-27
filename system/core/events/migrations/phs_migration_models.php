@@ -80,7 +80,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
     ) : ?self {
         return self::trigger(
             self::_generate_event_input($model_obj, $table_name, $old_version, $new_version, $is_dry_update, $is_forced),
-            $model_obj::class.'::'.self::EP_BEFORE_UPDATE.'::'.$table_name,
+            $model_obj::class.'::'.self::EP_AFTER_UPDATE.'::'.$table_name,
             ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
         );
     }
