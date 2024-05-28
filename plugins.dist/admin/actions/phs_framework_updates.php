@@ -27,7 +27,7 @@ class PHS_Action_Framework_updates extends PHS_Action
 
         /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts model.'));
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }

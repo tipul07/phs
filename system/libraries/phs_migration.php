@@ -6,17 +6,21 @@ use Closure;
 use phs\PHS_Db;
 use phs\PHS_Maintenance;
 use phs\system\core\models\PHS_Model_Migrations;
+use phs\system\core\events\migrations\PHS_Event_Migration;
 use phs\system\core\events\migrations\PHS_Event_Migration_models;
 use phs\system\core\events\migrations\PHS_Event_Migration_plugins;
 use phs\system\core\events\migrations\PHS_Event_Migrations_finish;
 
 abstract class PHS_Migration extends PHS_Registry
 {
-    public const ERR_BOOTSTRAP = 20000, ERR_LISTENER = 20001;
+    public const ERR_BOOTSTRAP = 20000, ERR_LISTENER = 20001, ERR_MIGRATION_RUN = 20002;
 
     // ! Once how many steps should the migration script call PHS_Maintenance::output() to keep the connection alive
     // ! (in case of long-running scripts) You can overwrite this in your migration script
     protected int $_progress_step = 50;
+
+    // At which step did the migration script output progress
+    private int $_last_step_output = 0;
 
     // Keep all event listeners in order to emulate the triggers if required
     private array $_callbacks = [];
@@ -60,6 +64,58 @@ abstract class PHS_Migration extends PHS_Registry
         return true;
     }
 
+    public function rerun() : bool
+    {
+        $this->reset_error();
+
+        if (empty($this->_callbacks)) {
+            return true;
+        }
+
+        foreach ($this->_callbacks as $callback_details) {
+            if (!($callback = $callback_details['trigger_callback'] ?? '')
+                || !@is_callable($callback)) {
+                $this->set_error(self::ERR_MIGRATION_RUN, self::_t('Invalid listener callback.'));
+
+                return false;
+            }
+
+            $args = $this->_resolve_trigger_callback_arguments($callback_details['args'] ?? []);
+
+            /** @var PHS_Event_Migration $event_obj */
+            if (!($event_obj = @$callback(...$args))
+                || !($event_obj instanceof PHS_Event_Migration)
+                || $event_obj->result_has_error()) {
+                $this->set_error(self::ERR_MIGRATION_RUN,
+                    self::_t('Error running migration functionality.'));
+
+                PHS_Logger::error('Error while running migration script '.$this->get_migration_script()
+                                  .', plugin: '.$this->get_migration_plugin().': '
+                                  .($event_obj?->get_result_errors_as_string() ?: 'Unknown error.'),
+                    PHS_Logger::TYPE_MAINTENANCE);
+
+                return false;
+            }
+        }
+
+        PHS_Logger::notice('Finished running migration script '.$this->get_migration_script()
+                          .', plugin: '.$this->get_migration_plugin().'.',
+            PHS_Logger::TYPE_MAINTENANCE);
+
+        /** @var PHS_Event_Migrations_finish $event_obj */
+        if ( !($event_obj = PHS_Event_Migrations_finish::get_instance_with_input(['is_forced' => true, 'is_dry_update' => false]))
+            || !$this->finish_migration_record($event_obj)) {
+            PHS_Logger::error('Error triggering migration finish event for migration script '.$this->get_migration_script()
+                               .', plugin: '.$this->get_migration_plugin().': '
+                              .$this->get_simple_error_message(self::_t('Unknown error.')),
+                PHS_Logger::TYPE_MAINTENANCE);
+
+            return false;
+        }
+
+        return true;
+    }
+
     // region Plugins listeners
 
     /**
@@ -80,7 +136,13 @@ abstract class PHS_Migration extends PHS_Registry
 
         $this->_keep_listener(
             [PHS_Event_Migration_plugins::class, 'trigger_install'],
-            ['plugin_obj' => fn () => $plugin_class::get_instance(), 'is_forced' => true]
+            [
+                'plugin_obj'    => fn () => $plugin_class::get_instance(),
+                'old_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
+                'new_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
+                'is_dry_update' => false,
+                'is_forced'     => true,
+            ]
         );
 
         if ( !($listen_obj = PHS_Event_Migration_plugins::listen_install(
@@ -116,7 +178,13 @@ abstract class PHS_Migration extends PHS_Registry
 
         $this->_keep_listener(
             [PHS_Event_Migration_plugins::class, 'trigger_start'],
-            ['plugin_obj' => fn () => $plugin_class::get_instance(), 'is_forced' => true]
+            [
+                'plugin_obj'    => fn () => $plugin_class::get_instance(),
+                'old_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
+                'new_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
+                'is_dry_update' => false,
+                'is_forced'     => true,
+            ]
         );
 
         if ( !($listen_obj = PHS_Event_Migration_plugins::listen_start(
@@ -151,7 +219,13 @@ abstract class PHS_Migration extends PHS_Registry
 
         $this->_keep_listener(
             [PHS_Event_Migration_plugins::class, 'trigger_after_roles'],
-            ['plugin_obj' => fn () => $plugin_class::get_instance(), 'is_forced' => true]
+            [
+                'plugin_obj'    => fn () => $plugin_class::get_instance(),
+                'old_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
+                'new_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
+                'is_dry_update' => false,
+                'is_forced'     => true,
+            ]
         );
 
         if ( !($listen_obj = PHS_Event_Migration_plugins::listen_after_roles(
@@ -186,7 +260,13 @@ abstract class PHS_Migration extends PHS_Registry
 
         $this->_keep_listener(
             [PHS_Event_Migration_plugins::class, 'trigger_after_jobs'],
-            ['plugin_obj' => fn () => $plugin_class::get_instance(), 'is_forced' => true]
+            [
+                'plugin_obj'    => fn () => $plugin_class::get_instance(),
+                'old_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
+                'new_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
+                'is_dry_update' => false,
+                'is_forced'     => true,
+            ]
         );
 
         if ( !($listen_obj = PHS_Event_Migration_plugins::listen_after_jobs(
@@ -221,7 +301,13 @@ abstract class PHS_Migration extends PHS_Registry
 
         $this->_keep_listener(
             [PHS_Event_Migration_plugins::class, 'trigger_finish'],
-            ['plugin_obj' => fn () => $plugin_class::get_instance(), 'is_forced' => true]
+            [
+                'plugin_obj'    => fn () => $plugin_class::get_instance(),
+                'old_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
+                'new_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
+                'is_dry_update' => false,
+                'is_forced'     => true,
+            ]
         );
 
         if ( !($listen_obj = PHS_Event_Migration_plugins::listen_finish(
@@ -283,7 +369,14 @@ abstract class PHS_Migration extends PHS_Registry
 
         $this->_keep_listener(
             [PHS_Event_Migration_models::class, 'trigger_before_missing'],
-            ['model_obj' => fn () => $model_class::get_instance(), 'table_name' => $table_name, 'is_forced' => true]
+            [
+                'model_obj'     => fn () => $model_class::get_instance(),
+                'table_name'    => $table_name,
+                'old_version'   => fn () => $model_class::get_instance()?->get_model_version(),
+                'new_version'   => fn () => $model_class::get_instance()?->get_model_version(),
+                'is_dry_update' => false,
+                'is_forced'     => true,
+            ]
         );
 
         if ( !($listen_obj = PHS_Event_Migration_models::listen_before_missing(
@@ -321,7 +414,14 @@ abstract class PHS_Migration extends PHS_Registry
 
         $this->_keep_listener(
             [PHS_Event_Migration_models::class, 'trigger_after_missing'],
-            ['model_obj' => fn () => $model_class::get_instance(), 'table_name' => $table_name, 'is_forced' => true]
+            [
+                'model_obj'     => fn () => $model_class::get_instance(),
+                'table_name'    => $table_name,
+                'old_version'   => fn () => $model_class::get_instance()?->get_model_version(),
+                'new_version'   => fn () => $model_class::get_instance()?->get_model_version(),
+                'is_dry_update' => false,
+                'is_forced'     => true,
+            ]
         );
 
         if ( !($listen_obj = PHS_Event_Migration_models::listen_after_missing(
@@ -359,7 +459,14 @@ abstract class PHS_Migration extends PHS_Registry
 
         $this->_keep_listener(
             [PHS_Event_Migration_models::class, 'trigger_before_update'],
-            ['model_obj' => fn () => $model_class::get_instance(), 'table_name' => $table_name, 'is_forced' => true]
+            [
+                'model_obj'     => fn () => $model_class::get_instance(),
+                'table_name'    => $table_name,
+                'old_version'   => fn () => $model_class::get_instance()?->get_model_version(),
+                'new_version'   => fn () => $model_class::get_instance()?->get_model_version(),
+                'is_dry_update' => false,
+                'is_forced'     => true,
+            ]
         );
 
         if ( !($listen_obj = PHS_Event_Migration_models::listen_before_update(
@@ -397,7 +504,14 @@ abstract class PHS_Migration extends PHS_Registry
 
         $this->_keep_listener(
             [PHS_Event_Migration_models::class, 'trigger_after_update'],
-            ['model_obj' => fn () => $model_class::get_instance(), 'table_name' => $table_name, 'is_forced' => true]
+            [
+                'model_obj'     => fn () => $model_class::get_instance(),
+                'table_name'    => $table_name,
+                'old_version'   => fn () => $model_class::get_instance()?->get_model_version(),
+                'new_version'   => fn () => $model_class::get_instance()?->get_model_version(),
+                'is_dry_update' => false,
+                'is_forced'     => true,
+            ]
         );
 
         if ( !($listen_obj = PHS_Event_Migration_models::listen_after_update(
@@ -461,11 +575,21 @@ abstract class PHS_Migration extends PHS_Registry
 
     protected function refresh_migration_record(?int $total_count = null, ?int $current_count = null) : bool
     {
+        $this->reset_error();
+
         if ( $current_count !== null
-            && $this->_progress_step !== 0
-            && $current_count % $this->_progress_step === 0 ) {
+             && $this->_progress_step !== 0
+             && ($current_count % $this->_progress_step === 0
+                 // Maybe we started another process?
+                 || $current_count < $this->_last_step_output)
+        ) {
+            $progress_perc = !empty($total_count)
+                ? min(100, ceil(($current_count * 100) / $total_count))
+                : 0;
+
             PHS_Maintenance::output("\t".'Script '.$this->get_migration_script().', plugin '.$this->get_migration_plugin()
-                                    .', progress '.$current_count.($total_count !== null ? '/'.$total_count : '').'.');
+                                    .', progress '.$current_count.($total_count !== null ? '/'.$total_count.' ('.$progress_perc.'%)' : '').'.');
+            $this->_last_step_output = $current_count;
         }
 
         if ( !$this->_we_have_migration_record() ) {
@@ -513,6 +637,21 @@ abstract class PHS_Migration extends PHS_Registry
     protected function get_migration_script() : string
     {
         return $this->_script_details['script'] ?? '';
+    }
+
+    private function _resolve_trigger_callback_arguments(array $args) : array
+    {
+        $new_args = [];
+        foreach ($args as $key => $val) {
+            if (is_callable($val)) {
+                $new_args[$key] = $val();
+                continue;
+            }
+
+            $new_args[$key] = $val;
+        }
+
+        return $new_args;
     }
 
     private function _we_have_migration_record() : bool
@@ -576,10 +715,10 @@ abstract class PHS_Migration extends PHS_Registry
         return true;
     }
 
-    private function _keep_listener(string | callable | array | Closure $trigger_callable, array $args = []) : void
+    private function _keep_listener(string | callable | array | Closure $trigger_callback, array $args = []) : void
     {
         $this->_callbacks[] = [
-            'trigger_callable' => $trigger_callable,
+            'trigger_callback' => $trigger_callback,
             'args'             => $args,
         ];
     }

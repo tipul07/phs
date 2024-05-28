@@ -3,7 +3,9 @@
 namespace phs\system\core\libraries;
 
 use phs\PHS;
+use phs\PHS_Bg_jobs;
 use phs\PHS_Maintenance;
+use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Library;
 use phs\libraries\PHS_Registry;
@@ -177,7 +179,7 @@ class PHS_Migrations_manager extends PHS_Library
             || !@file_exists($migrations_dir)
             || !@is_dir($migrations_dir)
             || !@is_readable($migrations_dir)) {
-            self::st_set_error(self::ERR_PARAMETERS, self::_t('Plugin doesn\'t have a migrations directory.'));
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Plugin doesn\'t have a migrations directory.'));
 
             return null;
         }
@@ -208,12 +210,106 @@ class PHS_Migrations_manager extends PHS_Library
         return $migrations_arr;
     }
 
-    private function _register_script_details(array $script_details, bool $forced = false) : bool
+    public function launch_rerun_migration_job(int | array $migration_data) : bool
+    {
+        if ( !$this->_load_dependencies()) {
+            return false;
+        }
+
+        if ( empty( $migration_data )
+            || !($migration_arr = $this->_migrations_model->data_to_array( $migration_data )) ) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Migration data not found in database.'));
+
+            return false;
+        }
+
+        if (!PHS_Bg_jobs::run(
+            ['a' => 'rerun_bg', 'ad' => 'migrations', 'c' => 'index_bg', 'p' => 'admin'],
+            ['migration_id' => $migration_arr['id']])
+        ) {
+            $error_msg = self::st_get_simple_error_message(self::_t('Error launching background job for migration script.'));
+
+            PHS_Logger::error('Error launching background job for migration record #'.$migration_arr['id'].': '.$error_msg,
+                PHS_Logger::TYPE_MAINTENANCE);
+            $this->set_error(self::ERR_FUNCTIONALITY, $error_msg);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public function rerun_migration_data(int | array $migration_data) : bool
+    {
+        if ( !($migration_obj = $this->_register_migration_from_migration_data($migration_data, true)) ) {
+            return false;
+        }
+
+        if ( !$migration_obj->rerun() ) {
+            $this->copy_or_set_error($migration_obj,
+                self::ERR_FUNCTIONALITY, self::_t('Error running migration script.'));
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function _register_migration_from_migration_data(int | array $migration_data, bool $forced) : ?PHS_Migration
+    {
+        if ( !($script_details = $this->_get_script_details_from_migration_data($migration_data)) ) {
+            return null;
+        }
+
+        return $this->_register_script_details($script_details, $forced);
+    }
+
+    private function _get_script_details_from_migration_data(int | array $migration_data) : ?array
+    {
+        if ( !$this->_load_dependencies()) {
+            return null;
+        }
+
+        if ( empty( $migration_data )
+            || !($migration_arr = $this->_migrations_model->data_to_array( $migration_data )) ) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Migration data not found in database.'));
+
+            return null;
+        }
+
+        if ( empty( $migration_arr['plugin'] )
+            || !($plugin_obj = $this->_plugins_model->plugin_name_is_instantiable($migration_arr['plugin'])) ) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Could not instantiate the plugin of migration script.'));
+
+            return null;
+        }
+
+        if (!($migrations_dir = $plugin_obj->instance_plugin_migrations_path())
+            || !@file_exists($migrations_dir)
+            || !@is_dir($migrations_dir)
+            || !@is_readable($migrations_dir)) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Plugin doesn\'t have a migrations directory.'));
+
+            return null;
+        }
+
+        if ( empty($migration_arr['script'])
+            || !@is_file(($file = $migrations_dir.'/'.$migration_arr['script']))
+            || !($script_details = $this->_get_migration_file_details($file, $plugin_obj))) {
+            $this->set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Migration script file not found.'));
+
+            return null;
+        }
+
+        return $script_details;
+    }
+
+    private function _register_script_details(array $script_details, bool $forced = false) : ?PHS_Migration
     {
         $this->reset_error();
 
         if (empty($script_details['full_classname'])) {
-            return false;
+            return null;
         }
 
         /** @var PHS_Migration $migration_obj */
@@ -226,10 +322,10 @@ class PHS_Migrations_manager extends PHS_Library
                     $migration_obj->get_simple_error_message(self::_t('Unknown error.'))),
             );
 
-            return false;
+            return null;
         }
 
-        return true;
+        return $migration_obj;
     }
 
     private function _migration_script_already_run(string $plugin_name, string $script) : bool
@@ -251,9 +347,7 @@ class PHS_Migrations_manager extends PHS_Library
 
         if ( !($filestamp = $matches[1] ?? '')
              || !($timestamp = $this->_filestamp_to_timestamp($filestamp)) ) {
-            if ( !$this->has_error() ) {
-                $this->set_error(self::ERR_RESOURCES, self::_t('Filestamp failed verification.'));
-            }
+            $this->set_error_if_not_set(self::ERR_RESOURCES, self::_t('Filestamp failed verification.'));
 
             return null;
         }
@@ -261,9 +355,7 @@ class PHS_Migrations_manager extends PHS_Library
         if ( !($file_class_name = $matches[2] ?? '')
              || !($class_validation = $this->_validate_file_and_classname($file, $file_class_name, $plugin_obj))
              || empty($class_validation['full_classname'])) {
-            if ( !$this->has_error() ) {
-                $this->set_error(self::ERR_RESOURCES, self::_t('Error loading migration script.'));
-            }
+            $this->set_error_if_not_set(self::ERR_RESOURCES, self::_t('Error loading migration script.'));
 
             return null;
         }
@@ -281,6 +373,13 @@ class PHS_Migrations_manager extends PHS_Library
     private function _validate_file_and_classname(string $file, string $file_class_name, PHS_Plugin $plugin_obj) : ?array
     {
         $this->reset_error();
+
+        if (!@is_file($file)
+            || !@is_readable($file)) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Migration file is not readable.'));
+
+            return null;
+        }
 
         if (!$this->_is_migration_classname_safe($file_class_name)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Bad file name format.'));
@@ -378,7 +477,7 @@ class PHS_Migrations_manager extends PHS_Library
         // Cover false and null as result...
         if (!($migrations_arr = $this->_migrations_model->get_list($list_arr))
             && !is_array($migrations_arr)) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error obtaining a list of migration scripts.'));
+            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error obtaining a list of migration scripts.'));
 
             return false;
         }
@@ -406,7 +505,7 @@ class PHS_Migrations_manager extends PHS_Library
             ($this->_migrations_model === null && !($this->_migrations_model = PHS_Model_Migrations::get_instance()))
             || ($this->_plugins_model === null && !($this->_plugins_model = PHS_Model_Plugins::get_instance()))
         ) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+            $this->set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
             return false;
         }

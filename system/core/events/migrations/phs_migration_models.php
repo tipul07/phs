@@ -26,13 +26,17 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
 
     // region Triggers
     public static function trigger_before_missing(
-        PHS_Model_Core_base $model_obj,
+        ?PHS_Model_Core_base $model_obj,
         string $table_name = '',
-        string $old_version = '',
-        string $new_version = '',
+        ?string $old_version = '',
+        ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
+        if ( !$model_obj ) {
+            return null;
+        }
+
         return self::trigger(
             self::_generate_event_input($model_obj, $table_name, $old_version, $new_version, $is_dry_update, $is_forced),
             $model_obj::class.'::'.self::EP_BEFORE_MISSING.'::'.$table_name,
@@ -41,13 +45,17 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
     }
 
     public static function trigger_after_missing(
-        PHS_Model_Core_base $model_obj,
+        ?PHS_Model_Core_base $model_obj,
         string $table_name = '',
-        string $old_version = '',
-        string $new_version = '',
+        ?string $old_version = '',
+        ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
+        if ( !$model_obj ) {
+            return null;
+        }
+
         return self::trigger(
             self::_generate_event_input($model_obj, $table_name, $old_version, $new_version, $is_dry_update, $is_forced),
             $model_obj::class.'::'.self::EP_AFTER_MISSING.'::'.$table_name,
@@ -56,13 +64,17 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
     }
 
     public static function trigger_before_update(
-        PHS_Model_Core_base $model_obj,
+        ?PHS_Model_Core_base $model_obj,
         string $table_name = '',
-        string $old_version = '',
-        string $new_version = '',
+        ?string $old_version = '',
+        ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
+        if ( !$model_obj ) {
+            return null;
+        }
+
         return self::trigger(
             self::_generate_event_input($model_obj, $table_name, $old_version, $new_version, $is_dry_update, $is_forced),
             $model_obj::class.'::'.self::EP_BEFORE_UPDATE.'::'.$table_name,
@@ -71,13 +83,17 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
     }
 
     public static function trigger_after_update(
-        PHS_Model_Core_base $model_obj,
+        ?PHS_Model_Core_base $model_obj,
         string $table_name = '',
-        string $old_version = '',
-        string $new_version = '',
+        ?string $old_version = '',
+        ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
+        if ( !$model_obj ) {
+            return null;
+        }
+
         return self::trigger(
             self::_generate_event_input($model_obj, $table_name, $old_version, $new_version, $is_dry_update, $is_forced),
             $model_obj::class.'::'.self::EP_AFTER_UPDATE.'::'.$table_name,
@@ -142,9 +158,9 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
 
     private static function _generate_event_input(
         PHS_Model_Core_base $model_obj,
-        string $table_name,
-        string $old_version = '',
-        string $new_version = '',
+        ?string $table_name,
+        ?string $old_version = '',
+        ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : array {
@@ -154,13 +170,13 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         return [
             'is_forced'          => $is_forced,
             'is_dry_update'      => $is_dry_update,
-            'old_version'        => $old_version,
-            'new_version'        => $new_version,
+            'old_version'        => $old_version ?: '',
+            'new_version'        => $new_version ?: '',
             'model_instance_id'  => $model_obj->instance_id(),
             'model_class'        => $model_obj::class,
             'plugin_instance_id' => $plugin_obj ? $plugin_obj->instance_id() : '',
             'plugin_class'       => $plugin_obj ? $plugin_obj::class : '',
-            'table_name'         => $table_name,
+            'table_name'         => $table_name ?: '',
             'flow_params'        => ['table_name' => $table_name],
             'model_obj'          => $model_obj,
         ];

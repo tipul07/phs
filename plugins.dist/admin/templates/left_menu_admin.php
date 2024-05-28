@@ -134,7 +134,7 @@ if ($can_list_plugins || $can_manage_plugins) {
         ?>
         <li><?php echo $this::_t('Plugins Migrations'); ?>
             <ul>
-                <li><a href="<?php echo PHS::url(['a' => 'migrations_list', 'p' => 'admin']); ?>"><?php echo $this::_t('List Migrations'); ?></a></li>
+                <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'migrations', 'p' => 'admin']); ?>"><?php echo $this::_t('List Migrations'); ?></a></li>
             </ul>
         </li>
         <?php

@@ -1,6 +1,6 @@
 <?php
 
-namespace phs\plugins\admin\actions;
+namespace phs\plugins\admin\actions\migrations;
 
 use phs\PHS;
 use phs\libraries\PHS_Roles;
@@ -12,7 +12,7 @@ use phs\system\core\models\PHS_Model_Migrations;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 /** @property PHS_Model_Migrations $_paginator_model */
-class PHS_Action_Migrations_list extends PHS_Action_Generic_list
+class PHS_Action_List extends PHS_Action_Generic_list
 {
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
@@ -251,7 +251,7 @@ class PHS_Action_Migrations_list extends PHS_Action_Generic_list
         }
 
         $return_arr = $this->default_paginator_params();
-        $return_arr['base_url'] = PHS::url(['p' => 'admin', 'a' => 'migrations_list']);
+        $return_arr['base_url'] = PHS::url(['a' => 'list', 'ad' => 'migrations', 'p' => 'admin']);
         $return_arr['flow_parameters'] = $flow_params;
         $return_arr['bulk_actions'] = $bulk_actions;
         $return_arr['filters_arr'] = $filters_arr;
@@ -287,197 +287,18 @@ class PHS_Action_Migrations_list extends PHS_Action_Generic_list
                 PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
 
                 return true;
-                break;
-
-            case 'bulk_activate':
+            case 'rerun_migration':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Required roles activated with success.'));
+                        PHS_Notifications::add_success_notice($this->_pt('Migration launched in a background script with success. Check maintenance.log to see the output.'));
                     } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Activating selected roles failed. Please try again.'));
-                    } elseif ($action['action_result'] === 'failed_some') {
-                        PHS_Notifications::add_error_notice($this->_pt('Failed activating all selected roles. Roles which failed activation are still selected. Please try again.'));
+                        PHS_Notifications::add_error_notice($this->_pt('Failed launching migration in a background script. Check maintenance.log to see any errors reported.'));
                     }
 
                     return true;
                 }
 
-                if (!$can_manage_roles) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-                    return false;
-                }
-
-                if (!($scope_arr = $this->_paginator->get_scope())
-                 || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
-                 || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
-                 || !($scope_key = @sprintf($ids_checkboxes_name, 'id'))
-                 || !($scope_all_key = @sprintf($ids_all_checkbox_name, 'id'))
-                 || empty($scope_arr[$scope_key])
-                 || !is_array($scope_arr[$scope_key])) {
-                    return true;
-                }
-
-                $remaining_ids_arr = [];
-                foreach ($scope_arr[$scope_key] as $role_id) {
-                    if (!$this->_paginator_model->activate_role($role_id)) {
-                        $remaining_ids_arr[] = $role_id;
-                    }
-                }
-
-                if (isset($scope_arr[$scope_all_key])) {
-                    unset($scope_arr[$scope_all_key]);
-                }
-
-                if (empty($remaining_ids_arr)) {
-                    $action_result_params['action_result'] = 'success';
-
-                    unset($scope_arr[$scope_key]);
-
-                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
-                } else {
-                    if (count($remaining_ids_arr) !== count($scope_arr[$scope_key])) {
-                        $action_result_params['action_result'] = 'failed_some';
-                    } else {
-                        $action_result_params['action_result'] = 'failed';
-                    }
-
-                    $scope_arr[$scope_key] = implode(',', $remaining_ids_arr);
-
-                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
-                }
-                break;
-
-            case 'bulk_inactivate':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Required roles inactivated with success.'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Inactivating selected roles failed. Please try again.'));
-                    } elseif ($action['action_result'] === 'failed_some') {
-                        PHS_Notifications::add_error_notice($this->_pt('Failed inactivating all selected roles. Roles which failed inactivation are still selected. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!$can_manage_roles) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-                    return false;
-                }
-
-                if (!($scope_arr = $this->_paginator->get_scope())
-                 || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
-                 || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
-                 || !($scope_key = @sprintf($ids_checkboxes_name, 'id'))
-                 || !($scope_all_key = @sprintf($ids_all_checkbox_name, 'id'))
-                 || empty($scope_arr[$scope_key])
-                 || !is_array($scope_arr[$scope_key])) {
-                    return true;
-                }
-
-                $remaining_ids_arr = [];
-                foreach ($scope_arr[$scope_key] as $role_id) {
-                    if (!$this->_paginator_model->inactivate_role($role_id)) {
-                        $remaining_ids_arr[] = $role_id;
-                    }
-                }
-
-                if (isset($scope_arr[$scope_all_key])) {
-                    unset($scope_arr[$scope_all_key]);
-                }
-
-                if (empty($remaining_ids_arr)) {
-                    $action_result_params['action_result'] = 'success';
-
-                    unset($scope_arr[$scope_key]);
-
-                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
-                } else {
-                    if (count($remaining_ids_arr) != count($scope_arr[$scope_key])) {
-                        $action_result_params['action_result'] = 'failed_some';
-                    } else {
-                        $action_result_params['action_result'] = 'failed';
-                    }
-
-                    $scope_arr[$scope_key] = implode(',', $remaining_ids_arr);
-
-                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
-                }
-                break;
-
-            case 'bulk_delete':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Required roles deleted with success.'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Deleting selected roles failed. Please try again.'));
-                    } elseif ($action['action_result'] === 'failed_some') {
-                        PHS_Notifications::add_error_notice($this->_pt('Failed deleting all selected roles. Roles which failed deletion are still selected. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!$can_manage_roles) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-                    return false;
-                }
-
-                if (!($scope_arr = $this->_paginator->get_scope())
-                 || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
-                 || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
-                 || !($scope_key = @sprintf($ids_checkboxes_name, 'id'))
-                 || !($scope_all_key = @sprintf($ids_all_checkbox_name, 'id'))
-                 || empty($scope_arr[$scope_key])
-                 || !is_array($scope_arr[$scope_key])) {
-                    return true;
-                }
-
-                $remaining_ids_arr = [];
-                foreach ($scope_arr[$scope_key] as $role_id) {
-                    if (!$this->_paginator_model->delete_role($role_id)) {
-                        $remaining_ids_arr[] = $role_id;
-                    }
-                }
-
-                if (isset($scope_arr[$scope_all_key])) {
-                    unset($scope_arr[$scope_all_key]);
-                }
-
-                if (empty($remaining_ids_arr)) {
-                    $action_result_params['action_result'] = 'success';
-
-                    unset($scope_arr[$scope_key]);
-
-                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
-                } else {
-                    if (count($remaining_ids_arr) !== count($scope_arr[$scope_key])) {
-                        $action_result_params['action_result'] = 'failed_some';
-                    } else {
-                        $action_result_params['action_result'] = 'failed';
-                    }
-
-                    $scope_arr[$scope_key] = implode(',', $remaining_ids_arr);
-
-                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
-                }
-                break;
-
-            case 'activate_role':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Role activated with success.'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Activating role failed. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!$can_manage_roles) {
+                if (!$this->_admin_plugin->can_admin_manage_migrations()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -488,83 +309,14 @@ class PHS_Action_Migrations_list extends PHS_Action_Generic_list
                 }
 
                 if (empty($action['action_params'])
-                 || !($role_arr = $this->_paginator_model->get_details($action['action_params']))) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('Cannot activate role. Role not found.'));
+                 || !($migration_arr = $this->_paginator_model->get_details($action['action_params']))) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('Migration script details not found in database.'));
 
                     return false;
                 }
 
-                if (!$this->_paginator_model->activate_role($role_arr)) {
-                    $action_result_params['action_result'] = 'failed';
-                } else {
-                    $action_result_params['action_result'] = 'success';
-                }
-                break;
-
-            case 'inactivate_role':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Role inactivated with success.'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Inactivating role failed. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!$can_manage_roles) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-                    return false;
-                }
-
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
-                if (empty($action['action_params'])
-                 || !($role_arr = $this->_paginator_model->get_details($action['action_params']))) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('Cannot inactivate role. Role not found.'));
-
-                    return false;
-                }
-
-                if (!$this->_paginator_model->inactivate_role($role_arr)) {
-                    $action_result_params['action_result'] = 'failed';
-                } else {
-                    $action_result_params['action_result'] = 'success';
-                }
-                break;
-
-            case 'delete_role':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Role deleted with success.'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Deleting role failed. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!$can_manage_roles) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-                    return false;
-                }
-
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
-                if (empty($action['action_params'])
-                 || !($role_arr = $this->_paginator_model->get_details($action['action_params']))) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('Cannot delete role. Role not found.'));
-
-                    return false;
-                }
-
-                if (!$this->_paginator_model->delete_role($role_arr)) {
+                if (!($migrations_manager = migrations_manager())
+                    || !$migrations_manager->launch_rerun_migration_job($migration_arr)) {
                     $action_result_params['action_result'] = 'failed';
                 } else {
                     $action_result_params['action_result'] = 'success';
@@ -575,10 +327,10 @@ class PHS_Action_Migrations_list extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_progress($params)
+    public function display_progress($params) : ?string
     {
-        if (empty($params['record']) || !is_array($params['record'])) {
-            return false;
+        if (empty($params['record']['id'])) {
+            return null;
         }
 
         $migration_arr = $params['record'];
@@ -605,10 +357,10 @@ class PHS_Action_Migrations_list extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function display_actions($params)
+    public function display_actions($params) : ?string
     {
         if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            return false;
+            return null;
         }
 
         if (!$this->_admin_plugin->can_admin_manage_roles()) {
@@ -616,14 +368,13 @@ class PHS_Action_Migrations_list extends PHS_Action_Generic_list
         }
 
         if (empty($params['record']['id'])) {
-            return false;
+            return null;
         }
 
         $migration_arr = $params['record'];
 
         $is_finished = $this->_paginator_model->is_finished($migration_arr);
         $is_stalling = $this->_paginator_model->is_stalling($migration_arr);
-        $is_running = $this->_paginator_model->is_running($migration_arr);
 
         ob_start();
         if ($is_finished || $is_stalling) {
@@ -636,7 +387,7 @@ class PHS_Action_Migrations_list extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function after_table_callback($params)
+    public function after_table_callback($params) : string
     {
         static $js_functionality = false;
 
@@ -661,70 +412,6 @@ class PHS_Action_Migrations_list extends PHS_Action_Generic_list
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
             }
-        }
-
-        function phs_migrations_list_get_checked_ids_count()
-        {
-            const checkboxes_list = phs_paginator_get_checkboxes_checked('id');
-            if( !checkboxes_list || !checkboxes_list.length )
-                return 0;
-
-            return checkboxes_list.length;
-        }
-
-        function phs_migrations_list_bulk_activate()
-        {
-            const total_checked = phs_migrations_list_get_checked_ids_count();
-
-            if( !total_checked )
-            {
-                alert( "<?php echo self::_e('Please select roles you want to activate first.', '"'); ?>" );
-                return false;
-            }
-
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to activate %s roles?', '"'), '" + total_checked + "'); ?>" ) )
-                return false;
-
-            const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
-                form_obj.submit();
-        }
-
-        function phs_migrations_list_bulk_inactivate()
-        {
-            const total_checked = phs_migrations_list_get_checked_ids_count();
-
-            if( !total_checked )
-            {
-                alert( "<?php echo self::_e('Please select roles you want to inactivate first.', '"'); ?>" );
-                return false;
-            }
-
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to inactivate %s roles?', '"'), '" + total_checked + "'); ?>" ) )
-                return false;
-
-            const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
-                form_obj.submit();
-        }
-
-        function phs_migrations_list_bulk_delete()
-        {
-            const total_checked = phs_migrations_list_get_checked_ids_count();
-
-            if( !total_checked )
-            {
-                alert( "<?php echo self::_e('Please select roles you want to delete first.', '"'); ?>" );
-                return false;
-            }
-
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to DELETE %s roles?', '"'), '" + total_checked + "'); ?>" + "\n" +
-                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
-                return false;
-
-            const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
-                form_obj.submit();
         }
         </script>
         <?php

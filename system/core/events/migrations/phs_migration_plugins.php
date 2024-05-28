@@ -17,21 +17,25 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
     /**
      * This will be triggered only when installing plugin. Normal updates will not trigger this.
      *
-     * @param PHS_Plugin $plugin_obj
-     * @param string $old_version
-     * @param string $new_version
+     * @param null|PHS_Plugin $plugin_obj
+     * @param null|string $old_version
+     * @param null|string $new_version
      * @param bool $is_dry_update
      * @param bool $is_forced
      *
      * @return null|self
      */
     public static function trigger_install(
-        PHS_Plugin $plugin_obj,
-        string $old_version = '',
-        string $new_version = '',
+        ?PHS_Plugin $plugin_obj,
+        ?string $old_version = '',
+        ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
+        if ( !$plugin_obj ) {
+            return null;
+        }
+
         return self::trigger(
             self::_generate_event_input($plugin_obj, $old_version, $new_version, $is_dry_update, $is_forced),
             $plugin_obj::class.'::'.self::EP_INSTALL,
@@ -42,21 +46,25 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
     /**
      * This is triggered when starting plugin update OR installation. At installation `trigger_install()` will be called first, then this trigger.
      *
-     * @param PHS_Plugin $plugin_obj
-     * @param string $old_version
-     * @param string $new_version
+     * @param null|PHS_Plugin $plugin_obj
+     * @param null|string $old_version
+     * @param null|string $new_version
      * @param bool $is_dry_update
      * @param bool $is_forced
      *
      * @return null|self
      */
     public static function trigger_start(
-        PHS_Plugin $plugin_obj,
-        string $old_version = '',
-        string $new_version = '',
+        ?PHS_Plugin $plugin_obj,
+        ?string $old_version = '',
+        ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
+        if ( !$plugin_obj ) {
+            return null;
+        }
+
         return self::trigger(
             self::_generate_event_input($plugin_obj, $old_version, $new_version, $is_dry_update, $is_forced),
             $plugin_obj::class.'::'.self::EP_START,
@@ -64,13 +72,28 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         );
     }
 
+    /**
+     * This is triggered after plugin roles have been installed (at plugin update OR installation)
+     *
+     * @param null|PHS_Plugin $plugin_obj
+     * @param null|string $old_version
+     * @param null|string $new_version
+     * @param bool $is_dry_update
+     * @param bool $is_forced
+     *
+     * @return null|self
+     */
     public static function trigger_after_roles(
-        PHS_Plugin $plugin_obj,
-        string $old_version = '',
-        string $new_version = '',
+        ?PHS_Plugin $plugin_obj,
+        ?string $old_version = '',
+        ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
+        if ( !$plugin_obj ) {
+            return null;
+        }
+
         return self::trigger(
             self::_generate_event_input($plugin_obj, $old_version, $new_version, $is_dry_update, $is_forced),
             $plugin_obj::class.'::'.self::EP_AFTER_ROLES,
@@ -78,13 +101,28 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         );
     }
 
+    /**
+     * This is triggered after plugin agent jobs have been installed (at plugin update OR installation)
+     *
+     * @param null|PHS_Plugin $plugin_obj
+     * @param null|string $old_version
+     * @param null|string $new_version
+     * @param bool $is_dry_update
+     * @param bool $is_forced
+     *
+     * @return null|self
+     */
     public static function trigger_after_jobs(
-        PHS_Plugin $plugin_obj,
-        string $old_version = '',
-        string $new_version = '',
+        ?PHS_Plugin $plugin_obj,
+        ?string $old_version = '',
+        ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
+        if ( !$plugin_obj ) {
+            return null;
+        }
+
         return self::trigger(
             self::_generate_event_input($plugin_obj, $old_version, $new_version, $is_dry_update, $is_forced),
             $plugin_obj::class.'::'.self::EP_AFTER_JOBS,
@@ -92,13 +130,28 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         );
     }
 
+    /**
+     * This is triggered after plugin installation or update is finished (even after all models have been installed or updated)
+     *
+     * @param null|PHS_Plugin $plugin_obj
+     * @param null|string $old_version
+     * @param null|string $new_version
+     * @param bool $is_dry_update
+     * @param bool $is_forced
+     *
+     * @return null|self
+     */
     public static function trigger_finish(
-        PHS_Plugin $plugin_obj,
-        string $old_version = '',
-        string $new_version = '',
+        ?PHS_Plugin $plugin_obj,
+        ?string $old_version = '',
+        ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
+        if ( !$plugin_obj ) {
+            return null;
+        }
+
         return self::trigger(
             self::_generate_event_input($plugin_obj, $old_version, $new_version, $is_dry_update, $is_forced),
             $plugin_obj::class.'::'.self::EP_FINISH,
@@ -171,16 +224,16 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
 
     private static function _generate_event_input(
         PHS_Plugin $plugin_obj,
-        string $old_version = '',
-        string $new_version = '',
+        ?string $old_version = '',
+        ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : array {
         return [
             'is_forced'          => $is_forced,
             'is_dry_update'      => $is_dry_update,
-            'old_version'        => $old_version,
-            'new_version'        => $new_version,
+            'old_version'        => $old_version ?: '',
+            'new_version'        => $new_version ?: '',
             'plugin_instance_id' => $plugin_obj->instance_id(),
             'plugin_class'       => $plugin_obj::class,
         ];

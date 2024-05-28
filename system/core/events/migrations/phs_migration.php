@@ -3,8 +3,6 @@
 namespace phs\system\core\events\migrations;
 
 use phs\libraries\PHS_Event;
-use phs\libraries\PHS_Model;
-use phs\libraries\PHS_Plugin;
 
 abstract class PHS_Event_Migration extends PHS_Event
 {

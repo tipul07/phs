@@ -189,11 +189,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
             }
         }
 
-        if (!($input = $this->_validate_event_input($input))) {
-            $input = [];
-        }
-
-        $this->_set_input($input);
+        $this->validate_and_set_input($input);
 
         if (!$this->_pre_trigger_condition()) {
             return $this->_validate_event_output();
@@ -382,6 +378,15 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
     public function supports_background_listeners() : bool
     {
         return true;
+    }
+
+    public function validate_and_set_input(array $input) : void
+    {
+        if (!($input = $this->_validate_event_input($input))) {
+            $input = [];
+        }
+
+        $this->_set_input($input);
     }
 
     /**
@@ -744,6 +749,25 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         $options['in_background'] = true;
 
         return static::_do_listen($callback, $event_prefix, $options);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function get_instance_with_input(array $input = []) : ?self
+    {
+        self::st_reset_error();
+
+        /** @var static $event_obj */
+        if (!($event_obj = static::get_instance(true, static::class))) {
+            self::st_set_error(self::ERR_TRIGGER, self::_t('Error instantiating event.'));
+
+            return null;
+        }
+
+        $event_obj->validate_and_set_input($input);
+
+        return $event_obj;
     }
 
     /**
