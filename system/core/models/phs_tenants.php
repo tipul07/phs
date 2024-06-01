@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\system\core\models;
 
 use phs\PHS;
@@ -306,11 +307,10 @@ class PHS_Model_Tenants extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false)
+    final public function fields_definition($params = false) : ?array
     {
-        if (empty($params) || !is_array($params)
-         || empty($params['table_name'])) {
-            return false;
+        if (empty($params['table_name'])) {
+            return null;
         }
 
         $return_arr = [];

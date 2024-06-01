@@ -8,20 +8,10 @@ if (!($plugin_obj = $this->get_plugin_instance())) {
     return $this->_pt('Couldn\'t get parent plugin object.');
 }
 
-$cuser_arr = PHS::user_logged_in();
-
-if (!($view_rights = $plugin_obj->get_user_platform_rights($cuser_arr))) {
-    $view_rights = [];
-}
-
-if (empty($view_rights['has_any_admin_rights'])) {
-    return '';
-}
-
-$can_list_domains = (!empty($view_rights['admin']['list_domains']));
-$can_manage_domains = (!empty($view_rights['admin']['manage_domains']));
-$can_list_logs = (!empty($view_rights['admin']['list_logs']));
-$can_manage_logs = (!empty($view_rights['admin']['manage_logs']));
+$can_list_domains = $plugin_obj->can_admin_list_domains();
+$can_manage_domains = $plugin_obj->can_admin_manage_domains();
+$can_list_logs = $plugin_obj->can_admin_list_logs();
+$can_manage_logs = $plugin_obj->can_admin_manage_logs();
 
 ?>
 <li><?php echo $this->_pt('PHS Remote'); ?>

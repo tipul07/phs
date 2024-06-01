@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\backup;
 
 use phs\PHS;
@@ -24,7 +25,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_roles_definition()
+    public function get_roles_definition() : array
     {
         $return_arr = [
             self::ROLE_BACKUP_OPERATOR => [
@@ -63,7 +64,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         @ob_start();
         if (!($mysql_dump_path = @system('which mysqldump'))) {

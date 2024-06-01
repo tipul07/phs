@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS_Db;
@@ -30,11 +31,7 @@ class PHS_Db_mongo extends PHS_Db_class
     private $query_id;
 
     // ! Query result details...
-    private $last_inserted_id,
-
-        $inserted_rows,
-
-        $updated_rows;
+    private $last_inserted_id, $inserted_rows, $updated_rows;
 
     public function __construct($mysql_settings = null)
     {

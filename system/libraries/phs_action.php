@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS;
@@ -7,7 +8,7 @@ use phs\system\core\views\PHS_View;
 
 abstract class PHS_Action extends PHS_Instantiable
 {
-    public const ERR_CONTROLLER_INSTANCE = 40000, ERR_RUN_ACTION = 40001, ERR_RENDER = 40002, ERR_SCOPE = 40003, ERR_RIGHTS = 40004;
+    public const ERR_CONTROLLER_INSTANCE = 40000, ERR_RUN_ACTION = 40001, ERR_RENDER = 40002, ERR_SCOPE = 40003;
 
     public const ACT_ROLE_PAGE = 'phs_page', ACT_ROLE_LOGIN = 'phs_login', ACT_ROLE_LOGOUT = 'phs_logout',
         ACT_ROLE_REGISTER = 'phs_register', ACT_ROLE_ACTIVATION = 'phs_activation',
@@ -46,17 +47,17 @@ abstract class PHS_Action extends PHS_Instantiable
     ];
 
     /**
-     * @return bool|array Returns an array with action result or false on an error
+     * @return null|array Returns an array with action result or false on an error
      * @see PHS_Action::default_action_result()
      */
-    abstract public function execute();
+    abstract public function execute(); // : ?array // PHS_Response in the future
 
     /**
      * Returns an array of scopes in which action is allowed to run
      *
      * @return int[] If empty array, action is allowed in all scopes...
      */
-    public function allowed_scopes()
+    public function allowed_scopes() // : array
     {
         return [];
     }
@@ -64,7 +65,7 @@ abstract class PHS_Action extends PHS_Instantiable
     /**
      * @return array Returns roles that current action have
      */
-    public function action_roles()
+    public function action_roles() // :array
     {
         return [self::ACT_ROLE_PAGE];
     }

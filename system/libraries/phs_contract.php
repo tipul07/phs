@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 abstract class PHS_Contract extends PHS_Instantiable

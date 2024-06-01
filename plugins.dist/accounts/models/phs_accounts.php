@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\accounts\models;
 
 use phs\PHS;
@@ -1763,12 +1764,10 @@ class PHS_Model_Accounts extends PHS_Model
      * @param bool|array $params
      * @return bool|array
      */
-    final public function fields_definition($params = false)
+    final public function fields_definition($params = false) : ?array
     {
-        // $params should be flow parameters...
-        if (empty($params) || !is_array($params)
-         || empty($params['table_name'])) {
-            return false;
+        if (empty($params['table_name'])) {
+            return null;
         }
 
         $return_arr = [];

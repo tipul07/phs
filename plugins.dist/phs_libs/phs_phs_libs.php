@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\phs_libs;
 
 use phs\PHS;
@@ -25,7 +26,7 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         return [
             'qrcodes_settings_group' => [

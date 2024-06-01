@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\phs_libs\libraries;
 
 use Exception;
@@ -9,8 +10,6 @@ use chillerlan\QRCode\QROptions;
 
 class Phs_qr_code extends PHS_Library
 {
-    public const ERR_DEPENDENCIES = 1, ERR_SETTINGS = 2;
-
     public const LIB_DIR = 'qrcode';
 
     protected const QR_VERSION = -1;

@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\mobileapi\actions;
 
 use phs\PHS;
@@ -12,7 +13,7 @@ use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Action_Register extends PHS_Api_action
 {
-    public const ERR_DEPENDENCIES = 1, ERR_MODEL_DATA = 2, ERR_REGISTRATION = 3;
+    public const ERR_MODEL_DATA = 1, ERR_REGISTRATION = 2;
 
     public function action_roles() : array
     {

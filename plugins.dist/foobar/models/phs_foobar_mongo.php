@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\foobar\models;
 
 use phs\libraries\PHS_Model;
@@ -36,12 +37,10 @@ class PHS_Model_Foobar_mongo extends PHS_Model_Mongo
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false)
+    final public function fields_definition($params = false) : ?array
     {
-        // $params should be flow parameters...
-        if (empty($params) || !is_array($params)
-         || empty($params['table_name'])) {
-            return false;
+        if (empty($params['table_name'])) {
+            return null;
         }
 
         $return_arr = [];

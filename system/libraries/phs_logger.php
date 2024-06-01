@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS;
@@ -13,11 +14,10 @@ class PHS_Logger extends PHS_Registry
 
     public const TYPE_MAINTENANCE = 'maintenance.log', TYPE_ERROR = 'errors.log', TYPE_DEBUG = 'debug.log', TYPE_INFO = 'info.log',
         TYPE_BACKGROUND = 'background.log', TYPE_AJAX = 'ajax.log', TYPE_AGENT = 'agent.log', TYPE_API = 'api.log',
-        TYPE_TESTS = 'phs_tests.log', TYPE_CLI = 'phs_cli.log', TYPE_REMOTE = 'phs_remote.log',
+        TYPE_TESTS = 'phs_tests.log', TYPE_CLI = 'phs_cli.log', TYPE_REMOTE = 'phs_remote.log', TYPE_TENANTS = 'phs_tenants.log',
         // these constants are used only to tell log_channels() method it should log redefined sets of channels
         TYPE_DEF_ALL = 'log_all', TYPE_DEF_DEBUG = 'log_debug', TYPE_DEF_PRODUCTION = 'log_production';
 
-    /** @var array|array[] */
     protected static array $LEVELS_ARR = [
         self::L_DEBUG     => ['title' => 'Debug', 'log_title' => 'DBG', ],
         self::L_INFO      => ['title' => 'Info', 'log_title' => 'INF', ],
@@ -29,23 +29,19 @@ class PHS_Logger extends PHS_Registry
         self::L_EMERGENCY => ['title' => 'Emergency', 'log_title' => 'EMG', ],
     ];
 
-    /** @var int Current log level... */
+    /** Current log level... */
     private static int $_log_level = self::L_DEBUG;
 
-    /** @var null|int Default log level if not provided... */
+    /** Default log level if not provided... */
     private static ?int $_default_log_level = null;
 
-    /** @var bool */
     private static bool $_logging = true;
 
-    /** @var array */
     private static array $_custom_channels = [];
 
-    /** @var array */
     private static array $_channels = [];
 
-    /** @var bool|string */
-    private static $_logs_dir = false;
+    private static string $_logs_dir = '';
 
     /** @var bool|string */
     private static $_request_identifier = false;
@@ -145,7 +141,7 @@ class PHS_Logger extends PHS_Registry
         return [
             self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG, self::TYPE_INFO,
             self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API,
-            self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE,
+            self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE, self::TYPE_TENANTS,
         ];
     }
 
@@ -241,7 +237,7 @@ class PHS_Logger extends PHS_Registry
         return self::$_log_level;
     }
 
-    public static function logging_dir(?string $dir = null)
+    public static function logging_dir(?string $dir = null) : string
     {
         if ($dir === null) {
             return self::$_logs_dir;
@@ -275,7 +271,7 @@ class PHS_Logger extends PHS_Registry
                     $types_arr = [
                         self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG, self::TYPE_INFO,
                         self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API,
-                        self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE,
+                        self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE, self::TYPE_TENANTS,
                     ];
                     break;
 
@@ -283,7 +279,7 @@ class PHS_Logger extends PHS_Registry
                     $types_arr = [
                         self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG,
                         self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT,
-                        self::TYPE_API, self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE,
+                        self::TYPE_API, self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE, self::TYPE_TENANTS,
                     ];
                     break;
 
@@ -321,14 +317,14 @@ class PHS_Logger extends PHS_Registry
         return implode("\n", self::get_file_header_arr())."\n";
     }
 
-    public static function get_logging_files()
+    public static function get_logging_files() : ?array
     {
         self::st_reset_error();
 
         if (!($logs_dir = self::logging_dir())) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t obtain logging directory.'));
 
-            return false;
+            return null;
         }
 
         if (!($log_files_arr = @glob($logs_dir.'*.log'))) {
@@ -347,14 +343,14 @@ class PHS_Logger extends PHS_Registry
         return $return_arr;
     }
 
-    public static function tail_log($log_file, $lines, $buffer = 4096)
+    public static function tail_log(string $log_file, int $lines, int $buffer = 4096) : ?string
     {
         self::st_reset_error();
 
         if (!($logs_dir = self::logging_dir())) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t obtain logging directory.'));
 
-            return false;
+            return null;
         }
 
         if (strtolower(substr($log_file, -4)) === '.log') {
@@ -365,22 +361,22 @@ class PHS_Logger extends PHS_Registry
 
         $filename = $logs_dir.$log_file;
 
-        if (substr($log_file, -4) !== '.log') {
+        if (!str_ends_with($log_file, '.log')) {
             $filename .= '.log';
         }
 
         if (!PHS::safe_escape_root_script($check_channel)
-         || !@file_exists($filename)) {
+            || !@file_exists($filename)) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Invalid logging file.'));
 
-            return false;
+            return null;
         }
 
         // Open the file
         if (!($f = @fopen($filename, 'rb'))) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error opening log file for read.'));
 
-            return false;
+            return null;
         }
 
         // Jump to last character

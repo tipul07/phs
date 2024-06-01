@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\hubspot;
 
 use phs\libraries\PHS_Logger;
@@ -17,7 +18,7 @@ class PHS_Plugin_Hubspot extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         return [
             'default_settings_group' => [

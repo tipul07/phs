@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\backup\actions;
 
 use phs\PHS;
@@ -8,8 +9,6 @@ use phs\libraries\PHS_Logger;
 
 class PHS_Action_Run_backups_ag extends PHS_Action
 {
-    public const ERR_DEPENDENCIES = 1;
-
     public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_AGENT];

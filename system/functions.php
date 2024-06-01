@@ -12,6 +12,7 @@ use phs\PHS_Db;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Model_Core_base;
+use phs\system\core\libraries\PHS_Migrations_manager;
 
 function phs_version() : string
 {
@@ -37,7 +38,7 @@ function action_request_login() : array
  *
  * @return array
  */
-function action_redirect($path = '', ?array $args = null, ?array $extra = null) : array
+function action_redirect(array | string $path = '', ?array $args = null, ?array $extra = null) : array
 {
     $action_result = PHS_Action::default_action_result();
     if (is_string($path)) {
@@ -74,6 +75,16 @@ function can($role_units, ?array $roles_params = null, $account_structure = null
     }
 
     return (bool)PHS_Roles::user_has_role_units($account_structure, $role_units, $roles_params);
+}
+
+function migrations_manager() : ?PHS_Migrations_manager
+{
+    /** @var PHS_Migrations_manager $manager */
+    if ( !($manager = PHS::get_core_library_instance('migrations_manager', ['as_singleton' => true])) ) {
+        return null;
+    }
+
+    return $manager;
 }
 // endregion Helper functions
 

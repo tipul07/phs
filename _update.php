@@ -1,9 +1,9 @@
 <?php
 
 /** @noinspection ForgottenDebugOutputInspection */
-define('PHS_INSTALLING_FLOW', true);
-define('PHS_PREVENT_SESSION', true);
-define('PHS_IN_WEB_UPDATE_SCRIPT', true);
+const PHS_INSTALLING_FLOW = true;
+const PHS_PREVENT_SESSION = true;
+const PHS_IN_WEB_UPDATE_SCRIPT = true;
 
 include_once 'main.php';
 
@@ -20,7 +20,12 @@ if (@file_exists(PHS_SYSTEM_DIR.'install.php')) {
 
     if ($system_install_result !== true) {
         echo PHS::_t('ERROR while running system install script [%s]:', 'CORE INSTALL');
-        var_dump($system_install_result);
+        if ( is_string($system_install_result) ) {
+            echo PHS::_t('ERROR: %s', $system_install_result );
+        } else {
+            echo PHS::arr_get_simple_error_message($system_install_result);
+        }
+
         echo '</pre>';
         exit;
     }
@@ -39,7 +44,11 @@ foreach ([PHS_CORE_PLUGIN_DIR, PHS_PLUGINS_DIR] as $bstrap_dir) {
 
             if ($install_result !== null) {
                 echo PHS::_t('ERROR while running system install script [%s]:', $install_script);
-                var_dump($install_result);
+                if ( is_string($install_result) ) {
+                    echo PHS::_t('ERROR: %s', $install_result );
+                } else {
+                    var_dump($install_result);
+                }
             }
         }
     }
@@ -55,7 +64,7 @@ if (($debug_data = PHS::platform_debug_data())) {
          .'</small>';
 }
 
-function _update_maintenance_output($msg)
+function _update_maintenance_output(string $msg) : void
 {
     echo $msg."\n";
 }

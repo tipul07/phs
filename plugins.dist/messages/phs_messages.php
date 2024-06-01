@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\messages;
 
 use phs\PHS;
@@ -71,7 +72,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_roles_definition()
+    public function get_roles_definition() : array
     {
         $return_arr = [
             self::ROLE_MESSAGE_READER => [

@@ -14,7 +14,6 @@
     }
 
     include_once( __DIR__.'/../tests/bootstrap.php' );
-
     include_once( __DIR__.'/../tests/vendor/autoload.php' );
 
     use \phs\PHS_Cli;
@@ -28,17 +27,15 @@
 
     if( !($phs_tests = PHSTests::get_instance()) )
     {
-        $error_msg = PHSTests::st_cli_color( PHSTests::_t( 'ERROR' ), 'red' ).': ';
-        if( PHSTests::st_has_error() )
-            $error_msg .= PHSTests::st_get_simple_error_message();
-        else
-            $error_msg .= PHS_Cli::_t( 'Error obtaining PHSTests class instance.' );
-
-        echo $error_msg."\n";
+        echo PHSTests::st_cli_color( PHSTests::_t( 'ERROR' ), 'red' ).': '.
+             PHSTests::st_get_simple_error_message(PHS_Cli::_t( 'Error obtaining PHSTests class instance.' ))
+                ."\n";
 
         exit;
     }
 
-    $phs_tests->_echo( $phs_tests::_t( 'Script executed using PHP version: %s', $phs_tests->cli_color( trim( PHP_VERSION ), 'red' ) ) );
+    $phs_tests->_echo(
+            $phs_tests::_t( 'Script executed using PHP version: %s',
+                    $phs_tests->cli_color( trim( PHP_VERSION ), 'red' ) ) );
 
     $phs_tests->run();

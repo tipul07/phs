@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\admin\actions;
 
 use phs\PHS;
@@ -31,21 +32,12 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
             return $action_result;
         }
 
-        if (empty($params['c'])) {
-            $params['c'] = '';
-        }
-        if (empty($params['m'])) {
-            $params['m'] = '';
-        }
-        if (empty($params['a'])) {
-            $params['a'] = '';
-        }
-        if (empty($params['co'])) {
-            $params['co'] = '';
-        }
-        if (empty($params['e'])) {
-            $params['e'] = '';
-        }
+        $params['c'] = ($params['c'] ?? '') ?: '';
+        $params['m'] = ($params['m'] ?? '') ?: '';
+        $params['a'] = ($params['a'] ?? '') ?: '';
+        $params['co'] = ($params['co'] ?? '') ?: '';
+        $params['e'] = ($params['e'] ?? '') ?: '';
+
         if (empty($params['dir'])) {
             $params['dir'] = '';
         } else {

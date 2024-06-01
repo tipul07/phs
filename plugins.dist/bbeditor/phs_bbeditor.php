@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\bbeditor;
 
 use phs\libraries\PHS_Plugin;
