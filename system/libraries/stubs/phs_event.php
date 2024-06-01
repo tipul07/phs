@@ -1,10 +1,10 @@
 <?php
 
-namespace phs\plugins\__PLUGIN_NAME__\events;
+namespace phs\plugins\__PLUGIN_NAME__\events__CLASS_NAMESPACE__;
 
 use phs\libraries\PHS_Event;
 
-class PHS_Event___ITEM_NAME__ extends PHS_Event
+class PHS_Event___CLASS_NAME__ extends PHS_Event
 {
     /**
      * If event supports background listeners or not

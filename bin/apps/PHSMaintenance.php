@@ -23,6 +23,8 @@ class PHSMaintenance extends PHS_Cli
         APP_VERSION = '1.1.0',
         APP_DESCRIPTION = 'Manage framework functionality and plugins.';
 
+    public const ITEM_TYPE_EVENT = 'event', ITEM_TYPE_MIGRATION = 'migration';
+
     public function get_app_dir() : string
     {
         return __DIR__.'/';
@@ -201,7 +203,8 @@ class PHSMaintenance extends PHS_Cli
 
             return false;
         }
-        if (!($item_path = $this->_get_argument_chained())) {
+
+        if (!($item_name_with_path = $this->_get_argument_chained())) {
             $this->_echo_error(self::_t('Invalid "item" name.'));
 
             $this->_display_items_command_usage();
@@ -209,11 +212,41 @@ class PHSMaintenance extends PHS_Cli
             return false;
         }
 
-        if ( ($item_name = @basename($item_path)) !== $item_path ) {
-            $item_path = trim(substr($item_path, 0, -strlen($item_name)), '/');
+        if (!($destination_dir = $this->_get_stub_item_destination_dir($item_type, $plugin_obj))
+            || !str_starts_with($destination_dir, PHS_PATH)) {
+            $this->_echo_error(self::_t('Cannot obtain a destination directory for provided item type.'));
+
+            $this->_display_items_command_usage();
+
+            return false;
         }
 
-        // var_dump($item_path, $item_name, $this->_get_stub_item_destination_dir($item_type, $plugin_obj));
+        if ( !($item_details = $this->_get_stub_item_details($item_type, $item_name_with_path))
+            || empty($item_details['item_name'])) {
+            $this->_echo_error($this->get_simple_error_message(self::_t('Error extracting stub info.')));
+
+            $this->_display_items_command_usage();
+
+            return false;
+        }
+
+        if ( !($result_arr = $this->_create_file_for_stub(
+            $item_type, $item_details['item_name'], $item_details['item_path'],
+            $destination_dir,
+            $plugin_obj))
+        ) {
+            $this->_echo_error(self::_t('Error generating item file from stub: %s',
+                $this->get_simple_error_message(self::_t('Unknown error.'))));
+
+            return false;
+        }
+
+        $this->_echo(self::_t('%s Created %s file %s with success for plugin %s.',
+            $this->cli_color(self::_t('SUCCESS'), 'green'),
+            $this->cli_color($item_type, 'white'),
+            $this->cli_color($result_arr['destination_dir'].'/'.$result_arr['file_name'], 'white'),
+            $this->cli_color($plugin_name, 'white')
+        ));
 
         return true;
     }
@@ -497,13 +530,133 @@ class PHSMaintenance extends PHS_Cli
         $this->_echo('Item options varies depending on provided item type.');
     }
 
-    private function _get_stub_item_destination_dir(string $item, PHS_Plugin $plugin_obj) : ?string
+    private function _create_file_for_stub(
+        string $item_type, string $item_name, string $item_path,
+        string $destination_dir,
+        PHS_Plugin $plugin
+    ) : ?array {
+        $this->reset_error();
+
+        if ( !($file_details = $this->_get_stub_item_destination_file_details($item_type, $item_path, $item_name))
+            || empty($file_details['file_name'])
+            || empty($file_details['class_name'])
+        ) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
+                self::_t('Error obtaining destination file details.'));
+
+            return null;
+        }
+
+        if ( !($file_buf = $this->_get_stub_file_content($item_type))
+            || !($file_buf = $this->_convert_stub_content_from_context($file_buf, $file_details['class_name'], $plugin, $file_details['class_namespace']))
+        ) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
+                self::_t('Error obtaining stub file content.'));
+
+            return null;
+        }
+
+        $destination_dir = rtrim(rtrim($destination_dir, '/').'/'.$file_details['file_subdir'], '/');
+
+        if (!@file_exists($destination_dir)
+           && !PHS_Utils::mkdir_tree( $destination_dir )) {
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                self::_t('Error creating destination directory.'));
+
+            return null;
+        }
+
+        if ( !@file_put_contents($destination_dir.'/'.$file_details['file_name'], $file_buf)) {
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                self::_t('Error saving resulting file to its destination.'));
+
+            return null;
+        }
+
+        return [
+            'file_name'       => $file_details['file_name'],
+            'destination_dir' => $destination_dir,
+        ];
+    }
+
+    private function _convert_stub_content_from_context(
+        string $buf,
+        string $class_name,
+        PHS_Plugin $plugin,
+        string $class_namespace = '',
+    ) : ?string {
+        $context = [
+            '__PLUGIN_NAME__'     => $plugin->instance_plugin_name(),
+            '__CLASS_NAME__'      => $class_name,
+            '__CLASS_NAMESPACE__' => (!empty($class_namespace) ? '\\'.ltrim($class_namespace, '\\') : ''),
+        ];
+
+        return str_replace(array_keys($context), array_values($context), $buf);
+    }
+
+    private function _get_stub_item_destination_file_details(string $item_type, string $item_path, string $item_name) : ?array
     {
-        if ($item === 'migration') {
+        $escaped_name = str_replace( ' ', '_', strtolower($item_name));
+
+        if ($item_type === self::ITEM_TYPE_MIGRATION) {
+            if ( !($migrations_manager = migrations_manager()) ) {
+                $this->set_error(self::ERR_DEPENDENCIES,
+                    self::_t('Error loading required resources.'));
+
+                return null;
+            }
+
+            return [
+                'class_name' => ucfirst($escaped_name),
+                // Migrations don't support subdirectories
+                'class_namespace' => '',
+                'file_name'       => $migrations_manager::get_current_filestamp().'_'.$escaped_name.'.php',
+                'file_subdir'     => '',
+            ];
+        }
+
+        if ($item_type === self::ITEM_TYPE_EVENT) {
+            return [
+                'class_name'      => ucfirst($escaped_name),
+                'class_namespace' => str_replace('/', '\\', strtolower($item_path)),
+                'file_name'       => 'phs_'.$escaped_name.'.php',
+                'file_subdir'     => $item_path,
+            ];
+        }
+
+        return null;
+    }
+
+    private function _get_stub_item_details(string $item_type, string $item_name_with_path) : ?array
+    {
+        $item_path = '';
+        $item_name = @basename($item_name_with_path);
+        if ( $item_type !== self::ITEM_TYPE_MIGRATION
+             && $item_name !== $item_name_with_path) {
+            $item_path = trim(substr($item_name_with_path, 0, -strlen($item_name)), '/');
+
+            if (!PHS_Instantiable::safe_escape_instance_subdir_path($item_path)) {
+                $this->_echo_error(self::_t('Invalid item sub directory structure.'));
+
+                $this->_display_items_command_usage();
+
+                return null;
+            }
+        }
+
+        return [
+            'item_path' => $item_path,
+            'item_name' => $item_name,
+        ];
+    }
+
+    private function _get_stub_item_destination_dir(string $item_type, PHS_Plugin $plugin_obj) : ?string
+    {
+        if ($item_type === self::ITEM_TYPE_MIGRATION) {
             return $plugin_obj->instance_plugin_migrations_path();
         }
 
-        if ($item === 'event') {
+        if ($item_type === self::ITEM_TYPE_EVENT) {
             return
                 ($details_arr = PHS_Instantiable::get_instance_details('PHS_Event_Test', $plugin_obj->instance_plugin_name(), PHS_Instantiable::INSTANCE_TYPE_EVENT))
                 ? ($details_arr['instance_path'] ?? null)
@@ -513,23 +666,23 @@ class PHSMaintenance extends PHS_Cli
         return null;
     }
 
-    private function _get_stub_file_content(string $item) : ?string
+    private function _get_stub_file_content(string $item_type) : ?string
     {
-        if (!($stub_file = $this->_get_stub_file($item))) {
+        if (!($stub_file = $this->_get_stub_file($item_type))) {
             return null;
         }
 
         return @file_get_contents($stub_file);
     }
 
-    private function _get_stub_file(string $item) : ?string
+    private function _get_stub_file(string $item_type) : ?string
     {
         $stub_dirs = [];
         if (defined('PHS_CUSTOM_STUBS_DIR')) {
             $stub_dirs[] = PHS_CUSTOM_STUBS_DIR;
         }
-        if (defined('PHS_CORE_PLUGIN_DIR')) {
-            $stub_dirs[] = PHS_CORE_PLUGIN_DIR;
+        if (defined('PHS_CORE_STUBS_DIR')) {
+            $stub_dirs[] = PHS_CORE_STUBS_DIR;
         }
 
         if ( empty($stub_dirs) ) {
@@ -537,14 +690,14 @@ class PHSMaintenance extends PHS_Cli
         }
 
         foreach ($stub_dirs as $dir) {
-            if ( !@file_exists($dir.'phs_'.$item.'.php') ) {
+            if ( !@file_exists($dir.'phs_'.$item_type.'.php') ) {
                 continue;
             }
 
-            return $dir.'phs_'.$item.'.php';
+            return $dir.'phs_'.$item_type.'.php';
         }
 
-        return PHS_CLI_APPS_DIR.'stubs/'.$item.'.php';
+        return null;
     }
 
     private function _install_plugin(string $plugin_name) : bool
@@ -845,6 +998,6 @@ class PHSMaintenance extends PHS_Cli
 
     private static function _get_items_command_valid_item_types() : array
     {
-        return ['migration', 'event'];
+        return [self::ITEM_TYPE_MIGRATION, self::ITEM_TYPE_EVENT];
     }
 }

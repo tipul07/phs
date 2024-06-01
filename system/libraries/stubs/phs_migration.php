@@ -1,10 +1,10 @@
 <?php
 
-namespace phs\plugins\__PLUGIN_NAME__\migrations;
+namespace phs\plugins\__PLUGIN_NAME__\migrations__CLASS_NAMESPACE__;
 
 use phs\libraries\PHS_Migration;
 
-class PHS___ITEM_NAME__ extends PHS_Migration
+class PHS___CLASS_NAME__ extends PHS_Migration
 {
     // ! Change progress step at which migration will do `PHS_Maintenance::output()` calls
     // protected int $_progress_step = 1;
