@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\system\core\libraries;
 
 use phs\PHS;
@@ -65,9 +66,7 @@ class PHS_Ftp extends PHS_Library
         CON_TYPE_SSH = 5;
 
     // ! ftp connection details
-    private $ftp_settings,
-
-        $settings_passed;
+    private $ftp_settings, $settings_passed;
 
     // ! CURL ftp connection details (if needed)
     private $ftp_curl_settings;

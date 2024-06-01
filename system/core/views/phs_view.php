@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\system\core\views;
 
 use phs\PHS;
@@ -80,7 +81,7 @@ class PHS_View extends PHS_Instantiable
         $this->reset_error();
 
         if (!empty($view_obj)
-         && !($view_obj instanceof self)) {
+            && !($view_obj instanceof self)) {
             $this->set_error(self::ERR_BAD_ACTION, self::_t('Not a view instance.'));
 
             return false;
@@ -391,11 +392,7 @@ class PHS_View extends PHS_Instantiable
 
         $subview_obj = clone $this;
 
-        if (empty($force_theme)) {
-            $view_theme = $this->get_theme();
-        } else {
-            $view_theme = $force_theme;
-        }
+        $view_theme = $force_theme ?? $this->get_theme();
 
         if (!$subview_obj->set_theme($view_theme)) {
             if ($subview_obj->has_error()) {
@@ -409,11 +406,8 @@ class PHS_View extends PHS_Instantiable
 
         $subview_obj->set_parent_view($this);
 
-        $template_params = [];
-        $template_params['theme'] = $view_theme;
-
-        if (!($subview_template = $subview_obj->set_template($template, $template_params))
-         || ($subview_buffer = $subview_obj->render($template)) === null) {
+        if (!($subview_template = $subview_obj->set_template($template, ['theme' => $view_theme]))
+            || ($subview_buffer = $subview_obj->render($template)) === null) {
             if ($subview_obj->has_error()) {
                 $this->copy_error($subview_obj);
             } else {
@@ -903,34 +897,19 @@ class PHS_View extends PHS_Instantiable
      *
      * @return null|PHS_View
      */
-    public static function init_view($template, ?array $params = null) : ?self
+    public static function init_view($template, array $params = []) : ?self
     {
-        if (empty($params)) {
-            $params = [];
-        }
-
         if (empty($params['theme']) || !is_string($params['theme'])) {
             $params['theme'] = '';
         }
-        if (empty($params['view_class'])) {
-            $params['view_class'] = false;
-        }
-        if (empty($params['plugin'])) {
-            $params['plugin'] = false;
-        }
-        if (empty($params['as_singleton'])) {
-            $params['as_singleton'] = false;
-        }
 
-        if (empty($params['action_obj'])) {
-            $params['action_obj'] = false;
-        }
-        if (empty($params['controller_obj'])) {
-            $params['controller_obj'] = false;
-        }
-        if (empty($params['parent_plugin_obj'])) {
-            $params['parent_plugin_obj'] = null;
-        }
+        $params['view_class'] ??= null;
+        $params['plugin'] ??= null;
+        $params['as_singleton'] = !empty($params['as_singleton']);
+
+        $params['action_obj'] ??= null;
+        $params['controller_obj'] ??= null;
+        $params['parent_plugin_obj'] ??= null;
 
         if (empty($params['template_data']) || !is_array($params['template_data'])) {
             $params['template_data'] = null;

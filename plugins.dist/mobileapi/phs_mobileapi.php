@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\mobileapi;
 
 use phs\PHS;
@@ -14,8 +15,6 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
 {
     public const ACCOUNT_DETAILS_KEY = '{users_details}';
 
-    public const ERR_DEPENDENCIES = 60000;
-
     public const API_KEY_INPUT = 1, API_KEY_OUTPUT = 2, API_KEY_BOTH = 3;
 
     public const LOG_CHANNEL = 'mobileapi.log', LOG_FIREBASE = 'firebase.log';
@@ -29,7 +28,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         return [
             'firebase_settings_group' => [

@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\phs_libs\actions;
 
 use phs\PHS_Scope;
@@ -8,8 +9,6 @@ use phs\plugins\phs_libs\PHS_Plugin_Phs_libs;
 
 class Phs_Action_Clean_qrcodes_ag extends PHS_Action
 {
-    public const ERR_DEPENDENCIES = 1;
-
     public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_AGENT];

@@ -78,11 +78,7 @@ foreach ($filters_arr as $filter_details) {
         continue;
     }
 
-    if (!empty($filter_details['display_placeholder'])) {
-        $field_placeholder = $filter_details['display_placeholder'];
-    } else {
-        $field_placeholder = '';
-    }
+    $field_placeholder = $filter_details['display_placeholder'] ?? '';
 
     $field_id = $flow_params_arr['form_prefix'].$filter_details['var_name'];
     $field_name = $field_id;
@@ -186,6 +182,7 @@ foreach ($filters_arr as $filter_details) {
             case PHS_Params::T_DATE:
                 ?><input type="text" id="<?php echo $field_id; ?>" name="<?php echo $field_name; ?>" readonly="readonly"
                                          class="phs_filter_datepicker form-control <?php echo $filter_details['extra_classes']; ?>"
+                                         <?php echo !empty($field_placeholder) ? 'placeholder="'.form_str($field_placeholder).'"' : ''; ?>
                                          value="<?php echo form_str($field_value); ?>" style="<?php echo $filter_details['extra_style']; ?>" /><?php
                         break;
 

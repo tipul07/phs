@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\mobileapi\controllers;
 
 use phs\PHS;
@@ -22,7 +23,7 @@ class PHS_Controller_Admin extends \phs\libraries\PHS_Controller_Admin
         }
 
         if (!$accounts_model->acc_is_operator(PHS::user_logged_in())) {
-            PHS_Notifications::add_warning_notice($this->_pt('You don\'t have enough rights to access this section...'));
+            PHS_Notifications::add_warning_notice($this->_pt('You don\'t have enough rights to access this section.'));
 
             return $this->execute_foobar_action();
         }

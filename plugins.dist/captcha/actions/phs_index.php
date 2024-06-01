@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\captcha\actions;
 
 use phs\PHS_Scope;
@@ -15,7 +16,7 @@ class PHS_Action_Index extends PHS_Action
     }
 
     #[NoReturn]
-    public function execute() : void
+    public function execute()
     {
         if (!@function_exists('imagecreatetruecolor')) {
             echo $this->_pt('Function imagecreatetruecolor doesn\'t exist. Maybe gd library is not installed or doesn\'t support this function.');

@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\system\core\models;
 
 use phs\libraries\PHS_Model;
@@ -11,7 +12,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
     /**
      * @return string Returns version of model
      */
-    public function get_model_version()
+    public function get_model_version() : string
     {
         return '1.0.1';
     }
@@ -19,7 +20,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
     /**
      * @return array of string Returns an array of strings containing tables that model will handle
      */
-    public function get_table_names()
+    public function get_table_names() : array
     {
         return ['bg_jobs'];
     }
@@ -27,12 +28,12 @@ class PHS_Model_Bg_jobs extends PHS_Model
     /**
      * @return string Returns main table name used when calling insert with no table name
      */
-    public function get_main_table_name()
+    public function get_main_table_name() : string
     {
         return 'bg_jobs';
     }
 
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         return [
             'minutes_to_stall' => [
@@ -44,15 +45,15 @@ class PHS_Model_Bg_jobs extends PHS_Model
         ];
     }
 
-    public function refresh_job($job_data)
+    public function refresh_job(int | array $job_data) : ?array
     {
         $this->reset_error();
 
         if (empty($job_data)
-         || !($job_arr = $this->data_to_array($job_data))) {
-            $this->set_error(self::ERR_DB_JOB, self::_t('Job not found in database.'));
+            || !($job_arr = $this->data_to_array($job_data))) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Job not found in database.'));
 
-            return false;
+            return null;
         }
 
         $edit_arr = [];
@@ -66,87 +67,101 @@ class PHS_Model_Bg_jobs extends PHS_Model
 
         $edit_arr['last_action'] = date(self::DATETIME_DB);
 
-        return $this->edit($job_arr, ['fields' => $edit_arr]);
+        if (!($new_job_arr = $this->edit($job_arr, ['fields' => $edit_arr]))) {
+            $this->set_error(self::ERR_DB_JOB, self::_t('Job not found in database.'));
+
+            return null;
+        }
+
+        return $new_job_arr;
     }
 
-    public function job_error_stop($job_data, $params)
+    public function job_error_stop(int | array $job_data, $params) : ?array
     {
         $this->reset_error();
 
         if (empty($job_data)
-         || empty($params) || !is_array($params)
-         || !($job_arr = $this->data_to_array($job_data))) {
+            || !($job_arr = $this->data_to_array($job_data))) {
             $this->set_error(self::ERR_DB_JOB, self::_t('Job not found in database.'));
 
-            return false;
+            return null;
         }
 
-        if (empty($params['last_error'])) {
-            $params['last_error'] = self::_t('Unknown error.');
-        }
+        $params['last_error'] ??= self::_t('Unknown error.');
 
         $edit_arr = [];
         $edit_arr['pid'] = 0;
         $edit_arr['last_error'] = $params['last_error'];
         $edit_arr['last_action'] = date(self::DATETIME_DB);
 
-        return $this->edit($job_arr, ['fields' => $edit_arr]);
+        if (!($new_job_arr = $this->edit($job_arr, ['fields' => $edit_arr]))) {
+            $this->set_error(self::ERR_DB_JOB, self::_t('Job not found in database.'));
+
+            return null;
+        }
+
+        return $new_job_arr;
     }
 
-    public function get_stalling_minutes()
+    public function get_stalling_minutes() : int
     {
-        static $stalling_minutes = false;
+        static $stalling_minutes = null;
 
-        if ($stalling_minutes !== false) {
+        if ($stalling_minutes !== null) {
             return $stalling_minutes;
         }
 
-        if (!($settings_arr = $this->get_db_settings())
-         || empty($settings_arr['minutes_to_stall'])) {
-            $stalling_minutes = 0;
-        } else {
-            $stalling_minutes = (int)$settings_arr['minutes_to_stall'];
-        }
+        $settings_arr = $this->get_db_settings();
+
+        $stalling_minutes = (int)($settings_arr['minutes_to_stall'] ?? 0);
 
         return $stalling_minutes;
     }
 
-    public function job_is_stalling($job_data)
+    public function get_job_seconds_since_last_action(int | array $job_data) : ?int
+    {
+        $this->reset_error();
+
+        if (empty($job_data)
+            || !($job_arr = $this->data_to_array($job_data))) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t get agent jobs details.'));
+
+            return null;
+        }
+
+        return !empty($job_arr['last_action']) ? seconds_passed($job_arr['last_action']) : 0;
+    }
+
+    public function job_is_stalling(int | array $job_data) : ?bool
     {
         $this->reset_error();
 
         if (empty($job_data)
          || !($job_arr = $this->data_to_array($job_data))) {
-            $this->set_error(self::ERR_DB_JOB, self::_t('Couldn\'t get background jobs details.'));
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t get background jobs details.'));
 
             return null;
         }
 
-        if (!($settings_arr = $this->get_db_settings())) {
-            $this->set_error(self::ERR_DB_JOB, self::_t('Couldn\'t get background jobs model settings.'));
-
-            return null;
-        }
-
-        return !(!$this->job_is_running($job_arr)
-         || (!empty($settings_arr['minutes_to_stall']) && floor(parse_db_date($job_arr['last_action']) / 60) < $settings_arr['minutes_to_stall']));
+        return $this->job_is_running($job_arr)
+               && ($minutes_to_stall = $this->get_stalling_minutes())
+               && floor($this->get_job_seconds_since_last_action($job_arr) / 60) >= $minutes_to_stall;
     }
 
-    public function job_is_running($job_data)
+    public function job_is_running(int | array $job_data) : bool
     {
-        return !(empty($job_data)
-         || !($job_arr = $this->data_to_array($job_data))
-         || empty($job_arr['pid']));
+        return !empty($job_data)
+               && ($job_arr = $this->data_to_array($job_data))
+               && !empty($job_arr['pid']);
     }
 
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false)
+    final public function fields_definition($params = false) : ?array
     {
-        if (empty($params) || !is_array($params)
-         || empty($params['table_name'])) {
-            return false;
+        if (empty($params['table_name'])) {
+            return null;
         }
 
         $return_arr = [];
@@ -205,19 +220,12 @@ class PHS_Model_Bg_jobs extends PHS_Model
         return $return_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
-    protected function get_insert_prepare_params($params)
+    protected function get_insert_prepare_params_bg_jobs(array $params) : ?array
     {
-        if (empty($params) || !is_array($params)) {
-            return false;
-        }
-
         if (empty($params['fields']['route'])) {
             $this->set_error(self::ERR_INSERT, self::_t('Please provide a route.'));
 
-            return false;
+            return null;
         }
 
         if (empty($params['fields']['return_buffer'])) {
@@ -241,18 +249,10 @@ class PHS_Model_Bg_jobs extends PHS_Model
         return $params;
     }
 
-    /**
-     * @inheritdoc
-     */
-    protected function get_edit_prepare_params($existing_data, $params)
+    protected function get_edit_prepare_params_bg_jobs(array $existing_data, array $params) : ?array
     {
-        if (empty($params) || !is_array($params)) {
-            return false;
-        }
-
         // Update last_action field on any edit's we do...
-        if (empty($params['fields']['last_action'])
-         || empty_db_date($params['fields']['last_action'])) {
+        if (empty($params['fields']['last_action'])) {
             $params['fields']['last_action'] = date(self::DATETIME_DB);
         }
 

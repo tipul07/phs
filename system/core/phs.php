@@ -1,4 +1,5 @@
 <?php
+
 namespace phs;
 
 use phs\libraries\PHS_Event;
@@ -94,7 +95,7 @@ final class PHS extends PHS_Registry
         // !!! Don't change order of models here unless you know what you're doing !!!
         // Models should be placed in this array after their dependencies
         // (e.g. bg_jobs depends on agent_jobs - it adds an agent job for timed bg jobs)
-        return ['tenants', 'agent_jobs', 'bg_jobs', 'roles', 'api_keys', 'agent_jobs_monitor', 'api_monitor'];
+        return ['migrations', 'tenants', 'agent_jobs', 'bg_jobs', 'roles', 'api_keys', 'agent_jobs_monitor', 'api_monitor'];
     }
 
     /**
@@ -148,12 +149,12 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * Checks if there is a config file to be included and return it's path. We don't include it here as we want to include in global scope...
+     * Checks if there is a config file to be included and return its path. We don't include it here as we want to include in global scope...
      *
-     * @param bool|string $config_dir Directory where we should check for config file
-     * @return bool|string File to be included || false if nothing to include
+     * @param null|string $config_dir Directory where we should check for config file
+     * @return null|string File to be included or null if nothing to include
      */
-    public static function check_custom_config($config_dir = false)
+    public static function check_custom_config(?string $config_dir = null) : ?string
     {
         if (!self::$inited) {
             self::init();
@@ -161,15 +162,15 @@ final class PHS extends PHS_Registry
 
         if (empty($config_dir)) {
             if (!defined('PHS_CONFIG_DIR')) {
-                return false;
+                return null;
             }
 
             $config_dir = PHS_CONFIG_DIR;
         }
 
         if (!($host_config = self::get_data(self::REQUEST_HOST_CONFIG))
-         || empty($host_config['server_name'])) {
-            return false;
+            || empty($host_config['server_name'])) {
+            return null;
         }
 
         if (empty($host_config['server_port'])) {
@@ -177,7 +178,7 @@ final class PHS extends PHS_Registry
         }
 
         if (!empty($host_config['server_port'])
-         && @is_file($config_dir.$host_config['server_name'].'_'.$host_config['server_port'].'.php')) {
+            && @is_file($config_dir.$host_config['server_name'].'_'.$host_config['server_port'].'.php')) {
             return $config_dir.$host_config['server_name'].'_'.$host_config['server_port'].'.php';
         }
 
@@ -185,7 +186,7 @@ final class PHS extends PHS_Registry
             return $config_dir.$host_config['server_name'].'.php';
         }
 
-        return false;
+        return null;
     }
 
     /**
@@ -193,11 +194,11 @@ final class PHS extends PHS_Registry
      */
     public static function detect_secure_request() : bool
     {
-        return (bool)((!empty($_SERVER)
+        return (!empty($_SERVER)
              && isset($_SERVER['HTTPS'])
              && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === '1' || $_SERVER['HTTPS'] === 1))
-         // If we run in cli mode assume we are on https calls in order to force https URL generation
-         || PHP_SAPI === 'cli');
+               // If we run in cli mode assume we are on https calls in order to force https URL generation
+               || PHP_SAPI === 'cli';
     }
 
     /**
@@ -207,9 +208,7 @@ final class PHS extends PHS_Registry
      */
     public static function get_request_host_config() : array
     {
-        if (empty($_SERVER)) {
-            $_SERVER = [];
-        }
+        $_SERVER ??= [];
 
         if (empty($_SERVER['SERVER_NAME'])) {
             $server_name = 'default';
@@ -221,7 +220,7 @@ final class PHS extends PHS_Registry
         }
 
         if (empty($_SERVER['SERVER_PORT'])
-         || in_array((int)$_SERVER['SERVER_PORT'], [80, 443], true)) {
+            || in_array((int)$_SERVER['SERVER_PORT'], [80, 443], true)) {
             $server_port = '';
         } else {
             $server_port = $_SERVER['SERVER_PORT'];
@@ -246,25 +245,16 @@ final class PHS extends PHS_Registry
         ];
     }
 
-    /**
-     * @param string|array|bool $key
-     * @param null|mixed $val
-     *
-     * @return null|bool|mixed
-     */
-    public static function page_settings($key = false, $val = null)
+    public static function page_settings(string | array | null $key = null, mixed $val = null) : mixed
     {
-        if ($key === false) {
-            return self::get_data(self::PHS_PAGE_SETTINGS);
-        }
-
-        $def_settings = self::get_default_page_settings();
-        if (!($current_settings = self::get_data(self::PHS_PAGE_SETTINGS))) {
-            $current_settings = [];
+        $current_settings = self::get_data(self::PHS_PAGE_SETTINGS) ?: [];
+        if ($key === null) {
+            return $current_settings;
         }
 
         if ($val === null) {
             if (is_array($key)) {
+                $def_settings = self::get_default_page_settings();
                 foreach ($key as $kkey => $kval) {
                     if (array_key_exists($kkey, $def_settings)) {
                         $current_settings[$kkey] = $kval;
@@ -277,16 +267,14 @@ final class PHS extends PHS_Registry
             }
 
             if (is_string($key)
-             && ($page_settings = self::get_data(self::PHS_PAGE_SETTINGS))
-             && is_array($page_settings)
-             && array_key_exists($key, $page_settings)) {
-                return $page_settings[$key];
+                && array_key_exists($key, $current_settings)) {
+                return $current_settings[$key];
             }
 
             return null;
         }
 
-        if (array_key_exists($key, $def_settings)) {
+        if (array_key_exists($key, self::get_default_page_settings())) {
             $current_settings[$key] = $val;
 
             self::set_data(self::PHS_PAGE_SETTINGS, $current_settings);
@@ -297,15 +285,11 @@ final class PHS extends PHS_Registry
         return null;
     }
 
-    public static function page_body_class($css_class, $append = true)
+    public static function page_body_class(string $css_class, bool $append = true)
     {
-        if (!empty($append)) {
-            if (!($existing_body_classes = self::page_settings('page_body_class'))) {
-                $existing_body_classes = '';
-            }
-        } else {
-            $existing_body_classes = '';
-        }
+        $existing_body_classes = $append
+            ? (self::page_settings('page_body_class') ?: '')
+            : '';
 
         return self::page_settings('page_body_class', trim($existing_body_classes.' '.ltrim($css_class)));
     }
@@ -352,7 +336,7 @@ final class PHS extends PHS_Registry
     public static function current_user_session($force = false)
     {
         if (!($hook_args = self::_current_user_trigger($force))
-         || empty($hook_args['session_db_data']) || !is_array($hook_args['session_db_data'])) {
+            || empty($hook_args['session_db_data']) || !is_array($hook_args['session_db_data'])) {
             return false;
         }
 
@@ -882,7 +866,7 @@ final class PHS extends PHS_Registry
                     $force_https = true;
                 }
             } else {
-                if (strpos($route, '-') !== false) {
+                if (str_contains($route, '-')) {
                     if (!($route_parts_tmp = explode('-', $route, 2))
                      || empty($route_parts_tmp[0])) {
                         self::st_set_error(self::ERR_ROUTE, self::_t('Couldn\'t obtain route.'));
@@ -912,10 +896,10 @@ final class PHS extends PHS_Registry
                 }
 
                 // Check action dir
-                if (false !== strpos($action, self::ACTION_DIR_ACTION_SEPARATOR)
-                 && ($action_parts = explode(self::ACTION_DIR_ACTION_SEPARATOR, $action, 2))
-                 && is_array($action_parts)
-                 && count($action_parts) === 2) {
+                if (str_contains($action, self::ACTION_DIR_ACTION_SEPARATOR)
+                    && ($action_parts = explode(self::ACTION_DIR_ACTION_SEPARATOR, $action, 2))
+                    && is_array($action_parts)
+                    && count($action_parts) === 2) {
                     $action_dir = (!empty($action_parts[0]) ? trim($action_parts[0]) : '');
                     $action = (!empty($action_parts[1]) ? trim($action_parts[1]) : '');
                 }
@@ -1137,32 +1121,32 @@ final class PHS extends PHS_Registry
         return true;
     }
 
-    public static function safe_escape_root_script($script)
+    public static function safe_escape_root_script(string $script) : ?string
     {
-        if (empty($script) || !is_string($script)
-         || preg_match('@[^a-zA-Z0-9_\-]@', $script)) {
-            return false;
+        if (empty($script)
+            || preg_match('@[^a-zA-Z0-9_\-]@', $script)) {
+            return null;
         }
 
         return $script;
     }
 
-    public static function safe_escape_route_parts($part)
+    public static function safe_escape_route_parts($part) : ?string
     {
         if (empty($part) || !is_string($part)
-         || preg_match('@[^a-zA-Z0-9_]@', $part)) {
-            return false;
+            || preg_match('@[^a-zA-Z0-9_]@', $part)) {
+            return null;
         }
 
         return $part;
     }
 
     // No _ allowed in action directories
-    public static function safe_escape_route_action_dir($part)
+    public static function safe_escape_route_action_dir($part) : ?string
     {
         if (empty($part) || !is_string($part)
-         || preg_match('@[^a-zA-Z0-9/_]@', $part)) {
-            return false;
+            || preg_match('@[^a-zA-Z0-9/_]@', $part)) {
+            return null;
         }
 
         return $part;
@@ -1182,7 +1166,7 @@ final class PHS extends PHS_Registry
         }
 
         if (!self::safe_escape_root_script($script)
-         || !@file_exists(PHS_PATH.$script.'.php')) {
+            || !@file_exists(PHS_PATH.$script.'.php')) {
             return '';
         }
 
@@ -1194,19 +1178,19 @@ final class PHS extends PHS_Registry
     /**
      * Change default background interpret script (default is _bg). .php file extension will be added by platform.
      *
-     * @param bool|string $script New background script (default is _bg). No extension should be provided (.php will be appended)
+     * @param null|string $script New background script (default is _bg). No extension should be provided (.php will be appended)
      *
-     * @return bool|string
+     * @return string
      */
-    public static function background_script($script = false)
+    public static function background_script(?string $script = null) : string
     {
-        if ($script === false) {
+        if ($script === null) {
             return self::$_BACKGROUND_SCRIPT.'.php';
         }
 
         if (!self::safe_escape_root_script($script)
-         || !@file_exists(PHS_PATH.$script.'.php')) {
-            return false;
+            || !@file_exists(PHS_PATH.$script.'.php')) {
+            return '';
         }
 
         self::$_BACKGROUND_SCRIPT = $script;
@@ -1217,19 +1201,19 @@ final class PHS extends PHS_Registry
     /**
      * Change default agent interpret script (default is _agent). .php file extension will be added by platform.
      *
-     * @param bool|string $script New agent script (default is _agent). No extension should be provided (.php will be appended)
+     * @param null|string $script New agent script (default is _agent). No extension should be provided (.php will be appended)
      *
-     * @return bool|string
+     * @return string
      */
-    public static function agent_script($script = false)
+    public static function agent_script(?string $script = null) : string
     {
-        if ($script === false) {
+        if ($script === null) {
             return self::$_AGENT_SCRIPT.'.php';
         }
 
         if (!self::safe_escape_root_script($script)
-         || !@file_exists(PHS_PATH.$script.'.php')) {
-            return false;
+            || !@file_exists(PHS_PATH.$script.'.php')) {
+            return '';
         }
 
         self::$_AGENT_SCRIPT = $script;
@@ -1240,19 +1224,19 @@ final class PHS extends PHS_Registry
     /**
      * Change default ajax script (default is _ajax). .php file extension will be added by platform.
      *
-     * @param bool|string $script New ajax script (default is _ajax). No extension should be provided (.php will be appended)
+     * @param null|string $script New ajax script (default is _ajax). No extension should be provided (.php will be appended)
      *
-     * @return bool|string
+     * @return string
      */
-    public static function ajax_script($script = false)
+    public static function ajax_script(?string $script = null) : string
     {
-        if ($script === false) {
+        if ($script === null) {
             return self::$_AJAX_SCRIPT.'.php';
         }
 
         if (!self::safe_escape_root_script($script)
-         || !@file_exists(PHS_PATH.$script.'.php')) {
-            return false;
+            || !@file_exists(PHS_PATH.$script.'.php')) {
+            return '';
         }
 
         self::$_AJAX_SCRIPT = $script;
@@ -1263,19 +1247,19 @@ final class PHS extends PHS_Registry
     /**
      * Change default api script (default is _api). .php file extension will be added by platform.
      *
-     * @param bool|string $script New api script (default is _api). No extension should be provided (.php will be appended)
+     * @param null|string $script New api script (default is _api). No extension should be provided (.php will be appended)
      *
-     * @return bool|string
+     * @return string
      */
-    public static function api_script($script = false)
+    public static function api_script(?string $script = null) : string
     {
-        if ($script === false) {
+        if ($script === null) {
             return self::$_API_SCRIPT.'.php';
         }
 
         if (!self::safe_escape_root_script($script)
-         || !@file_exists(PHS_PATH.$script.'.php')) {
-            return false;
+            || !@file_exists(PHS_PATH.$script.'.php')) {
+            return '';
         }
 
         self::$_API_SCRIPT = $script;
@@ -1286,19 +1270,19 @@ final class PHS extends PHS_Registry
     /**
      * Change default remote script (default is _remote). .php file extension will be added by platform.
      *
-     * @param bool|string $script New remote script (default is _remote). No extension should be provided (.php will be appended)
+     * @param null|string $script New remote script (default is _remote). No extension should be provided (.php will be appended)
      *
-     * @return bool|string
+     * @return string
      */
-    public static function remote_script($script = false)
+    public static function remote_script(?string $script = null) : string
     {
-        if ($script === false) {
+        if ($script === null) {
             return self::$_REMOTE_SCRIPT.'.php';
         }
 
         if (!self::safe_escape_root_script($script)
-         || !@file_exists(PHS_PATH.$script.'.php')) {
-            return false;
+            || !@file_exists(PHS_PATH.$script.'.php')) {
+            return '';
         }
 
         self::$_REMOTE_SCRIPT = $script;
@@ -1309,19 +1293,19 @@ final class PHS extends PHS_Registry
     /**
      * Change default update script (default is _update). .php file extension will be added by platform.
      *
-     * @param bool|string $script New upate script (default is _update). No extension should be provided (.php will be appended)
+     * @param null|string $script New upate script (default is _update). No extension should be provided (.php will be appended)
      *
-     * @return bool|string
+     * @return string
      */
-    public static function update_script($script = false)
+    public static function update_script(?string $script = null) : string
     {
-        if ($script === false) {
+        if ($script === null) {
             return self::$_UPDATE_SCRIPT.'.php';
         }
 
         if (!self::safe_escape_root_script($script)
-         || !@file_exists(PHS_PATH.$script.'.php')) {
-            return false;
+            || !@file_exists(PHS_PATH.$script.'.php')) {
+            return '';
         }
 
         self::$_UPDATE_SCRIPT = $script;
@@ -1363,7 +1347,7 @@ final class PHS extends PHS_Registry
         }
 
         if ($slash_terminated
-         && substr($base_url, -1) !== '/') {
+            && !str_ends_with($base_url, '/')) {
             $base_url .= '/';
         }
 
@@ -1405,7 +1389,7 @@ final class PHS extends PHS_Registry
         return $base_url.self::ajax_script();
     }
 
-    public static function get_ajax_path()
+    public static function get_ajax_path() : string
     {
         return PHS_PATH.self::ajax_script();
     }
@@ -1509,19 +1493,14 @@ final class PHS extends PHS_Registry
      *
      * @return array
      */
-    public static function current_page_query_string_as_array(?array $params = null) : array
+    public static function current_page_query_string_as_array(array $params = []) : array
     {
         if (empty($_SERVER)) {
             $_SERVER = [];
         }
 
-        if (empty($params)) {
-            $params = [];
-        }
+        $params['remove_route_param'] = !isset($params['remove_route_param']) || !empty($params['remove_route_param']);
 
-        if (!isset($params['remove_route_param'])) {
-            $params['remove_route_param'] = true;
-        }
         if (!isset($params['exclude_params']) || !is_array($params['exclude_params'])) {
             $params['exclude_params'] = [];
         }
@@ -1530,12 +1509,10 @@ final class PHS extends PHS_Registry
             @parse_str($_SERVER['QUERY_STRING'], $query_arr);
         }
 
-        if (empty($query_arr)) {
-            $query_arr = [];
-        }
+        $query_arr ??= [];
 
         if (!empty($params['remove_route_param'])
-         && isset($query_arr[self::ROUTE_PARAM])) {
+            && isset($query_arr[self::ROUTE_PARAM])) {
             unset($query_arr[self::ROUTE_PARAM]);
         }
 
@@ -1553,7 +1530,7 @@ final class PHS extends PHS_Registry
     public static function validate_action_dir_in_url($ad) : string
     {
         if (!is_string($ad)
-         || $ad === '') {
+            || $ad === '') {
             return '';
         }
 
@@ -1600,14 +1577,14 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * Convert route from long plugin, controller and action names into p, c, a names
+     * Convert route from long plugin, controller and action names into p, c, a, ad names
      * @param array $route_arr
      *
-     * @return array|bool
+     * @return null|array
      */
-    public static function convert_route_to_short_parts($route_arr)
+    public static function convert_route_to_short_parts(array $route_arr) : ?array
     {
-        if (empty($route_arr) || !is_array($route_arr)
+        if (empty($route_arr)
          || (empty($route_arr['plugin']) && empty($route_arr['controller']) && empty($route_arr['action']) && empty($route_arr['action_dir']))) {
             return $route_arr;
         }
@@ -1638,21 +1615,17 @@ final class PHS extends PHS_Registry
      * @param array $route_arr
      * @param bool $check_if_empty
      *
-     * @return array|bool
+     * @return null|array
      */
-    public static function validate_short_name_route_parts($route_arr, $check_if_empty = true)
+    public static function validate_short_name_route_parts(array $route_arr, bool $check_if_empty = true) : ?array
     {
-        if (empty($route_arr) || !is_array($route_arr)) {
-            $route_arr = [];
-        }
-
         if ((!empty($check_if_empty)
              && empty($route_arr['p']) && empty($route_arr['c']) && empty($route_arr['a']))
          || (!empty($route_arr['p']) && !self::safe_escape_route_parts($route_arr['p']))
          || (!empty($route_arr['c']) && !self::safe_escape_route_parts($route_arr['c']))
          || (!empty($route_arr['a']) && !self::safe_escape_route_parts($route_arr['a']))
          || (!empty($route_arr['ad']) && !self::safe_escape_route_action_dir($route_arr['ad']))) {
-            return false;
+            return null;
         }
 
         return $route_arr;
@@ -2100,7 +2073,7 @@ final class PHS extends PHS_Registry
         $view_params['action_obj'] = $action_obj;
         $view_params['controller_obj'] = $controller_obj;
         $view_params['parent_plugin_obj'] = $plugin_obj;
-        $view_params['plugin'] = ($plugin_obj ? $plugin_obj->instance_plugin_name() : false);
+        $view_params['plugin'] = $plugin_obj?->instance_plugin_name();
         $view_params['template_data'] = $template_data;
 
         if (!($view_obj = PHS_View::init_view($template, $view_params))) {
@@ -2225,7 +2198,7 @@ final class PHS extends PHS_Registry
         }
 
         if (!empty($params['as_singleton'])
-         && !empty(self::$_core_libraries_instances[$library])) {
+            && !empty(self::$_core_libraries_instances[$library])) {
             return self::$_core_libraries_instances[$library];
         }
 
@@ -2287,19 +2260,15 @@ final class PHS extends PHS_Registry
         self::st_reset_error();
 
         if (empty($core_library)
-         || !PHS_Instantiable::safe_escape_library_name($core_library)) {
+            || !PHS_Instantiable::safe_escape_library_name($core_library)) {
             self::st_set_error(self::ERR_LIBRARY, self::_t('Couldn\'t load core library.'));
 
             return null;
         }
 
-        if (empty($params)) {
-            $params = [];
-        }
-
         $core_library = strtolower($core_library);
 
-        $library_params = $params;
+        $library_params = $params ?? [];
         $library_params['full_class_name'] = '\\phs\\system\\core\\libraries\\PHS_'.ucfirst($core_library);
 
         if (!($library_obj = self::load_core_library('phs_'.$core_library, $library_params))) {
@@ -2349,19 +2318,19 @@ final class PHS extends PHS_Registry
     /**
      * Returns an instance of a view. If view is part of a plugin $plugin will contain name of that plugin.
      *
-     * @param string|bool $view View to be loaded (part of class name after PHS_View_)
-     * @param string|bool $plugin Plugin where view is located (false means a core view)
+     * @param null|string $view View to be loaded (part of class name after PHS_View_)
+     * @param null|string $plugin Plugin where view is located (false means a core view)
      * @param bool $as_singleton Tells if view instance should be loaded as singleton or new instance
      *
      * @return null|PHS_View Returns false on error or an instance of loaded view
      */
-    public static function load_view($view = false, $plugin = false, bool $as_singleton = true) : ?PHS_View
+    public static function load_view(?string $view = null, ?string $plugin = null, bool $as_singleton = true) : ?PHS_View
     {
         self::st_reset_error();
 
         $view_class = '';
         if (!empty($view)
-         && !($view_class = PHS_Instantiable::safe_escape_class_name($view))) {
+            && !($view_class = PHS_Instantiable::safe_escape_class_name($view))) {
             self::st_set_error(self::ERR_LOAD_VIEW, self::_t('Couldn\'t load view %s from plugin %s.',
                 $view, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
@@ -2375,7 +2344,7 @@ final class PHS extends PHS_Registry
         }
 
         if ($plugin === PHS_Instantiable::CORE_PLUGIN) {
-            $plugin = false;
+            $plugin = null;
         }
 
         // Views are not singletons
@@ -2384,18 +2353,16 @@ final class PHS extends PHS_Registry
                 if (!self::st_has_error()) {
                     self::st_set_error(self::ERR_LOAD_VIEW,
                         self::_t('Couldn\'t obtain instance for view %s from plugin %s.', $view,
-                            (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
+                            PHS_Instantiable::CORE_PLUGIN));
                 }
 
                 return null;
             }
 
-            $plugin = false;
-
             self::st_reset_error();
 
             // We tried loading plugin view, try again with a core view...
-            if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, false, PHS_Instantiable::INSTANCE_TYPE_VIEW, $as_singleton))) {
+            if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, null, PHS_Instantiable::INSTANCE_TYPE_VIEW, $as_singleton))) {
                 if (!self::st_has_error()) {
                     self::st_set_error(self::ERR_LOAD_VIEW,
                         self::_t('Couldn\'t obtain instance for view %s from plugin %s.', $view,
@@ -2411,11 +2378,11 @@ final class PHS extends PHS_Registry
 
     /**
      * @param string $controller
-     * @param string|bool $plugin
+     * @param null|string $plugin
      *
      * @return null|PHS_Controller Returns false on error or an instance of loaded controller
      */
-    public static function load_controller(string $controller, $plugin = false) : ?PHS_Controller
+    public static function load_controller(string $controller, ?string $plugin = null) : ?PHS_Controller
     {
         self::st_reset_error();
 
@@ -2430,7 +2397,7 @@ final class PHS extends PHS_Registry
         $class_name = 'PHS_Controller_'.ucfirst(strtolower($controller_name));
 
         if ($plugin === PHS_Instantiable::CORE_PLUGIN) {
-            $plugin = false;
+            $plugin = null;
         }
 
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER))) {

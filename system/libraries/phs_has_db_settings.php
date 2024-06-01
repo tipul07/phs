@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS;
@@ -863,7 +864,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
         $return_arr = [];
         foreach ($plugin_models_arr as $model_name) {
-            if (!($model_instance = PHS::load_model($model_name, ($plugin_obj ? $plugin_obj->instance_plugin_name() : null)))
+            if (!($model_instance = PHS::load_model($model_name, $plugin_obj?->instance_plugin_name()))
                 || !($model_id = $model_instance->instance_id())) {
                 continue;
             }

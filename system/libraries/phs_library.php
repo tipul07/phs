@@ -1,16 +1,15 @@
 <?php
+
 namespace phs\libraries;
 
 // ! All plugin libraries should extend this class
 abstract class PHS_Library extends PHS_Registry
 {
-    /** @var PHS_Plugin|bool */
-    private $_parent_plugin = false;
+    private ?PHS_Plugin $_parent_plugin = null;
 
-    /** @var bool|array */
-    private $_location_paths = false;
+    private array $_location_paths = [];
 
-    public function set_library_location_paths($paths)
+    public function set_library_location_paths(array $paths) : array
     {
         $this->_location_paths = self::validate_array($paths, self::get_library_default_location_paths());
 
@@ -27,19 +26,19 @@ abstract class PHS_Library extends PHS_Registry
         return $this->_location_paths;
     }
 
-    public function get_library_location_paths()
+    public function get_library_location_paths() : array
     {
         return $this->_location_paths;
     }
 
-    final public function parent_plugin($plugin_obj = false)
+    final public function parent_plugin(?PHS_Plugin $plugin_obj = null) : ?PHS_Plugin
     {
-        if ($plugin_obj === false) {
+        if ($plugin_obj === null) {
             return $this->_parent_plugin;
         }
 
         if (!($plugin_obj instanceof PHS_Plugin)) {
-            return false;
+            return null;
         }
 
         $this->_parent_plugin = $plugin_obj;
@@ -70,11 +69,7 @@ abstract class PHS_Library extends PHS_Registry
             return [];
         }
 
-        if (!($plugins_settings = $plugin_obj->get_db_settings())) {
-            $plugins_settings = $plugin_obj->get_default_settings();
-        }
-
-        return $plugins_settings;
+        return $plugin_obj->get_db_settings() ?: $plugin_obj->get_default_settings();
     }
 
     final public function quick_render_template_for_buffer($template, ?array $template_data = null) : ?string

@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\notifications;
 
 use phs\PHS;
@@ -16,7 +17,7 @@ class PHS_Plugin_Notifications extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         return [
             // default template

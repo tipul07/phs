@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\system\core\models;
 
 use phs\PHS;
@@ -132,7 +133,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $all_policies[$policy];
     }
 
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         if (!($policies_arr = $this->get_stalling_policies_as_key_val())) {
             $policies_arr = [];
@@ -475,7 +476,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $this->get_stalling_minutes();
     }
 
-    public function get_job_seconds_since_last_action($job_data) : ?int
+    public function get_job_seconds_since_last_action(int | array $job_data) : ?int
     {
         $this->reset_error();
 
@@ -486,28 +487,23 @@ class PHS_Model_Agent_jobs extends PHS_Model
             return null;
         }
 
-        if (empty($job_arr['last_action'])
-         || empty_db_date($job_arr['last_action'])) {
-            return 0;
-        }
-
-        return seconds_passed($job_arr['last_action']);
+        return !empty($job_arr['last_action']) ? seconds_passed($job_arr['last_action']) : 0;
     }
 
-    public function job_is_stalling($job_data) : ?bool
+    public function job_is_stalling(int | array $job_data) : ?bool
     {
         $this->reset_error();
 
         if (empty($job_data)
-         || !($job_arr = $this->data_to_array($job_data))) {
-            $this->set_error(self::ERR_DB_JOB, self::_t('Couldn\'t get agent jobs details.'));
+            || !($job_arr = $this->data_to_array($job_data))) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t get agent jobs details.'));
 
             return null;
         }
 
-        return !(!$this->job_is_running($job_arr)
-         || !($minutes_to_stall = $this->get_job_stalling_minutes($job_arr))
-         || floor($this->get_job_seconds_since_last_action($job_arr) / 60) < $minutes_to_stall);
+        return $this->job_is_running($job_arr)
+               && ($minutes_to_stall = $this->get_job_stalling_minutes($job_arr))
+               && floor($this->get_job_seconds_since_last_action($job_arr) / 60) >= $minutes_to_stall;
     }
 
     public function job_runs_async($job_data) : bool
@@ -549,12 +545,10 @@ class PHS_Model_Agent_jobs extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false)
+    final public function fields_definition($params = false) : ?array
     {
-        // $params should be flow parameters...
-        if (empty($params) || !is_array($params)
-         || empty($params['table_name'])) {
-            return false;
+        if (empty($params['table_name'])) {
+            return null;
         }
 
         $return_arr = [];

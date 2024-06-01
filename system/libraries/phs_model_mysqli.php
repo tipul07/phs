@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS;
@@ -1195,7 +1196,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    protected function _install_table_for_model($flow_params) : bool
+    protected function _install_table_for_model(array $flow_params) : bool
     {
         $this->reset_error();
 
@@ -1275,10 +1276,6 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             return false;
         }
 
-        // Re-cache table structure...
-        // Do not recache table as we are done with it...
-        // $this->get_table_columns_as_definition( $flow_params, true );
-
         PHS_Logger::notice('DONE Installing table ['.$full_table_name.'] for model ['.$model_id.']', PHS_Logger::TYPE_MAINTENANCE);
 
         return true;
@@ -1319,7 +1316,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    protected function _update_table_for_model($flow_params) : bool
+    protected function _update_table_for_model(array $flow_params) : bool
     {
         $this->reset_error();
 
@@ -1645,7 +1642,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    protected function _update_missing_table_for_model($flow_params) : bool
+    protected function _install_missing_table_for_model(array $flow_params) : bool
     {
         return $this->_install_table_for_model($flow_params);
     }
@@ -2691,12 +2688,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         }
 
         if (!empty($force)
-         && PHS_Maintenance::db_structure_is_locked()) {
+            && PHS_Maintenance::db_structure_is_locked()) {
             $force = false;
         }
 
         if (empty($force)
-         && self::get_cached_db_tables_structure_for_driver($my_driver)) {
+            && self::get_cached_db_tables_structure_for_driver($my_driver)) {
             return true;
         }
 
@@ -3154,7 +3151,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         ];
     }
 
-    private static function _default_field_arr()
+    private static function _default_field_arr() : array
     {
         // if 'default_value' is set in field definition that value will be used for 'default' key
         return [
@@ -3172,7 +3169,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             // in case we renamed the field from something else we add old name here...
             // we add all old names here so in case we update structure from an old version it would still recognise field names
             // update will check if current database structures field names in this array and if any match will rename old field with current definition
-            // e.g. old_names = array( 'old_field1', 'old_field2' ) =>
+            // e.g. old_names = [ 'old_field1', 'old_field2' ] =>
             //     if we find in current structure old_field1 or old_field2 as fields will rename them in current field and will apply current definition
             'old_names' => [],
         ];

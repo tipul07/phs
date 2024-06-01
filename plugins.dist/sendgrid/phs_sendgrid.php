@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\sendgrid;
 
 use phs\PHS;
@@ -17,7 +18,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
     /** @var libraries\PHS_Sendgrid */
     private $sendgrid_library = false;
 
-    public function get_settings_keys_to_obfuscate()
+    public function get_settings_keys_to_obfuscate() : array
     {
         return ['sendgrid_api_key'];
     }
@@ -25,7 +26,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         return [
             // default template

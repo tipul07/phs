@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\messages\controllers;
 
 class PHS_Controller_Admin extends \phs\libraries\PHS_Controller_Admin

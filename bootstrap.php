@@ -24,127 +24,67 @@ if (empty($PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR) || !is_array($PHS_DEFAULT_CRYPT_
 phs_init_before_bootstrap();
 
 include_once PHS_LIBRARIES_DIR.'phs_event_interface.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_error.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_language_container.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_language.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_registry.php';
-
 // Make sure we can use maintenance things anytime
-
 include_once PHS_CORE_DIR.'phs_maintenance.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_library.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_roles.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_instantiable.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_undefined_instantiable.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_has_db_settings.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_has_db_registry.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_plugin.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_model_base.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_model_mysqli.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_model_mongo.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_model.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_model_trait_statuses.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_model_trait_record_types.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_controller.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_controller_index.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_controller_api.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_controller_remote.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_controller_admin.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_controller_background.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_action.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_api_action.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_remote_action.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_contract.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_contract_list.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_event.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_encdec.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_db_interface.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_db_class.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_params.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_line_params.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_hooks.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_logger.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_notifications.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_utils.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_file_upload.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_paginator.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_paginator_action.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_paginator_exporter_library.php';
-
 include_once PHS_LIBRARIES_DIR.'phs_autocomplete_action.php';
-
 include_once PHS_CORE_DIR.'phs.php';
-
 include_once PHS_CORE_DIR.'phs_db.php';
-
 include_once PHS_CORE_DIR.'phs_session.php';
-
 include_once PHS_CORE_DIR.'phs_tenants.php';
-
 include_once PHS_CORE_DIR.'phs_crypt.php';
-
 include_once PHS_CORE_VIEW_DIR.'phs_view.php';
-
 include_once PHS_CORE_DIR.'phs_scope.php';
-
 include_once PHS_CORE_DIR.'phs_bg_jobs.php';
-
 include_once PHS_CORE_DIR.'phs_agent.php';
-
 include_once PHS_CORE_DIR.'phs_ajax.php';
-
 include_once PHS_CORE_DIR.'phs_api_base.php';
-
 include_once PHS_CORE_DIR.'phs_api.php';
-
 include_once PHS_CORE_DIR.'phs_api_remote.php';
 
 // Used to manage big number of files (initialize repositories in plugin's phs_bootstrap_x.php files)
-
 // Make sure you create repositories' directories in uploads dir, and you don't initialize a LDAP repository directly in uploads dir - unless you know what you're doing!!!)
-
 // eg. if uploads directory is _uploads, create a repository directory first _uploads/r1 and use r1 as root of repository; don't use _uploads as root of repository
 
 include_once PHS_LIBRARIES_DIR.'phs_ldap.php';
@@ -160,9 +100,7 @@ use phs\libraries\PHS_Notifications;
 use phs\system\core\models\PHS_Model_Plugins;
 
 // These are special cases as there might be 3 definitions of same constant
-
 // and framework will take first framework constant, then default constant if domain constant is not defined
-
 // Uploads directory
 
 if (!defined('PHS_UPLOADS_DIR')) {
@@ -183,6 +121,10 @@ if (!defined('PHS_ASSETS_DIR')) {
     }
 }
 
+// Stubs directories
+const PHS_CORE_STUBS_DIR = PHS_LIBRARIES_DIR.'stubs/';
+const PHS_CUSTOM_STUBS_DIR = PHS_ASSETS_DIR.'stubs/';
+
 // Default logging settings (change if required in main.php)
 
 if (!defined('PHS_LOGS_DIR')) {
@@ -200,7 +142,6 @@ if (!defined('PHS_SITEBUILD_VERSION')) {
 }
 
 // Tell system if it should use multi-language...
-
 // We will enable it for the moment (it can be changed in main or particular config file)
 
 PHS::set_multi_language(true);
@@ -224,7 +165,7 @@ PHS_Logger::logging_dir(PHS_LOGS_DIR);
 PHS_Scope::default_scope(PHS_Scope::SCOPE_WEB);
 
 if (defined('PHS_SCRIPT_SCOPE')
- && ($script_scope = PHS_Scope::valid_constant_scope(PHS_SCRIPT_SCOPE))) {
+    && ($script_scope = PHS_Scope::valid_constant_scope(PHS_SCRIPT_SCOPE))) {
     PHS_Scope::current_scope($script_scope);
 }
 
@@ -261,36 +202,26 @@ if (PHS::st_debugging_mode()) {
 //
 
 $mysql_settings = [];
-
 $mysql_settings['driver'] = PHS_Db::DB_DRIVER_MYSQLI;
-
 $mysql_settings['host'] = PHS_DB_HOSTNAME;
-
 $mysql_settings['user'] = PHS_DB_USERNAME;
-
 $mysql_settings['password'] = PHS_DB_PASSWORD;
-
 $mysql_settings['database'] = PHS_DB_DATABASE;
-
 $mysql_settings['prefix'] = PHS_DB_PREFIX;
-
 $mysql_settings['port'] = PHS_DB_PORT;
-
 $mysql_settings['timezone'] = PHS_DB_TIMEZONE;
-
 $mysql_settings['charset'] = PHS_DB_CHARSET;
-
 $mysql_settings['use_pconnect'] = PHS_DB_USE_PCONNECT;
 
 // Check if we are in cli mode, or we are in update script...
 
 if (defined('PHS_MAINTENANCE_DB_USERNAME')
- && ($maintenance_db_user = constant('PHS_MAINTENANCE_DB_USERNAME'))
- // make sure we don't have the placeholder from main.dist.php
- && $maintenance_db_user !== '{{PHS_MAINTENANCE_DB_USERNAME}}'
- && (PHS_Scope::current_scope() === PHS_Scope::SCOPE_CLI
+    && ($maintenance_db_user = constant('PHS_MAINTENANCE_DB_USERNAME'))
+    // make sure we don't have the placeholder from main.dist.php
+    && $maintenance_db_user !== '{{PHS_MAINTENANCE_DB_USERNAME}}'
+    && (PHS_Scope::current_scope() === PHS_Scope::SCOPE_CLI
      || (defined('PHS_INSTALLING_FLOW') && constant('PHS_INSTALLING_FLOW'))
- )
+    )
 ) {
     $mysql_settings['user'] = $maintenance_db_user;
     $mysql_settings['password'] = constant('PHS_MAINTENANCE_DB_PASSWORD') ?? '';
@@ -311,7 +242,7 @@ if (!is_array($mysql_settings['driver_settings'])) {
     $mysql_settings['driver_settings'] = [];
 }
 
-define('PHS_DB_DEFAULT_CONNECTION', 'db_default');
+const PHS_DB_DEFAULT_CONNECTION = 'db_default';
 
 PHS_Db::default_db_driver(PHS_Db::DB_DRIVER_MYSQLI);
 
@@ -341,8 +272,8 @@ include_once PHS_SYSTEM_DIR.'crypt_init.php';
 // If we are in WEB update script check if we have update token
 
 if (defined('PHS_IN_WEB_UPDATE_SCRIPT') && defined('PHS_INSTALLING_FLOW')
- && constant('PHS_IN_WEB_UPDATE_SCRIPT') && constant('PHS_INSTALLING_FLOW')
- && !PHS_Maintenance::validate_framework_update_action()) {
+    && constant('PHS_IN_WEB_UPDATE_SCRIPT') && constant('PHS_INSTALLING_FLOW')
+    && !PHS_Maintenance::validate_framework_update_action()) {
     echo PHS::_t('Update token invalid.');
     exit;
 }
@@ -360,17 +291,15 @@ include_once PHS_SYSTEM_DIR.'database_init.php';
 // END Init database settings
 //
 
-define('PHS_FULL_PATH_WWW', PHS_DOMAIN.(PHS_PORT !== '' ? ':' : '').PHS_PORT.'/'.PHS_DOMAIN_PATH);
+const PHS_FULL_PATH_WWW = PHS_DOMAIN.(PHS_PORT !== '' ? ':' : '').PHS_PORT.'/'.PHS_DOMAIN_PATH;
 
-define('PHS_FULL_SSL_PATH_WWW', PHS_SSL_DOMAIN.(PHS_SSL_PORT !== '' ? ':' : '').PHS_SSL_PORT.'/'.PHS_DOMAIN_PATH);
+const PHS_FULL_SSL_PATH_WWW = PHS_SSL_DOMAIN.(PHS_SSL_PORT !== '' ? ':' : '').PHS_SSL_PORT.'/'.PHS_DOMAIN_PATH;
 
-define('PHS_HTTP', 'http://'.PHS_FULL_PATH_WWW);
+const PHS_HTTP = 'http://'.PHS_FULL_PATH_WWW;
 
-define('PHS_HTTPS', 'https://'.PHS_FULL_SSL_PATH_WWW);
+const PHS_HTTPS = 'https://'.PHS_FULL_SSL_PATH_WWW;
 
-if (!($base_url = PHS::get_base_url())) {
-    $base_url = '/';
-}
+$base_url = PHS::get_base_url() ?: '/';
 
 define('PHS_SETUP_WWW', $base_url.'_setup/');
 
@@ -457,12 +386,12 @@ if (!defined('PHS_INSTALLING_FLOW') || !constant('PHS_INSTALLING_FLOW')) {
     echo 'Checking plugins module installation... ';
 
     if (!$plugins_model->check_install_plugins_db()) {
-        echo PHS::_t('ERROR checking plugins model install:')."\n";
-        /** @noinspection ForgottenDebugOutputInspection */
-        var_dump($plugins_model->get_error());
+        echo PHS::_t('ERROR checking plugins model install:')."\n"
+             .$plugins_model->get_simple_error_message('Unknown error.');
         exit;
     }
-    echo PHS::_t('DONE')."\n\n";
+
+    echo 'DONE'."\n\n";
 }
 
 $bootstrap_scripts = [];

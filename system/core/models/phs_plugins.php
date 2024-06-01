@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\system\core\models;
 
 use phs\PHS;
@@ -21,7 +22,7 @@ class PHS_Model_Plugins extends PHS_Model
 {
     use PHS_Model_Trait_statuses;
 
-    public const ERR_FORCE_INSTALL = 100, ERR_DB_DETAILS = 101, ERR_DIR_DETAILS = 102, ERR_REGISTRY = 103, ERR_SETTINGS = 104;
+    public const ERR_FORCE_INSTALL = 100, ERR_DB_DETAILS = 101, ERR_DIR_DETAILS = 102, ERR_REGISTRY = 103;
 
     public const STATUS_INSTALLED = 1, STATUS_ACTIVE = 2, STATUS_INACTIVE = 3;
 
@@ -274,17 +275,17 @@ class PHS_Model_Plugins extends PHS_Model
     /**
      * @return array|bool False on error or array containing plugin names (without instantiating plugins)
      */
-    public function get_all_plugin_names_from_dir()
+    public function get_all_plugin_names_from_dir() : ?array
     {
         $this->reset_error();
 
         @clearstatcache();
 
-        if (($dirs_list = @glob(PHS_PLUGINS_DIR.'*', GLOB_ONLYDIR)) === false
-         || !is_array($dirs_list)) {
+        if (false === ($dirs_list = @glob(PHS_PLUGINS_DIR.'*', GLOB_ONLYDIR))
+            || !is_array($dirs_list)) {
             $this->set_error(self::ERR_DIR_DETAILS, self::_t('Couldn\'t get a list of plugin directories.'));
 
-            return false;
+            return null;
         }
 
         $return_arr = [];
@@ -399,6 +400,13 @@ class PHS_Model_Plugins extends PHS_Model
         }
 
         return self::$dir_plugins;
+    }
+
+    public function plugin_name_is_instantiable(string $plugin_name) : ?PHS_Plugin
+    {
+        $this->cache_all_dir_details();
+
+        return self::$dir_plugins[$plugin_name] ?? null;
     }
 
     public function get_all_db_details(bool $force = false) : array
@@ -833,12 +841,11 @@ class PHS_Model_Plugins extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false)
+    final public function fields_definition($params = false) : ?array
     {
         // $params should be flow parameters...
-        if (empty($params) || !is_array($params)
-         || empty($params['table_name'])) {
-            return false;
+        if (empty($params['table_name'])) {
+            return null;
         }
 
         $return_arr = [];

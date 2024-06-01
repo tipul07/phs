@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 /*! \file phs_utils.php
@@ -410,13 +411,7 @@ class PHS_Utils extends PHS_Language
         return $return_arr;
     }
 
-    /**
-     * @param string|array $segments
-     * @param bool|array $params
-     *
-     * @return bool
-     */
-    public static function mkdir_tree($segments, $params = false)
+    public static function mkdir_tree(string | array $segments, array $params = []) : bool
     {
         self::st_reset_error();
 
@@ -426,15 +421,8 @@ class PHS_Utils extends PHS_Language
             return false;
         }
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-        if (empty($params['root'])) {
-            $params['root'] = '';
-        }
-        if (!isset($params['dir_mode'])) {
-            $params['dir_mode'] = 0775;
-        }
+        $params['root'] ??= '';
+        $params['dir_mode'] ??= 0775;
 
         $segments_arr = $segments;
         if (!is_array($segments)) {

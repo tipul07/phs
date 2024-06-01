@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\accounts;
 
 use phs\PHS;
@@ -39,10 +40,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     // Password is mandatory, generate password if none is provided or ask user to setup a password at first login
     public const PASS_POLICY_MANDATORY = 1, PASS_POLICY_GENERATE = 2, PASS_POLICY_SETUP = 3;
 
-    /** @var null|PHS_Model_Accounts */
     private ?PHS_Model_Accounts $_accounts_model = null;
 
-    /** @var null|PHS_Model_Accounts_details */
     private ?PHS_Model_Accounts_details $_accounts_details_model = null;
 
     protected static array $PASSWORD_POLICY_ARR = [
@@ -62,7 +61,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         /** @var PHS_Model_Accounts $accounts_model */
         $accounts_levels_arr = [];
@@ -977,20 +976,17 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         ];
     }
 
-    /**
-     * @return array|false
-     */
-    public function get_empty_account_structure()
+    public function get_empty_account_structure() : array
     {
-        static $empty_structure = false;
+        static $empty_structure = null;
 
-        if ($empty_structure !== false) {
+        if ($empty_structure !== null) {
             return $empty_structure;
         }
 
         /** @var PHS_Model_Accounts $accounts_model */
-        if (!($accounts_model = PHS::load_model('accounts', $this->instance_plugin_name()))) {
-            return false;
+        if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
+            return [];
         }
 
         $empty_structure = $accounts_model->get_empty_data();

@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\hubspot\libraries;
 
 use phs\PHS;
@@ -9,7 +10,7 @@ use phs\libraries\PHS_Library;
 
 class PHS_Hubspot extends PHS_Library
 {
-    public const ERR_SETTINGS = 1, ERR_QUEUE_FULL = 2, ERR_BULK_UPDATE = 3;
+    public const ERR_QUEUE_FULL = 1, ERR_BULK_UPDATE = 2;
 
     public const MAX_CONTACTS_BULK_UPDATE = 1000;
 

@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS;
@@ -8,6 +9,7 @@ use phs\PHS_Maintenance;
 use phs\system\core\views\PHS_View;
 use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\models\PHS_Model_Agent_jobs;
+use phs\system\core\events\migrations\PHS_Event_Migration_plugins;
 
 abstract class PHS_Plugin extends PHS_Has_db_registry
 {
@@ -143,8 +145,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     public function get_agent_jobs_definition() : array
     {
         if (!($json_arr = $this->get_json_info())
-         || empty($json_arr['agent_jobs'])
-         || !is_array($json_arr['agent_jobs'])) {
+            || empty($json_arr['agent_jobs'])
+            || !is_array($json_arr['agent_jobs'])) {
             return [];
         }
 
@@ -172,11 +174,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             $template = $this->template_resource_from_file($template);
         } elseif (is_array($template)) {
             if (!($template = PHS_View::validate_template_resource($template))) {
-                if (self::st_has_error()) {
-                    $this->copy_static_error(self::ERR_RENDER);
-                } else {
-                    $this->set_error(self::ERR_RENDER, $this->_pt('Error validating template resource.'));
-                }
+                $this->copy_or_set_static_error(self::ERR_RENDER, $this->_pt('Error validating template resource.'));
 
                 return false;
             }
@@ -446,7 +444,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $this->db_record_active();
     }
 
-    public function check_installation()
+    public function check_installation() : bool
     {
         PHS_Maintenance::output('['.$this->instance_plugin_name().'] Checking installation...');
 
@@ -467,15 +465,10 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         // Check if plugin has dynamic structure models
-        if (($models_arr = $this->get_models())
-         && is_array($models_arr)) {
+        if (($models_arr = $this->get_models())) {
             foreach ($models_arr as $model_name) {
                 if (!($model_obj = PHS::load_model($model_name, $this->instance_plugin_name()))) {
-                    if (PHS::st_has_error()) {
-                        $this->copy_static_error(self::ERR_UPDATE);
-                    } else {
-                        $this->set_error(self::ERR_UPDATE, self::_t('Error updating model %s.', $model_name));
-                    }
+                    $this->copy_or_set_static_error(self::ERR_UPDATE, self::_t('Error updating model %s.', $model_name));
 
                     PHS_Maintenance::unlock_db_structure_read();
 
@@ -501,14 +494,14 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return true;
     }
 
-    final public function plugin_is_installed()
+    final public function plugin_is_installed() : ?bool
     {
         $this->reset_error();
 
         if (!($this_instance_id = $this->instance_id())) {
             $this->set_error(self::ERR_CHANGES, self::_t('Couldn\'t obtain current plugin id.'));
 
-            return false;
+            return null;
         }
 
         if (!$this->_load_plugins_instance()) {
@@ -516,7 +509,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
             $this->set_error(self::ERR_CHANGES, self::_t('Error instantiating plugins model.'));
 
-            return false;
+            return null;
         }
 
         $check_arr = [];
@@ -906,15 +899,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         foreach ($agent_jobs_definition as $handle => $agent_job_arr) {
             $agent_job_arr = self::validate_array($agent_job_arr, $agent_job_structure);
 
-            if (!empty($agent_job_arr['title'])) {
-                $agent_job_arr['title'] = trim($agent_job_arr['title']);
-            } else {
-                $agent_job_arr['title'] = '';
-            }
-
-            if (!empty($agent_job_arr['timed_seconds'])) {
-                $agent_job_arr['timed_seconds'] = (int)$agent_job_arr['timed_seconds'];
-            }
+            $agent_job_arr['title'] = trim($agent_job_arr['title'] ?? '');
+            $agent_job_arr['timed_seconds'] = (int)($agent_job_arr['timed_seconds'] ?? 0);
 
             // Hardcoded job to run once an hour rather than stopping install
             if (empty($agent_job_arr['timed_seconds']) || $agent_job_arr['timed_seconds'] < 0) {
@@ -944,17 +930,13 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             $job_extra_arr['plugin'] = $this->instance_plugin_name();
             $job_extra_arr['stalling_minutes'] = $agent_job_arr['stalling_minutes'];
 
-            if (!($db_job_arr = PHS_Agent::add_job($handle, $agent_job_arr['route'], $agent_job_arr['timed_seconds'], $agent_job_arr['params'], $job_extra_arr))) {
+            if (!PHS_Agent::add_job($handle, $agent_job_arr['route'], $agent_job_arr['timed_seconds'], $agent_job_arr['params'], $job_extra_arr)) {
                 $this->uninstall_agent_jobs();
 
-                if (self::st_has_error()) {
-                    $this->copy_static_error(self::ERR_INSTALL);
-                } else {
-                    $this->set_error(self::ERR_INSTALL,
-                        self::_t('Couldn\'t install agent job [%s] for [%s]', $handle, $this->instance_id()));
-                }
+                $this->copy_or_set_static_error(self::ERR_INSTALL,
+                    self::_t('Couldn\'t install agent job [%s] for [%s]', $handle, $this->instance_id()));
 
-                PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error when registering agent job ['.$handle.']: '.$this->get_error_message());
+                PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error when registering agent job ['.$handle.']: '.$this->get_simple_error_message());
 
                 return false;
             }
@@ -1040,13 +1022,19 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return true;
     }
 
-    final public function install_roles()
+    final public function install_roles() : ?array
     {
         $this->reset_error();
 
         if (!($role_definition = $this->get_roles_definition())
-         || !is_array($role_definition)) {
-            return true;
+            && !is_array($role_definition)) {
+            $this->set_error_if_not_set(self::ERR_PLUGIN_SETUP, $this->_pt('Invalid roles definition.'));
+
+            return null;
+        }
+
+        if (!$role_definition) {
+            return [];
         }
 
         PHS_Maintenance::output('['.$this->instance_plugin_name().'] Installing roles...');
@@ -1060,7 +1048,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
                 PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error installing role ['.$role_slug.']: '.$this->get_error_message());
 
-                return false;
+                return null;
             }
 
             $role_slug = $new_role_slug;
@@ -1078,7 +1066,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
                     PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error installing role unit ['.$role_unit_slug.']: '.$this->get_error_message());
 
-                    return false;
+                    return null;
                 }
 
                 $role_unit_slug = $new_role_unit_slug;
@@ -1092,16 +1080,13 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                 $role_unit_details_arr['description'] = $role_unit_arr['description'];
 
                 if (!($role_unit = PHS_Roles::register_role_unit($role_unit_details_arr))) {
-                    if (self::st_has_error()) {
-                        $this->copy_static_error(self::ERR_INSTALL);
-                    } else {
-                        $this->set_error(self::ERR_INSTALL,
-                            self::_t('Couldn\'t install role unit [%s]', $role_unit_slug));
-                    }
+                    $this->copy_or_set_static_error(self::ERR_INSTALL,
+                        self::_t('Couldn\'t install role unit [%s]', $role_unit_slug));
 
-                    PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error when registering role unit ['.$role_unit_slug.']: '.$this->get_error_message());
+                    PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! '
+                                            .'Error when registering role unit ['.$role_unit_slug.']: '.$this->get_simple_error_message());
 
-                    return false;
+                    return null;
                 }
 
                 $db_role_units_arr[$role_unit['slug']] = $role_unit;
@@ -1118,15 +1103,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             $role_details_arr['{role_units}'] = array_keys($role_units_slugs_arr);
 
             if (!($role = PHS_Roles::register_role($role_details_arr))) {
-                if (self::st_has_error()) {
-                    $this->copy_static_error(self::ERR_INSTALL);
-                } else {
-                    $this->set_error(self::ERR_INSTALL, self::_t('Couldn\'t install role [%s]', $role_slug));
-                }
+                $this->copy_or_set_static_error(self::ERR_INSTALL,
+                    self::_t('Couldn\'t install role [%s]', $role_slug));
 
-                PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error when registering role ['.$role_slug.']: '.$this->get_error_message());
+                PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error when registering role ['.$role_slug.']: '.$this->get_simple_error_message());
 
-                return false;
+                return null;
             }
 
             $db_roles_arr[$role['slug']] = $role;
@@ -1138,7 +1120,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $db_roles_arr;
     }
 
-    final public function install()
+    final public function install() : bool
     {
         $this->reset_error();
 
@@ -1159,19 +1141,88 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         if (!$this->_plugins_instance->check_install_plugins_db()) {
-            if ($this->_plugins_instance->has_error()) {
-                $this->copy_error($this->_plugins_instance);
-            } else {
-                $this->set_error(self::ERR_INSTALL, self::_t('Error installing plugins model.'));
-            }
+            $this->copy_or_set_error($this->_plugins_instance,
+                self::ERR_INSTALL, self::_t('Error installing plugins model.'));
 
-            PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error installing plugins model: '.$this->get_error_message());
+            PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error installing plugins model: '.$this->get_simple_error_message());
 
             return false;
         }
 
-        if (!$this->install_roles()
-         || !$this->install_agent_jobs()) {
+        $is_dry_update = PHS_Db::dry_update();
+        $plugin_version = $this->get_plugin_version();
+
+        /** @var null|PHS_Event_Migration_plugins $event_obj */
+        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_install(
+            plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
+        ))
+             || $event_obj->result_has_error()
+             || self::st_has_error()) {
+            $this->set_error(self::ERR_INSTALL, self::_t('Error in migrations when installing plugin %s.', $this_instance_id));
+            PHS_Logger::error('Error in migrations when installing plugin ['.$this_instance_id.']', PHS_Logger::TYPE_MAINTENANCE);
+
+            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations when installing plugin: '
+                                    .self::st_get_simple_error_message($event_obj?->get_result_errors_as_string() ?: 'Unknown error.'));
+
+            return false;
+        }
+
+        /** @var null|PHS_Event_Migration_plugins $event_obj */
+        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_start(
+            plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
+        ))
+             || $event_obj->result_has_error()
+             || self::st_has_error()) {
+            $this->set_error(self::ERR_INSTALL, self::_t('Error in migrations when starting plugin %s.', $this_instance_id));
+            PHS_Logger::error('Error in migrations when starting plugin ['.$this_instance_id.']', PHS_Logger::TYPE_MAINTENANCE);
+
+            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations when starting plugin: '
+                                    .self::st_get_simple_error_message($event_obj?->get_result_errors_as_string() ?: 'Unknown error.'));
+
+            return false;
+        }
+
+        if (null === $this->install_roles() ) {
+            PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error installing plugin roles: '
+                                    .$this->get_simple_error_message('Unknown error.'));
+
+            return false;
+        }
+
+        /** @var null|PHS_Event_Migration_plugins $event_obj */
+        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_after_roles(
+            plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
+        ))
+             || $event_obj->result_has_error()
+             || self::st_has_error()) {
+            $this->set_error(self::ERR_INSTALL, self::_t('Error in migrations after roles, plugin %s.', $this_instance_id));
+            PHS_Logger::error('Error in migrations after roles, plugin ['.$this_instance_id.']', PHS_Logger::TYPE_MAINTENANCE);
+
+            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations after roles, plugin: '
+                                    .self::st_get_simple_error_message($event_obj?->get_result_errors_as_string() ?: 'Unknown error.'));
+
+            return false;
+        }
+
+        if ( !$this->install_agent_jobs()) {
+            PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error installing plugin agent jobs: '
+                                    .$this->get_simple_error_message('Unknown error.'));
+
+            return false;
+        }
+
+        /** @var null|PHS_Event_Migration_plugins $event_obj */
+        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_after_jobs(
+            plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
+        ))
+             || $event_obj->result_has_error()
+             || self::st_has_error()) {
+            $this->set_error(self::ERR_INSTALL, self::_t('Error in migrations after jobs, plugin %s.', $this_instance_id));
+            PHS_Logger::error('Error in migrations after jobs, plugin ['.$this_instance_id.']', PHS_Logger::TYPE_MAINTENANCE);
+
+            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations after jobs, plugin: '
+                                    .self::st_get_simple_error_message($event_obj?->get_result_errors_as_string() ?: 'Unknown error.'));
+
             return false;
         }
 
@@ -1185,22 +1236,16 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        if (($plugin_info = $this->get_plugin_info())
-            && !empty($plugin_info['name'])) {
-            $plugin_name = $plugin_info['name'];
-        } else {
-            $plugin_name = $this->instance_plugin_name();
-        }
+        $plugin_name = ($plugin_info = $this->get_plugin_info()) && !empty($plugin_info['name'])
+            ? $plugin_info['name']
+            : $this->instance_plugin_name();
 
         if (!($db_details = $this->_plugins_instance->install_record($this_instance_id,
             $this->instance_plugin_name(), $plugin_name, $this->instance_type(), $this->instance_is_core(),
             $this->get_default_settings(), $this->get_plugin_version()))
-         || empty($db_details['new_data'])) {
-            if ($this->_plugins_instance->has_error()) {
-                $this->copy_error($this->_plugins_instance);
-            } else {
-                $this->set_error(self::ERR_INSTALL, self::_t('Error saving plugin details to database.'));
-            }
+            || empty($db_details['new_data'])) {
+            $this->copy_or_set_error($this->_plugins_instance,
+                self::ERR_INSTALL, self::_t('Error saving plugin details to database.'));
 
             PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error saving plugin details to database: '.$this->get_error_message());
 
@@ -1212,7 +1257,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         if (!empty($old_plugin_arr)) {
             // Performs any necessary actions when updating model from old version to new version
-            if (version_compare($old_plugin_arr['version'], $plugin_arr['version'], '<')) {
+            if (version_compare($old_plugin_arr['version'], $plugin_arr['version'], '!=')) {
                 PHS_Maintenance::output('['.$this->instance_plugin_name().'] Calling update method from version ['.$old_plugin_arr['version'].'] to version ['.$plugin_arr['version'].']');
 
                 // Installed version is bigger than what we already had in database... update...
@@ -1230,12 +1275,10 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         if (($models_arr = $this->get_models())) {
             foreach ($models_arr as $model_name) {
+                /** @var PHS_Model $model_obj */
                 if (!($model_obj = PHS::load_model($model_name, $this->instance_plugin_name()))) {
-                    if (PHS::st_has_error()) {
-                        $this->copy_static_error(self::ERR_INSTALL);
-                    } else {
-                        $this->set_error(self::ERR_INSTALL, self::_t('Error loading model %s.', $model_name));
-                    }
+                    $this->copy_or_set_static_error(self::ERR_INSTALL,
+                        self::_t('Error loading model %s.', $model_name));
 
                     PHS_Maintenance::output('['.$this->instance_plugin_name().'] Error loading model ['.$model_name.']: '.$this->get_error_message());
 
@@ -1243,12 +1286,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                 }
 
                 if (!$model_obj->install()) {
-                    if ($model_obj->has_error()) {
-                        $this->copy_error($model_obj, self::ERR_INSTALL);
-                    } else {
-                        $this->set_error(self::ERR_INSTALL,
-                            self::_t('Error installing model %s.', $model_obj->instance_id()));
-                    }
+                    $this->copy_or_set_error($model_obj, self::ERR_INSTALL,
+                        self::_t('Error installing model %s.', $model_obj->instance_id()));
 
                     PHS_Maintenance::output('['.$this->instance_plugin_name().'] Error installing model ['.$model_name.']: '.$this->get_error_message());
 
@@ -1258,29 +1297,42 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         if (!$this->custom_after_install()) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_INSTALL,
-                    self::_t('Finishing plugin installation failed. Please uninstall, then re-install the plugin.'));
-            }
+            $this->set_error_if_not_set(self::ERR_INSTALL,
+                self::_t('Finishing plugin installation failed. Please uninstall, then re-install the plugin.'));
 
             PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error in plugin custom install finish functionality: '.$this->get_error_message());
 
             return false;
         }
 
+        /** @var null|PHS_Event_Migration_plugins $event_obj */
+        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_finish(
+            plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
+        ))
+             || $event_obj->result_has_error()
+             || self::st_has_error()) {
+            $this->set_error(self::ERR_INSTALL, self::_t('Error in migrations at finish, plugin %s.', $this_instance_id));
+            PHS_Logger::error('Error in migrations at finish, plugin ['.$this_instance_id.']', PHS_Logger::TYPE_MAINTENANCE);
+
+            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations at finish, plugin: '
+                                    .self::st_get_simple_error_message($event_obj?->get_result_errors_as_string() ?: 'Unknown error.'));
+
+            return false;
+        }
+
         PHS_Maintenance::output('['.$this->instance_plugin_name().'] DONE installing plugin');
 
-        return $plugin_arr;
+        return true;
     }
 
-    final public function uninstall()
+    final public function uninstall() : ?array
     {
         $this->reset_error();
 
         if (!($this_instance_id = $this->instance_id())) {
             $this->set_error(self::ERR_UNINSTALL, self::_t('Couldn\'t obtain current plugin id.'));
 
-            return false;
+            return null;
         }
 
         PHS_Maintenance::output('['.$this->instance_plugin_name().'] Uninstalling plugin...');
@@ -1290,7 +1342,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
             $this->set_error(self::ERR_UNINSTALL, self::_t('Error instantiating plugins model.'));
 
-            return false;
+            return null;
         }
 
         $check_arr = [];
@@ -1314,17 +1366,16 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
             PHS_Maintenance::output('['.$this->instance_plugin_name().'] Plugin is still active. Please inactivate it first.');
 
-            return false;
+            return null;
         }
 
         if (!$this->custom_uninstall()) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_INSTALL, self::_t('Plugin custom un-install functionality failed.'));
-            }
+            $this->set_error_if_not_set(self::ERR_INSTALL,
+                self::_t('Plugin custom un-install functionality failed.'));
 
             PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error in plugin custom un-install functionality: '.$this->get_error_message());
 
-            return false;
+            return null;
         }
 
         PHS_Maintenance::output('['.$this->instance_plugin_name().'] Uninstalling plugin models...');
@@ -1332,27 +1383,20 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         if (($models_arr = $this->get_models())) {
             foreach ($models_arr as $model_name) {
                 if (!($model_obj = PHS::load_model($model_name, $this->instance_plugin_name()))) {
-                    if (PHS::st_has_error()) {
-                        $this->copy_static_error(self::ERR_INSTALL);
-                    } else {
-                        $this->set_error(self::ERR_INSTALL, self::_t('Error loading model %s.', $model_name));
-                    }
+                    $this->copy_or_set_static_error(self::ERR_INSTALL, self::_t('Error loading model %s.', $model_name));
 
                     PHS_Maintenance::output('['.$this->instance_plugin_name().'] Error loading model ['.$model_name.']: '.$this->get_error_message());
 
-                    return false;
+                    return null;
                 }
 
                 if (!$model_obj->uninstall()) {
-                    if ($model_obj->has_error()) {
-                        $this->copy_error($model_obj);
-                    } else {
-                        $this->set_error(self::ERR_UNINSTALL, self::_t('Error un-installing model %s.', $model_name));
-                    }
+                    $this->copy_or_set_error($model_obj,
+                        self::ERR_UNINSTALL, self::_t('Error un-installing model %s.', $model_name));
 
                     PHS_Maintenance::output('['.$this->instance_plugin_name().'] Error un-installing model ['.$model_name.']: '.$this->get_error_message());
 
-                    return false;
+                    return null;
                 }
             }
         }
@@ -1365,15 +1409,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         if ($db_details
          && !$this->_plugins_instance->hard_delete($db_details)) {
-            if ($this->_plugins_instance->has_error()) {
-                $this->copy_error($this->_plugins_instance);
-            } else {
-                $this->set_error(self::ERR_UNINSTALL, self::_t('Error hard-deleting plugin from database.'));
-            }
+            $this->copy_or_set_error($this->_plugins_instance,
+                self::ERR_UNINSTALL, self::_t('Error hard-deleting plugin from database.'));
 
             PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error deleting plugin database record: '.$this->get_error_message());
 
-            return false;
+            return null;
         }
 
         PHS_Maintenance::output('['.$this->instance_plugin_name().'] DONE uninstalling plugin!');
@@ -1405,10 +1446,65 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         $is_dry_update = PHS_Db::dry_update();
 
+        /** @var null|PHS_Event_Migration_plugins $event_obj */
+        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_start(
+            plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
+        ))
+             || $event_obj->result_has_error()
+             || self::st_has_error()) {
+            $this->set_error(self::ERR_UPDATE, self::_t('Error in migrations when starting plugin %s.', $this_instance_id));
+            PHS_Logger::error('Error in migrations when starting plugin ['.$this_instance_id.']', PHS_Logger::TYPE_MAINTENANCE);
+
+            PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error in migrations when starting plugin: '
+                                    .self::st_get_simple_error_message($event_obj?->get_result_errors_as_string() ?: 'Unknown error.'));
+
+            return false;
+        }
+
         // If it is a dry update, don't install new roles or agent jobs
         if (!$is_dry_update
-         && (!$this->install_roles()
-             || !$this->install_agent_jobs())) {
+           && null === $this->install_roles()) {
+            PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error installing plugin roles: '
+                                    .$this->get_simple_error_message('Unknown error.'));
+
+            return false;
+        }
+
+        /** @var null|PHS_Event_Migration_plugins $event_obj */
+        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_after_roles(
+            plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
+        ))
+             || $event_obj->result_has_error()
+             || self::st_has_error()) {
+            $this->set_error(self::ERR_UPDATE, self::_t('Error in migrations after roles, plugin %s.', $this_instance_id));
+            PHS_Logger::error('Error in migrations after roles, plugin ['.$this_instance_id.']', PHS_Logger::TYPE_MAINTENANCE);
+
+            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations after roles, plugin: '
+                                    .self::st_get_simple_error_message($event_obj?->get_result_errors_as_string() ?: 'Unknown error.'));
+
+            return false;
+        }
+
+        if (!$is_dry_update
+           && !$this->install_agent_jobs()) {
+            PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error installing plugin agent jobs: '
+                                    .$this->get_simple_error_message('Unknown error.'));
+
+            return false;
+        }
+
+        /** @var null|PHS_Event_Migration_plugins $event_obj */
+        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_after_jobs(
+            plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
+        ))
+             || $event_obj->result_has_error()
+             || self::st_has_error()) {
+            $this->set_error(self::ERR_UPDATE, self::_t('Error in migrations after jobs, plugin %s.', $this_instance_id));
+            PHS_Logger::error('Error in migrations after jobs, plugin ['.$this_instance_id.']', PHS_Logger::TYPE_MAINTENANCE);
+
+            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations after jobs, plugin: '
+                                    .self::st_get_simple_error_message($event_obj?->get_result_errors_as_string() ?: 'Unknown error.'));
+
             return false;
         }
 
@@ -1416,10 +1512,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         // If it is a dry update, don't trigger custom updates
         if (!$is_dry_update
-         && !$this->custom_update($old_version, $new_version)) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_UPDATE, self::_t('Plugin custom update functionality failed.'));
-            }
+            && !$this->custom_update($old_version, $new_version)) {
+            $this->set_error_if_not_set(self::ERR_UPDATE, self::_t('Plugin custom update functionality failed.'));
 
             PHS_Maintenance::unlock_db_structure_read();
 
@@ -1442,11 +1536,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             foreach ($models_arr as $model_name) {
                 /** @var PHS_Model $model_obj */
                 if (!($model_obj = PHS::load_model($model_name, $this->instance_plugin_name()))) {
-                    if (PHS::st_has_error()) {
-                        $this->copy_static_error(self::ERR_UPDATE);
-                    } else {
-                        $this->set_error(self::ERR_UPDATE, self::_t('Error loading model %s.', $model_name));
-                    }
+                    $this->copy_or_set_static_error(self::ERR_UPDATE, self::_t('Error loading model %s.', $model_name));
 
                     PHS_Maintenance::unlock_db_structure_read();
 
@@ -1455,12 +1545,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                     return false;
                 }
 
-                if (!($model_details = $model_obj->get_db_main_details(true))
-                    || empty($model_details['version'])) {
-                    $old_model_version = '0.0.0';
-                } else {
-                    $old_model_version = $model_details['version'];
-                }
+                $old_model_version = !($model_details = $model_obj->get_db_main_details(true)) || empty($model_details['version'])
+                    ? '0.0.0'
+                    : $model_details['version'];
 
                 $current_version = $model_obj->get_model_version();
 
@@ -1471,13 +1558,10 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                 }
 
                 if (!$model_obj->update($old_model_version, $current_version)) {
-                    if ($model_obj->has_error()) {
-                        $this->copy_error($model_obj, self::ERR_UPDATE);
-                    } else {
-                        $this->set_error(self::ERR_UPDATE,
-                            self::_t('Error updating model [%s] from plugin [%s]', $model_obj->instance_name(),
-                                $this->instance_name()));
-                    }
+                    $this->copy_or_set_error($model_obj,
+                        self::ERR_UPDATE,
+                        self::_t('Error updating model [%s] from plugin [%s]', $model_obj->instance_name(),
+                            $this->instance_name()));
 
                     PHS_Maintenance::unlock_db_structure_read();
 
@@ -1491,9 +1575,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         // If it is a dry update, don't trigger custom updates
         if (!$is_dry_update
             && !$this->custom_after_update($old_version, $new_version)) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_UPDATE, self::_t('Plugin custom after update functionality failed.'));
-            }
+            $this->set_error_if_not_set(self::ERR_UPDATE, self::_t('Plugin custom after update functionality failed.'));
 
             PHS_Maintenance::unlock_db_structure_read();
 
@@ -1502,23 +1584,34 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        if (($plugin_info = $this->get_plugin_info())
-            && !empty($plugin_info['name'])) {
-            $plugin_name = $plugin_info['name'];
-        } else {
-            $plugin_name = $this->instance_plugin_name();
+        /** @var null|PHS_Event_Migration_plugins $event_obj */
+        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_finish(
+            plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
+        ))
+             || $event_obj->result_has_error()
+             || self::st_has_error()) {
+            $this->set_error(self::ERR_UPDATE, self::_t('Error in migrations at finish, plugin %s.', $this_instance_id));
+            PHS_Logger::error('Error in migrations at finish, plugin ['.$this_instance_id.']', PHS_Logger::TYPE_MAINTENANCE);
+
+            PHS_Maintenance::output('['.$this->instance_plugin_name().']['.$this->instance_name().'] !!! Error in migrations at finish, plugin: '
+                                    .self::st_get_simple_error_message($event_obj?->get_result_errors_as_string() ?: 'Unknown error.'));
+
+            PHS_Maintenance::unlock_db_structure_read();
+
+            return false;
         }
+
+        $plugin_name = ($plugin_info = $this->get_plugin_info()) && !empty($plugin_info['name'])
+            ? $plugin_info['name']
+            : $this->instance_plugin_name();
 
         if (!$is_dry_update
          && (!($db_details = $this->_plugins_instance->update_record(
              $this_instance_id, $plugin_name, $this->instance_is_core(), $this->get_plugin_version()))
              || empty($db_details['new_data']))
         ) {
-            if ($this->_plugins_instance->has_error()) {
-                $this->copy_error($this->_plugins_instance);
-            } else {
-                $this->set_error(self::ERR_UPDATE, self::_t('Error saving plugin details to database.'));
-            }
+            $this->copy_or_set_error($this->_plugins_instance,
+                self::ERR_UPDATE, self::_t('Error saving plugin details to database.'));
 
             PHS_Maintenance::unlock_db_structure_read();
 
@@ -1701,7 +1794,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return trim(str_replace('.', '', $path), '\\/').'/';
     }
 
-    public static function role_unit_structure()
+    public static function role_unit_structure() : array
     {
         return [
             'name'        => '',
@@ -1709,7 +1802,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         ];
     }
 
-    public static function role_structure()
+    public static function role_structure() : array
     {
         return [
             'name'        => '',
@@ -1718,7 +1811,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         ];
     }
 
-    public static function agent_job_structure()
+    public static function agent_job_structure() : array
     {
         return [
             'title'         => '',

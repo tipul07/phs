@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 abstract class PHS_Paginator_exporter_library extends PHS_Library

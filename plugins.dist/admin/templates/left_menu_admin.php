@@ -28,6 +28,8 @@ $can_view_logs = $admin_plugin->can_admin_view_logs();
 $can_import_accounts = $admin_plugin->can_admin_import_accounts();
 $can_list_tenants = $admin_plugin->can_admin_list_tenants();
 $can_manage_tenants = $admin_plugin->can_admin_manage_tenants();
+$can_list_migrations = $admin_plugin->can_admin_list_migrations();
+$can_manage_migrations = $admin_plugin->can_admin_manage_migrations();
 
 if (!$can_list_plugins && !$can_manage_plugins
  && !$can_list_api_keys && !$can_manage_api_keys && !$can_view_api_monitoring_report
@@ -128,6 +130,15 @@ if ($can_list_plugins || $can_manage_plugins) {
         </ul>
     </li>
     <?php
+    if ($can_list_migrations || $can_manage_migrations) {
+        ?>
+        <li><?php echo $this::_t('Plugins Migrations'); ?>
+            <ul>
+                <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'migrations', 'p' => 'admin']); ?>"><?php echo $this::_t('List Migrations'); ?></a></li>
+            </ul>
+        </li>
+        <?php
+    }
 }
 if ($can_list_agent_jobs || $can_manage_agent_jobs) {
     ?>

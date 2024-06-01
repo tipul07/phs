@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS;
@@ -914,7 +915,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         && array_key_exists($flow_table_name, self::$tables_arr[$my_driver]));
     }
 
-    protected function _install_table_for_model($flow_params) : bool
+    protected function _install_table_for_model(array $flow_params) : bool
     {
         $this->reset_error();
 
@@ -922,7 +923,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
             return false;
         }
 
-        if (empty($this->_definition) || !is_array($this->_definition)
+        if (empty($this->_definition)
          || !($flow_params = $this->fetch_default_flow_params($flow_params))
          || empty($flow_params['table_name'])
          || !($full_table_name = $this->get_flow_table_name($flow_params))) {
@@ -997,7 +998,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         return true;
     }
 
-    protected function _update_table_for_model($flow_params) : bool
+    protected function _update_table_for_model(array $flow_params) : bool
     {
         $this->reset_error();
 
@@ -1260,7 +1261,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         return true;
     }
 
-    protected function _update_missing_table_for_model($flow_params) : bool
+    protected function _install_missing_table_for_model(array $flow_params) : bool
     {
         return $this->_install_table_for_model($flow_params);
     }

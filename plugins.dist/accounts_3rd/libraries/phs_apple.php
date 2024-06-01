@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\accounts_3rd\libraries;
 
 use phs\PHS;
@@ -13,7 +14,7 @@ class Apple extends PHS_Library
 
     public const ACTION_LOGIN = 'login', ACTION_REGISTER = 'register';
 
-    public const ERR_DEPENDENCIES = 1, ERR_SETTINGS = 2, ERR_API_INIT = 3;
+    public const ERR_API_INIT = 1;
 
     /** @var bool|\phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd */
     private $_accounts_3rd_plugin = false;

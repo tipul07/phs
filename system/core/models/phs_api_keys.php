@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\system\core\models;
 
 use phs\PHS;
@@ -20,25 +21,25 @@ class PHS_Model_Api_keys extends PHS_Model
     ];
 
     /**
-     * @return string Returns version of model
+     * @inheritdoc
      */
-    public function get_model_version()
+    public function get_model_version() : string
     {
         return '1.1.0';
     }
 
     /**
-     * @return array of string Returns an array of strings containing tables that model will handle
+     * @inheritdoc
      */
-    public function get_table_names()
+    public function get_table_names() : array
     {
         return ['api_keys'];
     }
 
     /**
-     * @return string Returns main table name used when calling insert with no table name
+     * @inheritdoc
      */
-    public function get_main_table_name()
+    public function get_main_table_name() : string
     {
         return 'api_keys';
     }
@@ -280,12 +281,10 @@ class PHS_Model_Api_keys extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false)
+    final public function fields_definition($params = false) : ?array
     {
-        // $params should be flow parameters...
-        if (empty($params) || !is_array($params)
-         || empty($params['table_name'])) {
-            return false;
+        if (empty($params['table_name'])) {
+            return null;
         }
 
         $return_arr = [];

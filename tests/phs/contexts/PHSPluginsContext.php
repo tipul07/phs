@@ -7,30 +7,20 @@ use phs\system\core\models\PHS_Model_Plugins;
 
 class PHSPluginsContext extends PHSAbstractContext
 {
-    /** @var \phs\system\core\models\PHS_Model_Plugins */
-    protected static $_plugins_model = false;
+    protected static ?PHS_Model_Plugins $_plugins_model = null;
 
     /**
-     * @return array|bool
+     * @return array
      * @throws \RuntimeException
      */
-    public function get_plugins_as_dirs()
+    public function get_plugins_as_dirs(): array
     {
         if (empty(self::$_plugins_model)) {
             throw new \RuntimeException('@BeforeSuite not triggered for '.__CLASS__.' class.');
         }
 
-        $plugins_model = self::$_plugins_model;
-
-        if (($plugins_arr = $plugins_model->get_all_plugin_names_from_dir()) === false
-         || !is_array($plugins_arr)) {
-            if (!$plugins_model->has_error()) {
-                $error_msg = 'Error obtaining plugins list.';
-            } else {
-                $error_msg = $plugins_model->get_simple_error_message();
-            }
-
-            throw new \RuntimeException($error_msg);
+        if (null === ($plugins_arr = self::$_plugins_model->get_all_plugin_names_from_dir())) {
+            throw new \RuntimeException(self::$_plugins_model->get_simple_error_message(self::_t('Error obtaining plugins list.')));
         }
 
         return $plugins_arr;

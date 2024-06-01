@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\accounts_3rd\controllers;
 
 use phs\PHS_Scope;

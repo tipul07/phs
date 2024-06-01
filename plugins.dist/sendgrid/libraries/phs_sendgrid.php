@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\sendgrid\libraries;
 
 use phs\PHS;
@@ -6,8 +7,6 @@ use phs\libraries\PHS_Library;
 
 class PHS_Sendgrid extends PHS_Library
 {
-    public const ERR_DEPENDENCIES = 1, ERR_SETTINGS = 2;
-
     public const SENDGRID_DIR = 'sendgrid';
 
     /** @var bool|\phs\plugins\sendgrid\PHS_Plugin_Sendgrid */

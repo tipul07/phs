@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\foobar;
 
 use phs\libraries\PHS_Params;
@@ -11,7 +12,7 @@ class PHS_Plugin_Foobar extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         return [
             'foobar_api_url' => [

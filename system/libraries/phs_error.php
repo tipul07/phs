@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 if (!defined('PHS_VERSION')
@@ -10,7 +11,7 @@ class PHS_Error
 {
     public const ERR_OK = 0, ERR_PARAMETERS = 10000, ERR_FUNCTIONALITY = 10001,
         ERR_SERVER = 10002, ERR_WEB_SERVER = 10003, ERR_FRAMEWORK = 10004, ERR_RESOURCES = 10005,
-        ERR_DEPENDENCIES = 10006, ERR_PLUGIN_SETUP = 10007;
+        ERR_DEPENDENCIES = 10006, ERR_PLUGIN_SETUP = 10007, ERR_RIGHTS = 10008, ERR_SETTINGS = 10009;
 
     public const WARNING_NOTAG = -1;
 
@@ -124,9 +125,8 @@ class PHS_Error
      * @param int $error_no Error code
      * @param string $error_msg Error message
      * @param string $error_debug_msg Debugging error message
-     * @param bool|array $params Extra parameters
      */
-    public function set_error(int $error_no, string $error_msg, string $error_debug_msg = '', $params = false) : void
+    public function set_error(int $error_no, string $error_msg, string $error_debug_msg = '') : void
     {
         if (!($arr = self::arr_set_error($error_no, $error_msg, $error_debug_msg))) {
             $arr = self::default_error_array();
@@ -136,6 +136,15 @@ class PHS_Error
         $this->error_simple_msg = $arr['error_simple_msg'];
         $this->error_debug_msg = $arr['error_debug_msg'];
         $this->error_msg = $arr['error_msg'];
+    }
+
+    public function set_error_if_not_set(int $error_no, string $error_msg, string $error_debug_msg = '') : void
+    {
+        if ($this->has_error()) {
+            return;
+        }
+
+        $this->set_error($error_no, $error_msg, $error_debug_msg);
     }
 
     /**
@@ -357,10 +366,10 @@ class PHS_Error
      *
      * @return bool
      */
-    public function copy_error($obj, ?int $force_error_code = null) : bool
+    public function copy_error(?self $obj, ?int $force_error_code = null) : bool
     {
-        if (empty($obj) || !($obj instanceof self)
-         || !($error_arr = $obj->get_error())) {
+        if ($obj === null
+            || !($error_arr = $obj->get_error())) {
             return false;
         }
 
@@ -374,6 +383,18 @@ class PHS_Error
         }
 
         return true;
+    }
+
+    public function copy_or_set_error(?self $obj, int $error_no, string $error_msg, string $error_debug_msg = '') : void
+    {
+        if ($obj === null
+            || !$obj->has_error()) {
+            $this->set_error($error_no, $error_msg, $error_debug_msg);
+
+            return;
+        }
+
+        $this->copy_error($obj, $error_no);
     }
 
     /**
@@ -404,9 +425,31 @@ class PHS_Error
         return true;
     }
 
+    public function copy_or_set_error_from_array(array $error_arr, int $error_no, string $error_msg, string $error_debug_msg = '') : void
+    {
+        if (!self::arr_has_error($error_arr)) {
+            $this->set_error($error_no, $error_msg, $error_debug_msg);
+
+            return;
+        }
+
+        $this->copy_error_from_array($error_arr, $error_no);
+    }
+
     public function copy_static_error(?int $force_error_code = null) : bool
     {
         return $this->copy_error(self::get_error_static_instance(), $force_error_code);
+    }
+
+    public function copy_or_set_static_error(int $error_no, string $error_msg, string $error_debug_msg = '') : void
+    {
+        if (!self::st_has_error()) {
+            $this->set_error($error_no, $error_msg, $error_debug_msg);
+
+            return;
+        }
+
+        $this->copy_static_error($error_no);
     }
 
     public function stack_all_errors() : array
@@ -692,18 +735,10 @@ class PHS_Error
      *
      * @return array|false|\stdClass|string
      */
-    public static function var_dump($var, $params = false)
+    public static function var_dump(mixed $var, array $params = [])
     {
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if (empty($params['level'])) {
-            $params['level'] = 0;
-        }
-        if (!isset($params['max_level'])) {
-            $params['max_level'] = 3;
-        }
+        $params['level'] ??= 0;
+        $params['max_level'] ??= 3;
 
         if ($params['level'] >= $params['max_level']) {
             if (is_scalar($var)) {
@@ -793,6 +828,15 @@ class PHS_Error
         return $error_arr;
     }
 
+    public static function arr_set_error_if_not_set(array $error_arr, int $error_no, string $error_msg, string $error_debug_msg = '') : array
+    {
+        if (self::arr_has_error($error_arr)) {
+            return $error_arr;
+        }
+
+        return self::arr_set_error($error_no, $error_msg, $error_debug_msg);
+    }
+
     /**
      * @param int $error_no
      * @param string $error_msg
@@ -801,6 +845,15 @@ class PHS_Error
     public static function st_set_error(int $error_no, string $error_msg, string $error_debug_msg = '') : void
     {
         self::get_error_static_instance()->set_error($error_no, $error_msg, $error_debug_msg);
+    }
+
+    public static function st_set_error_if_not_set(int $error_no, string $error_msg, string $error_debug_msg = '') : void
+    {
+        if (self::st_has_error()) {
+            return;
+        }
+
+        self::st_set_error($error_no, $error_msg, $error_debug_msg);
     }
 
     /**
@@ -865,6 +918,18 @@ class PHS_Error
     public static function st_copy_error($obj, ?int $force_error_code = null) : bool
     {
         return self::get_error_static_instance()->copy_error($obj, $force_error_code);
+    }
+
+    public static function st_copy_or_set_error(?self $obj, int $error_no, string $error_msg, string $error_debug_msg = '') : bool
+    {
+        if ($obj === null
+            || !$obj->has_error()) {
+            self::st_set_error($error_no, $error_msg, $error_debug_msg);
+
+            return true;
+        }
+
+        return self::st_copy_error($obj, $error_no);
     }
 
     public static function st_get_error_code(int $default_code = self::ERR_OK) : int
@@ -983,6 +1048,26 @@ class PHS_Error
         $append_error_arr = self::arr_set_error($error_code, $error_msg);
 
         return self::arr_merge_error_to_array($error_arr, $append_error_arr);
+    }
+
+    public static function arr_copy_error(?self $obj, ?int $force_error_code = null) : ?array
+    {
+        if ($obj === null
+            || !$obj->has_error()) {
+            return null;
+        }
+
+        return $obj->get_error();
+    }
+
+    public static function arr_copy_or_set_error(?self $obj, int $error_no, string $error_msg, string $error_debug_msg = '') : ?array
+    {
+        if ($obj === null
+            || !$obj->has_error()) {
+            return self::arr_set_error($error_no, $error_msg, $error_debug_msg);
+        }
+
+        return $obj->get_error();
     }
 
     public static function st_stack_error() : array

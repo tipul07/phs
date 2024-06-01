@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\mobileapi\models;
 
 use phs\PHS;
@@ -1059,12 +1060,10 @@ class PHS_Model_Api_online extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false)
+    final public function fields_definition($params = false) : ?array
     {
-        // $params should be flow parameters...
-        if (empty($params) || !is_array($params)
-         || empty($params['table_name'])) {
-            return false;
+        if (empty($params['table_name'])) {
+            return null;
         }
 
         $return_arr = [];

@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\system\core\contracts;
 
 use phs\PHS;

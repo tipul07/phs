@@ -1,4 +1,5 @@
 <?php
+
 namespace phs;
 
 use phs\libraries\PHS_Utils;
@@ -60,7 +61,7 @@ final class PHS_Tenants extends PHS_Registry
             return true;
         }
 
-        PHS_Logger::notice('No default tenant defined.', PHS_Logger::TYPE_DEBUG);
+        PHS_Logger::notice('No default tenant defined.', PHS_Logger::TYPE_TENANTS);
 
         return self::st_has_error();
     }
@@ -90,7 +91,8 @@ final class PHS_Tenants extends PHS_Registry
 
         if (!($tenant_arr = self::$_tenants_model->data_to_array($tenant_data, ['table_name' => 'phs_tenants']))
          || !self::$_tenants_model->is_active($tenant_arr)) {
-            PHS_Logger::debug('Tenant ['.($tenant_arr['identifier'] ?? 'N/A').'] cannot be set for ['.self::get_requested_script().'].', PHS_Logger::TYPE_DEBUG);
+            PHS_Logger::debug('Tenant ['.($tenant_arr['identifier'] ?? 'N/A').'] '
+                              .'cannot be set for ['.self::get_requested_script().'].', PHS_Logger::TYPE_TENANTS);
             self::st_set_error(self::ERR_RESOURCES, self::_t('Provided tenant not found.'));
 
             return false;
@@ -109,7 +111,7 @@ final class PHS_Tenants extends PHS_Registry
 
         if (PHS::st_debugging_mode()) {
             PHS_Logger::debug('Current tenant ['.($tenant_arr['identifier'] ?? 'N/A').'] set for ['.self::get_requested_script().'].',
-                PHS_Logger::TYPE_DEBUG);
+                PHS_Logger::TYPE_TENANTS);
         }
 
         $old_tenant = self::$_current_tenant;
@@ -119,17 +121,17 @@ final class PHS_Tenants extends PHS_Registry
             if (!empty($settings_arr['default_theme'])
                 && !PHS::set_defaut_theme($settings_arr['default_theme'])) {
                 PHS_Logger::debug('Cannot set default theme ['.$settings_arr['default_theme'].'] '
-                                  .'for tenant #'.$tenant_arr['id'].' ('.($tenant_arr['identifier'] ?? 'N/A').')', PHS_Logger::TYPE_DEBUG);
+                                  .'for tenant #'.$tenant_arr['id'].' ('.($tenant_arr['identifier'] ?? 'N/A').')', PHS_Logger::TYPE_TENANTS);
             }
             if (!empty($settings_arr['current_theme'])
                 && !PHS::set_theme($settings_arr['current_theme'])) {
                 PHS_Logger::debug('Cannot set current theme ['.$settings_arr['current_theme'].'] '
-                                  .'for tenant #'.$tenant_arr['id'].' ('.($tenant_arr['identifier'] ?? 'N/A').')', PHS_Logger::TYPE_DEBUG);
+                                  .'for tenant #'.$tenant_arr['id'].' ('.($tenant_arr['identifier'] ?? 'N/A').')', PHS_Logger::TYPE_TENANTS);
             }
             if (!empty($settings_arr['cascading_themes']) && is_array($settings_arr['cascading_themes'])
             && !PHS::set_cascading_themes($settings_arr['cascading_themes'])) {
                 PHS_Logger::debug('Cannot set cascading themes ['.print_r($settings_arr['cascading_themes'], true).'] '
-                                  .'for tenant #'.$tenant_arr['id'].' ('.($tenant_arr['identifier'] ?? 'N/A').')', PHS_Logger::TYPE_DEBUG);
+                                  .'for tenant #'.$tenant_arr['id'].' ('.($tenant_arr['identifier'] ?? 'N/A').')', PHS_Logger::TYPE_TENANTS);
             }
         }
 
@@ -218,7 +220,7 @@ final class PHS_Tenants extends PHS_Registry
             return '';
         }
 
-        if (substr($path, -9) === 'index.php') {
+        if (str_ends_with($path, 'index.php')) {
             $path = substr($path, 0, -9);
         }
 
@@ -234,10 +236,14 @@ final class PHS_Tenants extends PHS_Registry
         $tenant_identifier = null;
         if (!empty($_SERVER['HTTP_'.self::HEADER_TENANT_IDENTIFIER])) {
             $tenant_identifier = trim($_SERVER['HTTP_'.self::HEADER_TENANT_IDENTIFIER]);
-            PHS_Logger::debug('Tenant identifier ['.$tenant_identifier.'] from header HTTP_'.self::HEADER_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']', PHS_Logger::TYPE_DEBUG);
+            PHS_Logger::debug('Tenant identifier ['.$tenant_identifier.'] '
+                              .'from header HTTP_'.self::HEADER_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']',
+                PHS_Logger::TYPE_TENANTS);
         } elseif (!empty($_SERVER[self::HEADER_TENANT_IDENTIFIER])) {
             $tenant_identifier = trim($_SERVER[self::HEADER_TENANT_IDENTIFIER]);
-            PHS_Logger::debug('Tenant identifier ['.$tenant_identifier.'] from header '.self::HEADER_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']', PHS_Logger::TYPE_DEBUG);
+            PHS_Logger::debug('Tenant identifier ['.$tenant_identifier.'] '
+                              .'from header '.self::HEADER_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']',
+                PHS_Logger::TYPE_TENANTS);
         }
 
         return $tenant_identifier;
@@ -248,13 +254,19 @@ final class PHS_Tenants extends PHS_Registry
         $tenant_identifier = null;
         if (!empty($_POST[self::REQUEST_TENANT_IDENTIFIER])) {
             $tenant_identifier = trim($_POST[self::REQUEST_TENANT_IDENTIFIER]);
-            PHS_Logger::debug('Tenant identifier ['.$tenant_identifier.'] from POST '.self::REQUEST_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']', PHS_Logger::TYPE_DEBUG);
+            PHS_Logger::debug('Tenant identifier ['.$tenant_identifier.'] '
+                              .'from POST '.self::REQUEST_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']',
+                PHS_Logger::TYPE_TENANTS);
         } elseif (!empty($_GET[self::REQUEST_TENANT_IDENTIFIER])) {
             $tenant_identifier = trim($_GET[self::REQUEST_TENANT_IDENTIFIER]);
-            PHS_Logger::debug('Tenant identifier ['.$tenant_identifier.'] from GET '.self::REQUEST_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']', PHS_Logger::TYPE_DEBUG);
+            PHS_Logger::debug('Tenant identifier ['.$tenant_identifier.'] '
+                              .'from GET '.self::REQUEST_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']',
+                PHS_Logger::TYPE_TENANTS);
         } elseif (!empty($_COOKIE[self::REQUEST_TENANT_IDENTIFIER])) {
             $tenant_identifier = trim($_COOKIE[self::REQUEST_TENANT_IDENTIFIER]);
-            PHS_Logger::debug('Tenant identifier ['.$tenant_identifier.'] from COOKIE '.self::REQUEST_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']', PHS_Logger::TYPE_DEBUG);
+            PHS_Logger::debug('Tenant identifier ['.$tenant_identifier.'] '
+                              .'from COOKIE '.self::REQUEST_TENANT_IDENTIFIER.' for ['.self::get_requested_script().']',
+                PHS_Logger::TYPE_TENANTS);
         }
 
         return $tenant_identifier;
