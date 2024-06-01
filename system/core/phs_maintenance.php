@@ -2,6 +2,7 @@
 
 namespace phs;
 
+use Closure;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Registry;
@@ -70,14 +71,14 @@ final class PHS_Maintenance extends PHS_Registry
      * If we need to capture maintenance output we will pass a callble which will handle output
      * If $callback is false, maintenance class will not call anything for the output
      *
-     * @param null|bool|callable $callback
+     * @param null|bool|callable|Closure $callback
      *
-     * @return bool|callable
+     * @return bool|callable|Closure
      */
-    public static function output_callback(null | bool | callable $callback = null) : bool | callable
+    public static function output_callback(null | bool | callable | Closure $callback = null) : bool | callable | Closure
     {
         /** @var false|callable $output_callback */
-        static $output_callback = false;
+        static $output_callback = null;
 
         if ($callback === null) {
             return $output_callback;
@@ -86,13 +87,13 @@ final class PHS_Maintenance extends PHS_Registry
         self::st_reset_error();
 
         if ($callback === false) {
-            $output_callback = false;
+            $output_callback = null;
 
             return true;
         }
 
         if (empty($callback)
-            || !is_callable($callback)) {
+            || !@is_callable($callback)) {
             self::st_set_error(self::ERR_PARAMETERS, 'Maintenance output callback is not a callable.');
 
             return false;

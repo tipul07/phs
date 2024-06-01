@@ -149,12 +149,12 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * Checks if there is a config file to be included and return it's path. We don't include it here as we want to include in global scope...
+     * Checks if there is a config file to be included and return its path. We don't include it here as we want to include in global scope...
      *
-     * @param bool|string $config_dir Directory where we should check for config file
-     * @return bool|string File to be included || false if nothing to include
+     * @param null|string $config_dir Directory where we should check for config file
+     * @return null|string File to be included or null if nothing to include
      */
-    public static function check_custom_config($config_dir = false)
+    public static function check_custom_config(?string $config_dir = null) : ?string
     {
         if (!self::$inited) {
             self::init();
@@ -162,15 +162,15 @@ final class PHS extends PHS_Registry
 
         if (empty($config_dir)) {
             if (!defined('PHS_CONFIG_DIR')) {
-                return false;
+                return null;
             }
 
             $config_dir = PHS_CONFIG_DIR;
         }
 
         if (!($host_config = self::get_data(self::REQUEST_HOST_CONFIG))
-         || empty($host_config['server_name'])) {
-            return false;
+            || empty($host_config['server_name'])) {
+            return null;
         }
 
         if (empty($host_config['server_port'])) {
@@ -178,7 +178,7 @@ final class PHS extends PHS_Registry
         }
 
         if (!empty($host_config['server_port'])
-         && @is_file($config_dir.$host_config['server_name'].'_'.$host_config['server_port'].'.php')) {
+            && @is_file($config_dir.$host_config['server_name'].'_'.$host_config['server_port'].'.php')) {
             return $config_dir.$host_config['server_name'].'_'.$host_config['server_port'].'.php';
         }
 
@@ -186,7 +186,7 @@ final class PHS extends PHS_Registry
             return $config_dir.$host_config['server_name'].'.php';
         }
 
-        return false;
+        return null;
     }
 
     /**
@@ -194,11 +194,11 @@ final class PHS extends PHS_Registry
      */
     public static function detect_secure_request() : bool
     {
-        return (bool)((!empty($_SERVER)
+        return (!empty($_SERVER)
              && isset($_SERVER['HTTPS'])
              && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === '1' || $_SERVER['HTTPS'] === 1))
-         // If we run in cli mode assume we are on https calls in order to force https URL generation
-         || PHP_SAPI === 'cli');
+               // If we run in cli mode assume we are on https calls in order to force https URL generation
+               || PHP_SAPI === 'cli';
     }
 
     /**
@@ -208,9 +208,7 @@ final class PHS extends PHS_Registry
      */
     public static function get_request_host_config() : array
     {
-        if (empty($_SERVER)) {
-            $_SERVER = [];
-        }
+        $_SERVER ??= [];
 
         if (empty($_SERVER['SERVER_NAME'])) {
             $server_name = 'default';
@@ -222,7 +220,7 @@ final class PHS extends PHS_Registry
         }
 
         if (empty($_SERVER['SERVER_PORT'])
-         || in_array((int)$_SERVER['SERVER_PORT'], [80, 443], true)) {
+            || in_array((int)$_SERVER['SERVER_PORT'], [80, 443], true)) {
             $server_port = '';
         } else {
             $server_port = $_SERVER['SERVER_PORT'];
@@ -247,25 +245,16 @@ final class PHS extends PHS_Registry
         ];
     }
 
-    /**
-     * @param string|array|bool $key
-     * @param null|mixed $val
-     *
-     * @return null|bool|mixed
-     */
-    public static function page_settings($key = false, $val = null)
+    public static function page_settings(string | array | null $key = null, mixed $val = null) : mixed
     {
-        if ($key === false) {
-            return self::get_data(self::PHS_PAGE_SETTINGS);
-        }
-
-        $def_settings = self::get_default_page_settings();
-        if (!($current_settings = self::get_data(self::PHS_PAGE_SETTINGS))) {
-            $current_settings = [];
+        $current_settings = self::get_data(self::PHS_PAGE_SETTINGS) ?: [];
+        if ($key === null) {
+            return $current_settings;
         }
 
         if ($val === null) {
             if (is_array($key)) {
+                $def_settings = self::get_default_page_settings();
                 foreach ($key as $kkey => $kval) {
                     if (array_key_exists($kkey, $def_settings)) {
                         $current_settings[$kkey] = $kval;
@@ -278,16 +267,14 @@ final class PHS extends PHS_Registry
             }
 
             if (is_string($key)
-             && ($page_settings = self::get_data(self::PHS_PAGE_SETTINGS))
-             && is_array($page_settings)
-             && array_key_exists($key, $page_settings)) {
-                return $page_settings[$key];
+                && array_key_exists($key, $current_settings)) {
+                return $current_settings[$key];
             }
 
             return null;
         }
 
-        if (array_key_exists($key, $def_settings)) {
+        if (array_key_exists($key, self::get_default_page_settings())) {
             $current_settings[$key] = $val;
 
             self::set_data(self::PHS_PAGE_SETTINGS, $current_settings);
@@ -298,15 +285,11 @@ final class PHS extends PHS_Registry
         return null;
     }
 
-    public static function page_body_class($css_class, $append = true)
+    public static function page_body_class(string $css_class, bool $append = true)
     {
-        if (!empty($append)) {
-            if (!($existing_body_classes = self::page_settings('page_body_class'))) {
-                $existing_body_classes = '';
-            }
-        } else {
-            $existing_body_classes = '';
-        }
+        $existing_body_classes = $append
+            ? (self::page_settings('page_body_class') ?: '')
+            : '';
 
         return self::page_settings('page_body_class', trim($existing_body_classes.' '.ltrim($css_class)));
     }
@@ -353,7 +336,7 @@ final class PHS extends PHS_Registry
     public static function current_user_session($force = false)
     {
         if (!($hook_args = self::_current_user_trigger($force))
-         || empty($hook_args['session_db_data']) || !is_array($hook_args['session_db_data'])) {
+            || empty($hook_args['session_db_data']) || !is_array($hook_args['session_db_data'])) {
             return false;
         }
 
@@ -883,7 +866,7 @@ final class PHS extends PHS_Registry
                     $force_https = true;
                 }
             } else {
-                if (strpos($route, '-') !== false) {
+                if (str_contains($route, '-')) {
                     if (!($route_parts_tmp = explode('-', $route, 2))
                      || empty($route_parts_tmp[0])) {
                         self::st_set_error(self::ERR_ROUTE, self::_t('Couldn\'t obtain route.'));
@@ -913,10 +896,10 @@ final class PHS extends PHS_Registry
                 }
 
                 // Check action dir
-                if (false !== strpos($action, self::ACTION_DIR_ACTION_SEPARATOR)
-                 && ($action_parts = explode(self::ACTION_DIR_ACTION_SEPARATOR, $action, 2))
-                 && is_array($action_parts)
-                 && count($action_parts) === 2) {
+                if (str_contains($action, self::ACTION_DIR_ACTION_SEPARATOR)
+                    && ($action_parts = explode(self::ACTION_DIR_ACTION_SEPARATOR, $action, 2))
+                    && is_array($action_parts)
+                    && count($action_parts) === 2) {
                     $action_dir = (!empty($action_parts[0]) ? trim($action_parts[0]) : '');
                     $action = (!empty($action_parts[1]) ? trim($action_parts[1]) : '');
                 }

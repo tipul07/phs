@@ -15,7 +15,7 @@ class PHS_Action_Rerun_bg extends PHS_Action
         return [PHS_Scope::SCOPE_BACKGROUND];
     }
 
-    public function execute() : ?array
+    public function execute()
     {
         /** @var PHS_Model_Migrations $migrations_model */
         if (!($migrations_model = PHS_Model_Migrations::get_instance())

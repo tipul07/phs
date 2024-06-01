@@ -10,6 +10,7 @@ use phs\PHS_Db;
 use phs\PHS_Cli;
 use phs\PHS_Maintenance;
 use phs\libraries\PHS_Utils;
+use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Instantiable;
 use phs\traits\PHS_Cli_plugins_trait;
 use phs\cli\apps\libraries\PHS_Export_import;
@@ -171,6 +172,48 @@ class PHSMaintenance extends PHS_Cli
                     $this->cli_color(self::_t('UNLINK'), 'green')));
                 break;
         }
+
+        return true;
+    }
+
+    public function cmd_make_items() : bool
+    {
+        $this->reset_error();
+
+        if (!($command_arr = $this->get_app_command())
+            || empty($command_arr['arguments'])
+            || !($item_type = $this->_get_argument_chained($command_arr['arguments']))
+            || !self::_valid_items_command_item($item_type)) {
+            $this->_echo_error(self::_t('Please provide a valid "item" type.'));
+
+            $this->_display_items_command_usage();
+
+            return false;
+        }
+
+        /** @var PHS_Plugin $plugin_obj */
+        if (!($plugin_name = $this->_get_argument_chained())
+            || !($plugin_name = PHS_Instantiable::safe_escape_plugin_name($plugin_name))
+            || !($plugin_obj = PHS::load_plugin($plugin_name))) {
+            $this->_echo_error(self::_t('Invalid plugin name. Please provide a valid plugin name. Use %s command to view all plugins that are setup.', $this->cli_color('plugins', 'green')));
+
+            $this->_display_items_command_usage();
+
+            return false;
+        }
+        if (!($item_path = $this->_get_argument_chained())) {
+            $this->_echo_error(self::_t('Invalid "item" name.'));
+
+            $this->_display_items_command_usage();
+
+            return false;
+        }
+
+        if ( ($item_name = @basename($item_path)) !== $item_path ) {
+            $item_path = trim(substr($item_path, 0, -strlen($item_name)), '/');
+        }
+
+        // var_dump($item_path, $item_name, $this->_get_stub_item_destination_dir($item_type, $plugin_obj));
 
         return true;
     }
@@ -416,6 +459,10 @@ class PHSMaintenance extends PHS_Cli
                 'description' => 'Plugin management plugin [name] [action]. If no action is provided, display plugin details.',
                 'callback'    => [$this, 'cmd_plugin_action'],
             ],
+            'make' => [
+                'description' => 'Create different "items" for specified plugin.',
+                'callback'    => [$this, 'cmd_make_items'],
+            ],
             'setup' => [
                 'description'        => 'Platform setup actions. You can import or export framework setup in/from a setup file.',
                 'callback'           => [$this, 'cmd_setup_action'],
@@ -441,6 +488,63 @@ class PHSMaintenance extends PHS_Cli
         PHS_Maintenance::output_callback([$this, 'cli_maintenance_output']);
 
         return true;
+    }
+
+    private function _display_items_command_usage() : void
+    {
+        $this->_echo('Usage: '.$this->get_app_cli_script().' [options] make [item] [plugin] [options]');
+        $this->_echo('Available item types: '.implode(', ', self::_get_items_command_valid_item_types()).'.');
+        $this->_echo('Item options varies depending on provided item type.');
+    }
+
+    private function _get_stub_item_destination_dir(string $item, PHS_Plugin $plugin_obj) : ?string
+    {
+        if ($item === 'migration') {
+            return $plugin_obj->instance_plugin_migrations_path();
+        }
+
+        if ($item === 'event') {
+            return
+                ($details_arr = PHS_Instantiable::get_instance_details('PHS_Event_Test', $plugin_obj->instance_plugin_name(), PHS_Instantiable::INSTANCE_TYPE_EVENT))
+                ? ($details_arr['instance_path'] ?? null)
+                : null;
+        }
+
+        return null;
+    }
+
+    private function _get_stub_file_content(string $item) : ?string
+    {
+        if (!($stub_file = $this->_get_stub_file($item))) {
+            return null;
+        }
+
+        return @file_get_contents($stub_file);
+    }
+
+    private function _get_stub_file(string $item) : ?string
+    {
+        $stub_dirs = [];
+        if (defined('PHS_CUSTOM_STUBS_DIR')) {
+            $stub_dirs[] = PHS_CUSTOM_STUBS_DIR;
+        }
+        if (defined('PHS_CORE_PLUGIN_DIR')) {
+            $stub_dirs[] = PHS_CORE_PLUGIN_DIR;
+        }
+
+        if ( empty($stub_dirs) ) {
+            return null;
+        }
+
+        foreach ($stub_dirs as $dir) {
+            if ( !@file_exists($dir.'phs_'.$item.'.php') ) {
+                continue;
+            }
+
+            return $dir.'phs_'.$item.'.php';
+        }
+
+        return PHS_CLI_APPS_DIR.'stubs/'.$item.'.php';
     }
 
     private function _install_plugin(string $plugin_name) : bool
@@ -732,5 +836,15 @@ class PHSMaintenance extends PHS_Cli
     private static function _get_plugin_command_actions_with_valid_plugins() : array
     {
         return ['info', 'install', 'uninstall', 'activate', 'inactivate', 'unlink'];
+    }
+
+    private static function _valid_items_command_item(string $item) : bool
+    {
+        return in_array($item, self::_get_items_command_valid_item_types(), true);
+    }
+
+    private static function _get_items_command_valid_item_types() : array
+    {
+        return ['migration', 'event'];
     }
 }

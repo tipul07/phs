@@ -19,7 +19,7 @@ class PHS_Action_Forgot_password_bg extends PHS_Action
         return [PHS_Scope::SCOPE_BACKGROUND];
     }
 
-    public function execute() : ?array
+    public function execute()
     {
         /** @var PHS_Model_Accounts $accounts_model */
         /** @var PHS_Plugin_Accounts $accounts_plugin */

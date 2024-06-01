@@ -17,7 +17,7 @@ abstract class PHS_Migration extends PHS_Registry
 
     // ! Once how many steps should the migration script call PHS_Maintenance::output() to keep the connection alive
     // ! (in case of long-running scripts) You can overwrite this in your migration script
-    protected int $_progress_step = 50;
+    protected int $_progress_step = 25;
 
     // At which step did the migration script output progress
     private int $_last_step_output = 0;

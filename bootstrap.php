@@ -121,6 +121,10 @@ if (!defined('PHS_ASSETS_DIR')) {
     }
 }
 
+// Stubs directories
+const PHS_CORE_STUBS_DIR = PHS_LIBRARIES_DIR.'stubs/';
+const PHS_CUSTOM_STUBS_DIR = PHS_ASSETS_DIR.'stubs/';
+
 // Default logging settings (change if required in main.php)
 
 if (!defined('PHS_LOGS_DIR')) {
@@ -161,7 +165,7 @@ PHS_Logger::logging_dir(PHS_LOGS_DIR);
 PHS_Scope::default_scope(PHS_Scope::SCOPE_WEB);
 
 if (defined('PHS_SCRIPT_SCOPE')
- && ($script_scope = PHS_Scope::valid_constant_scope(PHS_SCRIPT_SCOPE))) {
+    && ($script_scope = PHS_Scope::valid_constant_scope(PHS_SCRIPT_SCOPE))) {
     PHS_Scope::current_scope($script_scope);
 }
 
@@ -198,36 +202,26 @@ if (PHS::st_debugging_mode()) {
 //
 
 $mysql_settings = [];
-
 $mysql_settings['driver'] = PHS_Db::DB_DRIVER_MYSQLI;
-
 $mysql_settings['host'] = PHS_DB_HOSTNAME;
-
 $mysql_settings['user'] = PHS_DB_USERNAME;
-
 $mysql_settings['password'] = PHS_DB_PASSWORD;
-
 $mysql_settings['database'] = PHS_DB_DATABASE;
-
 $mysql_settings['prefix'] = PHS_DB_PREFIX;
-
 $mysql_settings['port'] = PHS_DB_PORT;
-
 $mysql_settings['timezone'] = PHS_DB_TIMEZONE;
-
 $mysql_settings['charset'] = PHS_DB_CHARSET;
-
 $mysql_settings['use_pconnect'] = PHS_DB_USE_PCONNECT;
 
 // Check if we are in cli mode, or we are in update script...
 
 if (defined('PHS_MAINTENANCE_DB_USERNAME')
- && ($maintenance_db_user = constant('PHS_MAINTENANCE_DB_USERNAME'))
- // make sure we don't have the placeholder from main.dist.php
- && $maintenance_db_user !== '{{PHS_MAINTENANCE_DB_USERNAME}}'
- && (PHS_Scope::current_scope() === PHS_Scope::SCOPE_CLI
+    && ($maintenance_db_user = constant('PHS_MAINTENANCE_DB_USERNAME'))
+    // make sure we don't have the placeholder from main.dist.php
+    && $maintenance_db_user !== '{{PHS_MAINTENANCE_DB_USERNAME}}'
+    && (PHS_Scope::current_scope() === PHS_Scope::SCOPE_CLI
      || (defined('PHS_INSTALLING_FLOW') && constant('PHS_INSTALLING_FLOW'))
- )
+    )
 ) {
     $mysql_settings['user'] = $maintenance_db_user;
     $mysql_settings['password'] = constant('PHS_MAINTENANCE_DB_PASSWORD') ?? '';
@@ -248,7 +242,7 @@ if (!is_array($mysql_settings['driver_settings'])) {
     $mysql_settings['driver_settings'] = [];
 }
 
-define('PHS_DB_DEFAULT_CONNECTION', 'db_default');
+const PHS_DB_DEFAULT_CONNECTION = 'db_default';
 
 PHS_Db::default_db_driver(PHS_Db::DB_DRIVER_MYSQLI);
 
@@ -297,17 +291,15 @@ include_once PHS_SYSTEM_DIR.'database_init.php';
 // END Init database settings
 //
 
-define('PHS_FULL_PATH_WWW', PHS_DOMAIN.(PHS_PORT !== '' ? ':' : '').PHS_PORT.'/'.PHS_DOMAIN_PATH);
+const PHS_FULL_PATH_WWW = PHS_DOMAIN.(PHS_PORT !== '' ? ':' : '').PHS_PORT.'/'.PHS_DOMAIN_PATH;
 
-define('PHS_FULL_SSL_PATH_WWW', PHS_SSL_DOMAIN.(PHS_SSL_PORT !== '' ? ':' : '').PHS_SSL_PORT.'/'.PHS_DOMAIN_PATH);
+const PHS_FULL_SSL_PATH_WWW = PHS_SSL_DOMAIN.(PHS_SSL_PORT !== '' ? ':' : '').PHS_SSL_PORT.'/'.PHS_DOMAIN_PATH;
 
-define('PHS_HTTP', 'http://'.PHS_FULL_PATH_WWW);
+const PHS_HTTP = 'http://'.PHS_FULL_PATH_WWW;
 
-define('PHS_HTTPS', 'https://'.PHS_FULL_SSL_PATH_WWW);
+const PHS_HTTPS = 'https://'.PHS_FULL_SSL_PATH_WWW;
 
-if (!($base_url = PHS::get_base_url())) {
-    $base_url = '/';
-}
+$base_url = PHS::get_base_url() ?: '/';
 
 define('PHS_SETUP_WWW', $base_url.'_setup/');
 
@@ -394,12 +386,12 @@ if (!defined('PHS_INSTALLING_FLOW') || !constant('PHS_INSTALLING_FLOW')) {
     echo 'Checking plugins module installation... ';
 
     if (!$plugins_model->check_install_plugins_db()) {
-        echo PHS::_t('ERROR checking plugins model install:')."\n";
-        /** @noinspection ForgottenDebugOutputInspection */
-        var_dump($plugins_model->get_error());
+        echo PHS::_t('ERROR checking plugins model install:')."\n"
+             .$plugins_model->get_simple_error_message('Unknown error.');
         exit;
     }
-    echo PHS::_t('DONE')."\n\n";
+
+    echo 'DONE'."\n\n";
 }
 
 $bootstrap_scripts = [];

@@ -612,26 +612,22 @@ abstract class PHS_Instantiable extends PHS_Registry
      *
      * @param string $instance_type What kind of instance is this
      * @param string $instance_name Calss name after phs prefix (e.g. phs_model_), prefixed with subdir (if applicable) as namespace path (eg. subdir\\Myaction vs Myaction with no subdir)
-     * @param string|bool $plugin_name Plugin name or false meaning core class
+     * @param null|string $plugin_name Plugin name or false meaning core class
      *
-     * @return string|false Returns generated string from $instance_name and $plugin_name. This will uniquely identify the file we have to load. false on error
+     * @return string Returns generated string from $instance_name and $plugin_name. This will uniquely identify the file we have to load. false on error
      */
-    public static function generate_instance_id(string $instance_type, string $instance_name, $plugin_name = false) : string
+    public static function generate_instance_id(string $instance_type, string $instance_name, ?string $plugin_name = null) : string
     {
         self::st_reset_error();
 
-        if ($plugin_name !== false
-         && (!is_string($plugin_name) || empty($plugin_name))) {
+        if ($plugin_name !== null
+            && !($plugin_name = self::safe_escape_plugin_name($plugin_name))) {
             self::st_set_error(self::ERR_INSTANCE, self::_t('Please provide a valid plugin name.'));
 
             return '';
         }
 
-        if (empty($plugin_name)) {
-            $plugin_name = self::CORE_PLUGIN;
-        } else {
-            $plugin_name = self::safe_escape_plugin_name($plugin_name);
-        }
+        $plugin_name ??= self::CORE_PLUGIN;
 
         if (empty($instance_name)) {
             self::st_set_error(self::ERR_INSTANCE, self::_t('Please provide a valid instance name.'));
@@ -656,9 +652,8 @@ abstract class PHS_Instantiable extends PHS_Registry
     public static function valid_instance_id(string $instance_id) : ?array
     {
         if (empty($instance_id)
-         || @strpos($instance_id, ':') === false
+         || !str_contains($instance_id, ':')
          || !($instance_parts = explode(':', $instance_id, 3))
-         || !is_array($instance_parts)
          || empty($instance_parts[0]) || empty($instance_parts[1]) || empty($instance_parts[2])
          || !self::valid_instance_type($instance_parts[0])
          || ($instance_parts[1] !== self::CORE_PLUGIN && $instance_parts[1] !== self::safe_escape_plugin_name($instance_parts[1]))) {
@@ -1322,7 +1317,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         }
 
         if (!($instance_details = self::get_instance_details($class_name, $plugin_name, $instance_type, $instance_subdir))
-         || empty($instance_details['instance_id'])) {
+            || empty($instance_details['instance_id'])) {
             return null;
         }
 

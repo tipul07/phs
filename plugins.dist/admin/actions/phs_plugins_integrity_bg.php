@@ -14,7 +14,7 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
         return [PHS_Scope::SCOPE_BACKGROUND];
     }
 
-    public function execute() : ?array
+    public function execute()
     {
         $action_result = self::default_action_result();
 

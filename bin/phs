@@ -1,48 +1,40 @@
 #!/usr/bin/env php
 <?php
 
-    if( !@file_exists( __DIR__.'/apps/bootstrap.php' ) )
-    {
+    if( !@file_exists( __DIR__.'/apps/bootstrap.php' ) ) {
         echo 'Couldn\'t find bootstrap.php in apps directory.'."\n";
         exit( 254 );
     }
 
-    if( !@file_exists( __DIR__.'/apps/PHSMaintenance.php' ) )
-    {
+    if( !@file_exists( __DIR__.'/apps/PHSMaintenance.php' ) ) {
         echo 'Couldn\'t find PHSMaintenance app in apps directory.'."\n";
         exit( 254 );
     }
 
-    if( empty( $_SERVER['argv'] ) || !is_array( $_SERVER['argv'] ) )
+    if( empty( $_SERVER['argv'] ) || !is_array( $_SERVER['argv'] ) ) {
         $_SERVER['argv'] = [];
+    }
 
-    if( in_array( 'phs_setup', $_SERVER['argv'], true ) )
-    {
-        define( 'PHS_INSTALLING_FLOW', true );
+    if( in_array( 'phs_setup', $_SERVER['argv'], true ) ) {
+        define('PHS_INSTALLING_FLOW', true);
         $_SERVER['argv'] = [ (!empty( $_SERVER['argv'][0] )? $_SERVER['argv'][0]:'phs'), 'update' ];
     }
 
     include_once( __DIR__.'/apps/bootstrap.php' );
     include_once( __DIR__.'/apps/PHSMaintenance.php' );
 
-    use \phs\PHS_Cli;
-    use \phs\cli\apps\PHSMaintenance;
+    use phs\PHS_Cli;
+    use phs\cli\apps\PHSMaintenance;
  
-    if( !PHS_Cli::running_in_cli() )
-    {
+    if( !PHS_Cli::running_in_cli() ) {
         echo PHS_Cli::_t( 'This script must be run in a CLI environment.' )."\n";
         exit( 254 );
     }
 
-    if( !($phs_app = PHSMaintenance::get_instance()) )
-    {
-        $error_msg = PHSMaintenance::st_cli_color( PHSMaintenance::_t( 'ERROR' ), 'red' ).': ';
-        if( PHSMaintenance::st_has_error() )
-            $error_msg .= PHSMaintenance::st_get_simple_error_message();
-        else
-            $error_msg .= PHS_Cli::_t( 'Error obtaining PHSMaintenance class instance.' );
-
-        echo $error_msg."\n";
+    if( !($phs_app = PHSMaintenance::get_instance()) ) {
+        echo PHSMaintenance::st_cli_color( PHSMaintenance::_t( 'ERROR' ), 'red' ).': '
+             .PHSMaintenance::st_get_simple_error_message(PHS_Cli::_t( 'Error obtaining PHSMaintenance class instance.' ))
+             ."\n";
 
         exit( 254 );
     }
