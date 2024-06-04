@@ -44,12 +44,12 @@ class PHS_View extends PHS_Instantiable
         return self::INSTANCE_TYPE_VIEW;
     }
 
-    public function set_controller($controller_obj)
+    public function set_controller($controller_obj): bool
     {
         $this->reset_error();
 
-        if ($controller_obj !== false
-         && !($controller_obj instanceof PHS_Controller)) {
+        if (!empty($controller_obj)
+            && !($controller_obj instanceof PHS_Controller)) {
             $this->set_error(self::ERR_BAD_CONTROLLER, self::_t('Not a controller instance.'));
 
             return false;
