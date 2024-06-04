@@ -75,7 +75,7 @@ final class PHS_Maintenance extends PHS_Registry
      *
      * @return bool|callable|Closure
      */
-    public static function output_callback(null | bool | callable | Closure $callback = null) : bool | callable | Closure
+    public static function output_callback(null | bool | callable | Closure $callback = null) : null | bool | callable | Closure
     {
         /** @var false|callable $output_callback */
         static $output_callback = null;
