@@ -71,11 +71,11 @@ final class PHS_Maintenance extends PHS_Registry
      * If we need to capture maintenance output we will pass a callble which will handle output
      * If $callback is false, maintenance class will not call anything for the output
      *
-     * @param null|bool|callable|Closure $callback
+     * @param  null|bool|callable|Closure  $callback
      *
-     * @return bool|callable|Closure
+     * @return null|bool|callable|Closure
      */
-    public static function output_callback(null | bool | callable | Closure $callback = null) : bool | callable | Closure
+    public static function output_callback(null | bool | callable | Closure $callback = null) : null | bool | callable | Closure
     {
         /** @var false|callable $output_callback */
         static $output_callback = null;
