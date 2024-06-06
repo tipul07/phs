@@ -629,6 +629,11 @@ abstract class PHS_Migration extends PHS_Registry
         return $this->_script_details['plugin'] ?? '';
     }
 
+    protected function get_migration_plugin_class() : string
+    {
+        return $this->_script_details['plugin_class'] ?? '';
+    }
+
     protected function get_migration_plugin_version() : string
     {
         return $this->_script_details['version'] ?? '';
@@ -675,6 +680,7 @@ abstract class PHS_Migration extends PHS_Registry
     {
         $this->_script_details = [
             'plugin'         => $script_details['plugin'] ?? '',
+            'plugin_class'   => $script_details['plugin_class'] ?? '',
             'version'        => $script_details['version'] ?? '',
             'script'         => $script_details['script'] ?? '',
             'timestamp'      => $script_details['timestamp'] ?? 0,

@@ -7,6 +7,7 @@ use phs\PHS_Db;
 use phs\PHS_Maintenance;
 use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\events\models\PHS_Event_Model_Fields;
+use phs\system\core\events\models\PHS_Event_Model_hard_delete;
 use phs\system\core\events\migrations\PHS_Event_Migration_models;
 
 abstract class PHS_Model_Core_base extends PHS_Has_db_settings
@@ -15,8 +16,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         ERR_INSERT = 40005, ERR_EDIT = 40006, ERR_DELETE_BY_INDEX = 40007, ERR_ALTER = 40008, ERR_DELETE = 40009, ERR_UPDATE_TABLE = 40010,
         ERR_UNINSTALL_TABLE = 40011, ERR_READ_DB_STRUCTURE = 40012;
 
-    public const HOOK_RAW_PARAMETERS = 'phs_model_raw_parameters', HOOK_INSERT_BEFORE_DB = 'phs_model_insert_before_db',
-        HOOK_TABLES = 'phs_model_tables', HOOK_TABLE_FIELDS = 'phs_model_table_fields', HOOK_HARD_DELETE = 'phs_model_hard_delete';
+    public const HOOK_TABLES = 'phs_model_tables', HOOK_TABLE_FIELDS = 'phs_model_table_fields';
 
     public const DATE_EMPTY = '0000-00-00', DATETIME_EMPTY = '0000-00-00 00:00:00',
         DATE_DB = 'Y-m-d', DATETIME_DB = 'Y-m-d H:i:s';
@@ -571,42 +571,41 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     }
 
     /**
-     * This method hard-deletes a record from database. If additional work is required before hard-deleting record,
-     * self::HOOK_HARD_DELETE is called before deleting.
+     * This method hard-deletes a record from database.
+     * If additional work is required before hard-deleting record, or you want to cancel the delete,
+     * PHS_Event_Model_hard_delete::trigger() is triggered before deleting.
      *
-     * @param array|string|int $existing_data Array with full database fields or primary key
+     * @param array|int|string $existing_data Array with full database fields or primary key
      * @param array|bool $params Parameters in the flow
      *
      * @return bool Returns true or false depending on hard delete success
      */
-    final public function hard_delete($existing_data, $params = false) : bool
+    final public function hard_delete(int | string | array $existing_data, null | bool | array $params = []) : bool
     {
         self::st_reset_error();
         $this->reset_error();
 
-        if (!($params = $this->fetch_default_flow_params($params))
-         || !($existing_arr = $this->data_to_array($existing_data, $params))) {
+        if (!($params = $this->fetch_default_flow_params($params))) {
+            $this->set_error(self::ERR_DELETE,
+                self::_t('Invalid flow parameters.'));
+
             return false;
         }
 
-        $hook_params = [];
-        $hook_params['params'] = $params;
-        $hook_params['existing_data'] = $existing_arr;
+        if (!($existing_arr = $this->data_to_array($existing_data, $params))) {
+            return true;
+        }
 
-        if (($trigger_result = PHS::trigger_hooks(self::HOOK_HARD_DELETE, $hook_params)) !== null) {
-            if (!$trigger_result) {
-                if (self::st_has_error()) {
-                    $this->copy_static_error(self::HOOK_HARD_DELETE);
-                } else {
-                    $this->set_error(self::HOOK_HARD_DELETE, self::_t('Delete cancelled by trigger.'));
-                }
+        if ( ($event_obj = PHS_Event_Model_hard_delete::trigger([
+            'flow_params' => $params,
+            'record_data' => $existing_arr,
+            'model_obj'   => $this,
+        ]))
+            && $event_obj->get_output('stop_hard_delete')) {
+            $this->copy_or_set_error($event_obj,
+                self::ERR_DELETE, self::_t('Delete cancelled by trigger.'));
 
-                return false;
-            }
-
-            if (!empty($trigger_result['params'])) {
-                $params = $trigger_result['params'];
-            }
+            return false;
         }
 
         return $this->_hard_delete_for_model($existing_arr, $params);

@@ -19,17 +19,9 @@ class PHS_Hooks extends PHS_Registry
 
         // Model hooks
         H_MODEL_EMPTY_DATA = 'phs_model_empty_data', H_MODEL_VALIDATE_DATA_FIELDS = 'phs_model_validate_data_fields',
-        // low level insert and edit
-        H_MODEL_INSERT_DATA = 'phs_model_insert_data', H_MODEL_EDIT_DATA = 'phs_model_edit_data', H_MODEL_HARD_DELETE_DATA = 'phs_model_hard_delete_data',
 
         // Paginator hooks
         H_PAGINATOR_ACTION_PARAMETERS = 'phs_paginator_action_parameters',
-
-        // Plugins hooks
-        H_PLUGIN_REGISTRY = 'phs_plugin_registry',
-
-        // Logging hooks
-        H_LOG = 'phs_logger',
 
         // Location / Scripts hooks
         H_PAGE_INDEX = 'phs_page_index', H_PAGE_REGISTER = 'phs_page_register',
@@ -60,11 +52,6 @@ class PHS_Hooks extends PHS_Registry
 
         // Roles hooks
         H_GUEST_ROLES_SLUGS = 'phs_guest_roles_slugs',
-
-        // API hooks
-        H_API_REQUEST_ENDED = 'phs_api_request_ended',
-        H_API_API_INITED = 'phs_api_inited',
-        H_API_ACTION_INITED = 'phs_api_action_inited', H_API_ACTION_ENDED = 'phs_api_action_ended',
 
         // User account hooks
         H_USER_DB_DETAILS = 'phs_user_db_details', H_USER_LEVELS = 'phs_user_levels', H_USER_STATUSES = 'phs_user_statuses',

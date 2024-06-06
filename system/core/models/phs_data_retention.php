@@ -253,6 +253,11 @@ class PHS_Model_Data_retention extends PHS_Model
                         'length' => 255,
                         'index'  => true,
                     ],
+                    'data_field' => [
+                        'type'   => self::FTYPE_VARCHAR,
+                        'length' => 255,
+                        'index'  => true,
+                    ],
                     'retention' => [
                         'type'    => self::FTYPE_VARCHAR,
                         'length'  => 20,
@@ -334,8 +339,12 @@ class PHS_Model_Data_retention extends PHS_Model
             return false;
         }
 
-        if (empty($params['fields']['domain'])) {
-            $this->set_error(self::ERR_INSERT, self::_t('Please provide a tenant domain.'));
+        if ($this->get_details_fields([
+            'plugin' => $params['fields']['plugin'],
+            'model'  => $params['fields']['model'],
+            'table'  => $params['fields']['table']])
+        ) {
+            $this->set_error(self::ERR_INSERT, self::_t('There is already a data retention policy defined on provided table.'));
 
             return false;
         }

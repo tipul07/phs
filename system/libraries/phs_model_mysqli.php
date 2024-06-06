@@ -5,6 +5,9 @@ namespace phs\libraries;
 use phs\PHS;
 use phs\PHS_Db;
 use phs\PHS_Maintenance;
+use phs\system\core\events\models\PHS_Event_Model_edit;
+use phs\system\core\events\models\PHS_Event_Model_delete;
+use phs\system\core\events\models\PHS_Event_Model_insert;
 
 abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 {
@@ -631,28 +634,25 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         $params['action'] = 'insert';
 
-        if ((
-            @method_exists($this, 'get_insert_prepare_params_'.$params['table_name'])
-            && !($params = @call_user_func([$this, 'get_insert_prepare_params_'.$params['table_name']], $params))
+        $custom_method_exists = @method_exists($this, 'get_insert_prepare_params_'.$params['table_name']);
+
+        if (($custom_method_exists
+             && !($params = @$this->{'get_insert_prepare_params_'.$params['table_name']}($params))
         )
 
         || (
-            !@method_exists($this, 'get_insert_prepare_params_'.$params['table_name'])
+            !$custom_method_exists
             && !($params = $this->get_insert_prepare_params($params))
         )
         ) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_INSERT, self::_t('Couldn\'t parse parameters for database insert.'));
-            }
+            $this->set_error_if_not_set(self::ERR_INSERT, self::_t('Couldn\'t parse parameters for database insert.'));
 
             return false;
         }
 
         if (!($validation_arr = $this->validate_data_for_fields($params))
-         || empty($validation_arr['data_arr'])) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_INSERT, self::_t('Error validating parameters.'));
-            }
+            || empty($validation_arr['data_arr'])) {
+            $this->set_error_if_not_set(self::ERR_INSERT, self::_t('Error validating parameters.'));
 
             return false;
         }
@@ -661,16 +661,14 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         $db_connection = $this->get_db_connection($params);
 
         if (!($sql = db_quick_insert($this->get_flow_table_name($params), $insert_arr, $db_connection))
-         || !($item_id = db_query_insert($sql, $db_connection))) {
+            || !($item_id = db_query_insert($sql, $db_connection))) {
             if (@method_exists($this, 'insert_failed_'.$params['table_name'])) {
                 @$this->{'insert_failed_'.$params['table_name']}($insert_arr, $params);
             } else {
                 $this->insert_failed($insert_arr, $params);
             }
 
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_INSERT, self::_t('Failed saving information to database.'));
-            }
+            $this->set_error_if_not_set(self::ERR_INSERT, self::_t('Failed saving information to database.'));
 
             return false;
         }
@@ -678,9 +676,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         if (!empty($validation_arr['has_raw_fields'])) {
             // there are raw fields, so we query for existing data in table...
             if (!($db_insert_arr = $this->get_details($item_id, $params))) {
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_INSERT, self::_t('Failed saving information to database.'));
-                }
+                $this->set_error_if_not_set(self::ERR_INSERT, self::_t('Failed saving information to database.'));
 
                 return false;
             }
@@ -716,8 +712,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
             if (self::arr_has_error($error_arr)) {
                 $this->copy_error_from_array($error_arr);
-            } elseif (!$this->has_error()) {
-                $this->set_error(self::ERR_INSERT, self::_t('Failed actions after database insert.'));
+            } else {
+                $this->set_error_if_not_set(self::ERR_INSERT, self::_t('Failed actions after database insert.'));
             }
 
             return false;
@@ -725,29 +721,19 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         $insert_arr = $new_insert_arr;
 
-        $hook_params = PHS_Hooks::default_model_insert_data_hook_args();
-        $hook_params['fields_arr'] = $validation_arr['data_arr'];
-        $hook_params['table_name'] = $params['table_name'];
-        $hook_params['new_db_record'] = $insert_arr;
-
-        // Table level trigger
-        PHS::trigger_hooks(PHS_Hooks::H_MODEL_INSERT_DATA.'_'.$params['table_name'], $hook_params);
-
-        // Generic level trigger
-        PHS::trigger_hooks(PHS_Hooks::H_MODEL_INSERT_DATA, $hook_params);
+        PHS_Event_Model_insert::trigger([
+            'flow_params' => $params,
+            'fields_arr'  => $validation_arr['data_arr'],
+            'record_data' => $insert_arr,
+            'model_obj'   => $this,
+        ]);
 
         return $insert_arr;
     }
 
-    /**
-     * @param array $record_arr
-     *
-     * @return bool
-     */
     public function record_is_new($record_arr) : bool
     {
-        return !(empty($record_arr) || !is_array($record_arr)
-         || empty($record_arr[self::RECORD_NEW_INSERT_KEY]));
+        return !empty($record_arr[self::RECORD_NEW_INSERT_KEY]);
     }
 
     /**
@@ -768,7 +754,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         }
 
         if (!($existing_arr = $this->data_to_array($existing_data, $params))
-         || !array_key_exists($params['table_index'], $existing_arr)) {
+            || !array_key_exists($params['table_index'], $existing_arr)) {
             $this->set_error(self::ERR_EDIT, self::_t('Existing record not found in database.'));
 
             return false;
@@ -795,18 +781,14 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             && !($params = $this->get_edit_prepare_params($existing_arr, $params))
         )
         ) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_EDIT, self::_t('Couldn\'t parse parameters for database edit.'));
-            }
+            $this->set_error_if_not_set(self::ERR_EDIT, self::_t('Couldn\'t parse parameters for database edit.'));
 
             return false;
         }
 
         if (!($validation_arr = $this->validate_data_for_fields($params))
          || !isset($validation_arr['data_arr']) || !is_array($validation_arr['data_arr'])) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_EDIT, self::_t('Error validating parameters.'));
-            }
+            $this->set_error_if_not_set(self::ERR_EDIT, self::_t('Error validating parameters.'));
 
             return false;
         }
@@ -827,9 +809,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 $this->edit_failed($existing_arr, $edit_arr, $params);
             }
 
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_EDIT, self::_t('Failed saving information to database.'));
-            }
+            $this->set_error_if_not_set(self::ERR_EDIT, self::_t('Failed saving information to database.'));
 
             return false;
         }
@@ -846,9 +826,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             && !($new_existing_arr = $this->edit_after($existing_arr, $edit_arr, $params))
         )
         ) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_EDIT, self::_t('Failed actions after database edit.'));
-            }
+            $this->set_error_if_not_set(self::ERR_EDIT, self::_t('Failed actions after database edit.'));
 
             return false;
         }
@@ -859,9 +837,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             if (!empty($validation_arr['has_raw_fields'])) {
                 // there are raw fields, so we query for existing data in table...
                 if (!($db_existing_arr = $this->get_details($existing_arr['id'], $params))) {
-                    if (!$this->has_error()) {
-                        $this->set_error(self::ERR_INSERT, self::_t('Failed saving information to database.'));
-                    }
+                    $this->set_error_if_not_set(self::ERR_INSERT, self::_t('Failed saving information to database.'));
 
                     return false;
                 }
@@ -877,17 +853,13 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             }
         }
 
-        $hook_params = PHS_Hooks::default_model_edit_data_hook_args();
-        $hook_params['fields_arr'] = $validation_arr['data_arr'];
-        $hook_params['table_name'] = $params['table_name'];
-        $hook_params['new_db_record'] = $existing_arr;
-        $hook_params['old_db_record'] = $original_record_arr;
-
-        // Table level trigger
-        PHS::trigger_hooks(PHS_Hooks::H_MODEL_EDIT_DATA.'_'.$params['table_name'], $hook_params);
-
-        // Generic level trigger
-        PHS::trigger_hooks(PHS_Hooks::H_MODEL_EDIT_DATA, $hook_params);
+        PHS_Event_Model_edit::trigger([
+            'flow_params'     => $params,
+            'fields_arr'      => $edit_arr,
+            'record_data'     => $original_record_arr,
+            'new_record_data' => $existing_arr,
+            'model_obj'       => $this,
+        ]);
 
         return $existing_arr;
     }
@@ -943,8 +915,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      */
     public function get_query_fields($params)
     {
-        if (empty($params) || !is_array($params)
-         || empty($params['fields']) || !is_array($params['fields'])
+        if (empty($params['fields']) || !is_array($params['fields'])
          || !($new_params = $this->fetch_default_flow_params($params))) {
             return $params;
         }
@@ -1004,7 +975,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
             // Handle field name
             if (!is_numeric($field_name)
-             && strpos($field_name, '.') === false) {
+                && !str_contains($field_name, '.')) {
                 $field_name = '`'.$full_table_name.'`.`'.$field_name.'`';
             }
 
@@ -1715,15 +1686,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             return false;
         }
 
-        $hook_params = PHS_Hooks::default_model_hard_delete_data_hook_args();
-        $hook_params['table_name'] = $params['table_name'];
-        $hook_params['db_record'] = $existing_data;
-
-        // Table level trigger
-        PHS::trigger_hooks(PHS_Hooks::H_MODEL_HARD_DELETE_DATA.'_'.$params['table_name'], $hook_params);
-
-        // Generic level trigger
-        PHS::trigger_hooks(PHS_Hooks::H_MODEL_HARD_DELETE_DATA, $hook_params);
+        PHS_Event_Model_delete::trigger([
+            'flow_params' => $params,
+            'record_data' => $existing_data,
+            'model_obj'   => $this,
+        ]);
 
         return true;
     }
@@ -2392,7 +2359,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         // check if we have multiple complex values for current fields
         // This means we have more values set in numeric indexes and linkage_func index (optional) in case we want to change logical linkage function
         if (is_array($field_val)
-         && !empty($field_val[0]) && is_array($field_val[0])) {
+            && !empty($field_val[0]) && is_array($field_val[0])) {
             $linkage_func = 'OR';
             if (!empty($field_val['linkage_func'])
              && in_array(strtolower($field_val['linkage_func']), self::linkage_db_functions(), true)) {
