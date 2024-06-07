@@ -325,16 +325,26 @@ class PHS_Model_Data_retention extends PHS_Model
         }
 
         $params['fields']['plugin'] = ($params['fields']['plugin'] ?? null) ?: null;
+        $params['fields']['added_by_uid'] = (int)($params['fields']['added_by_uid'] ?? 0);
 
         /** @var \phs\libraries\PHS_Model_Core_base $model_obj */
         if (empty($params['fields']['model'])
             || empty($params['fields']['table'])
+            || empty($params['fields']['data_field'])
             || (!empty($params['fields']['plugin'])
                 && !PHS::load_plugin($params['fields']['plugin']))
-            || !($model_obj = PHS::load_model($params['fields']['plugin'], $params['fields']['plugin']))
-            || !$model_obj->check_table_exists($params['fields']['table'])
+            || !($model_obj = PHS::load_model($params['fields']['model'], $params['fields']['plugin']))
         ) {
             $this->set_error(self::ERR_INSERT, self::_t('Please provide data retention source.'));
+
+            return false;
+        }
+
+        if ( !($field_definition = $model_obj->check_column_exists($params['fields']['data_field'], ['table_name' => $params['fields']['table']]))
+            || empty($field_definition['type'])
+            || !in_array($field_definition['type'], [self::FTYPE_DATE, self::FTYPE_DATETIME], true)
+        ) {
+            $this->set_error(self::ERR_INSERT, self::_t('Please provide a date or datetime field for data retention source.'));
 
             return false;
         }
@@ -342,100 +352,99 @@ class PHS_Model_Data_retention extends PHS_Model
         if ($this->get_details_fields([
             'plugin' => $params['fields']['plugin'],
             'model'  => $params['fields']['model'],
-            'table'  => $params['fields']['table']])
-        ) {
+            'table'  => $params['fields']['table'],
+            'status' => ['check' => '!=', 'value' => self::STATUS_DELETED],
+        ]) ) {
             $this->set_error(self::ERR_INSERT, self::_t('There is already a data retention policy defined on provided table.'));
 
             return false;
         }
 
-        if (empty($params['fields']['status'])) {
-            $params['fields']['status'] = self::STATUS_INACTIVE;
-        }
+        $params['fields']['status'] ??= self::STATUS_INACTIVE;
 
         if (!$this->valid_status($params['fields']['status'])) {
-            $this->set_error(self::ERR_INSERT, self::_t('Please provide a valid status for the tenant.'));
+            $this->set_error(self::ERR_INSERT, self::_t('Please provide a valid status for data retention policy.'));
 
             return false;
         }
 
-        $params['fields']['domain'] = self::prepare_tenant_domain($params['fields']['domain']);
-        if (empty($params['fields']['directory'])) {
-            $params['fields']['directory'] = null;
-        } else {
-            $params['fields']['directory'] = self::prepare_tenant_directory($params['fields']['directory']);
-        }
+        if (empty($params['fields']['type'])
+            || !$this->valid_type($params['fields']['type'])) {
+            $this->set_error(self::ERR_INSERT, self::_t('Please provide a valid action type for data retention policy.'));
 
-        if (empty($params['fields']['identifier'])) {
-            $params['fields']['identifier'] = $this->generate_identifier();
-            while ($this->get_details_fields(['identifier' => $params['fields']['identifier']])) {
-                $params['fields']['identifier'] = $this->generate_identifier();
-            }
+            return false;
         }
-
-        if (empty($params['fields']['settings'])) {
-            $params['fields']['settings'] = null;
-        } else {
-            $params['fields']['settings'] = $this->_encode_settings_field($params['fields']['settings']);
-        }
-
-        $params['fields']['is_default'] = (!empty($params['fields']['is_default']) ? 1 : 0);
 
         $params['fields']['last_edit'] = date(self::DATETIME_DB);
 
-        if (empty($params['fields']['cdate'])
-         || empty_db_date($params['fields']['cdate'])) {
-            $params['fields']['cdate'] = $params['fields']['last_edit'];
-        }
+        $params['fields']['cdate'] ??= $params['fields']['last_edit'];
 
-        if (empty($params['fields']['status_date'])
-            || empty_db_date($params['fields']['status_date'])) {
-            $params['fields']['status_date'] = $params['fields']['last_edit'];
-        }
+        $params['fields']['status_date'] ??= $params['fields']['last_edit'];
 
         return $params;
     }
 
-    protected function get_edit_prepare_params_phs_tenants($existing_data, $params)
+    protected function get_edit_prepare_params_phs_data_retention($existing_data, $params) : ?array
     {
         if (empty($params) || !is_array($params)) {
-            return false;
+            return null;
         }
 
-        if (isset($params['fields']['name'])
-            && empty($params['fields']['name'])) {
-            $this->set_error(self::ERR_INSERT, self::_t('Please provide a tenant name.'));
+        $plugin = array_key_exists('plugin', $params['fields'])
+            ? $params['fields']['plugin']
+            : $existing_data['plugin'];
+        $model = $params['fields']['model'] ?? $existing_data['model'] ?? null;
+        $table = $params['fields']['table'] ?? $existing_data['table'] ?? null;
+        $data_field = $params['fields']['data_field'] ?? $existing_data['data_field'] ?? null;
 
-            return false;
-        }
-
-        if (isset($params['fields']['domain'])
-            && empty($params['fields']['domain'])) {
-            $this->set_error(self::ERR_INSERT, self::_t('Please provide a tenant domain.'));
-
-            return false;
-        }
-
-        if (!empty($params['fields']['identifier'])
-            && $existing_data['identifier'] !== $params['fields']['identifier']
-            && $this->get_details_fields(
-                [
-                    'identifier' => $params['fields']['identifier'],
-                    'id'         => ['check' => '!=', 'value' => $existing_data['id']],
-                ])
+        /** @var \phs\libraries\PHS_Model_Core_base $model_obj */
+        if (empty($model)
+            || empty($table)
+            || empty($data_field)
+            || (!empty($plugin)
+                && !PHS::load_plugin($plugin))
+            || !($model_obj = PHS::load_model($model, $plugin))
         ) {
-            $this->set_error(self::ERR_INSERT, $this->_pt('A tenant with same identifier already exists.'));
+            $this->set_error(self::ERR_EDIT, self::_t('Please provide data retention source.'));
 
-            return false;
+            return null;
+        }
+
+        if ( !($field_definition = $model_obj->check_column_exists($data_field, ['table_name' => $table]))
+            || empty($field_definition['type'])
+            || !in_array($field_definition['type'], [self::FTYPE_DATE, self::FTYPE_DATETIME], true)
+        ) {
+            $this->set_error(self::ERR_EDIT, self::_t('Please provide a date or datetime field for data retention source.'));
+
+            return null;
+        }
+
+        if ($this->get_details_fields([
+            'plugin' => $plugin,
+            'model'  => $model,
+            'table'  => $table,
+            'id'     => ['check' => '!=', 'value' => $existing_data['id']],
+            'status' => ['check' => '!=', 'value' => self::STATUS_DELETED],
+        ]) ) {
+            $this->set_error(self::ERR_INSERT, self::_t('There is already a data retention policy defined on provided table.'));
+
+            return null;
+        }
+
+        if (isset($params['fields']['type'])
+            && !$this->valid_type($params['fields']['type'])) {
+            $this->set_error(self::ERR_EDIT, $this->_pt('Please provide a valid action type for data retention policy.'));
+
+            return null;
         }
 
         $now_date = date(self::DATETIME_DB);
 
         if (isset($params['fields']['status'])) {
             if (!$this->valid_status($params['fields']['status'])) {
-                $this->set_error(self::ERR_EDIT, $this->_pt('Please provide a valid status.'));
+                $this->set_error(self::ERR_EDIT, $this->_pt('Please provide a valid status for data retention policy.'));
 
-                return false;
+                return null;
             }
 
             $params['fields']['status_date'] = $now_date;
@@ -445,210 +454,9 @@ class PHS_Model_Data_retention extends PHS_Model
             }
         }
 
-        if (isset($params['fields']['domain'])) {
-            $params['fields']['domain'] = self::prepare_tenant_domain($params['fields']['domain']);
-        }
-
-        if (isset($params['fields']['directory'])) {
-            if ($params['fields']['directory'] === '') {
-                $params['fields']['directory'] = null;
-            } else {
-                $params['fields']['directory'] = self::prepare_tenant_directory($params['fields']['directory']) ?: null;
-            }
-        }
-
-        if (isset($params['fields']['settings'])) {
-            if (empty($params['fields']['settings'])) {
-                $params['fields']['settings'] = null;
-            } else {
-                $params['fields']['settings'] = $this->_encode_settings_field($params['fields']['settings']);
-            }
-        }
-
-        if (isset($params['fields']['is_default'])) {
-            $params['fields']['is_default'] = (!empty($params['fields']['is_default']) ? 1 : 0);
-        }
-
-        if (empty($params['fields']['last_edit'])
-         || empty_db_date($params['fields']['last_edit'])) {
-            $params['fields']['last_edit'] = $now_date;
-        }
+        $params['fields']['last_edit'] ??= $now_date;
 
         return $params;
-    }
-
-    protected function insert_after_phs_tenants(array $insert_arr, array $params) : ?array
-    {
-        if (!empty($params['fields']['is_default'])
-         && ($flow_arr = $this->fetch_default_flow_params(['table_name' => 'phs_tenants']))
-         && ($table_name = $this->get_flow_table_name($flow_arr))
-        ) {
-            // low level update, so we don't trigger anything in model
-            db_query('UPDATE `'.$table_name.'` SET is_default = 0 WHERE id != \''.$insert_arr['id'].'\'',
-                $flow_arr['db_connection']);
-        }
-
-        return $insert_arr;
-    }
-
-    protected function edit_after_phs_tenants($existing_data, $edit_arr, $params)
-    {
-        if (!empty($params['fields']['is_default'])
-         && empty($existing_data['is_default'])
-         && ($flow_arr = $this->fetch_default_flow_params(['table_name' => 'phs_tenants']))
-         && ($table_name = $this->get_flow_table_name($flow_arr))
-        ) {
-            // low level update, so we don't trigger anything in model
-            db_query('UPDATE `'.$table_name.'` SET is_default = 0 WHERE id != \''.$existing_data['id'].'\'',
-                $flow_arr['db_connection']);
-        }
-
-        return $existing_data;
-    }
-
-    private function _get_settings_fields() : array
-    {
-        return [
-            'default_theme'    => '',
-            'current_theme'    => '',
-            'cascading_themes' => [],
-        ];
-    }
-
-    /**
-     * @param null|array|string $settings
-     *
-     * @return null|string
-     */
-    private function _encode_settings_field($settings) : ?string
-    {
-        if ($settings === null) {
-            return null;
-        }
-
-        if (is_array($settings)) {
-            if (!($settings = @json_encode($settings))) {
-                $settings = null;
-            }
-        } elseif (is_string($settings)) {
-            if (!($settings = @json_decode($settings, true))
-                || !($settings = @json_encode($settings))) {
-                $settings = null;
-            }
-        } else {
-            return null;
-        }
-
-        return $settings;
-    }
-
-    /**
-     * @param null|array|string $settings
-     *
-     * @return array
-     */
-    private function _decode_settings_field($settings) : array
-    {
-        if (empty($settings)) {
-            return [];
-        }
-
-        if (is_array($settings)) {
-            return $settings;
-        }
-
-        if (is_string($settings)) {
-            if (!($settings = @json_decode($settings, true))) {
-                $settings = [];
-            }
-        } else {
-            return [];
-        }
-
-        return $settings;
-    }
-
-    private function _get_cached_tenants(bool $only_active = false, bool $force = false) : ?array
-    {
-        static $all_tenants = null, $active_tenants = null;
-
-        if (empty($force)
-            && $all_tenants !== null) {
-            return $only_active ? $active_tenants : $all_tenants;
-        }
-
-        $list_arr = $this->fetch_default_flow_params(['table_name' => 'phs_tenants']);
-        $list_arr['fields'] = [];
-        $list_arr['fields']['status'] = ['check' => '!=', 'value' => self::STATUS_DELETED];
-
-        $all_tenants = [];
-        $active_tenants = [];
-        if (!($result_list = $this->get_list($list_arr))) {
-            return [];
-        }
-
-        foreach ($result_list as $t_id => $t_arr) {
-            $all_tenants[(int)$t_id] = $t_arr;
-            if ($this->is_active($t_arr)) {
-                $active_tenants[(int)$t_id] = $t_arr;
-            }
-            if ($this->is_default_tenant($t_arr)) {
-                self::$_default_tenant = $t_arr;
-            }
-        }
-
-        return $only_active ? $active_tenants : $all_tenants;
-    }
-
-    private function _get_cached_tenants_by_identifier(bool $only_active = false, bool $force = false) : ?array
-    {
-        static $all_tenants_id = null, $active_tenants_id = null;
-
-        if (empty($force)
-            && $all_tenants_id !== null) {
-            return $only_active ? $active_tenants_id : $all_tenants_id;
-        }
-
-        $all_tenants_id = [];
-        $active_tenants_id = [];
-        if (!($result_list = $this->_get_cached_tenants(false, $force))) {
-            return [];
-        }
-
-        foreach ($result_list as $t_arr) {
-            $all_tenants_id[$t_arr['identifier']] = $t_arr;
-            if ($this->is_active($t_arr)) {
-                $active_tenants_id[$t_arr['identifier']] = $t_arr;
-            }
-        }
-
-        return $only_active ? $active_tenants_id : $all_tenants_id;
-    }
-
-    private function _get_cached_tenants_by_domain_and_directory(bool $only_active = false, bool $force = false) : ?array
-    {
-        static $all_tenants_dd = null, $active_tenants_dd = null;
-
-        if (empty($force)
-            && $all_tenants_dd !== null) {
-            return $only_active ? $active_tenants_dd : $all_tenants_dd;
-        }
-
-        $all_tenants_dd = [];
-        $active_tenants_dd = [];
-        if (!($result_list = $this->_get_cached_tenants(false, $force))) {
-            return [];
-        }
-
-        foreach ($result_list as $t_id => $t_arr) {
-            $identifier_dd = self::prepare_tenant_domain_and_directory($t_arr['domain'], $t_arr['directory'] ?? '');
-            $all_tenants_dd[$identifier_dd][$t_id] = $t_arr;
-            if ($this->is_active($t_arr)) {
-                $active_tenants_dd[$identifier_dd][$t_id] = $t_arr;
-            }
-        }
-
-        return $only_active ? $active_tenants_dd : $all_tenants_dd;
     }
 
     public static function get_intervals(?string $lang = null) : array
@@ -667,28 +475,8 @@ class PHS_Model_Data_retention extends PHS_Model
             : '';
     }
 
-    public static function prepare_tenant_domain(?string $domain, bool $slash_ended = true) : string
+    public static function valid_interval(string $interval) : bool
     {
-        if ($domain === null
-            || ($domain = trim(trim($domain), '/')) === '') {
-            return '';
-        }
-
-        return $domain.($slash_ended ? '/' : '');
-    }
-
-    public static function prepare_tenant_directory(?string $directory, bool $slash_ended = true) : string
-    {
-        if ($directory === null
-            || ($directory = trim(trim($directory), '/')) === '') {
-            return '';
-        }
-
-        return $directory.($slash_ended ? '/' : '');
-    }
-
-    public static function prepare_tenant_domain_and_directory(?string $domain, ?string $directory, bool $slash_ended = true) : string
-    {
-        return self::prepare_tenant_domain($domain).self::prepare_tenant_directory($directory, $slash_ended);
+        return (bool)self::get_interval_title($interval);
     }
 }

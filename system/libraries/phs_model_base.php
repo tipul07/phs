@@ -400,33 +400,31 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * Get table definition from database as an array which can be compared with model table structure
      *
-     * @param bool|array $flow_params Flow parameters
+     * @param null|bool|array $flow_params Flow parameters
      * @param bool $force Tells if we should skip cache (true) or, if we got table structure already, use cached tables
      *
-     * @return bool|array Returns table structure as array or false if we couldn't obtain table structure from database
+     * @return null|array Returns table structure as array or false if we couldn't obtain table structure from database
      */
-    public function get_table_columns_as_definition($flow_params = false, bool $force = false)
+    public function get_table_columns_as_definition(null | bool | array $flow_params = false, bool $force = false) : ?array
     {
         $this->reset_error();
 
         if (!($flow_params = $this->fetch_default_flow_params($flow_params))
-         || !($flow_table_name = $this->get_flow_table_name($flow_params))
-         || !($my_driver = $this->get_model_driver())) {
+            || !($flow_table_name = $this->get_flow_table_name($flow_params))
+            || !($my_driver = $this->get_model_driver())) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Failed validating flow parameters.'));
 
-            return false;
+            return null;
         }
 
         if (!$this->check_table_exists($flow_params, $force)) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Table %s doesn\'t exist.', $flow_table_name));
-            }
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, self::_t('Table %s doesn\'t exist.', $flow_table_name));
 
-            return false;
+            return null;
         }
 
         if (($table_structure = self::get_cached_db_table_structure($flow_table_name, $my_driver))
-         && self::cached_db_table_structure_has_fields($table_structure)) {
+            && self::cached_db_table_structure_has_fields($table_structure)) {
             return $table_structure;
         }
 
@@ -455,11 +453,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return null;
         }
 
-        if (!($table_definition = $this->get_table_columns_as_definition($flow_params, $force))
-         || !is_array($table_definition)) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t get definition for table %s.', $flow_table_name));
-            }
+        if (!($table_definition = $this->get_table_columns_as_definition($flow_params, $force))) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t get definition for table %s.', $flow_table_name));
 
             return null;
         }
@@ -636,11 +631,11 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * Populate missing flow parameters in provided flow
      *
-     * @param false|array $params Flow parameters
+     * @param  null|bool|array  $params Flow parameters
      *
      * @return array|false Complete flow parameters or false on failure
      */
-    public function fetch_default_flow_params($params = false)
+    public function fetch_default_flow_params(bool|array|null $params = false): ?array
     {
         if (empty($params) || !is_array($params)) {
             $params = [];
@@ -661,9 +656,9 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         $params['db_driver'] = $this->get_model_driver();
 
         if (empty($params['table_index']) || empty($params['table_name']) || !isset($params['db_connection'])
-         || !($all_tables = $this->get_all_table_names())
-         || !in_array($params['table_name'], $all_tables, true)) {
-            return false;
+            || !($all_tables = $this->get_all_table_names())
+            || !in_array($params['table_name'], $all_tables, true)) {
+            return null;
         }
 
         return $params;
@@ -2006,7 +2001,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      */
     final public static function get_model_base_version() : string
     {
-        return '1.0.4';
+        return '1.1.0';
     }
 
     /**
@@ -2022,32 +2017,16 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         ]);
     }
 
-    /**
-     * @param string $driver
-     *
-     * @return array
-     */
     protected static function get_cached_db_tables_structure_for_driver(string $driver) : array
     {
         return self::$tables_arr[$driver] ?? [];
     }
 
-    /**
-     * @param string $table_name
-     * @param string $driver
-     *
-     * @return array
-     */
     protected static function get_cached_db_table_structure(string $table_name, string $driver) : array
     {
         return self::$tables_arr[$driver][$table_name] ?? [];
     }
 
-    /**
-     * @param array $structure
-     * @param string $table_name
-     * @param string $driver
-     */
     protected static function add_cached_db_table_structure(array $structure, string $table_name, string $driver) : void
     {
         if (empty(self::$tables_arr[$driver]) || !is_array(self::$tables_arr[$driver])) {
@@ -2060,23 +2039,11 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         self::$tables_arr[$driver][$table_name] = $structure;
     }
 
-    /**
-     * @param array $structure
-     *
-     * @return bool
-     */
     protected static function cached_db_table_structure_has_fields(array $structure) : bool
     {
         return !empty($structure) && !empty($structure[self::T_DETAILS_KEY]) && count($structure) > 1;
     }
 
-    /**
-     * @param string $column
-     * @param string $table_name
-     * @param string $driver
-     *
-     * @return bool
-     */
     protected static function cached_db_add_column_index(string $column, string $table_name, string $driver) : bool
     {
         if (empty(self::$tables_arr[$driver][$table_name][$column])
@@ -2089,13 +2056,6 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         return true;
     }
 
-    /**
-     * @param string $column
-     * @param string $table_name
-     * @param string $driver
-     *
-     * @return bool
-     */
     protected static function cached_db_drop_column_index(string $column, string $table_name, string $driver) : bool
     {
         if (empty(self::$tables_arr[$driver][$table_name][$column])
@@ -2108,14 +2068,6 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         return true;
     }
 
-    /**
-     * @param string $column
-     * @param array $definition
-     * @param string $table_name
-     * @param string $driver
-     *
-     * @return bool
-     */
     protected static function cached_db_set_column_definition(string $column, array $definition, string $table_name, string $driver) : bool
     {
         if (empty(self::$tables_arr[$driver][$table_name])
@@ -2128,13 +2080,6 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         return true;
     }
 
-    /**
-     * @param string $column
-     * @param string $table_name
-     * @param string $driver
-     *
-     * @return bool
-     */
     protected static function cached_db_remove_column(string $column, string $table_name, string $driver) : bool
     {
         if (empty(self::$tables_arr[$driver][$table_name][$column])
