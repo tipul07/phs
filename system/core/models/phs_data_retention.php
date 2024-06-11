@@ -14,6 +14,8 @@ class PHS_Model_Data_retention extends PHS_Model
 
     public const TYPE_ARCHIVE = 1, TYPE_DELETE = 2;
 
+    public const INT_DAYS = 'D', INT_MONTHS = 'M', INT_YEARS = 'Y';
+
     public const STATUS_ACTIVE = 1, STATUS_INACTIVE = 2, STATUS_DELETED = 3;
 
     protected static array $STATUSES_ARR = [
@@ -25,6 +27,12 @@ class PHS_Model_Data_retention extends PHS_Model
     protected static array $TYPES_ARR = [
         self::TYPE_ARCHIVE => ['title' => 'Archive'],
         self::TYPE_DELETE  => ['title' => 'Delete'],
+    ];
+
+    protected static array $INTERVALS_ARR = [
+        self::INT_DAYS => ['title' => 'Days'],
+        self::INT_MONTHS  => ['title' => 'Months'],
+        self::INT_YEARS  => ['title' => 'Years'],
     ];
 
     /**
@@ -51,11 +59,6 @@ class PHS_Model_Data_retention extends PHS_Model
         return 'phs_data_retention';
     }
 
-    /**
-     * @param false|string $lang
-     *
-     * @return array
-     */
     public function get_types(null | bool | string $lang = null) : array
     {
         static $types_arr = [];
@@ -88,8 +91,8 @@ class PHS_Model_Data_retention extends PHS_Model
         }
 
         $key_val_arr = [];
-        if (($statuses = $this->get_types($lang))) {
-            foreach ($statuses as $key => $val) {
+        if (($raw_arr = $this->get_types($lang))) {
+            foreach ($raw_arr as $key => $val) {
                 if (!is_array($val)) {
                     continue;
                 }
@@ -114,6 +117,73 @@ class PHS_Model_Data_retention extends PHS_Model
         }
 
         return $all_types[$type];
+    }
+
+    public function get_intervals(null | bool | string $lang = null) : array
+    {
+        static $intervals_arr = [];
+
+        if (empty(self::$INTERVALS_ARR)) {
+            return [];
+        }
+
+        if (empty($lang)
+            && !empty($intervals_arr)) {
+            return $intervals_arr;
+        }
+
+        $result_arr = $this->translate_array_keys(self::$INTERVALS_ARR, ['title'], $lang);
+
+        if (empty($lang)) {
+            $intervals_arr = $result_arr;
+        }
+
+        return $result_arr;
+    }
+
+    public function get_intervals_as_key_val(null | bool | string $lang = null) : array
+    {
+        static $intervals_key_val_arr = null;
+
+        if (empty($lang)
+            && $intervals_key_val_arr !== null) {
+            return $intervals_key_val_arr;
+        }
+
+        $key_val_arr = [];
+        if (($raw_arr = $this->get_intervals($lang))) {
+            foreach ($raw_arr as $key => $val) {
+                if (!is_array($val)) {
+                    continue;
+                }
+
+                $key_val_arr[$key] = $val['title'];
+            }
+        }
+
+        if (empty($lang)) {
+            $intervals_key_val_arr = $key_val_arr;
+        }
+
+        return $key_val_arr;
+    }
+
+    public function valid_interval(int $interval, null | bool | string $lang = null) : ?array
+    {
+        $all_intervals = $this->get_intervals($lang);
+        if (empty($interval)
+            || !isset($all_intervals[$interval])) {
+            return null;
+        }
+
+        return $all_intervals[$interval];
+    }
+
+    public function get_interval_title(string $interval, ?string $lang = null) : string
+    {
+        return ($interval_arr = $this->valid_interval($interval, $lang))
+            ? $interval_arr['title'] ?? ''
+            : '';
     }
 
     public function is_active($record_data) : bool
@@ -213,6 +283,27 @@ class PHS_Model_Data_retention extends PHS_Model
         }
 
         return $new_record;
+    }
+
+    public function get_model_date_fields(PHS_Model $model_obj, string $table_name): ?array
+    {
+        $this->reset_error();
+
+        if(empty($table_name)
+           || !($fields_arr = $model_obj->fields_definition(['table_name' => $table_name])) ) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Could not obtain date fields for provided table.'));
+            return null;
+        }
+
+        $return_arr = [];
+        foreach($fields_arr as $field_name => $field_arr) {
+            if(!empty($field_arr['type'])
+               && in_array((int)$field_arr['type'], [self::FTYPE_DATE, self::FTYPE_DATETIME], true)) {
+                $return_arr[$field_name] = $field_arr;
+            }
+        }
+
+        return $return_arr;
     }
 
     /**
@@ -457,26 +548,5 @@ class PHS_Model_Data_retention extends PHS_Model
         $params['fields']['last_edit'] ??= $now_date;
 
         return $params;
-    }
-
-    public static function get_intervals(?string $lang = null) : array
-    {
-        return [
-            'Y' => self::_t('Years', $lang),
-            'M' => self::_t('Months', $lang),
-            'D' => self::_t('Days', $lang),
-        ];
-    }
-
-    public static function get_interval_title(string $interval, ?string $lang = null) : string
-    {
-        return ($intervals = self::get_intervals($lang))
-            ? $intervals[$interval] ?? ''
-            : '';
-    }
-
-    public static function valid_interval(string $interval) : bool
-    {
-        return (bool)self::get_interval_title($interval);
     }
 }
