@@ -631,11 +631,11 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * Populate missing flow parameters in provided flow
      *
-     * @param  null|bool|array  $params Flow parameters
+     * @param null|bool|array $params Flow parameters
      *
      * @return array|false Complete flow parameters or false on failure
      */
-    public function fetch_default_flow_params(bool|array|null $params = false): ?array
+    public function fetch_default_flow_params(bool | array | null $params = false) : ?array
     {
         if (empty($params) || !is_array($params)) {
             $params = [];

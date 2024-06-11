@@ -15,7 +15,7 @@ use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\models\PHS_Model_Data_retention;
 
-class PHS_Action_Add extends PHS_Action
+class PHS_Action_Edit extends PHS_Action
 {
     /**
      * Returns an array of scopes in which action is allowed to run
@@ -32,7 +32,7 @@ class PHS_Action_Add extends PHS_Action
      */
     public function execute() : ?array
     {
-        PHS::page_settings('page_title', $this->_pt('Add Data Retention Policy'));
+        PHS::page_settings('page_title', $this->_pt('Edit Data Retention Policy'));
 
         if (!($current_user = PHS::user_logged_in())) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -57,6 +57,30 @@ class PHS_Action_Add extends PHS_Action
             return self::default_action_result();
         }
 
+        $drid = PHS_Params::_gp('drid', PHS_Params::T_INT);
+        $back_page = PHS_Params::_gp('back_page', PHS_Params::T_ASIS);
+
+        if (empty($drid)
+            || !($retention_arr = $retention_model->get_details($drid))) {
+            PHS_Notifications::add_warning_notice($this->_pt('Invalid data retention policy...'));
+
+            $args = [
+                'unknown_policy' => 1,
+            ];
+
+            if (empty($back_page)) {
+                $back_page = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'retention']);
+            } else {
+                $back_page = from_safe_url($back_page);
+            }
+
+            return action_redirect(add_url_params($back_page, $args));
+        }
+
+        if (PHS_Params::_g('changes_saved', PHS_Params::T_INT)) {
+            PHS_Notifications::add_success_notice($this->_pt('Data retention policy details saved.'));
+        }
+
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
         $plugin = PHS_Params::_p('plugin', PHS_Params::T_NOHTML) ?: null;
         $model = PHS_Params::_p('model', PHS_Params::T_NOHTML);
@@ -67,6 +91,18 @@ class PHS_Action_Add extends PHS_Action
         $retention_count = PHS_Params::_p('retention_count', PHS_Params::T_INT) ?? 0;
 
         $do_submit = PHS_Params::_p('do_submit');
+
+        if (empty($foobar)) {
+            $plugin = $retention_arr['plugin'] ?? PHS_Instantiable::CORE_PLUGIN;
+            $model = $retention_arr['model'] ?? null;
+            $table = $retention_arr['table'] ?? null;
+            $data_field = $retention_arr['data_field'] ?? null;
+            $type = $retention_arr['type'] ?? null;
+            if ( ($interval_arr = $retention_model->parse_retention_interval($retention_arr['retention'])) ) {
+                $retention_interval = $interval_arr['interval'] ?? '';
+                $retention_count = $interval_arr['count'] ?? '';
+            }
+        }
 
         $plugins_arr = array_merge([PHS_Instantiable::CORE_PLUGIN => null], $plugins_model->cache_all_dir_details() ?: []);
 
@@ -103,27 +139,39 @@ class PHS_Action_Add extends PHS_Action
                 unset($do_submit);
             }
 
-            PHS_Notifications::add_warning_notice(
-                self::_t('Provided details are not valid. Please try again.'));
+            if ( empty($foobar)) {
+                PHS_Notifications::add_warning_notice(
+                    self::_t('Initial data retention details are not valid anymore. Please delete or re-setup the policy.'));
+            } else {
+                PHS_Notifications::add_warning_notice(
+                    self::_t('Provided details are not valid. Please try again.'));
+            }
         }
 
         if (!empty($do_submit)) {
             if ( !($retention = $retention_model->generate_retention_field(['count' => $retention_count, 'interval' => $retention_interval])) ) {
                 PHS_Notifications::add_error_notice(self::_t('Invalid retention interval. Please try again.'));
             } else {
-                $insert_arr = [];
-                $insert_arr['added_by_uid'] = $current_user['id'];
-                $insert_arr['plugin'] = $plugin !== PHS_Instantiable::CORE_PLUGIN ? $plugin : null;
-                $insert_arr['model'] = $model;
-                $insert_arr['table'] = $table;
-                $insert_arr['data_field'] = $data_field;
-                $insert_arr['type'] = $type;
-                $insert_arr['retention'] = $retention;
+                $edit_arr = [];
+                $edit_arr['added_by_uid'] = $current_user['id'];
+                $edit_arr['plugin'] = $plugin !== PHS_Instantiable::CORE_PLUGIN ? $plugin : null;
+                $edit_arr['model'] = $model;
+                $edit_arr['table'] = $table;
+                $edit_arr['data_field'] = $data_field;
+                $edit_arr['type'] = $type;
+                $edit_arr['retention'] = $retention;
 
-                if ($retention_model->insert(['fields' => $insert_arr])) {
+                if ($retention_model->edit($retention_arr, ['fields' => $edit_arr])) {
                     PHS_Notifications::add_success_notice($this->_pt('Data retention policy details saved...'));
 
-                    return action_redirect(['p' => 'admin', 'a' => 'list', 'ad' => 'retention'], ['policy_added' => 1]);
+                    $url_params = [];
+                    $url_params['changes_saved'] = 1;
+                    $url_params['drid'] = $retention_arr['id'];
+                    if (!empty($back_page)) {
+                        $url_params['back_page'] = $back_page;
+                    }
+
+                    return action_redirect(['p' => 'admin', 'a' => 'edit', 'ad' => 'retention'], $url_params);
                 }
 
                 PHS_Notifications::add_error_notice(
@@ -133,6 +181,9 @@ class PHS_Action_Add extends PHS_Action
         }
 
         $data = [
+            'drid'      => $retention_arr['id'],
+            'back_page' => $back_page,
+
             'plugin'             => $plugin,
             'model'              => $model,
             'table'              => $table,
@@ -152,7 +203,7 @@ class PHS_Action_Add extends PHS_Action
             'model_obj'  => $model_obj,
         ];
 
-        return $this->quick_render_template('retention/add', $data);
+        return $this->quick_render_template('retention/edit', $data);
     }
 
     private function _get_models_for_plugin(?PHS_Plugin $plugin_obj) : array

@@ -9,6 +9,7 @@ use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\models\PHS_Model_Tenants;
 use phs\system\core\models\PHS_Model_Api_keys;
 use phs\plugins\admin\actions\PHS_Action_Users_autocomplete;
@@ -38,7 +39,24 @@ class PHS_Action_Edit extends PHS_Action
             return action_request_login();
         }
 
-        if (!can(PHS_Roles::ROLEU_MANAGE_API_KEYS)) {
+        $is_multi_tenant = PHS::is_multi_tenant();
+
+        /** @var PHS_Plugin_Admin $admin_plugin */
+        /** @var PHS_Model_Api_keys $apikeys_model */
+        /** @var PHS_Action_Users_autocomplete $users_autocomplete_action */
+        /** @var PHS_Model_Tenants $tenants_model */
+        if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
+            || !($apikeys_model = PHS_Model_Api_keys::get_instance())
+            || !($users_autocomplete_action = PHS_Action_Users_autocomplete::get_instance())
+            || ($is_multi_tenant
+                && !($tenants_model = PHS_Model_Tenants::get_instance()))
+        ) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
+
+            return self::default_action_result();
+        }
+
+        if (!$admin_plugin->can_admin_manage_api_keys()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
@@ -52,21 +70,6 @@ class PHS_Action_Edit extends PHS_Action
             }
 
             PHS_Notifications::add_error_notice($error_msg);
-
-            return self::default_action_result();
-        }
-
-        $is_multi_tenant = PHS::is_multi_tenant();
-
-        /** @var PHS_Model_Api_keys $apikeys_model */
-        /** @var PHS_Action_Users_autocomplete $users_autocomplete_action */
-        /** @var PHS_Model_Tenants $tenants_model */
-        if (!($apikeys_model = PHS_Model_Api_keys::get_instance())
-            || !($users_autocomplete_action = PHS_Action_Users_autocomplete::get_instance())
-            || ($is_multi_tenant
-                && !($tenants_model = PHS_Model_Tenants::get_instance()))
-        ) {
-            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
@@ -225,11 +228,9 @@ class PHS_Action_Edit extends PHS_Action
                 return action_redirect(['p' => 'admin', 'a' => 'edit', 'ad' => 'apikeys'], $url_params);
             }
 
-            if ($apikeys_model->has_error()) {
-                PHS_Notifications::add_error_notice($apikeys_model->get_error_message());
-            } else {
-                PHS_Notifications::add_error_notice($this->_pt('Error saving details to database. Please try again.'));
-            }
+            PHS_Notifications::add_error_notice(
+                $apikeys_model->get_simple_error_message(
+                    $this->_pt('Error saving details to database. Please try again.')));
         }
 
         $data = [

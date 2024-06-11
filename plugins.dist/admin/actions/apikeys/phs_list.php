@@ -69,7 +69,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return null;
         }
 
-        if (!can(PHS_Roles::ROLEU_LIST_API_KEYS)) {
+        if (!$this->_admin_plugin->can_admin_list_api_keys()) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
             return null;
@@ -103,24 +103,22 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         $this->_tenants_list_arr = $all_tenants_arr;
 
-        $apikeys_model = $this->_paginator_model;
-
-        if (!($ak_flow = $apikeys_model->fetch_default_flow_params(['table_name' => 'api_keys']))
-            || !($ak_table_name = $apikeys_model->get_flow_table_name($ak_flow))) {
+        if (!($ak_flow = $this->_paginator_model->fetch_default_flow_params(['table_name' => 'api_keys']))
+            || !($ak_table_name = $this->_paginator_model->get_flow_table_name($ak_flow))) {
             $ak_table_name = 'api_keys';
         }
 
         $list_arr = [];
-        $list_arr['fields']['status'] = ['check' => '!=', 'value' => $apikeys_model::STATUS_DELETED];
+        $list_arr['fields']['status'] = ['check' => '!=', 'value' => $this->_paginator_model::STATUS_DELETED];
         if (!empty($account_tenant_ids)) {
             $list_arr['fields']['tenant_id'] = $account_tenant_ids;
         }
         $list_arr['flags'] = ['include_account_details'];
 
         $flow_params = [
+            'listing_title'          => $this->_pt('API keys'),
             'term_singular'          => $this->_pt('API key'),
             'term_plural'            => $this->_pt('API keys'),
-            'listing_title'          => $this->_pt('API keys'),
             'initial_list_arr'       => $list_arr,
             'after_table_callback'   => [$this, 'after_table_callback'],
             'after_filters_callback' => [$this, 'after_filters_callback'],
@@ -145,11 +143,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
             $all_tenants_filter = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $all_tenants_arr);
         }
 
-        if (isset($statuses_arr[$apikeys_model::STATUS_DELETED])) {
-            unset($statuses_arr[$apikeys_model::STATUS_DELETED]);
+        if (isset($statuses_arr[$this->_paginator_model::STATUS_DELETED])) {
+            unset($statuses_arr[$this->_paginator_model::STATUS_DELETED]);
         }
 
-        if (!can(PHS_Roles::ROLEU_MANAGE_API_KEYS)) {
+        if (!$this->_admin_plugin->can_admin_manage_api_keys()) {
             $bulk_actions = null;
         } else {
             $bulk_actions = [
@@ -287,7 +285,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             ],
         ]);
 
-        if (can(PHS_Roles::ROLEU_MANAGE_API_KEYS)) {
+        if ($this->_admin_plugin->can_admin_manage_api_keys()) {
             $columns_arr[0]['checkbox_record_index_key'] = [
                 'key'  => 'id',
                 'type' => PHS_Params::T_INT,
@@ -317,7 +315,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
 
         $action_result_params = $this->_paginator->default_action_params();
-        $admin_plugin = $this->_admin_plugin;
 
         if (empty($action['action'])) {
             return $action_result_params;
@@ -343,8 +340,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$admin_plugin->can_admin_manage_api_keys()) {
+                if (!$this->_admin_plugin->can_admin_manage_api_keys()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -361,9 +357,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 $remaining_ids_arr = [];
-                foreach ($scope_arr[$scope_key] as $role_id) {
-                    if (!$this->_paginator_model->act_activate($role_id)) {
-                        $remaining_ids_arr[] = $role_id;
+                foreach ($scope_arr[$scope_key] as $record_id) {
+                    if (!$this->_paginator_model->act_activate($record_id)) {
+                        $remaining_ids_arr[] = $record_id;
                     }
                 }
 
@@ -403,8 +399,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$admin_plugin->can_admin_manage_api_keys()) {
+                if (!$this->_admin_plugin->can_admin_manage_api_keys()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -421,9 +416,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 $remaining_ids_arr = [];
-                foreach ($scope_arr[$scope_key] as $role_id) {
-                    if (!$this->_paginator_model->act_inactivate($role_id)) {
-                        $remaining_ids_arr[] = $role_id;
+                foreach ($scope_arr[$scope_key] as $record_id) {
+                    if (!$this->_paginator_model->act_inactivate($record_id)) {
+                        $remaining_ids_arr[] = $record_id;
                     }
                 }
 
@@ -463,8 +458,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$admin_plugin->can_admin_manage_api_keys()) {
+                if (!$this->_admin_plugin->can_admin_manage_api_keys()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -481,9 +475,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 $remaining_ids_arr = [];
-                foreach ($scope_arr[$scope_key] as $role_id) {
-                    if (!$this->_paginator_model->act_delete($role_id)) {
-                        $remaining_ids_arr[] = $role_id;
+                foreach ($scope_arr[$scope_key] as $record_id) {
+                    if (!$this->_paginator_model->act_delete($record_id)) {
+                        $remaining_ids_arr[] = $record_id;
                     }
                 }
 
@@ -521,8 +515,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$admin_plugin->can_admin_manage_api_keys()) {
+                if (!$this->_admin_plugin->can_admin_manage_api_keys()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -557,8 +550,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$admin_plugin->can_admin_manage_api_keys()) {
+                if (!$this->_admin_plugin->can_admin_manage_api_keys()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -593,8 +585,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$admin_plugin->can_admin_manage_api_keys()) {
+                if (!$this->_admin_plugin->can_admin_manage_api_keys()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -704,21 +695,19 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $this->_tenants_list_arr[$params['record']['tenant_id']];
     }
 
-    public function display_actions($params)
+    public function display_actions($params) : ?string
     {
         if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            return false;
+            return null;
         }
 
         if (!$this->_admin_plugin->can_admin_manage_api_keys()) {
             return '-';
         }
 
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || !($apikey_arr = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
 
         $is_inactive = $this->_paginator_model->is_inactive($apikey_arr);
@@ -752,11 +741,15 @@ class PHS_Action_List extends PHS_Action_Generic_list
             <?php
         }
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 
     public function after_filters_callback($params)
     {
+        if ( !$this->_admin_plugin->can_admin_manage_api_keys() ) {
+            return '';
+        }
+
         ob_start();
         ?>
         <div class="p-1">
@@ -784,48 +777,51 @@ class PHS_Action_List extends PHS_Action_Generic_list
         <script type="text/javascript">
         function phs_apikeys_list_activate_api_key( id )
         {
-            if( confirm( "<?php echo $this->_pte('Are you sure you want to activate this API key?'); ?>" ) )
-            {
-                <?php
+            if( !confirm( "<?php echo $this->_pte('Are you sure you want to activate this API key?'); ?>" ) ) {
+                return;
+            }
+
+            <?php
                 $url_params = [];
         $url_params['action'] = [
             'action'        => 'activate_api_key',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
         function phs_apikeys_list_inactivate_api_key( id )
         {
-            if( confirm( "<?php echo $this->_pte('Are you sure you want to inactivate this API key?'); ?>" ) )
-            {
-                <?php
+            if( !confirm( "<?php echo $this->_pte('Are you sure you want to inactivate this API key?'); ?>" ) ) {
+                return;
+            }
+
+            <?php
         $url_params = [];
         $url_params['action'] = [
             'action'        => 'inactivate_api_key',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
         function phs_apikeys_list_delete_api_key( id )
         {
-            if( confirm( "<?php echo $this->_pte('Are you sure you want to DELETE this API key?'); ?>" + "\n" +
-                         "<?php echo $this->_pte('NOTE: You cannot undo this action!'); ?>" ) )
-            {
-                <?php
+            if( !confirm( "<?php echo $this->_pte('Are you sure you want to DELETE this API key?'); ?>" + "\n" +
+                         "<?php echo $this->_pte('NOTE: You cannot undo this action!'); ?>" ) ) {
+                return;
+            }
+
+            <?php
         $url_params = [];
         $url_params['action'] = [
             'action'        => 'delete_api_key',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
 
         function phs_apikeys_list_get_checked_ids_count()
         {
-            var checkboxes_list = phs_paginator_get_checkboxes_checked( 'id' );
+            const checkboxes_list = phs_paginator_get_checkboxes_checked('id');
             if( !checkboxes_list || !checkboxes_list.length )
                 return 0;
 
@@ -834,57 +830,60 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         function phs_apikeys_list_bulk_activate()
         {
-            var total_checked = phs_apikeys_list_get_checked_ids_count();
+            const total_checked = phs_apikeys_list_get_checked_ids_count();
 
-            if( !total_checked )
-            {
+            if( !total_checked ) {
                 alert( "<?php echo $this->_pte('Please select API keys you want to activate first.'); ?>" );
                 return false;
             }
 
-            if( !confirm( "<?php echo self::_e($this->_pt('Are you sure you want to activate %s API keys?', '" + total_checked + "')); ?>" ) )
+            if( !confirm( "<?php echo $this->_pt('Are you sure you want to activate %s API keys?', '" + total_checked + "'); ?>" ) ) {
                 return false;
+            }
 
-            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
+            let form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+            if( form_obj ) {
                 form_obj.submit();
+            }
         }
 
         function phs_apikeys_list_bulk_inactivate()
         {
-            var total_checked = phs_apikeys_list_get_checked_ids_count();
+            const total_checked = phs_apikeys_list_get_checked_ids_count();
 
-            if( !total_checked )
-            {
+            if( !total_checked ) {
                 alert( "<?php echo $this->_pte('Please select API keys you want to inactivate first.'); ?>" );
                 return false;
             }
 
-            if( !confirm( "<?php echo self::_e($this->_pt('Are you sure you want to inactivate %s API keys?', '" + total_checked + "')); ?>" ) )
+            if( !confirm( "<?php echo $this->_pt('Are you sure you want to inactivate %s API keys?', '" + total_checked + "'); ?>" ) ) {
                 return false;
+            }
 
-            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
+            let form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+            if( form_obj ) {
                 form_obj.submit();
+            }
         }
 
         function phs_apikeys_list_bulk_delete()
         {
-            var total_checked = phs_apikeys_list_get_checked_ids_count();
+            const total_checked = phs_apikeys_list_get_checked_ids_count();
 
-            if( !total_checked )
-            {
+            if( !total_checked ) {
                 alert( "<?php echo $this->_pte('Please select API keys you want to delete first.'); ?>" );
                 return false;
             }
 
-            if( !confirm( "<?php echo self::_e($this->_pt('Are you sure you want to DELETE %s API keys?', '" + total_checked + "')); ?>" + "\n" +
-                         "<?php echo $this->_pte('NOTE: You cannot undo this action!'); ?>" ) )
+            if( !confirm( "<?php echo $this->_pt('Are you sure you want to DELETE %s API keys?', '" + total_checked + "'); ?>" + "\n" +
+                         "<?php echo $this->_pte('NOTE: You cannot undo this action!'); ?>" ) ) {
                 return false;
+            }
 
-            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
+            let form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+            if( form_obj ) {
                 form_obj.submit();
+            }
         }
         </script>
         <?php

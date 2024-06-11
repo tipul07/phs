@@ -3,7 +3,7 @@
     "vendor_name": "PHS",
     "name": "Administration Plugin",
     "description": "Handles all administration actions.",
-    "version": "1.6.0",
+    "version": "1.6.1",
     "agent_jobs": {
         "admin_index_bg_clean_sessions_ag": {
             "title": "Session Garbage Collector",

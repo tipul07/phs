@@ -455,6 +455,16 @@ class PHS_Plugin_Admin extends PHS_Plugin
                         'name'        => 'Manage migrations',
                         'description' => 'Allow user to manage migration scripts',
                     ],
+
+                    // Data retention...
+                    PHS_Roles::ROLEU_LIST_DATA_RETENTION => [
+                        'name'        => 'List data retention policies',
+                        'description' => 'Allow user to list data retention policies',
+                    ],
+                    PHS_Roles::ROLEU_MANAGE_DATA_RETENTION => [
+                        'name'        => 'Manage data retention policies',
+                        'description' => 'Allow user to manage data retention policies',
+                    ],
                 ],
             ],
         ];
@@ -572,6 +582,16 @@ class PHS_Plugin_Admin extends PHS_Plugin
     public function can_admin_manage_migrations(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_MIGRATIONS, null, $user_data);
+    }
+
+    public function can_admin_list_data_retention(bool | null | int | array $user_data = null) : bool
+    {
+        return can(PHS_Roles::ROLEU_LIST_DATA_RETENTION, null, $user_data);
+    }
+
+    public function can_admin_manage_data_retention(bool | null | int | array $user_data = null) : bool
+    {
+        return can(PHS_Roles::ROLEU_MANAGE_DATA_RETENTION, null, $user_data);
     }
     // endregion Can_* section
 

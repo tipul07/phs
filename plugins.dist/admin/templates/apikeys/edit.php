@@ -42,18 +42,18 @@ if (!($back_page = $this->view_var('back_page'))) {
           ['aid' => $this->view_var('aid')]); ?>">
     <input type="hidden" name="foobar" value="1" />
     <?php
-        if (!empty($back_page)) {
-            ?><input type="hidden" name="back_page" value="<?php echo form_str(safe_url($back_page)); ?>" /><?php
-        }
+    if (!empty($back_page)) {
+        ?><input type="hidden" name="back_page" value="<?php echo form_str(safe_url($back_page)); ?>" /><?php
+    }
 ?>
 
     <div class="form_container">
 
         <?php
-if (!empty($back_page)) {
-    ?><i class="fa fa-chevron-left"></i>
+    if (!empty($back_page)) {
+        ?><i class="fa fa-chevron-left"></i>
             <a href="<?php echo form_str(from_safe_url($back_page)); ?>"><?php echo $this->_pt('Back'); ?></a><?php
-}
+    }
 ?>
 
         <section class="heading-bordered">
@@ -68,22 +68,22 @@ if (!empty($back_page)) {
         </div>
 
         <?php
-        if ($is_multi_tenant) {
-            ?>
+if ($is_multi_tenant) {
+    ?>
             <div class="form-group row">
                 <label for="tenant_id" class="col-sm-2 col-form-label"><?php echo $this->_pt('Tenants'); ?></label>
                 <div class="col-sm-10">
                     <select name="tenant_id" id="tenant_id" class="chosen-select" style="width:100%;">
                         <option value="0"> - <?php echo $this->_pt('All tenants'); ?> - </option>
                         <?php
-                        foreach ($all_tenants_arr as $t_id => $t_arr) {
-                            ?>
+                foreach ($all_tenants_arr as $t_id => $t_arr) {
+                    ?>
                             <option value="<?php echo $t_id; ?>"
                                 <?php echo (int)$t_id === (int)$this->view_var('tenant_id') ? 'selected="selected"' : ''; ?>
                             ><?php echo PHS_Tenants::get_tenant_details_for_display($t_arr); ?></option>
                             <?php
-                        }
-            ?>
+                }
+    ?>
                     </select>
                 </div>
             </div>
@@ -118,8 +118,8 @@ if (!empty($back_page)) {
             <label for="allowed_methods" class="col-sm-2 col-form-label"><?php echo $this->_pt('Allowed HTTP methods'); ?></label>
             <div class="col-sm-10">
                 <?php
-                foreach ($api_methods_arr as $api_method) {
-                    ?>
+        foreach ($api_methods_arr as $api_method) {
+            ?>
                     <div class="form-check form-check-inline">
                         <input type="checkbox" class="form-check-input" id="allowed_methods_<?php echo $api_method; ?>"
                                name="allowed_methods[]" value="<?php echo form_str($api_method); ?>"
@@ -127,7 +127,7 @@ if (!empty($back_page)) {
                         <label class="form-check-label" for="allowed_methods_<?php echo $api_method; ?>"><?php echo $api_method; ?></label>
                     </div>
                     <?php
-                }
+        }
 ?>
                 <small class="text-muted"><?php echo $this->_pt('Don\'t tick any method to allow all.'); ?></small>
             </div>

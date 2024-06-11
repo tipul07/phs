@@ -30,8 +30,8 @@ class PHS_Model_Data_retention extends PHS_Model
     ];
 
     protected static array $INTERVALS_ARR = [
-        self::INT_DAYS => ['title' => 'Days'],
-        self::INT_MONTHS  => ['title' => 'Months'],
+        self::INT_DAYS   => ['title' => 'Days'],
+        self::INT_MONTHS => ['title' => 'Months'],
         self::INT_YEARS  => ['title' => 'Years'],
     ];
 
@@ -168,7 +168,7 @@ class PHS_Model_Data_retention extends PHS_Model
         return $key_val_arr;
     }
 
-    public function valid_interval(int $interval, null | bool | string $lang = null) : ?array
+    public function valid_interval(string $interval, null | bool | string $lang = null) : ?array
     {
         $all_intervals = $this->get_intervals($lang);
         if (empty($interval)
@@ -184,6 +184,37 @@ class PHS_Model_Data_retention extends PHS_Model
         return ($interval_arr = $this->valid_interval($interval, $lang))
             ? $interval_arr['title'] ?? ''
             : '';
+    }
+
+    public function parse_retention_interval(?string $retention) : ?array
+    {
+        $this->reset_error();
+
+        if ( !$retention
+            || !($interval_count = (int)substr($retention, 0, -1))
+            || !($interval = substr($retention, -1))
+            || !$this->valid_interval($interval) ) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Data retention interval is invalid.'));
+
+            return null;
+        }
+
+        return [
+            'count'    => $interval_count,
+            'interval' => $interval,
+        ];
+    }
+
+    public function generate_retention_field(array $retention_data) : string
+    {
+        if ( empty($retention_data['count'])
+            || (int)$retention_data['count'] <= 0
+            || empty($retention_data['interval'])
+            || !$this->valid_interval($retention_data['interval'])) {
+            return '';
+        }
+
+        return (int)($retention_data['count']).$retention_data['interval'];
     }
 
     public function is_active($record_data) : bool
@@ -243,7 +274,7 @@ class PHS_Model_Data_retention extends PHS_Model
             return null;
         }
 
-        if ($this->is_active($record_arr)) {
+        if ($this->is_inactive($record_arr)) {
             return $record_arr;
         }
 
@@ -285,21 +316,22 @@ class PHS_Model_Data_retention extends PHS_Model
         return $new_record;
     }
 
-    public function get_model_date_fields(PHS_Model $model_obj, string $table_name): ?array
+    public function get_model_date_fields(PHS_Model $model_obj, string $table_name) : ?array
     {
         $this->reset_error();
 
-        if(empty($table_name)
+        if (empty($table_name)
            || !($fields_arr = $model_obj->fields_definition(['table_name' => $table_name])) ) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Could not obtain date fields for provided table.'));
+
             return null;
         }
 
         $return_arr = [];
-        foreach($fields_arr as $field_name => $field_arr) {
-            if(!empty($field_arr['type'])
+        foreach ($fields_arr as $field_name => $field_arr) {
+            if (!empty($field_arr['type'])
                && in_array((int)$field_arr['type'], [self::FTYPE_DATE, self::FTYPE_DATETIME], true)) {
-                $return_arr[$field_name] = $field_arr;
+                $return_arr[] = $field_name;
             }
         }
 
@@ -415,8 +447,32 @@ class PHS_Model_Data_retention extends PHS_Model
             return false;
         }
 
+        if (isset($params['fields']['status'])
+            && !$this->valid_status($params['fields']['status'])) {
+            $this->set_error(self::ERR_INSERT, self::_t('Please provide a valid status for data retention policy.'));
+
+            return false;
+        }
+
+        if (empty($params['fields']['type'])
+            || !$this->valid_type($params['fields']['type'])) {
+            $this->set_error(self::ERR_INSERT, self::_t('Please provide a valid action type for data retention policy.'));
+
+            return false;
+        }
+
+        if (empty($params['fields']['retention'])
+            || !($retention_arr = $this->parse_retention_interval($params['fields']['retention']))
+            || !($retention = $this->generate_retention_field($retention_arr))
+        ) {
+            $this->set_error_if_not_set(self::ERR_INSERT, self::_t('Please provide a valid action type for data retention policy.'));
+
+            return false;
+        }
+
+        $params['fields']['retention'] = $retention;
+
         $params['fields']['plugin'] = ($params['fields']['plugin'] ?? null) ?: null;
-        $params['fields']['added_by_uid'] = (int)($params['fields']['added_by_uid'] ?? 0);
 
         /** @var \phs\libraries\PHS_Model_Core_base $model_obj */
         if (empty($params['fields']['model'])
@@ -451,25 +507,10 @@ class PHS_Model_Data_retention extends PHS_Model
             return false;
         }
 
+        $params['fields']['added_by_uid'] = (int)($params['fields']['added_by_uid'] ?? 0);
         $params['fields']['status'] ??= self::STATUS_INACTIVE;
-
-        if (!$this->valid_status($params['fields']['status'])) {
-            $this->set_error(self::ERR_INSERT, self::_t('Please provide a valid status for data retention policy.'));
-
-            return false;
-        }
-
-        if (empty($params['fields']['type'])
-            || !$this->valid_type($params['fields']['type'])) {
-            $this->set_error(self::ERR_INSERT, self::_t('Please provide a valid action type for data retention policy.'));
-
-            return false;
-        }
-
         $params['fields']['last_edit'] = date(self::DATETIME_DB);
-
         $params['fields']['cdate'] ??= $params['fields']['last_edit'];
-
         $params['fields']['status_date'] ??= $params['fields']['last_edit'];
 
         return $params;
@@ -479,6 +520,20 @@ class PHS_Model_Data_retention extends PHS_Model
     {
         if (empty($params) || !is_array($params)) {
             return null;
+        }
+
+        if (array_key_exists('retention', $params['fields'])) {
+            if (empty($params['fields']['retention'])
+                || !($retention_arr = $this->parse_retention_interval($params['fields']['retention']))
+                || !($retention = $this->generate_retention_field($retention_arr))
+            ) {
+                $this->set_error_if_not_set(self::ERR_INSERT,
+                    self::_t('Please provide a valid retention interval for data retention policy.'));
+
+                return null;
+            }
+
+            $params['fields']['retention'] = $retention;
         }
 
         $plugin = array_key_exists('plugin', $params['fields'])

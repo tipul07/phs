@@ -883,8 +883,13 @@ class PHS_Paginator extends PHS_Registry
             }
 
             if (empty($new_filter['var_name'])
-             || (empty($new_filter['record_field']) && empty($new_filter['switch_filter']) && empty($new_filter['raw_query']))) {
-                $this->set_error(self::ERR_FILTERS, self::_t('var_name or (record_field, raw_query) not provided for %s filter.',
+             || (empty($new_filter['record_field'])
+                 && empty($new_filter['switch_filter'])
+                 && empty($new_filter['raw_query'])
+                 && (empty($new_filter['check_callback']) || !@is_callable($new_filter['check_callback']))
+             )
+            ) {
+                $this->set_error(self::ERR_FILTERS, self::_t('var_name or (record_field, raw_query, switch_filter, check_callback) not provided for %s filter.',
                     (!empty($new_filter['display_name']) ? $new_filter['display_name'] : '(???)')));
 
                 return null;
@@ -892,7 +897,8 @@ class PHS_Paginator extends PHS_Registry
 
             if (!empty($new_filter['autocomplete'])
              && (!is_array($new_filter['autocomplete'])
-                    || empty($new_filter['autocomplete']['action']) || !($new_filter['autocomplete']['action'] instanceof PHS_Action_Autocomplete)
+                 || empty($new_filter['autocomplete']['action'])
+                 || !($new_filter['autocomplete']['action'] instanceof PHS_Action_Autocomplete)
              )) {
                 $this->set_error(self::ERR_FILTERS, self::_t('Filter %s doesn\'t have a valid autocomplete action.',
                     (!empty($new_filter['display_name']) ? $new_filter['display_name'] : '(???)')));
@@ -1443,20 +1449,15 @@ class PHS_Paginator extends PHS_Registry
             return false;
         }
 
-        if (!($scope_arr = $this->get_scope())) {
-            $scope_arr = [];
-        }
-
-        if (!($filters_arr = $this->get_filters())) {
-            $filters_arr = [];
-        }
+        $scope_arr = $this->get_scope() ?: [];
+        $filters_arr = $this->get_filters() ?: [];
 
         $initial_fields = [];
         if (!($list_arr = $this->flow_param('initial_list_arr'))
-         || !is_array($list_arr)) {
+            || !is_array($list_arr)) {
             $list_arr = [];
         } elseif (!empty($list_arr['fields'])
-            && is_array($list_arr['fields'])) {
+                  && is_array($list_arr['fields'])) {
             foreach ($list_arr['fields'] as $field_name => $field_val) {
                 $initial_fields[$field_name] = true;
             }
@@ -1464,12 +1465,12 @@ class PHS_Paginator extends PHS_Registry
 
         $linkage_func = 'AND';
         if (!empty($list_arr['fields']['{linkage_func}'])
-         && in_array(strtolower($list_arr['fields']['{linkage_func}']), ['and', 'or'], true)) {
+            && in_array(strtolower($list_arr['fields']['{linkage_func}']), ['and', 'or'], true)) {
             $linkage_func = strtoupper($list_arr['fields']['{linkage_func}']);
         }
 
         if (!($count_list_arr = $this->flow_param('initial_count_list_arr'))
-         || !is_array($count_list_arr)) {
+            || !is_array($count_list_arr)) {
             $count_list_arr = $list_arr;
         }
 
@@ -1478,10 +1479,30 @@ class PHS_Paginator extends PHS_Registry
         $fields_to_be_removed = [];
 
         foreach ($filters_arr as $filter_arr) {
-            // Accept empty $filter_arr['record_field'], but this means it will be a raw query...
             if (empty($filter_arr) || !is_array($filter_arr)
-             || empty($filter_arr['var_name'])
-             || (empty($filter_arr['record_field']) && empty($filter_arr['switch_filter']) && empty($filter_arr['raw_query']))
+                || empty($filter_arr['var_name'])) {
+                continue;
+            }
+
+            if (($filter_callback = $filter_arr['check_callback'] ?? null)) {
+                if ( !@is_callable($filter_callback)
+                    || !($filter_callback_result = $filter_callback($filter_arr, $scope_arr[$filter_arr['var_name']] ?? null))) {
+                    continue;
+                }
+
+                if (!empty($filter_callback_result['filter'])
+                   && is_array($filter_callback_result['filter'])) {
+                    $filter_arr = $filter_callback_result['filter'];
+                }
+
+                if (is_array($filter_callback_result)
+                   && array_key_exists('scope', $filter_callback_result)) {
+                    $scope_arr[$filter_arr['var_name']] = $filter_callback_result['scope'];
+                }
+            }
+
+            // Accept empty $filter_arr['record_field'], but this means it will be a raw query or switch filter...
+            if ((empty($filter_arr['record_field']) && empty($filter_arr['switch_filter']) && empty($filter_arr['raw_query']))
              || !isset($scope_arr[$filter_arr['var_name']])
              || ($filter_arr['default'] !== false && $scope_arr[$filter_arr['var_name']] == $filter_arr['default'])) {
                 continue;
@@ -1508,7 +1529,7 @@ class PHS_Paginator extends PHS_Registry
                 $check_value = $filter_arr['raw_record_check'];
             } elseif (!empty($filter_arr['record_check']) && is_array($filter_arr['record_check'])) {
                 if (isset($filter_arr['record_check']['value'])
-                 && strpos($filter_arr['record_check']['value'], '%s') !== false) {
+                    && str_contains($filter_arr['record_check']['value'], '%s')) {
                     if (is_array($scope_arr[$filter_arr['var_name']])) {
                         $final_value = implode(',', $scope_arr[$filter_arr['var_name']]);
                     } else {
@@ -2247,6 +2268,12 @@ class PHS_Paginator extends PHS_Registry
             'var_name' => '',
             // Name of field in database model that will have to check this value
             'record_field' => '',
+            // A callable method which receives filter definition and filter value as parameters
+            // Return should be an array with 'filter' and 'scope' keys.
+            // If 'filter' key is present, it will replace current filter definition
+            // If 'scope' key is present, it will replace current filter value in the scope
+            // e.g. using 'raw_query', 'switch_filter' or 'record_check' depending on filter value
+            'check_callback' => null,
             // If this filter doesn't target a specific field in the query, we just pass here a raw query
             // Filter value will be added in the raw query string as %s
             // Used for queries like EXISTS (SELECT 1 FROM ...)
