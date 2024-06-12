@@ -688,7 +688,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
 
         $insert_arr = $new_insert_arr;
 
-        PHS_Event_Model_insert::trigger([
+        PHS_Event_Model_insert::trigger_for_model($this::class, [
             'flow_params' => $params,
             'fields_arr'  => $validation_arr['data_arr'],
             'record_data' => $insert_arr,
@@ -820,7 +820,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
             }
         }
 
-        PHS_Event_Model_edit::trigger([
+        PHS_Event_Model_edit::trigger_for_model($this::class, [
             'flow_params'     => $params,
             'fields_arr'      => $edit_arr,
             'record_data'     => $original_record_arr,
@@ -1655,7 +1655,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
             return false;
         }
 
-        PHS_Event_Model_delete::trigger([
+        PHS_Event_Model_delete::trigger_for_model($this::class, [
             'flow_params' => $params,
             'record_data' => $existing_data,
             'model_obj'   => $this,

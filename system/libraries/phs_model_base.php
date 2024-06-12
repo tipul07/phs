@@ -591,7 +591,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return true;
         }
 
-        if ( ($event_obj = PHS_Event_Model_hard_delete::trigger([
+        if ( ($event_obj = PHS_Event_Model_hard_delete::trigger_for_model($this::class, [
             'flow_params' => $params,
             'record_data' => $existing_arr,
             'model_obj'   => $this,
@@ -1899,7 +1899,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         ];
 
         /** @var PHS_Event_Model_Fields $event_obj */
-        if (($event_obj = PHS_Event_Model_Fields::trigger($input_arr))
+        if (($event_obj = PHS_Event_Model_Fields::trigger_for_model($this::class, $input_arr))
            && ($new_fields_arr = $event_obj->get_output('fields_arr'))) {
             $fields_arr = $new_fields_arr;
         }

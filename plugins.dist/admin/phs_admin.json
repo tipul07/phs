@@ -3,7 +3,7 @@
     "vendor_name": "PHS",
     "name": "Administration Plugin",
     "description": "Handles all administration actions.",
-    "version": "1.6.1",
+    "version": "1.6.2",
     "agent_jobs": {
         "admin_index_bg_clean_sessions_ag": {
             "title": "Session Garbage Collector",
@@ -14,6 +14,18 @@
             },
             "timed_seconds": 21600,
             "stalling_minutes": 720,
+            "stalling_minutes_comment": "MINUTES!!! Depending on traffic, there might be lots of session files which can take lots of time..."
+        },
+        "admin_index_bg_data_retention_ag": {
+            "title": "Data Retention Job",
+            "route": {
+                "plugin": "admin",
+                "controller": "index_bg",
+                "action": "data_retention_ag",
+                "action_dir": "retention"
+            },
+            "timed_seconds": 3600,
+            "stalling_minutes": 15,
             "stalling_minutes_comment": "MINUTES!!! Depending on traffic, there might be lots of session files which can take lots of time..."
         }
     }

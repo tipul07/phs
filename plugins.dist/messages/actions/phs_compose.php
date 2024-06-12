@@ -8,6 +8,10 @@ use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\system\core\models\PHS_Model_Roles;
+use phs\plugins\messages\PHS_Plugin_Messages;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\messages\models\PHS_Model_Messages;
 
 class PHS_Action_Compose extends PHS_Action
 {
@@ -26,31 +30,17 @@ class PHS_Action_Compose extends PHS_Action
             return action_request_login();
         }
 
-        /** @var \phs\plugins\messages\PHS_Plugin_Messages $messages_plugin */
-        if (!($messages_plugin = $this->get_plugin_instance())) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load messages plugin.'));
-
-            return self::default_action_result();
-        }
-
-        /** @var \phs\plugins\messages\models\PHS_Model_Messages $messages_model */
-        if (!($messages_model = PHS::load_model('messages', 'messages'))
-         || !($mu_flow_params = $messages_model->fetch_default_flow_params(['table_name' => 'messages_users']))) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load messages model.'));
-
-            return self::default_action_result();
-        }
-
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts model.'));
-
-            return self::default_action_result();
-        }
-
-        /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
-        if (!($roles_model = PHS::load_model('roles'))) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load roles model.'));
+        /** @var PHS_Plugin_Messages $messages_plugin */
+        /** @var PHS_Model_Messages $messages_model */
+        /** @var PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Roles $roles_model */
+        if (!($messages_plugin = PHS_Plugin_Messages::get_instance())
+            || !($messages_model = PHS_Model_Messages::get_instance())
+            || !($mu_flow_params = $messages_model->fetch_default_flow_params(['table_name' => 'messages_users']))
+            || !($accounts_model = PHS_Model_Accounts::get_instance())
+            || !($roles_model = PHS_Model_Roles::get_instance())
+        ) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
@@ -66,18 +56,18 @@ class PHS_Action_Compose extends PHS_Action
         }
 
         if (empty($reply_to)
-         || !($reply_message = $messages_model->full_data_to_array($reply_to, $current_user))) {
-            $reply_message = false;
+            || !($reply_message = $messages_model->full_data_to_array($reply_to, $current_user))) {
+            $reply_message = null;
         }
 
         if (!empty($reply_to_muid) && empty($reply_message)) {
             if (!($reply_user_message = $messages_model->get_details($reply_to_muid, $mu_flow_params))
              || empty($reply_user_message['message_id'])) {
-                $reply_message = false;
+                $reply_message = null;
             } elseif (!($reply_message = $messages_model->full_data_to_array($reply_user_message['message_id'], $current_user))) {
                 if (!can($messages_plugin::ROLEU_CAN_REPLY_TO_ALL)
                  || !($reply_message = $messages_model->full_data_to_array($reply_user_message['message_id'], $current_user, ['ignore_user_message' => true]))) {
-                    $reply_message = false;
+                    $reply_message = null;
                 }
             }
 
@@ -93,22 +83,22 @@ class PHS_Action_Compose extends PHS_Action
         && !$messages_model->can_reply($reply_message, ['account_data' => $current_user])) {
             PHS_Notifications::add_error_notice($this->_pt('Unknown message or you don\'t have rights to reply to this message.'));
 
-            $reply_message = false;
+            $reply_message = null;
         }
 
         if (empty($follow_up)
          || !($followup_message = $messages_model->full_data_to_array($follow_up, $current_user))) {
-            $followup_message = false;
+            $followup_message = null;
         }
 
         if (!empty($follow_up_muid) && empty($followup_message)) {
             if (!($followup_user_message = $messages_model->get_details($follow_up_muid, $mu_flow_params))
              || empty($followup_user_message['message_id'])) {
-                $followup_message = false;
+                $followup_message = null;
             } elseif (!($followup_message = $messages_model->full_data_to_array($followup_user_message['message_id'], $current_user))) {
                 if (!can($messages_plugin::ROLEU_CAN_REPLY_TO_ALL)
                  || !($followup_message = $messages_model->full_data_to_array($followup_user_message['message_id'], $current_user, ['ignore_user_message' => true]))) {
-                    $followup_message = false;
+                    $followup_message = null;
                 }
             }
 
@@ -124,7 +114,7 @@ class PHS_Action_Compose extends PHS_Action
         && !$messages_model->can_followup($followup_message, ['account_data' => $current_user])) {
             PHS_Notifications::add_error_notice($this->_pt('Unknown message or you don\'t have rights to follow up this message.'));
 
-            $followup_message = false;
+            $followup_message = null;
         }
 
         if (empty($reply_message)
@@ -135,18 +125,10 @@ class PHS_Action_Compose extends PHS_Action
             return self::default_action_result();
         }
 
-        if (!($dest_types = $messages_model->get_dest_types_as_key_val())) {
-            $dest_types = [];
-        }
-        if (!($user_levels = $accounts_model->get_levels_as_key_val())) {
-            $user_levels = [];
-        }
-        if (!($roles_arr = $roles_model->get_all_roles())) {
-            $roles_arr = [];
-        }
-        if (!($roles_units_arr = $roles_model->get_all_role_units())) {
-            $roles_units_arr = [];
-        }
+        $dest_types = $messages_model->get_dest_types_as_key_val() ?: [];
+        $user_levels = $accounts_model->get_levels_as_key_val() ?: [];
+        $roles_arr = $roles_model->get_all_roles() ?: [];
+        $roles_units_arr = $roles_model->get_all_role_units() ?: [];
 
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
         $subject = PHS_Params::_pg('subject', PHS_Params::T_NOHTML);

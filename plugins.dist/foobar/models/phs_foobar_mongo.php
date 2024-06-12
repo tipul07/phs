@@ -10,26 +10,17 @@ class PHS_Model_Foobar_mongo extends PHS_Model_Mongo
 {
     public const ERR_DB_JOB = 10000;
 
-    /**
-     * @return string Returns version of model
-     */
-    public function get_model_version()
+    public function get_model_version() : string
     {
         return '1.0.0';
     }
 
-    /**
-     * @return array of string Returns an array of strings containing tables that model will handle
-     */
-    public function get_table_names()
+    public function get_table_names() : array
     {
         return ['testcol'];
     }
 
-    /**
-     * @return string Returns main table name used when calling insert with no table name
-     */
-    public function get_main_table_name()
+    public function get_main_table_name() : string
     {
         return 'testcol';
     }

@@ -2,11 +2,10 @@
 
 namespace phs\plugins\messages\actions;
 
-use phs\PHS;
 use phs\PHS_Scope;
 use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Action;
-use phs\libraries\PHS_Logger;
+use phs\plugins\messages\models\PHS_Model_Messages;
 
 class PHS_Action_Write_message_bg extends PHS_Action
 {
@@ -19,11 +18,10 @@ class PHS_Action_Write_message_bg extends PHS_Action
 
     public function execute()
     {
-        /** @var \phs\plugins\messages\models\PHS_Model_Messages $messages_model */
+        /** @var PHS_Model_Messages $messages_model */
         if (!($params = PHS_Bg_jobs::get_current_job_parameters())
-         || !is_array($params)
          || empty($params['mid'])
-         || !($messages_model = PHS::load_model('messages', 'messages'))
+         || !($messages_model = PHS_Model_Messages::get_instance())
          || !($m_flow_params = $messages_model->fetch_default_flow_params(['table_name' => 'messages']))
          || !($message_arr = $messages_model->get_details($params['mid'], $m_flow_params))
          || !$messages_model->need_write_finish($message_arr)) {
@@ -33,11 +31,11 @@ class PHS_Action_Write_message_bg extends PHS_Action
         }
 
         if (!$messages_model->write_message_finish_bg($message_arr, $params)) {
-            if ($messages_model->has_error()) {
-                $this->copy_error($messages_model, self::ERR_FINISH_ERROR);
-            } else {
-                $this->set_error(self::ERR_FINISH_ERROR, $this->_pt('Error finishing additional work required for message #%s.', $message_arr['id']));
-            }
+            $this->copy_or_set_error(
+                $messages_model,
+                self::ERR_FINISH_ERROR,
+                $this->_pt('Error finishing additional work required for message #%s.', $message_arr['id'])
+            );
 
             return false;
         }

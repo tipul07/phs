@@ -35,25 +35,16 @@ class PHS_Model_Data_retention extends PHS_Model
         self::INT_YEARS  => ['title' => 'Years'],
     ];
 
-    /**
-     * @return string Returns version of model
-     */
     public function get_model_version() : string
     {
         return '1.0.0';
     }
 
-    /**
-     * @return array of string Returns an array of strings containing tables that model will handle
-     */
     public function get_table_names() : array
     {
         return ['phs_data_retention', 'phs_data_retention_runs'];
     }
 
-    /**
-     * @return string Returns main table name used when calling insert with no table name
-     */
     public function get_main_table_name() : string
     {
         return 'phs_data_retention';
@@ -418,9 +409,19 @@ class PHS_Model_Data_retention extends PHS_Model
                         'primary'        => true,
                         'auto_increment' => true,
                     ],
-                    'retention_rule_id' => [
+                    'retention_policy_id' => [
                         'type'  => self::FTYPE_INT,
                         'index' => true,
+                    ],
+                    'from_table' => [
+                        'type'   => self::FTYPE_VARCHAR,
+                        'length' => 255,
+                        'index'  => true,
+                    ],
+                    'to_table' => [
+                        'type'   => self::FTYPE_VARCHAR,
+                        'length' => 255,
+                        'index'  => true,
                     ],
                     'total_records' => [
                         'type' => self::FTYPE_INT,

@@ -209,7 +209,7 @@ if (can($messages_plugin::ROLEU_SET_TYPE_IN_COMPOSE)) {
                 if (!empty($reply_message)) {
                     echo $this->view_var('dest_type_handlers');
                 } elseif (!empty($followup_message)) {
-                    echo $messages_model->get_destination_as_string($followup_message['message']);
+                    echo $messages_model->get_destination_as_string($followup_message['message']) ?: $this->_pt('N/A');
                 } else {
                     ?>
                         <input type="text" id="dest_type_handlers" name="dest_type_handlers" class="form-control" value="<?php echo form_str($this->view_var('dest_type_handlers')); ?>" required="required"

@@ -2304,10 +2304,8 @@ final class PHS extends PHS_Registry
         }
 
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_MODEL))) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_LOAD_MODEL, self::_t('Couldn\'t obtain instance for model %s from plugin %s.',
-                    $model, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
-            }
+            self::st_set_error_if_not_set(self::ERR_LOAD_MODEL, self::_t('Couldn\'t obtain instance for model %s from plugin %s.',
+                $model, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
             return null;
         }
@@ -2350,11 +2348,9 @@ final class PHS extends PHS_Registry
         // Views are not singletons
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_VIEW, $as_singleton))) {
             if (empty($plugin)) {
-                if (!self::st_has_error()) {
-                    self::st_set_error(self::ERR_LOAD_VIEW,
-                        self::_t('Couldn\'t obtain instance for view %s from plugin %s.', $view,
-                            PHS_Instantiable::CORE_PLUGIN));
-                }
+                self::st_set_error_if_not_set(self::ERR_LOAD_VIEW,
+                    self::_t('Couldn\'t obtain instance for view %s from plugin %s.', $view,
+                        PHS_Instantiable::CORE_PLUGIN));
 
                 return null;
             }
@@ -2363,11 +2359,9 @@ final class PHS extends PHS_Registry
 
             // We tried loading plugin view, try again with a core view...
             if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, null, PHS_Instantiable::INSTANCE_TYPE_VIEW, $as_singleton))) {
-                if (!self::st_has_error()) {
-                    self::st_set_error(self::ERR_LOAD_VIEW,
-                        self::_t('Couldn\'t obtain instance for view %s from plugin %s.', $view,
-                            PHS_Instantiable::CORE_PLUGIN));
-                }
+                self::st_set_error_if_not_set(self::ERR_LOAD_VIEW,
+                    self::_t('Couldn\'t obtain instance for view %s from plugin %s.', $view,
+                        PHS_Instantiable::CORE_PLUGIN));
 
                 return null;
             }
@@ -2401,11 +2395,9 @@ final class PHS extends PHS_Registry
         }
 
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER))) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_LOAD_CONTROLLER,
-                    self::_t('Couldn\'t obtain instance for controller %s from plugin %s.',
-                        $controller, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
-            }
+            self::st_set_error_if_not_set(self::ERR_LOAD_CONTROLLER,
+                self::_t('Couldn\'t obtain instance for controller %s from plugin %s.',
+                    $controller, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
             return null;
         }
@@ -2462,12 +2454,10 @@ final class PHS extends PHS_Registry
 
         /** @var PHS_Action */
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_ACTION, true, $action_dir))) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_LOAD_ACTION,
-                    self::_t('Couldn\'t obtain instance for action %s from plugin %s.',
-                        ($action_dir !== '' ? $action_dir.'/' : '').$action,
-                        (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
-            }
+            self::st_set_error_if_not_set(self::ERR_LOAD_ACTION,
+                self::_t('Couldn\'t obtain instance for action %s from plugin %s.',
+                    ($action_dir !== '' ? $action_dir.'/' : '').$action,
+                    (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
             return null;
         }
@@ -2524,12 +2514,10 @@ final class PHS extends PHS_Registry
 
         /** @var PHS_Action */
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTRACT, true, $contract_dir))) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_LOAD_CONTRACT,
-                    self::_t('Couldn\'t obtain instance for contract %s from plugin %s.',
-                        ($contract_dir !== '' ? $contract_dir.'/' : '').$contract,
-                        (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
-            }
+            self::st_set_error_if_not_set(self::ERR_LOAD_CONTRACT,
+                self::_t('Couldn\'t obtain instance for contract %s from plugin %s.',
+                    ($contract_dir !== '' ? $contract_dir.'/' : '').$contract,
+                    (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
             return null;
         }
@@ -2587,12 +2575,10 @@ final class PHS extends PHS_Registry
         /** @var PHS_Event */
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin,
             PHS_Instantiable::INSTANCE_TYPE_EVENT, true, $event_dir))) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_LOAD_EVENT,
-                    self::_t('Couldn\'t obtain instance for event %s from plugin %s.',
-                        ($event_dir !== '' ? $event_dir.'/' : '').$event,
-                        (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
-            }
+            self::st_set_error_if_not_set(self::ERR_LOAD_EVENT,
+                self::_t('Couldn\'t obtain instance for event %s from plugin %s.',
+                    ($event_dir !== '' ? $event_dir.'/' : '').$event,
+                    (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
             return null;
         }
@@ -2625,10 +2611,8 @@ final class PHS extends PHS_Registry
 
         /** @var PHS_Scope */
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_SCOPE))) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_LOAD_SCOPE, self::_t('Couldn\'t obtain instance for scope %s from plugin %s.',
-                    $scope, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
-            }
+            self::st_set_error_if_not_set(self::ERR_LOAD_SCOPE, self::_t('Couldn\'t obtain instance for scope %s from plugin %s.',
+                $scope, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
             return null;
         }
@@ -2663,10 +2647,8 @@ final class PHS extends PHS_Registry
         $class_name = 'PHS_Plugin_'.ucfirst(strtolower($plugin_safe_name));
 
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin_name, PHS_Instantiable::INSTANCE_TYPE_PLUGIN))) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_LOAD_PLUGIN,
-                    self::_t('Couldn\'t obtain instance for plugin class %s from plugin %s.', $plugin_name));
-            }
+            self::st_set_error_if_not_set(self::ERR_LOAD_PLUGIN,
+                self::_t('Couldn\'t obtain instance for plugin class %s from plugin %s.', $plugin_name));
 
             return null;
         }

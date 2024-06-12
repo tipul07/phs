@@ -35,26 +35,17 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         'Y', 'Z', '2', '3', '4', '5', '6', '7',
     ];
 
-    /**
-     * @return string Returns version of model
-     */
-    public function get_model_version()
+    public function get_model_version() : string
     {
         return '1.0.2';
     }
 
-    /**
-     * @return array of string Returns an array of strings containing tables that model will handle
-     */
-    public function get_table_names()
+    public function get_table_names() : array
     {
         return ['users_tfa'];
     }
 
-    /**
-     * @return string Returns main table name used when calling insert with no table name
-     */
-    public function get_main_table_name()
+    public function get_main_table_name() : string
     {
         return 'users_tfa';
     }

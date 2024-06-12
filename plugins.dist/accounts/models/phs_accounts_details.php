@@ -6,26 +6,17 @@ use phs\libraries\PHS_Model;
 
 class PHS_Model_Accounts_details extends PHS_Model
 {
-    /**
-     * @return string Returns version of model
-     */
-    public function get_model_version()
+    public function get_model_version() : string
     {
         return '1.0.3';
     }
 
-    /**
-     * @return array of string Returns an array of strings containing tables that model will handle
-     */
-    public function get_table_names()
+    public function get_table_names() : array
     {
         return ['users_details'];
     }
 
-    /**
-     * @return string Returns main table name used when calling insert with no table name
-     */
-    public function get_main_table_name()
+    public function get_main_table_name() : string
     {
         return 'users_details';
     }
@@ -33,7 +24,7 @@ class PHS_Model_Accounts_details extends PHS_Model
     /**
      * @inheritdoc
      */
-    public function dynamic_table_structure()
+    public function dynamic_table_structure() : bool
     {
         return true;
     }

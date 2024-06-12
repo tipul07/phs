@@ -6,29 +6,19 @@ use phs\libraries\PHS_Model;
 
 class PHS_Model_Accounts_tenants extends PHS_Model
 {
-    /** @var bool|PHS_Model_Accounts */
-    private static $_accounts_model = false;
+    private static ?PHS_Model_Accounts $_accounts_model = null;
 
-    /**
-     * @return string Returns version of model
-     */
-    public function get_model_version()
+    public function get_model_version() : string
     {
         return '1.0.0';
     }
 
-    /**
-     * @return array of string Returns an array of strings containing tables that model will handle
-     */
-    public function get_table_names()
+    public function get_table_names() : array
     {
         return ['users_tenants'];
     }
 
-    /**
-     * @return string Returns main table name used when calling insert with no table name
-     */
-    public function get_main_table_name()
+    public function get_main_table_name() : string
     {
         return 'users_tenants';
     }

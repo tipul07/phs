@@ -2,6 +2,7 @@
 
 namespace phs\system\core\events\models;
 
+use Closure;
 use phs\libraries\PHS_Event;
 
 class PHS_Event_Model_edit extends PHS_Event
@@ -22,5 +23,29 @@ class PHS_Event_Model_edit extends PHS_Event
         return [
             'record_data' => null,
         ];
+    }
+
+    public static function trigger_for_model(
+        string $model_class,
+        array $input_arr,
+        array $params = [],
+    ) : ?self {
+        return self::trigger(
+            $input_arr,
+            $model_class,
+            $params
+        );
+    }
+
+    public static function listen_for_model(
+        string $model_class,
+        callable | array | string | Closure $callback,
+        array $options = [],
+    ) : ?self {
+        return self::listen(
+            $callback,
+            $model_class,
+            $options
+        );
     }
 }
