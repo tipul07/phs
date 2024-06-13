@@ -1751,10 +1751,6 @@ class PHS_Model_Accounts extends PHS_Model
     // endregion Version Updates
     //
 
-    /**
-     * @param bool|array $params
-     * @return bool|array
-     */
     final public function fields_definition($params = false) : ?array
     {
         if (empty($params['table_name'])) {

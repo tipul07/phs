@@ -177,6 +177,28 @@ class PHS_Model_Data_retention extends PHS_Model
             : '';
     }
 
+    public function parse_retention_interval_from_retention_data(int | array $record_data) : ?array
+    {
+        $this->reset_error();
+
+        if (empty($record_data)
+           || !($record_arr = $this->data_to_array($record_data))
+           || $this->is_deleted($record_arr)) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Data retention not found in database.'));
+
+            return null;
+        }
+
+        if ( empty($record_arr['retention'])
+            || !($interval_arr = $this->parse_retention_interval($record_arr['retention']))) {
+            $this->set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Data retention interval is invalid.'));
+
+            return null;
+        }
+
+        return $interval_arr;
+    }
+
     public function parse_retention_interval(?string $retention) : ?array
     {
         $this->reset_error();
@@ -196,6 +218,24 @@ class PHS_Model_Data_retention extends PHS_Model
         ];
     }
 
+    public function generate_retention_interval_time(array $retention_data) : string
+    {
+        if ( empty($retention_data['count'])
+             || (int)$retention_data['count'] <= 0
+             || empty($retention_data['interval'])
+             || !$this->valid_interval($retention_data['interval'])
+             || !($strtime = match ($retention_data['interval'] ) {
+                 self::INT_DAYS   => '-'.$retention_data['count'].' day',
+                 self::INT_MONTHS => '-'.$retention_data['count'].' month',
+                 self::INT_YEARS  => '-'.$retention_data['count'].' year',
+                 default          => '',
+             }) ) {
+            return '';
+        }
+
+        return strtotime($strtime);
+    }
+
     public function generate_retention_field(array $retention_data) : string
     {
         if ( empty($retention_data['count'])
@@ -208,28 +248,28 @@ class PHS_Model_Data_retention extends PHS_Model
         return (int)($retention_data['count']).$retention_data['interval'];
     }
 
-    public function is_active($record_data) : bool
+    public function is_active(int | array $record_data) : bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_ACTIVE;
     }
 
-    public function is_inactive($record_data) : bool
+    public function is_inactive(int | array $record_data) : bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_INACTIVE;
     }
 
-    public function is_deleted($record_data) : bool
+    public function is_deleted(int | array $record_data) : bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_DELETED;
     }
 
-    public function act_activate($record_data) : ?array
+    public function act_activate(int | array $record_data) : ?array
     {
         $this->reset_error();
 
@@ -255,7 +295,7 @@ class PHS_Model_Data_retention extends PHS_Model
         return $new_record;
     }
 
-    public function act_inactivate($record_data) : ?array
+    public function act_inactivate(int | array $record_data) : ?array
     {
         $this->reset_error();
 
@@ -281,7 +321,7 @@ class PHS_Model_Data_retention extends PHS_Model
         return $new_record;
     }
 
-    public function act_delete($record_data) : ?array
+    public function act_delete(int | array $record_data) : ?array
     {
         $this->reset_error();
 

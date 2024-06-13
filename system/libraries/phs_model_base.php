@@ -1848,6 +1848,32 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     }
 
     /**
+     * Populate model tables structures array with definition from model (not from database)
+     *
+     * @return bool True on success, false on failure
+     */
+    protected function _validate_tables_definition() : bool
+    {
+        if (!($all_tables_arr = $this->get_all_table_names())) {
+            return false;
+        }
+
+        foreach ($all_tables_arr as $table_name) {
+            if (!($flow_params = $this->fetch_default_flow_params(['table_name' => $table_name]))) {
+                $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Couldn\'t fetch flow parameters for table %s.', $table_name));
+
+                return false;
+            }
+
+            if (!$this->_validate_definition($flow_params)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * @param array $flow_params
      *
      * @return null|array
@@ -1905,32 +1931,6 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         }
 
         return $fields_arr;
-    }
-
-    /**
-     * Populate model tables structures array with definition from model (not from database)
-     *
-     * @return bool True on success, false on failure
-     */
-    private function _validate_tables_definition() : bool
-    {
-        if (!($all_tables_arr = $this->get_all_table_names())) {
-            return false;
-        }
-
-        foreach ($all_tables_arr as $table_name) {
-            if (!($flow_params = $this->fetch_default_flow_params(['table_name' => $table_name]))) {
-                $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Couldn\'t fetch flow parameters for table %s.', $table_name));
-
-                return false;
-            }
-
-            if (!$this->_validate_definition($flow_params)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**
