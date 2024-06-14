@@ -37,7 +37,7 @@ class PHS_Model_Data_retention extends PHS_Model
 
     public function get_model_version() : string
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     public function get_table_names() : array
@@ -110,6 +110,13 @@ class PHS_Model_Data_retention extends PHS_Model
         return $all_types[$type];
     }
 
+    public function get_type_title(int $type, null | bool | string $lang = null) : string
+    {
+        return ($type_arr = $this->valid_type($type, $lang))
+            ? $type_arr['title'] ?? ''
+            : '';
+    }
+
     public function get_intervals(null | bool | string $lang = null) : array
     {
         static $intervals_arr = [];
@@ -175,6 +182,98 @@ class PHS_Model_Data_retention extends PHS_Model
         return ($interval_arr = $this->valid_interval($interval, $lang))
             ? $interval_arr['title'] ?? ''
             : '';
+    }
+
+    public function start_retention_run(
+        int | array $record_data,
+        string $last_date,
+        int $total_records,
+        bool $also_finish = false,
+        ?string $destination_table = null,
+        ?string $error = null,
+    ) : ?array {
+        $this->reset_error();
+
+        if (empty($record_data)
+            || !($record_arr = $this->data_to_array($record_data))
+            || $this->is_deleted($record_arr)) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Data retention not found in database.'));
+
+            return null;
+        }
+
+        if (empty($record_arr['table'])
+            || empty($record_arr['date_field'])) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Data retention details are invalid.'));
+
+            return null;
+        }
+
+        $now_date = date(self::DATETIME_DB);
+
+        $edit_params = $this->fetch_default_flow_params(['table_name' => 'phs_data_retention_runs']);
+        $edit_params['fields'] = [
+            'retention_policy_id' => $record_arr['id'],
+            'from_table'          => $record_arr['table'],
+            'to_table'            => $destination_table ?: null,
+            'type'                => $record_arr['type'],
+            'date_field'          => $record_arr['date_field'],
+            'last_date'           => $last_date,
+            'total_records'       => $total_records,
+            'current_records'     => 0,
+            'start_date'          => $now_date,
+            'update_date'         => $now_date,
+            'end_date'            => $also_finish ? $now_date : null,
+            'error'               => $error,
+        ];
+
+        if (!($new_record = $this->insert($edit_params))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this::_t('Error saving data rentention run details in database.'));
+
+            return null;
+        }
+
+        return $new_record;
+    }
+
+    public function update_retention_run(
+        int | array $run_record,
+        int $current_records,
+        bool $also_finish = false,
+        bool | null | string $error = false,
+        ?string $destination_table = null,
+    ) : ?array {
+        $this->reset_error();
+
+        if (empty($run_record)
+            || !($record_arr = $this->data_to_array($run_record, ['table_name' => 'phs_data_retention_runs']))) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Data retention run record not found in database.'));
+
+            return null;
+        }
+
+        $edit_params = $this->fetch_default_flow_params(['table_name' => 'phs_data_retention_runs']);
+        $edit_params['fields'] = [];
+        if ( !empty($destination_table) ) {
+            $edit_params['fields']['to_table'] = $destination_table;
+        }
+        if ( $error !== false) {
+            $edit_params['fields']['error'] = $error;
+        }
+        if ( !empty($also_finish) ) {
+            $edit_params['fields']['end_date'] = date(self::DATETIME_DB);
+        }
+
+        $edit_params['fields']['current_records'] = $current_records;
+
+        if (!($new_record = $this->edit($record_arr, $edit_params))) {
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                $this::_t('Error saving data rentention run details in database.'));
+
+            return null;
+        }
+
+        return $new_record;
     }
 
     public function parse_retention_interval_from_retention_data(int | array $record_data) : ?array
@@ -407,7 +506,7 @@ class PHS_Model_Data_retention extends PHS_Model
                         'length' => 255,
                         'index'  => true,
                     ],
-                    'data_field' => [
+                    'date_field' => [
                         'type'   => self::FTYPE_VARCHAR,
                         'length' => 255,
                         'index'  => true,
@@ -463,6 +562,21 @@ class PHS_Model_Data_retention extends PHS_Model
                         'length' => 255,
                         'index'  => true,
                     ],
+                    'type' => [
+                        'type'    => self::FTYPE_TINYINT,
+                        'length'  => 2,
+                        'index'   => true,
+                        'default' => 0,
+                    ],
+                    'date_field' => [
+                        'type'   => self::FTYPE_VARCHAR,
+                        'length' => 255,
+                        'index'  => true,
+                    ],
+                    'last_date' => [
+                        'type'    => self::FTYPE_DATETIME,
+                        'comment' => 'Date used when moving records',
+                    ],
                     'total_records' => [
                         'type' => self::FTYPE_INT,
                     ],
@@ -472,8 +586,14 @@ class PHS_Model_Data_retention extends PHS_Model
                     'start_date' => [
                         'type' => self::FTYPE_DATETIME,
                     ],
+                    'update_date' => [
+                        'type' => self::FTYPE_DATETIME,
+                    ],
                     'end_date' => [
                         'type' => self::FTYPE_DATETIME,
+                    ],
+                    'error' => [
+                        'type' => self::FTYPE_TEXT,
                     ],
                 ];
                 break;
@@ -518,7 +638,7 @@ class PHS_Model_Data_retention extends PHS_Model
         /** @var \phs\libraries\PHS_Model_Core_base $model_obj */
         if (empty($params['fields']['model'])
             || empty($params['fields']['table'])
-            || empty($params['fields']['data_field'])
+            || empty($params['fields']['date_field'])
             || (!empty($params['fields']['plugin'])
                 && !PHS::load_plugin($params['fields']['plugin']))
             || !($model_obj = PHS::load_model($params['fields']['model'], $params['fields']['plugin']))
@@ -528,7 +648,7 @@ class PHS_Model_Data_retention extends PHS_Model
             return false;
         }
 
-        if ( !($field_definition = $model_obj->check_column_exists($params['fields']['data_field'], ['table_name' => $params['fields']['table']]))
+        if ( !($field_definition = $model_obj->check_column_exists($params['fields']['date_field'], ['table_name' => $params['fields']['table']]))
             || empty($field_definition['type'])
             || !in_array($field_definition['type'], [self::FTYPE_DATE, self::FTYPE_DATETIME], true)
         ) {
@@ -582,12 +702,12 @@ class PHS_Model_Data_retention extends PHS_Model
             : $existing_data['plugin'];
         $model = $params['fields']['model'] ?? $existing_data['model'] ?? null;
         $table = $params['fields']['table'] ?? $existing_data['table'] ?? null;
-        $data_field = $params['fields']['data_field'] ?? $existing_data['data_field'] ?? null;
+        $date_field = $params['fields']['date_field'] ?? $existing_data['date_field'] ?? null;
 
         /** @var \phs\libraries\PHS_Model_Core_base $model_obj */
         if (empty($model)
             || empty($table)
-            || empty($data_field)
+            || empty($date_field)
             || (!empty($plugin)
                 && !PHS::load_plugin($plugin))
             || !($model_obj = PHS::load_model($model, $plugin))
@@ -597,7 +717,7 @@ class PHS_Model_Data_retention extends PHS_Model
             return null;
         }
 
-        if ( !($field_definition = $model_obj->check_column_exists($data_field, ['table_name' => $table]))
+        if ( !($field_definition = $model_obj->check_column_exists($date_field, ['table_name' => $table]))
             || empty($field_definition['type'])
             || !in_array($field_definition['type'], [self::FTYPE_DATE, self::FTYPE_DATETIME], true)
         ) {

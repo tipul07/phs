@@ -87,12 +87,12 @@ class Phs_Data_retention extends PHS_Library
         $plugin = $retention_arr['plugin'] ?? null;
         if ( empty($retention_arr['model'])
             || empty($retention_arr['table'])
-            || empty($retention_arr['data_field'])
+            || empty($retention_arr['date_field'])
             || (!empty($plugin)
                 && (!($plugin_obj = PHS::load_plugin($plugin))
                     || !$plugin_obj->plugin_active()))
             || !($model_obj = PHS::load_model($retention_arr['model'], $plugin))
-            || !($field_definition = $model_obj->check_column_exists($retention_arr['data_field'], ['table_name' => $retention_arr['table']]))
+            || !($field_definition = $model_obj->check_column_exists($retention_arr['date_field'], ['table_name' => $retention_arr['table']]))
             || empty($field_definition['type'])
             || !in_array($field_definition['type'], [$model_obj::FTYPE_DATE, $model_obj::FTYPE_DATETIME], true)
         ) {
@@ -111,7 +111,7 @@ class Phs_Data_retention extends PHS_Library
 
         if ( empty($retention_arr['model'])
             || empty($retention_arr['table'])
-            || empty($retention_arr['data_field']) ) {
+            || empty($retention_arr['date_field']) ) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Data retention record is invalid.'));
 
             return false;
@@ -123,9 +123,7 @@ class Phs_Data_retention extends PHS_Library
             return false;
         }
 
-        if ( !$this->_retention_mock_model->inject_data_retention_model(
-            $model_obj, $retention_arr['table'], $retention_arr['data_field'], $retention_arr['type']
-        ) ) {
+        if ( !$this->_retention_mock_model->inject_data_retention_model($model_obj, $retention_arr) ) {
             $this->copy_or_set_error($this->_retention_mock_model,
                 self::ERR_PARAMETERS, self::_t('Error setting up data retention model.'));
 

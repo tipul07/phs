@@ -3,7 +3,6 @@
 namespace phs\plugins\admin\actions\retention;
 
 use phs\PHS;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
@@ -212,7 +211,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             ],
             [
                 'column_title'        => $this->_pt('Field'),
-                'record_field'        => 'data_field',
+                'record_field'        => 'date_field',
                 'extra_style'         => 'text-align:center;',
                 'extra_records_style' => 'text-align:center;',
                 'invalid_value'       => $this->_pt('N/A'),

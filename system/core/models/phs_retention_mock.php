@@ -2,7 +2,9 @@
 
 namespace phs\system\core\models;
 
+use Generator;
 use phs\libraries\PHS_Model;
+use phs\libraries\PHS_Logger;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\plugins\admin\libraries\Phs_Data_retention;
 
@@ -17,11 +19,7 @@ class PHS_Model_Retention_mock extends PHS_Model
 
     private ?PHS_Model $_model_obj = null;
 
-    private string $_table_name = '';
-
-    private string $_data_field = '';
-
-    private int $_policy_type = 0;
+    private ?array $_retention_arr = null;
 
     public function get_model_version() : string
     {
@@ -30,25 +28,38 @@ class PHS_Model_Retention_mock extends PHS_Model
 
     public function get_table_names() : array
     {
-        if ( !$this->_load_dependencies()
-            || empty($this->_table_name)) {
+        if ( empty($this->_retention_arr['table'])
+             || !$this->_load_dependencies()) {
             return [];
         }
 
-        return [$this->_retention_lib->get_data_retention_table_name_from_table($this->_table_name)];
+        return [$this->_retention_lib->get_data_retention_table_name_from_table($this->_retention_arr['table'])];
     }
 
     public function get_main_table_name() : string
     {
-        if ( !$this->_load_dependencies()
-            || empty($this->_table_name)) {
+        if ( empty($this->_retention_arr['table'])
+             || !$this->_load_dependencies()) {
             return '';
         }
 
-        return $this->_retention_lib->get_data_retention_table_name_from_table($this->_table_name);
+        return $this->_retention_lib->get_data_retention_table_name_from_table($this->_retention_arr['table']);
     }
 
-    public function inject_data_retention_model(PHS_Model $model, string $table_name, string $data_field, int $policy_type) : bool
+    public function fields_definition($params = false) : ?array
+    {
+        if (empty($this->_retention_arr['table'])
+            || empty($this->_model_obj)
+            || empty($params['table_name'])
+            || !($table_name = $this->get_main_table_name())
+            || $table_name !== $params['table_name'] ) {
+            return null;
+        }
+
+        return $this->_model_obj->fields_definition(['table_name' => $this->_retention_arr['table']]);
+    }
+
+    public function inject_data_retention_model(PHS_Model $model, int | array $retention_data) : bool
     {
         $this->reset_error();
 
@@ -56,21 +67,26 @@ class PHS_Model_Retention_mock extends PHS_Model
             return false;
         }
 
-        if (empty($policy_type)
-           || !$this->_retention_model->valid_type($policy_type)) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('Please provide a valid data retention policy type.'));
+        if (empty($retention_data)
+           || !($retention_arr = $this->_retention_model->data_to_array($retention_data))
+            || $this->_retention_model->is_deleted($retention_arr)
+            || empty($retention_arr['type'])
+            || empty($retention_arr['table'])
+            || empty($retention_arr['date_field'])
+            || !$this->_retention_model->valid_type($retention_arr['type'])) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Please provide a valid data retention record.'));
 
             return false;
         }
 
+        $retention_arr['type'] = (int)$retention_arr['type'];
+
         $this->_model_obj = $model;
-        $this->_table_name = $table_name;
-        $this->_data_field = $data_field;
-        $this->_policy_type = $policy_type;
+        $this->_retention_arr = $retention_arr;
 
         $this->_reset_tables_definition();
 
-        if ($policy_type === $this->_retention_model::TYPE_DELETE) {
+        if ($retention_arr['type'] === $this->_retention_model::TYPE_DELETE) {
             return true;
         }
 
@@ -83,21 +99,23 @@ class PHS_Model_Retention_mock extends PHS_Model
     {
         $this->reset_error();
 
-        if (empty($this->_model_obj) || empty($this->_table_name)
-           || empty($this->_data_field) || empty($this->_policy_type)) {
-            $this->set_error_if_not_set(self::ERR_PARAMETERS, self::_t('For data retention, you have to inject details first.'));
+        if (empty($this->_model_obj) || empty($this->_retention_arr)
+            || empty($this->_retention_arr['table'])
+            || empty($this->_retention_arr['date_field'])
+            || empty($this->_retention_arr['type'])) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('For data retention, you have to inject details first.'));
 
             return null;
         }
 
-        if ( !($source_flow = $this->_model_obj->fetch_default_flow_params(['table_name' => $this->_table_name]))
+        if ( !($source_flow = $this->_model_obj->fetch_default_flow_params(['table_name' => $this->_retention_arr['table']]))
             || !($source_table_name = $this->_model_obj->get_flow_table_name($source_flow))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Error obtaining flow parameters for source.'));
 
             return null;
         }
 
-        if ( !($field_definition = $this->_model_obj->check_column_exists($this->_data_field, $source_flow))
+        if ( !($field_definition = $this->_model_obj->check_column_exists($this->_retention_arr['date_field'], $source_flow))
              || empty($field_definition['type'])
              || !in_array((int)$field_definition['type'], [self::FTYPE_DATE, self::FTYPE_DATETIME], true)
         ) {
@@ -118,18 +136,92 @@ class PHS_Model_Retention_mock extends PHS_Model
             $last_date .= ' 00:00:00';
         }
 
-        $query_condition = ' WHERE `'.$this->_data_field.'` < \''.$last_date.'\'';
+        $return_arr = [];
+        $return_arr['policy_type'] = (int)$this->_retention_arr['type'];
+        $return_arr['source_table'] = $this->_retention_arr['table'];
+        $return_arr['date_field'] = $this->_retention_arr['date_field'];
+        $return_arr['last_date'] = $last_date;
+        $return_arr['destination_table'] = '';
+        $return_arr['total_rows'] = 0;
+        $return_arr['affected_rows'] = 0;
+        $return_arr['run_record'] = null;
 
-        if ( $this->_policy_type === $this->_retention_model::TYPE_DELETE ) {
+        $query_condition = ' WHERE `'.$this->_retention_arr['date_field'].'` < \''.$last_date.'\'';
+
+        if ( !($qid = db_query('SELECT COUNT(*) AS total_rows FROM `'.$source_table_name.'` '.$query_condition, $source_flow['db_connection']))
+             || !($total_count = db_fetch_assoc($qid, $source_flow['db_connection']))) {
+            $error_msg = self::_t('Error querying source table for data.');
+
+            if ( !$this->_retention_model->start_retention_run(
+                $this->_retention_arr, $last_date, 0, true, error: $error_msg
+            ) ) {
+                PHS_Logger::error('Error saving data retention run for record #'.$this->_retention_arr['id'].': '
+                                  .$error_msg, $this->_admin_plugin::LOG_DATA_RETENTION);
+            }
+
+            $this->set_error(self::ERR_FUNCTIONALITY, $error_msg);
+
+            return null;
+        }
+
+        if ( empty( $total_count['total_rows'] ) ) {
+            if ( !($run_record = $this->_retention_model->start_retention_run(
+                $this->_retention_arr, $last_date, 0, true
+            )) ) {
+                PHS_Logger::error('Error saving data retention run for record #'.$this->_retention_arr['id'].': '
+                                  .'No records to move.', $this->_admin_plugin::LOG_DATA_RETENTION);
+            }
+
+            $return_arr['run_record'] = $run_record;
+
+            return $return_arr;
+        }
+
+        $return_arr['total_rows'] = (int)$total_count['total_rows'];
+
+        if ( !($run_record = $this->_retention_model->start_retention_run($this->_retention_arr, $last_date, $return_arr['total_rows'])) ) {
+            PHS_Logger::error('Error saving data retention run for record #'.$this->_retention_arr['id'].': '
+                              .$this->_retention_model->get_simple_error_message('Unknown error.'),
+                $this->_admin_plugin::LOG_DATA_RETENTION);
+        }
+
+        $return_arr['run_record'] = $run_record;
+
+        if ( $this->_retention_arr['type'] === $this->_retention_model::TYPE_DELETE ) {
             if ( !db_query('DELETE FROM `'.$source_table_name.'` '.$query_condition, $source_flow['db_connection']) ) {
-                $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error deleting data from source table.'));
+                $error_msg = self::_t('Error deleting data from source table.');
+
+                if ( !empty($run_record)
+                    && !$this->_retention_model->update_retention_run(
+                        $run_record, 0, true, $error_msg
+                    ) ) {
+                    PHS_Logger::error('Error saving data retention run for record RD#'.$this->_retention_arr['id'].', #'.$run_record['id'].': '
+                                      .$error_msg.'; '
+                                      .$this->_retention_model->get_simple_error_message('Unknown error.'),
+                        $this->_admin_plugin::LOG_DATA_RETENTION);
+                }
+
+                $this->set_error(self::ERR_FUNCTIONALITY, $error_msg);
 
                 return null;
             }
 
-            return [
-                'affected_rows' => db_affected_rows($source_flow['db_connection']) ?: 0,
-            ];
+            $return_arr['affected_rows'] = db_affected_rows($source_flow['db_connection']) ?: 0;
+
+            if ( !empty($run_record)
+                && !($new_run_record = $this->_retention_model->update_retention_run(
+                    $run_record, $return_arr['affected_rows'], true, null
+                )) ) {
+                PHS_Logger::error('Error saving data retention run for record RD#'.$this->_retention_arr['id'].', #'.$run_record['id'].': '
+                                  .$this->_retention_model->get_simple_error_message('Unknown error.'),
+                    $this->_admin_plugin::LOG_DATA_RETENTION);
+            }
+
+            if (!empty($new_run_record)) {
+                $return_arr['run_record'] = $new_run_record;
+            }
+
+            return $return_arr;
         }
 
         if ( !($destination_table = $this->get_main_table_name())
@@ -140,31 +232,98 @@ class PHS_Model_Retention_mock extends PHS_Model
             return null;
         }
 
-        if ( !($qid = db_query('SELECT * FROM `'.$source_table_name.'` '.$query_condition, $source_flow['db_connection'])) ) {
-            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error selecting data from source table.'));
-
-            return null;
+        $new_run_record = null;
+        if ( !empty($run_record)
+            && !($new_run_record = $this->_retention_model->update_retention_run(
+                $run_record, 0, destination_table: $destination_table
+            )) ) {
+            PHS_Logger::error('Error saving data retention run for record RD#'.$this->_retention_arr['id'].', #'.$run_record['id'].': '
+                              .'Error updating destination table; '
+                              .$this->_retention_model->get_simple_error_message('Unknown error.'),
+                $this->_admin_plugin::LOG_DATA_RETENTION);
         }
 
-        var_dump(@mysqli_num_rows($qid));
-        exit;
+        if ( !empty($new_run_record)) {
+            $run_record = $new_run_record;
+            $return_arr['run_record'] = $run_record;
+        }
 
-        return [
-            'affected_rows' => db_affected_rows($source_flow['db_connection']) ?: 0,
-        ];
+        $return_arr['destination_table'] = $destination_table;
+
+        $source_id_key = $this->_model_obj->get_primary_key(['table_name' => $this->_retention_arr['table']]);
+
+        $sql = 'SELECT * FROM `'.$source_table_name.'` '.$query_condition;
+
+        $knti = 0;
+        foreach ($this->_get_records_from_query_as_generator($sql, $source_flow['db_connection']) as $source_arr) {
+            if (empty($source_arr)) {
+                break;
+            }
+
+            $knti++;
+            if (!empty($run_record)
+                && !($knti % 50)
+                && ($new_run_record = $this->_retention_model->update_retention_run($run_record, $knti))) {
+                $run_record = $new_run_record;
+            }
+
+            // Make sure we don't duplicate destination
+            if (empty($source_arr[$source_id_key])
+                || (($check_qid = db_query('SELECT 1 as it_exists FROM `'.$destination_table_name.'` '
+                                           .'WHERE `'.$source_id_key.'` = \''.$source_arr[$source_id_key].'\' LIMIT 0, 1',
+                    $destination_flow['db_connection']))
+                    && ($check_result = db_fetch_assoc($check_qid, $destination_flow['db_connection']))
+                    && !empty($check_result['it_exists'])
+                )
+            ) {
+                continue;
+            }
+
+            // Low level query
+            if (!($sql = db_quick_insert($destination_table_name, $source_arr, $destination_flow['db_connection']))
+                || !($item_id = db_query_insert($sql, $destination_flow['db_connection']))) {
+                PHS_Logger::error('Error moving #'.$source_arr[$source_id_key].' from '.$this->_retention_arr['table'].' to '.$destination_table.'.',
+                    $this->_admin_plugin::LOG_DATA_RETENTION);
+            }
+        }
+        $return_arr['affected_rows'] = $knti;
+
+        if (!empty($run_record)
+            && ($new_run_record = $this->_retention_model->update_retention_run(
+                $run_record, $knti, true, null))
+        ) {
+            $run_record = $new_run_record;
+        }
+
+        // Once we moved data to archive, delete from source
+        if ( !db_query('DELETE FROM `'.$source_table_name.'` '.$query_condition, $source_flow['db_connection']) ) {
+            PHS_Logger::error('Error deleting data from source for Policy#'.$this->_retention_arr['id'].', Run#'.($run_record['id'] ?? 'N/A').'.',
+                $this->_admin_plugin::LOG_DATA_RETENTION);
+        }
+
+        if ( !empty($run_record)) {
+            $return_arr['run_record'] = $run_record;
+        }
+
+        return $return_arr;
     }
 
-    public function fields_definition($params = false) : ?array
+    private function _get_records_from_query_as_generator(string $query, bool | string $db_connection, int $step = 500) : ?Generator
     {
-        if (empty($this->_table_name)
-           || empty($this->_model_obj)
-           || empty($params['table_name'])
-           || !($table_name = $this->get_main_table_name())
-           || $table_name !== $params['table_name'] ) {
-            return null;
-        }
+        for ($offset = 0; ; $offset += $step) {
+            if (!($qid = db_query($query.' LIMIT '.$offset.', '.$step, $db_connection))
+                || !($records_count = db_num_rows($qid, $db_connection))) {
+                return null;
+            }
 
-        return $this->_model_obj->fields_definition(['table_name' => $this->_table_name]);
+            while (($record_arr = db_fetch_assoc($qid, $db_connection))) {
+                yield $record_arr;
+            }
+
+            if ($records_count < $step) {
+                return null;
+            }
+        }
     }
 
     private function _reset_tables_definition() : void

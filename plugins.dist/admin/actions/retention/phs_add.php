@@ -61,7 +61,7 @@ class PHS_Action_Add extends PHS_Action
         $plugin = PHS_Params::_p('plugin', PHS_Params::T_NOHTML) ?: null;
         $model = PHS_Params::_p('model', PHS_Params::T_NOHTML);
         $table = PHS_Params::_p('table', PHS_Params::T_NOHTML);
-        $data_field = PHS_Params::_p('data_field', PHS_Params::T_NOHTML);
+        $date_field = PHS_Params::_p('date_field', PHS_Params::T_NOHTML);
         $type = PHS_Params::_p('type', PHS_Params::T_INT) ?? 0;
         $retention_interval = PHS_Params::_p('retention_interval', PHS_Params::T_NOHTML);
         $retention_count = PHS_Params::_p('retention_count', PHS_Params::T_INT) ?? 0;
@@ -89,15 +89,15 @@ class PHS_Action_Add extends PHS_Action
                 && !in_array($model, $models_arr, true))
             || (!empty($table)
                 && !in_array($table, $tables_arr, true))
-            || (!empty($data_field)
-                && !in_array($data_field, $fields_arr, true))
+            || (!empty($date_field)
+                && !in_array($date_field, $fields_arr, true))
         ) {
             $plugin_obj = null;
             $model_obj = null;
             $plugin = null;
             $model = '';
             $table = '';
-            $data_field = '';
+            $date_field = '';
 
             if ( isset($do_submit) ) {
                 unset($do_submit);
@@ -116,7 +116,7 @@ class PHS_Action_Add extends PHS_Action
                 $insert_arr['plugin'] = $plugin !== PHS_Instantiable::CORE_PLUGIN ? $plugin : null;
                 $insert_arr['model'] = $model;
                 $insert_arr['table'] = $table;
-                $insert_arr['data_field'] = $data_field;
+                $insert_arr['date_field'] = $date_field;
                 $insert_arr['type'] = $type;
                 $insert_arr['retention'] = $retention;
 
@@ -136,7 +136,7 @@ class PHS_Action_Add extends PHS_Action
             'plugin'             => $plugin,
             'model'              => $model,
             'table'              => $table,
-            'data_field'         => $data_field,
+            'date_field'         => $date_field,
             'type'               => $type,
             'retention_interval' => $retention_interval,
             'retention_count'    => $retention_count,

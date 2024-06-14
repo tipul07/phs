@@ -17,7 +17,7 @@ $model_obj = $this->view_var('model_obj') ?: null;
 $plugin = $this->view_var('plugin') ?: null;
 $model = $this->view_var('model') ?: null;
 $table = $this->view_var('table') ?: null;
-$data_field = $this->view_var('data_field') ?: null;
+$date_field = $this->view_var('date_field') ?: null;
 $type = (int)($this->view_var('type') ?: 0);
 $retention_interval = $this->view_var('retention_interval') ?: null;
 $retention_count = (int)($this->view_var('retention_count') ?: 0);
@@ -111,20 +111,20 @@ if ( empty($model)) {
         </div>
 
         <div class="form-group row">
-            <label for="data_field" class="col-sm-2 col-form-label"><?php echo $this->_pt('Date field'); ?></label>
+            <label for="date_field" class="col-sm-2 col-form-label"><?php echo $this->_pt('Date field'); ?></label>
             <div class="col-sm-10">
                 <?php
 if ( empty($table)) {
     echo $this::_t('Select a table first.');
 } else {
     ?>
-                    <select name="data_field" id="data_field" class="chosen-select" style="width:400px;">
+                    <select name="date_field" id="date_field" class="chosen-select" style="width:400px;">
                     <option value=""><?php echo $this::_t(' - Choose - '); ?></option>
                     <?php
     foreach ($fields_arr as $field_name) {
         ?>
                         <option value="<?php echo form_str($field_name); ?>"
-                            <?php echo $data_field === $field_name ? 'selected="selected"' : ''; ?>
+                            <?php echo $date_field === $field_name ? 'selected="selected"' : ''; ?>
                         ><?php echo $field_name; ?></option>
                         <?php
     }

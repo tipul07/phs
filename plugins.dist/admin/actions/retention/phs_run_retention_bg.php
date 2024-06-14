@@ -48,6 +48,23 @@ class PHS_Action_Run_retention_bg extends PHS_Action
             return null;
         }
 
+        PHS_Logger::notice('[START] Running data retention policy #'.$retention_arr['id'].'.',
+            $admin_plugin::LOG_DATA_RETENTION);
+
+        if ( !($result = $retention_lib->run_data_retention($retention_arr)) ) {
+            PHS_Logger::error('[ERROR] Error running data retention policy #'.$retention_arr['id'].': '
+                              .$retention_lib->get_simple_error_message($this->_pt('Error running data retention migration.')),
+                $admin_plugin::LOG_DATA_RETENTION);
+
+            return PHS_Action::default_action_result();
+        }
+
+        PHS_Logger::notice('[END] Finished running data retention policy #'.$retention_arr['id'].': '
+                          .'from: '.$result['source_table'].', '
+                          .'to: '.($result['destination_table'] ?: 'N/A').', '
+                          .'action: '.($retention_model->get_type_title($result['policy_type']) ?: 'N/A').', '
+                          .'affected rows: '.$result['affected_rows'].'/'.$result['total_rows'], $admin_plugin::LOG_DATA_RETENTION);
+
         return PHS_Action::default_action_result();
     }
 }
