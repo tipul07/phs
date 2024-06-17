@@ -199,7 +199,7 @@ if ($can_list_data_retention || $can_manage_data_retention) {
     <li><?php echo $this::_t('Data Retention'); ?>
         <ul>
             <?php
-            if ($can_manage_api_keys) {
+            if ($can_manage_data_retention) {
                 ?>
                 <li><a href="<?php echo PHS::url(['a' => 'add', 'ad' => 'retention', 'p' => 'admin']); ?>"
                     ><?php echo $this::_t('Add Data Retention Policy'); ?></a></li>
@@ -208,6 +208,8 @@ if ($can_list_data_retention || $can_manage_data_retention) {
     ?>
             <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'retention', 'p' => 'admin']); ?>"
                 ><?php echo $this::_t('List Data Retention Policies'); ?></a></li>
+            <li><a href="<?php echo PHS::url(['a' => 'list_runs', 'ad' => 'retention', 'p' => 'admin']); ?>"
+                ><?php echo $this::_t('Data Retention Policies Runs'); ?></a></li>
         </ul>
     </li>
     <?php

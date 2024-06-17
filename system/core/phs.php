@@ -1971,11 +1971,8 @@ final class PHS extends PHS_Registry
         elseif (!($controller_obj = self::load_controller($route_details[self::ROUTE_CONTROLLER], $route_details[self::ROUTE_PLUGIN]))) {
             self::st_set_error(self::ERR_EXECUTE_ROUTE, self::_t('Couldn\'t obtain controller instance for %s.', $route_details[self::ROUTE_CONTROLLER]));
         } elseif (!($action_result = $controller_obj->run_action($route_details[self::ROUTE_ACTION], null, $route_details[self::ROUTE_ACTION_DIR]))) {
-            if ($controller_obj->has_error()) {
-                self::st_copy_error($controller_obj);
-            } else {
-                self::st_set_error(self::ERR_EXECUTE_ROUTE, self::_t('Error executing action [%s].', $route_details[self::ROUTE_ACTION]));
-            }
+            self::st_copy_or_set_error($controller_obj,
+                self::ERR_EXECUTE_ROUTE, self::_t('Error executing action [%s].', $route_details[self::ROUTE_ACTION]));
         }
 
         if (self::st_has_error()) {
@@ -2453,7 +2450,13 @@ final class PHS extends PHS_Registry
         }
 
         /** @var PHS_Action */
-        if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_ACTION, true, $action_dir))) {
+        if (!($instance_obj = PHS_Instantiable::get_instance_for_loads(
+            $class_name,
+            $plugin,
+            PHS_Instantiable::INSTANCE_TYPE_ACTION,
+            true,
+            $action_dir))
+        ) {
             self::st_set_error_if_not_set(self::ERR_LOAD_ACTION,
                 self::_t('Couldn\'t obtain instance for action %s from plugin %s.',
                     ($action_dir !== '' ? $action_dir.'/' : '').$action,

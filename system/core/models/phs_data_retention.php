@@ -196,7 +196,7 @@ class PHS_Model_Data_retention extends PHS_Model
 
         if (empty($record_data)
             || !($record_arr = $this->data_to_array($record_data))
-            || $this->is_deleted($record_arr)) {
+            || !$this->is_active($record_arr)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Data retention not found in database.'));
 
             return null;
@@ -252,6 +252,8 @@ class PHS_Model_Data_retention extends PHS_Model
             return null;
         }
 
+        $now_date = date(self::DATETIME_DB);
+
         $edit_params = $this->fetch_default_flow_params(['table_name' => 'phs_data_retention_runs']);
         $edit_params['fields'] = [];
         if ( !empty($destination_table) ) {
@@ -261,9 +263,10 @@ class PHS_Model_Data_retention extends PHS_Model
             $edit_params['fields']['error'] = $error;
         }
         if ( !empty($also_finish) ) {
-            $edit_params['fields']['end_date'] = date(self::DATETIME_DB);
+            $edit_params['fields']['end_date'] = $now_date;
         }
 
+        $edit_params['fields']['update_date'] = $now_date;
         $edit_params['fields']['current_records'] = $current_records;
 
         if (!($new_record = $this->edit($record_arr, $edit_params))) {
@@ -584,7 +587,8 @@ class PHS_Model_Data_retention extends PHS_Model
                         'type' => self::FTYPE_INT,
                     ],
                     'start_date' => [
-                        'type' => self::FTYPE_DATETIME,
+                        'type'  => self::FTYPE_DATETIME,
+                        'index' => true,
                     ],
                     'update_date' => [
                         'type' => self::FTYPE_DATETIME,

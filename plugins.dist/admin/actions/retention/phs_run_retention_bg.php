@@ -1,6 +1,6 @@
 <?php
 
-namespace phs\plugins\admin\actions;
+namespace phs\plugins\admin\actions\retention;
 
 use phs\PHS;
 use phs\PHS_Scope;
@@ -25,45 +25,36 @@ class PHS_Action_Run_retention_bg extends PHS_Action
     public function execute() : ?array
     {
         if (!($params = PHS_bg_jobs::get_current_job_parameters())
-            || empty($params['retention_id'])) {
-            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Data retention not found in database.'));
+            || empty($params['retention_ids'])
+            || !($retention_ids = self::extract_integers_from_array($params['retention_ids']))) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Data retention details not provided.'));
 
             return null;
         }
 
         /** @var PHS_Plugin_Admin $admin_plugin */
-        /** @var PHS_Model_Data_retention $retention_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
-            || !($retention_lib = $admin_plugin->get_data_retention_instance())
-            || !($retention_model = PHS_Model_Data_retention::get_instance())) {
+            || !($retention_lib = $admin_plugin->get_data_retention_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return null;
         }
 
-        if (!($retention_arr = $retention_model->get_details($params['retention_id']))
-            || $retention_model->is_deleted($retention_arr)) {
-            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Data retention not found in database.'));
-
-            return null;
-        }
-
-        PHS_Logger::notice('[START] Running data retention policy #'.$retention_arr['id'].'.',
+        PHS_Logger::notice('[START] Running '.count($retention_ids).' data retention policies.',
             $admin_plugin::LOG_DATA_RETENTION);
 
-        if ( !($result = $retention_lib->run_data_retention($retention_arr)) ) {
-            PHS_Logger::error('[ERROR] Error running data retention policy #'.$retention_arr['id'].': '
-                              .$retention_lib->get_simple_error_message($this->_pt('Error running data retention migration.')),
+        if ( !($result = $retention_lib->run_data_retention_for_list_bg($retention_ids)) ) {
+            PHS_Logger::error('[ERROR] Error running data retention policies: '
+                              .$retention_lib->get_simple_error_message($this->_pt('Unknown error.')),
                 $admin_plugin::LOG_DATA_RETENTION);
 
             return PHS_Action::default_action_result();
         }
 
-        PHS_Logger::notice('[END] Finished running data retention policy #'.$retention_arr['id'].': '
-                          .'from: '.$result['source_table'].', '
-                          .'to: '.($result['destination_table'] ?: 'N/A').', '
-                          .'action: '.($retention_model->get_type_title($result['policy_type']) ?: 'N/A').', '
-                          .'affected rows: '.$result['affected_rows'].'/'.$result['total_rows'], $admin_plugin::LOG_DATA_RETENTION);
+        PHS_Logger::notice('[END] Finished running '.count($retention_ids).' data retention policies: '
+                           .'policies with errors: '.$result['error_policies'].', '
+                           .'affected rows: '.$result['affected_rows'].'/'.$result['total_rows'],
+            $admin_plugin::LOG_DATA_RETENTION);
 
         return PHS_Action::default_action_result();
     }

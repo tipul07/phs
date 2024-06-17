@@ -185,6 +185,10 @@ class PHS_Model_Retention_mock extends PHS_Model
                 $this->_admin_plugin::LOG_DATA_RETENTION);
         }
 
+        PHS_Logger::notice('Data retention run for record RD#'.$this->_retention_arr['id'].', #'.$run_record['id'].' '
+                           .' on '.$return_arr['total_rows'].' records...',
+            $this->_admin_plugin::LOG_DATA_RETENTION);
+
         $return_arr['run_record'] = $run_record;
 
         if ( $this->_retention_arr['type'] === $this->_retention_model::TYPE_DELETE ) {
@@ -220,6 +224,10 @@ class PHS_Model_Retention_mock extends PHS_Model
             if (!empty($new_run_record)) {
                 $return_arr['run_record'] = $new_run_record;
             }
+
+            PHS_Logger::notice('Finished data retention run for record RD#'.$this->_retention_arr['id'].', #'.$run_record['id'].' '
+                               .' on '.$return_arr['total_rows'].' records...',
+                $this->_admin_plugin::LOG_DATA_RETENTION);
 
             return $return_arr;
         }
@@ -304,6 +312,10 @@ class PHS_Model_Retention_mock extends PHS_Model
         if ( !empty($run_record)) {
             $return_arr['run_record'] = $run_record;
         }
+
+        PHS_Logger::notice('Finished data retention run for record RD#'.$this->_retention_arr['id'].', #'.$run_record['id'].' '
+                           .' on '.$return_arr['total_rows'].' records...',
+            $this->_admin_plugin::LOG_DATA_RETENTION);
 
         return $return_arr;
     }

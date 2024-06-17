@@ -9,6 +9,7 @@ use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\admin\libraries\Phs_Data_retention;
 use phs\system\core\models\PHS_Model_Data_retention;
 
 /** @property PHS_Model_Data_retention $_paginator_model */
@@ -16,16 +17,20 @@ class PHS_Action_List extends PHS_Action_Generic_list
 {
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
+    private ?Phs_Data_retention $_data_retention_lib = null;
+
     private ?PHS_Model_Accounts $_accounts_model = null;
 
     public function load_depencies() : bool
     {
         if ((empty($this->_admin_plugin)
              && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-         || (empty($this->_accounts_model)
-             && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
-         || (empty($this->_paginator_model)
-             && !($this->_paginator_model = PHS_Model_Data_retention::get_instance()))
+            || (empty($this->_data_retention_lib)
+                && !($this->_data_retention_lib = $this->_admin_plugin->get_data_retention_instance()))
+            || (empty($this->_accounts_model)
+                && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
+            || (empty($this->_paginator_model)
+                && !($this->_paginator_model = PHS_Model_Data_retention::get_instance()))
         ) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
 
@@ -102,6 +107,12 @@ class PHS_Action_List extends PHS_Action_Generic_list
             $bulk_actions = null;
         } else {
             $bulk_actions = [
+                [
+                    'display_name'    => $this->_pt('Run'),
+                    'action'          => 'bulk_run_policies',
+                    'js_callback'     => 'phs_data_retention_list_bulk_run_policies',
+                    'checkbox_column' => 'id',
+                ],
                 [
                     'display_name'    => $this->_pt('Inactivate'),
                     'action'          => 'bulk_inactivate',
@@ -301,6 +312,74 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
 
                 return true;
+            case 'bulk_run_policies':
+                if (!empty($action['action_result'])) {
+                    if ($action['action_result'] === 'success') {
+                        PHS_Notifications::add_success_notice($this->_pt('Required data retention policies launched with success.'));
+                    } elseif ($action['action_result'] === 'failed') {
+                        PHS_Notifications::add_error_notice($this->_pt('Launching selected data retention policies failed. Please try again.'));
+                    } elseif ($action['action_result'] === 'failed_some') {
+                        PHS_Notifications::add_error_notice($this->_pt('Failed launched all selected data retention policies. Data retention policies which failed launching are still selected. Please try again.'));
+                    }
+
+                    return true;
+                }
+
+                if (!$this->_admin_plugin->can_admin_manage_data_retention()) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
+
+                    return false;
+                }
+
+                if (!($scope_arr = $this->_paginator->get_scope())
+                    || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
+                    || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
+                    || !($scope_key = @sprintf($ids_checkboxes_name, 'id'))
+                    || !($scope_all_key = @sprintf($ids_all_checkbox_name, 'id'))
+                    || empty($scope_arr[$scope_key])
+                    || !is_array($scope_arr[$scope_key])) {
+                    return true;
+                }
+
+                $running_ids_arr = [];
+                $remaining_ids_arr = [];
+                foreach ($scope_arr[$scope_key] as $record_id) {
+                    if (!$this->_paginator_model->is_active($record_id)) {
+                        $remaining_ids_arr[] = $record_id;
+                    } else {
+                        $running_ids_arr[] = $record_id;
+                    }
+                }
+
+                if (isset($scope_arr[$scope_all_key])) {
+                    unset($scope_arr[$scope_all_key]);
+                }
+
+                $result = null;
+                if ( !empty($running_ids_arr)
+                    && ($result = $this->_data_retention_lib->run_data_retention_for_list($running_ids_arr)) ) {
+                }
+
+                if (!empty($remaining_ids_arr)) {
+                    $scope_arr[$scope_key] = implode(',', $remaining_ids_arr);
+                }
+
+                if (empty($remaining_ids_arr)
+                    && !empty($result)) {
+                    $action_result_params['action_result'] = 'success';
+
+                    unset($scope_arr[$scope_key]);
+                } else {
+                    if (count($running_ids_arr) !== count($scope_arr[$scope_key])) {
+                        $action_result_params['action_result'] = 'failed_some';
+                    } else {
+                        $action_result_params['action_result'] = 'failed';
+                    }
+                }
+
+                $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
+                break;
+
             case 'bulk_activate':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
@@ -478,6 +557,41 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
                 break;
 
+            case 'run_record':
+                if (!empty($action['action_result'])) {
+                    if ($action['action_result'] === 'success') {
+                        PHS_Notifications::add_success_notice($this->_pt('Data retention policy launched with success.'));
+                    } elseif ($action['action_result'] === 'failed') {
+                        PHS_Notifications::add_error_notice($this->_pt('Launching data retention policy failed. Please try again.'));
+                    }
+
+                    return true;
+                }
+
+                if (!$this->_admin_plugin->can_admin_manage_data_retention()) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
+
+                    return false;
+                }
+
+                if (!empty($action['action_params'])) {
+                    $action['action_params'] = (int)$action['action_params'];
+                }
+
+                if (empty($action['action_params'])
+                    || !($record_arr = $this->_paginator_model->get_details($action['action_params']))) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('Cannot launch data retention policy. Data retention policy not found.'));
+
+                    return false;
+                }
+
+                if (!$this->_data_retention_lib->run_data_retention($record_arr)) {
+                    $action_result_params['action_result'] = 'failed';
+                } else {
+                    $action_result_params['action_result'] = 'success';
+                }
+                break;
+
             case 'activate_record':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
@@ -500,13 +614,13 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 if (empty($action['action_params'])
-                    || !($apikey_arr = $this->_paginator_model->get_details($action['action_params']))) {
+                    || !($record_arr = $this->_paginator_model->get_details($action['action_params']))) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Cannot activate data retention policy. Data retention policy not found.'));
 
                     return false;
                 }
 
-                if (!$this->_paginator_model->act_activate($apikey_arr)) {
+                if (!$this->_paginator_model->act_activate($record_arr)) {
                     $action_result_params['action_result'] = 'failed';
                 } else {
                     $action_result_params['action_result'] = 'success';
@@ -535,13 +649,13 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 if (empty($action['action_params'])
-                    || !($apikey_arr = $this->_paginator_model->get_details($action['action_params']))) {
+                    || !($record_arr = $this->_paginator_model->get_details($action['action_params']))) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Cannot inactivate data retention policy. Data retention policy not found.'));
 
                     return false;
                 }
 
-                if (!$this->_paginator_model->act_inactivate($apikey_arr)) {
+                if (!$this->_paginator_model->act_inactivate($record_arr)) {
                     $action_result_params['action_result'] = 'failed';
                 } else {
                     $action_result_params['action_result'] = 'success';
@@ -570,13 +684,13 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 if (empty($action['action_params'])
-                    || !($apikey_arr = $this->_paginator_model->get_details($action['action_params']))) {
+                    || !($record_arr = $this->_paginator_model->get_details($action['action_params']))) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Cannot delete data retention policy. Data retention policy not found.'));
 
                     return false;
                 }
 
-                if (!$this->_paginator_model->act_delete($apikey_arr)) {
+                if (!$this->_paginator_model->act_delete($record_arr)) {
                     $action_result_params['action_result'] = 'failed';
                 } else {
                     $action_result_params['action_result'] = 'success';
@@ -618,52 +732,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
             : $retention_arr['count'].' '.$interval_arr['title'];
     }
 
-    public function display_apikey_account($params)
-    {
-        if (empty($params)
-            || !is_array($params)
-            || empty($params['record']) || !is_array($params['record'])) {
-            return false;
-        }
-
-        if (empty($params['record']['uid'])) {
-            return '-';
-        }
-
-        $paginator_obj = $this->_paginator;
-
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $paginator_obj::CELL_RENDER_JSON:
-                case $paginator_obj::CELL_RENDER_TEXT:
-
-                    return $params['record']['uid'].' / '.$params['record']['account_nick'].' / '.$params['record']['account_email'];
-                    break;
-            }
-        }
-
-        return $params['record']['account_nick'].' (#'.$params['record']['uid'].')<br/>'
-               .$params['record']['account_email'];
-    }
-
-    public function display_tenant($params)
-    {
-        if (empty($params)
-            || empty($params['record']['id'])) {
-            return false;
-        }
-
-        if (empty($params['record']['tenant_id'])) {
-            return $this->_pt('ALL');
-        }
-
-        if (empty($this->_tenants_list_arr[$params['record']['tenant_id']])) {
-            return $this->_pt('Invalid');
-        }
-
-        return $this->_tenants_list_arr[$params['record']['tenant_id']];
-    }
-
     public function display_actions($params) : ?string
     {
         if (empty($this->_paginator_model) && !$this->load_depencies()) {
@@ -700,11 +768,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
             ?>
             <a href="javascript:void(0)" onclick="phs_data_retention_list_inactivate_record( '<?php echo $retention_arr['id']; ?>' )"
             ><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt('Inactivate data retention policy'); ?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_data_retention_list_run_record( '<?php echo $retention_arr['id']; ?>' )"
+            ><i class="fa fa-fast-forward action-icons" title="<?php echo $this->_pt('Run data retention policy'); ?>"></i></a>
             <?php
         }
 
         if (!$this->_paginator_model->is_deleted($retention_arr)) {
             ?>
+            <br/>
             <a href="javascript:void(0)" onclick="phs_data_retention_list_delete_record( '<?php echo $retention_arr['id']; ?>' )"
             ><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt('Delete data retention policy'); ?>"></i></a>
             <?php
@@ -771,6 +842,20 @@ class PHS_Action_List extends PHS_Action_Generic_list
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
             }
+            function phs_data_retention_list_run_record( id )
+            {
+                if( !confirm( "<?php echo $this->_pte('Are you sure you want to run this data retention policy?'); ?>" ) ) {
+                    return
+                }
+
+                <?php
+        $url_params = [];
+        $url_params['action'] = [
+            'action'        => 'run_record',
+            'action_params' => '" + id + "',
+        ];
+        ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
+            }
             function phs_data_retention_list_delete_record( id )
             {
                 if( !confirm( "<?php echo $this->_pte('Are you sure you want to DELETE this data retention policy?'); ?>" + "\n" +
@@ -826,6 +911,25 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 if( !confirm( "<?php echo $this->_pt('Are you sure you want to inactivate %s data retention policies?', '" + total_checked + "'); ?>" ) ) {
+                    return false;
+                }
+
+                let form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+                if( form_obj ) {
+                    form_obj.submit();
+                }
+            }
+
+            function phs_data_retention_list_bulk_run_policies()
+            {
+                const total_checked = phs_data_retention_list_get_checked_ids_count();
+
+                if( !total_checked ) {
+                    alert( "<?php echo $this->_pte('Please select data retention policies you want to run first.'); ?>" );
+                    return false;
+                }
+
+                if( !confirm( "<?php echo $this->_pt('Are you sure you want to run %s data retention policies?', '" + total_checked + "'); ?>" ) ) {
                     return false;
                 }
 

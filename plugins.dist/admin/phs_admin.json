@@ -25,8 +25,7 @@
                 "action_dir": "retention"
             },
             "timed_seconds": 3600,
-            "stalling_minutes": 15,
-            "stalling_minutes_comment": "MINUTES!!! Depending on traffic, there might be lots of session files which can take lots of time..."
+            "stalling_minutes": 15
         }
     }
 }
