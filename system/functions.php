@@ -16,7 +16,7 @@ use phs\system\core\libraries\PHS_Migrations_manager;
 
 function phs_version() : string
 {
-    return '1.2.1.0';
+    return '1.2.2.0';
 }
 
 // region Helper functions
