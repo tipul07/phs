@@ -505,8 +505,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         $this->reset_error();
 
         if (!($db_details = $this->get_current_user_db_details())
-         || empty($db_details['session_db_data'])
-         || !is_array($db_details['session_db_data'])
          || empty($db_details['session_db_data']['id'])
          || empty($db_details['session_db_data']['auid'])) {
             return true;

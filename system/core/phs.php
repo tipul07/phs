@@ -3148,7 +3148,7 @@ final class PHS extends PHS_Registry
      */
     public static function tick_handler()
     {
-        var_dump(self::st_debug_call_backtrace(1));
+        // var_dump(self::st_debug_call_backtrace(1));
     }
 
     private static function reset_registry() : void

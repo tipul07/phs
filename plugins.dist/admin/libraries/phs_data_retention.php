@@ -206,15 +206,18 @@ class Phs_Data_retention extends PHS_Library
         /** @var PHS_Model $model_obj */
         $plugin = $retention_arr['plugin'] ?? null;
         if ( empty($retention_arr['model'])
-            || empty($retention_arr['table'])
-            || empty($retention_arr['date_field'])
-            || (!empty($plugin)
-                && (!($plugin_obj = PHS::load_plugin($plugin))
-                    || !$plugin_obj->plugin_active()))
-            || !($model_obj = PHS::load_model($retention_arr['model'], $plugin))
-            || !($field_definition = $model_obj->check_column_exists($retention_arr['date_field'], ['table_name' => $retention_arr['table']]))
-            || empty($field_definition['type'])
-            || !in_array($field_definition['type'], [$model_obj::FTYPE_DATE, $model_obj::FTYPE_DATETIME], true)
+             || empty($retention_arr['table'])
+             || empty($retention_arr['date_field'])
+             || (!empty($plugin)
+                 && (!($plugin_obj = PHS::load_plugin($plugin))
+                     || !$plugin_obj->plugin_active()))
+             || !($model_obj = PHS::load_model($retention_arr['model'], $plugin))
+             || !($flow_arr = $model_obj->fetch_default_flow_params(['table_name' => $retention_arr['table']]))
+             || !$model_obj->set_maintenance_database_credentials($flow_arr)
+             || !($field_definition = $model_obj->check_column_exists($retention_arr['date_field'], $flow_arr))
+             || empty($field_definition['type'])
+             || !in_array($field_definition['type'], [$model_obj::FTYPE_DATE, $model_obj::FTYPE_DATETIME], true)
+             || !$model_obj->reset_maintenance_database_credentials($flow_arr)
         ) {
             $this->set_error(self::ERR_PARAMETERS,
                 $this->_pt('Data retention configuration is invalid.'));

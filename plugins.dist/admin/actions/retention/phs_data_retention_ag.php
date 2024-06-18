@@ -46,7 +46,7 @@ class PHS_Action_Data_retention_ag extends PHS_Action
         $list_arr['fields']['status'] = $retention_model::STATUS_ACTIVE;
 
         if ( !($retentions_arr = $retention_model->get_list($list_arr)) ) {
-            PHS_Logger::logf('No data retention plocies to be run.',
+            PHS_Logger::logf('[AGENT] No data retention plocies to be run.',
                 $admin_plugin::LOG_DATA_RETENTION);
 
             return self::default_action_result();

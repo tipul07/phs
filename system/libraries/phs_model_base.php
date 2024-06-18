@@ -28,6 +28,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
     protected array $model_tables_arr = [];
 
+    private ?array $_old_db_settings = null;
+
     protected static array $tables_arr = [];
 
     //
@@ -667,16 +669,16 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * Retrieve a data array that should be a structure copy of a record retrieved from table definition with default/[empty|void] values
      *
-     * @param bool|array $params Flow parameters
+     * @param null|bool|array $params Flow parameters
      *
      * @return array|bool Empty data array or false on failure
      */
-    public function get_empty_data($params = false)
+    public function get_empty_data(null | bool | array $params = [])
     {
         $this->reset_error();
 
         if (!($params = $this->fetch_default_flow_params($params))
-         || !($table_fields = $this->get_definition($params))) {
+            || !($table_fields = $this->get_definition($params))) {
             $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Invalid table definition.'));
 
             return false;
@@ -721,7 +723,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         $this->reset_error();
 
         $table = false;
-        if (strpos($field, '.') !== false) {
+        if (str_contains($field, '.')) {
             [$table, $field] = explode('.', $field, 2);
         }
 
@@ -777,7 +779,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     public function get_details($id, $params = false)
     {
         if (!($params = $this->fetch_default_flow_params($params))
-         || !($id = $this->prepare_primary_key($id, $params))) {
+            || !($id = $this->prepare_primary_key($id, $params))) {
             return false;
         }
 
@@ -1575,6 +1577,50 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         return true;
     }
 
+    public function set_maintenance_database_credentials(array $flow_arr = []) : bool
+    {
+        $maintenance_db_pass = constant('PHS_MAINTENANCE_DB_PASSWORD') ?? '';
+
+        if (!defined('PHS_MAINTENANCE_DB_USERNAME')
+            || !($maintenance_db_user = constant('PHS_MAINTENANCE_DB_USERNAME'))
+            // make sure we don't have the placeholder from main.dist.php
+            || $maintenance_db_user === '{{PHS_MAINTENANCE_DB_USERNAME}}'
+            || (!empty($this->_old_db_settings['user'])
+                && $this->_old_db_settings['user'] === $maintenance_db_user
+                && $this->_old_db_settings['password'] === $maintenance_db_pass)
+        ) {
+            return true;
+        }
+
+        if ( !($connection_name = $this->get_db_connection($this->fetch_default_flow_params($flow_arr)))
+            || !($settings_arr = PHS_Db::get_db_connection($connection_name)) ) {
+            return false;
+        }
+
+        $this->_old_db_settings = $settings_arr;
+
+        $settings_arr['user'] = $maintenance_db_user;
+        $settings_arr['password'] = $maintenance_db_pass;
+
+        return !( !PHS_Db::add_db_connection($connection_name, $settings_arr) );
+    }
+
+    public function reset_maintenance_database_credentials(array $flow_arr = []) : bool
+    {
+        if ( empty($this->_old_db_settings) ) {
+            return true;
+        }
+
+        if ( !($connection_name = $this->get_db_connection($this->fetch_default_flow_params($flow_arr)))
+            || !PHS_Db::add_db_connection($connection_name, $this->_old_db_settings)) {
+            return false;
+        }
+
+        $this->_old_db_settings = null;
+
+        return true;
+    }
+
     /**
      * Performs any necessary custom actions when updating model from $old_version to $new_version.
      * This action is performed before changing any database structure
@@ -1635,11 +1681,12 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
     /**
      * Validate array containing table definition
+     *
      * @param array $details_arr
      *
-     * @return array|bool
+     * @return array
      */
-    protected function _validate_table_details($details_arr)
+    protected function _validate_table_details(array $details_arr) : array
     {
         return self::validate_array($details_arr, $this->_default_table_details_arr());
     }

@@ -68,7 +68,7 @@ class PHS_Model_Retention_mock extends PHS_Model
         }
 
         if (empty($retention_data)
-           || !($retention_arr = $this->_retention_model->data_to_array($retention_data))
+            || !($retention_arr = $this->_retention_model->data_to_array($retention_data))
             || $this->_retention_model->is_deleted($retention_arr)
             || empty($retention_arr['type'])
             || empty($retention_arr['table'])
@@ -90,9 +90,36 @@ class PHS_Model_Retention_mock extends PHS_Model
             return true;
         }
 
-        return $this->_validate_tables_definition()
-               && ($table_name = $this->get_main_table_name())
-               && $this->update_table(['table_name' => $table_name]);
+        if ( !$this->_validate_tables_definition()
+            || !($table_name = $this->get_main_table_name())
+            || !($flow_arr = $this->fetch_default_flow_params(['table_name' => $table_name]))
+        ) {
+            $this->set_error_if_not_set(self::ERR_PARAMETERS,
+                self::_t('Error validating tables definition.'));
+
+            return false;
+        }
+
+        if ( !$this->set_maintenance_database_credentials($flow_arr) ) {
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                self::_t('Error setting up database maintenance credentials.'));
+
+            return false;
+        }
+
+        if ( !$this->update_table(['table_name' => $table_name]) ) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
+                self::_t('Error updating destination table structure.'));
+
+            return false;
+        }
+
+        if ( !$this->reset_maintenance_database_credentials($flow_arr) ) {
+            PHS_Logger::error('Error resetting database maintenance credentials. This might still work. Check if script finishes with errors.',
+                $this->_admin_plugin::LOG_DATA_RETENTION);
+        }
+
+        return true;
     }
 
     public function move_data_for_retention(string $last_date) : ?array
@@ -115,13 +142,27 @@ class PHS_Model_Retention_mock extends PHS_Model
             return null;
         }
 
+        if ( !$this->set_maintenance_database_credentials($source_flow) ) {
+            PHS_Logger::error('Error setting maintenance database credentials.',
+                $this->_admin_plugin::LOG_DATA_RETENTION);
+        }
+
         if ( !($field_definition = $this->_model_obj->check_column_exists($this->_retention_arr['date_field'], $source_flow))
              || empty($field_definition['type'])
              || !in_array((int)$field_definition['type'], [self::FTYPE_DATE, self::FTYPE_DATETIME], true)
         ) {
+            if ( !$this->reset_maintenance_database_credentials($source_flow) ) {
+                PHS_Logger::error('Error resetting database credentials to normal.',
+                    $this->_admin_plugin::LOG_DATA_RETENTION);
+            }
+
             $this->set_error(self::ERR_EDIT, self::_t('Provided field is not a date or datetime field for data retention source.'));
 
             return null;
+        }
+        if ( !$this->reset_maintenance_database_credentials($source_flow) ) {
+            PHS_Logger::error('Error resetting database credentials to normal.',
+                $this->_admin_plugin::LOG_DATA_RETENTION);
         }
 
         if (empty($last_date)
@@ -263,6 +304,9 @@ class PHS_Model_Retention_mock extends PHS_Model
         $sql = 'SELECT * FROM `'.$source_table_name.'` '.$query_condition;
 
         $knti = 0;
+        $error_ids = [];
+        $consecutive_errors = 0;
+        $finish_error = null;
         foreach ($this->_get_records_from_query_as_generator($sql, $source_flow['db_connection']) as $source_arr) {
             if (empty($source_arr)) {
                 break;
@@ -292,19 +336,39 @@ class PHS_Model_Retention_mock extends PHS_Model
                 || !($item_id = db_query_insert($sql, $destination_flow['db_connection']))) {
                 PHS_Logger::error('Error moving #'.$source_arr[$source_id_key].' from '.$this->_retention_arr['table'].' to '.$destination_table.'.',
                     $this->_admin_plugin::LOG_DATA_RETENTION);
+
+                $error_ids[] = $source_arr[$source_id_key];
+                $consecutive_errors++;
+            } else {
+                $consecutive_errors = 0;
+            }
+
+            if ( $consecutive_errors >= 100 ) {
+                $finish_error = self::_t('Too many consecutive errors.');
+
+                PHS_Logger::error('Too many consecutive ('.$consecutive_errors.') errors when moving data from '
+                                  .$this->_retention_arr['table'].' to '.$destination_table.'. Aborting.',
+                    $this->_admin_plugin::LOG_DATA_RETENTION);
+
+                break;
             }
         }
         $return_arr['affected_rows'] = $knti;
 
         if (!empty($run_record)
             && ($new_run_record = $this->_retention_model->update_retention_run(
-                $run_record, $knti, true, null))
+                $run_record, $knti, true, $finish_error))
         ) {
             $run_record = $new_run_record;
         }
 
+        $delete_query = 'DELETE FROM `'.$source_table_name.'` '.$query_condition;
+        if ( !empty($error_ids) ) {
+            $delete_query .= ' AND `'.$source_id_key.'` NOT IN ('.implode(',', $error_ids).')';
+        }
+
         // Once we moved data to archive, delete from source
-        if ( !db_query('DELETE FROM `'.$source_table_name.'` '.$query_condition, $source_flow['db_connection']) ) {
+        if ( !db_query($delete_query, $source_flow['db_connection']) ) {
             PHS_Logger::error('Error deleting data from source for Policy#'.$this->_retention_arr['id'].', Run#'.($run_record['id'] ?? 'N/A').'.',
                 $this->_admin_plugin::LOG_DATA_RETENTION);
         }
@@ -314,7 +378,7 @@ class PHS_Model_Retention_mock extends PHS_Model
         }
 
         PHS_Logger::notice('Finished data retention run for record RD#'.$this->_retention_arr['id'].', #'.$run_record['id'].' '
-                           .' on '.$return_arr['total_rows'].' records...',
+                           .' on '.$knti.' records...',
             $this->_admin_plugin::LOG_DATA_RETENTION);
 
         return $return_arr;

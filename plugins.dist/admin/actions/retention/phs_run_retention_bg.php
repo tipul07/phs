@@ -2,18 +2,13 @@
 
 namespace phs\plugins\admin\actions\retention;
 
-use phs\PHS;
 use phs\PHS_Scope;
 use phs\PHS_bg_jobs;
-use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\plugins\admin\PHS_Plugin_Admin;
-use phs\plugins\accounts\models\PHS_Model_Accounts;
-use phs\system\core\models\PHS_Model_Data_retention;
 use phs\plugins\s2p_companies\PHS_Plugin_S2p_companies;
 use phs\plugins\s2p_companies\models\PHS_Model_Companies;
-use phs\plugins\accounts\models\PHS_Model_Accounts_details;
 
 class PHS_Action_Run_retention_bg extends PHS_Action
 {

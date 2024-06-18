@@ -380,7 +380,7 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
         ob_start();
         if (!empty($retention_run_arr['retention_policy_id'])) {
             ?>
-            <a href='javascript:void(0)' onclick="phs_data_retention_list_runs_run_record( '<?php echo $retention_run_arr['retention_policy_id']; ?>' )"
+            <a href='javascript:void(0)' onclick="phs_data_retention_list_runs_run_record( '<?php echo $retention_run_arr['id']; ?>' )"
             ><i class='fa fa-fast-forward action-icons' title="<?php
                 echo $this->_pt('Re-run data retention policy'); ?>"></i></a>
             <?php
