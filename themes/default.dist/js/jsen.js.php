@@ -234,6 +234,18 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
             return 0;
         },
 
+        js_message_success: function( message, message_box_container ) {
+            PHS_JSEN.js_messages( [ message ], "success", message_box_container );
+        },
+
+        js_message_warning: function( message, message_box_container ) {
+            PHS_JSEN.js_messages( [ message ], "warning", message_box_container );
+        },
+
+        js_message_error: function( message, message_box_container ) {
+            PHS_JSEN.js_messages( [ message ], "error", message_box_container );
+        },
+
         js_messages_hide_all: function( message_box_container ) {
             PHS_JSEN.js_messages_hide( "success", message_box_container );
             PHS_JSEN.js_messages_hide( "warning", message_box_container );

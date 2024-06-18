@@ -69,8 +69,7 @@ $phs_first_ac_autocomplete_action = false;
             <?php
             $filters_display_arr = [];
 foreach ($filters_arr as $filter_details) {
-    if (empty($filter_details) || !is_array($filter_details)
-     || empty($filter_details['var_name'])
+    if (empty($filter_details['var_name'])
      || !empty($filter_details['hidden_filter'])
      || (!empty($filter_details['autocomplete'])
             && (!is_array($filter_details['autocomplete']) || empty($filter_details['autocomplete']['action']))
@@ -180,6 +179,9 @@ foreach ($filters_arr as $filter_details) {
     } else {
         switch ($filter_details['type']) {
             case PHS_Params::T_DATE:
+                if (empty($field_value)) {
+                    $field_value_display = null;
+                }
                 ?><input type="text" id="<?php echo $field_id; ?>" name="<?php echo $field_name; ?>" readonly="readonly"
                                          class="phs_filter_datepicker form-control <?php echo $filter_details['extra_classes']; ?>"
                                          <?php echo !empty($field_placeholder) ? 'placeholder="'.form_str($field_placeholder).'"' : ''; ?>

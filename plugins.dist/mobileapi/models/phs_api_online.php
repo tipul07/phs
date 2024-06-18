@@ -31,25 +31,16 @@ class PHS_Model_Api_online extends PHS_Model
         ],
     ];
 
-    /**
-     * @return string Returns version of model
-     */
     public function get_model_version() : string
     {
         return '1.1.0';
     }
 
-    /**
-     * @return array of string Returns an array of strings containing tables that model will handle
-     */
     public function get_table_names() : array
     {
         return ['mobileapi_online', 'mobileapi_devices'];
     }
 
-    /**
-     * @return string Returns main table name used when calling insert with no table name
-     */
     public function get_main_table_name() : string
     {
         return 'mobileapi_online';

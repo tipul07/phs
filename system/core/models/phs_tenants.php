@@ -22,26 +22,17 @@ class PHS_Model_Tenants extends PHS_Model
 
     private static ?array $_default_tenant = null;
 
-    /**
-     * @return string Returns version of model
-     */
-    public function get_model_version()
+    public function get_model_version() : string
     {
         return '1.0.6';
     }
 
-    /**
-     * @return array of string Returns an array of strings containing tables that model will handle
-     */
-    public function get_table_names()
+    public function get_table_names() : array
     {
         return ['phs_tenants'];
     }
 
-    /**
-     * @return string Returns main table name used when calling insert with no table name
-     */
-    public function get_main_table_name()
+    public function get_main_table_name() : string
     {
         return 'phs_tenants';
     }

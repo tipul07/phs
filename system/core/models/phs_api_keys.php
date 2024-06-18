@@ -20,25 +20,16 @@ class PHS_Model_Api_keys extends PHS_Model
         self::STATUS_DELETED  => ['title' => 'Deleted'],
     ];
 
-    /**
-     * @inheritdoc
-     */
     public function get_model_version() : string
     {
         return '1.1.0';
     }
 
-    /**
-     * @inheritdoc
-     */
     public function get_table_names() : array
     {
         return ['api_keys'];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function get_main_table_name() : string
     {
         return 'api_keys';

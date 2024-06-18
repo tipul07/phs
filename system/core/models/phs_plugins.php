@@ -65,26 +65,17 @@ class PHS_Model_Plugins extends PHS_Model
     // Cached directory rows
     private static array $dir_plugins = [];
 
-    /**
-     * @return string Returns version of model
-     */
-    public function get_model_version()
+    public function get_model_version() : string
     {
         return '1.3.0';
     }
 
-    /**
-     * @return array of string Returns an array of strings containing tables that model will handle
-     */
-    public function get_table_names()
+    public function get_table_names() : array
     {
         return ['plugins', 'plugins_registry', 'plugins_tenants'];
     }
 
-    /**
-     * @return string Returns main table name used when calling insert with no table name
-     */
-    public function get_main_table_name()
+    public function get_main_table_name() : string
     {
         return 'plugins';
     }

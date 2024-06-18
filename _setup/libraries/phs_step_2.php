@@ -71,12 +71,8 @@ class PHS_Step_2 extends PHS_Step
             $connection_name = 'phs_tmp_db_connection_'.microtime(true);
         }
 
-        if (!($settings_arr = PHS_Db::add_db_connection($connection_name, $db_settings))) {
-            if (self::st_has_error()) {
-                $this->copy_static_error(self::ERR_CREATE_CONNECTION);
-            } else {
-                $this->set_error(self::ERR_CREATE_CONNECTION, 'Error adding DB connection.');
-            }
+        if (!PHS_Db::add_db_connection($connection_name, $db_settings)) {
+            $this->copy_or_set_static_error(self::ERR_CREATE_CONNECTION, 'Error adding DB connection.');
 
             return false;
         }
@@ -93,7 +89,7 @@ class PHS_Step_2 extends PHS_Step
 
         if (!db_test_connection($connection_name)) {
             if (($error_arr = db_last_error($connection_name))
-             && self::arr_has_error($error_arr)) {
+                && self::arr_has_error($error_arr)) {
                 $this->copy_error_from_array($error_arr, self::ERR_CREATE_CONNECTION);
             } else {
                 $this->set_error(self::ERR_CREATE_CONNECTION, 'Database connection failed with current settings.');

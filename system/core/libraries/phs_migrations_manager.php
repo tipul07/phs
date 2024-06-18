@@ -362,6 +362,7 @@ class PHS_Migrations_manager extends PHS_Library
 
         return [
             'plugin'         => $plugin_obj->instance_plugin_name(),
+            'plugin_class'   => $plugin_obj::class,
             'version'        => $plugin_obj->get_plugin_version(),
             'script'         => $script,
             'timestamp'      => $timestamp,

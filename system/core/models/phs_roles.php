@@ -25,25 +25,16 @@ class PHS_Model_Roles extends PHS_Model
 
     private static ?PHS_Model_Accounts $_accounts_model = null;
 
-    /**
-     * @return string Returns version of model
-     */
     public function get_model_version() : string
     {
         return '1.0.2';
     }
 
-    /**
-     * @return array of string Returns an array of strings containing tables that model will handle
-     */
     public function get_table_names() : array
     {
         return ['roles', 'roles_units', 'roles_units_links', 'roles_users'];
     }
 
-    /**
-     * @return string Returns main table name used when calling insert with no table name
-     */
     public function get_main_table_name() : string
     {
         return 'roles';

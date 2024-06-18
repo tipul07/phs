@@ -29,26 +29,17 @@ class PHS_Model_Results extends PHS_Model
         self::FILE_TYPE_RESULT => ['title' => 'Result file'],
     ];
 
-    /**
-     * @return string Returns version of model
-     */
-    public function get_model_version()
+    public function get_model_version() : string
     {
         return '1.0.7';
     }
 
-    /**
-     * @return array of string Returns an array of strings containing tables that model will handle
-     */
-    public function get_table_names()
+    public function get_table_names() : array
     {
         return ['backup_results', 'backup_results_files'];
     }
 
-    /**
-     * @return string Returns main table name used when calling insert with no table name
-     */
-    public function get_main_table_name()
+    public function get_main_table_name() : string
     {
         return 'backup_results';
     }
