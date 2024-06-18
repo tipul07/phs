@@ -646,19 +646,31 @@ class PHS_Model_Data_retention extends PHS_Model
             || (!empty($params['fields']['plugin'])
                 && !PHS::load_plugin($params['fields']['plugin']))
             || !($model_obj = PHS::load_model($params['fields']['model'], $params['fields']['plugin']))
+            || !($flow_arr = $model_obj->fetch_default_flow_params(['table_name' => $params['fields']['table']]))
         ) {
             $this->set_error(self::ERR_INSERT, self::_t('Please provide data retention source.'));
 
             return false;
         }
 
-        if ( !($field_definition = $model_obj->check_column_exists($params['fields']['date_field'], ['table_name' => $params['fields']['table']]))
+        if ( !$model_obj->set_maintenance_database_credentials($flow_arr) ) {
+            $this->set_error(self::ERR_INSERT, self::_t('Error setting up maintenance credentials.'));
+
+            return false;
+        }
+
+        if ( !($field_definition = $model_obj->check_column_exists($params['fields']['date_field'], $flow_arr))
             || empty($field_definition['type'])
             || !in_array($field_definition['type'], [self::FTYPE_DATE, self::FTYPE_DATETIME], true)
         ) {
             $this->set_error(self::ERR_INSERT, self::_t('Please provide a date or datetime field for data retention source.'));
 
             return false;
+        }
+
+        // If we have error when resetting maintenance credentials, just ignore the error
+        if ( !$model_obj->reset_maintenance_database_credentials($flow_arr) ) {
+            $this->reset_error();
         }
 
         if ($this->get_details_fields([
@@ -715,8 +727,15 @@ class PHS_Model_Data_retention extends PHS_Model
             || (!empty($plugin)
                 && !PHS::load_plugin($plugin))
             || !($model_obj = PHS::load_model($model, $plugin))
+            || !($flow_arr = $model_obj->fetch_default_flow_params(['table_name' => $table]))
         ) {
             $this->set_error(self::ERR_EDIT, self::_t('Please provide data retention source.'));
+
+            return null;
+        }
+
+        if ( !$model_obj->set_maintenance_database_credentials($flow_arr) ) {
+            $this->set_error(self::ERR_INSERT, self::_t('Error setting up maintenance credentials.'));
 
             return null;
         }
@@ -728,6 +747,11 @@ class PHS_Model_Data_retention extends PHS_Model
             $this->set_error(self::ERR_EDIT, self::_t('Please provide a date or datetime field for data retention source.'));
 
             return null;
+        }
+
+        // If we have error when resetting maintenance credentials, just ignore the error
+        if ( !$model_obj->reset_maintenance_database_credentials($flow_arr) ) {
+            $this->reset_error();
         }
 
         if ($this->get_details_fields([
