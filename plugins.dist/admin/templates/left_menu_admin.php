@@ -30,6 +30,8 @@ $can_list_tenants = $admin_plugin->can_admin_list_tenants();
 $can_manage_tenants = $admin_plugin->can_admin_manage_tenants();
 $can_list_migrations = $admin_plugin->can_admin_list_migrations();
 $can_manage_migrations = $admin_plugin->can_admin_manage_migrations();
+$can_list_data_retention = $admin_plugin->can_admin_list_data_retention();
+$can_manage_data_retention = $admin_plugin->can_admin_manage_data_retention();
 
 if (!$can_list_plugins && !$can_manage_plugins
  && !$can_list_api_keys && !$can_manage_api_keys && !$can_view_api_monitoring_report
@@ -37,6 +39,8 @@ if (!$can_list_plugins && !$can_manage_plugins
  && !$can_list_roles && !$can_manage_roles
  && !$can_list_accounts && !$can_manage_accounts
  && !$can_list_tenants && !$can_manage_tenants
+ && !$can_list_migrations && !$can_manage_migrations
+ && !$can_list_data_retention && !$can_manage_data_retention
  && !$can_import_accounts) {
     return '';
 }
@@ -186,6 +190,26 @@ if ($can_view_logs) {
     <li><?php echo $this::_t('System Logs'); ?>
         <ul>
             <li><a href="<?php echo PHS::url(['a' => 'system_logs', 'p' => 'admin']); ?>"><?php echo $this::_t('View Logs'); ?></a></li>
+        </ul>
+    </li>
+    <?php
+}
+if ($can_list_data_retention || $can_manage_data_retention) {
+    ?>
+    <li><?php echo $this::_t('Data Retention'); ?>
+        <ul>
+            <?php
+            if ($can_manage_data_retention) {
+                ?>
+                <li><a href="<?php echo PHS::url(['a' => 'add', 'ad' => 'retention', 'p' => 'admin']); ?>"
+                    ><?php echo $this::_t('Add Data Retention Policy'); ?></a></li>
+                <?php
+            }
+    ?>
+            <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'retention', 'p' => 'admin']); ?>"
+                ><?php echo $this::_t('List Data Retention Policies'); ?></a></li>
+            <li><a href="<?php echo PHS::url(['a' => 'list_runs', 'ad' => 'retention', 'p' => 'admin']); ?>"
+                ><?php echo $this::_t('Data Retention Policies Runs'); ?></a></li>
         </ul>
     </li>
     <?php

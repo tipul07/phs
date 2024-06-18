@@ -15,26 +15,17 @@ class PHS_Model_Accounts_services extends PHS_Model
         self::SERVICE_FACEBOOK => ['title' => 'Facebook'],
     ];
 
-    /**
-     * @inheritDoc
-     */
-    public function get_model_version()
+    public function get_model_version() : string
     {
         return '1.0.3';
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function get_table_names()
+    public function get_table_names() : array
     {
         return ['users_services'];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function get_main_table_name()
+    public function get_main_table_name() : string
     {
         return 'users_services';
     }

@@ -43,10 +43,7 @@ $run_job_extra['bg_jobs_model'] = (!empty($parsed_input['bg_jobs_model']) ? $par
 
 if (!($action_result = PHS_Bg_jobs::bg_run_job($job_arr, $run_job_extra))) {
     PHS_Logger::error('Error running job [#'.$job_arr['id'].'] ('.$job_arr['route'].')', PHS_Logger::TYPE_BACKGROUND);
-
-    if (PHS_Bg_jobs::st_has_error()) {
-        PHS_Logger::error('Job error: ['.PHS_Bg_jobs::st_get_error_message().']', PHS_Logger::TYPE_BACKGROUND);
-    }
+    PHS_Logger::error('Job error: '.PHS_Bg_jobs::st_get_error_message(PHS_Bg_jobs::_t('Unknown error.')), PHS_Logger::TYPE_BACKGROUND);
 } elseif (($debug_data = PHS::platform_debug_data())) {
     PHS_Logger::notice('Job #'.$job_arr['id'].' ('.$job_arr['route'].') run with success: '.$debug_data['db_queries_count'].' queries, '
                       .' bootstrap: '.number_format($debug_data['bootstrap_time'], 6, '.', '').'s, '

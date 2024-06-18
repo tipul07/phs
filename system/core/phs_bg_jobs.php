@@ -97,7 +97,7 @@ class PHS_Bg_jobs extends PHS_Registry
      *
      * @return array|bool
      */
-    public static function run($route, $params = false, $extra = false)
+    public static function run($route, $params = false, $extra = false) : bool | string | array
     {
         // We don't use here PHS::route_exists() because route_exists() will instantiate plugin, controller and action and if they have errors
         // launching script will die...
@@ -105,18 +105,14 @@ class PHS_Bg_jobs extends PHS_Registry
 
         $route_parts = false;
         if ((is_string($route) || is_array($route))
-        && !($route_parts = PHS::parse_route($route, false))) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_PARAMETERS, self::_t('Route is invalid.'));
-            }
+            && !($route_parts = PHS::parse_route($route, false))) {
+            self::st_set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Route is invalid.'));
 
             return false;
         }
 
         if (empty($route_parts) || !is_array($route_parts)) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_PARAMETERS, self::_t('Route is invalid.'));
-            }
+            self::st_set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Route is invalid.'));
 
             return false;
         }
@@ -140,18 +136,14 @@ class PHS_Bg_jobs extends PHS_Registry
             'a'  => $route_parts['action'],
             'ad' => $route_parts['action_dir'],
         ]))) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_PARAMETERS, self::_t('Route is invalid.'));
-            }
+            self::st_set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Route is invalid.'));
 
             return false;
         }
 
         /** @var PHS_Model_Bg_jobs $bg_jobs_model */
         if (!($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t load background jobs model.'));
-            }
+            self::st_set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Couldn\'t load background jobs model.'));
 
             return false;
         }
@@ -194,12 +186,9 @@ class PHS_Bg_jobs extends PHS_Registry
         $insert_arr['return_buffer'] = ($extra['return_buffer'] ? 1 : 0);
 
         if (!($job_arr = $bg_jobs_model->insert(['fields' => $insert_arr]))
-         || empty($job_arr['id'])) {
-            if ($bg_jobs_model->has_error()) {
-                self::st_copy_error($bg_jobs_model);
-            } else {
-                self::st_set_error(self::ERR_DB_INSERT, self::_t('Couldn\'t save database details. Please try again.'));
-            }
+            || empty($job_arr['id'])) {
+            self::st_copy_or_set_error($bg_jobs_model,
+                self::ERR_DB_INSERT, self::_t('Couldn\'t save database details. Please try again.'));
 
             return false;
         }
@@ -210,10 +199,8 @@ class PHS_Bg_jobs extends PHS_Registry
         $cmd_extra['return_buffer'] = $extra['return_buffer'];
 
         if (!($cmd_parts = self::get_job_command($job_arr, $cmd_extra))
-         || empty($cmd_parts['cmd'])) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_COMMAND, self::_t('Couldn\'t get background job command.'));
-            }
+            || empty($cmd_parts['cmd'])) {
+            self::st_set_error_if_not_set(self::ERR_COMMAND, self::_t('Couldn\'t get background job command.'));
 
             $bg_jobs_model->hard_delete($job_arr);
 
@@ -229,7 +216,7 @@ class PHS_Bg_jobs extends PHS_Registry
         }
 
         if (!empty_db_date($extra['timed_action'])
-         && parse_db_date($extra['timed_action']) > time()) {
+            && parse_db_date($extra['timed_action']) > time()) {
             return true;
         }
 
@@ -240,7 +227,7 @@ class PHS_Bg_jobs extends PHS_Registry
         }
 
         if (!empty($extra['same_thread_if_bg'])
-        && PHS_Scope::current_scope() === PHS_Scope::SCOPE_BACKGROUND) {
+            && PHS_Scope::current_scope() === PHS_Scope::SCOPE_BACKGROUND) {
             $original_debug_data = PHS::platform_debug_data();
 
             // We are in background scope... just execute the route
@@ -251,10 +238,7 @@ class PHS_Bg_jobs extends PHS_Registry
 
             if (!($action_result = self::bg_run_job($job_arr, $run_job_extra))) {
                 PHS_Logger::error('Error running job [#'.$job_arr['id'].'] ('.$job_arr['route'].')', PHS_Logger::TYPE_BACKGROUND);
-
-                if (self::st_has_error()) {
-                    PHS_Logger::error('Job error: ['.self::st_get_error_message().']', PHS_Logger::TYPE_BACKGROUND);
-                }
+                PHS_Logger::error('Job error: '.self::st_get_error_message(self::_t('Unknown error.')), PHS_Logger::TYPE_BACKGROUND);
             } elseif (($debug_data = PHS::platform_debug_data())) {
                 PHS_Logger::notice('Job #'.$job_arr['id'].' ('.$job_arr['route'].') run with success: '.($original_debug_data['db_queries_count'] - $debug_data['db_queries_count']).' queries, '
                                   .' bootstrap: '.number_format($debug_data['bootstrap_time'], 6, '.', '').'s, '
@@ -464,9 +448,7 @@ class PHS_Bg_jobs extends PHS_Registry
 
         if (!PHS_Scope::current_scope(PHS_Scope::SCOPE_BACKGROUND)
             || !PHS::set_route($job_arr['route'])) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_RUN_JOB, self::_t('Error preparing environment.'));
-            }
+            self::st_set_error_if_not_set(self::ERR_RUN_JOB, self::_t('Error preparing environment.'));
 
             $error_arr = self::st_get_error();
 

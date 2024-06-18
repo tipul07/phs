@@ -50,27 +50,18 @@ class PHS_Model_Accounts extends PHS_Model
         self::LVL_DEVELOPER  => ['title' => 'Developer'],
     ];
 
-    /**
-     * @return string Returns version of model
-     */
-    public function get_model_version()
+    public function get_model_version() : string
     {
         return '1.3.8';
     }
 
-    /**
-     * @return array of string Returns an array of strings containing tables that model will handle
-     */
-    public function get_table_names()
+    public function get_table_names() : array
     {
         // 'users_pass_salts' is first, so we are sure table is created before changing users table...
         return ['users_pass_salts', 'users', 'online', 'users_pass_history', ];
     }
 
-    /**
-     * @return string Returns main table name used when calling insert with no table name
-     */
-    public function get_main_table_name()
+    public function get_main_table_name() : string
     {
         return 'users';
     }
@@ -1760,10 +1751,6 @@ class PHS_Model_Accounts extends PHS_Model
     // endregion Version Updates
     //
 
-    /**
-     * @param bool|array $params
-     * @return bool|array
-     */
     final public function fields_definition($params = false) : ?array
     {
         if (empty($params['table_name'])) {

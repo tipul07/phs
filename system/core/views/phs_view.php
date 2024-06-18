@@ -44,7 +44,7 @@ class PHS_View extends PHS_Instantiable
         return self::INSTANCE_TYPE_VIEW;
     }
 
-    public function set_controller($controller_obj): bool
+    public function set_controller($controller_obj) : bool
     {
         $this->reset_error();
 

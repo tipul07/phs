@@ -154,7 +154,7 @@ abstract class PHS_Controller extends PHS_Instantiable
         }
 
         if (($current_scope = PHS_Scope::current_scope())
-        && !$this->scope_is_allowed($current_scope)) {
+            && !$this->scope_is_allowed($current_scope)) {
             if (!($emulated_scope = PHS_Scope::emulated_scope())
              || !$this->scope_is_allowed($emulated_scope)) {
                 $this->set_error(self::ERR_RUN_ACTION, self::_t('Controller not allowed to run in current scope.'));
@@ -224,7 +224,7 @@ abstract class PHS_Controller extends PHS_Instantiable
         self::st_reset_error();
 
         if ($this->should_request_have_logged_in_user()
-        && !PHS::user_logged_in()) {
+            && !PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return $this->execute_foobar_action(action_request_login());
@@ -251,11 +251,10 @@ abstract class PHS_Controller extends PHS_Instantiable
 
         /** @var PHS_Action $action_obj */
         if (!($action_obj = PHS::load_action($action, $plugin, $action_dir))) {
-            if (self::st_has_error()) {
-                $this->copy_static_error();
-            } else {
-                $this->set_error(self::ERR_RUN_ACTION, self::_t('Couldn\'t load action [%s].', ($action_dir !== '' ? $action_dir.'/' : '').$action));
-            }
+            $this->copy_or_set_static_error(
+                self::ERR_RUN_ACTION,
+                self::_t('Couldn\'t load action [%s].', ($action_dir !== '' ? $action_dir.'/' : '').$action)
+            );
 
             return false;
         }

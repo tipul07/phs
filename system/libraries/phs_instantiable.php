@@ -1355,7 +1355,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 
         /** @var PHS_Model $instance_obj */
         if (!empty($singleton)
-         && isset(self::$instances[$instance_details['instance_id']])) {
+            && isset(self::$instances[$instance_details['instance_id']])) {
             return self::$instances[$instance_details['instance_id']];
         }
 

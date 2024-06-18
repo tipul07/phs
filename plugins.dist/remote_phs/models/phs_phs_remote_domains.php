@@ -50,26 +50,17 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         self::SOURCE_PROGRAMMATICALLY => ['title' => 'Programmatically'],
     ];
 
-    /**
-     * @return string Returns version of model
-     */
-    public function get_model_version()
+    public function get_model_version() : string
     {
         return '1.0.6';
     }
 
-    /**
-     * @return array of string Returns an array of strings containing tables that model will handle
-     */
-    public function get_table_names()
+    public function get_table_names() : array
     {
         return ['phs_remote_domains', 'phs_remote_logs'];
     }
 
-    /**
-     * @return string Returns main table name used when calling insert with no table name
-     */
-    public function get_main_table_name()
+    public function get_main_table_name() : string
     {
         return 'phs_remote_domains';
     }

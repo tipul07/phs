@@ -377,10 +377,16 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return false;
                 }
 
+                if (!($plugin_settings_lib = $this->_admin_plugin->get_plugin_settings_instance())) {
+                    $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
+
+                    return false;
+                }
+
                 $export_params = [];
                 $export_params['export_file_name'] = 'plugin_settings_'.date('YmdHi').'.json';
 
-                if (!$this->_admin_plugin->export_plugin_settings($crypt_key, $scope_arr[$scope_key], $export_params)) {
+                if (!$plugin_settings_lib->export_plugin_settings($crypt_key, $scope_arr[$scope_key], $export_params)) {
                     $action_result_params['action_result'] = 'failed';
                     $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
                 }
@@ -411,10 +417,16 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return false;
                 }
 
+                if (!($plugin_settings_lib = $this->_admin_plugin->get_plugin_settings_instance())) {
+                    $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
+
+                    return false;
+                }
+
                 $export_params = [];
                 $export_params['export_file_name'] = 'plugin_settings_all_'.date('YmdHi').'.json';
 
-                if (!$this->_admin_plugin->export_plugin_settings($crypt_key, [], $export_params)) {
+                if (!$plugin_settings_lib->export_plugin_settings($crypt_key, [], $export_params)) {
                     $action_result_params['action_result'] = 'failed';
                 }
                 break;
@@ -954,7 +966,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             PHS_JSEN.createAjaxDialog( {
                 suffix: 'phs_export_plugins_settings_',
                 width: 550,
-                height: 380,
+                height: 400,
                 title: "<?php echo $this->_pte('Export Plugins\' Settings'); ?>",
                 resizable: false,
                 close_outside_click: false,
@@ -1010,16 +1022,23 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 return false;
             }
 
+            if(PHS_JSEN) {
+                PHS_JSEN.js_messages_hide_all();
+            }
+
             phs_cancel_export_plugin_settings_dialogue();
 
             // Give DOM time to update...
             setTimeout(function(){
-                show_submit_protection("<?php echo $this->_pte('Please wait...')?>");
+                if(PHS_JSEN) {
+                    PHS_JSEN.js_message_success("<?php echo $this->_pte('Exporting plugin settings...'); ?>");
+                }
                 $("#phs_export_plugin_settings_crypt_key").val( crypt_key_text );
 
                 const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-                if( form_obj )
+                if( form_obj ) {
                     form_obj.submit();
+                }
             }, 500 );
 
             return false;

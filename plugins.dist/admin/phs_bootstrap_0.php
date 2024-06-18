@@ -10,6 +10,7 @@ use phs\system\core\events\layout\PHS_Event_Template;
 /** @var PHS_Plugin_Admin $admin_plugin */
 if (($admin_plugin = PHS_Plugin_Admin::get_instance())) {
     PHS_Logger::define_channel($admin_plugin::LOG_API_MONITOR);
+    PHS_Logger::define_channel($admin_plugin::LOG_DATA_RETENTION);
 
     PHS::register_hook(
         PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_LEFT_MENU,
