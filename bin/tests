@@ -1,14 +1,12 @@
 #!/usr/bin/env php
 <?php
 
-    if( !@file_exists( __DIR__.'/../tests/bootstrap.php' ) )
-    {
+    if( !@file_exists( __DIR__.'/../tests/bootstrap.php' ) ) {
         echo 'Couldn\'t find bootstrap.php in tests directory.'."\n";
         exit;
     }
 
-    if( !@file_exists( __DIR__.'/../tests/vendor/autoload.php' ) )
-    {
+    if( !@file_exists( __DIR__.'/../tests/vendor/autoload.php' ) ) {
         echo 'You should first run composer install command.'."\n";
         exit;
     }
@@ -16,17 +14,15 @@
     include_once( __DIR__.'/../tests/bootstrap.php' );
     include_once( __DIR__.'/../tests/vendor/autoload.php' );
 
-    use \phs\PHS_Cli;
-    use \phs\tests\phs\PHSTests;
+    use phs\PHS_Cli;
+    use phs\tests\phs\PHSTests;
 
-    if( !PHS_Cli::running_in_cli() )
-    {
+    if( !PHS_Cli::running_in_cli() ) {
         echo PHS_Cli::_t( 'This script must be run in a CLI environment.' )."\n";
         exit;
     }
 
-    if( !($phs_tests = PHSTests::get_instance()) )
-    {
+    if( !($phs_tests = PHSTests::get_instance()) ) {
         echo PHSTests::st_cli_color( PHSTests::_t( 'ERROR' ), 'red' ).': '.
              PHSTests::st_get_simple_error_message(PHS_Cli::_t( 'Error obtaining PHSTests class instance.' ))
                 ."\n";
