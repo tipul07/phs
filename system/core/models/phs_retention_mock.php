@@ -100,6 +100,7 @@ class PHS_Model_Retention_mock extends PHS_Model
             return false;
         }
 
+        db_close($flow_arr['db_connection']);
         if ( !$this->set_maintenance_database_credentials($flow_arr) ) {
             $this->set_error(self::ERR_FUNCTIONALITY,
                 self::_t('Error setting up database maintenance credentials.'));
@@ -114,6 +115,7 @@ class PHS_Model_Retention_mock extends PHS_Model
             return false;
         }
 
+        db_close($flow_arr['db_connection']);
         if ( !$this->reset_maintenance_database_credentials($flow_arr) ) {
             PHS_Logger::error('Error resetting database maintenance credentials. This might still work. Check if script finishes with errors.',
                 $this->_admin_plugin::LOG_DATA_RETENTION);

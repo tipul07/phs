@@ -392,6 +392,27 @@ function db_query($query, $connection = false)
     return $qid;
 }
 
+function db_close($connection = false) : bool
+{
+    if (!($db_instance = PHS_Db::db($connection))) {
+        if (PHS_Db::st_debugging_mode()) {
+            PHS_Db::st_throw_error();
+        } elseif (PHS_DB_SILENT_ERRORS) {
+            return false;
+        }
+
+        if (PHS_DB_DIE_ON_ERROR) {
+            exit;
+        }
+
+        return false;
+    }
+
+    $db_instance->close($connection);
+
+    return true;
+}
+
 function db_test_connection($connection = false)
 {
     if (!($db_instance = PHS_Db::db($connection))) {
