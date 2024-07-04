@@ -386,7 +386,7 @@ class PHS_Model_Retention_mock extends PHS_Model
         return $return_arr;
     }
 
-    private function _get_records_from_query_as_generator(string $query, bool | string $db_connection, int $step = 500) : ?Generator
+    private function _get_records_from_query_as_generator(string $query, bool | string $db_connection, int $step = 20) : ?Generator
     {
         for ($offset = 0; ; $offset += $step) {
             if (!($qid = db_query($query.' LIMIT '.$offset.', '.$step, $db_connection))
