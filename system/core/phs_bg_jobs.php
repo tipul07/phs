@@ -92,16 +92,23 @@ class PHS_Bg_jobs extends PHS_Registry
 
     /**
      * @param string|array $route Route to be executed in background
-     * @param bool|array $params Parameters that will be passed to background job
-     * @param bool|array $extra Parameters used in this method
+     * @param array $params Parameters that will be passed to background job
+     * @param array $extra Parameters used in this method
      *
-     * @return array|bool
+     * @return bool|string|array
      */
-    public static function run($route, $params = false, $extra = false) : bool | string | array
+    public static function run(array | string $route, array $params = [], array $extra = []) : bool | string | array
     {
         // We don't use here PHS::route_exists() because route_exists() will instantiate plugin, controller and action and if they have errors
         // launching script will die...
         self::st_reset_error();
+
+        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
+        if (!($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())) {
+            self::st_set_error_if_not_set(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
+
+            return false;
+        }
 
         $route_parts = false;
         if ((is_string($route) || is_array($route))
@@ -141,17 +148,6 @@ class PHS_Bg_jobs extends PHS_Registry
             return false;
         }
 
-        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
-        if (!($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())) {
-            self::st_set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Couldn\'t load background jobs model.'));
-
-            return false;
-        }
-
-        if (empty($extra) || !is_array($extra)) {
-            $extra = [];
-        }
-
         // Tells if we need to pass the result of action to caller script
         // In case we need result of action, job should be called in synchronous and task should run right away, not timed (async_task=false)
         $extra['return_buffer'] = !empty($extra['return_buffer']);
@@ -169,10 +165,6 @@ class PHS_Bg_jobs extends PHS_Registry
             $extra['timed_action'] = false;
         } else {
             $extra['timed_action'] = validate_db_date($extra['timed_action']);
-        }
-
-        if (!is_array($params)) {
-            $params = [];
         }
 
         $current_user = PHS::user_logged_in();

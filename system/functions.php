@@ -809,22 +809,12 @@ function parse_t_date($date, $params = false)
     return @mktime($date_arr[3], $date_arr[4], $date_arr[5], $date_arr[1], $date_arr[2], $date_arr[0]) + $params['offset_seconds'];
 }
 
-/**
- * @param string|mixed $date
- * @param bool|array $params
- *
- * @return array|bool
- */
-function is_db_date($date, $params = false)
+function is_db_date(?string $date, array $params = []) : ?array
 {
-    if (is_string($date)) {
-        $date = trim($date);
-    }
-
+    $date = trim($date ?? '');
     if (empty($date)
-     || !is_string($date)
-     || strpos($date, '-') === false) {
-        return false;
+        || !str_contains($date, '-')) {
+        return null;
     }
 
     if (empty_db_date($date)) {
@@ -837,7 +827,7 @@ function is_db_date($date, $params = false)
 
     $params['validate_intervals'] = (!isset($params['validate_intervals']) || !empty($params['validate_intervals']));
 
-    if (strpos($date, ' ') !== false) {
+    if (str_contains($date, ' ')) {
         $d = explode(' ', $date);
         $date_ = explode('-', $d[0]);
         $time_ = explode(':', $d[1]);
@@ -847,9 +837,8 @@ function is_db_date($date, $params = false)
     }
 
     for ($i = 0; $i < 3; $i++) {
-        if (!isset($date_[$i])
-         || !isset($time_[$i])) {
-            return false;
+        if (!isset($date_[$i], $time_[$i])) {
+            return null;
         }
 
         $date_[$i] = (int)$date_[$i];
@@ -859,7 +848,7 @@ function is_db_date($date, $params = false)
     $result_arr = array_merge($date_, $time_);
     if (!empty($params['validate_intervals'])
      && !validate_db_date_array($result_arr)) {
-        return false;
+        return null;
     }
 
     return $result_arr;
@@ -909,29 +898,18 @@ function parse_db_date($date, $params = false) : int
     return $ret_val;
 }
 
-/**
- * @param string|mixed $date
- *
- * @return bool
- */
-function empty_db_date($date) : bool
+function empty_db_date(?string $date) : bool
 {
-    return empty($date) || (string)$date === PHS_Model_Core_base::DATETIME_EMPTY || (string)$date === PHS_Model_Core_base::DATE_EMPTY;
+    return empty($date) || $date === PHS_Model_Core_base::DATETIME_EMPTY || $date === PHS_Model_Core_base::DATE_EMPTY;
 }
 
-/**
- * @param string|mixed $date
- * @param null|string $format
- *
- * @return null|false|string
- */
-function validate_db_date($date, ?string $format = null)
+function validate_db_date(?string $date, ?string $format = null) : ?string
 {
     if (empty_db_date($date)) {
         return null;
     }
 
-    if ($format === false) {
+    if ($format === null) {
         $format = PHS_Model_Core_base::DATETIME_DB;
     }
 
