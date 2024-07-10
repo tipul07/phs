@@ -318,12 +318,12 @@ final class PHS extends PHS_Registry
         return defined('PHS_PREVENT_SESSION') && constant('PHS_PREVENT_SESSION');
     }
 
-    public static function user_logged_in($force = false)
+    public static function user_logged_in(bool $force = false) : bool | array
     {
         return (($cuser_arr = self::current_user($force)) && !empty($cuser_arr['id'])) ? $cuser_arr : false;
     }
 
-    public static function current_user($force = false)
+    public static function current_user(bool $force = false)
     {
         if (!($hook_args = self::_current_user_trigger($force))
          || empty($hook_args['user_db_data']) || !is_array($hook_args['user_db_data'])) {
@@ -333,7 +333,7 @@ final class PHS extends PHS_Registry
         return $hook_args['user_db_data'];
     }
 
-    public static function current_user_session($force = false)
+    public static function current_user_session(bool $force = false)
     {
         if (!($hook_args = self::_current_user_trigger($force))
             || empty($hook_args['session_db_data']) || !is_array($hook_args['session_db_data'])) {
@@ -362,7 +362,7 @@ final class PHS extends PHS_Registry
         return $hook_result['account_structure'];
     }
 
-    public static function current_user_password_expiration($force = false)
+    public static function current_user_password_expiration(bool $force = false) : array
     {
         if (!($hook_args = self::_current_user_trigger($force))
          || empty($hook_args['password_expired_data']) || !is_array($hook_args['password_expired_data'])) {
@@ -3167,12 +3167,12 @@ final class PHS extends PHS_Registry
         self::set_data(self::PHS_PAGE_SETTINGS, false);
     }
 
-    private static function _current_user_trigger($force = false)
+    private static function _current_user_trigger(bool $force = false) : ?array
     {
-        static $hook_result = false;
+        static $hook_result = null;
 
         if (!empty($hook_result)
-         && empty($force)) {
+            && empty($force)) {
             return $hook_result;
         }
 
@@ -3180,7 +3180,7 @@ final class PHS extends PHS_Registry
         $hook_args['force_check'] = (!empty($force));
 
         if (!($hook_result = PHS_Hooks::trigger_current_user($hook_args))) {
-            $hook_result = false;
+            $hook_result = null;
         }
 
         return $hook_result;

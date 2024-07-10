@@ -13,6 +13,7 @@ use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Model_Core_base;
 use phs\system\core\libraries\PHS_Migrations_manager;
+use phs\system\core\libraries\PHS_Requests_queue_manager;
 
 function phs_version() : string
 {
@@ -85,6 +86,32 @@ function migrations_manager() : ?PHS_Migrations_manager
     }
 
     return $manager;
+}
+
+function requests_queue_manager() : ?PHS_Requests_queue_manager
+{
+    /** @var PHS_Requests_queue_manager $manager */
+    if ( !($manager = PHS::get_core_library_instance('requests_queue_manager', ['as_singleton' => true])) ) {
+        return null;
+    }
+
+    return $manager;
+}
+
+function queue_request(
+    string $url,
+    string $method = 'get',
+    ?string $payload = null,
+    int $max_retries = 1,
+    ?string $handle = null,
+    ?array $settings = null,
+    bool $run_now = true,
+) : ?array {
+    if (!($rq_manager = requests_queue_manager())) {
+        return null;
+    }
+
+    return $rq_manager->queue_request($url, $method, $payload, $max_retries, $handle, $settings, $run_now);
 }
 // endregion Helper functions
 

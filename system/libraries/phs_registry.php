@@ -108,11 +108,11 @@ class PHS_Registry extends PHS_Language
      *
      * @param array $strings_arr Array to be walked
      * @param array $keys_arr Keys to be translated
-     * @param bool|string $lang Language in which we want array translated
+     * @param null|string $lang Language in which we want array translated
      *
      * @return array Translated array
      */
-    public function translate_array_keys(array $strings_arr, array $keys_arr, $lang = false) : array
+    public function translate_array_keys(array $strings_arr, array $keys_arr, ?string $lang = null) : array
     {
         if (empty($strings_arr)) {
             return [];
@@ -122,7 +122,7 @@ class PHS_Registry extends PHS_Language
             return $strings_arr;
         }
 
-        if ($lang === false) {
+        if (empty($lang)) {
             $lang = self::get_current_language();
         }
 
@@ -149,22 +149,11 @@ class PHS_Registry extends PHS_Language
         return self::$data;
     }
 
-    /**
-     * @param string $key
-     *
-     * @return null|mixed
-     */
-    public static function get_data(string $key)
+    public static function get_data(string $key) : mixed
     {
         return self::$data[$key] ?? null;
     }
 
-    /**
-     * @param array $arr
-     * @param bool $merge
-     *
-     * @return bool
-     */
     public static function set_full_data(array $arr, bool $merge = false) : bool
     {
         if (empty($merge)) {
@@ -182,7 +171,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return bool
      */
-    public static function set_data($key, $val = null) : bool
+    public static function set_data(string | array $key, mixed $val = null) : bool
     {
         if ($val === null) {
             if (!is_array($key)) {

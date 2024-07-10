@@ -242,8 +242,6 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
                 PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
 
                 return true;
-                break;
-
             case 'bulk_delete':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
@@ -257,8 +255,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
+                if (!can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;

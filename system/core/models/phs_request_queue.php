@@ -5,6 +5,7 @@ namespace phs\system\core\models;
 use phs\PHS;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Roles;
+use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Params;
 use phs\traits\PHS_Model_Trait_statuses;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
@@ -46,6 +47,50 @@ class PHS_Model_Request_queue extends PHS_Model
                && ($forced || $request_arr['max_retries'] > $request_arr['fails']);
     }
 
+    public function create_request(
+        string $url,
+        string $method = 'get',
+        ?string $payload = null,
+        int $max_retries = 1,
+        ?string $handle = null,
+        ?array $settings = null,
+    ) : ?array {
+        $this->reset_error();
+
+        if (!PHS_Params::check_type($url, PHS_Params::T_URL)) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Please provide a valid URL for the request.'));
+
+            return null;
+        }
+
+        if (!($flow_arr = $this->fetch_default_flow_params(['table_name' => 'phs_request_queue']))) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Error loading required resources.'));
+
+            return null;
+        }
+
+        $request_params = $flow_arr;
+        $request_params['fields'] = [];
+        $request_params['fields']['url'] = $url;
+        $request_params['fields']['payload'] = $payload;
+        $request_params['fields']['method'] = $method ?: null;
+        $request_params['fields']['max_retries'] = $max_retries;
+        $request_params['fields']['fails'] = 0;
+        $request_params['fields']['last_error'] = null;
+        $request_params['fields']['handle'] = $handle ?: null;
+        $request_params['fields']['settings'] = $this->validate_settings_arr($settings) ?: null;
+        $request_params['fields']['status'] = self::STATUS_PENDING;
+
+        if (!($new_record = $this->insert($request_params))) {
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                self::_t('Error saving request details in database.'));
+
+            return null;
+        }
+
+        return $new_record;
+    }
+
     /**
      * Call this method when we have a response from the 3rd party (success or fail)
      * @param int|array $request_data
@@ -72,19 +117,46 @@ class PHS_Model_Request_queue extends PHS_Model
             return null;
         }
 
+        $settings_arr = $this->get_request_settings($request_arr) ?: $this->default_settings_arr();
+
         $now_date = date(self::DATETIME_DB);
 
         $edit_params = $flow_arr;
         $edit_params['fields'] = [];
+        if ( $http_code !== null
+            && !empty($settings_arr['success_codes']) && is_array($settings_arr['success_codes'])) {
+            if (in_array($http_code, $settings_arr['success_codes'], true)) {
+                $http_code ??= array_shift($settings_arr['success_codes']) ?: 200;
+                $edit_params['fields']['status'] = self::STATUS_SUCCESS;
+            } else {
+                $http_code ??= 500;
+                $edit_params['fields']['status'] = self::STATUS_FAILED;
+            }
+        }
+
+        if (!empty($edit_params['fields']['status'])) {
+            if ($edit_params['fields']['status'] === self::STATUS_SUCCESS) {
+                $http_code = $http_code ?: 200;
+                $error = null;
+            } elseif ($edit_params['fields']['status'] === self::STATUS_FAILED) {
+                $http_code ??= 500;
+                $edit_params['fields']['fails'] = ['raw_field' => true, 'value' => 'fails + 1'];
+            }
+        }
+
         if ($error !== false) {
             $edit_params['fields']['last_error'] = $error;
         }
 
         $edit_params['fields']['last_edit'] = $now_date;
 
+        if ( !$this->_request_run_result($request_arr, $http_code ?: 0, $response ?: null, $error ?: null) ) {
+            return null;
+        }
+
         if (!($new_record = $this->edit($request_arr, $edit_params))) {
             $this->set_error(self::ERR_FUNCTIONALITY,
-                $this::_t('Error saving data rentention run details in database.'));
+                self::_t('Error saving data rentention run details in database.'));
 
             return null;
         }
@@ -192,6 +264,11 @@ class PHS_Model_Request_queue extends PHS_Model
         $new_settings_arr['success_codes'] = self::extract_integers_from_array($new_settings_arr['success_codes']);
 
         return $new_settings_arr;
+    }
+
+    public function default_settings_arr() : array
+    {
+        return $this->validate_settings_arr($this->empty_request_settings_arr());
     }
 
     public function get_request_settings(int | array $request_data) : ?array
@@ -456,7 +533,7 @@ class PHS_Model_Request_queue extends PHS_Model
         ];
 
         if (!($new_record = $this->insert($edit_params))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this::_t('Error saving request run details in database.'));
+            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error saving request run details in database.'));
 
             return null;
         }

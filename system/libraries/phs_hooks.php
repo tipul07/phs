@@ -687,29 +687,23 @@ class PHS_Hooks extends PHS_Registry
         return $hook_args;
     }
 
-    /**
-     * @param null|array $hook_args
-     *
-     * @return array|bool
-     */
-    public static function trigger_current_user(?array $hook_args = null)
+    public static function trigger_current_user(?array $hook_args = null) : ?array
     {
         $hook_args = self::validate_array($hook_args, self::default_user_db_details_hook_args());
 
         // If we don't have hooks registered, we don't have user management...
         if (($hook_args = PHS::trigger_hooks(self::H_USER_DB_DETAILS, $hook_args)) === null) {
-            return false;
+            return null;
         }
 
-        if (is_array($hook_args)
-         && !empty($hook_args['session_expired_secs'])) {
+        if (!empty($hook_args['session_expired_secs'])) {
             if (!@headers_sent()
-             && PHS_Scope::current_scope() === PHS_Scope::SCOPE_WEB) {
+                && PHS_Scope::current_scope() === PHS_Scope::SCOPE_WEB) {
                 @header('Location: '.PHS::url(['p' => 'accounts', 'a' => 'login'], ['expired_secs' => $hook_args['session_expired_secs']]));
                 exit;
             }
 
-            return false;
+            return null;
         }
 
         return $hook_args;
