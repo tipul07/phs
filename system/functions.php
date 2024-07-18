@@ -102,16 +102,27 @@ function queue_request(
     string $url,
     string $method = 'get',
     ?string $payload = null,
-    int $max_retries = 1,
-    ?string $handle = null,
     ?array $settings = null,
-    bool $run_now = true,
+    array $params = [],
 ) : ?array {
     if (!($rq_manager = requests_queue_manager())) {
         return null;
     }
 
-    return $rq_manager->queue_request($url, $method, $payload, $max_retries, $handle, $settings, $run_now);
+    $params['max_retries'] = (int)($params['max_retries'] ?? 1);
+    $params['handle'] ??= null;
+    $params['run_now'] = !isset($params['run_now']) || !empty($params['run_now']);
+    $params['same_thread_if_bg'] = !isset($params['same_thread_if_bg']) || !empty($params['same_thread_if_bg']);
+    $params['run_after'] ??= $params['run_after'];
+
+    if ( !empty($params['run_after'])
+        && ($run_after = parse_db_date($params['run_after']))) {
+        $params['run_after'] = date(PHS_Model_Core_base::DATETIME_DB, $run_after);
+    } else {
+        $params['run_after'] = null;
+    }
+
+    return $rq_manager->queue_request($url, $method, $payload, $settings, $params);
 }
 // endregion Helper functions
 

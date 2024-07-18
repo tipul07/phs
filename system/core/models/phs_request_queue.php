@@ -26,7 +26,7 @@ class PHS_Model_Request_queue extends PHS_Model
 
     public function get_model_version() : string
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     public function get_table_names() : array
@@ -51,9 +51,10 @@ class PHS_Model_Request_queue extends PHS_Model
         string $url,
         string $method = 'get',
         ?string $payload = null,
+        ?array $settings = null,
         int $max_retries = 1,
         ?string $handle = null,
-        ?array $settings = null,
+        ?string $run_after = null,
     ) : ?array {
         $this->reset_error();
 
@@ -80,8 +81,38 @@ class PHS_Model_Request_queue extends PHS_Model
         $request_params['fields']['handle'] = $handle ?: null;
         $request_params['fields']['settings'] = $this->validate_settings_arr($settings) ?: null;
         $request_params['fields']['status'] = self::STATUS_PENDING;
+        $request_params['fields']['run_after'] = $run_after ?: null;
 
         if (!($new_record = $this->insert($request_params))) {
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                self::_t('Error saving request details in database.'));
+
+            return null;
+        }
+
+        return $new_record;
+    }
+
+    public function start_request(
+        int | array $request_data,
+    ) : ?array {
+        $this->reset_error();
+
+        if (empty($request_data)
+            || !($flow_arr = $this->fetch_default_flow_params(['table_name' => 'phs_request_queue']))
+            || !($request_arr = $this->data_to_array($request_data, $flow_arr))
+            || $this->is_deleted($request_arr)) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Request record not found in database.'));
+
+            return null;
+        }
+
+        $request_params = $flow_arr;
+        $request_params['fields'] = [];
+        $request_params['fields']['last_error'] = null;
+        $request_params['fields']['status'] = self::STATUS_RUNNING;
+
+        if (!($new_record = $this->edit($request_arr, $request_params))) {
             $this->set_error(self::ERR_FUNCTIONALITY,
                 self::_t('Error saving request details in database.'));
 
@@ -228,6 +259,7 @@ class PHS_Model_Request_queue extends PHS_Model
     public function empty_request_settings_arr() : array
     {
         return [
+            'timeout'           => 30,
             'success_codes'     => [],
             'headers'           => [],
             'auth_basic'        => [],
@@ -352,6 +384,11 @@ class PHS_Model_Request_queue extends PHS_Model
                     'deleted' => [
                         'type' => self::FTYPE_DATETIME,
                     ],
+                    'run_after' => [
+                        'type'    => self::FTYPE_DATETIME,
+                        'index'   => true,
+                        'comment' => 'Run this request after this date',
+                    ],
                     'cdate' => [
                         'type' => self::FTYPE_DATETIME,
                     ],
@@ -434,6 +471,13 @@ class PHS_Model_Request_queue extends PHS_Model
         }
 
         $now_date = date(self::DATETIME_DB);
+
+        if (!empty($params['fields']['run_after'])
+           && ($run_after_time = parse_db_date($params['fields']['run_after'])) ) {
+            $params['fields']['run_after'] = date(self::DATETIME_DB, $run_after_time);
+        } else {
+            $params['fields']['run_after'] = null;
+        }
 
         $params['fields']['payload'] = ($params['fields']['payload'] ?? null) ?: null;
         $params['fields']['method'] = ($params['fields']['method'] ?? null) ?: 'get';
