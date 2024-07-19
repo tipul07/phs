@@ -567,14 +567,14 @@ class PHS_Po_format extends PHS_Registry
     {
         // read empty lines till first translation unit
         do {
-            if (($line_str = $this->get_line($this->_li)) === false) {
+            if (($line_str = $this->get_line($this->_li)) === null) {
                 break;
             }
 
             $this->_li++;
         } while ($line_str === '');
 
-        if ($line_str === false) {
+        if ($line_str === null) {
             return null;
         }
 
@@ -585,10 +585,10 @@ class PHS_Po_format extends PHS_Registry
         $unit_arr['files'] = [];
 
         do {
-            if (strpos($line_str, '# ') === 0) {
+            if (str_starts_with($line_str, '# ')) {
                 // comment
                 $unit_arr['comment'] = substr($line_str, 2);
-            } elseif (strpos($line_str, '#: ') === 0) {
+            } elseif (str_starts_with($line_str, '#: ')) {
                 // file...
                 // POEdit (or PO format) has errors if file name contains spaces or :
                 if (($file_str = substr($line_str, 3))
@@ -620,10 +620,10 @@ class PHS_Po_format extends PHS_Registry
                         }
                     }
                 }
-            } elseif (strpos($line_str, 'msgid ') === 0) {
+            } elseif (str_starts_with($line_str, 'msgid ')) {
                 $msgid = trim(substr($line_str, 6), '"');
                 while (($next_line_str = $this->get_line($this->_li))) {
-                    if (substr($next_line_str, 0, 1) !== '"') {
+                    if (!str_starts_with($next_line_str, '"')) {
                         break;
                     }
 
@@ -632,10 +632,10 @@ class PHS_Po_format extends PHS_Registry
                 }
 
                 $unit_arr['index'] = $msgid;
-            } elseif (strpos($line_str, 'msgstr ') === 0) {
+            } elseif (str_starts_with($line_str, 'msgstr ')) {
                 $msgstr = trim(substr($line_str, 7), '"');
                 while (($next_line_str = $this->get_line($this->_li))) {
-                    if (substr($next_line_str, 0, 1) !== '"') {
+                    if (!str_starts_with($next_line_str, '"')) {
                         break;
                     }
 
@@ -694,9 +694,9 @@ class PHS_Po_format extends PHS_Registry
     /**
      * @param int $index Line index if we use full buffer of po file. If we use generators function will yield next line in file
      *
-     * @return bool|string
+     * @return null|string
      */
-    private function get_line(int $index)
+    private function get_line(int $index) : ?string
     {
         return $this->lines_arr[$index] ?? null;
     }
@@ -711,23 +711,23 @@ class PHS_Po_format extends PHS_Registry
 
             $this->_li++;
 
-            if (strpos($line_str, 'msgid') === 0
-             || strpos($line_str, 'msgstr') === 0
-             || substr($line_str, 0, 1) === '#') {
+            if (str_starts_with($line_str, 'msgid')
+                || str_starts_with($line_str, 'msgstr')
+                || str_starts_with($line_str, '#')) {
                 continue;
             }
 
             if ($line_str === ''
-             || strpos($line_str, '#:') === 0
-             || substr($line_str, 0, 1) !== '"') {
+                || str_starts_with($line_str, '#:')
+                || !str_starts_with($line_str, '"')) {
                 break;
             }
 
             $line_str = trim($line_str, '"');
 
-            while (substr($line_str, -2) !== '\\n') {
-                if (($next_line = $this->get_line($this->_li)) === false
-                 || $next_line === '') {
+            while (!str_ends_with($line_str, '\\n')) {
+                if (($next_line = $this->get_line($this->_li)) === null
+                    || $next_line === '') {
                     break 2;
                 }
 
@@ -739,7 +739,7 @@ class PHS_Po_format extends PHS_Registry
             }
 
             if (!($header_vals = explode(':', $line_str, 2))
-             || empty($header_vals[0]) || empty($header_vals[1])) {
+                || empty($header_vals[0]) || empty($header_vals[1])) {
                 continue;
             }
 
