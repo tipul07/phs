@@ -17,7 +17,7 @@ use phs\system\core\libraries\PHS_Requests_queue_manager;
 
 function phs_version() : string
 {
-    return '1.2.2.0';
+    return '1.2.2.1';
 }
 
 // region Helper functions

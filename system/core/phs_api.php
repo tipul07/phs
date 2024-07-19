@@ -380,7 +380,7 @@ class PHS_Api extends PHS_Api_base
     public static function default_api_route_node() : array
     {
         return [
-            'exact_match'       => '', // spare a regexp check if we want something static
+            'exact_match'       => '', // (array or string) spare a regexp check if we want something static
             'regexp'            => '',
             'regexp_modifiers'  => '', // provide
             'insensitive_match' => true, // case-insensitive match on exact_match or regexp
@@ -597,21 +597,34 @@ class PHS_Api extends PHS_Api_base
 
             $knti++;
 
-            if ($api_element['exact_match'] === ''
-             && empty($api_element['regexp'])) {
+            if (is_string($api_element['exact_match'])) {
+                if ($api_element['exact_match'] === '') {
+                    $api_element['exact_match'] = [];
+                } else {
+                    $api_element['exact_match'] = [$api_element['exact_match']];
+                }
+            }
+
+            if (empty($api_element['exact_match'])
+                && empty($api_element['regexp'])) {
                 return null;
             }
 
-            if ($api_element['exact_match'] !== '') {
-                if (!empty($api_element['insensitive_match'])) {
-                    $exact_match = strtolower($api_element['exact_match']);
-                    $check_token = strtolower($request_token);
-                } else {
-                    $exact_match = $api_element['exact_match'];
-                    $check_token = $request_token;
+            if (!empty($api_element['exact_match'])) {
+                $check_token = !empty($api_element['insensitive_match']) ? strtolower($request_token) : $request_token;
+                $matched = false;
+                foreach ($api_element['exact_match'] as $exact_match) {
+                    if (!empty($api_element['insensitive_match'])) {
+                        $exact_match = strtolower($exact_match);
+                    }
+
+                    if ($exact_match === $check_token) {
+                        $matched = true;
+                        break;
+                    }
                 }
 
-                if ($exact_match !== $check_token) {
+                if (!$matched) {
                     return null;
                 }
             } elseif (!empty($api_element['regexp'])) {
