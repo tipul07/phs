@@ -98,7 +98,7 @@ function requests_queue_manager() : ?PHS_Requests_queue_manager
     return $manager;
 }
 
-function queue_request(
+function http_call(
     string $url,
     string $method = 'get',
     ?string $payload = null,
@@ -122,7 +122,7 @@ function queue_request(
         $params['run_after'] = null;
     }
 
-    return $rq_manager->queue_request($url, $method, $payload, $settings, $params);
+    return $rq_manager->http_call($url, $method, $payload, $settings, $params);
 }
 // endregion Helper functions
 

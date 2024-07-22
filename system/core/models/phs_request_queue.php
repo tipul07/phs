@@ -2,13 +2,10 @@
 
 namespace phs\system\core\models;
 
-use phs\PHS;
 use phs\libraries\PHS_Model;
-use phs\libraries\PHS_Roles;
-use phs\libraries\PHS_Utils;
+use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\traits\PHS_Model_Trait_statuses;
-use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Model_Request_queue extends PHS_Model
 {
@@ -259,14 +256,16 @@ class PHS_Model_Request_queue extends PHS_Model
     public function empty_request_settings_arr() : array
     {
         return [
-            'timeout'           => 30,
-            'success_codes'     => [],
-            'headers'           => [],
-            'auth_basic'        => [],
-            'auth_bearer'       => [],
-            'success_callback'  => null,
-            'one_fail_callback' => null,
-            'fail_callback'     => null,
+            'timeout'              => 30,
+            'log_file'             => null,
+            'expect_json_response' => false,
+            'success_codes'        => [],
+            'headers'              => [],
+            'auth_basic'           => [],
+            'auth_bearer'          => [],
+            'success_callback'     => null,
+            'one_fail_callback'    => null,
+            'fail_callback'        => null,
         ];
     }
 
@@ -282,11 +281,16 @@ class PHS_Model_Request_queue extends PHS_Model
         }
 
         if ( !empty($new_settings_arr['auth_basic']) ) {
-            if ( empty($new_settings_arr['auth_basic']['user'])) {
+            if ( !isset($new_settings_arr['auth_basic']['user'])) {
                 unset($new_settings_arr['auth_basic']);
             } else {
                 $new_settings_arr['auth_basic']['pass'] = ($new_settings_arr['auth_basic']['pass'] ?? '');
             }
+        }
+
+        if ( isset($settings_arr['auth_bearer'])
+            && empty($settings_arr['auth_bearer']['token']) ) {
+            unset($settings_arr['auth_bearer']);
         }
 
         if ( empty($new_settings_arr['success_codes']) ) {
@@ -294,6 +298,11 @@ class PHS_Model_Request_queue extends PHS_Model
         }
 
         $new_settings_arr['success_codes'] = self::extract_integers_from_array($new_settings_arr['success_codes']);
+
+        if (!empty($new_settings_arr['log_file'])
+           && !PHS_Logger::define_channel($new_settings_arr['log_file'])) {
+            unset($new_settings_arr['log_file']);
+        }
 
         return $new_settings_arr;
     }
