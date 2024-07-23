@@ -2,6 +2,7 @@
 
 namespace phs\system\core\libraries;
 
+use phs\PHS;
 use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
@@ -11,6 +12,9 @@ use phs\system\core\models\PHS_Model_Request_queue;
 
 class PHS_Requests_queue_manager extends PHS_Library
 {
+    private const _LOG_METHOD_ERROR = 'error', _LOG_METHOD_WARNING = 'warning', _LOG_METHOD_NOTICE = 'notice',
+        _LOG_METHOD_INFO = 'info', _LOG_METHOD_DEBUG = 'debug';
+
     private ?PHS_Model_Request_queue $_requests_model = null;
 
     public function http_call(
@@ -28,7 +32,7 @@ class PHS_Requests_queue_manager extends PHS_Library
         $params['handle'] ??= null;
         $params['sync_run'] = !isset($params['sync_run']) || !empty($params['sync_run']);
         $params['same_thread_if_bg'] = !isset($params['same_thread_if_bg']) || !empty($params['same_thread_if_bg']);
-        $params['run_after'] ??= $params['run_after'];
+        $params['run_after'] ??= null;
 
         if ( !empty($params['run_after'])
             && ($run_after = parse_db_date($params['run_after']))) {
@@ -46,6 +50,7 @@ class PHS_Requests_queue_manager extends PHS_Library
 
         if (empty($params['run_after'])) {
             $request_arr = $params['sync_run']
+                           || ($params['same_thread_if_bg'] && PHS::are_we_in_a_background_thread())
                 ? $this->run_request($request_arr)
                 : $this->run_request_bg($request_arr);
 
@@ -102,7 +107,7 @@ class PHS_Requests_queue_manager extends PHS_Library
         }
 
         if (!$forced_run
-           && $this->_requests_model->can_run_request($request_arr)) {
+           && !$this->_requests_model->can_run_request($request_arr)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Provided request cannot be run.'));
 
             return null;
@@ -112,26 +117,39 @@ class PHS_Requests_queue_manager extends PHS_Library
             $request_arr = $new_request;
         }
 
-        if ( !($result = $this->_do_api_call($request_arr)) ) {
-            $this->_requests_model->update_request($request_arr);
+        $request_response = $this->_do_api_call($request_arr);
 
-            return null;
+        if ( !($update_result = $this->_update_request_for_result($request_arr, $request_response)) ) {
+            self::_logf(
+                self::_LOG_METHOD_ERROR,
+                'Error updating request status (request #'.$request_arr['id'].') after run: '
+                .$this->_requests_model->get_simple_error_message(self::_t('Unknown error.')),
+                $request_response['log_file']
+            );
+        } else {
+            $request_response['request_data'] = $update_result['request_data'];
+            $request_response['request_run_data'] = $update_result['request_run_data'];
         }
 
-        return $request_arr;
+        return $request_response;
     }
 
-    protected function _do_api_call(array $request_arr, array $params = []) : ?array
+    private function _do_api_call(array $request_arr, array $params = []) : array
     {
-        if ( !$this->_load_dependencies()) {
-            return null;
-        }
-
         if ( !($settings_arr = $this->_requests_model->get_request_settings($request_arr)) ) {
-            $settings_arr = [];
+            $settings_arr = $this->_requests_model->empty_request_settings_arr();
         }
 
-        $curl_params = [];
+        if (empty($settings_arr['success_codes']) || !is_array($settings_arr['success_codes'])) {
+            $settings_arr['success_codes'] = [200];
+        }
+
+        $params['success_codes'] = $settings_arr['success_codes'];
+        $params['timeout'] = $settings_arr['timeout'] ?? 30;
+        $params['log_file'] = $settings_arr['log_file'] ?? null;
+        $params['expect_json'] = $settings_arr['expect_json_response'] ?? false;
+
+        $curl_params = $params['curl_params'] ?? [];
         if ( !empty($settings_arr['auth_basic']) ) {
             $curl_params['userpass'] = [
                 'user' => $settings_arr['auth_basic']['user'] ?? '',
@@ -142,29 +160,22 @@ class PHS_Requests_queue_manager extends PHS_Library
             $curl_params['header_keys_arr'] ??= [];
             $curl_params['header_keys_arr']['Authorization'] = 'Bearer '.$settings_arr['auth_bearer']['token'];
         }
+        $params['curl_params'] = $curl_params;
 
-        $call_params = [];
-        $call_params['curl_params'] = $curl_params;
-
-        if ( !($result = $this->_do_api_call_to_url($request_arr['url'], $request_arr['payload'], $request_arr['method'], $call_params)) ) {
-            return null;
-        }
-
-        return $result;
+        return $this->_do_api_call_to_url($request_arr['url'], $request_arr['payload'], $request_arr['method'], $params);
     }
 
-    protected function _do_api_call_to_url(string $url, ?string $payload = null, ?string $method = null, array $params = []) : ?array
+    private function _do_api_call_to_url(string $url, ?string $payload = null, ?string $method = null, array $params = []) : array
     {
-        if ( !$this->_load_dependencies()) {
-            return null;
-        }
-
         $params['skip_api_monitoring'] = !empty($params['skip_api_monitoring']);
-        $params['log_file'] ??= $params['log_file'];
 
-        $params['expect_json'] = !empty($params['expect_json']);
         $params['timeout'] = (int)($params['timeout'] ?? 30);
+        $params['log_file'] ??= null;
+        $params['expect_json'] = !empty($params['expect_json']);
 
+        if (empty($params['success_codes']) || !is_array($params['success_codes'])) {
+            $params['success_codes'] = [200];
+        }
         if (empty($params['headers']) || !is_array($params['headers'])) {
             $params['headers'] = [];
         }
@@ -192,15 +203,19 @@ class PHS_Requests_queue_manager extends PHS_Library
             $curl_params['http_method'] = $method;
         }
 
-        if ($params['skip_api_monitoring']) {
-            $outgoing_request = null;
-        } else {
-            $outgoing_request = PHS_Model_Api_monitor::api_outgoing_request_started($url, $payload ?: null, $method ?? 'GET');
-        }
+        $monitoring_record = $params['skip_api_monitoring']
+            ? null
+            : PHS_Model_Api_monitor::api_outgoing_request_started($url, $payload ?: null, $method ?? 'GET');
 
-        if ($params['log_file']) {
-            PHS_Logger::info('Sending '.strtoupper($method ?? 'get').' request to '.$url.'.', $params['log_file'] );
-        }
+        $request_response = $this->_empty_request_response();
+        $request_response['log_file'] = $params['log_file'];
+        $request_response['monitoring_record'] = $monitoring_record;
+
+        self::_logf(
+            self::_LOG_METHOD_NOTICE,
+            'Sending '.strtoupper($method ?? 'get').' request to '.$url.'.',
+            $params['log_file']
+        );
 
         $obfuscated_params = $curl_params;
         if (!empty($obfuscated_params['userpass'])) {
@@ -209,38 +224,145 @@ class PHS_Requests_queue_manager extends PHS_Library
         // TODO: Obfuscate authentication headers
 
         if (!($api_response = PHS_Utils::quick_curl($url, $curl_params))
-            || !is_array($api_response)
+            || empty($api_response['request_details']) || !is_array($api_response['request_details'])
         ) {
-            if ($params['log_file']) {
-                PHS_Logger::error('Error initiating API call.', $params['log_file']);
-            }
+            $error_msg = 'Error initiating API call: ('.($api_response['request_error_no'] ?? -1).') '
+                         .($api_response['request_error_msg'] ?? 'Unknown error.');
+
+            $request_response['has_error'] = true;
+            $request_response['error_msg'] = $error_msg;
+            $request_response['http_code'] = $api_response['http_code'] ?? 0;
+
+            self::_logf(self::_LOG_METHOD_ERROR, $error_msg, $params['log_file']);
 
             ob_start();
-            var_dump($curl_params);
+            var_dump($obfuscated_params);
             $request_params = @ob_get_clean();
 
-            PHS_Logger::info('API URL: '.$url."\n"
-                             .'Params: '.$request_params, $this->_vies_vat_plugin::LOG_CHANNEL);
+            self::_logf(
+                self::_LOG_METHOD_INFO,
+                'API URL: '.$url."\n"
+                .'Params: '.$request_params,
+                $params['log_file']
+            );
 
-            $error_msg = $this->_pt('Error initiating call to VIES VAT API.');
-            $this->set_error(self::ERR_API_INIT, $error_msg);
+            if ($monitoring_record
+               && ($new_record = PHS_Model_Api_monitor::api_outgoing_request_error($monitoring_record, null, $error_msg))) {
+                $request_response['monitoring_record'] = $new_record;
+            }
 
-            PHS_Model_Api_monitor::api_outgoing_request_error($outgoing_request, null, $error_msg);
-
-            return null;
+            return $request_response;
         }
 
-        return null;
+        $http_code = (int)($api_response['request_details']['http_code'] ?? 0);
+
+        $request_response['http_code'] = $http_code;
+        $request_response['response_buf'] = $api_response['response'] ?? '';
+        $request_response['response_json'] = [];
+        $request_response['response_curl'] = $api_response;
+
+        if (empty($http_code)
+            || !in_array($http_code, $params['success_codes'], true)) {
+            $error_msg = 'API responded with HTTP code: '.$http_code.' (expected: '.implode(',', $params['success_codes']).')';
+
+            $request_response['has_error'] = true;
+            $request_response['error_msg'] = $error_msg;
+
+            self::_logf(self::_LOG_METHOD_ERROR, $error_msg, $params['log_file']);
+
+            $request_headers = $api_response['request_details']['request_header'] ?? 'N/A';
+            $request_params = $api_response['request_details']['request_params'] ?? 'N/A';
+
+            self::_logf(
+                self::_LOG_METHOD_INFO,
+                'API URL: '.$url."\n"
+                .'Request headers: '.$request_headers."\n"
+                .'Params: '.$request_params,
+                $params['log_file']
+            );
+
+            if ($monitoring_record
+               && ($new_record = PHS_Model_Api_monitor::api_outgoing_request_error(
+                   $monitoring_record, $http_code, $error_msg, $request_response['response_buf'] ?: null))
+            ) {
+                $request_response['monitoring_record'] = $new_record;
+            }
+
+            return $request_response;
+        }
+
+        if (!empty($params['expect_json'])) {
+            $error_msg = null;
+            $json_response = [];
+            if (empty($request_response['response_buf'])) {
+                $error_msg = 'API response body is empty.';
+            } elseif (!($json_response = @json_decode($request_response['response_buf'], true))) {
+                $error_msg = 'Error decoding response body as JSON.';
+            }
+
+            if (!empty($error_msg)) {
+                $request_response['has_error'] = true;
+                $request_response['error_msg'] = $error_msg;
+
+                self::_logf(self::_LOG_METHOD_ERROR, $error_msg, $params['log_file']);
+
+                $request_headers = $api_response['request_details']['request_header'] ?? 'N/A';
+                $request_params = $api_response['request_details']['request_params'] ?? 'N/A';
+
+                self::_logf(
+                    self::_LOG_METHOD_INFO,
+                    'API URL: '.$url."\n"
+                    .'Request headers: '.$request_headers."\n"
+                    .'Params: '.$request_params
+                    .'API response: '.$request_response['response_buf'],
+                    $params['log_file']
+                );
+
+                if ($monitoring_record
+                   && ($new_record = PHS_Model_Api_monitor::api_outgoing_request_error(
+                       $monitoring_record, $http_code, $error_msg, $request_response['response_buf'] ?: null))
+                ) {
+                    $request_response['monitoring_record'] = $new_record;
+                }
+
+                return $request_response;
+            }
+
+            $request_response['response_json'] = $json_response;
+        }
+
+        if ($monitoring_record
+           && ($new_record = PHS_Model_Api_monitor::api_outgoing_request_success(
+               $monitoring_record, $http_code, $request_response['response_buf'] ?: null))
+        ) {
+            $request_response['monitoring_record'] = $new_record;
+        }
+
+        return $request_response;
     }
 
-    protected function _empty_request_response() : array
+    private function _update_request_for_result(array $request_arr, array $request_response) : ?array
+    {
+        $update_result = $request_response['has_error']
+            ? $this->_requests_model->update_request_for_failure($request_arr, $request_response['http_code'], $request_response['response_buf'], $request_response['error_msg'])
+            : $this->_requests_model->update_request_for_success($request_arr, $request_response['http_code'], $request_response['response_buf'], $request_response['error_msg']);
+
+        return $update_result ?: null;
+    }
+
+    private function _empty_request_response() : array
     {
         return [
-            'http_code'        => 0,
-            'response_headers' => [],
-            'response_buf'     => null,
-            'response_json'    => null,
-            'response_curl'    => null,
+            'http_code'         => 0,
+            'has_error'         => false,
+            'error_msg'         => '',
+            'log_file'          => null,
+            'request_data'      => null,
+            'request_run_data'  => null,
+            'response_buf'      => null,
+            'response_json'     => null,
+            'response_curl'     => null,
+            'monitoring_record' => null,
         ];
     }
 
@@ -257,5 +379,17 @@ class PHS_Requests_queue_manager extends PHS_Library
         }
 
         return true;
+    }
+
+    private static function _logf(string $method, string $msg, ?string $log_channel = null) : void
+    {
+        if (!@method_exists(PHS_Logger::class, $method)) {
+            return;
+        }
+
+        PHS_Logger::$method($msg, PHS_Logger::TYPE_REQUESTS_QUEUE);
+        if ($log_channel) {
+            PHS_Logger::$method($msg, $log_channel);
+        }
     }
 }

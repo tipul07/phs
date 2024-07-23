@@ -23,7 +23,7 @@ class PHS_Model_Request_queue extends PHS_Model
 
     public function get_model_version() : string
     {
-        return '1.0.1';
+        return '1.0.2';
     }
 
     public function get_table_names() : array
@@ -119,77 +119,22 @@ class PHS_Model_Request_queue extends PHS_Model
         return $new_record;
     }
 
-    /**
-     * Call this method when we have a response from the 3rd party (success or fail)
-     * @param int|array $request_data
-     * @param null|int $http_code
-     * @param null|bool|string $response
-     * @param null|bool|string $error
-     *
-     * @return null|array
-     */
-    public function update_request(
+    public function update_request_for_success(
         int | array $request_data,
         ?int $http_code = null,
         null | bool | string $response = false,
         null | bool | string $error = false,
     ) : ?array {
-        $this->reset_error();
+        return $this->_update_request($request_data, $http_code, self::STATUS_SUCCESS, $response, $error);
+    }
 
-        if (empty($request_data)
-            || !($flow_arr = $this->fetch_default_flow_params(['table_name' => 'phs_request_queue']))
-            || !($request_arr = $this->data_to_array($request_data, $flow_arr))
-            || $this->is_deleted($request_arr)) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('Request record not found in database.'));
-
-            return null;
-        }
-
-        $settings_arr = $this->get_request_settings($request_arr) ?: $this->default_settings_arr();
-
-        $now_date = date(self::DATETIME_DB);
-
-        $edit_params = $flow_arr;
-        $edit_params['fields'] = [];
-        if ( $http_code !== null
-            && !empty($settings_arr['success_codes']) && is_array($settings_arr['success_codes'])) {
-            if (in_array($http_code, $settings_arr['success_codes'], true)) {
-                $http_code ??= array_shift($settings_arr['success_codes']) ?: 200;
-                $edit_params['fields']['status'] = self::STATUS_SUCCESS;
-            } else {
-                $http_code ??= 500;
-                $edit_params['fields']['status'] = self::STATUS_FAILED;
-            }
-        }
-
-        if (!empty($edit_params['fields']['status'])) {
-            if ($edit_params['fields']['status'] === self::STATUS_SUCCESS) {
-                $http_code = $http_code ?: 200;
-                $error = null;
-            } elseif ($edit_params['fields']['status'] === self::STATUS_FAILED) {
-                $http_code ??= 500;
-                $edit_params['fields']['fails'] = ['raw_field' => true, 'value' => 'fails + 1'];
-            }
-        }
-
-        if ($error !== false) {
-            $edit_params['fields']['last_error'] = $error;
-        }
-
-        $edit_params['fields']['last_edit'] = $now_date;
-
-        if ( !$this->_request_run_result($request_arr, $http_code ?: 0, $response ?: null, $error ?: null) ) {
-            return null;
-        }
-
-        if (!($new_record = $this->edit($request_arr, $edit_params))) {
-            $this->set_error(self::ERR_FUNCTIONALITY,
-                self::_t('Error saving data rentention run details in database.'));
-
-            return null;
-        }
-
-        return $new_record;
+    public function update_request_for_failure(
+        int | array $request_data,
+        ?int $http_code = null,
+        null | bool | string $response = false,
+        null | bool | string $error = false,
+    ) : ?array {
+        return $this->_update_request($request_data, $http_code, self::STATUS_FAILED, $response, $error);
     }
 
     public function is_pending(int | array $record_data) : bool
@@ -269,8 +214,10 @@ class PHS_Model_Request_queue extends PHS_Model
         ];
     }
 
-    public function validate_settings_arr(array $settings_arr) : array
+    public function validate_settings_arr(?array $settings_arr) : array
     {
+        $settings_arr ??= [];
+
         $new_settings_arr = [];
         $settings_fields = $this->empty_request_settings_arr();
         foreach ($settings_fields as $field => $default_val) {
@@ -378,6 +325,11 @@ class PHS_Model_Request_queue extends PHS_Model
                     ],
                     'settings' => [
                         'type' => self::FTYPE_TEXT,
+                    ],
+                    'is_final' => [
+                        'type'   => self::FTYPE_TINYINT,
+                        'length' => 2,
+                        'index'  => true,
                     ],
                     'status' => [
                         'type'   => self::FTYPE_TINYINT,
@@ -558,6 +510,83 @@ class PHS_Model_Request_queue extends PHS_Model
         $params['fields']['last_edit'] ??= $now_date;
 
         return $params;
+    }
+
+    /**
+     * Call this method when we have a response from the 3rd party (success or fail)
+     *
+     * @param int|array $request_data
+     * @param null|int $http_code
+     * @param null|int $status
+     * @param null|bool|string $response
+     * @param null|bool|string $error
+     *
+     * @return null|array
+     */
+    private function _update_request(
+        int | array $request_data,
+        ?int $http_code = null,
+        ?int $status = null,
+        null | bool | string $response = false,
+        null | bool | string $error = false,
+    ) : ?array {
+        $this->reset_error();
+
+        if (empty($request_data)
+            || !($flow_arr = $this->fetch_default_flow_params(['table_name' => 'phs_request_queue']))
+            || !($request_arr = $this->data_to_array($request_data, $flow_arr))
+            || $this->is_deleted($request_arr)) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Request record not found in database.'));
+
+            return null;
+        }
+
+        $now_date = date(self::DATETIME_DB);
+
+        $edit_params = $flow_arr;
+        $edit_params['fields'] = [];
+        if ( $status !== null
+            && $this->valid_status($status)) {
+            $edit_params['fields']['status'] = $status;
+        }
+
+        if ($error !== false) {
+            $edit_params['fields']['last_error'] = $error;
+            if (empty($edit_params['fields']['status'])) {
+                $edit_params['fields']['status'] = self::STATUS_FAILED;
+            }
+        }
+
+        if (!empty($edit_params['fields']['status'])) {
+            if ($edit_params['fields']['status'] === self::STATUS_SUCCESS) {
+                $http_code = $http_code ?: 200;
+                $error = null;
+            } elseif ($edit_params['fields']['status'] === self::STATUS_FAILED) {
+                $http_code ??= 0;
+                $edit_params['fields']['fails'] = ['raw_field' => true, 'value' => 'fails + 1'];
+                if ( $request_arr['max_retries'] <= $request_arr['fails'] + 1 ) {
+                    $edit_params['fields']['is_final'] = 1;
+                }
+            }
+        }
+
+        $edit_params['fields']['last_edit'] = $now_date;
+
+        if ( !($request_run_arr = $this->_request_run_result($request_arr, $http_code ?: 0, $response ?: null, $error ?: null)) ) {
+            return null;
+        }
+
+        if (!($new_record = $this->edit($request_arr, $edit_params))) {
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                self::_t('Error saving data rentention run details in database.'));
+
+            return null;
+        }
+
+        return [
+            'request_data'     => $new_record,
+            'request_run_data' => $request_run_arr,
+        ];
     }
 
     private function _request_run_result(

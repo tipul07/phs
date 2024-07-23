@@ -1342,9 +1342,8 @@ class PHS_Utils extends PHS_Language
             'request_params'    => $return_params,
         ];
 
-        if (!empty($response['request_details']) && is_array($response['request_details'])
-         && isset($response['request_details']['http_code'])) {
-            $response['http_code'] = $response['request_details']['http_code'];
+        if (isset($response['request_details']['http_code'])) {
+            $response['http_code'] = (int)$response['request_details']['http_code'];
         }
 
         @curl_close($ch);

@@ -93,9 +93,12 @@ final class PHS extends PHS_Registry
     public static function get_core_models() : array
     {
         // !!! Don't change order of models here unless you know what you're doing !!!
-        // Models should be placed in this array after their dependencies
+        // Models should be placed in this array depending on their dependencies
         // (e.g. bg_jobs depends on agent_jobs - it adds an agent job for timed bg jobs)
-        return ['migrations', 'tenants', 'agent_jobs', 'bg_jobs', 'roles', 'api_keys', 'agent_jobs_monitor', 'api_monitor', 'data_retention'];
+        return [
+            'migrations', 'tenants', 'agent_jobs', 'bg_jobs', 'roles', 'api_keys',
+            'agent_jobs_monitor', 'api_monitor', 'data_retention', 'request_queue',
+        ];
     }
 
     /**
