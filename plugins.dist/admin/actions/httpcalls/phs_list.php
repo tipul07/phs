@@ -1,23 +1,23 @@
 <?php
 
-namespace phs\plugins\admin\actions;
+namespace phs\plugins\admin\actions\httpcalls;
 
 use phs\PHS;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
-use phs\system\core\models\PHS_Model_Api_monitor;
+use phs\system\core\models\PHS_Model_Request_queue;
 
-/** @property PHS_Model_Api_monitor $_paginator_model */
-class PHS_Action_Api_report extends PHS_Action_Generic_list
+/** @property PHS_Model_Request_queue $_paginator_model */
+class PHS_Action_List extends PHS_Action_Generic_list
 {
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
     public function load_depencies() : bool
     {
         if (!($this->_admin_plugin = PHS_Plugin_Admin::get_instance())
-         || !($this->_paginator_model = PHS_Model_Api_monitor::get_instance())) {
+         || !($this->_paginator_model = PHS_Model_Request_queue::get_instance())) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
@@ -37,7 +37,14 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
             return action_request_login();
         }
 
-        if (!$this->_admin_plugin->can_admin_view_api_monitoring_report()) {
+        if (empty($this->_paginator_model) && !$this->load_depencies()) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
+
+            return self::default_action_result();
+        }
+
+        if (!$this->_admin_plugin->can_admin_list_http_calls()
+            && !$this->_admin_plugin->can_admin_manage_http_calls()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
@@ -51,55 +58,40 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
      */
     public function load_paginator_params() : ?array
     {
-        PHS::page_settings('page_title', $this->_pt('API Monitor Report'));
+        PHS::page_settings('page_title', $this->_pt('HTTP Calls'));
 
         $list_arr = [];
         $list_arr['flags'] = ['include_account_details'];
 
         $flow_params = [
-            'term_singular'        => $this->_pt('API call'),
-            'term_plural'          => $this->_pt('API calls'),
+            'term_singular'        => $this->_pt('HTTP call'),
+            'term_plural'          => $this->_pt('HTTP calls'),
             'initial_list_arr'     => $list_arr,
             'after_table_callback' => [$this, 'after_table_callback'],
-            'listing_title'        => $this->_pt('API Monitor Report'),
+            'listing_title'        => $this->_pt('HTTP Calls'),
         ];
 
         if (!($statuses_arr = $this->_paginator_model->get_statuses_as_key_val())) {
             $statuses_arr = [];
         }
-        if (!($types_arr = $this->_paginator_model->get_types_as_key_val())) {
-            $types_arr = [];
-        }
 
-        if (!empty($statuses_arr)) {
-            $statuses_arr = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $statuses_arr);
-        }
-        if (!empty($types_arr)) {
-            $types_arr = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $types_arr);
-        }
+        $filter_statuses_arr = $statuses_arr
+            ? self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $statuses_arr)
+            : [];
 
         $filters_arr = [
             [
-                'display_name' => $this->_pt('External route'),
-                'display_hint' => $this->_pt('All records containing this value at title field'),
-                'var_name'     => 'ftitle',
-                'record_field' => 'external_route',
-                'record_check' => ['check' => 'LIKE', 'value' => '%%%s%%'],
-                'type'         => PHS_Params::T_NOHTML,
-                'default'      => '',
-            ],
-            [
-                'display_name' => $this->_pt('Internal route'),
-                'display_hint' => $this->_pt('All records containing this value at handler field'),
-                'var_name'     => 'fhandler',
-                'record_field' => 'internal_route',
+                'display_name' => $this->_pt('URL'),
+                'display_hint' => $this->_pt('All HTTP calls to provided URL'),
+                'var_name'     => 'furl',
+                'record_field' => 'url',
                 'record_check' => ['check' => 'LIKE', 'value' => '%%%s%%'],
                 'type'         => PHS_Params::T_NOHTML,
                 'default'      => '',
             ],
             [
                 'display_name' => $this->_pt('Method'),
-                'display_hint' => $this->_pt('All requests done with this method'),
+                'display_hint' => $this->_pt('All HTTP calls done using this method'),
                 'var_name'     => 'fmethod',
                 'record_field' => 'method',
                 'record_check' => ['check' => 'LIKE', 'value' => '%%%s%%'],
@@ -107,28 +99,33 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                 'default'      => '',
             ],
             [
-                'display_name' => $this->_pt('Plugin'),
-                'display_hint' => $this->_pt('All records containing this value at plugin field'),
-                'var_name'     => 'fplugin',
-                'record_field' => 'plugin',
+                'display_name' => $this->_pt('Handle'),
+                'display_hint' => $this->_pt('All HTTP calls created using specified handle'),
+                'var_name'     => 'fhandle',
+                'record_field' => 'handle',
                 'record_check' => ['check' => 'LIKE', 'value' => '%%%s%%'],
                 'type'         => PHS_Params::T_NOHTML,
                 'default'      => '',
             ],
             [
-                'display_name' => $this->_pt('Response code'),
-                'var_name'     => 'fresponse_code',
-                'record_field' => 'response_code',
-                'type'         => PHS_Params::T_INT,
-                'default'      => '',
-            ],
-            [
-                'display_name' => $this->_pt('Type'),
-                'var_name'     => 'ftype',
-                'record_field' => 'type',
-                'type'         => PHS_Params::T_INT,
-                'default'      => 0,
-                'values_arr'   => $types_arr,
+                'display_name'  => $this->_pt('Is final?'),
+                'display_hint'  => $this->_pt('Select only final HTTP calls'),
+                'var_name'      => 'fis_final',
+                'switch_filter' => [
+                    1 => [
+                        'raw_query' => 'is_final = 1',
+                    ],
+                    2 => [
+                        'raw_query' => 'is_final = 0',
+                    ],
+                ],
+                'type'       => PHS_Params::T_INT,
+                'default'    => -1,
+                'values_arr' => [
+                    -1 => $this->_pt('All'),
+                    1  => $this->_pt('Final calls'),
+                    2  => $this->_pt('NOT final calls'),
+                ],
             ],
             [
                 'display_name' => $this->_pt('Status'),
@@ -136,7 +133,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                 'record_field' => 'status',
                 'type'         => PHS_Params::T_INT,
                 'default'      => 0,
-                'values_arr'   => $statuses_arr,
+                'values_arr'   => $filter_statuses_arr,
             ],
         ];
 
@@ -154,45 +151,41 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                 'display_callback'    => [$this, 'display_hide_id'],
             ],
             [
-                'column_title'        => $this->_pt('Account'),
-                'record_field'        => 'account_nick',
-                'record_api_field'    => 'account_id',
-                'display_callback'    => [$this, 'display_account_name'],
-                'extra_style'         => 'width:120px;text-align:center;',
-                'extra_records_style' => 'width:120px;text-align:center;word-break:break-word;',
-            ],
-            [
                 'column_title'        => $this->_pt('Method'),
                 'record_field'        => 'method',
+                'extra_style'         => 'text-align:center;',
                 'extra_records_style' => 'text-align:right;',
             ],
             [
-                'column_title'        => $this->_pt('External Route'),
-                'record_field'        => 'external_route',
-                'extra_records_style' => 'text-align:left;',
+                'column_title'     => $this->_pt('URL'),
+                'record_field'     => 'url',
+                'display_callback' => [$this, 'display_url'],
             ],
             [
-                'column_title'        => $this->_pt('Internal Route'),
-                'record_field'        => 'internal_route',
-                'extra_records_style' => 'text-align:left;',
+                'column_title'        => $this->_pt('Handle'),
+                'record_field'        => 'handle',
+                'extra_style'         => 'text-align:center;',
+                'extra_records_style' => 'text-align:center;',
             ],
             [
-                'column_title'        => $this->_pt('Plugin'),
-                'record_field'        => 'plugin',
+                'column_title'        => $this->_pt('Is Final?'),
+                'record_field'        => 'is_final',
                 'extra_style'         => 'text-align:center;',
                 'extra_records_style' => 'text-align:center;',
                 'invalid_value'       => $this->_pt('N/A'),
+                'values_arr'          => [
+                    0 => $this->_pt('No'),
+                    1 => $this->_pt('Yes'),
+                ],
             ],
             [
-                'column_title'          => $this->_pt('Request'),
-                'default_sort'          => 1,
-                'record_field'          => 'request_time',
-                'date_format'           => 'd-m-Y H:i:s',
-                'extra_classes'         => 'date_th',
-                'extra_records_classes' => 'date',
-                'extra_style'           => 'text-align:center;',
-                'extra_records_style'   => 'text-align:center;',
-                'display_callback'      => [$this, 'display_request_details'],
+                'column_title'        => $this->_pt('Request'),
+                'default_sort'        => 1,
+                'record_field'        => 'request_time',
+                'date_format'         => 'd-m-Y H:i:s',
+                'extra_style'         => 'text-align:center;',
+                'extra_records_style' => 'text-align:center;',
+                'display_callback'    => [$this, 'display_request_details'],
             ],
             [
                 'column_title'          => $this->_pt('Response'),
@@ -205,27 +198,22 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                 'display_callback'      => [$this, 'display_response_details'],
             ],
             [
-                'column_title'        => $this->_pt('HTTP Code'),
-                'record_field'        => 'response_code',
-                'extra_style'         => 'text-align:center;',
-                'extra_records_style' => 'text-align:center;',
-                'display_callback'    => [$this, 'display_error_message'],
-            ],
-            [
-                'column_title'          => $this->_pt('Type'),
-                'record_field'          => 'type',
-                'display_key_value'     => $types_arr,
-                'invalid_value'         => $this->_pt('Undefined'),
-                'extra_classes'         => 'status_th',
-                'extra_records_classes' => 'status',
-            ],
-            [
                 'column_title'          => $this->_pt('Status'),
                 'record_field'          => 'status',
                 'display_key_value'     => $statuses_arr,
                 'invalid_value'         => $this->_pt('Undefined'),
                 'extra_classes'         => 'status_th',
                 'extra_records_classes' => 'status',
+            ],
+            [
+                'column_title'          => $this->_pt('Created'),
+                'default_sort'          => true,
+                'record_field'          => 'cdate',
+                'display_callback'      => [&$this->_paginator, 'pretty_date'],
+                'date_format'           => 'd-m-Y H:i:s',
+                'invalid_value'         => $this->_pt('Invalid'),
+                'extra_classes'         => 'date_th',
+                'extra_records_classes' => 'date',
             ],
         ];
 
@@ -271,10 +259,9 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
         return $params['preset_content'];
     }
 
-    public function display_account_name($params)
+    public function display_url($params)
     {
-        if (empty($params) || !is_array($params)
-            || empty($params['record']) || !is_array($params['record'])) {
+        if (empty($params['record']) || !is_array($params['record'])) {
             return false;
         }
 
@@ -282,23 +269,15 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
             return '-';
         }
 
-        $paginator_obj = $this->_paginator;
-
         if (!empty($params['request_render_type'])) {
             switch ($params['request_render_type']) {
-                case $paginator_obj::CELL_RENDER_JSON:
-                case $paginator_obj::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_JSON:
+                case $this->_paginator::CELL_RENDER_TEXT:
                     return $params['preset_content'];
-                    break;
             }
         }
 
-        if (($users_list_url = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'users'],
-            ['fids' => [$params['record']['account_id']]]))) {
-            return '<a href="'.$users_list_url.'">'.$params['preset_content'].'</a>';
-        }
-
-        return $params['preset_content'];
+        return '<a href="'.$params['preset_content'].'" target="_blank">'.$params['preset_content'].'</a>';
     }
 
     public function display_request_details($params)
@@ -396,44 +375,6 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                     }
                     break;
             }
-        }
-
-        return $cell_str;
-    }
-
-    public function display_error_message($params)
-    {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
-         || !($record_arr = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
-        }
-
-        $cell_str = $record_arr['response_code'] ?? '0';
-
-        if (!empty($params['request_render_type'])
-            && (int)$params['request_render_type'] === $this->_paginator::CELL_RENDER_HTML) {
-            if (!empty($record_arr['error_message'])) {
-                ob_start();
-                ?>
-                <a href="javascript:void(0)" onclick="phs_open_api_monitor_record_error_message( '<?php echo $record_arr['id']; ?>' )"
-                   onfocus="this.blur()"><i class="fa fa-exclamation action-icons"></i></a>
-                <div id="phs_open_api_monitor_record_error_message_<?php echo $record_arr['id']; ?>" style="display:none;">
-                    <?php echo str_replace('  ', ' &nbsp;', nl2br($record_arr['error_message'])); ?>
-                </div>
-                <?php
-                $cell_str .= ob_get_clean();
-            }
-
-            if (empty($record_arr['request_time'])
-                || empty($record_arr['response_time'])) {
-                $response_time = 0;
-            } else {
-                $response_time = abs(seconds_passed($record_arr['response_time']) - seconds_passed($record_arr['request_time']));
-            }
-
-            $cell_str .= '<br/>Time: '.$response_time.'s';
         }
 
         return $cell_str;

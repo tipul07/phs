@@ -20,7 +20,7 @@ class PHS_Requests_queue_manager extends PHS_Library
     public function http_call(
         string $url,
         string $method = 'get',
-        ?string $payload = null,
+        null | array | string $payload = null,
         ?array $settings = null,
         array $params = [],
     ) : ?array {
@@ -91,7 +91,10 @@ class PHS_Requests_queue_manager extends PHS_Library
             return null;
         }
 
-        return $request_arr;
+        $request_response = $this->_empty_request_response();
+        $request_response['request_data'] = $request_arr;
+
+        return $request_response;
     }
 
     public function run_request(int | array $request_data, bool $forced_run = false) : ?array
@@ -150,6 +153,11 @@ class PHS_Requests_queue_manager extends PHS_Library
         $params['expect_json'] = $settings_arr['expect_json_response'] ?? false;
 
         $curl_params = $params['curl_params'] ?? [];
+
+        if (!empty($settings_arr['curl_params']) && is_array($settings_arr['curl_params'])) {
+            $curl_params = self::validate_array($curl_params, $settings_arr['curl_params']);
+        }
+
         if ( !empty($settings_arr['auth_basic']) ) {
             $curl_params['userpass'] = [
                 'user' => $settings_arr['auth_basic']['user'] ?? '',
@@ -338,6 +346,12 @@ class PHS_Requests_queue_manager extends PHS_Library
             $request_response['monitoring_record'] = $new_record;
         }
 
+        self::_logf(
+            self::_LOG_METHOD_NOTICE,
+            'Success response for '.strtoupper($method ?? 'get').' request to '.$url.' with HTTP code '.$http_code.'.',
+            $params['log_file']
+        );
+
         return $request_response;
     }
 
@@ -353,6 +367,7 @@ class PHS_Requests_queue_manager extends PHS_Library
     private function _empty_request_response() : array
     {
         return [
+            'in_background'     => false,
             'http_code'         => 0,
             'has_error'         => false,
             'error_msg'         => '',
@@ -387,7 +402,7 @@ class PHS_Requests_queue_manager extends PHS_Library
             return;
         }
 
-        PHS_Logger::$method($msg, PHS_Logger::TYPE_REQUESTS_QUEUE);
+        PHS_Logger::$method($msg, PHS_Logger::TYPE_HTTP_CALLS);
         if ($log_channel) {
             PHS_Logger::$method($msg, $log_channel);
         }

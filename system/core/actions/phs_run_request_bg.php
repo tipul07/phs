@@ -34,18 +34,18 @@ class PHS_Action_Run_request_bg extends PHS_Action
         $params['force_run'] = !empty($params['force_run']);
 
         PHS_Logger::info('[QUEUE] Starting request #'.$request_arr['id']
-                         .($params['force_run'] ? ' (forced)' : '').'.', PHS_Logger::TYPE_REQUESTS_QUEUE);
+                         .($params['force_run'] ? ' (forced)' : '').'.', PHS_Logger::TYPE_HTTP_CALLS);
 
         if ( !$rq_manager->run_request($request_arr, $params['force_run']) ) {
             PHS_Logger::error('[QUEUE] Error running request #'.$request_arr['id'].': '
                               .$rq_manager->get_simple_error_message(self::_t('Unknown error.')),
-                PHS_Logger::TYPE_REQUESTS_QUEUE);
+                PHS_Logger::TYPE_HTTP_CALLS);
 
             return self::default_action_result();
         }
 
         PHS_Logger::info('[QUEUE] Finished request #'.$request_arr['id']
-                         .($params['force_run'] ? ' (forced)' : '').'.', PHS_Logger::TYPE_REQUESTS_QUEUE);
+                         .($params['force_run'] ? ' (forced)' : '').'.', PHS_Logger::TYPE_HTTP_CALLS);
 
         return self::default_action_result();
     }

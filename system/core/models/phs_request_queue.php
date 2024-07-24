@@ -2,6 +2,7 @@
 
 namespace phs\system\core\models;
 
+use phs\PHS_Crypt;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
@@ -47,7 +48,7 @@ class PHS_Model_Request_queue extends PHS_Model
     public function create_request(
         string $url,
         string $method = 'get',
-        ?string $payload = null,
+        null | array | string $payload = null,
         ?array $settings = null,
         int $max_retries = 1,
         ?string $handle = null,
@@ -70,7 +71,7 @@ class PHS_Model_Request_queue extends PHS_Model
         $request_params = $flow_arr;
         $request_params['fields'] = [];
         $request_params['fields']['url'] = $url;
-        $request_params['fields']['payload'] = $payload;
+        $request_params['fields']['payload'] = $this->_encode_payload($payload);
         $request_params['fields']['method'] = $method ?: null;
         $request_params['fields']['max_retries'] = $max_retries;
         $request_params['fields']['fails'] = 0;
@@ -202,6 +203,7 @@ class PHS_Model_Request_queue extends PHS_Model
     {
         return [
             'timeout'              => 30,
+            'curl_params'          => [],
             'log_file'             => null,
             'expect_json_response' => false,
             'success_codes'        => [],
@@ -228,15 +230,16 @@ class PHS_Model_Request_queue extends PHS_Model
         }
 
         if ( !empty($new_settings_arr['auth_basic']) ) {
-            if ( !isset($new_settings_arr['auth_basic']['user'])) {
+            $new_settings_arr['auth_basic']['pass'] = ($new_settings_arr['auth_basic']['pass'] ?? '');
+            if ( !isset($new_settings_arr['auth_basic']['user'])
+                 || !is_string($new_settings_arr['auth_basic']['user'])
+                 || !is_string($new_settings_arr['auth_basic']['pass'])) {
                 unset($new_settings_arr['auth_basic']);
-            } else {
-                $new_settings_arr['auth_basic']['pass'] = ($new_settings_arr['auth_basic']['pass'] ?? '');
             }
         }
 
         if ( isset($settings_arr['auth_bearer'])
-            && empty($settings_arr['auth_bearer']['token']) ) {
+             && (empty($settings_arr['auth_bearer']['token']) || !is_string($settings_arr['auth_bearer']['token'])) ) {
             unset($settings_arr['auth_bearer']);
         }
 
@@ -561,6 +564,7 @@ class PHS_Model_Request_queue extends PHS_Model
             if ($edit_params['fields']['status'] === self::STATUS_SUCCESS) {
                 $http_code = $http_code ?: 200;
                 $error = null;
+                $edit_params['fields']['is_final'] = 1;
             } elseif ($edit_params['fields']['status'] === self::STATUS_FAILED) {
                 $http_code ??= 0;
                 $edit_params['fields']['fails'] = ['raw_field' => true, 'value' => 'fails + 1'];
@@ -633,6 +637,16 @@ class PHS_Model_Request_queue extends PHS_Model
             return null;
         }
 
+        if (!empty($decoded_settings['auth_basic']['pass'])
+           && is_string($decoded_settings['auth_basic']['pass'])) {
+            $decoded_settings['auth_basic']['pass'] = PHS_Crypt::quick_decode($decoded_settings['auth_basic']['pass']);
+        }
+
+        if (!empty($decoded_settings['auth_bearer']['token'])
+           && is_string($decoded_settings['auth_bearer']['token'])) {
+            $decoded_settings['auth_bearer']['token'] = PHS_Crypt::quick_decode($decoded_settings['auth_bearer']['token']);
+        }
+
         return $decoded_settings;
     }
 
@@ -650,6 +664,33 @@ class PHS_Model_Request_queue extends PHS_Model
             $settings = $decoded_settings;
         }
 
+        if (!empty($settings['auth_basic']['pass'])
+           && is_string($settings['auth_basic']['pass'])) {
+            $settings['auth_basic']['pass'] = PHS_Crypt::quick_encode($settings['auth_basic']['pass']);
+        }
+
+        if (!empty($settings['auth_bearer']['token'])
+           && is_string($settings['auth_bearer']['token'])) {
+            $settings['auth_bearer']['token'] = PHS_Crypt::quick_encode($settings['auth_bearer']['token']);
+        }
+
         return @json_encode($settings) ?: null;
+    }
+
+    private function _encode_payload(null | string | array $payload) : ?string
+    {
+        if (empty($payload)) {
+            return null;
+        }
+
+        if (is_string($payload)) {
+            if (!($decoded_payload = @json_decode($payload, true))) {
+                return null;
+            }
+
+            $payload = $decoded_payload;
+        }
+
+        return @json_encode($payload) ?: null;
     }
 }

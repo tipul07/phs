@@ -47,12 +47,16 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
      */
     public function should_stop_execution() : ?array
     {
-        PHS::page_settings('page_title', $this->_pt('Data Retention Policies Runs'));
-
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
+        }
+
+        if (!$this->_admin_plugin->can_admin_list_data_retention()) {
+            PHS_Notifications::add_warning_notice($this->_pt('You don\'t have rights to access this section.'));
+
+            return self::default_action_result();
         }
 
         return null;
@@ -63,17 +67,7 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
      */
     public function load_paginator_params() : ?array
     {
-        if (!PHS::user_logged_in()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
-
-            return null;
-        }
-
-        if (!$this->_admin_plugin->can_admin_list_data_retention()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-            return null;
-        }
+        PHS::page_settings('page_title', $this->_pt('Data Retention Policies Runs'));
 
         $can_manage = $this->_admin_plugin->can_admin_manage_data_retention();
 

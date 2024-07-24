@@ -9,6 +9,7 @@ if (!defined('DATETIME_T_FORMAT')) {
 
 use phs\PHS;
 use phs\PHS_Db;
+use phs\libraries\PHS_Error;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Model_Core_base;
@@ -80,8 +81,12 @@ function can($role_units, ?array $roles_params = null, $account_structure = null
 
 function migrations_manager() : ?PHS_Migrations_manager
 {
+    PHS::st_reset_error();
+
     /** @var PHS_Migrations_manager $manager */
     if ( !($manager = PHS::get_core_library_instance('migrations_manager', ['as_singleton' => true])) ) {
+        PHS::st_set_error(PHS_Error::ERR_RESOURCES, PHS::_t('Error loading required resources.'));
+
         return null;
     }
 
@@ -90,8 +95,12 @@ function migrations_manager() : ?PHS_Migrations_manager
 
 function requests_queue_manager() : ?PHS_Requests_queue_manager
 {
+    PHS::st_reset_error();
+
     /** @var PHS_Requests_queue_manager $manager */
     if ( !($manager = PHS::get_core_library_instance('requests_queue_manager', ['as_singleton' => true])) ) {
+        PHS::st_set_error(PHS_Error::ERR_RESOURCES, PHS::_t('Error loading required resources.'));
+
         return null;
     }
 
@@ -101,7 +110,7 @@ function requests_queue_manager() : ?PHS_Requests_queue_manager
 function http_call(
     string $url,
     string $method = 'get',
-    ?string $payload = null,
+    null | array | string $payload = null,
     ?array $settings = null,
     array $params = [],
 ) : ?array {
@@ -122,7 +131,13 @@ function http_call(
         $params['run_after'] = null;
     }
 
-    return $rq_manager->http_call($url, $method, $payload, $settings, $params);
+    if ( !($result = $rq_manager->http_call($url, $method, $payload, $settings, $params)) ) {
+        PHS::st_copy_or_set_error($rq_manager, PHS_Error::ERR_RESOURCES, PHS::_t('Error sending HTTP call to background.'));
+
+        return null;
+    }
+
+    return $result;
 }
 // endregion Helper functions
 

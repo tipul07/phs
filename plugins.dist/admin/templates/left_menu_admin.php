@@ -32,6 +32,8 @@ $can_list_migrations = $admin_plugin->can_admin_list_migrations();
 $can_manage_migrations = $admin_plugin->can_admin_manage_migrations();
 $can_list_data_retention = $admin_plugin->can_admin_list_data_retention();
 $can_manage_data_retention = $admin_plugin->can_admin_manage_data_retention();
+$can_list_http_calls = $admin_plugin->can_admin_list_http_calls();
+$can_manage_http_calls = $admin_plugin->can_admin_manage_http_calls();
 
 if (!$can_list_plugins && !$can_manage_plugins
  && !$can_list_api_keys && !$can_manage_api_keys && !$can_view_api_monitoring_report
@@ -41,6 +43,7 @@ if (!$can_list_plugins && !$can_manage_plugins
  && !$can_list_tenants && !$can_manage_tenants
  && !$can_list_migrations && !$can_manage_migrations
  && !$can_list_data_retention && !$can_manage_data_retention
+ && !$can_list_http_calls && !$can_manage_http_calls
  && !$can_import_accounts) {
     return '';
 }
@@ -181,6 +184,18 @@ if ($can_list_api_keys || $can_manage_api_keys || $can_view_api_monitoring_repor
                 <?php
     }
     ?>
+        </ul>
+    </li>
+    <?php
+}
+if ($can_list_http_calls || $can_manage_http_calls) {
+    ?>
+    <li><?php echo $this::_t('HTTP Calls'); ?>
+        <ul>
+            <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'httpcalls', 'p' => 'admin']); ?>"
+                ><?php echo $this::_t('List HTTP Calls'); ?></a></li>
+            <li><a href="<?php echo PHS::url(['a' => 'list_runs', 'ad' => 'httpcalls', 'p' => 'admin']); ?>"
+                ><?php echo $this::_t('HTTP Calls Requests'); ?></a></li>
         </ul>
     </li>
     <?php

@@ -38,12 +38,6 @@ class PHS_Action_Report extends PHS_Action_Generic_list
             return action_request_login();
         }
 
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
-
-            return self::default_action_result();
-        }
-
         if (!$this->_admin_plugin->can_admin_list_agent_jobs()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
@@ -59,18 +53,6 @@ class PHS_Action_Report extends PHS_Action_Generic_list
     public function load_paginator_params() : ?array
     {
         PHS::page_settings('page_title', $this->_pt('Agent Jobs Report'));
-
-        if (!PHS::user_logged_in()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
-
-            return null;
-        }
-
-        if (!$this->_admin_plugin->can_admin_list_agent_jobs()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-            return null;
-        }
 
         $flow_params = [
             'term_singular'        => $this->_pt('agent job'),

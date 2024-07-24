@@ -44,12 +44,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return action_request_login();
         }
 
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
-
-            return self::default_action_result();
-        }
-
         if (!$this->_remote_plugin->can_admin_list_domains()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
@@ -66,22 +60,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
     {
         PHS::page_settings('page_title', $this->_pt('Remote PHS Domains List'));
 
-        if (!PHS::user_logged_in()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
-
-            return null;
-        }
-
-        if (!$this->_remote_plugin->can_admin_list_domains()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-            return null;
-        }
-
-        $domains_model = $this->_paginator_model;
-
         $list_arr = [];
-        $list_arr['fields']['status'] = ['check' => '!=', 'value' => $domains_model::STATUS_DELETED];
+        $list_arr['fields']['status'] = ['check' => '!=', 'value' => $this->_paginator_model::STATUS_DELETED];
         $list_arr['flags'] = ['include_api_keys_details'];
 
         $flow_params = [
@@ -116,8 +96,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
             $filter_api_keys_arr = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $filter_api_keys_arr);
         }
 
-        if (isset($statuses_arr[$domains_model::STATUS_DELETED])) {
-            unset($statuses_arr[$domains_model::STATUS_DELETED]);
+        if (isset($statuses_arr[$this->_paginator_model::STATUS_DELETED])) {
+            unset($statuses_arr[$this->_paginator_model::STATUS_DELETED]);
         }
 
         $can_manage = $this->_remote_plugin->can_admin_manage_domains();

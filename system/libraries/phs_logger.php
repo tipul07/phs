@@ -15,7 +15,7 @@ class PHS_Logger extends PHS_Registry
     public const TYPE_MAINTENANCE = 'maintenance.log', TYPE_ERROR = 'errors.log', TYPE_DEBUG = 'debug.log', TYPE_INFO = 'info.log',
         TYPE_BACKGROUND = 'background.log', TYPE_AJAX = 'ajax.log', TYPE_AGENT = 'agent.log', TYPE_API = 'api.log',
         TYPE_TESTS = 'phs_tests.log', TYPE_CLI = 'phs_cli.log', TYPE_REMOTE = 'phs_remote.log', TYPE_TENANTS = 'phs_tenants.log',
-        TYPE_REQUESTS_QUEUE = 'requests_queue.log',
+        TYPE_HTTP_CALLS = 'phs_http_calls.log',
         // these constants are used only to tell log_channels() method it should log redefined sets of channels
         TYPE_DEF_ALL = 'log_all', TYPE_DEF_DEBUG = 'log_debug', TYPE_DEF_PRODUCTION = 'log_production';
 
@@ -135,7 +135,7 @@ class PHS_Logger extends PHS_Registry
         return [
             self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG, self::TYPE_INFO,
             self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API,
-            self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE, self::TYPE_TENANTS, self::TYPE_REQUESTS_QUEUE,
+            self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE, self::TYPE_TENANTS, self::TYPE_HTTP_CALLS,
         ];
     }
 
@@ -261,7 +261,7 @@ class PHS_Logger extends PHS_Registry
                     $types_arr = [
                         self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG, self::TYPE_INFO,
                         self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API,
-                        self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE, self::TYPE_TENANTS, self::TYPE_REQUESTS_QUEUE,
+                        self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE, self::TYPE_TENANTS, self::TYPE_HTTP_CALLS,
                     ];
                     break;
 
@@ -270,7 +270,7 @@ class PHS_Logger extends PHS_Registry
                         self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG,
                         self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT,
                         self::TYPE_API, self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE, self::TYPE_TENANTS,
-                        self::TYPE_REQUESTS_QUEUE,
+                        self::TYPE_HTTP_CALLS,
                     ];
                     break;
 
@@ -278,7 +278,7 @@ class PHS_Logger extends PHS_Registry
                     $types_arr = [
                         self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_BACKGROUND,
                         self::TYPE_AGENT, self::TYPE_API, self::TYPE_CLI, self::TYPE_REMOTE,
-                        self::TYPE_REQUESTS_QUEUE,
+                        self::TYPE_HTTP_CALLS,
                     ];
                     break;
             }

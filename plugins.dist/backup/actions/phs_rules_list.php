@@ -49,32 +49,22 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
     {
         PHS::page_settings('page_title', $this->_pt('Backup Rules List'));
 
-        if (!PHS::user_logged_in()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
-
-            return null;
-        }
-
-        $backup_plugin = $this->_backup_plugin;
-
-        $can_manage_rules = can($backup_plugin::ROLEU_MANAGE_RULES);
+        $can_manage_rules = can($this->_backup_plugin::ROLEU_MANAGE_RULES);
 
         if (!$can_manage_rules
-            && !can($backup_plugin::ROLEU_LIST_RULES)) {
+            && !can($this->_backup_plugin::ROLEU_LIST_RULES)) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
             return null;
         }
 
-        $rules_model = $this->_paginator_model;
-
-        if (!($rules_flow = $rules_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
-         || !($rules_table_name = $rules_model->get_flow_table_name($rules_flow))) {
+        if (!($rules_flow = $this->_paginator_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
+         || !($rules_table_name = $this->_paginator_model->get_flow_table_name($rules_flow))) {
             $rules_table_name = '';
         }
 
         $list_arr = [];
-        $list_arr['fields']['status'] = ['check' => '!=', 'value' => $rules_model::STATUS_DELETED];
+        $list_arr['fields']['status'] = ['check' => '!=', 'value' => $this->_paginator_model::STATUS_DELETED];
 
         $flow_params = [
             'term_singular'        => $this->_pt('backup rule'),
@@ -105,8 +95,8 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
             $rule_days_arr = self::merge_array_assoc([-1 => $this->_pt(' - Choose - ')], $rule_days_arr);
         }
 
-        if (isset($statuses_arr[$rules_model::STATUS_DELETED])) {
-            unset($statuses_arr[$rules_model::STATUS_DELETED]);
+        if (isset($statuses_arr[$this->_paginator_model::STATUS_DELETED])) {
+            unset($statuses_arr[$this->_paginator_model::STATUS_DELETED]);
         }
 
         if (!$can_manage_rules) {
@@ -248,8 +238,6 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
             return false;
         }
 
-        $backup_plugin = $this->_backup_plugin;
-
         $action_result_params = $this->_paginator->default_action_params();
 
         if (empty($action['action'])) {
@@ -278,7 +266,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
+                if (!can($this->_backup_plugin::ROLEU_MANAGE_RULES)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -337,7 +325,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
+                if (!can($this->_backup_plugin::ROLEU_MANAGE_RULES)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -396,7 +384,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
+                if (!can($this->_backup_plugin::ROLEU_MANAGE_RULES)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -453,7 +441,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
+                if (!can($this->_backup_plugin::ROLEU_MANAGE_RULES)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -488,7 +476,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
+                if (!can($this->_backup_plugin::ROLEU_MANAGE_RULES)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -523,7 +511,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
+                if (!can($this->_backup_plugin::ROLEU_MANAGE_RULES)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -564,12 +552,11 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
             return false;
         }
 
-        $rules_model = $this->_paginator_model;
-        if (!($days_arr = $rules_model->get_rule_days())) {
+        if (!($days_arr = $this->_paginator_model->get_rule_days())) {
             $days_arr = [];
         }
 
-        if (!($rule_days_arr = $rules_model->get_rule_days_as_array($params['record']['id']))) {
+        if (!($rule_days_arr = $this->_paginator_model->get_rule_days_as_array($params['record']['id']))) {
             $rule_days_arr = [];
         }
 
@@ -609,11 +596,10 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
             return false;
         }
 
-        $rules_model = $this->_paginator_model;
-        if (!($location_arr = $rules_model->get_location_for_rule($params['record']))) {
+        if (!($location_arr = $this->_paginator_model->get_location_for_rule($params['record']))) {
             $location_arr = false;
         }
-        if (!($location_stats_arr = $rules_model->get_location_stats_for_rule($params['record']))) {
+        if (!($location_stats_arr = $this->_paginator_model->get_location_stats_for_rule($params['record']))) {
             $location_stats_arr = false;
         }
 
@@ -639,12 +625,11 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
             return false;
         }
 
-        $rules_model = $this->_paginator_model;
-        if (!($targets_arr = $rules_model->get_targets_as_key_val())) {
+        if (!($targets_arr = $this->_paginator_model->get_targets_as_key_val())) {
             $targets_arr = [];
         }
 
-        if (!($rule_targets_arr = $rules_model->bits_to_targets_arr($params['record']['target']))) {
+        if (!($rule_targets_arr = $this->_paginator_model->bits_to_targets_arr($params['record']['target']))) {
             $rule_targets_arr = [];
         }
 
@@ -668,15 +653,12 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
 
     public function display_actions($params)
     {
-        if (empty($this->_paginator_model)) {
-            if (!$this->load_depencies()) {
-                return false;
-            }
+        if (empty($this->_paginator_model)
+            && !$this->load_depencies()) {
+            return false;
         }
 
-        $backup_plugin = $this->_backup_plugin;
-
-        if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
+        if (!can($this->_backup_plugin::ROLEU_MANAGE_RULES)) {
             return '-';
         }
 
