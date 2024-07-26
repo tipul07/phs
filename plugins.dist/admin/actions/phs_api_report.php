@@ -320,7 +320,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
 
                 case $this->_paginator::CELL_RENDER_HTML:
                     $pretty_params = [];
-                    $pretty_params['date_format'] = (!empty($params['column']['date_format']) ? $params['column']['date_format'] : false);
+                    $pretty_params['date_format'] = $params['column']['date_format'] ?? null;
                     $pretty_params['request_render_type'] = $this->_paginator::CELL_RENDER_HTML;
 
                     if (!empty($record_arr['request_time'])) {
@@ -370,7 +370,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
 
                 case $this->_paginator::CELL_RENDER_HTML:
                     $pretty_params = [];
-                    $pretty_params['date_format'] = (!empty($params['column']['date_format']) ? $params['column']['date_format'] : false);
+                    $pretty_params['date_format'] = $params['column']['date_format'] ?? null;
                     $pretty_params['request_render_type'] = $this->_paginator::CELL_RENDER_HTML;
 
                     if (!empty($record_arr['response_time'])) {

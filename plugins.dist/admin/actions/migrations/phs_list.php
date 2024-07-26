@@ -352,10 +352,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     public function display_actions($params) : ?string
     {
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            return null;
-        }
-
         if (!$this->_admin_plugin->can_admin_manage_roles()) {
             return '-';
         }

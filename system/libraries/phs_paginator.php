@@ -269,22 +269,14 @@ class PHS_Paginator extends PHS_Registry
 
     /**
      * @param string $date
-     * @param null|array $params
+     * @param array $params
      *
      * @return string
      */
-    public function pretty_date_independent($date, ?array $params = null) : string
+    public function pretty_date_independent($date, array $params = []) : string
     {
-        if (empty($params)) {
-            $params = [];
-        }
-
-        if (empty($params['date_format'])) {
-            $params['date_format'] = false;
-        }
-        if (empty($params['request_render_type'])) {
-            $params['request_render_type'] = false;
-        }
+        $params['date_format'] ??= null;
+        $params['request_render_type'] ??= null;
 
         if (empty($date)
          || !($date_time = is_db_date($date))
@@ -303,7 +295,6 @@ class PHS_Paginator extends PHS_Registry
                 case self::CELL_RENDER_JSON:
                 case self::CELL_RENDER_TEXT:
                     return $date_str;
-                    break;
             }
         }
 
@@ -342,11 +333,11 @@ class PHS_Paginator extends PHS_Registry
         }
 
         $pretty_params = [];
-        $pretty_params['date_format'] = (!empty($params['column']['date_format']) ? $params['column']['date_format'] : false);
-        $pretty_params['request_render_type'] = (!empty($params['request_render_type']) ? $params['request_render_type'] : false);
+        $pretty_params['date_format'] = $params['column']['date_format'] ?? null;
+        $pretty_params['request_render_type'] = $params['request_render_type'] ?? null;
 
         if (!($date_str = $this->pretty_date_independent($params['record'][$field_name], $pretty_params))) {
-            return !empty($params['column']['invalid_value']) ? $params['column']['invalid_value'] : self::_t('N/A');
+            return $params['column']['invalid_value'] ?: self::_t('N/A');
         }
 
         return $date_str;

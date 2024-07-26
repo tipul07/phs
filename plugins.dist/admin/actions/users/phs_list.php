@@ -1054,8 +1054,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $paginator_obj = $this->_paginator;
 
         $pretty_params = [];
-        $pretty_params['date_format'] = (!empty($params['column']['date_format']) ? $params['column']['date_format'] : false);
-        $pretty_params['request_render_type'] = (!empty($params['request_render_type']) ? $params['request_render_type'] : false);
+        $pretty_params['date_format'] = $params['column']['date_format'] ?? null;
+        $pretty_params['request_render_type'] = $params['request_render_type'] ?? null;
 
         $cell_str = (empty($account_arr['locked_date']) ? $this->_pt('No')
             : ($this->_paginator_model->is_locked($account_arr)

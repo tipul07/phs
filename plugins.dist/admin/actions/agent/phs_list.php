@@ -702,8 +702,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $paginator_obj = $this->_paginator;
 
         $pretty_params = [];
-        $pretty_params['date_format'] = (!empty($params['column']['date_format']) ? $params['column']['date_format'] : false);
-        $pretty_params['request_render_type'] = (!empty($params['request_render_type']) ? $params['request_render_type'] : false);
+        $pretty_params['date_format'] = $params['column']['date_format'] ?? null;
+        $pretty_params['request_render_type'] = $params['request_render_type'] ?? null;
 
         $cell_str = $this->_paginator->pretty_date_independent($agent_job['timed_action'], $pretty_params);
 
@@ -741,12 +741,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $paginator_obj = $this->_paginator;
 
         $pretty_params = [];
-        $pretty_params['date_format'] = (!empty($params['column']['date_format']) ? $params['column']['date_format'] : false);
-        $pretty_params['request_render_type'] = (!empty($params['request_render_type']) ? $params['request_render_type'] : false);
+        $pretty_params['date_format'] = $params['column']['date_format'] ?? null;
+        $pretty_params['request_render_type'] = $params['request_render_type'] ?? null;
 
-        if (empty($params['record']['last_action'])) {
-            $params['record']['last_action'] = null;
-        }
+        $params['record']['last_action'] ??= null;
 
         $stalling_minutes = $this->_paginator_model->get_job_stalling_minutes($agent_job) ?? 0;
         $stalling_seconds = $stalling_minutes * 60;

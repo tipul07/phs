@@ -140,14 +140,14 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     {
         PHS::page_body_class('phs_paginator_action');
 
-        if (($action_result = $this->should_stop_execution())) {
-            return self::validate_action_result($action_result);
-        }
-
         if (!$this->load_depencies()) {
-            PHS_Notifications::add_error_notice($this->get_simple_error_message(self::_t('Couldn\'t load action depencies.')));
+            PHS_Notifications::add_error_notice($this->get_simple_error_message(self::_t('Error loading required resources.')));
 
             return self::default_action_result();
+        }
+
+        if (($action_result = $this->should_stop_execution())) {
+            return self::validate_action_result($action_result);
         }
 
         if (!($paginator_params = $this->load_paginator_params())

@@ -24,7 +24,7 @@ class PHS_Model_Request_queue extends PHS_Model
 
     public function get_model_version() : string
     {
-        return '1.0.2';
+        return '1.0.3';
     }
 
     public function get_table_names() : array
@@ -108,6 +108,7 @@ class PHS_Model_Request_queue extends PHS_Model
         $request_params = $flow_arr;
         $request_params['fields'] = [];
         $request_params['fields']['last_error'] = null;
+        $request_params['fields']['last_run'] = date(self::DATETIME_DB);
         $request_params['fields']['status'] = self::STATUS_RUNNING;
 
         if (!($new_record = $this->edit($request_arr, $request_params))) {
@@ -173,6 +174,13 @@ class PHS_Model_Request_queue extends PHS_Model
                && (int)$record_arr['status'] === self::STATUS_DELETED;
     }
 
+    public function is_final(int | array $record_data) : bool
+    {
+        return !empty($record_data)
+               && ($record_arr = $this->data_to_array($record_data))
+               && !empty($record_arr['is_final']);
+    }
+
     public function act_delete(int | array $record_data) : ?array
     {
         $this->reset_error();
@@ -199,6 +207,35 @@ class PHS_Model_Request_queue extends PHS_Model
         return $new_record;
     }
 
+    public function update_payload(int | array $record_data, ?string $payload) : ?array
+    {
+        $this->reset_error();
+
+        if (empty($record_data)
+            || !($record_arr = $this->data_to_array($record_data))
+            || $this->is_deleted($record_arr)) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Request details not found in database.'));
+
+            return null;
+        }
+
+        if ( !empty($payload)
+            && ($json_arr = @json_decode($payload, true)) ) {
+            $payload = @json_encode($json_arr);
+        }
+
+        $edit_params = $this->fetch_default_flow_params(['table_name' => 'phs_request_queue']);
+        $edit_params['fields'] = [
+            'payload' => $payload,
+        ];
+
+        if (!($new_record = $this->edit($record_arr, $edit_params))) {
+            return null;
+        }
+
+        return $new_record;
+    }
+
     public function empty_request_settings_arr() : array
     {
         return [
@@ -214,6 +251,25 @@ class PHS_Model_Request_queue extends PHS_Model
             'one_fail_callback'    => null,
             'fail_callback'        => null,
         ];
+    }
+
+    public function obfuscate_settings(int | array $record_data) : ?array
+    {
+        if ( null === ($settings_arr = $this->get_request_settings($record_data)) ) {
+            return null;
+        }
+
+        if (!empty($settings_arr['auth_basic']['pass'])
+            && is_string($settings_arr['auth_basic']['pass'])) {
+            $settings_arr['auth_basic']['pass'] = '(undisclosed_password)';
+        }
+
+        if (!empty($settings_arr['auth_bearer']['token'])
+            && is_string($settings_arr['auth_bearer']['token'])) {
+            $settings_arr['auth_bearer']['token'] = '(undisclosed_token)';
+        }
+
+        return $settings_arr;
     }
 
     public function validate_settings_arr(?array $settings_arr) : array
@@ -343,6 +399,9 @@ class PHS_Model_Request_queue extends PHS_Model
                         'type' => self::FTYPE_DATETIME,
                     ],
                     'last_edit' => [
+                        'type' => self::FTYPE_DATETIME,
+                    ],
+                    'last_run' => [
                         'type' => self::FTYPE_DATETIME,
                     ],
                     'deleted' => [
