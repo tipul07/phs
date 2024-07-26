@@ -3,6 +3,7 @@
 namespace phs\plugins\admin\actions\httpcalls;
 
 use phs\PHS;
+use phs\PHS_Ajax;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
@@ -60,6 +61,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
     public function load_paginator_params() : ?array
     {
         PHS::page_settings('page_title', $this->_pt('HTTP Calls'));
+
+        if (PHS_Params::_g('unknown_http_call', PHS_Params::T_INT)) {
+            PHS_Notifications::add_error_notice($this->_pt('Invalid HTTP call or HTTP call not found in database.'));
+        }
 
         $list_arr = [];
         $list_arr['flags'] = ['include_account_details'];
@@ -165,16 +170,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         $columns_arr = [
             [
-                'column_title'              => '#',
-                'record_field'              => 'id',
-                'checkbox_record_index_key' => [
-                    'key'  => 'id',
-                    'type' => PHS_Params::T_INT,
-                ],
+                'column_title'        => '#',
+                'record_field'        => 'id',
                 'invalid_value'       => $this->_pt('N/A'),
                 'extra_style'         => 'width:80px;',
                 'extra_records_style' => 'text-align:center;',
-                'display_callback'    => [$this, 'display_hide_id'],
             ],
             [
                 'column_title'        => $this->_pt('Method'),
@@ -213,7 +213,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'extra_records_classes' => 'date',
                 'extra_style'           => 'text-align:center;',
                 'extra_records_style'   => 'text-align:center;',
-                'display_callback'      => [$this, 'display_progress'],
+                'display_callback'      => [$this, 'display_httpcall_runs'],
             ],
             [
                 'column_title'        => $this->_pt('Is Final?'),
@@ -255,44 +255,50 @@ class PHS_Action_List extends PHS_Action_Generic_list
             ],
         ];
 
+        if (!$this->_admin_plugin->can_admin_manage_http_calls()) {
+            $bulk_actions = null;
+        } else {
+            $columns_arr[0]['checkbox_record_index_key'] = [
+                'key'  => 'id',
+                'type' => PHS_Params::T_INT,
+            ];
+
+            $bulk_actions = [
+                [
+                    'display_name'    => $this->_pt('Pause'),
+                    'action'          => 'bulk_pause',
+                    'js_callback'     => 'phs_httpscalls_bulk_pause',
+                    'checkbox_column' => 'id',
+                ],
+                [
+                    'display_name'    => $this->_pt('Un-pause'),
+                    'action'          => 'bulk_unpause',
+                    'js_callback'     => 'phs_httpscalls_bulk_unpause',
+                    'checkbox_column' => 'id',
+                ],
+                [
+                    'display_name'    => $this->_pt('Delete'),
+                    'action'          => 'bulk_delete',
+                    'js_callback'     => 'phs_httpscalls_bulk_delete',
+                    'checkbox_column' => 'id',
+                ],
+            ];
+        }
+
         $return_arr = $this->default_paginator_params();
         $return_arr['base_url'] = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'httpcalls']);
         $return_arr['flow_parameters'] = $flow_params;
+        $return_arr['bulk_actions'] = $bulk_actions;
         $return_arr['filters_arr'] = $filters_arr;
         $return_arr['columns_arr'] = $columns_arr;
 
         return $return_arr;
     }
 
-    public function display_hide_id($params)
-    {
-        if (empty($params)
-            || !is_array($params)
-            || empty($params['record']) || !is_array($params['record'])
-            || !($record_arr = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
-        }
-
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $this->_paginator::CELL_RENDER_JSON:
-                case $this->_paginator::CELL_RENDER_TEXT:
-                    $params['preset_content'] = (int)$record_arr['id'];
-                    break;
-
-                case $this->_paginator::CELL_RENDER_HTML:
-                    $params['preset_content'] = '';
-                    break;
-            }
-        }
-
-        return $params['preset_content'];
-    }
-
-    public function display_url($params)
+    public function display_url($params) : ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
-            return false;
+            return null;
         }
 
         if (empty($params['preset_content'])) {
@@ -347,7 +353,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function display_progress($params) : ?string
+    public function display_httpcall_runs($params) : ?string
     {
         if (empty($params['record']['id'])) {
             return null;
@@ -370,13 +376,16 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         ob_start();
         ?>
-        <div>
+        <div style="margin-bottom:10px;">
             <span title="<?php echo $this->_pte('Fails'); ?>">F: <?php echo $record_arr['fails']; ?></span>
             /
             <span title="<?php echo $this->_pte('Max retries'); ?>">MR: <?php echo $record_arr['max_retries']; ?></span>
             <br/>
             <div style="width:100%;height:10px;background-color:red;"><div style="width:<?php echo $progress_perc; ?>%;height:10px;background-color:green;"></div></div>
         </div>
+        <a href="javascript:void(0)" onclick="phs_httpcalls_view_requests( '<?php echo $record_arr['id']; ?>' )"
+           title="<?php echo $this->_pte('View HTTP call requests'); ?>"
+           onfocus="this.blur()"><i class="fa fa-bars action-icons"></i></a>
         <?php
 
         return ob_get_clean();
@@ -439,14 +448,43 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $is_success = $this->_paginator_model->is_success($record_arr);
         $is_failed = $this->_paginator_model->is_failed($record_arr);
         $is_pending = $this->_paginator_model->is_pending($record_arr);
+        $is_paused = $this->_paginator_model->is_paused($record_arr);
+        $is_running = $this->_paginator_model->is_running($record_arr);
+        $is_final = $this->_paginator_model->is_final($record_arr);
+
+        $can_manage = $this->_admin_plugin->can_admin_manage_http_calls();
 
         ob_start();
+        if (!$is_final && $can_manage) {
+            if ($is_paused) {
+                ?>
+                <a href="javascript:void(0)" onclick="phs_httpcalls_unpause_request( '<?php echo $record_arr['id']; ?>' )">
+                    <i class="fa fa-play action-icons" title="<?php
+                    echo form_str($this->_pt('Resume HTTP call')); ?>"></i></a>
+                <?php
+            } else {
+                ?>
+                <a href="javascript:void(0)" onclick="phs_httpcalls_pause_request( '<?php echo $record_arr['id']; ?>' )">
+                    <i class="fa fa-pause action-icons" title="<?php
+                    echo form_str($this->_pt('Pause HTTP call')); ?>"></i></a>
+                <?php
+            }
+        }
+
+        if ($can_manage
+            && ($is_success || $is_failed || $is_pending || ($is_running && $this->_paginator_model->can_be_forced($record_arr)))) {
+            ?>
+            <a href="javascript:void(0)" onclick="phs_httpcalls_retry_request( '<?php echo $record_arr['id']; ?>' )"
+            ><i class="fa fa-refresh action-icons" title="<?php echo form_str($this->_pt('Resend HTTP call')); ?>"></i></a>
+            <?php
+        }
+
         ?>
         <a href="javascript:void(0)" onclick="phs_httpcalls_record_settings( '<?php echo $record_arr['id']; ?>' )"
         ><i class="fa fa-wrench action-icons" title="<?php echo form_str($this->_pt('View HTTP call settings')); ?>"></i></a>
         <div id="phs_httpcalls_record_settings_<?php echo $record_arr["id"]; ?>" style="display:none;"><pre
                 style="min-height: 95px; height: 90%; resize: vertical;"><?php
-            if (null !== ($json_arr = $this->_paginator_model->obfuscate_settings($record_arr))) {
+            if (null !== ($json_arr = $this->_paginator_model->obfuscate_minimum_settings($record_arr))) {
                 echo @json_encode($json_arr, JSON_PRETTY_PRINT);
             } else {
                 echo $this->_pt('N/A');
@@ -454,10 +492,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
         ?></div>
         <?php
 
-        if ($is_success || $is_failed || $is_pending) {
-            ?>
-            <a href="javascript:void(0)" onclick="phs_migrations_list_rerun_migration( '<?php echo $record_arr['id']; ?>' )"
-            ><i class="fa fa-refresh action-icons" title="<?php echo form_str($this->_pt('Resend HTTP call')); ?>"></i></a>
+        if ($can_manage) {
+            ?><br/>
+            <a href="javascript:void(0)" onclick="phs_httpcalls_delete( '<?php echo $record_arr['id']; ?>' )"
+            ><i class="fa fa-times action-icons" style="color:red" title="<?php echo form_str($this->_pt('Delete HTTP call')); ?>"></i></a>
             <?php
         }
 
@@ -479,6 +517,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         $action_result_params['action'] = $action['action'];
 
+        $can_manage = $this->_admin_plugin->can_admin_manage_http_calls();
+
         switch ($action['action']) {
             default:
                 PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
@@ -495,8 +535,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!$this->_admin_plugin->can_admin_manage_http_calls()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to take this action.'));
+                if (!$can_manage) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
@@ -508,18 +548,17 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 if (!($phs_httpcall_id = PHS_Params::_gp('phs_httpcall_id', PHS_Params::T_INT))
-                    || !($request_arr = $this->_paginator_model->get_details($phs_httpcall_id))
-                    || $this->_paginator_model->is_deleted($request_arr) ) {
+                    || !($request_arr = $this->_paginator_model->get_details($phs_httpcall_id))) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('HTTP call not found in database.'));
 
                     return false;
                 }
 
                 if (!$this->_paginator_model->update_payload($request_arr, $json_payload)) {
-                    PHS_Logger::error('Error updating payload for request #'.$request_arr['id'].'.', PHS_Logger::TYPE_HTTP_CALLS);
-
+                    PHS_Logger::error('Error updating payload for HTTP call #'.$request_arr['id'].'.', PHS_Logger::TYPE_HTTP_CALLS);
                     $action_result_params['action_result'] = 'failed';
                 } else {
+                    PHS_Logger::error('Payload for changed for HTTP call #'.$request_arr['id'].'.', PHS_Logger::TYPE_HTTP_CALLS);
                     $action_result_params['action_result'] = 'success';
                 }
                 break;
@@ -527,35 +566,292 @@ class PHS_Action_List extends PHS_Action_Generic_list
             case 'do_retry':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Request retried with success.'));
+                        PHS_Notifications::add_success_notice($this->_pt('HTTP call running in a background job with success.'));
                     } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Retrying request failed. Please try again.'));
+                        PHS_Notifications::add_error_notice($this->_pt('Retrying HTTP call failed. Please try again.'));
                     }
 
                     return true;
                 }
 
-                if (empty($can_retry)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to retry NCP requests.'));
+                if (!$can_manage) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
                 }
 
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
+                $action['action_params'] = (int)($action['action_params'] ?? 0);
 
                 if (empty($action['action_params'])
                     || !($request_arr = $this->_paginator_model->get_details($action['action_params']))) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('NCP request not found in database.'));
+                    $this->set_error(self::ERR_ACTION, $this->_pt('HTTP call not found in database.'));
 
                     return false;
                 }
 
-                if (!$this->_ncp_flows->retry_sending_data_to_ncp($request_arr, ['skip_failed_event' => true])) {
+                if (!($rq_manager = requests_queue_manager())
+                    || !$rq_manager->run_request($request_arr, true)) {
                     $action_result_params['action_result'] = 'failed';
                 } else {
                     $action_result_params['action_result'] = 'success';
+                }
+                break;
+
+            case 'do_pause':
+                if (!empty($action['action_result'])) {
+                    if ($action['action_result'] === 'success') {
+                        PHS_Notifications::add_success_notice($this->_pt('HTTP call paused with success.'));
+                    } elseif ($action['action_result'] === 'failed') {
+                        PHS_Notifications::add_error_notice($this->_pt('Pausing HTTP call failed. Please try again.'));
+                    }
+
+                    return true;
+                }
+
+                if (!$can_manage) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
+
+                    return false;
+                }
+
+                $action['action_params'] = (int)($action['action_params'] ?? 0);
+
+                if (empty($action['action_params'])
+                    || !($record_arr = $this->_paginator_model->get_details($action['action_params']))) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('HTTP call not found in database.'));
+
+                    return false;
+                }
+
+                if (!$this->_paginator_model->act_pause($record_arr)) {
+                    $action_result_params['action_result'] = 'failed';
+                } else {
+                    $action_result_params['action_result'] = 'success';
+                }
+                break;
+
+            case 'do_unpause':
+                if (!empty($action['action_result'])) {
+                    if ($action['action_result'] === 'success') {
+                        PHS_Notifications::add_success_notice($this->_pt('HTTP call un-paused with success.'));
+                    } elseif ($action['action_result'] === 'failed') {
+                        PHS_Notifications::add_error_notice($this->_pt('Un-pausing HTTP call failed. Please try again.'));
+                    }
+
+                    return true;
+                }
+
+                if (!$can_manage) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
+
+                    return false;
+                }
+
+                $action['action_params'] = (int)($action['action_params'] ?? 0);
+
+                if (empty($action['action_params'])
+                    || !($record_arr = $this->_paginator_model->get_details($action['action_params']))) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('HTTP call not found in database.'));
+
+                    return false;
+                }
+
+                if (!$this->_paginator_model->act_unpause($record_arr)) {
+                    $action_result_params['action_result'] = 'failed';
+                } else {
+                    $action_result_params['action_result'] = 'success';
+                }
+                break;
+
+            case 'do_delete':
+                if (!empty($action['action_result'])) {
+                    if ($action['action_result'] === 'success') {
+                        PHS_Notifications::add_success_notice($this->_pt('HTTP call deleted with success.'));
+                    } elseif ($action['action_result'] === 'failed') {
+                        PHS_Notifications::add_error_notice($this->_pt('Deleting HTTP call failed. Please try again.'));
+                    }
+
+                    return true;
+                }
+
+                if (!$can_manage) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
+
+                    return false;
+                }
+
+                $action['action_params'] = (int)($action['action_params'] ?? 0);
+
+                if (empty($action['action_params'])
+                    || !($record_arr = $this->_paginator_model->get_details($action['action_params']))) {
+                    $this->set_error(self::ERR_ACTION, $this->_pt('HTTP call not found in database.'));
+
+                    return false;
+                }
+
+                if (!$this->_paginator_model->hard_delete_http_call($record_arr)) {
+                    $action_result_params['action_result'] = 'failed';
+                } else {
+                    $action_result_params['action_result'] = 'success';
+                }
+                break;
+
+            case 'bulk_pause':
+                if (!empty($action['action_result'])) {
+                    if ($action['action_result'] === 'success') {
+                        PHS_Notifications::add_success_notice($this->_pt('Required HTTP calls paused with success.'));
+                    } elseif ($action['action_result'] === 'failed') {
+                        PHS_Notifications::add_error_notice($this->_pt('Pausing selected HTTP calls failed. Please try again.'));
+                    } elseif ($action['action_result'] === 'failed_some') {
+                        PHS_Notifications::add_error_notice($this->_pt('Failed pausing all selected HTTP calls. HTTP calls which failed pausing are still selected. Please try again.'));
+                    }
+
+                    return true;
+                }
+
+                if (!($scope_arr = $this->_paginator->get_scope())
+                    || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
+                    || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
+                    || !($scope_key = @sprintf($ids_checkboxes_name, 'id'))
+                    || !($scope_all_key = @sprintf($ids_all_checkbox_name, 'id'))
+                    || empty($scope_arr[$scope_key])
+                    || !is_array($scope_arr[$scope_key])) {
+                    return true;
+                }
+
+                $remaining_ids_arr = [];
+                foreach ($scope_arr[$scope_key] as $request_id) {
+                    if (!$this->_paginator_model->act_pause($request_id)) {
+                        $remaining_ids_arr[] = $request_id;
+                    }
+                }
+
+                if (isset($scope_arr[$scope_all_key])) {
+                    unset($scope_arr[$scope_all_key]);
+                }
+
+                if (empty($remaining_ids_arr)) {
+                    $action_result_params['action_result'] = 'success';
+
+                    unset($scope_arr[$scope_key]);
+
+                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
+                } else {
+                    if (count($remaining_ids_arr) !== count($scope_arr[$scope_key])) {
+                        $action_result_params['action_result'] = 'failed_some';
+                    } else {
+                        $action_result_params['action_result'] = 'failed';
+                    }
+
+                    $scope_arr[$scope_key] = implode(',', $remaining_ids_arr);
+
+                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
+                }
+                break;
+
+            case 'bulk_unpause':
+                if (!empty($action['action_result'])) {
+                    if ($action['action_result'] === 'success') {
+                        PHS_Notifications::add_success_notice($this->_pt('Required HTTP calls un-paused with success.'));
+                    } elseif ($action['action_result'] === 'failed') {
+                        PHS_Notifications::add_error_notice($this->_pt('Un-pausing selected HTTP calls failed. Please try again.'));
+                    } elseif ($action['action_result'] === 'failed_some') {
+                        PHS_Notifications::add_error_notice($this->_pt('Failed un-pausing all selected HTTP calls. HTTP calls which failed un-pausing are still selected. Please try again.'));
+                    }
+
+                    return true;
+                }
+
+                if (!($scope_arr = $this->_paginator->get_scope())
+                    || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
+                    || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
+                    || !($scope_key = @sprintf($ids_checkboxes_name, 'id'))
+                    || !($scope_all_key = @sprintf($ids_all_checkbox_name, 'id'))
+                    || empty($scope_arr[$scope_key])
+                    || !is_array($scope_arr[$scope_key])) {
+                    return true;
+                }
+
+                $remaining_ids_arr = [];
+                foreach ($scope_arr[$scope_key] as $request_id) {
+                    if (!$this->_paginator_model->act_unpause($request_id)) {
+                        $remaining_ids_arr[] = $request_id;
+                    }
+                }
+
+                if (isset($scope_arr[$scope_all_key])) {
+                    unset($scope_arr[$scope_all_key]);
+                }
+
+                if (empty($remaining_ids_arr)) {
+                    $action_result_params['action_result'] = 'success';
+
+                    unset($scope_arr[$scope_key]);
+
+                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
+                } else {
+                    if (count($remaining_ids_arr) !== count($scope_arr[$scope_key])) {
+                        $action_result_params['action_result'] = 'failed_some';
+                    } else {
+                        $action_result_params['action_result'] = 'failed';
+                    }
+
+                    $scope_arr[$scope_key] = implode(',', $remaining_ids_arr);
+
+                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
+                }
+                break;
+
+            case 'bulk_delete':
+                if (!empty($action['action_result'])) {
+                    if ($action['action_result'] === 'success') {
+                        PHS_Notifications::add_success_notice($this->_pt('Required HTTP calls deleted with success.'));
+                    } elseif ($action['action_result'] === 'failed') {
+                        PHS_Notifications::add_error_notice($this->_pt('Deleting selected HTTP calls failed. Please try again.'));
+                    } elseif ($action['action_result'] === 'failed_some') {
+                        PHS_Notifications::add_error_notice($this->_pt('Failed deleting all selected HTTP calls. HTTP calls which failed deletion are still selected. Please try again.'));
+                    }
+
+                    return true;
+                }
+
+                if (!($scope_arr = $this->_paginator->get_scope())
+                    || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
+                    || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
+                    || !($scope_key = @sprintf($ids_checkboxes_name, 'id'))
+                    || !($scope_all_key = @sprintf($ids_all_checkbox_name, 'id'))
+                    || empty($scope_arr[$scope_key])
+                    || !is_array($scope_arr[$scope_key])) {
+                    return true;
+                }
+
+                $remaining_ids_arr = [];
+                foreach ($scope_arr[$scope_key] as $request_id) {
+                    if (!$this->_paginator_model->hard_delete_http_call($request_id)) {
+                        $remaining_ids_arr[] = $request_id;
+                    }
+                }
+
+                if (isset($scope_arr[$scope_all_key])) {
+                    unset($scope_arr[$scope_all_key]);
+                }
+
+                if (empty($remaining_ids_arr)) {
+                    $action_result_params['action_result'] = 'success';
+
+                    unset($scope_arr[$scope_key]);
+
+                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
+                } else {
+                    if (count($remaining_ids_arr) !== count($scope_arr[$scope_key])) {
+                        $action_result_params['action_result'] = 'failed_some';
+                    } else {
+                        $action_result_params['action_result'] = 'failed';
+                    }
+
+                    $scope_arr[$scope_key] = implode(',', $remaining_ids_arr);
+
+                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
                 }
                 break;
         }
@@ -576,6 +872,64 @@ class PHS_Action_List extends PHS_Action_Generic_list
         ob_start();
         ?>
         <script type="text/javascript">
+            function phs_httpcalls_pause_request(id) {
+                if (!confirm("<?php echo self::_e('Are you sure you want to pause this HTTP call?'); ?>")) {
+                    return;
+                }
+
+                <?php
+                    $url_params = [];
+        $url_params['action'] = [
+            'action'        => 'do_pause',
+            'action_params' => '" + id + "',
+        ];
+        ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
+            }
+
+            function phs_httpcalls_unpause_request(id) {
+                if (!confirm("<?php echo self::_e('Are you sure you want to un-pause this HTTP call?'); ?>")) {
+                    return;
+                }
+
+                <?php
+        $url_params = [];
+        $url_params['action'] = [
+            'action'        => 'do_unpause',
+            'action_params' => '" + id + "',
+        ];
+        ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
+            }
+
+            function phs_httpcalls_retry_request(id) {
+                if (!confirm("<?php echo self::_e('Are you sure you want to retry this HTTP call?'); ?>")) {
+                    return;
+                }
+
+                <?php
+        $url_params = [];
+        $url_params['action'] = [
+            'action'        => 'do_retry',
+            'action_params' => '" + id + "',
+        ];
+        ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
+            }
+
+            function phs_httpcalls_delete( id )
+            {
+                if( !confirm( "<?php echo self::_e('Are you sure you want to DELETE this HTTP call?'); ?>" + "\n" +
+                    "<?php echo self::_e('NOTE: You cannot undo this action!'); ?>" ) ) {
+                    return;
+                }
+
+                <?php
+        $url_params = [];
+        $url_params['action'] = [
+            'action'        => 'do_delete',
+            'action_params' => '" + id + "',
+        ];
+        ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
+            }
+
             function phs_httpcalls_list_open_payload( id )
             {
                 const container_pretty_text = $("#phs_httpcalls_list_open_payload_pretty_" + id).text();
@@ -588,7 +942,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 phs_httpcall_id.val(id);
 
                 PHS_JSEN.createAjaxDialog( {
-                    suffix: 'phs_httpcalls_record_payload_',
+                    suffix: "phs_httpcalls_record_payload_",
                     width: 800,
                     height: 800,
                     title: "<?php echo $this->_pte('HTTP Call Payload'); ?>",
@@ -637,7 +991,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 container_obj.show();
 
                 PHS_JSEN.createAjaxDialog( {
-                    suffix: 'phs_httpcall_error_message_',
+                    suffix: "phs_httpcall_error_message_",
                     width: 700,
                     height: 650,
                     title: "<?php echo $this->_pte('Last HTTP Call Error'); ?>",
@@ -668,7 +1022,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 container_obj.show();
 
                 PHS_JSEN.createAjaxDialog( {
-                    suffix: 'phs_httpcall_settings_',
+                    suffix: "phs_httpcall_settings_",
                     width: 700,
                     height: 650,
                     title: "<?php echo $this->_pte('HTTP Call Settings'); ?>",
@@ -690,13 +1044,95 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 container_obj.hide();
             }
 
-            function phs_agent_jobs_report_get_checked_ids_count()
+            function phs_httpcalls_view_requests( id )
+            {
+                show_submit_protection("<?php echo $this->_pte('Please wait..'); ?>");
+
+                PHS_JSEN.createAjaxDialog( {
+                    width: 900,
+                    height: 600,
+                    suffix: "phs_httpcalls_requests_",
+                    resizable: true,
+                    close_outside_click: false,
+
+                    title: "<?php echo self::_e($this->_pt('HTTP Call Requests')); ?>",
+                    method: "get",
+                    url: "<?php echo PHS_Ajax::url(['p' => 'admin', 'a' => 'runs_ajax', 'ad' => 'httpcalls']); ?>",
+                    url_data: { http_id: id },
+                    onsuccess: function(response, status, ajax_obj, response_data) {
+                        hide_submit_protection();
+                    },
+                    onfailed: function(ajax_obj, status, error_exception) {
+                        hide_submit_protection();
+                    }
+                });
+            }
+
+            function phs_httpcalls_get_checked_ids_count()
             {
                 const checkboxes_list = phs_paginator_get_checkboxes_checked('id');
-                if( !checkboxes_list || !checkboxes_list.length )
+                if( !checkboxes_list || !checkboxes_list.length ) {
                     return 0;
+                }
 
                 return checkboxes_list.length;
+            }
+
+            function phs_httpscalls_bulk_pause()
+            {
+                const total_checked = phs_httpcalls_get_checked_ids_count();
+
+                if( !total_checked ) {
+                    alert( "<?php echo self::_e('Please select HTTP calls you want to pause first.', '"'); ?>" );
+                    return false;
+                }
+
+                if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to pause %s HTTP calls?', '"'), '" + total_checked + "'); ?>" ) ) {
+                    return false;
+                }
+
+                const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+                if( form_obj ) {
+                    form_obj.submit();
+                }
+            }
+
+            function phs_httpscalls_bulk_unpause()
+            {
+                const total_checked = phs_httpcalls_get_checked_ids_count();
+
+                if( !total_checked ) {
+                    alert( "<?php echo self::_e('Please select HTTP calls you want to un-pause first.', '"'); ?>" );
+                    return false;
+                }
+
+                if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to un-pause %s HTTP calls?', '"'), '" + total_checked + "'); ?>" ) ) {
+                    return false;
+                }
+
+                const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+                if( form_obj ) {
+                    form_obj.submit();
+                }
+            }
+
+            function phs_httpscalls_bulk_delete()
+            {
+                const total_checked = phs_httpcalls_get_checked_ids_count();
+
+                if( !total_checked ) {
+                    alert( "<?php echo self::_e('Please select HTTP calls you want to delete first.', '"'); ?>" );
+                    return false;
+                }
+
+                if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to DELETE %s HTTP calls?', '"'), '" + total_checked + "'); ?>" + "\n" +
+                    "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
+                    return false;
+
+                const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+                if( form_obj ) {
+                    form_obj.submit();
+                }
             }
         </script>
         <?php

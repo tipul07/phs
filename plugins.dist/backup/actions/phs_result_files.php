@@ -66,63 +66,40 @@ class PHS_Action_Result_files extends PHS_Action
          || !($rule_arr = $rules_model->get_details($result_arr['rule_id']))) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid backup result...'));
 
-            $args = [
-                'unknown_backup_result' => 1,
-            ];
+            $back_page = empty($back_page)
+                ? PHS::url(['p' => 'backup', 'a' => 'backups_list'])
+                : from_safe_url($back_page);
 
-            if (empty($back_page)) {
-                $back_page = PHS::url(['p' => 'backup', 'a' => 'backups_list']);
-            } else {
-                $back_page = from_safe_url($back_page);
-            }
-
-            return action_redirect(add_url_params($back_page, $args));
+            return action_redirect(add_url_params($back_page, ['unknown_backup_result' => 1, ]));
         }
 
         if (!($result_files_arr = $results_model->get_result_files($result_arr['id']))) {
             $result_files_arr = [];
         }
 
-        if (!empty($action)
-        && in_array($action, ['delete'], true)) {
+        if (!empty($action)) {
             $action_result = self::default_action_result();
 
-            switch ($action) {
-                case 'delete':
-                    if (!can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
-                        PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
-                    } elseif (empty($brfid)
-                         || !($brf_flow_params = $results_model->fetch_default_flow_params(['table_name' => 'backup_results_files']))
-                         || !($backup_file_arr = $results_model->get_details($brfid, $brf_flow_params))) {
-                        PHS_Notifications::add_error_notice($this->_pt('Backup result file not found in database.'));
-                    } else {
-                        if ($results_model->unlink_result_file($backup_file_arr, ['update_result' => true])) {
-                            PHS_Notifications::add_success_notice($this->_pt('Backup file deleted with success.'));
+            if ($action !== 'delete' ) {
+                PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
+            } elseif (!can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
+                PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
+            } elseif (empty($brfid)
+                 || !($brf_flow_params = $results_model->fetch_default_flow_params(['table_name' => 'backup_results_files']))
+                 || !($backup_file_arr = $results_model->get_details($brfid, $brf_flow_params))) {
+                PHS_Notifications::add_error_notice($this->_pt('Backup result file not found in database.'));
+            } elseif ($results_model->unlink_result_file($backup_file_arr, ['update_result' => true])) {
+                PHS_Notifications::add_success_notice($this->_pt('Backup file deleted with success.'));
 
-                            if (empty($back_page)) {
-                                $back_page = '';
-                            }
+                $url_params = ['result_id' => $result_arr['id'], 'back_page' => $back_page ?: '', 'file_deleted' => 1];
 
-                            $url_params = ['result_id' => $result_arr['id'], 'back_page' => $back_page, 'file_deleted' => 1];
-
-                            if ($current_scope === PHS_Scope::SCOPE_AJAX) {
-                                $action_result['redirect_to_url'] = PHS_Ajax::url(['p' => 'backup', 'a' => 'result_files'], $url_params);
-                            } else {
-                                $action_result['redirect_to_url'] = PHS::url(['p' => 'backup', 'a' => 'result_files'], $url_params);
-                            }
-                        } else {
-                            if ($results_model->has_error()) {
-                                PHS_Notifications::add_error_notice($results_model->get_error_message());
-                            } else {
-                                PHS_Notifications::add_error_notice($this->_pt('Error deleting backup file. Please try again.'));
-                            }
-                        }
-                    }
-                    break;
-
-                default:
-                    PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
-                    break;
+                $action_result['redirect_to_url'] = $current_scope === PHS_Scope::SCOPE_AJAX
+                    ? PHS_Ajax::url(['p' => 'backup', 'a' => 'result_files'], $url_params)
+                    : PHS::url(['p' => 'backup', 'a' => 'result_files'], $url_params);
+            } else {
+                PHS_Notifications::add_error_notice(
+                    $results_model->get_simple_error_message(
+                        $this->_pt('Error deleting backup file. Please try again.')));
             }
 
             if ($current_scope === PHS_Scope::SCOPE_AJAX) {

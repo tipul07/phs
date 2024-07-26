@@ -12,19 +12,21 @@ class PHS_Model_Request_queue extends PHS_Model
 {
     use PHS_Model_Trait_statuses;
 
-    public const STATUS_PENDING = 1, STATUS_RUNNING = 2, STATUS_FAILED = 3, STATUS_SUCCESS = 4, STATUS_DELETED = 5;
+    public const FORCE_RUNNING_SECONDS = 900; // cand be forced after 15 mins
+
+    public const STATUS_PENDING = 1, STATUS_RUNNING = 2, STATUS_FAILED = 3, STATUS_PAUSED = 4, STATUS_SUCCESS = 5;
 
     protected static array $STATUSES_ARR = [
         self::STATUS_PENDING => ['title' => 'Pending'],
         self::STATUS_RUNNING => ['title' => 'Running'],
         self::STATUS_FAILED  => ['title' => 'Failed'],
+        self::STATUS_PAUSED  => ['title' => 'Paused'],
         self::STATUS_SUCCESS => ['title' => 'Success'],
-        self::STATUS_DELETED => ['title' => 'Deleted'],
     ];
 
     public function get_model_version() : string
     {
-        return '1.0.3';
+        return '1.0.6';
     }
 
     public function get_table_names() : array
@@ -37,12 +39,125 @@ class PHS_Model_Request_queue extends PHS_Model
         return 'phs_request_queue';
     }
 
+    public function is_pending(int | array $record_data) : bool
+    {
+        return !empty($record_data)
+               && ($record_arr = $this->data_to_array($record_data))
+               && (int)$record_arr['status'] === self::STATUS_PENDING;
+    }
+
+    public function is_running(int | array $record_data) : bool
+    {
+        return !empty($record_data)
+               && ($record_arr = $this->data_to_array($record_data))
+               && (int)$record_arr['status'] === self::STATUS_RUNNING;
+    }
+
+    public function is_failed(int | array $record_data) : bool
+    {
+        return !empty($record_data)
+               && ($record_arr = $this->data_to_array($record_data))
+               && (int)$record_arr['status'] === self::STATUS_FAILED;
+    }
+
+    public function is_paused(int | array $record_data) : bool
+    {
+        return !empty($record_data)
+               && ($record_arr = $this->data_to_array($record_data))
+               && (int)$record_arr['status'] === self::STATUS_PAUSED;
+    }
+
+    public function is_success(int | array $record_data) : bool
+    {
+        return !empty($record_data)
+               && ($record_arr = $this->data_to_array($record_data))
+               && (int)$record_arr['status'] === self::STATUS_SUCCESS;
+    }
+
+    public function is_final(int | array $record_data) : bool
+    {
+        return !empty($record_data)
+               && ($record_arr = $this->data_to_array($record_data))
+               && !empty($record_arr['is_final']);
+    }
+
+    public function should_delete_on_completion(int | array $record_data) : bool
+    {
+        return !empty($record_data)
+               && ($record_arr = $this->data_to_array($record_data))
+               && ($settings_arr = $this->get_request_full_settings($record_arr))
+               && !empty($settings_arr['delete_on_completion']);
+    }
+
     public function can_run_request(int | array $requet_data, bool $forced = false) : bool
     {
         return !empty($requet_data)
                && ($request_arr = $this->data_to_array($requet_data))
                && ($this->is_pending($request_arr) || $this->is_failed($request_arr))
                && ($forced || $request_arr['max_retries'] > $request_arr['fails']);
+    }
+
+    public function can_be_forced(int | array $requet_data) : bool
+    {
+        return !empty($requet_data)
+               && ($request_arr = $this->data_to_array($requet_data))
+               && !$this->is_paused($request_arr)
+               && (!$this->is_running($request_arr)
+                   || seconds_passed($request_arr['status_date']) > self::FORCE_RUNNING_SECONDS);
+    }
+
+    public function act_pause(int | array $record_data) : ?array
+    {
+        $this->reset_error();
+
+        if (empty($record_data) || !($record_arr = $this->data_to_array($record_data))) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('HTTP call details not found in database.'));
+
+            return null;
+        }
+
+        if ($this->is_paused($record_arr)) {
+            return $record_arr;
+        }
+
+        $edit_params = $this->fetch_default_flow_params(['table_name' => 'phs_request_queue']);
+        $edit_params['fields'] = [
+            'status'     => self::STATUS_PAUSED,
+            'old_status' => $record_arr['status'],
+        ];
+
+        if (!($new_record = $this->edit($record_arr, $edit_params))) {
+            return null;
+        }
+
+        return $new_record;
+    }
+
+    public function act_unpause(int | array $record_data) : ?array
+    {
+        $this->reset_error();
+
+        if (empty($record_data) || !($record_arr = $this->data_to_array($record_data))) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('HTTP call details not found in database.'));
+
+            return null;
+        }
+
+        if (!$this->is_paused($record_arr)) {
+            return $record_arr;
+        }
+
+        $edit_params = $this->fetch_default_flow_params(['table_name' => 'phs_request_queue']);
+        $edit_params['fields'] = [
+            'status'     => $record_arr['old_status'],
+            'old_status' => 0,
+        ];
+
+        if (!($new_record = $this->edit($record_arr, $edit_params))) {
+            return null;
+        }
+
+        return $new_record;
     }
 
     public function create_request(
@@ -57,7 +172,7 @@ class PHS_Model_Request_queue extends PHS_Model
         $this->reset_error();
 
         if (!PHS_Params::check_type($url, PHS_Params::T_URL)) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('Please provide a valid URL for the request.'));
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Please provide a valid URL for the HTTP call.'));
 
             return null;
         }
@@ -83,7 +198,7 @@ class PHS_Model_Request_queue extends PHS_Model
 
         if (!($new_record = $this->insert($request_params))) {
             $this->set_error(self::ERR_FUNCTIONALITY,
-                self::_t('Error saving request details in database.'));
+                self::_t('Error saving HTTP call details in database.'));
 
             return null;
         }
@@ -98,9 +213,8 @@ class PHS_Model_Request_queue extends PHS_Model
 
         if (empty($request_data)
             || !($flow_arr = $this->fetch_default_flow_params(['table_name' => 'phs_request_queue']))
-            || !($request_arr = $this->data_to_array($request_data, $flow_arr))
-            || $this->is_deleted($request_arr)) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('Request record not found in database.'));
+            || !($request_arr = $this->data_to_array($request_data, $flow_arr))) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('HTTP call not found in database.'));
 
             return null;
         }
@@ -113,7 +227,7 @@ class PHS_Model_Request_queue extends PHS_Model
 
         if (!($new_record = $this->edit($request_arr, $request_params))) {
             $this->set_error(self::ERR_FUNCTIONALITY,
-                self::_t('Error saving request details in database.'));
+                self::_t('Error saving HTTP call details in database.'));
 
             return null;
         }
@@ -139,72 +253,38 @@ class PHS_Model_Request_queue extends PHS_Model
         return $this->_update_request($request_data, $http_code, self::STATUS_FAILED, $response, $error);
     }
 
-    public function is_pending(int | array $record_data) : bool
-    {
-        return !empty($record_data)
-               && ($record_arr = $this->data_to_array($record_data))
-               && (int)$record_arr['status'] === self::STATUS_PENDING;
-    }
-
-    public function is_running(int | array $record_data) : bool
-    {
-        return !empty($record_data)
-               && ($record_arr = $this->data_to_array($record_data))
-               && (int)$record_arr['status'] === self::STATUS_RUNNING;
-    }
-
-    public function is_failed(int | array $record_data) : bool
-    {
-        return !empty($record_data)
-               && ($record_arr = $this->data_to_array($record_data))
-               && (int)$record_arr['status'] === self::STATUS_FAILED;
-    }
-
-    public function is_success(int | array $record_data) : bool
-    {
-        return !empty($record_data)
-               && ($record_arr = $this->data_to_array($record_data))
-               && (int)$record_arr['status'] === self::STATUS_SUCCESS;
-    }
-
-    public function is_deleted(int | array $record_data) : bool
-    {
-        return !empty($record_data)
-               && ($record_arr = $this->data_to_array($record_data))
-               && (int)$record_arr['status'] === self::STATUS_DELETED;
-    }
-
-    public function is_final(int | array $record_data) : bool
-    {
-        return !empty($record_data)
-               && ($record_arr = $this->data_to_array($record_data))
-               && !empty($record_arr['is_final']);
-    }
-
-    public function act_delete(int | array $record_data) : ?array
+    public function hard_delete_http_call(int | array $record_data) : ?array
     {
         $this->reset_error();
 
-        if (empty($record_data) || !($record_arr = $this->data_to_array($record_data))) {
+        if ( !($queue_flow = $this->fetch_default_flow_params(['table_name' => 'phs_request_queue']))
+            || !($runs_flow = $this->fetch_default_flow_params(['table_name' => 'phs_request_queue_runs']))
+            || !($queue_run_table = $this->get_flow_table_name($runs_flow))) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return null;
+        }
+
+        if (empty($record_data)
+            || !($record_arr = $this->data_to_array($record_data, $queue_flow))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Request details not found in database.'));
 
             return null;
         }
 
-        if ($this->is_deleted($record_arr)) {
-            return $record_arr;
-        }
+        if (!db_query('DELETE FROM `'.$queue_run_table.'` WHERE request_id = \''.$record_arr['id'].'\'', $runs_flow['db_connection'])) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error deleting HTTP call runs records.'));
 
-        $edit_params = $this->fetch_default_flow_params(['table_name' => 'phs_request_queue']);
-        $edit_params['fields'] = [
-            'status' => self::STATUS_DELETED,
-        ];
-
-        if (!($new_record = $this->edit($record_arr, $edit_params))) {
             return null;
         }
 
-        return $new_record;
+        if (!$this->hard_delete($record_arr, $queue_flow)) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error deleting HTTP call record.'));
+
+            return null;
+        }
+
+        return $record_arr;
     }
 
     public function update_payload(int | array $record_data, ?string $payload) : ?array
@@ -212,8 +292,7 @@ class PHS_Model_Request_queue extends PHS_Model
         $this->reset_error();
 
         if (empty($record_data)
-            || !($record_arr = $this->data_to_array($record_data))
-            || $this->is_deleted($record_arr)) {
+            || !($record_arr = $this->data_to_array($record_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Request details not found in database.'));
 
             return null;
@@ -240,10 +319,11 @@ class PHS_Model_Request_queue extends PHS_Model
     {
         return [
             'timeout'              => 30,
-            'curl_params'          => [],
             'log_file'             => null,
+            'delete_on_completion' => true,
             'expect_json_response' => false,
             'success_codes'        => [],
+            'curl_params'          => [],
             'headers'              => [],
             'auth_basic'           => [],
             'auth_bearer'          => [],
@@ -253,9 +333,9 @@ class PHS_Model_Request_queue extends PHS_Model
         ];
     }
 
-    public function obfuscate_settings(int | array $record_data) : ?array
+    public function obfuscate_minimum_settings(int | array $record_data) : ?array
     {
-        if ( null === ($settings_arr = $this->get_request_settings($record_data)) ) {
+        if ( null === ($settings_arr = $this->get_request_minimum_settings($record_data)) ) {
             return null;
         }
 
@@ -313,18 +393,12 @@ class PHS_Model_Request_queue extends PHS_Model
         return $new_settings_arr;
     }
 
-    public function default_settings_arr() : array
-    {
-        return $this->validate_settings_arr($this->empty_request_settings_arr());
-    }
-
-    public function get_request_settings(int | array $request_data) : ?array
+    public function get_request_minimum_settings(int | array $request_data) : ?array
     {
         $this->reset_error();
 
         if (empty($request_data)
-            || !($request_arr = $this->data_to_array($request_data))
-            || $this->is_deleted($request_arr)) {
+            || !($request_arr = $this->data_to_array($request_data))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Please provide a valid request.'));
 
             return null;
@@ -337,6 +411,54 @@ class PHS_Model_Request_queue extends PHS_Model
         }
 
         return $this->validate_settings_arr($settings_arr);
+    }
+
+    public function get_request_full_settings(int | array $request_data) : ?array
+    {
+        $this->reset_error();
+
+        if (empty($request_data) || !($request_arr = $this->data_to_array($request_data))) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Please provide a valid request.'));
+
+            return null;
+        }
+
+        $default_settings = $this->empty_request_settings_arr();
+        if ( !($settings_arr = $this->get_request_minimum_settings($request_arr)) ) {
+            return $default_settings;
+        }
+
+        foreach ($default_settings as $field => $def_value) {
+            if ( array_key_exists($field, $settings_arr) ) {
+                $default_settings[$field] = $settings_arr[$field];
+            }
+        }
+
+        return $default_settings;
+    }
+
+    public function get_request_runs(int | array $request_data) : ?array
+    {
+        $this->reset_error();
+
+        if (empty($request_data)
+           || !($flow_arr = $this->fetch_default_flow_params(['table_name' => 'phs_request_queue']))
+           || !($run_flow = $this->fetch_default_flow_params(['table_name' => 'phs_request_queue_runs']))
+           || !($request_arr = $this->data_to_array($request_data, $flow_arr))) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('HTTP call not found in database.'));
+
+            return null;
+        }
+
+        $list_arr = $run_flow;
+        $list_arr['fields'] = [];
+        $list_arr['fields']['request_id'] = $request_arr['id'];
+
+        if ( !($result_arr = $this->get_list($list_arr)) ) {
+            return [];
+        }
+
+        return $result_arr;
     }
 
     /**
@@ -390,6 +512,10 @@ class PHS_Model_Request_queue extends PHS_Model
                         'length' => 2,
                         'index'  => true,
                     ],
+                    'old_status' => [
+                        'type'   => self::FTYPE_TINYINT,
+                        'length' => 2,
+                    ],
                     'status' => [
                         'type'   => self::FTYPE_TINYINT,
                         'length' => 2,
@@ -402,9 +528,6 @@ class PHS_Model_Request_queue extends PHS_Model
                         'type' => self::FTYPE_DATETIME,
                     ],
                     'last_run' => [
-                        'type' => self::FTYPE_DATETIME,
-                    ],
-                    'deleted' => [
                         'type' => self::FTYPE_DATETIME,
                     ],
                     'run_after' => [
@@ -437,6 +560,10 @@ class PHS_Model_Request_queue extends PHS_Model
                     ],
                     'error' => [
                         'type' => self::FTYPE_TEXT,
+                    ],
+                    'status' => [
+                        'type'   => self::FTYPE_TINYINT,
+                        'length' => 2,
                     ],
                     'cdate' => [
                         'type' => self::FTYPE_DATETIME,
@@ -471,10 +598,7 @@ class PHS_Model_Request_queue extends PHS_Model
         $params['fields']['handle'] = ($params['fields']['handle'] ?? null);
 
         if (!empty($params['fields']['handle'])
-            && $this->get_details_fields([
-                'handle' => $params['fields']['handle'],
-                'status' => ['check' => '!=', 'value' => self::STATUS_DELETED],
-            ]) ) {
+            && $this->get_details_fields(['handle' => $params['fields']['handle'], ]) ) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('There is already a request in database with provided handle.'));
 
             return null;
@@ -539,10 +663,6 @@ class PHS_Model_Request_queue extends PHS_Model
             }
 
             $params['fields']['status_date'] = $now_date;
-
-            if ($params['fields']['status'] === self::STATUS_DELETED) {
-                $params['fields']['deleted'] = $now_date;
-            }
         }
 
         if (!empty($params['fields']['settings'])) {
@@ -562,7 +682,6 @@ class PHS_Model_Request_queue extends PHS_Model
             && $this->get_details_fields([
                 'handle' => $handle,
                 'id'     => ['check' => '!=', 'value' => $existing_data['id']],
-                'status' => ['check' => '!=', 'value' => self::STATUS_DELETED],
             ]) ) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('There is already a request in database with provided handle.'));
 
@@ -596,8 +715,7 @@ class PHS_Model_Request_queue extends PHS_Model
 
         if (empty($request_data)
             || !($flow_arr = $this->fetch_default_flow_params(['table_name' => 'phs_request_queue']))
-            || !($request_arr = $this->data_to_array($request_data, $flow_arr))
-            || $this->is_deleted($request_arr)) {
+            || !($request_arr = $this->data_to_array($request_data, $flow_arr))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Request record not found in database.'));
 
             return null;
@@ -635,7 +753,13 @@ class PHS_Model_Request_queue extends PHS_Model
 
         $edit_params['fields']['last_edit'] = $now_date;
 
-        if ( !($request_run_arr = $this->_request_run_result($request_arr, $http_code ?: 0, $response ?: null, $error ?: null)) ) {
+        if ( !($request_run_arr = $this->_request_run_result(
+            $request_arr,
+            $http_code ?: 0,
+            $response ?: null,
+            $error ?: null,
+            $edit_params['fields']['status'] ?? null,
+        )) ) {
             return null;
         }
 
@@ -657,12 +781,12 @@ class PHS_Model_Request_queue extends PHS_Model
         int $http_code = -1,
         ?string $response = null,
         ?string $error = null,
+        ?int $status = null,
     ) : ?array {
         $this->reset_error();
 
         if (empty($request_data)
-            || !($request_arr = $this->data_to_array($request_data))
-            || $this->is_deleted($request_arr)) {
+            || !($request_arr = $this->data_to_array($request_data))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Please provide a valid request.'));
 
             return null;
@@ -676,6 +800,10 @@ class PHS_Model_Request_queue extends PHS_Model
             'error'      => $error,
             'cdate'      => date(self::DATETIME_DB),
         ];
+
+        if ($status !== null) {
+            $edit_params['fields']['status'] = $status;
+        }
 
         if (!($new_record = $this->insert($edit_params))) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error saving request run details in database.'));
@@ -751,5 +879,14 @@ class PHS_Model_Request_queue extends PHS_Model
         }
 
         return @json_encode($payload) ?: null;
+    }
+
+    private function _not_used_only_for_translation() : void
+    {
+        $this->_pt('Pending');
+        $this->_pt('Running');
+        $this->_pt('Failed');
+        $this->_pt('Paused');
+        $this->_pt('Success');
     }
 }

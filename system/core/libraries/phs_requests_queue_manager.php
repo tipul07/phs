@@ -51,8 +51,8 @@ class PHS_Requests_queue_manager extends PHS_Library
         if (empty($params['run_after'])) {
             $request_arr = $params['sync_run']
                            || ($params['same_thread_if_bg'] && PHS::are_we_in_a_background_thread())
-                ? $this->run_request($request_arr)
-                : $this->run_request_bg($request_arr);
+                ? $this->run_request_bg($request_arr)
+                : $this->run_request($request_arr);
 
             if ( !$request_arr ) {
                 return null;
@@ -62,7 +62,7 @@ class PHS_Requests_queue_manager extends PHS_Library
         return $request_arr;
     }
 
-    public function run_request_bg(int | array $request_data, bool $forced_run = false) : ?array
+    public function run_request(int | array $request_data, bool $force_run = false) : ?array
     {
         if ( !$this->_load_dependencies()) {
             return null;
@@ -74,8 +74,8 @@ class PHS_Requests_queue_manager extends PHS_Library
             return null;
         }
 
-        if (!$forced_run
-           && !$this->_requests_model->can_run_request($request_arr, $forced_run)) {
+        if (!$force_run
+           && !$this->_requests_model->can_run_request($request_arr, $force_run)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Provided request cannot be run.'));
 
             return null;
@@ -83,7 +83,7 @@ class PHS_Requests_queue_manager extends PHS_Library
 
         if (!PHS_Bg_jobs::run(
             ['c' => 'index_bg', 'a' => 'run_request_bg'],
-            ['request_id' => $request_arr['id'], 'force_run' => $forced_run])
+            ['request_id' => $request_arr['id'], 'force_run' => $force_run])
         ) {
             $this->set_error(self::ERR_FUNCTIONALITY,
                 self::_t('Error launching background job for the provided request.'));
@@ -97,7 +97,7 @@ class PHS_Requests_queue_manager extends PHS_Library
         return $request_response;
     }
 
-    public function run_request(int | array $request_data, bool $forced_run = false) : ?array
+    public function run_request_bg(int | array $request_data, bool $force_run = false) : ?array
     {
         if ( !$this->_load_dependencies()) {
             return null;
@@ -109,7 +109,7 @@ class PHS_Requests_queue_manager extends PHS_Library
             return null;
         }
 
-        if (!$forced_run
+        if (!$force_run
            && !$this->_requests_model->can_run_request($request_arr)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Provided request cannot be run.'));
 
@@ -132,6 +132,21 @@ class PHS_Requests_queue_manager extends PHS_Library
         } else {
             $request_response['request_data'] = $update_result['request_data'];
             $request_response['request_run_data'] = $update_result['request_run_data'];
+
+            $request_arr = $update_result['request_data'];
+        }
+
+        // TODO: Make the callbacks with the result
+
+        if ($this->_requests_model->is_final($request_arr)
+           && $this->_requests_model->should_delete_on_completion($request_arr)
+           && !$this->_requests_model->hard_delete_http_call($request_arr)) {
+            self::_logf(
+                self::_LOG_METHOD_WARNING,
+                'Error deleting request after successful run: '
+                .$this->_requests_model->get_simple_error_message(self::_t('Unknown error.')),
+                $request_response['log_file']
+            );
         }
 
         return $request_response;
@@ -139,7 +154,7 @@ class PHS_Requests_queue_manager extends PHS_Library
 
     private function _do_api_call(array $request_arr, array $params = []) : array
     {
-        if ( !($settings_arr = $this->_requests_model->get_request_settings($request_arr)) ) {
+        if ( !($settings_arr = $this->_requests_model->get_request_full_settings($request_arr)) ) {
             $settings_arr = $this->_requests_model->empty_request_settings_arr();
         }
 

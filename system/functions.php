@@ -11,6 +11,7 @@ use phs\PHS;
 use phs\PHS_Db;
 use phs\libraries\PHS_Error;
 use phs\libraries\PHS_Roles;
+use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Model_Core_base;
 use phs\system\core\libraries\PHS_Migrations_manager;
@@ -981,6 +982,31 @@ function prepare_data($str) : string
     }
 
     return str_replace('\'', '\\\'', str_replace('\\\'', '\'', $str));
+}
+
+function http_pretty_date(?string $date, array $params = []) : string
+{
+    $params['date_format'] ??= null;
+
+    if (empty($date)
+        || !($date_time = is_db_date($date))
+        || empty_db_date($date)) {
+        return '';
+    }
+
+    $date_str = !empty($params['date_format'])
+        ? @date($params['date_format'], parse_db_date($date_time))
+        : $date;
+
+    if (($seconds_ago = seconds_passed($date_time)) < 0) {
+        // date in future
+        $lang_index = 'in %s';
+    } else {
+        // date in past
+        $lang_index = '%s ago';
+    }
+
+    return '<span title="'.PHS::_t($lang_index, PHS_Utils::parse_period($seconds_ago, ['only_big_part' => true])).'">'.$date_str.'</span>';
 }
 
 /**

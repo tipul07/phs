@@ -673,8 +673,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
         function phs_tenants_list_get_checked_ids_count()
         {
             const checkboxes_list = phs_paginator_get_checkboxes_checked('id');
-            if( !checkboxes_list || !checkboxes_list.length )
+            if( !checkboxes_list || !checkboxes_list.length ) {
                 return 0;
+            }
 
             return checkboxes_list.length;
         }
@@ -689,12 +690,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 return false;
             }
 
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to activate %s tenants?', '"'), '" + total_checked + "'); ?>" ) )
+            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to activate %s tenants?', '"'), '" + total_checked + "'); ?>" ) ) {
                 return false;
+            }
 
             const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
+            if( form_obj ) {
                 form_obj.submit();
+            }
         }
 
         function phs_tenants_list_bulk_inactivate()
@@ -707,12 +710,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 return false;
             }
 
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to inactivate %s tenants?', '"'), '" + total_checked + "'); ?>" ) )
+            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to inactivate %s tenants?', '"'), '" + total_checked + "'); ?>" ) ) {
                 return false;
+            }
 
             const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
+            if( form_obj ) {
                 form_obj.submit();
+            }
         }
 
         function phs_tenants_list_bulk_delete()
@@ -726,12 +731,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
             }
 
             if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to DELETE %s tenants?', '"'), '" + total_checked + "'); ?>" + "\n" +
-                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
+                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
                 return false;
+            }
 
             const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
+            if( form_obj ) {
                 form_obj.submit();
+            }
         }
         </script>
         <?php
