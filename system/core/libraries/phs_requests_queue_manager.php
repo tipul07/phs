@@ -136,7 +136,7 @@ class PHS_Requests_queue_manager extends PHS_Library
             $request_arr = $update_result['request_data'];
         }
 
-        // TODO: Make the callbacks with the result
+        $this->_callbacks_on_finish($request_arr, $request_response);
 
         if ($this->_requests_model->is_final($request_arr)
            && $this->_requests_model->should_delete_on_completion($request_arr)
@@ -150,6 +150,68 @@ class PHS_Requests_queue_manager extends PHS_Library
         }
 
         return $request_response;
+    }
+
+    private function _callbacks_on_finish(array $request_arr, array $request_response) : void
+    {
+        $callbacks = [];
+        if ($this->_requests_model->is_success($request_arr)) {
+            if ( ($callback = $this->_requests_model->get_request_success_callback($request_arr)) ) {
+                $callbacks['success'] = $callback;
+            }
+        } elseif ($this->_requests_model->is_failed($request_arr)) {
+            if ( ($callback = $this->_requests_model->get_request_one_fail_callback($request_arr)) ) {
+                $callbacks['one_failure'] = $callback;
+            }
+
+            if ($this->_requests_model->is_final($request_arr)
+               && ($callback = $this->_requests_model->get_request_fail_callback($request_arr))) {
+                $callbacks['final_failure'] = $callback;
+            }
+        }
+
+        if ( empty($callbacks) ) {
+            return;
+        }
+
+        foreach ($callbacks as $key => $callback) {
+            $callack_str = $this->_get_callback_as_string($callback);
+
+            self::_logf(self::_LOG_METHOD_NOTICE,
+                '[Callback] Request #'.$request_arr['id'].', calling: ['.$callack_str.'] for '.$key.'.',
+                $request_response['log_file'] ?: null
+            );
+
+            /** @var ?\phs\libraries\PHS_Instantiable $callback_obj */
+            $callback_obj = $callback[0] ?? null;
+            if ( !@$callback($request_response) ) {
+                self::_logf(
+                    self::_LOG_METHOD_ERROR,
+                    '[Callback] Error in callback '.$callack_str.' after request run: '
+                    .($callback_obj ? $callback_obj->get_simple_error_message(self::_t('Unknown error.')) : 'N/A'),
+                    $request_response['log_file'] ?: null
+                );
+            }
+        }
+    }
+
+    private function _get_callback_as_string(string | array $callback) : string
+    {
+        if (empty($callback)
+            || (is_array($callback)
+                && (empty($callback[0]) || empty($callback[1])
+                    || !is_object($callback[0]) || !is_string($callback[1])))
+        ) {
+            return '(invalid_callback)';
+        }
+
+        if (is_string($callback)) {
+            return $callback.'()';
+        }
+
+        $obj = $callback[0];
+
+        return $obj::class.'::'.$callback[1].'()';
     }
 
     private function _do_api_call(array $request_arr, array $params = []) : array

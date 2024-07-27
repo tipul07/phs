@@ -121,7 +121,7 @@ function http_call(
 
     $params['max_retries'] = (int)($params['max_retries'] ?? 1);
     $params['handle'] ??= null;
-    $params['run_now'] = !isset($params['run_now']) || !empty($params['run_now']);
+    $params['sync_run'] = !isset($params['sync_run']) || !empty($params['sync_run']);
     $params['same_thread_if_bg'] = !isset($params['same_thread_if_bg']) || !empty($params['same_thread_if_bg']);
     $params['run_after'] ??= null;
 

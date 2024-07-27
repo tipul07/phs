@@ -6,6 +6,7 @@ use phs\PHS_Crypt;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
+use phs\libraries\PHS_Instantiable;
 use phs\traits\PHS_Model_Trait_statuses;
 
 class PHS_Model_Request_queue extends PHS_Model
@@ -366,6 +367,10 @@ class PHS_Model_Request_queue extends PHS_Model
         }
 
         if ( !empty($new_settings_arr['auth_basic']) ) {
+            if ( !is_array($new_settings_arr['auth_basic']) ) {
+                $new_settings_arr['auth_basic'] = [];
+            }
+
             $new_settings_arr['auth_basic']['pass'] = ($new_settings_arr['auth_basic']['pass'] ?? '');
             if ( !isset($new_settings_arr['auth_basic']['user'])
                  || !is_string($new_settings_arr['auth_basic']['user'])
@@ -379,18 +384,174 @@ class PHS_Model_Request_queue extends PHS_Model
             unset($settings_arr['auth_bearer']);
         }
 
-        if ( empty($new_settings_arr['success_codes']) ) {
+        if ( empty($new_settings_arr['success_codes'])
+             || !is_array($new_settings_arr['success_codes']) ) {
             $new_settings_arr['success_codes'] = [200];
         }
 
         $new_settings_arr['success_codes'] = self::extract_integers_from_array($new_settings_arr['success_codes']);
 
-        if (!empty($new_settings_arr['log_file'])
-           && !PHS_Logger::define_channel($new_settings_arr['log_file'])) {
-            unset($new_settings_arr['log_file']);
+        return $new_settings_arr;
+    }
+
+    public function check_settings_for_errors(array $settings_arr) : ?array
+    {
+        if (empty($settings_arr)) {
+            return [];
         }
 
-        return $new_settings_arr;
+        if (!empty($settings_arr['log_file'])
+            && !PHS_Logger::define_channel($settings_arr['log_file'])) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid log file provided for HTTP call settings.'));
+
+            return null;
+        }
+
+        if ( isset($settings_arr['delete_on_completion']) ) {
+            $settings_arr['delete_on_completion'] = !empty($settings_arr['delete_on_completion']);
+        }
+        if ( isset($settings_arr['expect_json_response']) ) {
+            $settings_arr['expect_json_response'] = !empty($settings_arr['expect_json_response']);
+        }
+
+        if ( !empty($settings_arr['success_codes'])
+             && !is_array($settings_arr['success_codes']) ) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid success codes provided for HTTP call settings.'));
+
+            return null;
+        }
+
+        if ( !empty($settings_arr['curl_params'])
+             && !is_array($settings_arr['curl_params']) ) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid cURL parameters provided for HTTP call settings.'));
+
+            return null;
+        }
+
+        if ( !empty($settings_arr['headers'])
+             && !is_array($settings_arr['headers']) ) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid headers provided for HTTP call settings.'));
+
+            return null;
+        }
+
+        if ( !empty($settings_arr['auth_basic'])
+             && (!is_array($settings_arr['auth_basic'])
+                 || !isset($settings_arr['auth_basic']['user']) || !is_string($settings_arr['auth_basic']['user'])
+             ) ) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid basic authentication provided for HTTP call settings.'));
+
+            return null;
+        }
+
+        if ( !empty($settings_arr['auth_bearer'])
+             && (!is_array($settings_arr['auth_bearer'])
+                 || !isset($settings_arr['auth_bearer']['token']) || !is_string($settings_arr['auth_bearer']['token'])
+             ) ) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid bearer authentication provided for HTTP call settings.'));
+
+            return null;
+        }
+
+        if ( !empty($settings_arr['success_callback']) ) {
+            if ( !($callback = $this->validate_request_callback($settings_arr['success_callback'])) ) {
+                $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid success callback provided for HTTP call settings.'));
+
+                return null;
+            }
+
+            $settings_arr['success_callback'] = $callback;
+        }
+
+        if ( !empty($settings_arr['one_fail_callback']) ) {
+            if ( !($callback = $this->validate_request_callback($settings_arr['one_fail_callback'])) ) {
+                $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid one failure callback provided for HTTP call settings.'));
+
+                return null;
+            }
+
+            $settings_arr['one_fail_callback'] = $callback;
+        }
+
+        if ( !empty($settings_arr['fail_callback']) ) {
+            if ( !($callback = $this->validate_request_callback($settings_arr['fail_callback'])) ) {
+                $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid final failure callback provided for HTTP call settings.'));
+
+                return null;
+            }
+
+            $settings_arr['fail_callback'] = $callback;
+        }
+
+        return $settings_arr;
+    }
+
+    public function validate_request_callback(array | string $callback) : null | string | array
+    {
+        if (is_string($callback)) {
+            if (!is_callable($callback)) {
+                return null;
+            }
+
+            return $callback;
+        }
+
+        $class = $callback[0] ?? null;
+        $method = $callback[1] ?? null;
+
+        if (empty($class) || empty($method)
+            || (!is_string($class) && !is_object($class))
+            || !is_string($method) ) {
+            return null;
+        }
+
+        $classname = null;
+        if (is_string($class)) {
+            $classname = $class;
+        } elseif (@is_object($class)) {
+            $classname = $class::class;
+        }
+
+        if (empty($classname) || !is_string($classname)) {
+            return null;
+        }
+
+        if (!($callback_obj = $classname::get_instance())
+            || !($callback_obj instanceof PHS_Instantiable)
+            || !@method_exists($callback_obj, $method)) {
+            return null;
+        }
+
+        if (!($plugin_obj = $callback_obj->get_plugin_instance())
+            || !$plugin_obj->plugin_active()) {
+            return null;
+        }
+
+        return [$classname, $method];
+    }
+
+    public function get_request_success_callback($request_data) : ?array
+    {
+        return ($settings_arr = $this->get_request_minimum_settings($request_data))
+               && !empty($settings_arr['success_callback'])
+            ? $this->_instantiate_callback($settings_arr['success_callback'])
+            : null;
+    }
+
+    public function get_request_one_fail_callback($request_data) : ?array
+    {
+        return ($settings_arr = $this->get_request_minimum_settings($request_data))
+               && !empty($settings_arr['one_fail_callback'])
+            ? $this->_instantiate_callback($settings_arr['one_fail_callback'])
+            : null;
+    }
+
+    public function get_request_fail_callback($request_data) : ?array
+    {
+        return ($settings_arr = $this->get_request_minimum_settings($request_data))
+               && !empty($settings_arr['fail_callback'])
+            ? $this->_instantiate_callback($settings_arr['fail_callback'])
+            : null;
     }
 
     public function get_request_minimum_settings(int | array $request_data) : ?array
@@ -614,7 +775,11 @@ class PHS_Model_Request_queue extends PHS_Model
                 return null;
             }
 
-            $params['fields']['settings'] = $this->_encode_settings_field($this->validate_settings_arr($params['fields']['settings']) ?: null) ?: null;
+            if ( null === ($validated_settings = $this->check_settings_for_errors($params['fields']['settings'])) ) {
+                return null;
+            }
+
+            $params['fields']['settings'] = $this->_encode_settings_field($this->validate_settings_arr($validated_settings) ?: null) ?: null;
         }
 
         $now_date = date(self::DATETIME_DB);
@@ -674,7 +839,11 @@ class PHS_Model_Request_queue extends PHS_Model
                 return null;
             }
 
-            $params['fields']['settings'] = $this->_encode_settings_field($this->validate_settings_arr($params['fields']['settings']) ?: null) ?: null;
+            if ( null === ($validated_settings = $this->check_settings_for_errors($params['fields']['settings'])) ) {
+                return null;
+            }
+
+            $params['fields']['settings'] = $this->_encode_settings_field($this->validate_settings_arr($validated_settings) ?: null) ?: null;
         }
 
         $handle = $params['fields']['handle'] ?? $existing_data['handle'] ?? null;
@@ -812,6 +981,39 @@ class PHS_Model_Request_queue extends PHS_Model
         }
 
         return $new_record;
+    }
+
+    private function _instantiate_callback(null | string | array $callback) : null | string | array
+    {
+        if (empty($callback)) {
+            return null;
+        }
+
+        if (is_string($callback)) {
+            return $callback;
+        }
+
+        $class = $callback[0] ?? null;
+        $method = $callback[1] ?? null;
+
+        if (empty($class) || empty($method)
+            || !is_string($class)
+            || !is_string($method)) {
+            return null;
+        }
+
+        if (!($callback_obj = $class::get_instance())
+            || !($callback_obj instanceof PHS_Instantiable)
+            || !@method_exists($callback_obj, $method)) {
+            return null;
+        }
+
+        if (!($plugin_obj = $callback_obj->get_plugin_instance())
+            || !$plugin_obj->plugin_active()) {
+            return null;
+        }
+
+        return [$callback_obj, $method];
     }
 
     private function _decode_settings_field(?string $settings) : ?array
