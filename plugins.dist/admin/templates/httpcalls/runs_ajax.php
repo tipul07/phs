@@ -39,6 +39,11 @@ echo $requests_model->is_final($request_arr) ? ' ('.$this->_pt('Final').')' : ''
 </div>
 
 <div class="form-group row">
+    <label class="col-sm-2 col-form-label"><?php echo $this->_pt('Run after'); ?></label>
+    <div class="col-sm-10"><?php echo $request_arr['run_after'] ? http_pretty_date($request_arr['run_after']) : $this->_pt('N/A'); ?></div>
+</div>
+
+<div class="form-group row">
     <label class="col-sm-2 col-form-label"><?php echo $this->_pt('Created'); ?></label>
     <div class="col-sm-10"><?php echo http_pretty_date($request_arr['cdate']); ?></div>
 </div>

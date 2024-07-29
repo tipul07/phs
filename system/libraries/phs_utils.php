@@ -1195,6 +1195,8 @@ class PHS_Utils extends PHS_Language
             $params = [];
         }
 
+        $params['obfuscate_request_details_header']
+            = !isset($params['obfuscate_request_details_header']) || !empty($params['obfuscate_request_details_header']);
         $params['ssl_verification'] = !empty($params['ssl_verification']);
         $params['follow_location'] = !empty($params['follow_location']);
         $params['inhibit_100_continue'] = (bool)($params['inhibit_100_continue'] ?? true);
@@ -1244,7 +1246,7 @@ class PHS_Utils extends PHS_Language
             foreach ($params['post_arr'] as $key => $val) {
                 // workaround for '@/local/file' fields...
                 if (!is_scalar($val)
-                    || substr($val, 0, 1) === '@') {
+                    || str_starts_with($val, '@')) {
                     $post_string = $params['post_arr'];
                     break;
                 }
@@ -1346,9 +1348,31 @@ class PHS_Utils extends PHS_Language
             $response['http_code'] = (int)$response['request_details']['http_code'];
         }
 
+        if ($params['obfuscate_request_details_header']
+           && !empty($response['request_details']['request_header'])) {
+            $response['request_details']['request_header']
+                = self::obfuscate_authorization_header_from_string($response['request_details']['request_header']);
+        }
+
         @curl_close($ch);
 
         return $response;
+    }
+
+    public static function obfuscate_authorization_header_from_string(string $headers) : string
+    {
+        if ( preg_match('/^(Authorization)\s*:\s*?(.*)\s*$/miU', $headers, $matches) ) {
+            $auth_str = explode( ' ', $matches[2] ?? '', 2);
+            $headers = str_replace(
+                $matches[0],
+                ($matches[1] ?? 'Authorization').': '
+                .(!empty($auth_str[1]) ? $auth_str[0].' ' : '')
+                .'(Obfuscated_authorization)',
+                $headers
+            );
+        }
+
+        return $headers;
     }
 
     /**
@@ -1659,10 +1683,10 @@ class PHS_Utils extends PHS_Language
      *
      * @return string Converted string
      */
-    public static function csv_column($str, $delimiter = ',', $enclosure = '"', $escape = '"')
+    public static function csv_column(string $str, string $delimiter = ',', string $enclosure = '"', string $escape = '"') : string
     {
-        if (false !== strpos($str, $enclosure)
-         || false !== strpos($str, $delimiter)) {
+        if (str_contains($str, $enclosure)
+            || str_contains($str, $delimiter)) {
             $str = $enclosure.str_replace($enclosure, $escape.$enclosure, $str).$enclosure;
         }
 
@@ -1679,14 +1703,18 @@ class PHS_Utils extends PHS_Language
      *
      * @return string Returns a CSV string line based on provided columns array
      */
-    public static function csv_line($line_arr, $line_delimiter = "\n", $delimiter = ',', $enclosure = '"', $escape = '"') : string
+    public static function csv_line(array $line_arr, string $line_delimiter = "\n", string $delimiter = ',', string $enclosure = '"', string $escape = '"') : string
     {
-        if (empty($line_arr) || !is_array($line_arr)) {
+        if (empty($line_arr)) {
             return '';
         }
 
         $result_arr = [];
         foreach ($line_arr as $line_str) {
+            if (!is_string($line_str)) {
+                continue;
+            }
+
             $result_arr[] = self::csv_column($line_str, $delimiter, $enclosure, $escape);
         }
 

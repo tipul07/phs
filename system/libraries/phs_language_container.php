@@ -46,7 +46,7 @@ class PHS_Language_Container extends PHS_Error
 
     private static array $_LOADED_FILES = [];
 
-    private static $csv_settings = false;
+    private static array $csv_settings = [];
 
     public function __construct()
     {
@@ -676,23 +676,14 @@ class PHS_Language_Container extends PHS_Error
         ];
     }
 
-    /**
-     * @param bool|array $settings
-     *
-     * @return array|bool
-     */
-    public static function lang_files_csv_settings($settings = false)
+    public static function lang_files_csv_settings(?array $settings = null) : array
     {
         if (empty(self::$csv_settings)) {
             self::$csv_settings = self::default_lang_files_csv_settings();
         }
 
-        if ($settings === false) {
+        if ($settings === null) {
             return self::$csv_settings;
-        }
-
-        if (empty($settings) || !is_array($settings)) {
-            return false;
         }
 
         foreach (self::$csv_settings as $key => $cur_val) {

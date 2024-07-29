@@ -64,25 +64,15 @@ class PHS_Bg_jobs extends PHS_Registry
         if (empty($bg_jobs_model)
             || !($job_data = self::current_job_data())
             || !($job_arr = $bg_jobs_model->data_to_array($job_data))) {
-            if ($bg_jobs_model->has_error()) {
-                self::st_copy_error($bg_jobs_model);
-            }
-
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_JOB_DB, self::_t('Couldn\'t get background job details.'));
-            }
+            self::st_copy_or_set_error($bg_jobs_model,
+                self::ERR_JOB_DB, self::_t('Couldn\'t get background job details.'));
 
             return null;
         }
 
         if (!($new_job = $bg_jobs_model->refresh_job($job_arr))) {
-            if ($bg_jobs_model->has_error()) {
-                self::st_copy_error($bg_jobs_model);
-            }
-
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_JOB_DB, self::_t('Couldn\'t refresh background job details.'));
-            }
+            self::st_copy_or_set_error($bg_jobs_model,
+                self::ERR_JOB_DB, self::_t('Couldn\'t refresh background job details.'));
 
             return null;
         }

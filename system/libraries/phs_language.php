@@ -293,7 +293,7 @@ class PHS_Language extends PHS_Error
         return self::language_container()->get_language_file_header_str();
     }
 
-    public static function lang_files_csv_settings($settings = false)
+    public static function lang_files_csv_settings(?array $settings = null) : array
     {
         $lang_container = self::language_container();
 

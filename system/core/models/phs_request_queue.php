@@ -82,6 +82,13 @@ class PHS_Model_Request_queue extends PHS_Model
                && !empty($record_arr['is_final']);
     }
 
+    public function is_timed(int | array $record_data) : bool
+    {
+        return !empty($record_data)
+               && ($record_arr = $this->data_to_array($record_data))
+               && !empty($record_arr['run_after']);
+    }
+
     public function should_delete_on_completion(int | array $record_data) : bool
     {
         return !empty($record_data)
@@ -238,20 +245,22 @@ class PHS_Model_Request_queue extends PHS_Model
 
     public function update_request_for_success(
         int | array $request_data,
+        ?string $method = null,
         ?int $http_code = null,
         null | bool | string $response = false,
         null | bool | string $error = false,
     ) : ?array {
-        return $this->_update_request($request_data, $http_code, self::STATUS_SUCCESS, $response, $error);
+        return $this->_update_request($request_data, $method, $http_code, self::STATUS_SUCCESS, $response, $error);
     }
 
     public function update_request_for_failure(
         int | array $request_data,
+        ?string $method = null,
         ?int $http_code = null,
         null | bool | string $response = false,
         null | bool | string $error = false,
     ) : ?array {
-        return $this->_update_request($request_data, $http_code, self::STATUS_FAILED, $response, $error);
+        return $this->_update_request($request_data, $method, $http_code, self::STATUS_FAILED, $response, $error);
     }
 
     public function hard_delete_http_call(int | array $record_data) : ?array
@@ -530,7 +539,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return [$classname, $method];
     }
 
-    public function get_request_success_callback($request_data) : ?array
+    public function get_request_success_callback($request_data) : null | string | array
     {
         return ($settings_arr = $this->get_request_minimum_settings($request_data))
                && !empty($settings_arr['success_callback'])
@@ -538,7 +547,7 @@ class PHS_Model_Request_queue extends PHS_Model
             : null;
     }
 
-    public function get_request_one_fail_callback($request_data) : ?array
+    public function get_request_one_fail_callback($request_data) : null | string | array
     {
         return ($settings_arr = $this->get_request_minimum_settings($request_data))
                && !empty($settings_arr['one_fail_callback'])
@@ -546,7 +555,7 @@ class PHS_Model_Request_queue extends PHS_Model
             : null;
     }
 
-    public function get_request_fail_callback($request_data) : ?array
+    public function get_request_fail_callback($request_data) : null | string | array
     {
         return ($settings_arr = $this->get_request_minimum_settings($request_data))
                && !empty($settings_arr['fail_callback'])
@@ -870,11 +879,13 @@ class PHS_Model_Request_queue extends PHS_Model
      * @param null|int $status
      * @param null|bool|string $response
      * @param null|bool|string $error
+     * @param ?string $method
      *
      * @return null|array
      */
     private function _update_request(
         int | array $request_data,
+        ?string $method = null,
         ?int $http_code = null,
         ?int $status = null,
         null | bool | string $response = false,
@@ -894,6 +905,9 @@ class PHS_Model_Request_queue extends PHS_Model
 
         $edit_params = $flow_arr;
         $edit_params['fields'] = [];
+        if ( $method !== null) {
+            $edit_params['fields']['method'] = $method;
+        }
         if ( $status !== null
             && $this->valid_status($status)) {
             $edit_params['fields']['status'] = $status;
@@ -985,11 +999,20 @@ class PHS_Model_Request_queue extends PHS_Model
 
     private function _instantiate_callback(null | string | array $callback) : null | string | array
     {
+        $this->reset_error();
+
         if (empty($callback)) {
             return null;
         }
 
         if (is_string($callback)) {
+            if ( !@function_exists($callback) ) {
+                $this->set_error(self::ERR_PARAMETERS,
+                    self::_t('Function for provided callback doesn\'t exist: %s.', $callback.'()'));
+
+                return null;
+            }
+
             return $callback;
         }
 
@@ -999,17 +1022,25 @@ class PHS_Model_Request_queue extends PHS_Model
         if (empty($class) || empty($method)
             || !is_string($class)
             || !is_string($method)) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid callback structure.'));
+
             return null;
         }
 
         if (!($callback_obj = $class::get_instance())
             || !($callback_obj instanceof PHS_Instantiable)
             || !@method_exists($callback_obj, $method)) {
+            $this->set_error(self::ERR_PARAMETERS,
+                self::_t('Method for provided callback doesn\'t exist %s.', $class.'::'.$method.'()'));
+
             return null;
         }
 
         if (!($plugin_obj = $callback_obj->get_plugin_instance())
             || !$plugin_obj->plugin_active()) {
+            $this->set_error(self::ERR_PARAMETERS,
+                self::_t('Plugin for provided callback is not active %s.', $class.'::'.$method.'()'));
+
             return null;
         }
 

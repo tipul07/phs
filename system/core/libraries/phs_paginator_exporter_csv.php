@@ -22,17 +22,14 @@ class PHS_Paginator_exporter_csv extends PHS_Paginator_exporter_library
      */
     public function record_to_buffer(array $record_data, ?array $params = null) : string
     {
-        if (empty($record_data)
-         || empty($record_data['record_arr']) || !is_array($record_data['record_arr'])) {
+        if (empty($record_data['record_arr']) || !is_array($record_data['record_arr'])) {
             return '';
         }
 
         if (!($csv_format = $this->export_registry('csv_format'))) {
-            if (empty($params)) {
-                $csv_format = $this->default_csv_params();
-            } else {
-                $csv_format = self::validate_array($params, $this->default_csv_params());
-            }
+            $csv_format = empty($params)
+                ? $this->default_csv_params()
+                : self::validate_array($params, $this->default_csv_params());
 
             $this->export_registry('csv_format', $csv_format);
         }

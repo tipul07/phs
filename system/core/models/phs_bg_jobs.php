@@ -59,7 +59,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
         $edit_arr['last_action'] = date(self::DATETIME_DB);
 
         if (!($new_job_arr = $this->edit($job_arr, ['fields' => $edit_arr]))) {
-            $this->set_error(self::ERR_DB_JOB, self::_t('Job not found in database.'));
+            $this->set_error(self::ERR_DB_JOB, self::_t('Error updating background job.'));
 
             return null;
         }

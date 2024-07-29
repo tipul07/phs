@@ -298,27 +298,23 @@ class PHS_Registry extends PHS_Language
         return $arr1;
     }
 
-    /**
-     * @param array $arr1
-     * @param bool|array $params
-     *
-     * @return array
-     */
-    public static function unify_array_insensitive($arr1, $params = false) : array
+    public static function unify_array_insensitive(array $arr1, array $params = []) : array
     {
-        if (empty($arr1) || !is_array($arr1)) {
+        if (empty($arr1)) {
             return [];
         }
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        $params['use_newer_values'] = (!isset($params['use_newer_values']) || !empty($params['use_newer_values']));
-        $params['trim_keys'] = (!empty($params['trim_keys']));
+        $params['use_newer_key_case'] = !isset($params['use_newer_key_case']) || !empty($params['use_newer_key_case']);
+        $params['trim_keys'] = !empty($params['trim_keys']);
 
         $lower_to_raw_arr = [];
+        $result = [];
         foreach ($arr1 as $key => $val) {
+            if (is_int($key)) {
+                $result[$key] = $val;
+                continue;
+            }
+
             if (!empty($params['trim_keys'])) {
                 $key = trim($key);
             }
@@ -328,13 +324,66 @@ class PHS_Registry extends PHS_Language
             if (isset($lower_to_raw_arr[$lower_key])) {
                 if (empty($params['use_newer_key_case'])) {
                     $key = $lower_to_raw_arr[$lower_key];
-                } elseif (isset($arr1[$lower_to_raw_arr[$lower_key]])) {
-                    unset($arr1[$lower_to_raw_arr[$lower_key]]);
+                } elseif ( !empty($lower_to_raw_arr[$lower_key])
+                          && $lower_to_raw_arr[$lower_key] !== $key
+                          && array_key_exists($lower_to_raw_arr[$lower_key], $result) ) {
+                    unset($result[$lower_to_raw_arr[$lower_key]]);
                 }
             }
 
-            $arr1[$key] = $val;
+            $result[$key] = $val;
             $lower_to_raw_arr[$lower_key] = $key;
+        }
+
+        return $result;
+    }
+
+    public static function array_key_exists_insensitive(array $arr1, string $key) : bool
+    {
+        if (empty($arr1)) {
+            return false;
+        }
+
+        $params['trim_keys'] = !empty($params['trim_keys']);
+
+        $lower_key = strtolower($key);
+
+        foreach ($arr1 as $a_key => $a_val) {
+            if (!empty($params['trim_keys'])) {
+                $a_key = trim($a_key);
+            }
+
+            if (strtolower($a_key) === $lower_key ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static function array_replace_value_key_insensitive(array $arr1, string $key, mixed $value) : array
+    {
+        if (empty($arr1)) {
+            return [];
+        }
+
+        $params['trim_keys'] = !empty($params['trim_keys']);
+        $params['only_first_value'] = !isset($params['only_first_value']) || !empty($params['only_first_value']);
+
+        $lower_key = strtolower($key);
+
+        foreach ($arr1 as $a_key => $a_val) {
+            if (!empty($params['trim_keys'])) {
+                $a_key = trim($a_key);
+            }
+
+            if (strtolower($a_key) === $lower_key ) {
+                $arr1[$a_key] = $value;
+
+                if ($params['only_first_value']) {
+                    break;
+                }
+            }
         }
 
         return $arr1;
@@ -346,17 +395,13 @@ class PHS_Registry extends PHS_Language
      *
      * @return array
      */
-    public static function array_lowercase_keys($arr1, $params = false) : array
+    public static function array_lowercase_keys(array $arr1, array $params = []) : array
     {
-        if (empty($arr1) || !is_array($arr1)) {
+        if (empty($arr1)) {
             return [];
         }
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        $params['trim_keys'] = (!empty($params['trim_keys']));
+        $params['trim_keys'] = !empty($params['trim_keys']);
 
         $new_array = [];
         foreach ($arr1 as $key => $val) {
@@ -370,7 +415,7 @@ class PHS_Registry extends PHS_Language
         return $new_array;
     }
 
-    public static function merge_array_assoc_insensitive($arr1, $arr2, $params = false) : array
+    public static function merge_array_assoc_insensitive($arr1, $arr2, array $params = []) : array
     {
         if (empty($arr1) || !is_array($arr1)) {
             return is_array($arr2) ? $arr2 : [];

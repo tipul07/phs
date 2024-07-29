@@ -1659,7 +1659,7 @@ class PHS_Paginator extends PHS_Registry
         $sort_type_added = false;
         if (($db_sort_by = $this->pagination_params('db_sort_by'))
         && is_string($db_sort_by)) {
-            if (strpos($db_sort_by, '%s') !== false) {
+            if (str_contains($db_sort_by, '%s')) {
                 $db_sort_by = str_replace('%s', (empty($sort) ? 'ASC' : 'DESC'), $db_sort_by);
                 $sort_type_added = true;
             }
@@ -1667,12 +1667,12 @@ class PHS_Paginator extends PHS_Registry
             $list_arr['order_by'] = $db_sort_by;
         } elseif (($sort_by = $this->pagination_params('sort_by'))
         && is_string($sort_by)) {
-            $list_arr['order_by'] = ((strpos($sort_by, '.') === false)
+            $list_arr['order_by'] = (!str_contains($sort_by, '.')
                     ? '`'.$model_obj->get_flow_table_name($model_flow_params).'`.' : '').$sort_by;
         }
 
         if (!empty($list_arr['order_by'])
-         && empty($sort_type_added)) {
+            && empty($sort_type_added)) {
             $list_arr['order_by'] .= ' '.(empty($sort) ? 'ASC' : 'DESC');
         }
 

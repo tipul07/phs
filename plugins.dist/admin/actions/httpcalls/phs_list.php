@@ -388,6 +388,17 @@ class PHS_Action_List extends PHS_Action_Generic_list
            onfocus="this.blur()"><i class="fa fa-bars action-icons"></i></a>
         <?php
 
+        if ($this->_paginator_model->is_timed($record_arr)) {
+            $pretty_params = [];
+            $pretty_params['date_format'] = $params['column']['date_format'] ?? null;
+            $pretty_params['request_render_type'] = $this->_paginator::CELL_RENDER_HTML;
+
+            $run_after = $this->_paginator->pretty_date_independent($record_arr['run_after'], $pretty_params);
+            ?><br/>
+            <span title="<?php echo $this->_pte('Run After'); ?>"><?php echo $this->_pt('RA'); ?></span>: <?php echo $run_after; ?>
+            <?php
+        }
+
         return ob_get_clean();
     }
 
@@ -1061,6 +1072,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     url_data: { http_id: id },
                     onsuccess: function(response, status, ajax_obj, response_data) {
                         hide_submit_protection();
+                        phs_refresh_input_skins();
                     },
                     onfailed: function(ajax_obj, status, error_exception) {
                         hide_submit_protection();

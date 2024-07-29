@@ -3,6 +3,7 @@
 namespace phs\system\core\libraries;
 
 use phs\PHS;
+use phs\PHS_Agent;
 use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
@@ -60,6 +61,83 @@ class PHS_Requests_queue_manager extends PHS_Library
         }
 
         return $request_arr;
+    }
+
+    public function check_http_calls_queue() : ?array
+    {
+        if ( !$this->_load_dependencies() ) {
+            return null;
+        }
+
+        if (!($flow_params = $this->_requests_model->fetch_default_flow_params(['table_name' => 'phs_request_queue']))
+            || !($requests_table = $this->_requests_model->get_flow_table_name($flow_params))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t obtain flow parameters.'));
+
+            return null;
+        }
+
+        $return_arr = [];
+        $return_arr['total'] = 0;
+        $return_arr['success'] = 0;
+        $return_arr['failed'] = 0;
+        $return_arr['retries'] = 0;
+        $return_arr['timed'] = 0;
+
+        if (!($qid = db_query('SELECT * FROM `'.$requests_table.'`'
+                              .' WHERE '
+                              .' (status = \''.$this->_requests_model::STATUS_FAILED.'\' AND is_final = 0) '
+                              .' OR '
+                              .' (status = \''.$this->_requests_model::STATUS_PENDING.'\' AND run_after <= NOW()) '
+                              .'ORDER BY cdate ASC',
+            $flow_params['db_connection']))
+            || !($requests_no = db_num_rows($qid, $flow_params['db_connection']))) {
+            return $return_arr;
+        }
+
+        $return_arr['total'] = $requests_no;
+
+        PHS_Logger::notice('[QUEUE] Trying '.$requests_no.' HTTP calls from queue', PHS_Logger::TYPE_HTTP_CALLS);
+
+        while (($request_arr = @mysqli_fetch_assoc($qid))) {
+            $call_type = '';
+            if ($this->_requests_model->is_failed($request_arr)) {
+                $return_arr['retries']++;
+                $call_type = 'retry';
+            } elseif ($this->_requests_model->is_timed($request_arr)) {
+                $return_arr['timed']++;
+                $call_type = 'timed';
+            }
+
+            PHS_Logger::notice('[QUEUE] Running request #'.$request_arr['id']
+                .($call_type ? ' - '.$call_type : ''),
+                PHS_Logger::TYPE_HTTP_CALLS
+            );
+
+            if (!($run_result = $this->run_request_bg($request_arr))
+                || $run_result['has_error']) {
+                PHS_Logger::error('[QUEUE] Error running request #'.$request_arr['id'].': '
+                                  .$this->get_simple_error_message(self::_t('Unknown error.'))
+                                  .(!empty($run_result['error_msg']) ? ' ('.$run_result['error_msg'].')' : ''),
+                    PHS_Logger::TYPE_HTTP_CALLS
+                );
+
+                $return_arr['failed']++;
+                continue;
+            }
+
+            $return_arr['success']++;
+
+            if (PHS_Agent::current_job_data()) {
+                PHS_Agent::refresh_current_job();
+            }
+        }
+
+        // Make sure we don't propagate individual retry errors...
+        $this->reset_error();
+
+        PHS_Logger::notice('[QUEUE] Finished sending HTTP calls from queue', PHS_Logger::TYPE_HTTP_CALLS);
+
+        return $return_arr;
     }
 
     public function run_request(int | array $request_data, bool $force_run = false) : ?array
@@ -155,19 +233,34 @@ class PHS_Requests_queue_manager extends PHS_Library
     private function _callbacks_on_finish(array $request_arr, array $request_response) : void
     {
         $callbacks = [];
+        $errors_arr = [];
         if ($this->_requests_model->is_success($request_arr)) {
             if ( ($callback = $this->_requests_model->get_request_success_callback($request_arr)) ) {
                 $callbacks['success'] = $callback;
+            } elseif ($this->_requests_model->has_error()) {
+                $errors_arr[] = $this->_requests_model->get_simple_error_message();
             }
         } elseif ($this->_requests_model->is_failed($request_arr)) {
             if ( ($callback = $this->_requests_model->get_request_one_fail_callback($request_arr)) ) {
                 $callbacks['one_failure'] = $callback;
+            } elseif ($this->_requests_model->has_error()) {
+                $errors_arr[] = $this->_requests_model->get_simple_error_message();
             }
 
             if ($this->_requests_model->is_final($request_arr)
                && ($callback = $this->_requests_model->get_request_fail_callback($request_arr))) {
                 $callbacks['final_failure'] = $callback;
+            } elseif ($this->_requests_model->has_error()) {
+                $errors_arr[] = $this->_requests_model->get_simple_error_message();
             }
+        }
+
+        if (!empty($errors_arr)) {
+            self::_logf(
+                self::_LOG_METHOD_ERROR,
+                'Error(s) in callbacks: '.implode(', ', $errors_arr),
+                $request_response['log_file']
+            );
         }
 
         if ( empty($callbacks) ) {
@@ -229,6 +322,10 @@ class PHS_Requests_queue_manager extends PHS_Library
         $params['log_file'] = $settings_arr['log_file'] ?? null;
         $params['expect_json'] = $settings_arr['expect_json_response'] ?? false;
 
+        if (!empty($settings_arr['headers']) && is_array($settings_arr['headers'])) {
+            $params['headers'] = $settings_arr['headers'];
+        }
+
         $curl_params = $params['curl_params'] ?? [];
 
         if (!empty($settings_arr['curl_params']) && is_array($settings_arr['curl_params'])) {
@@ -275,13 +372,24 @@ class PHS_Requests_queue_manager extends PHS_Library
 
         $curl_params = $params['curl_params'];
         $curl_params['timeout'] = $params['timeout'];
+
+        if (empty($curl_params['header_keys_arr']) || !is_array($curl_params['header_keys_arr'])) {
+            $curl_params['header_keys_arr'] = [];
+        }
+        if (!empty($params['headers']) && !is_array($params['headers'])) {
+            $params['headers'] = [];
+        }
         if (!empty($params['headers'])) {
-            $curl_params['header_keys_arr'] = $params['headers'];
+            $curl_params['header_keys_arr'] = array_merge($curl_params['header_keys_arr'], $params['headers']);
+        }
+
+        if (!empty($curl_params['header_keys_arr'])) {
+            $curl_params['header_keys_arr'] = self::unify_array_insensitive($curl_params['header_keys_arr']);
         }
 
         if ($payload !== null) {
             $curl_params['raw_post_str'] = $payload;
-            $method ??= 'post';
+            $method = 'POST';
         }
 
         if (!empty($method)) {
@@ -293,6 +401,7 @@ class PHS_Requests_queue_manager extends PHS_Library
             : PHS_Model_Api_monitor::api_outgoing_request_started($url, $payload ?: null, $method ?? 'GET');
 
         $request_response = $this->_empty_request_response();
+        $request_response['method'] = $method ?? 'GET';
         $request_response['log_file'] = $params['log_file'];
         $request_response['monitoring_record'] = $monitoring_record;
 
@@ -306,7 +415,12 @@ class PHS_Requests_queue_manager extends PHS_Library
         if (!empty($obfuscated_params['userpass'])) {
             $obfuscated_params['userpass'] = '(Obfuscated_credentials)';
         }
-        // TODO: Obfuscate authentication headers
+        if (!empty($obfuscated_params['header_keys_arr'])
+            && self::array_key_exists_insensitive($obfuscated_params['header_keys_arr'], 'authorization')) {
+            $obfuscated_params['header_keys_arr'] = self::array_replace_value_key_insensitive(
+                $obfuscated_params['header_keys_arr'], 'authorization', '(Obfuscated_authorization)'
+            );
+        }
 
         if (!($api_response = PHS_Utils::quick_curl($url, $curl_params))
             || empty($api_response['request_details']) || !is_array($api_response['request_details'])
@@ -361,7 +475,7 @@ class PHS_Requests_queue_manager extends PHS_Library
             self::_logf(
                 self::_LOG_METHOD_INFO,
                 'API URL: '.$url."\n"
-                .'Request headers: '.$request_headers."\n"
+                .'Request headers:'."\n".$request_headers."\n"
                 .'Params: '.$request_params,
                 $params['log_file']
             );
@@ -435,8 +549,8 @@ class PHS_Requests_queue_manager extends PHS_Library
     private function _update_request_for_result(array $request_arr, array $request_response) : ?array
     {
         $update_result = $request_response['has_error']
-            ? $this->_requests_model->update_request_for_failure($request_arr, $request_response['http_code'], $request_response['response_buf'], $request_response['error_msg'])
-            : $this->_requests_model->update_request_for_success($request_arr, $request_response['http_code'], $request_response['response_buf'], $request_response['error_msg']);
+            ? $this->_requests_model->update_request_for_failure($request_arr, $request_response['method'], $request_response['http_code'], $request_response['response_buf'], $request_response['error_msg'])
+            : $this->_requests_model->update_request_for_success($request_arr, $request_response['method'], $request_response['http_code'], $request_response['response_buf'], $request_response['error_msg']);
 
         return $update_result ?: null;
     }
@@ -445,6 +559,7 @@ class PHS_Requests_queue_manager extends PHS_Library
     {
         return [
             'in_background'     => false,
+            'method'            => '',
             'http_code'         => 0,
             'has_error'         => false,
             'error_msg'         => '',
