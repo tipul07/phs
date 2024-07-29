@@ -9,14 +9,17 @@ if (!defined('DATETIME_T_FORMAT')) {
 
 use phs\PHS;
 use phs\PHS_Db;
+use phs\libraries\PHS_Error;
 use phs\libraries\PHS_Roles;
+use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Model_Core_base;
 use phs\system\core\libraries\PHS_Migrations_manager;
+use phs\system\core\libraries\PHS_Requests_queue_manager;
 
 function phs_version() : string
 {
-    return '1.2.2.1';
+    return '1.2.3.0';
 }
 
 // region Helper functions
@@ -79,12 +82,63 @@ function can($role_units, ?array $roles_params = null, $account_structure = null
 
 function migrations_manager() : ?PHS_Migrations_manager
 {
+    PHS::st_reset_error();
+
     /** @var PHS_Migrations_manager $manager */
     if ( !($manager = PHS::get_core_library_instance('migrations_manager', ['as_singleton' => true])) ) {
+        PHS::st_set_error(PHS_Error::ERR_RESOURCES, PHS::_t('Error loading required resources.'));
+
         return null;
     }
 
     return $manager;
+}
+
+function requests_queue_manager() : ?PHS_Requests_queue_manager
+{
+    PHS::st_reset_error();
+
+    /** @var PHS_Requests_queue_manager $manager */
+    if ( !($manager = PHS::get_core_library_instance('requests_queue_manager', ['as_singleton' => true])) ) {
+        PHS::st_set_error(PHS_Error::ERR_RESOURCES, PHS::_t('Error loading required resources.'));
+
+        return null;
+    }
+
+    return $manager;
+}
+
+function http_call(
+    string $url,
+    string $method = 'get',
+    null | array | string $payload = null,
+    ?array $settings = null,
+    array $params = [],
+) : ?array {
+    if (!($rq_manager = requests_queue_manager())) {
+        return null;
+    }
+
+    $params['max_retries'] = (int)($params['max_retries'] ?? 1);
+    $params['handle'] ??= null;
+    $params['sync_run'] = !isset($params['sync_run']) || !empty($params['sync_run']);
+    $params['same_thread_if_bg'] = !isset($params['same_thread_if_bg']) || !empty($params['same_thread_if_bg']);
+    $params['run_after'] ??= null;
+
+    if ( !empty($params['run_after'])
+        && ($run_after = parse_db_date($params['run_after']))) {
+        $params['run_after'] = date(PHS_Model_Core_base::DATETIME_DB, $run_after);
+    } else {
+        $params['run_after'] = null;
+    }
+
+    if ( !($result = $rq_manager->http_call($url, $method, $payload, $settings, $params)) ) {
+        PHS::st_copy_or_set_error($rq_manager, PHS_Error::ERR_RESOURCES, PHS::_t('Error sending HTTP call to background.'));
+
+        return null;
+    }
+
+    return $result;
 }
 // endregion Helper functions
 
@@ -809,22 +863,12 @@ function parse_t_date($date, $params = false)
     return @mktime($date_arr[3], $date_arr[4], $date_arr[5], $date_arr[1], $date_arr[2], $date_arr[0]) + $params['offset_seconds'];
 }
 
-/**
- * @param string|mixed $date
- * @param bool|array $params
- *
- * @return array|bool
- */
-function is_db_date($date, $params = false)
+function is_db_date(?string $date, array $params = []) : ?array
 {
-    if (is_string($date)) {
-        $date = trim($date);
-    }
-
+    $date = trim($date ?? '');
     if (empty($date)
-     || !is_string($date)
-     || strpos($date, '-') === false) {
-        return false;
+        || !str_contains($date, '-')) {
+        return null;
     }
 
     if (empty_db_date($date)) {
@@ -837,7 +881,7 @@ function is_db_date($date, $params = false)
 
     $params['validate_intervals'] = (!isset($params['validate_intervals']) || !empty($params['validate_intervals']));
 
-    if (strpos($date, ' ') !== false) {
+    if (str_contains($date, ' ')) {
         $d = explode(' ', $date);
         $date_ = explode('-', $d[0]);
         $time_ = explode(':', $d[1]);
@@ -847,9 +891,8 @@ function is_db_date($date, $params = false)
     }
 
     for ($i = 0; $i < 3; $i++) {
-        if (!isset($date_[$i])
-         || !isset($time_[$i])) {
-            return false;
+        if (!isset($date_[$i], $time_[$i])) {
+            return null;
         }
 
         $date_[$i] = (int)$date_[$i];
@@ -859,7 +902,7 @@ function is_db_date($date, $params = false)
     $result_arr = array_merge($date_, $time_);
     if (!empty($params['validate_intervals'])
      && !validate_db_date_array($result_arr)) {
-        return false;
+        return null;
     }
 
     return $result_arr;
@@ -909,29 +952,18 @@ function parse_db_date($date, $params = false) : int
     return $ret_val;
 }
 
-/**
- * @param string|mixed $date
- *
- * @return bool
- */
-function empty_db_date($date) : bool
+function empty_db_date(?string $date) : bool
 {
-    return empty($date) || (string)$date === PHS_Model_Core_base::DATETIME_EMPTY || (string)$date === PHS_Model_Core_base::DATE_EMPTY;
+    return empty($date) || $date === PHS_Model_Core_base::DATETIME_EMPTY || $date === PHS_Model_Core_base::DATE_EMPTY;
 }
 
-/**
- * @param string|mixed $date
- * @param null|string $format
- *
- * @return null|false|string
- */
-function validate_db_date($date, ?string $format = null)
+function validate_db_date(?string $date, ?string $format = null) : ?string
 {
     if (empty_db_date($date)) {
         return null;
     }
 
-    if ($format === false) {
+    if ($format === null) {
         $format = PHS_Model_Core_base::DATETIME_DB;
     }
 
@@ -950,6 +982,31 @@ function prepare_data($str) : string
     }
 
     return str_replace('\'', '\\\'', str_replace('\\\'', '\'', $str));
+}
+
+function http_pretty_date(?string $date, array $params = []) : string
+{
+    $params['date_format'] ??= null;
+
+    if (empty($date)
+        || !($date_time = is_db_date($date))
+        || empty_db_date($date)) {
+        return '';
+    }
+
+    $date_str = !empty($params['date_format'])
+        ? @date($params['date_format'], parse_db_date($date_time))
+        : $date;
+
+    if (($seconds_ago = seconds_passed($date_time)) < 0) {
+        // date in future
+        $lang_index = 'in %s';
+    } else {
+        // date in past
+        $lang_index = '%s ago';
+    }
+
+    return '<span title="'.PHS::_t($lang_index, PHS_Utils::parse_period($seconds_ago, ['only_big_part' => true])).'">'.$date_str.'</span>';
 }
 
 /**

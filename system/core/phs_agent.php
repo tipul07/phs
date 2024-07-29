@@ -500,7 +500,7 @@ class PHS_Agent extends PHS_Registry
      *
      * @return array|bool|int
      */
-    public static function add_job($handler, $route, $once_every_seconds, $params = false, $extra = false)
+    public static function add_job(string $handler, string | array $route, int $once_every_seconds, array $params = [], array $extra = []) : ?array
     {
         // We don't use here PHS::route_exists() because route_exists() will instantiate plugin, controller and action and if they have errors
         // launching script will die...
@@ -510,54 +510,36 @@ class PHS_Agent extends PHS_Registry
         if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t load agent jobs model.'));
 
-            return false;
+            return null;
         }
 
-        if (empty($extra) || !is_array($extra)) {
-            $extra = [];
-        }
+        $extra['title'] = !empty($extra['title'])
+            ? trim($extra['title'])
+            : '[Title not provided]';
 
-        if (!empty($extra['title'])) {
-            $extra['title'] = trim($extra['title']);
-        } else {
-            $extra['title'] = '';
-        }
+        $extra['run_async'] = !isset($extra['run_async']) || !empty($extra['run_async']);
 
-        if (!isset($extra['run_async'])) {
-            $extra['run_async'] = true;
-        } else {
-            $extra['run_async'] = (!empty($extra['run_async']));
-        }
-
-        // This tells if job was added by plugin or is an user defined job
+        // This tells if job was added by plugin or is a user defined job
         if (empty($extra['plugin']) || !is_string($extra['plugin'])) {
             $extra['plugin'] = '';
         } else {
             $extra['plugin'] = trim($extra['plugin']);
         }
 
-        $extra['stalling_minutes'] = (!empty($extra['stalling_minutes']) ? (int)$extra['stalling_minutes'] : 0);
+        $extra['stalling_minutes'] = (int)($extra['stalling_minutes'] ?? 0);
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if (empty($handler) || !is_string($handler)) {
+        if (empty($handler)) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Please provide a handler for this agent job.'));
 
-            return false;
+            return null;
         }
 
-        $once_every_seconds = (int)$once_every_seconds;
-
-        $route_parts = false;
+        $route_parts = null;
         if (is_string($route)
-        && !($route_parts = PHS::parse_route($route))) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_PARAMETERS, self::_t('Invalid route for agent job.'));
-            }
+            && !($route_parts = PHS::parse_route($route))) {
+            self::st_set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Invalid route for agent job.'));
 
-            return false;
+            return null;
         }
 
         if (is_array($route)) {
@@ -565,25 +547,15 @@ class PHS_Agent extends PHS_Registry
         }
 
         if (empty($route_parts) || !is_array($route_parts)) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_PARAMETERS, self::_t('Invalid route for agent job.'));
-            }
+            self::st_set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Invalid route for agent job.'));
 
-            return false;
+            return null;
         }
 
-        if (!isset($route_parts['plugin'])) {
-            $route_parts['plugin'] = false;
-        }
-        if (!isset($route_parts['controller'])) {
-            $route_parts['controller'] = false;
-        }
-        if (!isset($route_parts['action'])) {
-            $route_parts['action'] = false;
-        }
-        if (!isset($route_parts['action_dir'])) {
-            $route_parts['action_dir'] = false;
-        }
+        $route_parts['plugin'] ??= null;
+        $route_parts['controller'] ??= null;
+        $route_parts['action'] ??= null;
+        $route_parts['action_dir'] ??= null;
 
         if (!($cleaned_route = PHS::route_from_parts(
             [
@@ -593,15 +565,13 @@ class PHS_Agent extends PHS_Registry
                 'ad' => $route_parts['action_dir'],
             ]
         ))) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_PARAMETERS, self::_t('Invalid route for agent job.'));
-            }
+            self::st_set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Invalid route for agent job.'));
 
-            return false;
+            return null;
         }
 
         if (empty($extra['status'])
-         || !$agent_jobs_model->valid_status($extra['status'])) {
+            || !$agent_jobs_model->valid_status($extra['status'])) {
             $extra['status'] = $agent_jobs_model::STATUS_INACTIVE;
         }
 
@@ -618,13 +588,10 @@ class PHS_Agent extends PHS_Registry
             $edit_arr['stalling_minutes'] = $extra['stalling_minutes'];
 
             if (!($job_arr = $agent_jobs_model->edit($existing_job, ['fields' => $edit_arr]))) {
-                if ($agent_jobs_model->has_error()) {
-                    self::st_copy_error($agent_jobs_model);
-                } else {
-                    self::st_set_error(self::ERR_DB_INSERT, self::_t('Couldn\'t save agent job details in database. Please try again.'));
-                }
+                self::st_copy_or_set_error($agent_jobs_model,
+                    self::ERR_DB_INSERT, self::_t('Couldn\'t save agent job details in database. Please try again.'));
 
-                return false;
+                return null;
             }
         } else {
             $insert_arr = [];
@@ -639,15 +606,11 @@ class PHS_Agent extends PHS_Registry
             $insert_arr['plugin'] = $extra['plugin'];
             $insert_arr['stalling_minutes'] = $extra['stalling_minutes'];
 
-            if (!($job_arr = $agent_jobs_model->insert(['fields' => $insert_arr]))
-             || empty($job_arr['id'])) {
-                if ($agent_jobs_model->has_error()) {
-                    self::st_copy_error($agent_jobs_model);
-                } else {
-                    self::st_set_error(self::ERR_DB_INSERT, self::_t('Couldn\'t save agent job details in database. Please try again.'));
-                }
+            if (!($job_arr = $agent_jobs_model->insert(['fields' => $insert_arr]))) {
+                self::st_copy_or_set_error($agent_jobs_model,
+                    self::ERR_DB_INSERT, self::_t('Couldn\'t save agent job details in database. Please try again.'));
 
-                return false;
+                return null;
             }
         }
 
@@ -775,50 +738,27 @@ class PHS_Agent extends PHS_Registry
         return $stalling_minutes;
     }
 
-    /**
-     * @param false|array $extra
-     *
-     * @return array|bool
-     */
-    public static function refresh_current_job($extra = false)
+    public static function refresh_current_job(array $extra = []) : ?array
     {
         self::st_reset_error();
 
-        if (empty($extra) || !is_array($extra)) {
-            $extra = [];
-        }
-
         /** @var PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!empty($extra['agent_jobs_model'])) {
-            $agent_jobs_model = $extra['agent_jobs_model'];
-        } else {
-            $agent_jobs_model = PHS_Model_Agent_jobs::get_instance();
-        }
+        $agent_jobs_model = $extra['agent_jobs_model'] ?? PHS_Model_Agent_jobs::get_instance();
 
         if (empty($agent_jobs_model)
-         || !($job_data = self::current_job_data())
-         || !($job_arr = $agent_jobs_model->data_to_array($job_data))) {
-            if ($agent_jobs_model->has_error()) {
-                self::st_copy_error($agent_jobs_model);
-            }
+            || !($job_data = self::current_job_data())
+            || !($job_arr = $agent_jobs_model->data_to_array($job_data))) {
+            self::st_copy_or_set_error($agent_jobs_model,
+                self::ERR_JOB_DB, self::_t('Couldn\'t get agent job details.'));
 
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_JOB_DB, self::_t('Couldn\'t get agent job details.'));
-            }
-
-            return false;
+            return null;
         }
 
         if (!($new_job = $agent_jobs_model->refresh_job($job_arr))) {
-            if ($agent_jobs_model->has_error()) {
-                self::st_copy_error($agent_jobs_model);
-            }
+            self::st_copy_or_set_error($agent_jobs_model,
+                self::ERR_JOB_DB, self::_t('Couldn\'t refresh agent job details.'));
 
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_JOB_DB, self::_t('Couldn\'t refresh agent job details.'));
-            }
-
-            return false;
+            return null;
         }
 
         return $new_job;

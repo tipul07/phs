@@ -40,12 +40,16 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
      */
     public function should_stop_execution() : ?array
     {
-        PHS::page_settings('page_title', $this->_pt('Roles List'));
-
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
+        }
+
+        if (!$this->_admin_plugin->can_admin_list_roles()) {
+            PHS_Notifications::add_warning_notice($this->_pt('You don\'t have rights to access this section.'));
+
+            return self::default_action_result();
         }
 
         return null;
@@ -56,22 +60,10 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
      */
     public function load_paginator_params() : ?array
     {
-        if (!PHS::user_logged_in()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
-
-            return null;
-        }
-
-        if (!$this->_admin_plugin->can_admin_list_roles()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-            return null;
-        }
-
-        $roles_model = $this->_paginator_model;
+        PHS::page_settings('page_title', $this->_pt('Roles List'));
 
         $list_arr = [];
-        $list_arr['fields']['status'] = ['check' => '!=', 'value' => $roles_model::STATUS_DELETED];
+        $list_arr['fields']['status'] = ['check' => '!=', 'value' => $this->_paginator_model::STATUS_DELETED];
 
         $flow_params = [
             'listing_title'        => $this->_pt('Roles List'),
@@ -96,8 +88,8 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             $statuses_arr = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $statuses_arr);
         }
 
-        if (isset($statuses_arr[$roles_model::STATUS_DELETED])) {
-            unset($statuses_arr[$roles_model::STATUS_DELETED]);
+        if (isset($statuses_arr[$this->_paginator_model::STATUS_DELETED])) {
+            unset($statuses_arr[$this->_paginator_model::STATUS_DELETED]);
         }
 
         if (!can(PHS_Roles::ROLEU_MANAGE_ROLES)) {

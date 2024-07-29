@@ -908,7 +908,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             }
 
             if (empty($agent_job_arr['params']) || !is_array($agent_job_arr['params'])) {
-                $agent_job_arr['params'] = false;
+                $agent_job_arr['params'] = [];
             }
 
             $agent_job_arr['run_async'] = (empty($agent_job_arr['run_async']) ? 0 : 1);
@@ -931,8 +931,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             $job_extra_arr['stalling_minutes'] = $agent_job_arr['stalling_minutes'];
 
             if (!PHS_Agent::add_job($handle, $agent_job_arr['route'], $agent_job_arr['timed_seconds'], $agent_job_arr['params'], $job_extra_arr)) {
-                $this->uninstall_agent_jobs();
-
                 $this->copy_or_set_static_error(self::ERR_INSTALL,
                     self::_t('Couldn\'t install agent job [%s] for [%s]', $handle, $this->instance_id()));
 
@@ -1817,7 +1815,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             'title'         => '',
             'handler'       => '',
             'route'         => '',
-            'params'        => null,
+            'params'        => [],
             'run_async'     => 1,
             'timed_seconds' => 0,
             // 0 means to take generic stalling value from model settings

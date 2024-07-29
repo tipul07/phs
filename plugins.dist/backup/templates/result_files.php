@@ -19,15 +19,10 @@ if (!($result_arr = $this->view_var('result_data'))
     return $this->_pt('Could\'t loaded required resources for this view.');
 }
 
-if (!($result_files_arr = $this->view_var('result_files_arr'))) {
-    $result_files_arr = [];
-}
-
-if (!($back_page = $this->view_var('back_page'))) {
-    $back_page = '';
-}
-
 $current_scope = PHS_Scope::current_scope();
+
+$result_files_arr = $this->view_var('result_files_arr') ?: [];
+$back_page = $this->view_var('back_page') ?: '';
 
 $url_params = ['p' => 'backup', 'a' => 'result_files'];
 
@@ -38,13 +33,8 @@ if (!empty($back_page)) {
     $url_args['back_page'] = $back_page;
 }
 
-if (!($days_arr = $rules_model->get_rule_days())) {
-    $days_arr = [];
-}
-
-if (!($rule_days_arr = $rules_model->get_rule_days_as_array($rule_arr['id']))) {
-    $rule_days_arr = [];
-}
+$days_arr = $rules_model->get_rule_days() ?: [];
+$rule_days_arr = $rules_model->get_rule_days_as_array($rule_arr['id']) ?: [];
 
 $days_str_arr = [];
 foreach ($rule_days_arr as $day) {
@@ -63,7 +53,7 @@ if (empty($days_str_arr)) {
 
 $hour_str = '';
 if (isset($rule_arr['hour'])) {
-    $hour_str = ($days_str_arr != '' ? ' @' : '').$rule_arr['hour'].($rule_arr['hour'] < 12 ? 'am' : 'pm');
+    $hour_str = ($days_str_arr !== '' ? ' @' : '').$rule_arr['hour'].($rule_arr['hour'] < 12 ? 'am' : 'pm');
 }
 
 $running_times = $days_str_arr.$hour_str;
@@ -82,7 +72,7 @@ $running_times = $days_str_arr.$hour_str;
 <form id="backup_result_files" name="backup_result_files" action="<?php echo PHS::url($url_params, $url_args); ?>" method="post">
 <input type="hidden" name="foobar" value="1" />
 <?php
-if ($current_scope == PHS_Scope::SCOPE_AJAX) {
+if ($current_scope === PHS_Scope::SCOPE_AJAX) {
     ?><input type="hidden" name="do_submit" value="1" /><?php
 }
 ?>
@@ -91,7 +81,7 @@ if ($current_scope == PHS_Scope::SCOPE_AJAX) {
     <div class="form_container clearfix" style="width: 98%;">
 
         <?php
-        if ($current_scope != PHS_Scope::SCOPE_AJAX) {
+        if ($current_scope !== PHS_Scope::SCOPE_AJAX) {
             ?>
         <section class="heading-bordered">
             <h3><?php echo $this->_pt('Backup Result Files'); ?></h3>
@@ -260,7 +250,7 @@ if (PHS_Scope::current_scope() === PHS_Scope::SCOPE_AJAX) {
         }
     };
 
-    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url(['p' => 'backup', 'a' => 'result_files']); ?>", ajax_params );
+    PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url(['p' => 'backup', 'a' => 'result_files']); ?>", ajax_params );
 }
 
 function backup_result_file_hide_messages()

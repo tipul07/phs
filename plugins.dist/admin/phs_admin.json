@@ -3,7 +3,7 @@
     "vendor_name": "PHS",
     "name": "Administration Plugin",
     "description": "Handles all administration actions.",
-    "version": "1.6.2",
+    "version": "1.8.0",
     "agent_jobs": {
         "admin_index_bg_clean_sessions_ag": {
             "title": "Session Garbage Collector",
@@ -23,6 +23,17 @@
                 "controller": "index_bg",
                 "action": "data_retention_ag",
                 "action_dir": "retention"
+            },
+            "timed_seconds": 3600,
+            "stalling_minutes": 15
+        },
+        "admin_index_bg_httpcalls_check_ag": {
+            "title": "HTTP Calls Retry Job",
+            "route": {
+                "plugin": "admin",
+                "controller": "index_bg",
+                "action": "check_ag",
+                "action_dir": "httpcalls"
             },
             "timed_seconds": 3600,
             "stalling_minutes": 15

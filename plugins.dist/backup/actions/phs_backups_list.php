@@ -43,8 +43,9 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
             return action_request_login();
         }
 
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
+        if (!can($this->_backup_plugin::ROLEU_DELETE_BACKUPS)
+            && !can($this->_backup_plugin::ROLEU_LIST_BACKUPS)) {
+            PHS_Notifications::add_warning_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }
@@ -59,31 +60,14 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
     {
         PHS::page_settings('page_title', $this->_pt('Backup Results List'));
 
-        if (!PHS::user_logged_in()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
+        $can_delete_backups = can($this->_backup_plugin::ROLEU_DELETE_BACKUPS);
 
-            return null;
-        }
-
-        $backup_plugin = $this->_backup_plugin;
-
-        $can_delete_backups = can($backup_plugin::ROLEU_DELETE_BACKUPS);
-
-        if (!$can_delete_backups
-            && !can($backup_plugin::ROLEU_LIST_BACKUPS)) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-            return null;
-        }
-
-        $results_model = $this->_paginator_model;
-
-        if (!($rules_flow = $results_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
-         || !($rules_table_name = $results_model->get_flow_table_name($rules_flow))) {
+        if (!($rules_flow = $this->_paginator_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
+         || !($rules_table_name = $this->_paginator_model->get_flow_table_name($rules_flow))) {
             $rules_table_name = 'backup_rules';
         }
 
-        $list_arr = $results_model->fetch_default_flow_params(['table_name' => 'backup_results']);
+        $list_arr = $this->_paginator_model->fetch_default_flow_params(['table_name' => 'backup_results']);
         $list_arr['flags'] = ['include_rule_details'];
 
         $flow_params = [
@@ -227,8 +211,6 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
             return false;
         }
 
-        $backup_plugin = $this->_backup_plugin;
-
         $action_result_params = $this->_paginator->default_action_params();
 
         if (empty($action['action'])) {
@@ -242,8 +224,6 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
                 PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
 
                 return true;
-                break;
-
             case 'bulk_delete':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
@@ -257,8 +237,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($current_user = PHS::user_logged_in())
-                 || !can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
+                if (!can($this->_backup_plugin::ROLEU_DELETE_BACKUPS)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -315,7 +294,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
+                if (!can($this->_backup_plugin::ROLEU_DELETE_BACKUPS)) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -397,9 +376,8 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
             return false;
         }
 
-        $backup_plugin = $this->_backup_plugin;
         if (empty($params['record']['run_dir'])
-         || !($location_stats_arr = $backup_plugin->get_directory_stats($params['record']['run_dir']))) {
+         || !($location_stats_arr = $this->_backup_plugin->get_directory_stats($params['record']['run_dir']))) {
             $location_stats_arr = false;
         }
 
@@ -422,18 +400,16 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 
     public function display_backup_rule_what($params)
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])) {
+        if (empty($params['record']) || !is_array($params['record'])) {
             return false;
         }
 
         $rules_model = $this->_rules_model;
-        if (!($targets_arr = $rules_model->get_targets_as_key_val())) {
+        if (!($targets_arr = $this->_rules_model->get_targets_as_key_val())) {
             $targets_arr = [];
         }
 
-        if (!($rule_targets_arr = $rules_model->bits_to_targets_arr($params['record']['backup_rules_target']))) {
+        if (!($rule_targets_arr = $this->_rules_model->bits_to_targets_arr($params['record']['backup_rules_target']))) {
             $rule_targets_arr = [];
         }
 
@@ -453,39 +429,33 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
         }
 
         return '<div class="clearfix">'.$targets_str_arr.'</div>'
-               .'<div style="text-align: center;"><a href="javascript:void(0)" onclick="phs_backup_results_list_view_files('.$params['record']['id'].')">'.$this->_pt('View files').'</a></div>';
+               .'<div style="text-align: center;"><a href="javascript:void(0)" onclick="phs_backup_results_list_view_files('.$params['record']['id'].')">'
+               .$this->_pt('View files').'</a></div>';
 
         // return $targets_str_arr;
     }
 
-    public function display_actions($params)
+    public function display_actions($params) : ?string
     {
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            return false;
-        }
-
-        $backup_plugin = $this->_backup_plugin;
-
-        if (!can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
-            return '-';
-        }
-
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || !($result_arr = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
+        }
+
+        if (!can($this->_backup_plugin::ROLEU_DELETE_BACKUPS)) {
+            return '-';
         }
 
         ob_start();
         if ($this->_paginator_model->is_finished($result_arr)
-         || $this->_paginator_model->is_error($result_arr)) {
+            || $this->_paginator_model->is_error($result_arr)) {
             ?>
-            <a href="javascript:void(0)" onclick="phs_backup_results_list_delete( '<?php echo $result_arr['id']; ?>' )"><i class="fa fa-times action-icons" title="<?php echo $this->_pt('Delete backup result'); ?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_backup_results_list_delete( '<?php echo $result_arr['id']; ?>' )">
+                <i class="fa fa-times action-icons" title="<?php echo $this->_pt('Delete backup result'); ?>"></i></a>
             <?php
         }
 
-        return ob_get_clean();
+        return ob_get_clean() ?: null;
     }
 
     public function after_table_callback($params)

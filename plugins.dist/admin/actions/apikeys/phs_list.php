@@ -47,12 +47,16 @@ class PHS_Action_List extends PHS_Action_Generic_list
      */
     public function should_stop_execution() : ?array
     {
-        PHS::page_settings('page_title', $this->_pt('API Keys List'));
-
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
+        }
+
+        if (!$this->_admin_plugin->can_admin_list_api_keys()) {
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
+
+            return self::default_action_result();
         }
 
         return null;
@@ -63,14 +67,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
      */
     public function load_paginator_params() : ?array
     {
+        PHS::page_settings('page_title', $this->_pt('API Keys List'));
+
         if (!($current_user = PHS::user_logged_in())) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
-
-            return null;
-        }
-
-        if (!$this->_admin_plugin->can_admin_list_api_keys()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
             return null;
         }

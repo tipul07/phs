@@ -348,15 +348,15 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $new_job_arr;
     }
 
-    public function refresh_job($job_data)
+    public function refresh_job(int | array $job_data) : ?array
     {
         $this->reset_error();
 
         if (empty($job_data)
-         || !($job_arr = $this->data_to_array($job_data))) {
+            || !($job_arr = $this->data_to_array($job_data))) {
             $this->set_error(self::ERR_DB_JOB, self::_t('Job not found in database.'));
 
-            return false;
+            return null;
         }
 
         $cdate = date(self::DATETIME_DB);
@@ -370,14 +370,19 @@ class PHS_Model_Agent_jobs extends PHS_Model
             $edit_arr['pid'] = $pid;
         }
 
-        if (empty($job_arr['is_running'])
-         || empty_db_date($job_arr['is_running'])) {
+        if (empty($job_arr['is_running'])) {
             $edit_arr['is_running'] = $cdate;
         }
 
         $edit_arr['last_action'] = $cdate;
 
-        return $this->edit($job_arr, ['fields' => $edit_arr]);
+        if (!($new_record_arr = $this->edit($job_arr, ['fields' => $edit_arr]))) {
+            $this->set_error(self::ERR_DB_JOB, self::_t('Error updating agent job.'));
+
+            return null;
+        }
+
+        return $new_record_arr;
     }
 
     public function get_stalling_minutes() : int

@@ -3,6 +3,7 @@
 namespace phs\system\core\models;
 
 use phs\PHS;
+use phs\PHS_Agent;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Roles;
 use phs\traits\PHS_Model_Trait_statuses;
@@ -274,6 +275,10 @@ class PHS_Model_Data_retention extends PHS_Model
                 $this::_t('Error saving data rentention run details in database.'));
 
             return null;
+        }
+
+        if (PHS_Agent::current_job_data()) {
+            PHS_Agent::refresh_current_job();
         }
 
         return $new_record;

@@ -40,12 +40,16 @@ class PHS_Action_List extends PHS_Action_Generic_list
      */
     public function should_stop_execution() : ?array
     {
-        PHS::page_settings('page_title', $this->_pt('Migrations List'));
-
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
+        }
+
+        if (!$this->_admin_plugin->can_admin_list_migrations()) {
+            PHS_Notifications::add_warning_notice($this->_pt('You don\'t have rights to access this section.'));
+
+            return self::default_action_result();
         }
 
         return null;
@@ -56,17 +60,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
      */
     public function load_paginator_params() : ?array
     {
-        if (!PHS::user_logged_in()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
-
-            return null;
-        }
-
-        if (!$this->_admin_plugin->can_admin_list_migrations()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-            return null;
-        }
+        PHS::page_settings('page_title', $this->_pt('Migrations List'));
 
         $can_manage = $this->_admin_plugin->can_admin_manage_migrations();
 
@@ -278,8 +272,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return $action_result_params;
         }
 
-        $can_manage_roles = $this->_admin_plugin->can_admin_manage_roles();
-
         $action_result_params['action'] = $action['action'];
 
         switch ($action['action']) {
@@ -317,6 +309,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
                 if (!($migrations_manager = migrations_manager())
                     || !$migrations_manager->launch_rerun_migration_job($migration_arr)) {
+                    self::st_reset_error();
                     $action_result_params['action_result'] = 'failed';
                 } else {
                     $action_result_params['action_result'] = 'success';
@@ -359,10 +352,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     public function display_actions($params) : ?string
     {
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            return null;
-        }
-
         if (!$this->_admin_plugin->can_admin_manage_roles()) {
             return '-';
         }

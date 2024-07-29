@@ -108,11 +108,11 @@ class PHS_Registry extends PHS_Language
      *
      * @param array $strings_arr Array to be walked
      * @param array $keys_arr Keys to be translated
-     * @param bool|string $lang Language in which we want array translated
+     * @param null|string $lang Language in which we want array translated
      *
      * @return array Translated array
      */
-    public function translate_array_keys(array $strings_arr, array $keys_arr, $lang = false) : array
+    public function translate_array_keys(array $strings_arr, array $keys_arr, ?string $lang = null) : array
     {
         if (empty($strings_arr)) {
             return [];
@@ -122,7 +122,7 @@ class PHS_Registry extends PHS_Language
             return $strings_arr;
         }
 
-        if ($lang === false) {
+        if (empty($lang)) {
             $lang = self::get_current_language();
         }
 
@@ -149,22 +149,11 @@ class PHS_Registry extends PHS_Language
         return self::$data;
     }
 
-    /**
-     * @param string $key
-     *
-     * @return null|mixed
-     */
-    public static function get_data(string $key)
+    public static function get_data(string $key) : mixed
     {
         return self::$data[$key] ?? null;
     }
 
-    /**
-     * @param array $arr
-     * @param bool $merge
-     *
-     * @return bool
-     */
     public static function set_full_data(array $arr, bool $merge = false) : bool
     {
         if (empty($merge)) {
@@ -182,7 +171,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return bool
      */
-    public static function set_data($key, $val = null) : bool
+    public static function set_data(string | array $key, mixed $val = null) : bool
     {
         if ($val === null) {
             if (!is_array($key)) {
@@ -309,27 +298,23 @@ class PHS_Registry extends PHS_Language
         return $arr1;
     }
 
-    /**
-     * @param array $arr1
-     * @param bool|array $params
-     *
-     * @return array
-     */
-    public static function unify_array_insensitive($arr1, $params = false) : array
+    public static function unify_array_insensitive(array $arr1, array $params = []) : array
     {
-        if (empty($arr1) || !is_array($arr1)) {
+        if (empty($arr1)) {
             return [];
         }
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        $params['use_newer_values'] = (!isset($params['use_newer_values']) || !empty($params['use_newer_values']));
-        $params['trim_keys'] = (!empty($params['trim_keys']));
+        $params['use_newer_key_case'] = !isset($params['use_newer_key_case']) || !empty($params['use_newer_key_case']);
+        $params['trim_keys'] = !empty($params['trim_keys']);
 
         $lower_to_raw_arr = [];
+        $result = [];
         foreach ($arr1 as $key => $val) {
+            if (is_int($key)) {
+                $result[$key] = $val;
+                continue;
+            }
+
             if (!empty($params['trim_keys'])) {
                 $key = trim($key);
             }
@@ -339,13 +324,66 @@ class PHS_Registry extends PHS_Language
             if (isset($lower_to_raw_arr[$lower_key])) {
                 if (empty($params['use_newer_key_case'])) {
                     $key = $lower_to_raw_arr[$lower_key];
-                } elseif (isset($arr1[$lower_to_raw_arr[$lower_key]])) {
-                    unset($arr1[$lower_to_raw_arr[$lower_key]]);
+                } elseif ( !empty($lower_to_raw_arr[$lower_key])
+                          && $lower_to_raw_arr[$lower_key] !== $key
+                          && array_key_exists($lower_to_raw_arr[$lower_key], $result) ) {
+                    unset($result[$lower_to_raw_arr[$lower_key]]);
                 }
             }
 
-            $arr1[$key] = $val;
+            $result[$key] = $val;
             $lower_to_raw_arr[$lower_key] = $key;
+        }
+
+        return $result;
+    }
+
+    public static function array_key_exists_insensitive(array $arr1, string $key) : bool
+    {
+        if (empty($arr1)) {
+            return false;
+        }
+
+        $params['trim_keys'] = !empty($params['trim_keys']);
+
+        $lower_key = strtolower($key);
+
+        foreach ($arr1 as $a_key => $a_val) {
+            if (!empty($params['trim_keys'])) {
+                $a_key = trim($a_key);
+            }
+
+            if (strtolower($a_key) === $lower_key ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static function array_replace_value_key_insensitive(array $arr1, string $key, mixed $value) : array
+    {
+        if (empty($arr1)) {
+            return [];
+        }
+
+        $params['trim_keys'] = !empty($params['trim_keys']);
+        $params['only_first_value'] = !isset($params['only_first_value']) || !empty($params['only_first_value']);
+
+        $lower_key = strtolower($key);
+
+        foreach ($arr1 as $a_key => $a_val) {
+            if (!empty($params['trim_keys'])) {
+                $a_key = trim($a_key);
+            }
+
+            if (strtolower($a_key) === $lower_key ) {
+                $arr1[$a_key] = $value;
+
+                if ($params['only_first_value']) {
+                    break;
+                }
+            }
         }
 
         return $arr1;
@@ -357,17 +395,13 @@ class PHS_Registry extends PHS_Language
      *
      * @return array
      */
-    public static function array_lowercase_keys($arr1, $params = false) : array
+    public static function array_lowercase_keys(array $arr1, array $params = []) : array
     {
-        if (empty($arr1) || !is_array($arr1)) {
+        if (empty($arr1)) {
             return [];
         }
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        $params['trim_keys'] = (!empty($params['trim_keys']));
+        $params['trim_keys'] = !empty($params['trim_keys']);
 
         $new_array = [];
         foreach ($arr1 as $key => $val) {
@@ -381,7 +415,7 @@ class PHS_Registry extends PHS_Language
         return $new_array;
     }
 
-    public static function merge_array_assoc_insensitive($arr1, $arr2, $params = false) : array
+    public static function merge_array_assoc_insensitive($arr1, $arr2, array $params = []) : array
     {
         if (empty($arr1) || !is_array($arr1)) {
             return is_array($arr2) ? $arr2 : [];
@@ -672,7 +706,7 @@ class PHS_Registry extends PHS_Language
                 break;
             }
 
-            if ((string)intval($key) !== (string)$key) {
+            if ((string)((int)$key) !== (string)$key) {
                 return false;
             }
 
@@ -688,18 +722,14 @@ class PHS_Registry extends PHS_Language
      *
      * @return string[]
      */
-    public static function extract_strings_from_comma_separated($str, $params = false) : array
+    public static function extract_strings_from_comma_separated($str, array $params = []) : array
     {
         if (!is_string($str)) {
             return [];
         }
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        $params['trim_parts'] = (!isset($params['trim_parts']) || !empty($params['trim_parts']));
-        $params['dump_empty_parts'] = (!isset($params['dump_empty_parts']) || !empty($params['dump_empty_parts']));
+        $params['trim_parts'] = !isset($params['trim_parts']) || !empty($params['trim_parts']);
+        $params['dump_empty_parts'] = !isset($params['dump_empty_parts']) || !empty($params['dump_empty_parts']);
         $params['to_lowercase'] = !empty($params['to_lowercase']);
         $params['to_uppercase'] = !empty($params['to_uppercase']);
 
@@ -711,7 +741,7 @@ class PHS_Registry extends PHS_Language
             }
 
             if (!empty($params['dump_empty_parts'])
-             && $str_part === '') {
+                && $str_part === '') {
                 continue;
             }
 
@@ -729,32 +759,30 @@ class PHS_Registry extends PHS_Language
     }
 
     /**
-     * Returns array of integers casted from comma separated values from provided string
+     * Returns array of integers cast from comma separated values from provided string
      *
      * @param string $str String to be checked
-     * @param bool|array $params Parameters
+     * @param array $params Parameters
      *
-     * @return array Array of casted integers
+     * @return array Array of cast integers
      */
-    public static function extract_integers_from_comma_separated($str, $params = false) : array
+    public static function extract_integers_from_comma_separated($str, array $params = []) : array
     {
         if (!is_string($str)) {
             return [];
         }
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        $params['dump_empty_parts'] = (!isset($params['dump_empty_parts']) || !empty($params['dump_empty_parts']));
+        $params['dump_empty_parts'] = !isset($params['dump_empty_parts']) || !empty($params['dump_empty_parts']);
+        $params['dump_zeros'] = !empty($params['dump_zeros']);
 
         $str_arr = explode(',', $str);
         $return_arr = [];
-        foreach ($str_arr as $int_part) {
-            $int_part = (int)trim($int_part);
+        foreach ($str_arr as $orig_int_part) {
+            $orig_int_part = trim($orig_int_part);
+            $int_part = (int)$orig_int_part;
 
-            if (!empty($params['dump_empty_parts'])
-             && empty($int_part)) {
+            if (($params['dump_empty_parts'] && $orig_int_part === '')
+                || ($params['dump_zeros'] && $int_part === 0 && $orig_int_part !== '0')) {
                 continue;
             }
 
@@ -778,10 +806,11 @@ class PHS_Registry extends PHS_Language
         }
 
         $return_arr = [];
-        foreach ($arr as $int_part) {
-            $int_part = (int)trim($int_part);
+        foreach ($arr as $orig_int_part) {
+            $orig_int_part = trim($orig_int_part);
+            $int_part = (int)$orig_int_part;
 
-            if (empty($int_part)) {
+            if ($int_part === 0 && $orig_int_part !== '0') {
                 continue;
             }
 
@@ -795,40 +824,36 @@ class PHS_Registry extends PHS_Language
      * Get all values in string that can be cast to non-empty integers.
      *
      * @param array $arr Array to be checked
-     * @param array|bool $params Parameters
+     * @param array $params Parameters
      *
      * @return array
      */
-    public static function extract_strings_from_array($arr, $params = false) : array
+    public static function extract_strings_from_array($arr, array $params = []) : array
     {
         if (empty($arr) || !is_array($arr)) {
             return [];
         }
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        $params['trim_parts'] = (!isset($params['trim_parts']) || !empty($params['trim_parts']));
-        $params['dump_empty_parts'] = (!isset($params['dump_empty_parts']) || !empty($params['dump_empty_parts']));
+        $params['trim_parts'] = !isset($params['trim_parts']) || !empty($params['trim_parts']);
+        $params['dump_empty_parts'] = !isset($params['dump_empty_parts']) || !empty($params['dump_empty_parts']);
         $params['to_lowercase'] = !empty($params['to_lowercase']);
         $params['to_uppercase'] = !empty($params['to_uppercase']);
 
         $return_arr = [];
         foreach ($arr as $key => $str_part) {
-            if (!empty($params['trim_parts'])) {
+            if ($params['trim_parts']) {
                 $str_part = trim($str_part);
             }
 
-            if (!empty($params['dump_empty_parts'])
-             && $str_part === '') {
+            if ($params['dump_empty_parts']
+                && $str_part === '') {
                 continue;
             }
 
-            if (!empty($params['to_lowercase'])) {
+            if ($params['to_lowercase']) {
                 $str_part = strtolower($str_part);
             }
-            if (!empty($params['to_uppercase'])) {
+            if ($params['to_uppercase']) {
                 $str_part = strtoupper($str_part);
             }
 
@@ -847,22 +872,18 @@ class PHS_Registry extends PHS_Language
      *
      * @param array $arr Array with keys-values pairs
      * @param string $prefix String which is to be checked as prefix in keys
-     * @param bool|array $params Optional parameters to the function
+     * @param array $params Optional parameters to the function
      *
      * @return array Resulting key-values pairs which are prefixed with provided string
      */
-    public static function extract_keys_with_prefix($arr, string $prefix, $params = false) : array
+    public static function extract_keys_with_prefix($arr, string $prefix, array $params = []) : array
     {
         if (empty($arr) || !is_array($arr)) {
             return [];
         }
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        $params['remove_prefix_from_keys'] = (!isset($params['remove_prefix_from_keys'])
-                                              || !empty($params['remove_prefix_from_keys']));
+        $params['remove_prefix_from_keys'] = !isset($params['remove_prefix_from_keys'])
+                                             || !empty($params['remove_prefix_from_keys']);
 
         if ($prefix === '') {
             return $arr;
@@ -871,11 +892,11 @@ class PHS_Registry extends PHS_Language
         $return_arr = [];
         $prefix_len = strlen($prefix);
         foreach ($arr as $key => $val) {
-            if (strpos($key, $prefix) !== 0) {
+            if (!str_starts_with($key, $prefix)) {
                 continue;
             }
 
-            if (!empty($params['remove_prefix_from_keys'])) {
+            if ($params['remove_prefix_from_keys']) {
                 $key = substr($key, $prefix_len);
             }
 

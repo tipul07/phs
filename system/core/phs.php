@@ -93,9 +93,12 @@ final class PHS extends PHS_Registry
     public static function get_core_models() : array
     {
         // !!! Don't change order of models here unless you know what you're doing !!!
-        // Models should be placed in this array after their dependencies
+        // Models should be placed in this array depending on their dependencies
         // (e.g. bg_jobs depends on agent_jobs - it adds an agent job for timed bg jobs)
-        return ['migrations', 'tenants', 'agent_jobs', 'bg_jobs', 'roles', 'api_keys', 'agent_jobs_monitor', 'api_monitor', 'data_retention'];
+        return [
+            'migrations', 'tenants', 'agent_jobs', 'bg_jobs', 'roles', 'api_keys',
+            'agent_jobs_monitor', 'api_monitor', 'data_retention', 'request_queue',
+        ];
     }
 
     /**
@@ -318,12 +321,12 @@ final class PHS extends PHS_Registry
         return defined('PHS_PREVENT_SESSION') && constant('PHS_PREVENT_SESSION');
     }
 
-    public static function user_logged_in($force = false)
+    public static function user_logged_in(bool $force = false) : bool | array
     {
         return (($cuser_arr = self::current_user($force)) && !empty($cuser_arr['id'])) ? $cuser_arr : false;
     }
 
-    public static function current_user($force = false)
+    public static function current_user(bool $force = false)
     {
         if (!($hook_args = self::_current_user_trigger($force))
          || empty($hook_args['user_db_data']) || !is_array($hook_args['user_db_data'])) {
@@ -333,7 +336,7 @@ final class PHS extends PHS_Registry
         return $hook_args['user_db_data'];
     }
 
-    public static function current_user_session($force = false)
+    public static function current_user_session(bool $force = false)
     {
         if (!($hook_args = self::_current_user_trigger($force))
             || empty($hook_args['session_db_data']) || !is_array($hook_args['session_db_data'])) {
@@ -362,7 +365,7 @@ final class PHS extends PHS_Registry
         return $hook_result['account_structure'];
     }
 
-    public static function current_user_password_expiration($force = false)
+    public static function current_user_password_expiration(bool $force = false) : array
     {
         if (!($hook_args = self::_current_user_trigger($force))
          || empty($hook_args['password_expired_data']) || !is_array($hook_args['password_expired_data'])) {
@@ -1557,7 +1560,7 @@ final class PHS extends PHS_Registry
 
         $action_str = (!empty($parts['a']) ? $parts['a'] : '');
         if (!empty($parts['ad'])
-         && !empty($action_str)) {
+            && !empty($action_str)) {
             $action_str = self::validate_action_dir_in_url(str_replace('_', '/', $parts['ad'])).self::ACTION_DIR_ACTION_SEPARATOR.$action_str;
         }
 
@@ -3167,12 +3170,12 @@ final class PHS extends PHS_Registry
         self::set_data(self::PHS_PAGE_SETTINGS, false);
     }
 
-    private static function _current_user_trigger($force = false)
+    private static function _current_user_trigger(bool $force = false) : ?array
     {
-        static $hook_result = false;
+        static $hook_result = null;
 
         if (!empty($hook_result)
-         && empty($force)) {
+            && empty($force)) {
             return $hook_result;
         }
 
@@ -3180,7 +3183,7 @@ final class PHS extends PHS_Registry
         $hook_args['force_check'] = (!empty($force));
 
         if (!($hook_result = PHS_Hooks::trigger_current_user($hook_args))) {
-            $hook_result = false;
+            $hook_result = null;
         }
 
         return $hook_result;

@@ -49,12 +49,16 @@ class PHS_Action_List extends PHS_Action_Generic_list
      */
     public function should_stop_execution() : ?array
     {
-        PHS::page_settings('page_title', $this->_pt('List Users'));
-
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
+        }
+
+        if (!$this->_admin_plugin->can_admin_list_accounts()) {
+            PHS_Notifications::add_warning_notice($this->_pt('You don\'t have rights to access this section.'));
+
+            return self::default_action_result();
         }
 
         return null;
@@ -65,18 +69,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
      */
     public function load_paginator_params() : ?array
     {
+        PHS::page_settings('page_title', $this->_pt('List Users'));
+
         if (!($current_user = PHS::user_logged_in())) {
             $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
-
-            return null;
-        }
-
-        if (!$this->load_depencies()) {
-            return null;
-        }
-
-        if (!$this->_admin_plugin->can_admin_list_accounts()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
             return null;
         }
@@ -1058,8 +1054,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $paginator_obj = $this->_paginator;
 
         $pretty_params = [];
-        $pretty_params['date_format'] = (!empty($params['column']['date_format']) ? $params['column']['date_format'] : false);
-        $pretty_params['request_render_type'] = (!empty($params['request_render_type']) ? $params['request_render_type'] : false);
+        $pretty_params['date_format'] = $params['column']['date_format'] ?? null;
+        $pretty_params['request_render_type'] = $params['request_render_type'] ?? null;
 
         $cell_str = (empty($account_arr['locked_date']) ? $this->_pt('No')
             : ($this->_paginator_model->is_locked($account_arr)
