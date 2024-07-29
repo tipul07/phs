@@ -24,6 +24,8 @@ if (!($plugins_model = PHS_Model_Plugins::get_instance())
 }
 
 if ( !($migrations_manager = migrations_manager()) ) {
+    PHS::st_reset_error();
+
     return PHS::arr_set_error(-1, PHS::_t('Error instantiating migrations manager.'));
 }
 

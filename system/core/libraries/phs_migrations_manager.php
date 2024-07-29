@@ -8,7 +8,6 @@ use phs\PHS_Maintenance;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Library;
-use phs\libraries\PHS_Registry;
 use phs\libraries\PHS_Migration;
 use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\models\PHS_Model_Migrations;

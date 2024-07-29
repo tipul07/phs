@@ -42,12 +42,6 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
             return action_request_login();
         }
 
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
-
-            return self::default_action_result();
-        }
-
         if (!$this->_remote_plugin->can_admin_list_logs()
             && !$this->_remote_plugin->can_admin_manage_logs()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
@@ -65,22 +59,7 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
     {
         PHS::page_settings('page_title', $this->_pt('Remote PHS Domains Logs List'));
 
-        if (!PHS::user_logged_in()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
-
-            return null;
-        }
-
-        if (!$this->_remote_plugin->can_admin_list_logs()
-         && !$this->_remote_plugin->can_admin_manage_logs()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-            return null;
-        }
-
-        $domains_model = $this->_paginator_model;
-
-        $list_arr = $domains_model->fetch_default_flow_params(['table_name' => 'phs_remote_logs']);
+        $list_arr = $this->_paginator_model->fetch_default_flow_params(['table_name' => 'phs_remote_logs']);
         $list_arr['flags'] = ['include_domain_details'];
 
         $flow_params = [

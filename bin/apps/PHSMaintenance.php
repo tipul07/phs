@@ -600,6 +600,7 @@ class PHSMaintenance extends PHS_Cli
 
         if ($item_type === self::ITEM_TYPE_MIGRATION) {
             if ( !($migrations_manager = migrations_manager()) ) {
+                self::st_reset_error();
                 $this->set_error(self::ERR_DEPENDENCIES,
                     self::_t('Error loading required resources.'));
 

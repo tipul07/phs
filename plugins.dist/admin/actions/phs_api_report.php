@@ -37,12 +37,6 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
             return action_request_login();
         }
 
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
-
-            return self::default_action_result();
-        }
-
         if (!$this->_admin_plugin->can_admin_view_api_monitoring_report()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
@@ -58,18 +52,6 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
     public function load_paginator_params() : ?array
     {
         PHS::page_settings('page_title', $this->_pt('API Monitor Report'));
-
-        if (!PHS::user_logged_in()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
-
-            return null;
-        }
-
-        if (!$this->_admin_plugin->can_admin_view_api_monitoring_report()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-            return null;
-        }
 
         $list_arr = [];
         $list_arr['flags'] = ['include_account_details'];
@@ -338,7 +320,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
 
                 case $this->_paginator::CELL_RENDER_HTML:
                     $pretty_params = [];
-                    $pretty_params['date_format'] = (!empty($params['column']['date_format']) ? $params['column']['date_format'] : false);
+                    $pretty_params['date_format'] = $params['column']['date_format'] ?? null;
                     $pretty_params['request_render_type'] = $this->_paginator::CELL_RENDER_HTML;
 
                     if (!empty($record_arr['request_time'])) {
@@ -388,7 +370,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
 
                 case $this->_paginator::CELL_RENDER_HTML:
                     $pretty_params = [];
-                    $pretty_params['date_format'] = (!empty($params['column']['date_format']) ? $params['column']['date_format'] : false);
+                    $pretty_params['date_format'] = $params['column']['date_format'] ?? null;
                     $pretty_params['request_render_type'] = $this->_paginator::CELL_RENDER_HTML;
 
                     if (!empty($record_arr['response_time'])) {

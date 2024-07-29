@@ -19,7 +19,7 @@ abstract class PHS_Remote_action extends PHS_Api_action
     public function get_action_api_instance() : ?PHS_Api_base
     {
         if (!$this->api_obj
-         && PHS_Scope::current_scope() === PHS_Scope::SCOPE_REMOTE) {
+            && PHS_Scope::current_scope() === PHS_Scope::SCOPE_REMOTE) {
             $this->api_obj = PHS_Api_remote::api_factory();
         }
 

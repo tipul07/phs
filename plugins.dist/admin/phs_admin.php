@@ -4,13 +4,10 @@ namespace phs\plugins\admin;
 
 use phs\PHS;
 use phs\PHS_Api;
-use phs\PHS_Crypt;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
-use phs\system\core\models\PHS_Model_Plugins;
-use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\admin\libraries\Phs_Data_retention;
 use phs\system\core\events\layout\PHS_Event_Layout;
 use phs\plugins\admin\libraries\Phs_Plugin_settings;
@@ -485,6 +482,16 @@ class PHS_Plugin_Admin extends PHS_Plugin
                         'name'        => 'Manage data retention policies',
                         'description' => 'Allow user to manage data retention policies',
                     ],
+
+                    // HTTP calls...
+                    PHS_Roles::ROLEU_LIST_HTTP_CALLS => [
+                        'name'        => 'List HTTP calls',
+                        'description' => 'Allow user to list HTTP calls',
+                    ],
+                    PHS_Roles::ROLEU_MANAGE_HTTP_CALLS => [
+                        'name'        => 'Manage HTTP calls',
+                        'description' => 'Allow user to manage HTTP calls',
+                    ],
                 ],
             ],
         ];
@@ -612,6 +619,16 @@ class PHS_Plugin_Admin extends PHS_Plugin
     public function can_admin_manage_data_retention(bool | null | int | array $user_data = null) : bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_DATA_RETENTION, null, $user_data);
+    }
+
+    public function can_admin_list_http_calls(bool | null | int | array $user_data = null) : bool
+    {
+        return can(PHS_Roles::ROLEU_LIST_HTTP_CALLS, null, $user_data);
+    }
+
+    public function can_admin_manage_http_calls(bool | null | int | array $user_data = null) : bool
+    {
+        return can(PHS_Roles::ROLEU_MANAGE_HTTP_CALLS, null, $user_data);
     }
     // endregion Can_* section
 

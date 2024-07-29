@@ -40,12 +40,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return action_request_login();
         }
 
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
-
-            return self::default_action_result();
-        }
-
         if (!$this->_admin_plugin->can_admin_list_agent_jobs()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
@@ -61,18 +55,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
     public function load_paginator_params() : ?array
     {
         PHS::page_settings('page_title', $this->_pt('Manage Agent Jobs'));
-
-        if (!PHS::user_logged_in()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
-
-            return null;
-        }
-
-        if (!$this->_admin_plugin->can_admin_list_agent_jobs()) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-            return null;
-        }
 
         $flow_params = [
             'term_singular'          => $this->_pt('agent job'),
@@ -720,8 +702,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $paginator_obj = $this->_paginator;
 
         $pretty_params = [];
-        $pretty_params['date_format'] = (!empty($params['column']['date_format']) ? $params['column']['date_format'] : false);
-        $pretty_params['request_render_type'] = (!empty($params['request_render_type']) ? $params['request_render_type'] : false);
+        $pretty_params['date_format'] = $params['column']['date_format'] ?? null;
+        $pretty_params['request_render_type'] = $params['request_render_type'] ?? null;
 
         $cell_str = $this->_paginator->pretty_date_independent($agent_job['timed_action'], $pretty_params);
 
@@ -759,12 +741,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $paginator_obj = $this->_paginator;
 
         $pretty_params = [];
-        $pretty_params['date_format'] = (!empty($params['column']['date_format']) ? $params['column']['date_format'] : false);
-        $pretty_params['request_render_type'] = (!empty($params['request_render_type']) ? $params['request_render_type'] : false);
+        $pretty_params['date_format'] = $params['column']['date_format'] ?? null;
+        $pretty_params['request_render_type'] = $params['request_render_type'] ?? null;
 
-        if (empty($params['record']['last_action'])) {
-            $params['record']['last_action'] = null;
-        }
+        $params['record']['last_action'] ??= null;
 
         $stalling_minutes = $this->_paginator_model->get_job_stalling_minutes($agent_job) ?? 0;
         $stalling_seconds = $stalling_minutes * 60;

@@ -20,6 +20,7 @@ class PHS_Action_Rerun_bg extends PHS_Action
         /** @var PHS_Model_Migrations $migrations_model */
         if (!($migrations_model = PHS_Model_Migrations::get_instance())
             || !($migrations_manager = migrations_manager())) {
+            self::st_reset_error();
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error loading required resources.'));
 
             return null;

@@ -3,6 +3,7 @@
 namespace phs\plugins\admin\libraries;
 
 use phs\PHS;
+use phs\PHS_Agent;
 use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Logger;

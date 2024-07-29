@@ -40,12 +40,16 @@ class PHS_Action_List extends PHS_Action_Generic_list
      */
     public function should_stop_execution() : ?array
     {
-        PHS::page_settings('page_title', $this->_pt('Tenants List'));
-
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
+        }
+
+        if (!$this->_admin_plugin->can_admin_list_tenants()) {
+            PHS_Notifications::add_warning_notice($this->_pt('You don\'t have rights to access this section.'));
+
+            return self::default_action_result();
         }
 
         return null;
@@ -56,17 +60,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
      */
     public function load_paginator_params() : ?array
     {
-        if (!($current_user = PHS::user_logged_in())) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
-
-            return null;
-        }
-
-        if (!$this->_admin_plugin->can_admin_list_tenants($current_user)) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-            return null;
-        }
+        PHS::page_settings('page_title', $this->_pt('Tenants List'));
 
         $tenants_model = $this->_paginator_model;
 
@@ -679,8 +673,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
         function phs_tenants_list_get_checked_ids_count()
         {
             const checkboxes_list = phs_paginator_get_checkboxes_checked('id');
-            if( !checkboxes_list || !checkboxes_list.length )
+            if( !checkboxes_list || !checkboxes_list.length ) {
                 return 0;
+            }
 
             return checkboxes_list.length;
         }
@@ -695,12 +690,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 return false;
             }
 
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to activate %s tenants?', '"'), '" + total_checked + "'); ?>" ) )
+            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to activate %s tenants?', '"'), '" + total_checked + "'); ?>" ) ) {
                 return false;
+            }
 
             const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
+            if( form_obj ) {
                 form_obj.submit();
+            }
         }
 
         function phs_tenants_list_bulk_inactivate()
@@ -713,12 +710,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 return false;
             }
 
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to inactivate %s tenants?', '"'), '" + total_checked + "'); ?>" ) )
+            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to inactivate %s tenants?', '"'), '" + total_checked + "'); ?>" ) ) {
                 return false;
+            }
 
             const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
+            if( form_obj ) {
                 form_obj.submit();
+            }
         }
 
         function phs_tenants_list_bulk_delete()
@@ -732,12 +731,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
             }
 
             if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to DELETE %s tenants?', '"'), '" + total_checked + "'); ?>" + "\n" +
-                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
+                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
                 return false;
+            }
 
             const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
+            if( form_obj ) {
                 form_obj.submit();
+            }
         }
         </script>
         <?php
