@@ -102,20 +102,16 @@ class PHS_Action_Login extends PHS_Action
             return action_redirect(!empty($back_page) ? from_safe_url($back_page) : PHS::url());
         }
 
-        if (!($plugin_settings = $this->get_plugin_settings())) {
-            $plugin_settings = [];
-        }
+        $plugin_settings = $this->get_plugin_settings();
 
-        if (empty($plugin_settings['session_expire_minutes_remember'])) {
-            $plugin_settings['session_expire_minutes_remember'] = 43200;
-        } // 30 days
-        if (empty($plugin_settings['session_expire_minutes_normal'])) {
-            $plugin_settings['session_expire_minutes_normal'] = 0;
-        } // till browser closes
+        // 30 days
+        $plugin_settings['session_expire_minutes_remember'] = (int)($plugin_settings['session_expire_minutes_remember'] ?? 43200);
+        // till browser closes
+        $plugin_settings['session_expire_minutes_normal'] = (int)($plugin_settings['session_expire_minutes_normal'] ?? 0);
 
         /** @var PHS_Model_Accounts $accounts_model */
         if (!empty($do_submit)
-         && !PHS_Notifications::have_notifications_errors()) {
+            && !PHS_Notifications::have_notifications_errors()) {
             if (empty($nick) || empty($pass)) {
                 PHS_Notifications::add_error_notice($this->_pt('Please provide complete mandatory fields.'));
             } elseif (!($accounts_model = PHS_Model_Accounts::get_instance())) {

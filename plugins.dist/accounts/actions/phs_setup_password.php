@@ -68,7 +68,11 @@ class PHS_Action_Setup_password extends PHS_Action
             return self::default_action_result();
         }
 
-        if (!($confirmation_param = PHS_Params::_gp($accounts_plugin::PARAM_CONFIRMATION, PHS_Params::T_NOHTML))
+        if ( !is_string( ($confirmation_param = (PHS_Params::_gp($accounts_plugin::PARAM_CONFIRMATION, PHS_Params::T_NOHTML) ?: '')) ) ) {
+            $confirmation_param = '';
+        }
+
+        if ( empty($confirmation_param)
             || !($confirmation_parts = $accounts_plugin->decode_confirmation_param($confirmation_param))
             || empty($confirmation_parts['account_data']) || empty($confirmation_parts['reason'])
             || $confirmation_parts['reason'] !== $accounts_plugin::CONF_REASON_PASS_SETUP

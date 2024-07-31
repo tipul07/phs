@@ -44,63 +44,7 @@ class PHS_Roles extends PHS_Registry
         return self::$_role_model->transform_string_to_slug($str);
     }
 
-    public static function user_has_role($account_data, $role_list, $params = false)
-    {
-        self::st_reset_error();
-
-        if (!self::load_dependencies()) {
-            return false;
-        }
-
-        if (($return_arr = self::$_role_model->user_has_roles($account_data, $role_list, $params)) === false) {
-            self::st_copy_error(self::$_role_model);
-
-            return false;
-        }
-
-        return $return_arr;
-    }
-
-    public static function user_has_role_units($account_data, $role_units_list, $params = false)
-    {
-        self::st_reset_error();
-
-        if (!self::load_dependencies()) {
-            return false;
-        }
-
-        if (($return_arr = self::$_role_model->user_has_role_units($account_data, $role_units_list, $params)) === false) {
-            self::st_copy_error(self::$_role_model);
-
-            return false;
-        }
-
-        return $return_arr;
-    }
-
-    public static function get_user_roles_slugs($account_data)
-    {
-        self::st_reset_error();
-
-        if (!self::load_dependencies()) {
-            return false;
-        }
-
-        if (($slugs_arr = self::$_role_model->get_user_roles_slugs($account_data)) === false) {
-            self::st_copy_error(self::$_role_model);
-
-            return false;
-        }
-
-        return $slugs_arr;
-    }
-
-    /**
-     * @param int|array $account_data
-     *
-     * @return null|array
-     */
-    public static function get_user_role_units_slugs($account_data) : ?array
+    public static function user_has_role(int | array $account_data, string | array $role_list, array $params = []) : ?array
     {
         self::st_reset_error();
 
@@ -108,14 +52,71 @@ class PHS_Roles extends PHS_Registry
             return null;
         }
 
-        if (!($slugs_arr = self::$_role_model->get_user_role_units_slugs($account_data))) {
-            if (self::$_role_model->has_error()) {
-                self::st_copy_error(self::$_role_model);
+        if (empty($account_data)
+            || null === ($return_arr = self::$_role_model->user_has_roles($account_data, $role_list, $params))) {
+            self::st_copy_or_set_error(self::$_role_model,
+                self::ERR_FUNCTIONALITY, self::_t('Error checking user roles.'));
 
-                return null;
-            }
+            return null;
+        }
 
-            return [];
+        return $return_arr;
+    }
+
+    public static function user_has_role_units(null | bool | int | array $account_data, string | array $role_units_list, ?array $params = null) : ?array
+    {
+        self::st_reset_error();
+
+        if (!self::load_dependencies()) {
+            return null;
+        }
+
+        $params ??= [];
+
+        if (empty($account_data)
+            || null === ($return_arr = self::$_role_model->user_has_role_units($account_data, $role_units_list, $params))) {
+            self::st_copy_or_set_error(self::$_role_model,
+                self::ERR_FUNCTIONALITY, self::_t('Error checking user role units.'));
+
+            return null;
+        }
+
+        return $return_arr;
+    }
+
+    public static function get_user_roles_slugs(null | bool | int | array $account_data) : ?array
+    {
+        self::st_reset_error();
+
+        if (!self::load_dependencies()) {
+            return null;
+        }
+
+        if (empty($account_data)
+            || null === ($slugs_arr = self::$_role_model->get_user_roles_slugs($account_data))) {
+            self::st_copy_or_set_error(self::$_role_model,
+                self::ERR_FUNCTIONALITY, self::_t('Error obtaining user roles slugs.'));
+
+            return null;
+        }
+
+        return $slugs_arr;
+    }
+
+    public static function get_user_role_units_slugs(null | bool | int | array $account_data) : ?array
+    {
+        self::st_reset_error();
+
+        if (!self::load_dependencies()) {
+            return null;
+        }
+
+        if (empty($account_data)
+            || null === ($slugs_arr = self::$_role_model->get_user_role_units_slugs($account_data))) {
+            self::st_copy_or_set_error(self::$_role_model,
+                self::ERR_FUNCTIONALITY, self::_t('Error obtaining user role units slugs.'));
+
+            return null;
         }
 
         return $slugs_arr;
@@ -173,7 +174,7 @@ class PHS_Roles extends PHS_Registry
         return $slugs_arr;
     }
 
-    public static function link_roles_to_user($account_data, $role_data, $params = false) : bool
+    public static function link_roles_to_user(int | array $account_data, $role_data, array $params = []) : bool
     {
         self::st_reset_error();
 

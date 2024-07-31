@@ -447,11 +447,11 @@ class PHS_View extends PHS_Instantiable
      *
      * @return bool|mixed Variable value
      */
-    public function view_var($key)
+    public function view_var($key) : mixed
     {
         if (!($_VIEW_CONTEXT = $this->get_context(self::VIEW_CONTEXT_DATA_KEY))
-         || !isset($_VIEW_CONTEXT[$key])) {
-            return false;
+            || !isset($_VIEW_CONTEXT[$key])) {
+            return null;
         }
 
         return $_VIEW_CONTEXT[$key];

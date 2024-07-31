@@ -583,39 +583,35 @@ class PHS_Language_Container extends PHS_Error
         }
 
         if (!empty($lang)
-         && self::st_get_multi_language_enabled()
-         && !$this->_loading_language()
-         && (!self::language_loaded($lang)
-            || $this->should_reload_language_files($lang)
-         )
-         && !$this->load_language($lang)) {
-            if ($this->has_error()) {
-                $error_msg = $this->get_simple_error_message();
-            } else {
-                $error_msg = 'Error loading language ['.$lang.']';
-            }
-
-            return $error_msg;
+            && self::st_get_multi_language_enabled()
+            && !$this->_loading_language()
+            && (!self::language_loaded($lang)
+                || $this->should_reload_language_files($lang))
+            && !$this->load_language($lang)) {
+            return $this->get_simple_error_message('Error loading language ['.$lang.']');
         }
 
         if (!empty($lang)
-         && isset(self::$LANGUAGE_INDEXES[$lang][$index])
-         && self::st_get_multi_language_enabled()) {
+            && isset(self::$LANGUAGE_INDEXES[$lang][$index])
+            && self::st_get_multi_language_enabled()) {
             $working_index = self::$LANGUAGE_INDEXES[$lang][$index];
         } else {
             $working_index = $index;
         }
 
         if (!empty($args)
-         && isset($args[0])
-         && $args[0] === false) {
+            && isset($args[0])
+            && $args[0] === false) {
             @array_shift($args);
         }
 
         if (!empty($args)) {
             // we should replace some %s...
-            if (($result = @vsprintf($working_index, $args)) !== false) {
-                return $result;
+            try {
+                if (($result = @vsprintf($working_index, $args))) {
+                    return $result;
+                }
+            } catch (\Exception $e) {
             }
 
             return $working_index.' ['.count($args).' args]';

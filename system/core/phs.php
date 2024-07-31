@@ -346,19 +346,14 @@ final class PHS extends PHS_Registry
         return $hook_args['session_db_data'];
     }
 
-    /**
-     * @param $account_data
-     *
-     * @return null|array
-     */
     public static function account_structure($account_data) : ?array
     {
         $hook_args = PHS_Hooks::default_account_structure_hook_args();
         $hook_args['account_data'] = $account_data;
 
         if (!($hook_result = PHS_Hooks::trigger_account_structure($hook_args))
-         || empty($hook_result['account_structure'])
-         || !is_array($hook_result['account_structure'])) {
+            || empty($hook_result['account_structure'])
+            || !is_array($hook_result['account_structure'])) {
             return null;
         }
 
@@ -2654,7 +2649,7 @@ final class PHS extends PHS_Registry
 
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin_name, PHS_Instantiable::INSTANCE_TYPE_PLUGIN))) {
             self::st_set_error_if_not_set(self::ERR_LOAD_PLUGIN,
-                self::_t('Couldn\'t obtain instance for plugin class %s from plugin %s.', $plugin_name));
+                self::_t('Couldn\'t obtain instance for plugin class %s from plugin %s.', $class_name, $plugin_name));
 
             return null;
         }

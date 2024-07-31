@@ -46,14 +46,14 @@ class PHS_Action_Activation extends PHS_Action
             return self::default_action_result();
         }
 
-        $confirmation_param = PHS_Params::_gp($accounts_plugin::PARAM_CONFIRMATION, PHS_Params::T_NOHTML);
+        if ( !is_string( ($confirmation_param = PHS_Params::_gp($accounts_plugin::PARAM_CONFIRMATION, PHS_Params::T_NOHTML) ?: '') ) ) {
+            $confirmation_param = '';
+        }
 
         if (!($confirmation_parts = $accounts_plugin->decode_confirmation_param($confirmation_param))) {
-            if ($accounts_plugin->has_error()) {
-                PHS_Notifications::add_error_notice($accounts_plugin->get_error_message());
-            } else {
-                PHS_Notifications::add_error_notice($this->_pt('Couldn\'t interpret confirmation parameter. Please try again.'));
-            }
+            PHS_Notifications::add_error_notice(
+                $accounts_plugin->get_simple_error_message(
+                    $this->_pt('Couldn\'t interpret confirmation parameter. Please try again.')));
         }
 
         // Reset error for do_confirmation_reason() method call...
