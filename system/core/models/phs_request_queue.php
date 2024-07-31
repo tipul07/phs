@@ -135,6 +135,8 @@ class PHS_Model_Request_queue extends PHS_Model
         ];
 
         if (!($new_record = $this->edit($record_arr, $edit_params))) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, self::_t('Error saving HTTP call details in database.'));
+
             return null;
         }
 
@@ -162,6 +164,8 @@ class PHS_Model_Request_queue extends PHS_Model
         ];
 
         if (!($new_record = $this->edit($record_arr, $edit_params))) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, self::_t('Error saving HTTP call details in database.'));
+
             return null;
         }
 
@@ -205,7 +209,7 @@ class PHS_Model_Request_queue extends PHS_Model
         $request_params['fields']['run_after'] = $run_after ?: null;
 
         if (!($new_record = $this->insert($request_params))) {
-            $this->set_error(self::ERR_FUNCTIONALITY,
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
                 self::_t('Error saving HTTP call details in database.'));
 
             return null;
@@ -234,7 +238,7 @@ class PHS_Model_Request_queue extends PHS_Model
         $request_params['fields']['status'] = self::STATUS_RUNNING;
 
         if (!($new_record = $this->edit($request_arr, $request_params))) {
-            $this->set_error(self::ERR_FUNCTIONALITY,
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
                 self::_t('Error saving HTTP call details in database.'));
 
             return null;
@@ -319,6 +323,8 @@ class PHS_Model_Request_queue extends PHS_Model
         ];
 
         if (!($new_record = $this->edit($record_arr, $edit_params))) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, self::_t('Error saving HTTP call details in database.'));
+
             return null;
         }
 
@@ -947,7 +953,7 @@ class PHS_Model_Request_queue extends PHS_Model
         }
 
         if (!($new_record = $this->edit($request_arr, $edit_params))) {
-            $this->set_error(self::ERR_FUNCTIONALITY,
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
                 self::_t('Error saving data rentention run details in database.'));
 
             return null;

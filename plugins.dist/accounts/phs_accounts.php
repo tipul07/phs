@@ -768,12 +768,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         ];
     }
 
-    /**
-     * @param string $param_str
-     *
-     * @return array|false
-     */
-    public function decode_confirmation_param($param_str)
+    public function decode_confirmation_param(string $param_str) : ?array
     {
         $this->reset_error();
 
@@ -783,7 +778,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
          || empty($parts_arr[0]) || empty($parts_arr[1])) {
             $this->set_error(self::ERR_CONFIRMATION, $this->_pt('Confirmation parameter is invalid or expired.'));
 
-            return false;
+            return null;
         }
 
         $crypted_data = $parts_arr[0];
@@ -801,7 +796,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
          || $decrypted_parts[3] !== md5($account_arr['nick'].':'.$pub_key.':'.$account_arr['email'])) {
             $this->set_error(self::ERR_CONFIRMATION, $this->_pt('Confirmation parameter is invalid or expired.'));
 
-            return false;
+            return null;
         }
 
         return [
@@ -1021,26 +1016,22 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         if (!$this->_load_dependencies()) {
             return $hook_args;
         }
-        $accounts_model = $this->_accounts_model;
 
-        if (!($hook_args['account_structure'] = $accounts_model->data_to_array($hook_args['account_data']))
-         || !is_array($hook_args['account_structure'])) {
+        if (!($hook_args['account_structure'] = $this->_accounts_model->data_to_array($hook_args['account_data']))
+            || !is_array($hook_args['account_structure'])) {
             $hook_args['account_structure'] = false;
         } else {
-            if (!isset($hook_args['account_structure'][$accounts_model::ROLES_USER_KEY])) {
-                if (!($slugs_arr = PHS_Roles::get_user_roles_slugs($hook_args['account_structure']))) {
-                    $slugs_arr = [];
-                }
-
-                $hook_args['account_structure'][$accounts_model::ROLES_USER_KEY] = $slugs_arr;
+            if (!isset($hook_args['account_structure'][$this->_accounts_model::ROLES_USER_KEY])) {
+                $slugs_arr = PHS_Roles::get_user_roles_slugs($hook_args['account_structure']) ?: [];
+                $hook_args['account_structure'][$this->_accounts_model::ROLES_USER_KEY] = $slugs_arr;
             }
 
-            if (!isset($hook_args['account_structure'][$accounts_model::ROLE_UNITS_USER_KEY])) {
+            if (!isset($hook_args['account_structure'][$this->_accounts_model::ROLE_UNITS_USER_KEY])) {
                 if (!($units_slugs_arr = PHS_Roles::get_user_role_units_slugs($hook_args['account_structure']))) {
                     $units_slugs_arr = [];
                 }
 
-                $hook_args['account_structure'][$accounts_model::ROLE_UNITS_USER_KEY] = $units_slugs_arr;
+                $hook_args['account_structure'][$this->_accounts_model::ROLE_UNITS_USER_KEY] = $units_slugs_arr;
             }
         }
 

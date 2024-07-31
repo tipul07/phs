@@ -671,9 +671,9 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @param null|bool|array $params Flow parameters
      *
-     * @return array|bool Empty data array or false on failure
+     * @return array Empty data array or false on failure
      */
-    public function get_empty_data(null | bool | array $params = [])
+    public function get_empty_data(null | bool | array $params = []) : array
     {
         $this->reset_error();
 
@@ -681,7 +681,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             || !($table_fields = $this->get_definition($params))) {
             $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Invalid table definition.'));
 
-            return false;
+            return [];
         }
 
         $data_arr = [];
@@ -703,7 +703,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         $hook_params['flow_params'] = $params;
 
         if (($hook_result = PHS::trigger_hooks(PHS_Hooks::H_MODEL_EMPTY_DATA, $hook_params))
-         && is_array($hook_result) && !empty($hook_result['data_arr'])) {
+         && !empty($hook_result['data_arr'])) {
             $data_arr = self::merge_array_assoc($data_arr, $hook_result['data_arr']);
         }
 

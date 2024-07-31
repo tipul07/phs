@@ -24,13 +24,9 @@ class PHS_Registry extends PHS_Language
      *
      * @return null|mixed
      */
-    public function get_context($key)
+    public function get_context(string $key) : mixed
     {
-        if (array_key_exists($key, $this->_context)) {
-            return $this->_context[$key];
-        }
-
-        return null;
+        return $this->_context[$key] ?? null;
     }
 
     /**
@@ -39,7 +35,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return bool
      */
-    public function set_context($key, $val = null) : bool
+    public function set_context($key, mixed $val = null) : bool
     {
         if ($val === null) {
             if (!is_array($key)) {
@@ -666,7 +662,7 @@ class PHS_Registry extends PHS_Language
 
         foreach ($arr2 as $val) {
             if (!is_scalar($val)
-             || empty($new_arr1[$val])) {
+                || empty($new_arr1[$val])) {
                 return false;
             }
         }

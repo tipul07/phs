@@ -11,6 +11,7 @@ use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
+use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\models\PHS_Model_Roles;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\system\core\models\PHS_Model_Tenants;
@@ -72,105 +73,73 @@ class PHS_Model_Accounts extends PHS_Model
     //
     //  Account level checks
     //
-    public function acc_is_developer($user_data)
+    public function acc_is_developer(bool | null | int | array $user_data) : bool
     {
-        if (empty($user_data)
-         || !($user_arr = $this->data_to_array($user_data))
-         || !self::is_developer($user_arr['level'])) {
-            return false;
-        }
-
-        return $user_arr;
+        return !empty($user_data)
+               && ($user_arr = $this->data_to_array($user_data))
+               && self::is_developer((int)($user_arr['level'] ?? 0));
     }
 
-    public function acc_is_sadmin($user_data)
+    public function acc_is_sadmin(bool | null | int | array $user_data) : bool
     {
-        if (empty($user_data)
-         || !($user_arr = $this->data_to_array($user_data))
-         || !self::is_sadmin($user_arr['level'])) {
-            return false;
-        }
-
-        return $user_arr;
+        return !empty($user_data)
+               && ($user_arr = $this->data_to_array($user_data))
+               && self::is_sadmin((int)($user_arr['level'] ?? 0));
     }
 
-    public function acc_is_admin($user_data, $strict = false)
+    public function acc_is_admin(bool | null | int | array $user_data, bool $strict = false) : bool
     {
-        if (empty($user_data)
-         || !($user_arr = $this->data_to_array($user_data))
-         || !self::is_admin($user_arr['level'], $strict)) {
-            return false;
-        }
-
-        return $user_arr;
+        return !empty($user_data)
+               && ($user_arr = $this->data_to_array($user_data))
+               && self::is_admin((int)($user_arr['level'] ?? 0), $strict);
     }
 
-    public function acc_is_operator($user_data, $strict = false)
+    public function acc_is_operator(bool | null | int | array $user_data, bool $strict = false) : bool
     {
-        if (empty($user_data)
-         || !($user_arr = $this->data_to_array($user_data))
-         || !self::is_operator($user_arr['level'], $strict)) {
-            return false;
-        }
-
-        return $user_arr;
+        return !empty($user_data)
+               && ($user_arr = $this->data_to_array($user_data))
+               && self::is_operator((int)($user_arr['level'] ?? 0), $strict);
     }
 
-    public function acc_is_member($user_data, $strict = false)
+    public function acc_is_member(bool | null | int | array $user_data, bool $strict = false) : bool
     {
-        if (empty($user_data)
-         || !($user_arr = $this->data_to_array($user_data))
-         || !self::is_member($user_arr['level'], $strict)) {
-            return false;
-        }
-
-        return $user_arr;
+        return !empty($user_data)
+               && ($user_arr = $this->data_to_array($user_data))
+               && self::is_member((int)($user_arr['level'] ?? 0), $strict);
     }
     //
     //  END Account level checks
     //
 
-    public function is_active($user_data)
+    public function is_active(bool | null | int | array $user_data) : bool
     {
-        if (empty($user_data)
-         || !($user_arr = $this->data_to_array($user_data))
-         || (int)$user_arr['status'] !== self::STATUS_ACTIVE) {
-            return false;
-        }
-
-        return $user_arr;
+        return !empty($user_data)
+               && ($user_arr = $this->data_to_array($user_data))
+               && (int)($user_arr['status'] ?? 0) === self::STATUS_ACTIVE;
     }
 
-    public function is_inactive($user_data)
+    public function is_inactive(bool | null | int | array $user_data) : bool
     {
-        if (empty($user_data)
-         || !($user_arr = $this->data_to_array($user_data))
-         || (int)$user_arr['status'] !== self::STATUS_INACTIVE) {
-            return false;
-        }
-
-        return $user_arr;
+        return !empty($user_data)
+               && ($user_arr = $this->data_to_array($user_data))
+               && (int)($user_arr['status'] ?? 0) === self::STATUS_INACTIVE;
     }
 
-    public function is_deleted($user_data)
+    public function is_deleted(bool | null | int | array $user_data) : bool
     {
-        if (empty($user_data)
-         || !($user_arr = $this->data_to_array($user_data))
-         || (int)$user_arr['status'] !== self::STATUS_DELETED) {
-            return false;
-        }
-
-        return $user_arr;
+        return !empty($user_data)
+               && ($user_arr = $this->data_to_array($user_data))
+               && (int)($user_arr['status'] ?? 0) === self::STATUS_DELETED;
     }
 
-    public function is_just_registered($user_data) : bool
+    public function is_just_registered(bool | null | int | array $user_data) : bool
     {
         return !empty($user_data)
                 && ($user_arr = $this->data_to_array($user_data))
-                && (empty($user_arr['lastlog']) || empty_db_date($user_arr['lastlog']));
+                && empty($user_arr['lastlog']);
     }
 
-    public function is_locked($user_data) : bool
+    public function is_locked(bool | null | int | array $user_data) : bool
     {
         return !empty($user_data)
                && ($user_arr = $this->data_to_array($user_data))
@@ -178,32 +147,32 @@ class PHS_Model_Accounts extends PHS_Model
                && parse_db_date($user_arr['locked_date']) > time();
     }
 
-    public function must_setup_password($user_data) : bool
+    public function must_setup_password(bool | null | int | array $user_data) : bool
     {
         return !empty($user_data)
                 && ($user_arr = $this->data_to_array($user_data))
                 && empty($user_arr['pass']);
     }
 
-    public function can_obtain_password($user_data) : bool
+    public function can_obtain_password(bool | null | int | array $user_data) : bool
     {
         return !empty($user_data)
                 && ($user_arr = $this->data_to_array($user_data))
                 && !empty($user_arr['pass_clear']);
     }
 
-    public function is_password_generated($user_data) : bool
+    public function is_password_generated(bool | null | int | array $user_data) : bool
     {
         return !empty($user_data)
                 && ($user_arr = $this->data_to_array($user_data))
                 && !empty($user_arr['pass_generated']);
     }
 
-    public function has_logged_in($user_data) : bool
+    public function has_logged_in(bool | null | int | array $user_data) : bool
     {
         return !empty($user_data)
                 && ($user_arr = $this->data_to_array($user_data))
-                && (!empty($user_arr['lastlog']) || !empty_db_date($user_arr['lastlog']));
+                && !empty($user_arr['lastlog']);
     }
 
     /**
@@ -213,7 +182,7 @@ class PHS_Model_Accounts extends PHS_Model
      *
      * @return null|array
      */
-    public function manage_failed_password($account_data) : ?array
+    public function manage_failed_password(int | array $account_data) : ?array
     {
         $this->reset_error();
 
@@ -231,29 +200,23 @@ class PHS_Model_Accounts extends PHS_Model
 
         /** @var PHS_Plugin_Accounts $accounts_plugin */
         if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
-            PHS_Logger::notice('PASSWORD Account #'.$account_arr['id'].': '.$account_arr['nick'].' wrong password.',
+            PHS_Logger::notice('PASSWORD Account #'.$account_arr['id'].': '.$account_arr['nick'].' ('.$this->get_account_level_as_title($account_arr).') wrong password.',
                 $accounts_plugin::LOG_SECURITY);
         }
 
         return $account_arr;
     }
 
-    /**
-     * @param int|array $account_data
-     * @param bool|array $params
-     *
-     * @return bool|array
-     */
-    public function populate_account_data_for_account_contract($account_data, $params = false)
+    public function populate_account_data_for_account_contract(null | bool | int | array $account_data) : ?array
     {
         $this->reset_error();
 
         if (empty($account_data)
-         || !($account_arr = $this->data_to_array($account_data))
-         || $this->is_deleted($account_arr)) {
+            || !($account_arr = $this->data_to_array($account_data))
+            || $this->is_deleted($account_arr)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
 
-            return false;
+            return null;
         }
 
         // As we announce account action, we should have updated values...
@@ -261,9 +224,9 @@ class PHS_Model_Accounts extends PHS_Model
         $structure_hook_args['account_data'] = $account_arr;
 
         /** @var PHS_Plugin_Accounts $plugin_obj */
-        if (($plugin_obj = $this->get_plugin_instance())
-         && ($account_structure = $plugin_obj->get_account_structure($structure_hook_args))
-         && !empty($account_structure['account_structure'])) {
+        if (($plugin_obj = PHS_Plugin_Accounts::get_instance())
+            && ($account_structure = $plugin_obj->get_account_structure($structure_hook_args))
+            && !empty($account_structure['account_structure'])) {
             $account_arr = $account_structure['account_structure'];
         }
 
@@ -279,20 +242,10 @@ class PHS_Model_Accounts extends PHS_Model
         return $account_arr;
     }
 
-    /**
-     * @param int|array $user_data
-     * @param bool|array $params
-     *
-     * @return bool
-     */
-    public function needs_after_registration_email($user_data, $params = false) : bool
+    public function needs_after_registration_email(int | array $user_data, array $params = []) : bool
     {
         if (empty($user_data)) {
             return false;
-        }
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
         }
 
         $params['send_confirmation_email'] = !empty($params['send_confirmation_email']);
@@ -311,20 +264,10 @@ class PHS_Model_Accounts extends PHS_Model
         return $this->needs_activation($user_arr, $params) || $this->needs_confirmation_email($user_arr);
     }
 
-    /**
-     * @param int|array $user_data
-     * @param bool|array $params
-     *
-     * @return array|bool
-     */
-    public function needs_activation($user_data, $params = false)
+    public function needs_activation(int | array $user_data, array $params = []) : bool
     {
         if (empty($user_data)) {
             return false;
-        }
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
         }
 
         if ((empty($params['accounts_plugin_settings'])
@@ -334,24 +277,15 @@ class PHS_Model_Accounts extends PHS_Model
             $params['accounts_plugin_settings'] = [];
         }
 
-        if (empty($params['accounts_plugin_settings']['account_requires_activation'])
-         || !($user_arr = $this->data_to_array($user_data))
-         || !$this->is_just_registered($user_arr)
-         || $this->must_setup_password($user_arr)
-         || $this->is_active($user_arr)
-         || $this->is_deleted($user_arr)) {
-            return false;
-        }
-
-        return $user_arr;
+        return !(empty($params['accounts_plugin_settings']['account_requires_activation'])
+            || !($user_arr = $this->data_to_array($user_data))
+            || !$this->is_just_registered($user_arr)
+            || $this->must_setup_password($user_arr)
+            || $this->is_active($user_arr)
+            || $this->is_deleted($user_arr));
     }
 
-    /**
-     * @param int|array $user_data
-     *
-     * @return array|bool
-     */
-    public function needs_confirmation_email($user_data)
+    public function needs_confirmation_email(int | array $user_data) : bool
     {
         // If password was provided by user, or he did already login, no need to send him password confirmation
         return !empty($user_data)
@@ -363,128 +297,80 @@ class PHS_Model_Accounts extends PHS_Model
                 );
     }
 
-    /**
-     * @param int|array $user_data
-     *
-     * @return array|bool
-     */
-    public function needs_email_verification($user_data)
+    public function needs_email_verification(int | array $user_data) : bool
     {
-        if (empty($user_data)
-         || !($user_arr = $this->data_to_array($user_data))
-         || !empty($user_arr['email_verified'])
-         || $this->is_deleted($user_arr)) {
-            return false;
-        }
-
-        return $user_arr;
+        return !empty($user_data)
+               && ($user_arr = $this->data_to_array($user_data))
+               && empty($user_arr['email_verified'])
+               && !$this->is_deleted($user_arr);
     }
 
-    /**
-     * @param int|array $user_data
-     * @param int|array $user_to_manage
-     *
-     * @return array|bool
-     */
-    public function can_manage_account($user_data, $user_to_manage)
+    public function can_manage_account(int | array $user_data, int | array $user_to_manage) : bool
     {
-        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-        if (empty($user_data)
-         || !($admin_plugin = PHS::load_plugin('admin'))
-         || !($user_arr = $this->data_to_array($user_data))
-         || !$admin_plugin->can_admin_manage_accounts($user_arr)
-         || !($user_to_manage_arr = $this->data_to_array($user_to_manage))
-         || ($user_arr['level'] <= $user_to_manage_arr['level']
-                && (int)$user_arr['id'] !== (int)$user_to_manage_arr['id']
-         )) {
-            return false;
-        }
-
-        return [
-            'user_data'      => $user_arr,
-            'user_to_manage' => $user_to_manage_arr,
-        ];
+        /** @var PHS_Plugin_Admin $admin_plugin */
+        return !empty($user_data)
+               && ($admin_plugin = PHS_Plugin_Admin::get_instance())
+               && ($user_arr = $this->data_to_array($user_data))
+               && $admin_plugin->can_admin_manage_accounts($user_arr)
+               && ($user_to_manage_arr = $this->data_to_array($user_to_manage))
+               && ($user_arr['level'] > $user_to_manage_arr['level']
+                   || (int)$user_arr['id'] === (int)$user_to_manage_arr['id']
+               );
     }
 
-    /**
-     * @param int|array $account_data
-     * @param bool|array $params
-     *
-     * @return array|bool
-     */
-    public function get_account_details($account_data, $params = false)
+    public function get_account_details(null | bool | int | array $account_data, array $params = []) : ?array
     {
         if (empty($account_data)) {
-            return false;
+            return null;
         }
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if (empty($params['populate_with_empty_data'])) {
-            $params['populate_with_empty_data'] = false;
-        }
+        $params['populate_with_empty_data'] = !empty($params['populate_with_empty_data']);
 
         /** @var PHS_Model_Accounts_details $accounts_details_model */
-        if (!($accounts_details_model = PHS::load_model('accounts_details', 'accounts'))) {
-            return false;
+        if (!($accounts_details_model = PHS_Model_Accounts_details::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return null;
         }
 
-        if (empty($account_data)
-         || !($account_arr = $this->data_to_array($account_data))
+        if (!($account_arr = $this->data_to_array($account_data))
          || empty($account_arr['details_id'])
          || !($accounts_details_arr = $accounts_details_model->get_details($account_arr['details_id']))) {
-            return empty($params['populate_with_empty_data']) ? false : $accounts_details_model->get_empty_data();
+            return empty($params['populate_with_empty_data']) ? null : $accounts_details_model->get_empty_data();
         }
 
         return $accounts_details_arr;
     }
 
-    /**
-     * @param bool|string $lang
-     *
-     * @return array
-     */
-    final public function get_levels($lang = false)
+    final public function get_levels(null | bool | string $lang = false) : array
     {
         static $levels_arr = [];
 
         if (empty($lang)
-         && !empty($levels_arr)) {
+            && !empty($levels_arr)) {
             return $levels_arr;
         }
-
-        // Let these here so language parser would catch the texts...
-        $this->_pt('Member', $lang);
-        $this->_pt('Operator', $lang);
-        $this->_pt('Admin', $lang);
-        $this->_pt('Super admin', $lang);
-        $this->_pt('Developer', $lang);
 
         $new_levels_arr = self::$LEVELS_ARR;
         $hook_args = PHS_Hooks::default_common_hook_args();
         $hook_args['levels_arr'] = self::$LEVELS_ARR;
 
         if (($extra_levels_arr = PHS::trigger_hooks(PHS_Hooks::H_USER_LEVELS, $hook_args))
-         && is_array($extra_levels_arr) && !empty($extra_levels_arr['levels_arr'])) {
+            && !empty($extra_levels_arr['levels_arr'])) {
             $new_levels_arr = self::merge_array_assoc($extra_levels_arr['levels_arr'], $new_levels_arr);
         }
 
         $return_arr = [];
         // Translate and validate levels...
-        if (!empty($new_levels_arr) && is_array($new_levels_arr)) {
+        if (!empty($new_levels_arr)) {
             foreach ($new_levels_arr as $level_id => $level_arr) {
-                $level_id = (int)$level_id;
-                if (empty($level_id)) {
+                if (!($level_id = (int)$level_id)) {
                     continue;
                 }
 
-                if (empty($level_arr['title'])) {
-                    $level_arr['title'] = $this->_pt('Level %s', $lang, $level_id);
-                } else {
-                    $level_arr['title'] = $this->_pt($level_arr['title'], $lang);
-                }
+                $level_arr['title'] = empty($level_arr['title'])
+                    ? $this->_pt('Level %s', $lang, $level_id)
+                    : $this->_pt($level_arr['title'], $lang);
 
                 $return_arr[$level_id] = ['title' => $level_arr['title']];
             }
@@ -497,17 +383,12 @@ class PHS_Model_Accounts extends PHS_Model
         return $return_arr;
     }
 
-    /**
-     * @param bool|string $lang
-     *
-     * @return array|bool
-     */
-    final public function get_levels_as_key_val($lang = false)
+    final public function get_levels_as_key_val(null | bool | string $lang = false) : array
     {
-        static $user_levels_key_val_arr = false;
+        static $user_levels_key_val_arr = null;
 
         if (empty($lang)
-         && $user_levels_key_val_arr !== false) {
+            && $user_levels_key_val_arr !== null) {
             return $user_levels_key_val_arr;
         }
 
@@ -529,21 +410,27 @@ class PHS_Model_Accounts extends PHS_Model
         return $return_arr;
     }
 
-    /**
-     * @param int $level
-     * @param bool|string $lang
-     *
-     * @return bool|array
-     */
-    public function valid_level($level, $lang = false)
+    public function valid_level(int $level, null | bool | string $lang = false) : ?array
     {
         $all_levels = $this->get_levels($lang);
         if (empty($level)
-         || empty($all_levels[$level])) {
-            return false;
+            || empty($all_levels[$level])) {
+            return null;
         }
 
         return $all_levels[$level];
+    }
+
+    public function get_account_level_as_title(int | array $account_data, null | bool | string $lang = false) : string
+    {
+        if (empty($account_data)
+            || !($account_arr = $this->data_to_array($account_data))
+            || empty($account_arr['level'])
+            || !($level_arr = $this->valid_level($account_arr['level'], $lang))) {
+            return $this->_pt('N/A');
+        }
+
+        return $level_arr['title'] ?? $this->_pt('N/A');
     }
 
     /**
@@ -1278,7 +1165,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if ($accounts_plugin->should_log_account_creation()) {
-            PHS_Logger::notice('ACTIVATION Account #'.$account_arr['id'].': '.$account_arr['nick'].' was activated after registration.',
+            PHS_Logger::notice('ACTIVATION Account #'.$account_arr['id'].': '.$account_arr['nick'].' ('.$this->get_account_level_as_title($account_arr).') was activated after registration.',
                 $accounts_plugin::LOG_SECURITY);
         }
 
@@ -1339,7 +1226,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if ($accounts_plugin->should_log_account_creation()) {
-            PHS_Logger::notice('ACTIVATION Account #'.$account_arr['id'].': '.$account_arr['nick'].' was activated.',
+            PHS_Logger::notice('ACTIVATION Account #'.$account_arr['id'].': '.$account_arr['nick'].' ('.$this->get_account_level_as_title($account_arr).') was activated.',
                 $accounts_plugin::LOG_SECURITY);
         }
 
@@ -1397,7 +1284,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if ($accounts_plugin->should_log_account_creation()) {
-            PHS_Logger::notice('INACTIVATION Account #'.$account_arr['id'].': '.$account_arr['nick'].' was inactivated.',
+            PHS_Logger::notice('INACTIVATION Account #'.$account_arr['id'].': '.$account_arr['nick'].' ('.$this->get_account_level_as_title($account_arr).') was inactivated.',
                 $accounts_plugin::LOG_SECURITY);
         }
 
@@ -1472,7 +1359,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if ($accounts_plugin->should_log_account_creation()) {
-            PHS_Logger::notice('DELETE Account #'.$account_arr['id'].': '.$account_arr['nick'].' was deleted.',
+            PHS_Logger::notice('DELETE Account #'.$account_arr['id'].': '.$account_arr['nick'].' ('.$this->get_account_level_as_title($account_arr).') was deleted.',
                 $accounts_plugin::LOG_SECURITY);
         }
 
@@ -2305,13 +2192,13 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if ($accounts_plugin->should_log_account_creation()) {
-            PHS_Logger::notice('CREATION Account #'.$insert_arr['id'].': '.$insert_arr['nick'].' was created.',
+            PHS_Logger::notice('CREATION Account #'.$insert_arr['id'].': '.$insert_arr['nick'].' ('.$this->get_account_level_as_title($insert_arr).') was created.',
                 $accounts_plugin::LOG_SECURITY);
         }
 
         if (!empty($roles_arr)
          && $accounts_plugin->should_log_roles_changes()) {
-            PHS_Logger::notice('ROLES Account #'.$insert_arr['id'].': '.$insert_arr['nick'].' was assigned roles: '
+            PHS_Logger::notice('ROLES Account #'.$insert_arr['id'].': '.$insert_arr['nick'].' ('.$this->get_account_level_as_title($insert_arr).') was assigned roles: '
                                .implode(', ', $roles_arr).'.',
                 $accounts_plugin::LOG_SECURITY);
         }
@@ -2332,12 +2219,8 @@ class PHS_Model_Accounts extends PHS_Model
     {
         /** @var PHS_Plugin_Accounts $accounts_plugin */
         if (empty($params) || !is_array($params)
-         || !($accounts_plugin = $this->get_plugin_instance())) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_EDIT, $this->_pt('Error loading required resources.'));
-            } else {
-                $this->change_error_code(self::ERR_EDIT);
-            }
+         || !($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
+            $this->set_error_if_not_set(self::ERR_EDIT, $this->_pt('Error loading required resources.'));
 
             return false;
         }
@@ -2346,10 +2229,7 @@ class PHS_Model_Accounts extends PHS_Model
             $params['fields']['status'] = (int)$params['fields']['status'];
         }
 
-        if (!($accounts_settings = $this->get_plugin_settings())
-         || !is_array($accounts_settings)) {
-            $accounts_settings = [];
-        }
+        $accounts_settings = $this->get_plugin_settings() ?: [];
 
         $params['{password_was_changed}'] = false;
         if (!empty($params['fields']['pass'])) {
@@ -2367,7 +2247,7 @@ class PHS_Model_Accounts extends PHS_Model
 
             if (($history_details = $this->is_password_in_history($existing_data, $params['fields']['pass']))) {
                 if (!empty($history_details['history_count'])
-                 && !empty($history_details['oldest_password_date_timestamp'])) {
+                    && !empty($history_details['oldest_password_date_timestamp'])) {
                     $this->set_error(self::ERR_EDIT, $this->_pt('You used this password in last %s, one of last %s passwords. Please provide another one.',
                         PHS_Utils::parse_period(abs(time() - $history_details['oldest_password_date_timestamp']),
                             ['only_big_part' => true]),
@@ -2387,14 +2267,14 @@ class PHS_Model_Accounts extends PHS_Model
 
             $encoded_clear = null;
             if ($accounts_plugin->is_password_decryption_enabled()
-             && false === ($encoded_clear = PHS_Crypt::quick_encode($params['fields']['pass']))) {
+                && false === ($encoded_clear = PHS_Crypt::quick_encode($params['fields']['pass']))) {
                 $this->set_error(self::ERR_INSERT, $this->_pt('Error encrypting account password. Please retry.'));
 
                 return false;
             }
 
             if (!($pass_salt = self::generate_password((!empty($accounts_settings['pass_salt_length']) ? $accounts_settings['pass_salt_length'] + 3 : 8)))
-             || !($encoded_pass = self::encode_pass($params['fields']['pass'], $pass_salt))) {
+                || !($encoded_pass = self::encode_pass($params['fields']['pass'], $pass_salt))) {
                 $this->set_error(self::ERR_INSERT, $this->_pt('Error obtaining account password. Please retry.'));
 
                 return false;
@@ -2492,7 +2372,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if (isset($params['fields']['level'])
-         && !$this->valid_level($params['fields']['level'])) {
+            && !$this->valid_level($params['fields']['level'])) {
             $this->set_error(self::ERR_EDIT, $this->_pt('Please provide a valid account level.'));
 
             return false;
@@ -2505,7 +2385,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if (!PHS::is_multi_tenant()
-         || !isset($params['{account_tenants}']) || !is_array($params['{account_tenants}'])) {
+            || !isset($params['{account_tenants}']) || !is_array($params['{account_tenants}'])) {
             $params['{account_tenants}'] = null;
         }
 
@@ -2523,33 +2403,34 @@ class PHS_Model_Accounts extends PHS_Model
             $plugin_obj = null;
         }
 
-        if (!empty($params['{users_details}']) && is_array($params['{users_details}'])) {
-            if (!($existing_data = $this->update_user_details($existing_data, $params['{users_details}']))) {
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_EDIT, $this->_pt('Error saving account details in database. Please try again.'));
-                }
+        if (!empty($params['{users_details}']) && is_array($params['{users_details}'])
+            && !($existing_data = $this->update_user_details($existing_data, $params['{users_details}']))) {
+            $this->set_error_if_not_set(self::ERR_EDIT, $this->_pt('Error saving account details in database. Please try again.'));
 
-                return false;
-            }
+            return false;
         }
 
         if (!empty($params['{account_roles}']) && is_array($params['{account_roles}'])) {
             /** @var PHS_Model_Roles $roles_model */
-            if (!($roles_model = PHS_Model_Roles::get_instance())
-             || !$roles_model->link_roles_to_user($existing_data, $params['{account_roles}'], ['append_roles' => false])) {
-                if ($roles_model->has_error()) {
-                    $this->copy_error($roles_model, self::ERR_EDIT);
-                } else {
-                    $roles_model->set_error(self::ERR_EDIT, $this->_pt('Error saving account roles in database. Please try again.'));
-                }
+            if (!($roles_model = PHS_Model_Roles::get_instance())) {
+                $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
                 return false;
             }
 
-            if ($plugin_obj->should_log_roles_changes()) {
-                PHS_Logger::notice('ROLES Account #'.$existing_data['id'].': '.$existing_data['nick'].' was assigned roles: '
-                                   .implode(', ', $params['{account_roles}']).'.',
-                    $plugin_obj::LOG_SECURITY);
+            if ($roles_model->account_roles_changed($existing_data, $params['{account_roles}'])) {
+                if (!$roles_model->link_roles_to_user($existing_data, $params['{account_roles}'], ['append_roles' => false])) {
+                    $this->copy_or_set_error($roles_model,
+                        self::ERR_EDIT, $this->_pt('Error saving account roles in database. Please try again.'));
+
+                    return false;
+                }
+
+                if ($plugin_obj->should_log_roles_changes()) {
+                    PHS_Logger::notice('ROLES Account #'.$existing_data['id'].': '.$existing_data['nick'].' ('.$this->get_account_level_as_title($existing_data).') was assigned roles: '
+                                       .implode(', ', $params['{account_roles}']).'.',
+                        $plugin_obj::LOG_SECURITY);
+                }
             }
         }
 
@@ -2628,7 +2509,7 @@ class PHS_Model_Accounts extends PHS_Model
             }
 
             if ($plugin_obj->should_log_password_changes()) {
-                PHS_Logger::notice('PASSWORD Account #'.$existing_data['id'].': '.$existing_data['nick'].' password changed.',
+                PHS_Logger::notice('PASSWORD Account #'.$existing_data['id'].': '.$existing_data['nick'].' ('.$this->get_account_level_as_title($existing_data).') password changed.',
                     $plugin_obj::LOG_SECURITY);
             }
         }
@@ -3150,6 +3031,15 @@ class PHS_Model_Accounts extends PHS_Model
         PHS::st_throw_errors($st_throwing_errors);
 
         return true;
+    }
+
+    private function _not_used_only_for_translation() : void
+    {
+        $this->_pt('Member');
+        $this->_pt('Operator');
+        $this->_pt('Admin');
+        $this->_pt('Super admin');
+        $this->_pt('Developer');
     }
     //
     // END Custom updates

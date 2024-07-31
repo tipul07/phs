@@ -129,8 +129,6 @@ class PHS_Params
             default:
             case self::T_ASIS:
                 return $val;
-                break;
-
             case self::T_INT:
                 if (empty($extra['trim_before'])) {
                     $val = trim($val);
@@ -141,8 +139,6 @@ class PHS_Params
                 }
 
                 return $val;
-                break;
-
             case self::T_FLOAT:
                 if (empty($extra['trim_before'])) {
                     $val = trim($val);
@@ -159,12 +155,12 @@ class PHS_Params
                         $val = @number_format($val, $extra['digits'], '.', '');
                     }
 
-                    if (strpos($val, '.') !== false) {
+                    if (str_contains($val, '.')) {
                         $val = trim($val, '0');
-                        if (substr($val, -1) === '.') {
+                        if (str_ends_with($val, '.')) {
                             $val = substr($val, 0, -1);
                         }
-                        if (substr($val, 0, 1) === '.') {
+                        if (str_starts_with($val, '.')) {
                             $val = '0'.$val;
                         }
                     }
@@ -173,26 +169,16 @@ class PHS_Params
                 }
 
                 return $val;
-                break;
-
             case self::T_ALPHANUM:
                 return preg_replace('/^([a-zA-Z0-9]+)$/', '$1', strip_tags($val));
-                break;
-
             case self::T_SAFEHTML:
                 return htmlspecialchars($val);
-                break;
-
             case self::T_EMAIL:
             case self::T_NOHTML:
             case self::T_URL:
                 return strip_tags($val);
-                break;
-
             case self::T_REMSQL_CHARS:
                 return str_replace(['--', '\b', '\Z', '%'], '', $val);
-                break;
-
             case self::T_ARRAY:
                 if (empty($val) || !is_array($val)) {
                     return [];
@@ -207,8 +193,6 @@ class PHS_Params
                 }
 
                 return $val;
-                break;
-
             case self::T_DATE:
                 if (empty($extra['trim_before'])) {
                     $val = trim($val);
@@ -221,8 +205,6 @@ class PHS_Params
                 }
 
                 return $val;
-                break;
-
             case self::T_TIMESTAMP:
                 if (empty($extra['trim_before'])) {
                     $val = trim($val);
@@ -241,8 +223,6 @@ class PHS_Params
                 }
 
                 return $val;
-                break;
-
             case self::T_BOOL:
             case self::T_NUMERIC_BOOL:
                 if (is_string($val)) {
@@ -282,9 +262,9 @@ class PHS_Params
      */
     public static function _gp($v, $type = self::T_ASIS, $extra = false)
     {
-        if (!empty($_POST) && isset($_POST[$v])) {
+        if (isset($_POST[$v])) {
             $var = $_POST[$v];
-        } elseif (!empty($_GET) && isset($_GET[$v])) {
+        } elseif (isset($_GET[$v])) {
             $var = $_GET[$v];
         } else {
             return null;
@@ -303,9 +283,9 @@ class PHS_Params
      */
     public static function _pg($v, $type = self::T_ASIS, $extra = false)
     {
-        if (!empty($_POST) && isset($_POST[$v])) {
+        if (isset($_POST[$v])) {
             $var = $_POST[$v];
-        } elseif (!empty($_GET) && isset($_GET[$v])) {
+        } elseif (isset($_GET[$v])) {
             $var = $_GET[$v];
         } else {
             return null;
