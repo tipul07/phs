@@ -194,8 +194,6 @@ if ($can_list_http_calls || $can_manage_http_calls) {
         <ul>
             <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'httpcalls', 'p' => 'admin']); ?>"
                 ><?php echo $this::_t('List HTTP Calls'); ?></a></li>
-            <li><a href="<?php echo PHS::url(['a' => 'list_runs', 'ad' => 'httpcalls', 'p' => 'admin']); ?>"
-                ><?php echo $this::_t('HTTP Calls Requests'); ?></a></li>
         </ul>
     </li>
     <?php
