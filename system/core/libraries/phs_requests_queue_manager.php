@@ -29,6 +29,8 @@ class PHS_Requests_queue_manager extends PHS_Library
             return null;
         }
 
+        $method = strtoupper(trim($method));
+
         $params['max_retries'] = (int)($params['max_retries'] ?? 1);
         $params['handle'] ??= null;
         $params['sync_run'] = !isset($params['sync_run']) || !empty($params['sync_run']);
@@ -393,7 +395,7 @@ class PHS_Requests_queue_manager extends PHS_Library
         }
 
         if (!empty($method)) {
-            $curl_params['http_method'] = $method;
+            $curl_params['http_method'] = strtoupper(trim($method));
         }
 
         $monitoring_record = $params['skip_api_monitoring']
@@ -407,7 +409,7 @@ class PHS_Requests_queue_manager extends PHS_Library
 
         self::_logf(
             self::_LOG_METHOD_NOTICE,
-            'Sending '.strtoupper($method ?? 'get').' request to '.$url.'.',
+            'Sending '.($method ?? 'GET').' request to '.$url.'.',
             $params['log_file']
         );
 

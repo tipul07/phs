@@ -183,6 +183,8 @@ class PHS_Model_Request_queue extends PHS_Model
     ) : ?array {
         $this->reset_error();
 
+        $method = strtoupper(trim($method));
+
         if (!PHS_Params::check_type($url, PHS_Params::T_URL)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Please provide a valid URL for the HTTP call.'));
 
