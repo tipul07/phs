@@ -110,7 +110,7 @@ function requests_queue_manager() : ?PHS_Requests_queue_manager
 
 function http_call(
     string $url,
-    string $method = 'get',
+    string $method = 'GET',
     null | array | string $payload = null,
     ?array $settings = null,
     array $params = [],
@@ -131,6 +131,8 @@ function http_call(
     } else {
         $params['run_after'] = null;
     }
+
+    $method = strtoupper(trim($method));
 
     if ( !($result = $rq_manager->http_call($url, $method, $payload, $settings, $params)) ) {
         PHS::st_copy_or_set_error($rq_manager, PHS_Error::ERR_RESOURCES, PHS::_t('Error sending HTTP call to background.'));

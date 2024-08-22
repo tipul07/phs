@@ -1308,7 +1308,7 @@ class PHS_Utils extends PHS_Language
         }
 
         if (!empty($params['http_method']) && is_string($params['http_method'])) {
-            @curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $params['http_method']);
+            @curl_setopt($ch, CURLOPT_CUSTOMREQUEST, strtoupper(trim($params['http_method'])));
         }
 
         @curl_setopt($ch, CURLOPT_URL, $url);
