@@ -1111,7 +1111,7 @@ class PHS_Model_Request_queue extends PHS_Model
 
         if (is_string($payload)) {
             if (!($decoded_payload = @json_decode($payload, true))) {
-                return null;
+                return $payload;
             }
 
             $payload = $decoded_payload;
