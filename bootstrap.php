@@ -37,6 +37,7 @@ include_once PHS_LIBRARIES_DIR.'phs_undefined_instantiable.php';
 include_once PHS_LIBRARIES_DIR.'phs_has_db_settings.php';
 include_once PHS_LIBRARIES_DIR.'phs_has_db_registry.php';
 include_once PHS_LIBRARIES_DIR.'phs_plugin.php';
+include_once PHS_LIBRARIES_DIR.'phs_record_data.php';
 include_once PHS_LIBRARIES_DIR.'phs_model_base.php';
 include_once PHS_LIBRARIES_DIR.'phs_model_mysqli.php';
 include_once PHS_LIBRARIES_DIR.'phs_model_mongo.php';

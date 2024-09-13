@@ -1090,10 +1090,10 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_details_for_model($id, $params = false)
+    protected function _get_details_for_model(int | string $id, null | bool | array $params = []) : ?array
     {
         if (!($params = $this->fetch_default_flow_params($params))) {
-            return false;
+            return null;
         }
 
         if (empty($params['details'])) {
@@ -1101,10 +1101,10 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         }
 
         if (empty($id)
-         || !($qid = db_query('SELECT '.$params['details'].' FROM `'.$this->get_flow_table_name($params).'` '
+            || !($qid = db_query('SELECT '.$params['details'].' FROM `'.$this->get_flow_table_name($params).'` '
                                .' WHERE `'.$params['table_index'].'` = \''.$id.'\'', $params['db_connection']))
-         || !($item_arr = @mysqli_fetch_assoc($qid))) {
-            return false;
+            || !($item_arr = @mysqli_fetch_assoc($qid))) {
+            return null;
         }
 
         return $item_arr;
@@ -1113,13 +1113,13 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_details_fields_for_model($constrain_arr, $params = false)
+    protected function _get_details_fields_for_model(array $constrain_arr, null | bool | array $params = []) : ?array
     {
         if (!($params = $this->fetch_default_flow_params($params))
          || !($common_arr = $this->get_details_common($constrain_arr, $params))
          || !is_array($common_arr)
          || (empty($params['return_query_string']) && empty($common_arr['qid']))) {
-            return false;
+            return null;
         }
 
         if (!empty($params['return_query_string'])) {
@@ -1131,7 +1131,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         }
 
         if ($params['result_type'] === 'single') {
-            return @mysqli_fetch_assoc($common_arr['qid']);
+            $result = @mysqli_fetch_assoc($common_arr['qid']);
+
+            return !is_array($result) ? null : $result;
         }
 
         $item_arr = [];
@@ -2465,12 +2467,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return array|bool
      */
-    protected function get_list_common($params = false)
+    protected function get_list_common($params = false) : ?array
     {
         $this->reset_error();
 
         if (!($params = $this->fetch_default_flow_params($params))) {
-            return false;
+            return null;
         }
 
         // If we are returning an array of records, and there is no record limit provided, put something by default so we don't kill memory
@@ -2483,7 +2485,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         $db_connection = $this->get_db_connection($params);
         if (!($full_table_name = $this->get_flow_table_name($params))) {
-            return false;
+            return null;
         }
 
         $params['return_query_string'] = (!empty($params['return_query_string']));
@@ -2506,7 +2508,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         if (($params = $this->get_count_list_common_params($params)) === false
          || ($params = $this->get_list_prepare_params($params)) === false
          || ($params = $this->get_query_fields($params)) === false) {
-            return false;
+            return null;
         }
 
         $sql = 'SELECT '.$params['db_fields'].' '
@@ -2521,7 +2523,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         $qid = false;
         if (empty($params['return_query_string'])
          && !($qid = db_query($sql, $db_connection))) {
-            return false;
+            return null;
         }
 
         if (empty($qid)

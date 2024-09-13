@@ -1058,10 +1058,10 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_details_for_model($id, $params = false)
+    protected function _get_details_for_model(int | string $id, null | bool | array $params = []) : ?array
     {
         if (!($params = $this->fetch_default_flow_params($params))) {
-            return false;
+            return null;
         }
 
         if (empty($params['details'])) {
@@ -1069,10 +1069,10 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
         }
 
         if (empty($id)
-         || !($qid = db_query('SELECT '.$params['details'].' FROM `'.$this->get_flow_table_name($params).'` '
-                               .' WHERE `'.$params['table_index'].'` = \''.$id.'\'', $params['db_connection']))
-         || !($item_arr = $qid->fetchArray(SQLITE3_ASSOC))) {
-            return false;
+            || !($qid = db_query('SELECT '.$params['details'].' FROM `'.$this->get_flow_table_name($params).'` '
+                                 .' WHERE `'.$params['table_index'].'` = \''.$id.'\'', $params['db_connection']))
+            || !($item_arr = $qid->fetchArray(SQLITE3_ASSOC))) {
+            return null;
         }
 
         return $item_arr;
@@ -1081,13 +1081,13 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_details_fields_for_model($constrain_arr, $params = false)
+    protected function _get_details_fields_for_model(array $constrain_arr, null | bool | array $params = []) : ?array
     {
         if (!($params = $this->fetch_default_flow_params($params))
          || !($common_arr = $this->get_details_common($constrain_arr, $params))
          || !is_array($common_arr)
          || (empty($params['return_query_string']) && empty($common_arr['qid']))) {
-            return false;
+            return null;
         }
 
         if (!empty($params['return_query_string'])) {
@@ -1099,7 +1099,9 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
         }
 
         if ($params['result_type'] === 'single') {
-            return $common_arr['qid']->fetchArray(SQLITE3_ASSOC);
+            $result = $common_arr['qid']->fetchArray(SQLITE3_ASSOC);
+
+            return !is_array($result) ? null : $result;
         }
 
         $item_arr = [];

@@ -3,7 +3,9 @@
 namespace phs\libraries;
 
 use phs\PHS;
+use Exception;
 use phs\PHS_Db;
+use MongoDB\BSON\ObjectId;
 
 abstract class PHS_Model_Mongo extends PHS_Model_Core_base
 {
@@ -783,12 +785,12 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_details_for_model($id, $params = false)
+    protected function _get_details_for_model(int | string $id, null | bool | array $params = []) : ?array
     {
         $this->reset_error();
 
         if (!($params = $this->fetch_default_flow_params($params))) {
-            return false;
+            return null;
         }
 
         $db_connection = $this->get_db_connection($params);
@@ -796,26 +798,24 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         /** @var PHS_Db_mongo $mongo_driver */
         if (empty($id)
          || !($mongo_driver = PHS_Db::db($db_connection))) {
-            return false;
+            return null;
         }
 
         $id_obj = false;
         try {
-            if (@class_exists('\\MongoDB\\BSON\\ObjectID', false)) {
-                $id_obj = new \MongoDB\BSON\ObjectID($id);
-            } elseif (@class_exists('\\MongoDB\\BSON\\ObjectId', false)) {
-                $id_obj = new \MongoDB\BSON\ObjectId($id);
+            if (@class_exists(ObjectId::class, false)) {
+                $id_obj = new ObjectId($id);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Cannot obtain Object Id instance.'));
 
-            return false;
+            return null;
         }
 
         if (empty($id_obj)) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Cannot obtain Object Id instance.'));
 
-            return false;
+            return null;
         }
 
         $query_arr = $mongo_driver::default_query_arr();
@@ -826,8 +826,8 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         $query_arr['query_options']['limit'] = 1;
 
         if (!($qid = $mongo_driver->query($query_arr, $db_connection))
-         || !($item_arr = $mongo_driver->fetch_assoc($qid))) {
-            return false;
+            || !($item_arr = $mongo_driver->fetch_assoc($qid))) {
+            return null;
         }
 
         return $item_arr;
@@ -836,13 +836,13 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_details_fields_for_model($constrain_arr, $params = false)
+    protected function _get_details_fields_for_model(array $constrain_arr, null | bool | array $params = []) : ?array
     {
         if (!($params = $this->fetch_default_flow_params($params))
-         || !($common_arr = $this->get_details_common($constrain_arr, $params))
-         || !is_array($common_arr)
-         || (empty($params['return_query']) && empty($common_arr['qid']))) {
-            return false;
+            || !($common_arr = $this->get_details_common($constrain_arr, $params))
+            || !is_array($common_arr)
+            || (empty($params['return_query']) && empty($common_arr['qid']))) {
+            return null;
         }
 
         if (!empty($params['return_query'])) {
@@ -860,12 +860,12 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
             try {
                 if (!($result_arr = $qid->toArray())
                  || empty($result_arr[0])) {
-                    return false;
+                    return null;
                 }
 
                 return $result_arr[0];
-            } catch (\Exception $e) {
-                return false;
+            } catch (Exception $e) {
+                return null;
             }
         }
 
@@ -1745,7 +1745,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     //
     //  region Querying database functionality
     //
-    protected function get_details_common($constrain_arr, $params = false)
+    protected function get_details_common(array $constrain_arr, null | bool | array $params = [])
     {
         if (!($params = $this->fetch_default_flow_params($params))) {
             return false;
@@ -1758,20 +1758,15 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         if (!isset($params['result_type'])) {
             $params['result_type'] = 'single';
         }
-        if (!isset($params['result_key'])) {
-            $params['result_key'] = $params['table_index'];
-        }
-        if (!isset($params['return_query'])) {
-            $params['return_query'] = false;
-        } else {
-            $params['return_query'] = (!empty($params['return_query']) ? true : false);
-        }
+
+        $params['result_key'] ??= $params['table_index'];
+        $params['return_query'] = !isset($params['return_query']) || !empty($params['return_query']);
 
         if (!isset($params['limit'])
-         || $params['result_type'] == 'single') {
+            || $params['result_type'] === 'single') {
             $params['limit'] = 1;
         } else {
-            $params['limit'] = intval($params['limit']);
+            $params['limit'] = (int)$params['limit'];
             $params['result_type'] = 'list';
         }
 

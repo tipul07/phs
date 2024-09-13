@@ -644,31 +644,19 @@ class PHS_Utils extends PHS_Language
         return $return_val;
     }
 
-    /**
-     * @param $file
-     * @param bool|array $params
-     *
-     * @return mixed|string
-     */
-    public static function mimetype($file, $params = false)
+    public static function mimetype(string $file, array $params = []) : ?string
     {
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
+        $params['virtual_file'] = !empty($params['virtual_file']);
 
-        if (empty($params['virtual_file'])) {
-            $params['virtual_file'] = false;
-        }
-
-        $file = (string)$file;
         if ($file === ''
-         || (empty($params['virtual_file']) && (!@file_exists($file) || !@is_readable($file)))) {
-            return '';
+         || (!$params['virtual_file']
+             && (!@file_exists($file) || !@is_readable($file)))) {
+            return null;
         }
 
         $file_mime_type = '';
         if (empty($params['virtual_file'])
-         && @function_exists('finfo_open')) {
+            && @function_exists('finfo_open')) {
             if (!($flags = constant('FILEINFO_MIME'))) {
                 $flags = 0;
             }
@@ -678,17 +666,16 @@ class PHS_Utils extends PHS_Language
             }
 
             if (!empty($flags)
-             && ($finfo = @finfo_open($flags))) {
+                && ($finfo = @finfo_open($flags))) {
                 $file_mime_type = @finfo_file($finfo, $file);
                 @finfo_close($finfo);
             }
         }
 
         if (empty($params['virtual_file'])
-         && empty($file_mime_type)) {
-            if (($cmd_buf = @exec('file -bi '.@escapeshellarg($file)))) {
-                $file_mime_type = trim($cmd_buf);
-            }
+            && empty($file_mime_type)
+            && ($cmd_buf = @exec('file -bi '.@escapeshellarg($file)))) {
+            $file_mime_type = trim($cmd_buf);
         }
 
         if (empty($file_mime_type)) {
@@ -700,6 +687,10 @@ class PHS_Utils extends PHS_Language
             $file_ext = strtolower($file_ext);
 
             switch ($file_ext) {
+                default:
+                    $file_mime_type = null;
+                    break;
+
                 case 'js':
                     $file_mime_type = 'application/x-javascript';
                     break;
