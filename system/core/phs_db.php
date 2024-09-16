@@ -252,13 +252,7 @@ final class PHS_Db extends PHS_Registry
         return $return_arr;
     }
 
-    /**
-     * @param null|string $driver
-     * @param string|false $connection_name
-     *
-     * @return bool|mixed
-     */
-    public static function default_db_connection(?string $driver = null, $connection_name = false)
+    public static function default_db_connection(?string $driver = null, bool | string $connection_name = false) : bool | string
     {
         if ($driver === null) {
             $driver = self::default_db_driver();
@@ -266,7 +260,7 @@ final class PHS_Db extends PHS_Registry
 
         if ($connection_name === false) {
             if (!($default_connection_arr = self::get_data(self::DB_DEFAULT_CONNECTION))
-             || !is_array($default_connection_arr)) {
+                || !is_array($default_connection_arr)) {
                 $default_connection_arr = [];
             }
 
@@ -278,12 +272,12 @@ final class PHS_Db extends PHS_Registry
         }
 
         if (!($settings_arr = self::get_db_connection($connection_name))
-         || !is_array($settings_arr)) {
+            || !is_array($settings_arr)) {
             return false;
         }
 
         if (!($default_connection_arr = self::get_data(self::DB_DEFAULT_CONNECTION))
-         || !is_array($default_connection_arr)) {
+            || !is_array($default_connection_arr)) {
             $default_connection_arr = [];
         }
 

@@ -237,7 +237,7 @@ class PHS_Action_Rule_edit extends PHS_Action
                 $edit_params_arr['fields'] = $edit_arr;
                 $edit_params_arr['{days_arr}'] = $days_arr;
 
-                if (($new_role = $rules_model->edit($rule_arr, $edit_params_arr))) {
+                if ($rules_model->edit($rule_arr, $edit_params_arr)) {
                     $rule_details_saved = true;
                 } elseif ($rules_model->has_error()) {
                     PHS_Notifications::add_error_notice($rules_model->get_error_message());

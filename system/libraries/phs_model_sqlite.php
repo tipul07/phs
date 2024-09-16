@@ -156,49 +156,6 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     }
 
     /**
-     * @param string $field
-     * @param bool|array $params
-     *
-     * @return null|array|bool|mixed
-     */
-    public function table_field_details(string $field, $params = false)
-    {
-        $this->reset_error();
-
-        $table = false;
-        if (strpos($field, '.') !== false) {
-            [$table, $field] = explode('.', $field, 2);
-        }
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if ($table !== false) {
-            $params['table_name'] = $table;
-        }
-
-        if (!($params = $this->fetch_default_flow_params($params))) {
-            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Failed validating flow parameters.'));
-
-            return false;
-        }
-
-        if (!($table_fields = $this->get_definition($params))
-         || !is_array($table_fields)) {
-            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Invalid table definition.'));
-
-            return false;
-        }
-
-        if (empty($table_fields[$field]) || !is_array($table_fields[$field])) {
-            return null;
-        }
-
-        return $table_fields[$field];
-    }
-
-    /**
      * @param string $field_name
      * @param array $field_details
      * @param bool|array $flow_params
@@ -1115,7 +1072,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _check_table_exists_for_model($flow_params = false, bool $force = false) : bool
+    protected function _check_table_exists_for_model(null | bool | array $flow_params = [], bool $force = false) : bool
     {
         $this->reset_error();
 
@@ -1592,7 +1549,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _uninstall_table_for_model($flow_params) : bool
+    protected function _uninstall_table_for_model(null | bool | array $flow_params) : bool
     {
         $this->reset_error();
 
@@ -1615,21 +1572,21 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_table_definition_for_model_from_database($flow_params = false, $force = false)
+    protected function _get_table_definition_for_model_from_database(null | bool | array $flow_params = [], bool $force = false) : ?array
     {
         $this->reset_error();
 
         if (!($flow_params = $this->fetch_default_flow_params($flow_params))
-         || !($flow_table_name = $this->get_flow_table_name($flow_params))
-         || !($my_driver = $this->get_model_driver())) {
+            || !($flow_table_name = $this->get_flow_table_name($flow_params))
+            || !($my_driver = $this->get_model_driver())) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Failed validating flow parameters.'));
 
-            return false;
+            return null;
         }
 
         if (!$this->_get_table_columns_definition_for_model_from_database($flow_params, $my_driver, $flow_table_name, $force)
-         || !$this->_get_table_indexes_definition_for_model_from_database($flow_params, $my_driver, $flow_table_name, $force)) {
-            return false;
+            || !$this->_get_table_indexes_definition_for_model_from_database($flow_params, $my_driver, $flow_table_name, $force)) {
+            return null;
         }
 
         return self::get_cached_db_table_structure($flow_table_name, $my_driver);
@@ -1638,12 +1595,12 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _hard_delete_for_model($existing_data, $params = false) : bool
+    protected function _hard_delete_for_model(array | PHS_Record_data $existing_data, null | bool | array $params = []) : bool
     {
         self::st_reset_error();
         $this->reset_error();
 
-        if (empty($existing_data) || !is_array($existing_data)
+        if (empty($existing_data)
          || !($params = $this->fetch_default_flow_params($params))
          || empty($params['table_index'])
          || !isset($existing_data[$params['table_index']])) {

@@ -17,11 +17,13 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
 
     private array $_flow_arr = [];
 
-    private ?PHS_Model $_model = null;
+    private ?PHS_Model_Core_base $_model = null;
+
+    private bool $_new_record = false;
 
     public function __construct(
         array $data = [],
-        ?PHS_Model $model = null,
+        ?PHS_Model_Core_base $model = null,
         string $model_class = '',
         ?array $flow_arr = [],
         int $arro_flags = 0,
@@ -29,24 +31,49 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
     ) {
         parent::__construct([], $arro_flags, $arro_iterator_class);
 
-        if (!empty($flow_arr)) {
-            $this->_flow_arr = $flow_arr;
-        }
-
         if ($model !== null) {
             $this->_model = $model;
         } elseif (!empty($model_class)
                   && ($modelobj = $model_class::get_instance())
-                  && ($modelobj instanceof PHS_Model)
+                  && ($modelobj instanceof PHS_Model_Core_base)
         ) {
             $this->_model = $modelobj;
         }
 
+        if (!empty($flow_arr)) {
+            $this->_flow_arr = $flow_arr;
+        }
+
+        if ( !empty($this->_model) ) {
+            $this->_flow_arr = $this->_model->fetch_default_flow_params($this->_flow_arr);
+        }
+
         $this->_data_structure_definition();
+
+        $this->_new_record = !empty($data[PHS_Model_Mysqli::RECORD_NEW_INSERT_KEY]);
 
         if (!empty($data)) {
             $this->set_data($data);
         }
+    }
+
+    public function record_is_new() : bool
+    {
+        return $this->_new_record;
+    }
+
+    public function mark_as_not_new() : void
+    {
+        $this->_new_record = false;
+    }
+
+    public function get_flow_table_name() : ?string
+    {
+        if (empty($this->_model)) {
+            return null;
+        }
+
+        return $this->_model->get_flow_table_name($this->_flow_arr);
     }
 
     public function set_data(array $data) : void

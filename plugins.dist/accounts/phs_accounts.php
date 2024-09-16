@@ -12,6 +12,7 @@ use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
+use phs\libraries\PHS_Record_data;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts_details;
 use phs\system\core\events\plugins\PHS_Event_Plugin_settings_saved;
@@ -497,29 +498,21 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return true;
     }
 
-    /**
-     * @return bool
-     */
     public function do_logout_subaccount() : bool
     {
-        $this->reset_error();
-
-        if (!($db_details = $this->get_current_user_db_details())
-         || empty($db_details['session_db_data']['id'])
-         || empty($db_details['session_db_data']['auid'])) {
-            return true;
-        }
-
         if (!$this->_load_dependencies()) {
             return false;
         }
 
+        if (!($db_details = $this->get_current_user_db_details())
+            || empty($db_details['session_db_data']['id'])
+            || empty($db_details['session_db_data']['auid'])) {
+            return true;
+        }
+
         if (!($this->_accounts_model->session_logout_subaccount($db_details['session_db_data']))) {
-            if ($this->_accounts_model->has_error()) {
-                $this->copy_error($this->_accounts_model);
-            } else {
-                $this->set_error(self::ERR_LOGOUT, $this->_pt('Couldn\'t logout from subaccount.'));
-            }
+            $this->copy_or_set_error($this->_accounts_model,
+                self::ERR_LOGOUT, $this->_pt('Couldn\'t logout from subaccount.'));
 
             return false;
         }
@@ -527,16 +520,13 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return true;
     }
 
-    /**
-     * @return bool
-     */
     public function do_logout() : bool
     {
         $this->reset_error();
 
         if (!($db_details = $this->get_current_user_db_details())
-         || empty($db_details['session_db_data']) || !is_array($db_details['session_db_data'])
-         || empty($db_details['session_db_data']['id']) || empty($db_details['session_db_data']['uid'])) {
+            || empty($db_details['session_db_data']['id'])
+            || empty($db_details['session_db_data']['uid'])) {
             return true;
         }
 
@@ -554,17 +544,14 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         }
 
         if (!$accounts_model->session_logout($db_details['session_db_data'])) {
-            if ($accounts_model->has_error()) {
-                $this->copy_error($accounts_model);
-            } else {
-                $this->set_error(self::ERR_LOGOUT, $this->_pt('Couldn\'t logout from your account. Please retry.'));
-            }
+            $this->copy_or_set_error($accounts_model,
+                self::ERR_LOGOUT, $this->_pt('Couldn\'t logout from your account. Please retry.'));
 
             return false;
         }
 
         if (!PHS::prevent_session()
-         && !PHS_Session::_d(self::session_key())) {
+            && !PHS_Session::_d(self::session_key())) {
             $this->set_error(self::ERR_LOGOUT, $this->_pt('Couldn\'t logout from your account. Please retry.'));
 
             return false;
@@ -579,15 +566,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return true;
     }
 
-    /**
-     * @param int|array $account_data
-     *
-     * @return null|array
-     */
-    public function generate_bearer_token_for_account($account_data) : ?array
+    public function generate_bearer_token_for_account(int | array | PHS_Record_data $account_data) : ?array
     {
-        $this->reset_error();
-
         /** @var PHS_Model_Accounts $accounts_model */
         if (!$this->_load_dependencies()) {
             $this->set_error(self::ERR_TOKEN, $this->_pt('Error loading required resources.'));
@@ -596,8 +576,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         }
 
         if (empty($account_data)
-         || !($account_arr = $this->_accounts_model->data_to_array($account_data))
-         || !$this->_accounts_model->is_active($account_arr)) {
+            || !($account_arr = $this->_accounts_model->data_to_array($account_data))
+            || !$this->_accounts_model->is_active($account_arr)) {
             $this->set_error(self::ERR_TOKEN, $this->_pt('Invalid account.'));
 
             return null;
@@ -614,11 +594,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         ];
     }
 
-    /**
-     * @param string $token
-     *
-     * @return null|array
-     */
     public function decode_bearer_token(string $token) : ?array
     {
         $this->reset_error();
@@ -638,17 +613,9 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         ];
     }
 
-    /**
-     * @param int|array $account_data
-     * @param null|array $params
-     *
-     * @return null|array
-     */
-    public function do_login($account_data, ?array $params = null) : ?array
+    public function do_login(int | array | PHS_Record_data $account_data, array $params = []) : ?array
     {
         $this->reset_error();
-
-        $params ??= [];
 
         $params['expire_mins'] = (int)($params['expire_mins'] ?? 0);
 
@@ -678,18 +645,15 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         $login_params['force_session_id'] = $params['force_session_id'];
 
         if (!($onuser_arr = $accounts_model->login($account_arr, $login_params))
-         || empty($onuser_arr['wid'])) {
-            if ($accounts_model->has_error()) {
-                $this->copy_error($accounts_model, self::ERR_LOGIN);
-            } else {
-                $this->set_error(self::ERR_LOGIN, $this->_pt('Login failed. Please try again.'));
-            }
+            || empty($onuser_arr['wid'])) {
+            $this->copy_or_set_error($accounts_model,
+                self::ERR_LOGIN, $this->_pt('Login failed. Please try again.'));
 
             return null;
         }
 
         if (!PHS::prevent_session()
-         && !PHS_Session::_s(self::session_key(), $onuser_arr['wid'])) {
+            && !PHS_Session::_s(self::session_key(), $onuser_arr['wid'])) {
             $accounts_model->session_logout($onuser_arr);
 
             $this->set_error(self::ERR_LOGIN, $this->_pt('Login failed. Please try again.'));

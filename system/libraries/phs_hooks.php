@@ -18,7 +18,7 @@ class PHS_Hooks extends PHS_Registry
         H_LANGUAGE_DEFINITION = 'phs_language_definition',
 
         // Model hooks
-        H_MODEL_EMPTY_DATA = 'phs_model_empty_data', H_MODEL_VALIDATE_DATA_FIELDS = 'phs_model_validate_data_fields',
+        H_MODEL_VALIDATE_DATA_FIELDS = 'phs_model_validate_data_fields',
 
         // Paginator hooks
         H_PAGINATOR_ACTION_PARAMETERS = 'phs_paginator_action_parameters',

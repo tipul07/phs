@@ -6,6 +6,7 @@ use phs\PHS;
 use Exception;
 use phs\PHS_Db;
 use MongoDB\BSON\ObjectId;
+use phs\system\core\events\models\PHS_Event_Model_delete;
 
 abstract class PHS_Model_Mongo extends PHS_Model_Core_base
 {
@@ -117,41 +118,6 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     public function get_count_prepare_params($params = false)
     {
         return $params;
-    }
-
-    public function table_field_details(string $field, $params = false)
-    {
-        $this->reset_error();
-
-        $table = false;
-        if (strstr($field, '.') !== false) {
-            [$table, $field] = explode('.', $field, 2);
-        }
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        $params['table_name'] = $table;
-
-        if (!($params = $this->fetch_default_flow_params($params))) {
-            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Failed validating flow parameters.'));
-
-            return false;
-        }
-
-        if (!($table_fields = $this->get_definition($params))
-         || !is_array($table_fields)) {
-            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Invalid table definition.'));
-
-            return false;
-        }
-
-        if (empty($table_fields[$field]) || !is_array($table_fields[$field])) {
-            return null;
-        }
-
-        return $table_fields[$field];
     }
 
     final public function alter_table_add_column($field_name, $field_details, $flow_params = false, $params = false)
@@ -881,7 +847,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _check_table_exists_for_model($flow_params = false, bool $force = false) : bool
+    protected function _check_table_exists_for_model(null | bool | array $flow_params = [], bool $force = false) : bool
     {
         $this->reset_error();
 
@@ -1269,14 +1235,14 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _uninstall_table_for_model($flow_params) : bool
+    protected function _uninstall_table_for_model(null | bool | array $flow_params) : bool
     {
         $this->reset_error();
 
-        if (empty($this->_definition) || !is_array($this->_definition)
-         || !($flow_params = $this->fetch_default_flow_params($flow_params))
-         || !($db_connection = $this->get_db_connection($flow_params))
-         || !($full_table_name = $this->get_flow_table_name($flow_params))) {
+        if (empty($this->_definition)
+            || !($flow_params = $this->fetch_default_flow_params($flow_params))
+            || !($db_connection = $this->get_db_connection($flow_params))
+            || !($full_table_name = $this->get_flow_table_name($flow_params))) {
             return true;
         }
 
@@ -1292,7 +1258,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_table_definition_for_model_from_database($flow_params = false, $force = false)
+    protected function _get_table_definition_for_model_from_database(null | bool | array $flow_params = [], bool $force = false) : ?array
     {
         $this->reset_error();
 
@@ -1302,7 +1268,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
          || !($my_driver = $this->get_model_driver())) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Failed validating flow parameters.'));
 
-            return false;
+            return null;
         }
 
         if (($qid = db_query('SHOW FULL COLUMNS FROM `'.$flow_table_name.'`', $flow_params['db_connection']))) {
@@ -1359,12 +1325,12 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _hard_delete_for_model($existing_data, $params = false) : bool
+    protected function _hard_delete_for_model(array | PHS_Record_data $existing_data, null | bool | array $params = []) : bool
     {
         self::st_reset_error();
         $this->reset_error();
 
-        if (empty($existing_data) || !is_array($existing_data)
+        if (empty($existing_data)
          || !($params = $this->fetch_default_flow_params($params))
          || empty($params['table_index'])
          || !isset($existing_data[$params['table_index']])) {
@@ -1373,12 +1339,19 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
 
         $db_connection = $this->get_db_connection($params['db_connection']);
 
-        $result = false;
-        if (db_query('DELETE FROM `'.$this->get_flow_table_name($params).'` WHERE `'.$params['table_index'].'` = \''.db_escape($existing_data[$params['table_index']], $db_connection).'\'', $db_connection)) {
-            $result = true;
+        if (!db_query('DELETE FROM `'.$this->get_flow_table_name($params).'` '
+                      .'WHERE `'.$params['table_index'].'` = \''.db_escape($existing_data[$params['table_index']], $db_connection).'\'',
+            $db_connection)) {
+            return false;
         }
 
-        return $result;
+        PHS_Event_Model_delete::trigger_for_model($this::class, [
+            'flow_params' => $params,
+            'record_data' => $existing_data,
+            'model_obj'   => $this,
+        ]);
+
+        return true;
     }
 
     /**

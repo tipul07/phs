@@ -5,6 +5,7 @@ namespace phs\libraries;
 use phs\PHS;
 use phs\PHS_Db;
 use phs\PHS_Maintenance;
+use phs\libraries\PHS_Record_data;
 use phs\system\core\events\models\PHS_Event_Model_edit;
 use phs\system\core\events\models\PHS_Event_Model_delete;
 use phs\system\core\events\models\PHS_Event_Model_insert;
@@ -153,49 +154,6 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     public function get_count_prepare_params($params = false)
     {
         return $params;
-    }
-
-    /**
-     * @param string $field
-     * @param bool|array $params
-     *
-     * @return null|array|bool|mixed
-     */
-    public function table_field_details(string $field, $params = false)
-    {
-        $this->reset_error();
-
-        $table = false;
-        if (strpos($field, '.') !== false) {
-            [$table, $field] = explode('.', $field, 2);
-        }
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if ($table !== false) {
-            $params['table_name'] = $table;
-        }
-
-        if (!($params = $this->fetch_default_flow_params($params))) {
-            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Failed validating flow parameters.'));
-
-            return false;
-        }
-
-        if (!($table_fields = $this->get_definition($params))
-         || !is_array($table_fields)) {
-            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Invalid table definition.'));
-
-            return false;
-        }
-
-        if (empty($table_fields[$field]) || !is_array($table_fields[$field])) {
-            return null;
-        }
-
-        return $table_fields[$field];
     }
 
     /**
@@ -621,12 +579,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return array|bool
      */
-    public function insert($params)
+    public function insert(array $params)
     {
         $this->reset_error();
 
         if (!($params = $this->fetch_default_flow_params($params))
-         || !isset($params['fields']) || !is_array($params['fields'])) {
+            || !isset($params['fields']) || !is_array($params['fields'])) {
             $this->set_error(self::ERR_INSERT, self::_t('Failed validating flow parameters.'));
 
             return false;
@@ -731,29 +689,28 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         return $insert_arr;
     }
 
-    public function record_is_new($record_arr) : bool
+    public function record_is_new(array | PHS_Record_data $record_arr) : bool
     {
+        if ($record_arr instanceof PHS_Record_data) {
+            return $record_arr->record_is_new();
+        }
+
         return !empty($record_arr[self::RECORD_NEW_INSERT_KEY]);
     }
 
-    /**
-     * @param int|array $existing_data
-     * @param array $params
-     *
-     * @return array|bool
-     */
-    public function edit($existing_data, $params)
+    public function edit(int | array | PHS_Record_data $existing_data, array $params)
     {
         $this->reset_error();
 
         if (!($params = $this->fetch_default_flow_params($params))
-         || !isset($params['fields']) || !is_array($params['fields'])) {
+            || !isset($params['fields']) || !is_array($params['fields'])) {
             $this->set_error(self::ERR_EDIT, self::_t('Failed validating flow parameters.'));
 
             return false;
         }
 
-        if (!($existing_arr = $this->data_to_array($existing_data, $params))
+        if (empty($existing_data)
+            || !($existing_arr = $this->data_to_array($existing_data, $params))
             || !array_key_exists($params['table_index'], $existing_arr)) {
             $this->set_error(self::ERR_EDIT, self::_t('Existing record not found in database.'));
 
@@ -765,7 +722,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         $original_record_arr = $existing_arr;
 
         // If this was a new record in db, it is not anymore...
-        if (isset($existing_arr[self::RECORD_NEW_INSERT_KEY])) {
+        if ($existing_arr instanceof PHS_Record_data) {
+            $existing_arr->mark_as_not_new();
+        } elseif (isset($existing_arr[self::RECORD_NEW_INSERT_KEY])) {
             unset($existing_arr[self::RECORD_NEW_INSERT_KEY]);
         }
 
@@ -1147,7 +1106,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _check_table_exists_for_model($flow_params = false, bool $force = false) : bool
+    protected function _check_table_exists_for_model(null | bool | array $flow_params = [], bool $force = false) : bool
     {
         $this->reset_error();
 
@@ -1254,10 +1213,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         return true;
     }
 
-    protected function get_previous_field_from_table_definition($field, $definition) : ?array
+    protected function get_previous_field_from_table_definition(string $field, array $definition) : ?array
     {
         if (empty($field)
-         || empty($definition) || !is_array($definition)
          || !isset($definition[$field])) {
             return null;
         }
@@ -1623,14 +1581,14 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _uninstall_table_for_model($flow_params) : bool
+    protected function _uninstall_table_for_model(null | bool | array $flow_params) : bool
     {
         $this->reset_error();
 
-        if (empty($this->_definition) || !is_array($this->_definition)
-         || !($flow_params = $this->fetch_default_flow_params($flow_params))
-         || !($db_connection = $this->get_db_connection($flow_params))
-         || !($full_table_name = $this->get_flow_table_name($flow_params))) {
+        if (empty($this->_definition)
+            || !($flow_params = $this->fetch_default_flow_params($flow_params))
+            || !($db_connection = $this->get_db_connection($flow_params))
+            || !($full_table_name = $this->get_flow_table_name($flow_params))) {
             return true;
         }
 
@@ -1646,7 +1604,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_table_definition_for_model_from_database($flow_params = false, $force = false)
+    protected function _get_table_definition_for_model_from_database(null | bool | array $flow_params = [], bool $force = false) : ?array
     {
         $this->reset_error();
 
@@ -1655,12 +1613,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
          || !($my_driver = $this->get_model_driver())) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Failed validating flow parameters.'));
 
-            return false;
+            return null;
         }
 
         if (!$this->_get_table_columns_definition_for_model_from_database($flow_params, $my_driver, $flow_table_name, $force)
          || !$this->_get_table_indexes_definition_for_model_from_database($flow_params, $my_driver, $flow_table_name, $force)) {
-            return false;
+            return null;
         }
 
         return self::get_cached_db_table_structure($flow_table_name, $my_driver);
@@ -1669,7 +1627,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _hard_delete_for_model($existing_data, $params = false) : bool
+    protected function _hard_delete_for_model(array | PHS_Record_data $existing_data, null | bool | array $params = []) : bool
     {
         self::st_reset_error();
         $this->reset_error();
@@ -1684,7 +1642,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         $db_connection = $this->get_db_connection($params['db_connection']);
 
         if (!db_query('DELETE FROM `'.$this->get_flow_table_name($params).'` '
-                      .' WHERE `'.$params['table_index'].'` = \''.db_escape($existing_data[$params['table_index']], $db_connection).'\'', $db_connection)) {
+                      .' WHERE `'.$params['table_index'].'` = \''.db_escape($existing_data[$params['table_index']], $db_connection).'\'',
+            $db_connection)) {
             return false;
         }
 
@@ -2071,12 +2030,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      * Called right after a successfull edit action. Some model need more database work after editing records. This action is called even if model didn't save anything
      * in database.
      *
-     * @param array|int $existing_data Data which already exists in database (id or full array with all database fields)
+     * @param array|int|PHS_Record_data $existing_data Data which already exists in database (id or full array with all database fields)
      * @param array $edit_arr Data array saved with success in database. This can also be an empty array (nothing to save in database)
      * @param array $params Flow parameters
      *
-     * @return array|bool Returns data array added in database (with changes, if required) or false if functionality failed.
-     *                    Saved information will not be rolled back.
+     * @return null|bool|array|PHS_Record_data Returns data array added in database (with changes, if required) or false if functionality failed.
+     *                                         Saved information will not be rolled back.
      */
     protected function edit_after($existing_data, $edit_arr, $params)
     {
