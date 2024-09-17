@@ -67,10 +67,6 @@ class PHS_Hooks extends PHS_Registry
         H_USERS_DETAILS_FIELDS = 'phs_users_details_fields',
         // triggered after user details are updated
         H_USERS_DETAILS_UPDATED = 'phs_users_details_updated',
-        // triggered when encoding user passwords
-        H_USERS_ENCODE_PASS = 'phs_users_encode_pass',
-        // triggered when generating user passwords
-        H_USERS_GENERATE_PASS = 'phs_users_generate_pass',
         // triggered after user logs in successfully
         H_USERS_AFTER_LOGIN = 'phs_users_after_login',
         // triggered right when execute() function of login action is called
@@ -641,14 +637,7 @@ class PHS_Hooks extends PHS_Registry
     // endregion Captcha hooks
     //
 
-    /**
-     * Trigger an email action
-     *
-     * @param null|array $hook_args
-     *
-     * @return null|bool|array
-     */
-    public static function trigger_email(?array $hook_args)
+    public static function trigger_email(?array $hook_args) : null | bool | array
     {
         self::st_reset_error();
 
@@ -659,9 +648,8 @@ class PHS_Hooks extends PHS_Registry
             return null;
         }
 
-        if (is_array($hook_args)
-         && !empty($hook_args['hook_errors']) && is_array($hook_args['hook_errors'])
-         && self::arr_has_error($hook_args['hook_errors'])) {
+        if (!empty($hook_args['hook_errors']) && is_array($hook_args['hook_errors'])
+            && self::arr_has_error($hook_args['hook_errors'])) {
             self::st_copy_error_from_array($hook_args['hook_errors']);
 
             return false;
@@ -734,7 +722,7 @@ class PHS_Hooks extends PHS_Registry
     {
         $hook_args = self::validate_array($hook_args, self::default_account_structure_hook_args());
 
-        if (($hook_args = PHS::trigger_hooks(self::H_USER_ACCOUNT_STRUCTURE, $hook_args)) === null) {
+        if (null === ($hook_args = PHS::trigger_hooks(self::H_USER_ACCOUNT_STRUCTURE, $hook_args))) {
             return false;
         }
 

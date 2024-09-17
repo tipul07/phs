@@ -40,17 +40,17 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * @return array of string Returns an array of strings containing tables that model will handle
      */
-    abstract public function get_table_names();
+    abstract public function get_table_names() : array;
 
     /**
      * @return string Returns main table name used when calling insert with no table name
      */
-    abstract public function get_main_table_name();
+    abstract public function get_main_table_name() : string;
 
     /**
      * @return string Returns version of model
      */
-    abstract public function get_model_version();
+    abstract public function get_model_version() : string;
 
     /**
      * @param array|bool $params Parameters in the flow
@@ -81,21 +81,21 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * Returns primary table key
      *
-     * @param array|bool $params Parameters in the flow
+     * @param null|bool|array $params Parameters in the flow
      *
      * @return string What's primary key of the table
      */
-    abstract public function get_primary_key($params = false) : string;
+    abstract public function get_primary_key(null | bool | array $params = []) : string;
 
     /**
      * Prepares primary key for a query (intval for int or trim for strings)
      *
      * @param int|string $id Primary key value
-     * @param array|bool $params Parameters in the flow
+     * @param null|bool|array $params Parameters in the flow
      *
      * @return int|string Prepared primary key
      */
-    abstract public function prepare_primary_key($id, $params = false);
+    abstract public function prepare_primary_key(int | string $id, null | bool | array $params = []) : int | string;
 
     /**
      * Returns an array of data types supported by model
@@ -103,15 +103,6 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      * @return array Data types array
      */
     abstract public function get_field_types() : array;
-
-    /**
-     * Checks if provided type is a valid data type and returns an array with details about data type
-     *
-     * @param int $type Field type
-     *
-     * @return null|array Data type details array
-     */
-    abstract public function valid_field_type(int $type) : ?array;
 
     /**
      * Retrieve one record from database by its primary key (model specific functionality)
@@ -239,6 +230,18 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     final public function instance_type() : string
     {
         return self::INSTANCE_TYPE_MODEL;
+    }
+
+    /**
+     * Return an array with array keys which are allowed to be set in a PHS_Record_data object
+     *
+     * @param null|bool|array $flow_arr
+     *
+     * @return array
+     */
+    public function allow_record_data_keys(null | bool | array $flow_arr = []) : array
+    {
+        return [];
     }
 
     /**
@@ -567,6 +570,24 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     }
 
     /**
+     * Checks if provided type is a valid data type and returns an array with details about data type
+     *
+     * @param int $type Field type
+     *
+     * @return null|array Data type details array
+     */
+    public function valid_field_type(int $type) : ?array
+    {
+        if (empty($type)
+            || !($fields_arr = $this->get_field_types())
+            || empty($fields_arr[$type]) || !is_array($fields_arr[$type])) {
+            return null;
+        }
+
+        return $fields_arr[$type];
+    }
+
+    /**
      * This method hard-deletes a record from database.
      * If additional work is required before hard-deleting record, or you want to cancel the delete,
      * PHS_Event_Model_hard_delete::trigger() is triggered before deleting.
@@ -610,11 +631,11 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     /**
      * Retrieve table structure as defined in database
      *
-     * @param bool|array $params Flow parameters
+     * @param null|bool|array $params Flow parameters
      *
      * @return null|array Return flow table structure definition as array
      */
-    public function get_definition($params = false) : ?array
+    public function get_definition(null | bool | array $params = []) : ?array
     {
         if (!($params = $this->fetch_default_flow_params($params))) {
             $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Failed validating flow parameters.'));
@@ -871,11 +892,27 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return $item_arr;
         }
 
+        return $this->record_data_from_array($item_arr, $flow_params);
+    }
+
+    public function record_data_from_array(array $data_arr, null | bool | array $flow_params = []) : ?PHS_Record_data
+    {
+        if (empty($data_arr)
+            || !($flow_params = $this->fetch_default_flow_params($flow_params))) {
+            return null;
+        }
+
         return new PHS_Record_data(
-            data: $item_arr,
+            data: $data_arr,
             model: $this,
             flow_arr: $flow_params,
         );
+    }
+
+    public function data_key_exists(string $key, array | PHS_Record_data $item_data) : bool
+    {
+        return (is_array($item_data) && array_key_exists($key, $item_data))
+            || ($item_data instanceof PHS_Record_data && $item_data->data_key_exists($key));
     }
 
     /**
@@ -1366,7 +1403,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @return bool True on success or false on failure
      */
-    final public function uninstall()
+    final public function uninstall() : bool
     {
         $this->reset_error();
 
@@ -1398,13 +1435,10 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return false;
         }
 
-        $check_arr = [];
-        $check_arr['instance_id'] = $this_instance_id;
-
         db_supress_errors($this->_plugins_instance->get_db_connection());
-        if (!($db_details = $this->_plugins_instance->get_details_fields($check_arr))
-         || empty($db_details['type'])
-         || $db_details['type'] !== self::INSTANCE_TYPE_MODEL) {
+        if (!($db_details = $this->_plugins_instance->get_details_fields(['instance_id' => $this_instance_id]))
+            || empty($db_details['type'])
+            || $db_details['type'] !== self::INSTANCE_TYPE_MODEL) {
             db_restore_errors_state($this->_plugins_instance->get_db_connection());
 
             PHS_Logger::warning('Model doesn\'t seem to be installed. ['.$this_instance_id.']', PHS_Logger::TYPE_MAINTENANCE);
@@ -1424,11 +1458,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         PHS_Logger::notice('DONE calling uninstall tables ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE);
 
         if (!$this->_plugins_instance->hard_delete($db_details)) {
-            if ($this->_plugins_instance->has_error()) {
-                $this->copy_error($this->_plugins_instance);
-            } else {
-                $this->set_error(self::ERR_UNINSTALL, self::_t('Error hard-deleting model from database.'));
-            }
+            $this->copy_or_set_error($this->_plugins_instance,
+                self::ERR_UNINSTALL, self::_t('Error hard-deleting model from database.'));
 
             PHS_Logger::error('!!! Error ['.$this->get_error_message().'] ['.$this->instance_id().']', PHS_Logger::TYPE_MAINTENANCE);
 
@@ -1826,8 +1857,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     {
         $this->reset_error();
 
-        if (!($table_fields = $this->get_definition($params))
-         || !is_array($table_fields)) {
+        if (!($table_fields = $this->get_definition($params))) {
             $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Invalid table definition.'));
 
             return false;
@@ -2091,7 +2121,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      */
     final public static function get_model_base_version() : string
     {
-        return '1.1.0';
+        return '1.2.0';
     }
 
     /**

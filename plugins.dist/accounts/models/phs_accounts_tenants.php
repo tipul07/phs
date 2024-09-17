@@ -3,6 +3,7 @@
 namespace phs\plugins\accounts\models;
 
 use phs\libraries\PHS_Model;
+use phs\libraries\PHS_Record_data;
 
 class PHS_Model_Accounts_tenants extends PHS_Model
 {
@@ -70,28 +71,24 @@ class PHS_Model_Accounts_tenants extends PHS_Model
     /**
      * Links tenants with an account.
      *
-     * @param array|int $account_data Account id or account array
+     * @param int|array|PHS_Record_data $account_data Account id or account array
      * @param array $tenants_arr Tenants passed as id array
-     * @param null|array $params Functionality parameters
+     * @param array $params Functionality parameters
      *
      * @return bool
      */
-    public function link_tenants_to_account($account_data, array $tenants_arr, ?array $params = null) : bool
+    public function link_tenants_to_account(int | array | PHS_Record_data $account_data, array $tenants_arr, array $params = []) : bool
     {
         $this->reset_error();
 
-        if (empty($params)) {
-            $params = [];
-        }
-
-        $params['append_tenants'] = (!isset($params['append_tenants']) || !empty($params['append_tenants']));
+        $params['append_tenants'] = !isset($params['append_tenants']) || !empty($params['append_tenants']);
 
         if (!$this->_load_dependencies()) {
             return false;
         }
 
         if (empty($account_data)
-         || !($account_arr = self::$_accounts_model->data_to_array($account_data))) {
+            || !($account_arr = self::$_accounts_model->data_to_array($account_data))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Account not found in database.'));
 
             return false;
@@ -113,9 +110,9 @@ class PHS_Model_Accounts_tenants extends PHS_Model
                 return true;
             }
 
-            // Unlink all roles...
+            // Unlink all tenants...
             if (!db_query('UPDATE `'.$u_table.'` SET is_multitenant = 1 WHERE id = \''.$account_arr['id'].'\'', $u_flow['db_connection'])
-             || !db_query('DELETE FROM `'.$ut_table.'` WHERE account_id = \''.$account_arr['id'].'\'', $db_connection)) {
+                || !db_query('DELETE FROM `'.$ut_table.'` WHERE account_id = \''.$account_arr['id'].'\'', $db_connection)) {
                 $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error un-linking old tenants from account.'));
 
                 return false;
@@ -168,13 +165,13 @@ class PHS_Model_Accounts_tenants extends PHS_Model
 
         if ($tenants_count > 0) {
             if (!empty($account_arr['is_multitenant'])
-             && !db_query('UPDATE `'.$u_table.'` SET is_multitenant = 0 WHERE id = \''.$account_arr['id'].'\'', $u_flow['db_connection'])) {
+                && !db_query('UPDATE `'.$u_table.'` SET is_multitenant = 0 WHERE id = \''.$account_arr['id'].'\'', $u_flow['db_connection'])) {
                 $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error updating multi-tenant details for account.'));
 
                 return false;
             }
         } elseif (empty($account_arr['is_multitenant'])
-             && !db_query('UPDATE `'.$u_table.'` SET is_multitenant = 1 WHERE id = \''.$account_arr['id'].'\'', $u_flow['db_connection'])) {
+                  && !db_query('UPDATE `'.$u_table.'` SET is_multitenant = 1 WHERE id = \''.$account_arr['id'].'\'', $u_flow['db_connection'])) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error updating multi-tenant details for account.'));
 
             return false;
@@ -228,7 +225,7 @@ class PHS_Model_Accounts_tenants extends PHS_Model
         }
 
         if (empty($params['fields']['account_id'])
-         || empty($params['fields']['tenant_id'])) {
+            || empty($params['fields']['tenant_id'])) {
             $this->set_error(self::ERR_INSERT, $this->_pt('Please provide account tenant details.'));
 
             return false;
@@ -244,7 +241,7 @@ class PHS_Model_Accounts_tenants extends PHS_Model
         }
 
         if ((isset($params['fields']['account_id']) && empty($params['fields']['account_id']))
-         || (isset($params['fields']['tenant_id']) && empty($params['fields']['tenant_id']))) {
+            || (isset($params['fields']['tenant_id']) && empty($params['fields']['tenant_id']))) {
             $this->set_error(self::ERR_INSERT, $this->_pt('Please provide account tenant details.'));
 
             return false;

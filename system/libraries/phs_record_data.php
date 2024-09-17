@@ -17,15 +17,17 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
 
     private array $_flow_arr = [];
 
+    private array $_allowed_extra_keys = [];
+
     private ?PHS_Model_Core_base $_model = null;
 
-    private bool $_new_record = false;
+    private bool $_new_record;
 
     public function __construct(
         array $data = [],
         ?PHS_Model_Core_base $model = null,
         string $model_class = '',
-        ?array $flow_arr = [],
+        null | bool | array $flow_arr = [],
         int $arro_flags = 0,
         string $arro_iterator_class = ArrayIterator::class,
     ) {
@@ -40,7 +42,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
             $this->_model = $modelobj;
         }
 
-        if (!empty($flow_arr)) {
+        if (!empty($flow_arr) && is_array($flow_arr)) {
             $this->_flow_arr = $flow_arr;
         }
 
@@ -49,6 +51,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
         }
 
         $this->_data_structure_definition();
+        $this->_check_allowed_extra_keys();
 
         $this->_new_record = !empty($data[PHS_Model_Mysqli::RECORD_NEW_INSERT_KEY]);
 
@@ -65,6 +68,16 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
     public function mark_as_not_new() : void
     {
         $this->_new_record = false;
+    }
+
+    public function data_key_exists(string $key) : bool
+    {
+        return array_key_exists($key, $this->_data);
+    }
+
+    public function data_key_is_allowed(string $key) : bool
+    {
+        return in_array($key, $this->_allowed_extra_keys, true);
     }
 
     public function get_flow_table_name() : ?string
@@ -86,7 +99,8 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
     public function set_data_key(string $key, mixed $value) : void
     {
         if (!array_key_exists($key, $this->_data)
-            && !array_key_exists($key, $this->_data_structure)) {
+            && !array_key_exists($key, $this->_data_structure)
+            && !$this->data_key_is_allowed($key)) {
             // TODO (relations) Also check if $key is a defined relation
             return;
         }
@@ -239,6 +253,15 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
         }
 
         $this->_data_structure = $data_structure;
+    }
+
+    private function _check_allowed_extra_keys() : void
+    {
+        if (empty($this->_model)) {
+            return;
+        }
+
+        $this->_allowed_extra_keys = $this->_model->allow_record_data_keys($this->_flow_arr);
     }
     // endregion Serializable
 

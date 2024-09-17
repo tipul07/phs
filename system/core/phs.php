@@ -13,6 +13,7 @@ use phs\libraries\PHS_Library;
 use phs\libraries\PHS_Contract;
 use phs\libraries\PHS_Registry;
 use phs\libraries\PHS_Controller;
+use phs\libraries\PHS_Record_data;
 use phs\libraries\PHS_Instantiable;
 use phs\system\core\views\PHS_View;
 use phs\libraries\PHS_Notifications;
@@ -346,14 +347,13 @@ final class PHS extends PHS_Registry
         return $hook_args['session_db_data'];
     }
 
-    public static function account_structure($account_data) : ?array
+    public static function account_structure(int | array | PHS_Record_data $account_data) : null | array | PHS_Record_data
     {
         $hook_args = PHS_Hooks::default_account_structure_hook_args();
         $hook_args['account_data'] = $account_data;
 
         if (!($hook_result = PHS_Hooks::trigger_account_structure($hook_args))
-            || empty($hook_result['account_structure'])
-            || !is_array($hook_result['account_structure'])) {
+            || empty($hook_result['account_structure'])) {
             return null;
         }
 

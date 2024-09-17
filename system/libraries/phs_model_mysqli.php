@@ -5,7 +5,6 @@ namespace phs\libraries;
 use phs\PHS;
 use phs\PHS_Db;
 use phs\PHS_Maintenance;
-use phs\libraries\PHS_Record_data;
 use phs\system\core\events\models\PHS_Event_Model_edit;
 use phs\system\core\events\models\PHS_Event_Model_delete;
 use phs\system\core\events\models\PHS_Event_Model_insert;
@@ -95,7 +94,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * (override the method if not `id`)
      */
-    public function get_primary_key($params = false) : string
+    public function get_primary_key(null | bool | array $params = []) : string
     {
         return 'id';
     }
@@ -105,7 +104,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      * @return int
      *             Default primary key an INT, override this method if otherwise
      */
-    public function prepare_primary_key($id, $params = false)
+    public function prepare_primary_key(int | string $id, null | bool | array $params = []) : int | string
     {
         return (int)$id;
     }
@@ -116,20 +115,6 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     public function get_field_types() : array
     {
         return self::$FTYPE_ARR;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function valid_field_type(int $type) : ?array
-    {
-        if (empty($type)
-            || !($fields_arr = $this->get_field_types())
-            || empty($fields_arr[$type]) || !is_array($fields_arr[$type])) {
-            return null;
-        }
-
-        return $fields_arr[$type];
     }
 
     /**
@@ -711,7 +696,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         if (empty($existing_data)
             || !($existing_arr = $this->data_to_array($existing_data, $params))
-            || !array_key_exists($params['table_index'], $existing_arr)) {
+            || !$this->data_key_exists($params['table_index'], $existing_arr)) {
             $this->set_error(self::ERR_EDIT, self::_t('Existing record not found in database.'));
 
             return false;

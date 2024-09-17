@@ -17,6 +17,8 @@ use phs\traits\PHS_Model_Trait_statuses;
 use phs\system\core\models\PHS_Model_Roles;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\system\core\models\PHS_Model_Tenants;
+use phs\system\core\events\accounts\PHS_Event_Accounts_generate_password;
+use phs\system\core\events\accounts\PHS_Event_Accounts_password_encryption;
 
 class PHS_Model_Accounts extends PHS_Model
 {
@@ -70,50 +72,54 @@ class PHS_Model_Accounts extends PHS_Model
     {
         return 'users';
     }
-    //
-    //  END Level checks
-    //
 
-    //
-    //  Account level checks
-    //
-    public function acc_is_developer(bool | null | int | array $user_data) : bool
+    /**
+     * @inheritdoc
+     */
+    public function allow_record_data_keys(null | bool | array $flow_arr = []) : array
+    {
+        if (!($flow_arr = $this->fetch_default_flow_params($flow_arr))
+            || $flow_arr['table_name'] !== 'users') {
+            return [];
+        }
+
+        return [self::ROLES_USER_KEY, self::ROLE_UNITS_USER_KEY, '{users_details}', '{pass_salt}', '{old_pass_salt}'];
+    }
+
+    public function acc_is_developer(bool | null | int | array | PHS_Record_data $user_data) : bool
     {
         return !empty($user_data)
                && ($user_arr = $this->data_to_array($user_data))
                && self::is_developer((int)($user_arr['level'] ?? 0));
     }
 
-    public function acc_is_sadmin(bool | null | int | array $user_data) : bool
+    public function acc_is_sadmin(bool | null | int | array | PHS_Record_data $user_data) : bool
     {
         return !empty($user_data)
                && ($user_arr = $this->data_to_array($user_data))
                && self::is_sadmin((int)($user_arr['level'] ?? 0));
     }
 
-    public function acc_is_admin(bool | null | int | array $user_data, bool $strict = false) : bool
+    public function acc_is_admin(bool | null | int | array | PHS_Record_data $user_data, bool $strict = false) : bool
     {
         return !empty($user_data)
                && ($user_arr = $this->data_to_array($user_data))
                && self::is_admin((int)($user_arr['level'] ?? 0), $strict);
     }
 
-    public function acc_is_operator(bool | null | int | array $user_data, bool $strict = false) : bool
+    public function acc_is_operator(bool | null | int | array | PHS_Record_data $user_data, bool $strict = false) : bool
     {
         return !empty($user_data)
                && ($user_arr = $this->data_to_array($user_data))
                && self::is_operator((int)($user_arr['level'] ?? 0), $strict);
     }
 
-    public function acc_is_member(bool | null | int | array $user_data, bool $strict = false) : bool
+    public function acc_is_member(bool | null | int | array | PHS_Record_data $user_data, bool $strict = false) : bool
     {
         return !empty($user_data)
                && ($user_arr = $this->data_to_array($user_data))
                && self::is_member((int)($user_arr['level'] ?? 0), $strict);
     }
-    //
-    //  END Account level checks
-    //
 
     public function is_active(bool | null | int | array | PHS_Record_data $user_data) : bool
     {
@@ -221,6 +227,10 @@ class PHS_Model_Accounts extends PHS_Model
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
 
             return null;
+        }
+
+        if ($account_arr instanceof PHS_Record_data) {
+            $account_arr = $account_arr->cast_to_array();
         }
 
         // As we announce account action, we should have updated values...
@@ -437,19 +447,13 @@ class PHS_Model_Accounts extends PHS_Model
         return $level_arr['title'] ?? $this->_pt('N/A');
     }
 
-    /**
-     * @param string $acc_pass
-     * @param string $acc_salt
-     * @param string $pass
-     *
-     * @return bool
-     */
-    public function raw_check_pass($acc_pass, $acc_salt, $pass) : bool
+    public function raw_check_pass(?string $acc_pass, ?string $acc_salt, ?string $pass) : bool
     {
-        return !(empty($acc_pass) || empty($acc_salt)
-         || empty($pass)
-         || !($encoded_pass = self::encode_pass($pass, $acc_salt))
-         || !@hash_equals($acc_pass, $encoded_pass));
+        return !empty($acc_pass)
+               && !empty($acc_salt)
+               && !empty($pass)
+               && ($encoded_pass = self::encode_pass($pass, $acc_salt))
+               && @hash_equals($acc_pass, $encoded_pass);
     }
 
     public function check_pass(int | array | PHS_Record_data $account_data, $pass) : ?array
@@ -682,11 +686,11 @@ class PHS_Model_Accounts extends PHS_Model
                         .' WHERE expire_date < \''.date(self::DATETIME_DB).'\'', $flow_params['db_connection']);
     }
 
-    public function update_current_session(int | array | PHS_Record_data $online_data, array $params = [])
+    public function update_current_session(int | array | PHS_Record_data $online_data, array $params = []) : null | array | PHS_Record_data
     {
         if (empty($online_data)
             || !($online_arr = $this->data_to_array($online_data, ['table_name' => 'online']))) {
-            return false;
+            return null;
         }
 
         $params['location'] = empty($params['location'])
@@ -721,13 +725,9 @@ class PHS_Model_Accounts extends PHS_Model
             $edit_arr['wid'] = $params['wid'];
         }
         if (array_key_exists('tfa_expiration', $params)) {
-            if (!empty($params['tfa_expiration'])) {
-                $params['tfa_expiration'] = date(self::DATETIME_DB, parse_db_date($params['tfa_expiration']));
-            } else {
-                $params['tfa_expiration'] = null;
-            }
-
-            $edit_arr['tfa_expiration'] = $params['tfa_expiration'];
+            $edit_arr['tfa_expiration'] = !empty($params['tfa_expiration'])
+                ? date(self::DATETIME_DB, parse_db_date($params['tfa_expiration']))
+                : null;
         }
         $edit_arr['host'] = $host;
         $edit_arr['idle'] = $cdate;
@@ -740,24 +740,21 @@ class PHS_Model_Accounts extends PHS_Model
         if (!($online_arr = $this->edit($online_arr, $edit_params))) {
             $this->set_error_if_not_set(self::ERR_INSERT, $this->_pt('Error saving session details to database.'));
 
-            return false;
+            return null;
         }
 
         return $online_arr;
     }
 
-    /**
-     * @param int|array $online_data
-     *
-     * @return array|bool
-     */
-    public function session_logout_subaccount($online_data)
+    public function session_logout_subaccount(int | array | PHS_Record_data $online_data) : null | array | PHS_Record_data
     {
+        $this->reset_error();
+
         if (empty($online_data)
          || !($online_flow = $this->fetch_default_flow_params(['table_name' => 'online']))
          || !($online_arr = $this->data_to_array($online_data, $online_flow))
          || empty($online_arr['auid'])) {
-            return false;
+            return null;
         }
 
         $edit_arr = $online_flow;
@@ -765,7 +762,11 @@ class PHS_Model_Accounts extends PHS_Model
         $edit_arr['fields']['uid'] = $online_arr['auid'];
         $edit_arr['fields']['auid'] = 0;
 
-        return $this->edit($online_arr, $edit_arr);
+        if ( !($new_record = $this->edit($online_arr, $edit_arr)) ) {
+            return null;
+        }
+
+        return $new_record;
     }
 
     public function session_logout(int | array | PHS_Record_data $online_data) : bool
@@ -881,7 +882,7 @@ class PHS_Model_Accounts extends PHS_Model
         $this->reset_error();
 
         if (empty($account_data)
-         || !($account_arr = $this->data_to_array($account_data))) {
+            || !($account_arr = $this->data_to_array($account_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Unknown account.'));
 
             return null;
@@ -918,7 +919,7 @@ class PHS_Model_Accounts extends PHS_Model
         return $account_arr;
     }
 
-    public function activate_account_after_registration($account_data) : ?array
+    public function activate_account_after_registration(int | array | PHS_Record_data $account_data) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -930,21 +931,14 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if (empty($account_data)
-         || !($account_arr = $this->data_to_array($account_data))
-         || !$this->needs_activation($account_arr)) {
+            || !($account_arr = $this->data_to_array($account_data))
+            || !$this->needs_activation($account_arr)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Unknown account.'));
 
             return null;
         }
 
-        $edit_arr = [];
-        $edit_arr['status'] = self::STATUS_ACTIVE;
-
-        $edit_params = [];
-        $edit_params['{activate_after_registration}'] = true;
-        $edit_params['fields'] = $edit_arr;
-
-        if (!($result = $this->edit($account_arr, $edit_params))) {
+        if (!($result = $this->edit($account_arr, ['fields' => ['status' => self::STATUS_ACTIVE], '{activate_after_registration}' => true]))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error inactivating account.'));
 
             return null;
@@ -958,13 +952,7 @@ class PHS_Model_Accounts extends PHS_Model
         return $result;
     }
 
-    /**
-     * @param int|array $account_data
-     * @param bool|array $params
-     *
-     * @return null|array
-     */
-    public function activate_account($account_data, $params = false) : ?array
+    public function activate_account(int | array | PHS_Record_data $account_data, array $params = []) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -976,14 +964,10 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if (empty($account_data)
-         || !($account_arr = $this->data_to_array($account_data))) {
+            || !($account_arr = $this->data_to_array($account_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Unknown account.'));
 
             return null;
-        }
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
         }
 
         $params['prevent_sending_emails'] = !empty($params['prevent_sending_emails']);
@@ -991,9 +975,6 @@ class PHS_Model_Accounts extends PHS_Model
         if ($this->is_active($account_arr)) {
             return $account_arr;
         }
-
-        $edit_arr = [];
-        $edit_arr['status'] = self::STATUS_ACTIVE;
 
         $edit_params = [];
         if ($params['prevent_sending_emails']) {
@@ -1003,10 +984,10 @@ class PHS_Model_Accounts extends PHS_Model
             $edit_params['{activate_after_registration}'] = true;
         }
 
-        $edit_params['fields'] = $edit_arr;
+        $edit_params['fields'] = ['status' => self::STATUS_ACTIVE];
 
         if (!($result = $this->edit($account_arr, $edit_params))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error inactivating account.'));
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error activating account.'));
 
             return null;
         }
@@ -1019,7 +1000,7 @@ class PHS_Model_Accounts extends PHS_Model
         return $result;
     }
 
-    public function inactivate_account(int | array $account_data, array $params = []) : ?array
+    public function inactivate_account(int | array | PHS_Record_data $account_data, array $params = []) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -1043,15 +1024,12 @@ class PHS_Model_Accounts extends PHS_Model
             return $account_arr;
         }
 
-        $edit_arr = [];
-        $edit_arr['status'] = self::STATUS_INACTIVE;
-
         $edit_params = [];
         if ($params['prevent_sending_emails']) {
             $edit_params['{activate_after_registration}'] = false;
         }
 
-        $edit_params['fields'] = $edit_arr;
+        $edit_params['fields'] = ['status' => self::STATUS_INACTIVE];
 
         if (!($result = $this->edit($account_arr, $edit_params))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error inactivating account.'));
@@ -1067,13 +1045,7 @@ class PHS_Model_Accounts extends PHS_Model
         return $result;
     }
 
-    /**
-     * @param int|array $account_data
-     * @param bool|array $params
-     *
-     * @return array|bool|mixed
-     */
-    public function delete_account($account_data, $params = false) : ?array
+    public function delete_account(int | array | PHS_Record_data $account_data, array $params = []) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -1095,13 +1067,7 @@ class PHS_Model_Accounts extends PHS_Model
             return $account_arr;
         }
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if (empty($params['unlink_roles'])) {
-            $params['unlink_roles'] = false;
-        }
+        $params['unlink_roles'] = !empty($params['unlink_roles']);
 
         //
         // We don't put before delete action to background as this should be a sync action
@@ -1122,10 +1088,7 @@ class PHS_Model_Accounts extends PHS_Model
         $edit_arr['email'] = $account_arr['email'].'-DELETED-'.time();
         $edit_arr['status'] = self::STATUS_DELETED;
 
-        $edit_params = [];
-        $edit_params['fields'] = $edit_arr;
-
-        if (!($new_account_arr = $this->edit($account_arr, $edit_params))) {
+        if (!($new_account_arr = $this->edit($account_arr, ['fields' => $edit_arr]))) {
             return null;
         }
 
@@ -1155,12 +1118,7 @@ class PHS_Model_Accounts extends PHS_Model
         return $account_arr;
     }
 
-    /**
-     * @param array $hook_args
-     *
-     * @return bool|array
-     */
-    public function trigger_account_action_in_background($hook_args)
+    public function trigger_account_action_in_background(array $hook_args) : bool | array
     {
         $this->reset_error();
 
@@ -1180,11 +1138,7 @@ class PHS_Model_Accounts extends PHS_Model
         $hook_args['account_data'] = $account_arr['id'];
 
         if (!PHS_Bg_jobs::run(['p' => 'accounts', 'a' => 'account_action_bg', 'c' => 'index_bg'], $hook_args)) {
-            if (self::st_has_error()) {
-                $this->copy_static_error(self::ERR_ACCOUNT_ACTION);
-            } else {
-                $this->set_error(self::ERR_ACCOUNT_ACTION, $this->_pt('Error launching account action in background.'));
-            }
+            $this->copy_or_set_static_error(self::ERR_ACCOUNT_ACTION, $this->_pt('Error launching account action in background.'));
 
             PHS_Logger::error('Error launching account action ['.(!empty($hook_args['action_alias']) ? $hook_args['action_alias'] : 'N/A').'] in background. ('.$this->get_simple_error_message().')', PHS_Logger::TYPE_ERROR);
 
@@ -1196,12 +1150,7 @@ class PHS_Model_Accounts extends PHS_Model
         return $hook_args;
     }
 
-    /**
-     * @param int|array $account_data
-     *
-     * @return bool
-     */
-    public function send_confirmation_email($account_data) : bool
+    public function send_confirmation_email(int | array | PHS_Record_data $account_data) : bool
     {
         $this->reset_error();
 
@@ -1219,11 +1168,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if (!PHS_Bg_jobs::run(['p' => 'accounts', 'a' => 'registration_confirmation_bg', 'c' => 'index_bg'], ['uid' => $account_arr['id']])) {
-            if (self::st_has_error()) {
-                $this->copy_static_error(self::ERR_EMAIL);
-            } else {
-                $this->set_error(self::ERR_EMAIL, $this->_pt('Error sending confirmation email. Please try again.'));
-            }
+            $this->copy_or_set_static_error(self::ERR_EMAIL, $this->_pt('Error sending confirmation email. Please try again.'));
 
             return false;
         }
@@ -1231,17 +1176,9 @@ class PHS_Model_Accounts extends PHS_Model
         return true;
     }
 
-    /**
-     * @param int|array $account_data
-     * @param bool|array $params
-     *
-     * @return null|array
-     */
-    public function send_after_registration_email($account_data, $params = false) : ?array
+    public function send_after_registration_email(int | array | PHS_Record_data $account_data, array $params = []) : ?array
     {
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
+        $this->reset_error();
 
         if (empty($account_data)
          || !($account_arr = $this->data_to_array($account_data))) {
@@ -1278,11 +1215,7 @@ class PHS_Model_Accounts extends PHS_Model
                 $return_arr['has_error'] = true;
                 $return_arr['activation_email_failed'] = true;
 
-                if (self::st_has_error()) {
-                    $this->copy_static_error(self::ERR_EMAIL);
-                } else {
-                    $this->set_error(self::ERR_EMAIL, $this->_pt('Error sending activation email. Please try again.'));
-                }
+                $this->copy_or_set_static_error(self::ERR_EMAIL, $this->_pt('Error sending activation email. Please try again.'));
             }
 
             return $return_arr;
@@ -1293,7 +1226,7 @@ class PHS_Model_Accounts extends PHS_Model
 
             // send confirmation email...
             if ($this->needs_confirmation_email($account_arr)
-             && !$this->send_confirmation_email($account_arr)) {
+                && !$this->send_confirmation_email($account_arr)) {
                 $return_arr['has_error'] = true;
                 $return_arr['confirmation_email_failed'] = true;
             }
@@ -1304,13 +1237,7 @@ class PHS_Model_Accounts extends PHS_Model
         return $return_arr;
     }
 
-    /**
-     * @param int|array $account_data
-     * @param array $user_details_arr
-     *
-     * @return null|array
-     */
-    public function update_user_details($account_data, array $user_details_arr) : ?array
+    public function update_user_details(int | array | PHS_Record_data $account_data, array $user_details_arr) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -1383,7 +1310,8 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if (empty($account_arr['details_id'])
-         && !db_query('UPDATE `'.$this->get_flow_table_name($flow_params).'` SET details_id = \''.$users_details['id'].'\' WHERE id = \''.$account_arr['id'].'\'', $this->get_db_connection($flow_params))) {
+            && !db_query('UPDATE `'.$this->get_flow_table_name($flow_params).'` SET details_id = \''.$users_details['id'].'\' '
+                         .'WHERE id = \''.$account_arr['id'].'\'', $this->get_db_connection($flow_params))) {
             self::st_reset_error();
 
             $accounts_details_model->hard_delete($users_details);
@@ -1673,29 +1601,22 @@ class PHS_Model_Accounts extends PHS_Model
         /** @var PHS_Plugin_Accounts $accounts_plugin */
         if (empty($params) || !is_array($params)
          || !($accounts_plugin = $this->get_plugin_instance())) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_INSERT, $this->_pt('Error loading required resources.'));
-            } else {
-                $this->change_error_code(self::ERR_INSERT);
-            }
+            $this->set_error_if_not_set(self::ERR_INSERT, $this->_pt('Error loading required resources.'));
 
             return false;
         }
 
-        if (!($accounts_settings = $this->get_plugin_settings())
-         || !is_array($accounts_settings)) {
-            $accounts_settings = [];
-        }
+        $accounts_settings = $this->get_plugin_settings();
 
-        if (!$accounts_plugin->registration_email_mandatory()
-         && empty($params['fields']['email'])) {
+        if (empty($params['fields']['email'])
+            && !$accounts_plugin->registration_email_mandatory()) {
             $this->set_error(self::ERR_INSERT, $this->_pt('Please provide an email.'));
 
             return false;
         }
 
         if (!empty($params['fields']['email'])
-         && !PHS_Params::check_type($params['fields']['email'], PHS_Params::T_EMAIL)) {
+            && !PHS_Params::check_type($params['fields']['email'], PHS_Params::T_EMAIL)) {
             $this->set_error(self::ERR_INSERT, $this->_pt('Please provide a valid email.'));
 
             return false;
@@ -1758,25 +1679,18 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        $check_arr = [];
-        $check_arr['nick'] = $params['fields']['nick'];
-
-        if ($this->get_details_fields($check_arr)) {
+        if ($this->get_details_fields(['nick' => $params['fields']['nick']])) {
             $this->set_error(self::ERR_INSERT, $this->_pt('Username already exists in database. Please pick another one.'));
 
             return false;
         }
 
         if (!empty($params['fields']['email'])
-         && !empty($accounts_settings['email_unique'])) {
-            $check_arr = [];
-            $check_arr['email'] = $params['fields']['email'];
+            && !empty($accounts_settings['email_unique'])
+            && $this->get_details_fields(['email' => $params['fields']['email']])) {
+            $this->set_error(self::ERR_INSERT, $this->_pt('Email address exists in database. Please pick another one.'));
 
-            if ($this->get_details_fields($check_arr)) {
-                $this->set_error(self::ERR_INSERT, $this->_pt('Email address exists in database. Please pick another one.'));
-
-                return false;
-            }
+            return false;
         }
 
         $now_date = date(self::DATETIME_DB);
@@ -1786,20 +1700,14 @@ class PHS_Model_Accounts extends PHS_Model
             $encoded_clear = null;
         } else {
             if (empty($params['fields']['pass'])) {
-                if (!empty($accounts_settings['min_password_length'])) {
-                    $pass_length = $accounts_settings['min_password_length'] + 3;
-                } else {
-                    $pass_length = self::DEFAULT_MIN_PASSWORD_LENGTH;
-                }
+                $pass_length = !empty($accounts_settings['min_password_length'])
+                    ? $accounts_settings['min_password_length'] + 3
+                    : self::DEFAULT_MIN_PASSWORD_LENGTH;
 
                 $params['fields']['pass'] = self::generate_password($pass_length);
                 $params['fields']['pass_generated'] = 1;
             } else {
-                if (empty($params['fields']['pass_generated'])) {
-                    $params['fields']['pass_generated'] = 0;
-                } else {
-                    $params['fields']['pass_generated'] = 1;
-                }
+                $params['fields']['pass_generated'] = empty($params['fields']['pass_generated']) ? 0 : 1;
             }
 
             if (empty($params['{pass_salt}'])) {
@@ -1808,7 +1716,7 @@ class PHS_Model_Accounts extends PHS_Model
 
             $encoded_clear = null;
             if ($accounts_plugin->is_password_decryption_enabled()
-             && false === ($encoded_clear = PHS_Crypt::quick_encode($params['fields']['pass']))) {
+                && false === ($encoded_clear = PHS_Crypt::quick_encode($params['fields']['pass']))) {
                 $this->set_error(self::ERR_INSERT, $this->_pt('Error encrypting account password. Please retry.'));
 
                 return false;
@@ -1828,11 +1736,9 @@ class PHS_Model_Accounts extends PHS_Model
 
         $params['fields']['status_date'] = $now_date;
 
-        if (empty($params['fields']['cdate']) || empty_db_date($params['fields']['cdate'])) {
-            $params['fields']['cdate'] = $now_date;
-        } else {
-            $params['fields']['cdate'] = date(self::DATETIME_DB, parse_db_date($params['fields']['cdate']));
-        }
+        $params['fields']['cdate'] = empty($params['fields']['cdate'])
+            ? $now_date
+            : date(self::DATETIME_DB, parse_db_date($params['fields']['cdate']));
 
         $params['{accounts_settings}'] = $accounts_settings;
 
@@ -1843,20 +1749,13 @@ class PHS_Model_Accounts extends PHS_Model
             $params['{account_roles}'] = false;
         }
 
-        if (!PHS::is_multi_tenant()
-         || !isset($params['{account_tenants}']) || !is_array($params['{account_tenants}'])) {
+        if (!isset($params['{account_tenants}']) || !is_array($params['{account_tenants}'])
+            || !PHS::is_multi_tenant()) {
             $params['{account_tenants}'] = null;
         }
 
-        if (!isset($params['{append_default_roles}'])) {
-            $params['{append_default_roles}'] = true;
-        } else {
-            $params['{append_default_roles}'] = (!empty($params['{append_default_roles}']));
-        }
-
-        if (empty($params['{send_confirmation_email}'])) {
-            $params['{send_confirmation_email}'] = false;
-        }
+        $params['{append_default_roles}'] = !isset($params['{append_default_roles}']) || !empty($params['{append_default_roles}']);
+        $params['{send_confirmation_email}'] = !empty($params['{send_confirmation_email}']);
 
         return $params;
     }
@@ -1894,10 +1793,8 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if (!empty($params['{users_details}']) && is_array($params['{users_details}'])
-         && !($insert_arr = $this->update_user_details($insert_arr, $params['{users_details}']))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_INSERT, $this->_pt('Error saving account details in database. Please try again.'));
-            }
+            && !($insert_arr = $this->update_user_details($insert_arr, $params['{users_details}']))) {
+            $this->set_error_if_not_set(self::ERR_INSERT, $this->_pt('Error saving account details in database. Please try again.'));
 
             return null;
         }
@@ -1936,7 +1833,7 @@ class PHS_Model_Accounts extends PHS_Model
 
         /** @var PHS_Model_Accounts_tenants $accounts_tenants_model */
         if (!empty($params['{account_tenants}'])
-         && ($accounts_tenants_model = PHS_Model_Accounts_tenants::get_instance())) {
+            && ($accounts_tenants_model = PHS_Model_Accounts_tenants::get_instance())) {
             $accounts_tenants_model->link_tenants_to_account($insert_arr, $params['{account_tenants}']);
         }
 
@@ -1954,9 +1851,7 @@ class PHS_Model_Accounts extends PHS_Model
             // If only confirmation email fails don't delete the account...
             if (!empty($insert_arr['{users_details}'])
              && (empty($email_result) || !empty($email_result['activation_email_failed']))) {
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_EMAIL, $this->_pt('Error sending registration email. Please try again.'));
-                }
+                $this->set_error_if_not_set(self::ERR_EMAIL, $this->_pt('Error sending registration email. Please try again.'));
 
                 $accounts_details_model->hard_delete($insert_arr['{users_details}']);
 
@@ -1970,7 +1865,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if (!empty($roles_arr)
-         && $accounts_plugin->should_log_roles_changes()) {
+            && $accounts_plugin->should_log_roles_changes()) {
             PHS_Logger::notice('ROLES Account #'.$insert_arr['id'].': '.$insert_arr['nick'].' ('.$this->get_account_level_as_title($insert_arr).') was assigned roles: '
                                .implode(', ', $roles_arr).'.',
                 $accounts_plugin::LOG_SECURITY);
@@ -2157,14 +2052,12 @@ class PHS_Model_Accounts extends PHS_Model
             $params['{users_details}'] = false;
         }
 
-        if (!PHS::is_multi_tenant()
-            || !isset($params['{account_tenants}']) || !is_array($params['{account_tenants}'])) {
+        if (!isset($params['{account_tenants}']) || !is_array($params['{account_tenants}'])
+            || !PHS::is_multi_tenant()) {
             $params['{account_tenants}'] = null;
         }
 
-        if (empty($params['{activate_after_registration}'])) {
-            $params['{activate_after_registration}'] = false;
-        }
+        $params['{activate_after_registration}'] = !empty($params['{activate_after_registration}']);
 
         return $params;
     }
@@ -2207,16 +2100,13 @@ class PHS_Model_Accounts extends PHS_Model
             }
         }
 
-        if (PHS::is_multi_tenant()
-            && isset($params['{account_tenants}']) && is_array($params['{account_tenants}'])) {
+        if (isset($params['{account_tenants}']) && is_array($params['{account_tenants}'])
+            && PHS::is_multi_tenant()) {
             /** @var PHS_Model_Accounts_tenants $account_tenants_model */
             if (!($account_tenants_model = PHS_Model_Accounts_tenants::get_instance())
                 || !$account_tenants_model->link_tenants_to_account($existing_data, $params['{account_tenants}'], ['append_tenants' => false])) {
-                if ($account_tenants_model->has_error()) {
-                    $this->copy_error($account_tenants_model, self::ERR_EDIT);
-                } else {
-                    $this->set_error(self::ERR_EDIT, $this->_pt('Error saving account tenants in database. Please try again.'));
-                }
+                $this->copy_or_set_error($account_tenants_model,
+                    self::ERR_EDIT, $this->_pt('Error saving account tenants in database. Please try again.'));
 
                 return false;
             }
@@ -2435,8 +2325,7 @@ class PHS_Model_Accounts extends PHS_Model
                 // }
 
                 if (!empty($params['one_of_role'])
-                 && ($one_of_role_ids = $roles_model->roles_list_to_ids($params['one_of_role']))
-                 && is_array($one_of_role_ids)) {
+                 && ($one_of_role_ids = $roles_model->roles_list_to_ids($params['one_of_role']))) {
                     if (empty($roles_users_joined)) {
                         $params['join_sql'] .= ' LEFT JOIN `'.$roles_users_table.'` ON `'.$roles_users_table.'`.user_id = `'.$model_table.'`.id ';
                     }
@@ -2468,7 +2357,7 @@ class PHS_Model_Accounts extends PHS_Model
         return $params;
     }
 
-    private function _check_lockout_policy(array $account_arr) : ?array
+    private function _check_lockout_policy(int | array | PHS_Record_data $account_arr) : null | array | PHS_Record_data
     {
         /** @var PHS_Plugin_Accounts $accounts_plugin */
         if ($this->is_locked($account_arr)
@@ -2546,12 +2435,7 @@ class PHS_Model_Accounts extends PHS_Model
         return true;
     }
 
-    /**
-     * @param int|array $account_data
-     *
-     * @return array|bool
-     */
-    private function _get_account_salt_data($account_data)
+    private function _get_account_salt_data(int | array | PHS_Record_data $account_data) : ?array
     {
         $this->reset_error();
 
@@ -2560,19 +2444,13 @@ class PHS_Model_Accounts extends PHS_Model
          || !($account_salt_arr = $this->get_details_fields(['uid' => $account_arr['id']], ['table_name' => 'users_pass_salts']))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid account.'));
 
-            return false;
+            return null;
         }
 
         return $account_salt_arr;
     }
 
-    /**
-     * @param int|array $account_data
-     * @param bool|array $params
-     *
-     * @return array|bool
-     */
-    private function _add_account_password_to_history($account_data, $params = false)
+    private function _add_account_password_to_history(int | array | PHS_Record_data $account_data, array $params = []) : bool | array
     {
         $this->reset_error();
 
@@ -2584,7 +2462,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if (empty($account_data)
-         || !($account_arr = $this->data_to_array($account_data))) {
+            || !($account_arr = $this->data_to_array($account_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Please provide a valid account to save password history.'));
 
             return false;
@@ -2606,19 +2484,16 @@ class PHS_Model_Accounts extends PHS_Model
             $old_pass_salt = $account_salt_arr['pass_salt'];
         }
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if ((empty($params['{accounts_settings}']) && !($params['{accounts_settings}'] = $this->get_plugin_settings()))
-         || !is_array($params['{accounts_settings}'])) {
+        if ((empty($params['{accounts_settings}'])
+             && !($params['{accounts_settings}'] = $this->get_plugin_settings()))
+            || !is_array($params['{accounts_settings}'])) {
             $params['{accounts_settings}'] = [];
         }
 
         $accounts_settings = $params['{accounts_settings}'];
 
         if (empty($accounts_settings['passwords_history_count'])
-         || !($history_count = (int)$accounts_settings['passwords_history_count'])) {
+            || !($history_count = (int)$accounts_settings['passwords_history_count'])) {
             // delete extra records
             db_query('DELETE FROM `'.$uph_table_name.'`'
                       .' WHERE uid = \''.$account_arr['id'].'\'', $flow_params['db_connection']);
@@ -2703,22 +2578,19 @@ class PHS_Model_Accounts extends PHS_Model
 
         while (($users_arr = db_fetch_assoc($qid, $flow_params['db_connection']))) {
             if (empty($users_arr['pass_clear'])
-             || !($pass_clear = PHS_Crypt::quick_decode($users_arr['pass_clear']))) {
+                || !($pass_clear = PHS_Crypt::quick_decode($users_arr['pass_clear']))) {
                 PHS_Logger::error('Couldn\'t convert password for user #'.$users_arr['id'].'. Please change password manually or using forgot password.', PHS_Logger::TYPE_MAINTENANCE);
                 continue;
             }
 
             // Already converted...
             if (empty($users_arr['pass_salt'])
-             || $this->check_pass($users_arr, $pass_clear)) {
+                || $this->check_pass($users_arr, $pass_clear)) {
                 continue;
             }
 
-            $edit_arr = [];
-            $edit_arr['pass'] = self::encode_pass($pass_clear, $users_arr['pass_salt']);
-
-            if (!($sql = db_quick_edit($user_table_name, $edit_arr, $flow_params['db_connection']))
-             || !db_query($sql.' WHERE id = \''.$users_arr['id'].'\'', $flow_params['db_connection'])) {
+            if (!($sql = db_quick_edit($user_table_name, ['pass' => self::encode_pass($pass_clear, $users_arr['pass_salt'])], $flow_params['db_connection']))
+                || !db_query($sql.' WHERE id = \''.$users_arr['id'].'\'', $flow_params['db_connection'])) {
                 PHS_Logger::error('Couldn\'t save converted password for user #'.$users_arr['id'].'. Please change password manually or using forgot password.', PHS_Logger::TYPE_MAINTENANCE);
                 continue;
             }
@@ -2808,6 +2680,11 @@ class PHS_Model_Accounts extends PHS_Model
 
     private function _not_used_only_for_translation() : void
     {
+        $this->_pt('Inactive');
+        $this->_pt('Active');
+        $this->_pt('Suspended');
+        $this->_pt('Deleted');
+
         $this->_pt('Member');
         $this->_pt('Operator');
         $this->_pt('Admin');
@@ -2821,61 +2698,37 @@ class PHS_Model_Accounts extends PHS_Model
     //
     //  Level checks
     //
-    public static function is_developer($lvl) : bool
+    public static function is_developer(int $lvl) : bool
     {
-        $lvl = (int)$lvl;
-
         return $lvl === self::LVL_DEVELOPER;
     }
 
-    public static function is_sadmin($lvl) : bool
+    public static function is_sadmin(int $lvl) : bool
     {
-        $lvl = (int)$lvl;
-
         return $lvl === self::LVL_SUPERADMIN || $lvl === self::LVL_DEVELOPER;
     }
 
-    public static function is_admin($lvl, $strict = false) : bool
+    public static function is_admin(int $lvl, bool $strict = false) : bool
     {
-        $lvl = (int)$lvl;
-
         return $lvl === self::LVL_ADMIN || (!$strict && ($lvl === self::LVL_SUPERADMIN || $lvl === self::LVL_DEVELOPER));
     }
 
-    public static function is_operator($lvl, $strict = false) : bool
+    public static function is_operator(int $lvl, bool $strict = false) : bool
     {
-        $lvl = (int)$lvl;
-
         return $lvl === self::LVL_OPERATOR || (!$strict && self::is_admin($lvl));
     }
 
-    public static function is_member($lvl, $strict = false) : bool
+    public static function is_member(int $lvl, bool $strict = false) : bool
     {
-        $lvl = (int)$lvl;
-
         return $lvl === self::LVL_MEMBER || (!$strict && self::is_admin($lvl));
     }
 
-    /**
-     * @param int $len
-     * @param null|array $params
-     *
-     * @return string
-     */
-    public static function generate_password(int $len = 10, ?array $params = null) : string
+    public static function generate_password(int $len = 10, array $params = []) : string
     {
-        $hook_args = PHS_Hooks::default_common_hook_args();
-        $hook_args['length'] = $len;
-        // encoded password here...
-        $hook_args['generated_pass'] = false;
-
-        if (($new_hook_args = PHS::trigger_hooks(PHS_Hooks::H_USERS_GENERATE_PASS, $hook_args))
-         && is_array($new_hook_args) && !empty($new_hook_args['generated_pass'])) {
-            return (string)$new_hook_args['generated_pass'];
-        }
-
-        if (empty($params)) {
-            $params = [];
+        /** @var PHS_Event_Accounts_generate_password $event_obj */
+        if ( ($event_obj = PHS_Event_Accounts_generate_password::trigger(['length' => $len]))
+            && ($generated_password = $event_obj->get_output('generated_password'))) {
+            return (string)$generated_password;
         }
 
         if (empty($params['percents']) || !is_array($params['percents'])) {
@@ -2970,23 +2823,12 @@ class PHS_Model_Accounts extends PHS_Model
         return $ret;
     }
 
-    /**
-     * @param string $pass
-     * @param string $salt
-     *
-     * @return string
-     */
-    public static function encode_pass($pass, $salt) : string
+    public static function encode_pass(string $pass, string $salt) : string
     {
-        $hook_args = PHS_Hooks::default_common_hook_args();
-        $hook_args['pass'] = $pass;
-        $hook_args['salt'] = $salt;
-        // encoded password here...
-        $hook_args['encoded_pass'] = false;
-
-        if (($new_hook_args = PHS::trigger_hooks(PHS_Hooks::H_USERS_ENCODE_PASS, $hook_args))
-         && is_array($new_hook_args) && !empty($new_hook_args['encoded_pass'])) {
-            return (string)$new_hook_args['encoded_pass'];
+        /** @var PHS_Event_Accounts_password_encryption $event_obj */
+        if ( ($event_obj = PHS_Event_Accounts_password_encryption::trigger(['pass' => $pass, 'salt' => $salt]))
+            && ($encyped_password = $event_obj->get_output('encrypted_password'))) {
+            return (string)$encyped_password;
         }
 
         return @hash(self::PASSWORDS_ALGO, $salt.'_'.$pass, false);
