@@ -5,6 +5,7 @@ namespace phs\libraries;
 use phs\PHS;
 use phs\PHS_Db;
 use phs\PHS_Maintenance;
+use phs\traits\PHS_Trait_Has_relations;
 use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\events\models\PHS_Event_Model_fields;
 use phs\system\core\events\models\PHS_Event_Model_empty_data;
@@ -14,6 +15,8 @@ use phs\system\core\events\migrations\PHS_Event_Migration_models;
 
 abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 {
+    use PHS_Trait_Has_relations;
+
     public const ERR_MODEL_FIELDS = 40000, ERR_TABLE_GENERATE = 40001, ERR_INSTALL = 40002, ERR_UPDATE = 40003, ERR_UNINSTALL = 40004,
         ERR_INSERT = 40005, ERR_EDIT = 40006, ERR_DELETE_BY_INDEX = 40007, ERR_ALTER = 40008, ERR_DELETE = 40009, ERR_UPDATE_TABLE = 40010,
         ERR_UNINSTALL_TABLE = 40011, ERR_READ_DB_STRUCTURE = 40012;
@@ -31,6 +34,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     protected array $model_tables_arr = [];
 
     private ?array $_old_db_settings = null;
+
+    private array $_relations = [];
 
     protected static array $tables_arr = [];
 

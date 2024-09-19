@@ -8,12 +8,7 @@ namespace phs\traits;
  */
 trait PHS_Model_Trait_statuses
 {
-    /**
-     * @param bool|string $lang
-     *
-     * @return array
-     */
-    public function get_statuses($lang = false) : array
+    public function get_statuses(null | bool | string $lang = false) : array
     {
         static $statuses_arr = [];
 
@@ -21,31 +16,26 @@ trait PHS_Model_Trait_statuses
             return [];
         }
 
-        if ($lang === false
-         && !empty($statuses_arr)) {
+        if (empty($lang)
+            && !empty($statuses_arr)) {
             return $statuses_arr;
         }
 
         $result_arr = $this->translate_array_keys(self::$STATUSES_ARR, ['title'], $lang);
 
-        if ($lang === false) {
+        if (empty($lang)) {
             $statuses_arr = $result_arr;
         }
 
         return $result_arr;
     }
 
-    /**
-     * @param false|string $lang
-     *
-     * @return array
-     */
-    public function get_statuses_as_key_val($lang = false) : array
+    public function get_statuses_as_key_val(null | bool | string $lang = false) : array
     {
         static $statuses_key_val_arr = null;
 
-        if ($lang === false
-         && $statuses_key_val_arr !== null) {
+        if (empty($lang)
+            && $statuses_key_val_arr !== null) {
             return $statuses_key_val_arr;
         }
 
@@ -60,27 +50,24 @@ trait PHS_Model_Trait_statuses
             }
         }
 
-        if ($lang === false) {
+        if (empty($lang)) {
             $statuses_key_val_arr = $key_val_arr;
         }
 
         return $key_val_arr;
     }
 
-    /**
-     * @param int|string $status
-     * @param false|string $lang
-     *
-     * @return false|array
-     */
-    public function valid_status($status, $lang = false)
+    public function valid_status(int $status, null | bool | string $lang = false) : ?array
     {
         $all_statuses = $this->get_statuses($lang);
-        if (empty($status)
-         || !isset($all_statuses[$status])) {
-            return false;
-        }
 
-        return $all_statuses[$status];
+        return $all_statuses[$status] ?? null;
+    }
+
+    public function get_status_title(int $status, null | bool | string $lang = false) : ?string
+    {
+        return ($status_arr = $this->valid_status($status, $lang))
+            ? ($status_arr['title'] ?? null)
+            : null;
     }
 }

@@ -961,12 +961,11 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * @return array|bool|\mysqli_result
      */
-    public function get_list($params = false)
+    public function get_list(null | bool | array $params = false)
     {
         $this->reset_error();
 
         if (!($common_arr = $this->get_list_common($params))
-         || !is_array($common_arr)
          || (empty($params['return_query_string']) && empty($common_arr['qid']))) {
             return false;
         }
@@ -992,7 +991,11 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
                 $key = $params['arr_index_field'];
             }
 
-            $ret_arr[$item_arr[$key]] = $item_arr;
+            if (!empty($params['return_record_data_items'])) {
+                $ret_arr[$item_arr[$key]] = $this->record_data_from_array($item_arr);
+            } else {
+                $ret_arr[$item_arr[$key]] = $item_arr;
+            }
         }
 
         return $ret_arr;

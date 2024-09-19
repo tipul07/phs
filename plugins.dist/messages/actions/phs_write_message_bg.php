@@ -23,11 +23,14 @@ class PHS_Action_Write_message_bg extends PHS_Action
          || empty($params['mid'])
          || !($messages_model = PHS_Model_Messages::get_instance())
          || !($m_flow_params = $messages_model->fetch_default_flow_params(['table_name' => 'messages']))
-         || !($message_arr = $messages_model->get_details($params['mid'], $m_flow_params))
-         || !$messages_model->need_write_finish($message_arr)) {
+         || !($message_arr = $messages_model->get_details($params['mid'], $m_flow_params))) {
             $this->set_error(self::ERR_UNKNOWN_MESSAGE, $this->_pt('Message doesn\'t require additional work.'));
 
             return false;
+        }
+
+        if (!$messages_model->need_write_finish($message_arr)) {
+            return self::default_action_result();
         }
 
         if (!$messages_model->write_message_finish_bg($message_arr, $params)) {
@@ -40,6 +43,6 @@ class PHS_Action_Write_message_bg extends PHS_Action
             return false;
         }
 
-        return PHS_Action::default_action_result();
+        return self::default_action_result();
     }
 }

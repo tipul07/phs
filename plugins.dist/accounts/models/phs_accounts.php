@@ -13,6 +13,7 @@ use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Record_data;
 use phs\plugins\admin\PHS_Plugin_Admin;
+use phs\traits\PHS_Trait_Has_relations;
 use phs\traits\PHS_Model_Trait_statuses;
 use phs\system\core\models\PHS_Model_Roles;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
@@ -578,7 +579,7 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         if (empty($account_data)
-         || !($account_arr = $this->data_to_array($account_data))) {
+            || !($account_arr = $this->data_to_array($account_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Please provide a valid account to save password history.'));
 
             return null;

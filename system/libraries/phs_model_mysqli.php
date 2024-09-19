@@ -744,9 +744,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         $edit_arr = $validation_arr['data_arr'];
         if (!empty($edit_arr)
-         && (!($sql = db_quick_edit($full_table_name, $edit_arr, $db_connection))
+            && (!($sql = db_quick_edit($full_table_name, $edit_arr, $db_connection))
                 || !db_query($sql.' WHERE `'.$full_table_name.'`.`'.$params['table_index'].'` = \''.$existing_arr[$params['table_index']].'\'', $db_connection)
-         )) {
+            )) {
             if (@method_exists($this, 'edit_failed_'.$params['table_name'])) {
                 @$this->{'edit_failed_'.$params['table_name']}($existing_arr, $edit_arr, $params);
             } else {
@@ -857,7 +857,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return array|bool
      */
-    public function get_query_fields($params)
+    public function get_query_fields(null | bool | array $params)
     {
         if (empty($params['fields']) || !is_array($params['fields'])
          || !($new_params = $this->fetch_default_flow_params($params))) {
@@ -899,8 +899,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             }
 
             if ($field_name === '{linkage}') {
-                if (empty($field_val) || !is_array($field_val)
-                 || empty($field_val['fields']) || !is_array($field_val['fields'])) {
+                if (empty($field_val['fields']) || !is_array($field_val['fields'])) {
                     continue;
                 }
 
@@ -910,7 +909,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 $recurring_params['recurring_level']++;
 
                 if (($recurring_result = $this->get_query_fields($recurring_params))
-                 && is_array($recurring_result) && !empty($recurring_result['extra_sql'])) {
+                    && !empty($recurring_result['extra_sql'])) {
                     $params['extra_sql'] .= (!empty($params['extra_sql']) ? ' '.$linkage_func.' ' : '').' ('.$recurring_result['extra_sql'].') ';
                 }
 
@@ -932,12 +931,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         return $params;
     }
 
-    /**
-     * @param bool|array $params
-     *
-     * @return array|int
-     */
-    public function get_count($params = false)
+    public function get_count(null | bool | array $params = false) : int | array
     {
         $this->reset_error();
 
@@ -983,7 +977,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         $ret = 0;
         if (($qid = db_query($sql, $db_connection))
          && ($result = db_fetch_assoc($qid, $db_connection))) {
-            $ret = $result['total_enregs'];
+            $ret = (int)$result['total_enregs'];
         }
 
         return $ret;
@@ -994,12 +988,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return array|bool|\mysqli_result
      */
-    public function get_list($params = false)
+    public function get_list(null | bool | array $params = false)
     {
         $this->reset_error();
 
         if (!($common_arr = $this->get_list_common($params))
-         || !is_array($common_arr)
          || (empty($params['return_query_string']) && empty($common_arr['qid']))) {
             return false;
         }
@@ -1025,7 +1018,11 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 $key = $params['arr_index_field'];
             }
 
-            $ret_arr[$item_arr[$key]] = $item_arr;
+            if (!empty($params['return_record_data_items'])) {
+                $ret_arr[$item_arr[$key]] = $this->record_data_from_array($item_arr);
+            } else {
+                $ret_arr[$item_arr[$key]] = $item_arr;
+            }
         }
 
         return $ret_arr;
@@ -1602,7 +1599,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         }
 
         if (!$this->_get_table_columns_definition_for_model_from_database($flow_params, $my_driver, $flow_table_name, $force)
-         || !$this->_get_table_indexes_definition_for_model_from_database($flow_params, $my_driver, $flow_table_name, $force)) {
+            || !$this->_get_table_indexes_definition_for_model_from_database($flow_params, $my_driver, $flow_table_name, $force)) {
             return null;
         }
 
@@ -2054,19 +2051,18 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         return $params;
     }
 
-    protected function validate_data_for_fields(array $params)
+    protected function validate_data_for_fields(array $params) : ?array
     {
         $this->reset_error();
 
-        if (!($table_fields = $this->get_definition($params))
-         || !is_array($table_fields)) {
+        if (!($table_fields = $this->get_definition($params))) {
             $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Invalid table definition.'));
 
-            return false;
+            return null;
         }
 
         if (empty($params['action'])
-         || !in_array($params['action'], ['insert', 'edit'])) {
+            || !in_array($params['action'], ['insert', 'edit'], true)) {
             $params['action'] = 'insert';
         }
 
@@ -2090,7 +2086,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         $has_raw_fields = false;
         foreach ($table_fields as $field_name => $field_details) {
             if (empty($field_details['editable'])
-             && $params['action'] === 'edit') {
+                && $params['action'] === 'edit') {
                 continue;
             }
 
@@ -2103,15 +2099,15 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                     $field_value = $params['fields'][$field_name];
 
                     if (empty($params['fields'][$field_name]['raw_field'])
-                     && array_key_exists('value', $params['fields'][$field_name])) {
+                        && array_key_exists('value', $params['fields'][$field_name])) {
                         $field_value['value'] = $this->_validate_field_value($params['fields'][$field_name]['value'], $field_name, $field_details);
                     }
                 }
 
                 $data_arr[$field_name] = $field_value;
                 $validated_fields[] = $field_name;
-            } elseif (isset($field_details['default'])
-                   && $params['action'] === 'insert') {
+            } elseif (array_key_exists('default', $field_details)
+                      && $params['action'] === 'insert') {
                 // When editing records only passed fields will be saved in database...
                 $data_arr[$field_name] = $field_details['default'];
             }
@@ -2189,16 +2185,10 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     //
     //  region Querying database functionality
     //
-    /**
-     * @param array $constrain_arr
-     * @param bool|array $params
-     *
-     * @return array|bool
-     */
-    protected function get_details_common($constrain_arr, $params = false)
+    protected function get_details_common(array $constrain_arr, null | bool | array $params = false) : ?array
     {
         if (!($params = $this->fetch_default_flow_params($params))) {
-            return false;
+            return null;
         }
 
         if (empty($params['details'])) {
@@ -2226,9 +2216,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             $params['having_sql'] = '';
         }
 
-        $params['return_query_string'] = (!empty($params['return_query_string']));
+        $params['return_query_string'] = !empty($params['return_query_string']);
 
-        $params['offset'] = (empty($params['offset']) ? 0 : (int)$params['offset']);
+        $params['offset'] = (int)($params['offset'] ?? 0);
 
         if (!isset($params['limit'])
          || $params['result_type'] === 'single') {
@@ -2238,8 +2228,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             $params['result_type'] = 'list';
         }
 
-        if (empty($constrain_arr) || !is_array($constrain_arr)) {
-            return false;
+        if (empty($constrain_arr)) {
+            return null;
         }
 
         $params['fields'] = $constrain_arr;
@@ -2247,7 +2237,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         $db_connection = $this->get_db_connection($params);
 
         if (!($params = $this->get_query_fields($params))) {
-            return false;
+            return null;
         }
 
         $sql = 'SELECT '.$params['details']
@@ -2266,7 +2256,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
          && (!($qid = db_query($sql, $db_connection))
                 || !($item_count = db_num_rows($qid, $db_connection))
          )) {
-            return false;
+            return null;
         }
 
         $return_arr = [];
@@ -2278,19 +2268,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         return $return_arr;
     }
 
-    /**
-     * @param string $field_name
-     * @param array|mixed $field_val
-     * @param null|array $params
-     *
-     * @return bool|string
-     */
-    protected function _get_query_field_value(string $field_name, $field_val, ?array $params = null)
+    protected function _get_query_field_value(string $field_name, mixed $field_val, array $params = []) : string
     {
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
         if (empty($params['db_connection'])) {
             $params['db_connection'] = false;
         }
@@ -2406,12 +2385,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         return $result_str;
     }
 
-    /**
-     * @param array|bool $params
-     *
-     * @return array|bool
-     */
-    protected function get_list_common($params = false) : ?array
+    protected function get_list_common(null | bool | array $params = false) : ?array
     {
         $this->reset_error();
 
@@ -2421,7 +2395,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
         // If we are returning an array of records, and there is no record limit provided, put something by default so we don't kill memory
         if (!isset($params['enregs_no'])
-         && empty($params['get_query_id'])) {
+            && empty($params['get_query_id'])) {
             $params['enregs_no'] = 10000;
         }
 
@@ -2432,7 +2406,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             return null;
         }
 
-        $params['return_query_string'] = (!empty($params['return_query_string']));
+        $params['return_query_string'] = !empty($params['return_query_string']);
+        $params['return_record_data_items'] = !empty($params['return_record_data_items']);
 
         // Field which will be used as key in result array (be sure is unique)
         if (empty($params['arr_index_field'])) {
@@ -2485,11 +2460,13 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     }
 
     private function _get_table_columns_definition_for_model_from_database(
-        $flow_params,
-        $my_driver,
-        $flow_table_name,
-        $force = false) : bool
+        array $flow_params,
+        string $my_driver,
+        string $flow_table_name,
+        bool $force = false) : bool
     {
+        $this->reset_error();
+
         if (!($qid = db_query('SHOW FULL COLUMNS FROM `'.$flow_table_name.'`', $flow_params['db_connection']))) {
             $this->set_error(self::ERR_READ_DB_STRUCTURE,
                 self::_t('Error reading structure of table %s.', $flow_table_name));
@@ -3009,7 +2986,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     public static function get_list_default_params() : array
     {
         return [
-            'get_query_id' => false,
+            'get_query_id'             => false,
+            'return_record_data_items' => false,
             // will get populated in get_list_common
             'arr_index_field' => '',
 

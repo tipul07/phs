@@ -243,6 +243,9 @@ function phs_init_before_bootstrap() : bool
     if (!defined('PHS_CORE_LIBRARIES_DIR')) {
         define('PHS_CORE_LIBRARIES_DIR', PHS_CORE_DIR.'libraries/');
     }
+    if (!defined('PHS_CORE_TRAITS_DIR')) {
+        define('PHS_CORE_TRAITS_DIR', PHS_CORE_DIR.'traits/');
+    }
 
     // These paths will need a www pair, but after bootstrap
     if (!defined('PHS_THEMES_DIR')) {
@@ -253,7 +256,7 @@ function phs_init_before_bootstrap() : bool
     }
 
     // name of directory where email templates are stored (either theme relative or plugin relative)
-    // eg. (themes/default/emails or plugins/accounts/templates/emails)
+    // e.g. (themes/default/emails or plugins/accounts/templates/emails)
     if (!defined('PHS_EMAILS_DIRS')) {
         define('PHS_EMAILS_DIRS', 'emails');
     }
