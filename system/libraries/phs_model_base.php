@@ -12,6 +12,7 @@ use phs\system\core\events\models\PHS_Event_Model_empty_data;
 use phs\system\core\events\models\PHS_Event_Model_hard_delete;
 use phs\system\core\events\models\PHS_Event_Model_table_names;
 use phs\system\core\events\migrations\PHS_Event_Migration_models;
+use phs\system\core\events\models\PHS_Event_Model_validate_data_fields;
 
 abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 {
@@ -34,8 +35,6 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     protected array $model_tables_arr = [];
 
     private ?array $_old_db_settings = null;
-
-    private array $_relations = [];
 
     protected static array $tables_arr = [];
 
@@ -1704,6 +1703,10 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         return true;
     }
 
+    protected function _relations_definition() : void
+    {
+    }
+
     /**
      * Performs any necessary custom actions when updating model from $old_version to $new_version.
      * This action is performed before changing any database structure
@@ -1848,42 +1851,47 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         parent::_do_construct($instance_details);
 
         $this->_validate_tables_definition();
+        $this->_relations_definition();
     }
 
     /**
      * When inserting or editing records in database, this method will normalize and validate provided data and give an array of values that should be used
      * in insert or edit call
      *
-     * @param array $params Flow parameters
+     * @param array $flow_params Flow parameters
      *
-     * @return array|bool Validated data structure or false on failure
+     * @return null|array Validated data structure or false on failure
      */
-    protected function validate_data_for_fields(array $params)
+    protected function validate_data_for_fields(array $flow_params) : ?array
     {
         $this->reset_error();
 
-        if (!($table_fields = $this->get_definition($params))) {
+        if (!($table_fields = $this->get_definition($flow_params))) {
             $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Invalid table definition.'));
 
-            return false;
+            return null;
         }
 
-        if (empty($params['action'])
-         || !in_array($params['action'], ['insert', 'edit'])) {
-            $params['action'] = 'insert';
+        if (empty($flow_params['action'])
+            || !in_array($flow_params['action'], ['insert', 'edit'], true)) {
+            $flow_params['action'] = 'insert';
         }
 
-        $hook_params = PHS_Hooks::default_model_validate_data_fields_hook_args();
-        $hook_params['flow_params'] = $params;
-        $hook_params['table_fields'] = $table_fields;
+        $input_arr = [
+            'model_instance_id'  => $this->instance_id(),
+            'plugin_instance_id' => $this->get_plugin_instance()?->instance_id(),
+            'flow_params'        => $flow_params,
+            'table_fields'       => $table_fields,
+            'model_obj'          => $this,
+        ];
 
-        if (($trigger_result = PHS::trigger_hooks(PHS_Hooks::H_MODEL_VALIDATE_DATA_FIELDS, $hook_params))
-         && is_array($trigger_result)) {
-            if (!empty($trigger_result['flow_params']) && is_array($trigger_result['flow_params'])) {
-                $params = self::merge_array_assoc($params, $trigger_result['flow_params']);
+        /** @var PHS_Event_Model_validate_data_fields $event_obj */
+        if (($event_obj = PHS_Event_Model_validate_data_fields::trigger( $input_arr ))) {
+            if (($new_flow_params = $event_obj->get_output('flow_params'))) {
+                $flow_params = self::merge_array_assoc($flow_params, $new_flow_params);
             }
-            if (!empty($trigger_result['table_fields']) && is_array($trigger_result['table_fields'])) {
-                $table_fields = self::merge_array_assoc($table_fields, $trigger_result['table_fields']);
+            if (($new_table_fields = $event_obj->get_output('table_fields'))) {
+                $table_fields = self::merge_array_assoc($table_fields, $new_table_fields);
             }
         }
 
@@ -1892,31 +1900,31 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         $has_raw_fields = false;
         foreach ($table_fields as $field_name => $field_details) {
             if (empty($field_details['editable'])
-             && $params['action'] === 'edit') {
+                && $flow_params['action'] === 'edit') {
                 continue;
             }
 
-            if (array_key_exists($field_name, $params['fields'])) {
+            if (array_key_exists($field_name, $flow_params['fields'])) {
                 // we can pass raw values (see quick_edit or quick_insert)
-                if (!is_array($params['fields'][$field_name])) {
+                if (!is_array($flow_params['fields'][$field_name])) {
                     $field_value
-                        = $this->_validate_field_value($params['fields'][$field_name], $field_name, $field_details);
+                        = $this->_validate_field_value($flow_params['fields'][$field_name], $field_name, $field_details);
                 } else {
                     $has_raw_fields = true;
-                    $field_value = $params['fields'][$field_name];
+                    $field_value = $flow_params['fields'][$field_name];
 
-                    if (empty($params['fields'][$field_name]['raw_field'])
-                     && array_key_exists('value', $params['fields'][$field_name])) {
+                    if (empty($flow_params['fields'][$field_name]['raw_field'])
+                        && array_key_exists('value', $flow_params['fields'][$field_name])) {
                         $field_value['value']
-                            = $this->_validate_field_value($params['fields'][$field_name]['value'], $field_name,
+                            = $this->_validate_field_value($flow_params['fields'][$field_name]['value'], $field_name,
                                 $field_details);
                     }
                 }
 
                 $data_arr[$field_name] = $field_value;
                 $validated_fields[] = $field_name;
-            } elseif (isset($field_details['default'])
-                   && $params['action'] === 'insert') {
+            } elseif (array_key_exists('default', $field_details)
+                      && $flow_params['action'] === 'insert') {
                 // When editing records only passed fields will be saved in database...
                 $data_arr[$field_name] = $field_details['default'];
             }

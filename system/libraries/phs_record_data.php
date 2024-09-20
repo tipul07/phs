@@ -8,7 +8,6 @@ use ArrayObject;
 use ArrayIterator;
 use JsonSerializable;
 use ReturnTypeWillChange;
-use phs\traits\PHS_Trait_Has_relations;
 
 class PHS_Record_data extends ArrayObject implements JsonSerializable
 {
@@ -122,7 +121,6 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
         if (!array_key_exists($key, $this->_data)
             && !array_key_exists($key, $this->_data_structure)
             && !$this->data_key_is_allowed($key)) {
-            // TODO (relations) Also check if $key is a defined relation
             return;
         }
 
@@ -165,13 +163,9 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
             return $this->_data[$key];
         }
 
-        if ($this->is_relation_key($key)) {
-            $this->_load_relation($key);
+        $this->_load_and_read_relation($key);
 
-            return $this->_data[$key] ?? null;
-        }
-
-        return null;
+        return $this->_data[$key] ?? null;
     }
     // endregion ArrayAccess
 
@@ -310,11 +304,22 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
     private function _load_relation(string $key) : void
     {
         if (!$this->_has_relations
-            || empty($this->_model)) {
+            || empty($this->_model)
+            || !empty($this->_data[$key])) {
             return;
         }
 
         $this->_data = $this->_model->load_relation($this->_data, $key);
+    }
+
+    private function _load_and_read_relation(string $key, int $offset = -1, int $limit = 0) : void
+    {
+        $this->_load_relation($key);
+
+        if (($relation = $this->_data[$key] ?? null)
+           && $relation instanceof PHS_Relation_result) {
+            $relation->read($offset, $limit);
+        }
     }
 
     public function __debugInfo() : array
@@ -346,13 +351,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
     public function __call(string $name, array $arguments) : mixed
     {
         if ($this->is_relation_key($name)) {
-            $this->_load_relation($name);
-            /** @var PHS_Relation_result $relation_obj */
-            if (!empty($arguments)
-               && ($relation_obj = $this->_data[$name] ?? null)
-               && $relation_obj instanceof PHS_Relation_result) {
-                return $relation_obj->read(...$arguments);
-            }
+            $this->_load_and_read_relation($name, ...$arguments);
         }
 
         return $this->_data[$name] ?? null;

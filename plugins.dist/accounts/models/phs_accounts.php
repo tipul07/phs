@@ -1571,6 +1571,13 @@ class PHS_Model_Accounts extends PHS_Model
         return $return_arr;
     }
 
+    protected function _relations_definition() : void
+    {
+        $this->relation_one_to_one( 'details',
+            PHS_Model_Accounts_details::class, 'details_id', ['table_name' => 'users_details']
+        );
+    }
+
     //
     // Custom updates
     //

@@ -53,12 +53,22 @@ class PHS_Relation_result
         return $this;
     }
 
-    // public function __debugInfo()
-    // {
-    //     if(!($this->_data instanceof PHS_Record_data)) {
-    //         return $this->_data;
-    //     }
-    //
-    //     return $this->_data->cast_to_array();
-    // }
+    public function cast_to_array() : ?array
+    {
+        return $this->current()?->cast_to_array();
+    }
+
+    public function __call(string $name, array $arguments) : mixed
+    {
+        return $this->current()?->$name(...$arguments);
+    }
+
+    public function __debugInfo()
+    {
+        if (!($this->_data instanceof PHS_Record_data)) {
+            return $this->_data;
+        }
+
+        return $this->_data->cast_to_array();
+    }
 }

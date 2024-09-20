@@ -4,7 +4,7 @@ namespace phs\libraries;
 
 class PHS_Relation
 {
-    public const ONE_TO_ONE = 1, ONE_TO_MANY = 2, MANY_TO_MANY = 3;
+    public const ONE_TO_ONE = 1, REVERSE_ONE_TO_ONE = 2, ONE_TO_MANY = 3, MANY_TO_MANY = 4;
 
     private ?PHS_Model_Core_base $with_model_obj = null;
 
@@ -17,17 +17,19 @@ class PHS_Relation
         readonly private string $with_model_class = '',
         readonly private ?array $with_flow_arr = null,
         readonly private int $type = self::ONE_TO_ONE,
-        readonly private string $with_key = '',
+        private string $with_key = '',
         readonly private string $using_model_class = '',
         readonly private ?array $using_flow_arr = null,
         readonly private string $using_key = '',
+        readonly private string $reverse_key = '',
         readonly private int $read_limit = 20,
     ) {
-        $this->_load_models();
     }
 
     public function get_value(mixed $key_value) : ?PHS_Relation_result
     {
+        $this->_load_models();
+
         if (!$this->with_model_obj) {
             return null;
         }
@@ -42,10 +44,11 @@ class PHS_Relation
             relation: $this,
             read_fn: function(int $offset = 0, int $limit = 0) use ($relation, $key_value) : null | PHS_Record_data | array {
                 return match ($relation->get_type()) {
-                    self::ONE_TO_ONE   => $relation->get_one_to_one_record($key_value),
-                    self::ONE_TO_MANY  => $relation->get_one_to_many_records($key_value, $offset, $limit),
-                    self::MANY_TO_MANY => $relation->get_many_to_many_records($key_value, $offset, $limit),
-                    default            => null,
+                    self::ONE_TO_ONE         => $relation->get_one_to_one_record($key_value),
+                    self::REVERSE_ONE_TO_ONE => $relation->get_reverse_one_to_one_record($key_value),
+                    self::ONE_TO_MANY        => $relation->get_one_to_many_records($key_value, $offset, $limit),
+                    self::MANY_TO_MANY       => $relation->get_many_to_many_records($key_value, $offset, $limit),
+                    default                  => null,
                 };
             },
             read_limit: $this->read_limit,
@@ -57,6 +60,23 @@ class PHS_Relation
     public function get_one_to_one_record(mixed $key_value) : ?PHS_Record_data
     {
         return $this->with_model_obj->data_to_record_data($key_value, $this->with_flow_arr);
+    }
+
+    public function get_reverse_one_to_one_record(mixed $key_value) : ?PHS_Record_data
+    {
+        if (!($reverse_key = $this->get_reverse_key())) {
+            return null;
+        }
+
+        $with_flow_arr = ($this->with_flow_arr ?? []) ?: [];
+        $with_flow_arr['fields'] ??= [];
+        $with_flow_arr['fields'][$reverse_key] = $key_value;
+
+        if (!($data_arr = $this->with_model_obj->get_details_fields($with_flow_arr['fields'], $this->with_flow_arr ?? []))) {
+            return null;
+        }
+
+        return $this->with_model_obj->record_data_from_array($data_arr, $this->with_flow_arr ?? []);
     }
 
     public function get_one_to_many_records(mixed $key_value, int $offset = 0, int $limit = 0) : array
@@ -134,15 +154,41 @@ class PHS_Relation
         return $this->using_key;
     }
 
+    public function get_reverse_key() : string
+    {
+        return $this->reverse_key;
+    }
+
+    public function get_record_data_relation_key() : string
+    {
+        if (($with_key = $this->get_with_key())) {
+            return $with_key;
+        }
+
+        if ($this->type === self::REVERSE_ONE_TO_ONE) {
+            $this->_load_models();
+
+            $this->with_key = $this->with_model_obj->get_primary_key($this->with_flow_arr);
+
+            return $this->with_key;
+        }
+
+        return '';
+    }
+
     private function _load_models() : void
     {
-        $this->with_model_obj = $this->with_model_class !== ''
-            ? $this->_load_models_by_class_name($this->with_model_class)
-            : null;
+        if (!$this->with_model_obj) {
+            $this->with_model_obj = $this->with_model_class !== ''
+                ? $this->_load_models_by_class_name($this->with_model_class)
+                : null;
+        }
 
-        $this->using_model_obj = $this->using_model_class !== ''
-            ? $this->_load_models_by_class_name($this->using_model_class)
-            : null;
+        if (!$this->using_model_obj) {
+            $this->using_model_obj = $this->using_model_class !== ''
+                ? $this->_load_models_by_class_name($this->using_model_class)
+                : null;
+        }
     }
 
     private function _load_models_by_class_name(string $class_name) : ?PHS_Model_Core_base

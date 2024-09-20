@@ -91,6 +91,13 @@ class PHS_Model_Accounts_details extends PHS_Model
         return $return_arr;
     }
 
+    protected function _relations_definition() : void
+    {
+        $this->relation_one_to_one( 'account',
+            PHS_Model_Accounts::class, 'uid'
+        );
+    }
+
     protected function get_insert_prepare_params_users_details($params)
     {
         if (empty($params) || !is_array($params)) {

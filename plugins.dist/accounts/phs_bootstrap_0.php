@@ -16,13 +16,6 @@ if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
     PHS_Logger::define_channel($accounts_plugin::LOG_IMPORT);
     PHS_Logger::define_channel($accounts_plugin::LOG_TFA);
 
-    /** @var PHS_Model_Accounts $accouns_model */
-    if (($accouns_model = PHS_Model_Accounts::get_instance())) {
-        $accouns_model->relation_one_to_one( 'details',
-            PHS_Model_Accounts_details::class, ['table_name' => 'users_details'], 'details_id'
-        );
-    }
-
     if (!PHS::prevent_session()) {
         $accounts_plugin->resolve_idler_sessions();
     }
