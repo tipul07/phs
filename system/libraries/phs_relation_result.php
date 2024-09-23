@@ -3,8 +3,12 @@
 namespace phs\libraries;
 
 use Closure;
+use Iterator;
+use Countable;
+use Generator;
+use ReturnTypeWillChange;
 
-class PHS_Relation_result
+class PHS_Relation_result implements Countable, Iterator
 {
     private null | array | PHS_Record_data $_data = null;
 
@@ -28,6 +32,7 @@ class PHS_Relation_result
         return $this->_data;
     }
 
+    #[ReturnTypeWillChange]
     public function next() : null | array | PHS_Record_data
     {
         $this->read_offset += $this->read_limit;
@@ -56,6 +61,49 @@ class PHS_Relation_result
     public function cast_to_array() : ?array
     {
         return $this->current()?->cast_to_array();
+    }
+
+    public function yield() : ?Generator
+    {
+        if ( !is_array(($current = $this->current())) ) {
+            return $current;
+        }
+
+        do {
+            foreach ($current as $current_item) {
+                yield $current_item;
+            }
+        } while ( is_array(($current = $this->next()) ) && $current );
+
+        return null;
+    }
+
+    public function count() : int
+    {
+        if ($this->_data === null) {
+            return 0;
+        }
+
+        if (is_array($this->_data)) {
+            return count($this->_data);
+        }
+
+        return 1;
+    }
+
+    public function key() : mixed
+    {
+        return $this->read_offset;
+    }
+
+    public function valid() : bool
+    {
+        return (bool)($this->current() ?: false);
+    }
+
+    public function rewind() : void
+    {
+        $this->read_offset = 0;
     }
 
     public function __call(string $name, array $arguments) : mixed

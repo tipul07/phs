@@ -2,6 +2,8 @@
 
 namespace phs\libraries;
 
+use Closure;
+
 class PHS_Relation
 {
     public const ONE_TO_ONE = 1, REVERSE_ONE_TO_ONE = 2, ONE_TO_MANY = 3, MANY_TO_MANY = 4;
@@ -15,13 +17,16 @@ class PHS_Relation
     public function __construct(
         readonly private string $key = '',
         readonly private string $with_model_class = '',
-        readonly private ?array $with_flow_arr = null,
+        readonly private ?array $with_flow_arr = [],
         readonly private int $type = self::ONE_TO_ONE,
         private string $with_key = '',
         readonly private string $using_model_class = '',
-        readonly private ?array $using_flow_arr = null,
+        readonly private ?array $using_flow_arr = [],
         readonly private string $using_key = '',
         readonly private string $reverse_key = '',
+        readonly private string $using_with_key = '',
+        readonly private ?array $for_flow = [],
+        readonly private ?Closure $filter_fn = null,
         readonly private int $read_limit = 20,
     ) {
     }
@@ -42,14 +47,20 @@ class PHS_Relation
 
         $this->result = new PHS_Relation_result(
             relation: $this,
-            read_fn: function(int $offset = 0, int $limit = 0) use ($relation, $key_value) : null | PHS_Record_data | array {
-                return match ($relation->get_type()) {
-                    self::ONE_TO_ONE         => $relation->get_one_to_one_record($key_value),
-                    self::REVERSE_ONE_TO_ONE => $relation->get_reverse_one_to_one_record($key_value),
-                    self::ONE_TO_MANY        => $relation->get_one_to_many_records($key_value, $offset, $limit),
-                    self::MANY_TO_MANY       => $relation->get_many_to_many_records($key_value, $offset, $limit),
-                    default                  => null,
+            read_fn: function(int $offset = 0, int $limit = 0) use ($relation, $key_value) : null | array | PHS_Record_data {
+                $result = match ($relation->get_type()) {
+                    $relation::ONE_TO_ONE         => $relation->get_one_to_one_record($key_value),
+                    $relation::REVERSE_ONE_TO_ONE => $relation->get_reverse_one_to_one_record($key_value),
+                    $relation::ONE_TO_MANY        => $relation->get_one_to_many_records($key_value, $offset, $limit),
+                    $relation::MANY_TO_MANY       => $relation->get_many_to_many_records($key_value, $offset, $limit),
+                    default                       => null,
                 };
+
+                if (!($filter_fn = $relation->get_filter_fn())) {
+                    return $result;
+                }
+
+                return $filter_fn($result);
             },
             read_limit: $this->read_limit,
         );
@@ -87,15 +98,9 @@ class PHS_Relation
             return [];
         }
 
-        if ( $limit <= 0 ) {
-            $limit = $this->read_limit <= 0
-                ? 1
-                : $this->read_limit;
-        }
-
         $list_arr = $this->with_flow_arr ?: [];
         $list_arr['offset'] = $offset;
-        $list_arr['enregs_no'] = $limit;
+        $list_arr['enregs_no'] = $this->_fix_limit($limit);
         $list_arr['return_record_data_items'] = true;
         $list_arr['fields'] ??= [];
         $list_arr['fields'][$with_key] = $key_value;
@@ -108,6 +113,7 @@ class PHS_Relation
         if (!$this->with_model_obj
             || !$this->using_model_obj
             || !($using_key = $this->get_using_key())
+            || !($using_with_key = $this->get_using_with_key())
             || !($with_flow = $this->with_model_obj->fetch_default_flow_params($this->with_flow_arr ?: []))
             || !($using_flow = $this->using_model_obj->fetch_default_flow_params($this->using_flow_arr ?: []))
             || !($with_table_name = $this->with_model_obj->get_flow_table_name($with_flow))
@@ -117,19 +123,14 @@ class PHS_Relation
             return [];
         }
 
-        if ( $limit <= 0 ) {
-            $limit = $this->read_limit <= 0
-                ? 1
-                : $this->read_limit;
-        }
-
         $list_arr = $this->with_flow_arr ?: [];
         $list_arr['offset'] = $offset;
-        $list_arr['enregs_no'] = $limit;
+        $list_arr['enregs_no'] = $this->_fix_limit($limit);
         $list_arr['return_record_data_items'] = true;
-        $list_arr['extra_sql'] = 'EXISTS (SELECT 1 FROM `'.$using_table_name.'` WHERE `'.$using_table_name.'`.`'.$using_key.'` = `'.$with_table_name.'`.`'.$with_key.'`)';
-        $list_arr['fields'] ??= [];
-        $list_arr['fields'][$this->get_using_key()] = $key_value;
+        $list_arr['extra_sql'] = 'EXISTS (SELECT 1 FROM `'.$using_table_name.'` WHERE '
+                                 .'`'.$using_table_name.'`.`'.$using_with_key.'` = \''.prepare_data($key_value).'\''
+                                 .' AND `'.$using_table_name.'`.`'.$using_key.'` = `'.$with_table_name.'`.`'.$with_key.'`'
+                                 .')';
 
         return $this->with_model_obj->get_list($list_arr) ?: [];
     }
@@ -157,6 +158,21 @@ class PHS_Relation
     public function get_reverse_key() : string
     {
         return $this->reverse_key;
+    }
+
+    public function get_using_with_key() : string
+    {
+        return $this->using_with_key;
+    }
+
+    public function get_filter_fn() : ?Closure
+    {
+        return $this->filter_fn;
+    }
+
+    public function get_for_flow() : ?array
+    {
+        return $this->for_flow;
     }
 
     public function get_record_data_relation_key() : string
@@ -203,5 +219,16 @@ class PHS_Relation
         }
 
         return $loaded_model;
+    }
+
+    private function _fix_limit(int $limit) : int
+    {
+        if ( $limit <= 0 ) {
+            $limit = $this->read_limit <= 0
+                ? 1
+                : $this->read_limit;
+        }
+
+        return $limit;
     }
 }

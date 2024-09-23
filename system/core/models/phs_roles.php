@@ -2,7 +2,6 @@
 
 namespace phs\system\core\models;
 
-use phs\PHS;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Record_data;
@@ -1383,6 +1382,33 @@ class PHS_Model_Roles extends PHS_Model
         }
 
         return $return_arr;
+    }
+
+    protected function _relations_definition() : void
+    {
+        $this->relation_many_to_many('role_units',
+            self::class, 'id',
+            self::class, 'role_unit_id', 'role_id',
+            ['table_name' => 'roles_units'],
+            ['table_name' => 'roles_units_links'],
+            for_flow: ['table_name' => 'roles'],
+            filter_fn: function(null | array | PHS_Record_data $role_data) {
+                if (empty($role_data)) {
+                    return $role_data;
+                }
+
+                if (!is_array($role_data)) {
+                    return [$role_data['slug']];
+                }
+
+                $return_arr = [];
+                foreach ($role_data as $role_arr) {
+                    $return_arr[] = $role_arr['slug'];
+                }
+
+                return $return_arr;
+            }
+        );
     }
 
     protected function get_insert_prepare_params_roles($params)

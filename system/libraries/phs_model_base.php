@@ -848,7 +848,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
         if ($item_data instanceof PHS_Record_data) {
             // Different table in record data than in flow parameters
-            if ($item_data->get_flow_table_name() !== $this->get_flow_table_name($flow_params)) {
+            if ($item_data->get_simple_table_name_from_flow() !== ($flow_params['table_name'] ?? '')) {
                 return null;
             }
 

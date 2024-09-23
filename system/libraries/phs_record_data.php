@@ -109,6 +109,20 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
         return $this->_model->get_flow_table_name($this->_flow_arr);
     }
 
+    public function fetch_default_flow_params() : ?array
+    {
+        if (empty($this->_model)) {
+            return null;
+        }
+
+        return $this->_model->fetch_default_flow_params($this->_flow_arr);
+    }
+
+    public function get_simple_table_name_from_flow() : ?string
+    {
+        return $this->_model?->get_table_name($this->_flow_arr);
+    }
+
     public function set_data(array $data) : void
     {
         foreach ($data as $key => $value) {
@@ -297,8 +311,18 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
             return;
         }
 
-        $this->_has_relations = true;
-        $this->_relation_keys = array_keys($relations);
+        $relation_keys = [];
+        /** @var PHS_Relation $relation */
+        foreach ($relations as $relation) {
+            if ($this->_model->get_table_name($relation->get_for_flow()) !== $this->get_simple_table_name_from_flow()) {
+                continue;
+            }
+
+            $relation_keys[] = $relation->get_key();
+        }
+
+        $this->_has_relations = !empty($relation_keys);
+        $this->_relation_keys = $relation_keys;
     }
 
     private function _load_relation(string $key) : void
@@ -309,7 +333,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
             return;
         }
 
-        $this->_data = $this->_model->load_relation($this->_data, $key);
+        $this->_model->load_relation($this, $key);
     }
 
     private function _load_and_read_relation(string $key, int $offset = -1, int $limit = 0) : void

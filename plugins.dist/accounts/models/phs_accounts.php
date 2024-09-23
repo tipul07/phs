@@ -1576,6 +1576,33 @@ class PHS_Model_Accounts extends PHS_Model
         $this->relation_one_to_one( 'details',
             PHS_Model_Accounts_details::class, 'details_id', ['table_name' => 'users_details']
         );
+
+        $this->relation_many_to_many('roles',
+            PHS_Model_Roles::class, 'id',
+            PHS_Model_Roles::class, 'role_id', 'user_id',
+            ['table_name' => 'roles'],
+            ['table_name' => 'roles_users'],
+            // filter_fn: function (null|array|PHS_Record_data $role_data) {
+            //     if(!is_array($role_data)) {
+            //         return $role_data['role_units'] ?? [];
+            //     }
+            //
+            //     $return_arr = [];
+            //     foreach($role_data as $role_arr) {
+            //         if(!($role_units = $role_arr->role_units(0, 1000))) {
+            //             continue;
+            //         }
+            //
+            //         var_dump($role_units); exit;
+            //
+            //         foreach($role_units as $slug) {
+            //             $return_arr[] = $slug;
+            //         }
+            //     }
+            //
+            //     return $return_arr;
+            // }
+        );
     }
 
     //
