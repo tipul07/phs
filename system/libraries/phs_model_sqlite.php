@@ -1639,50 +1639,36 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _validate_field($field_arr)
+    protected function _validate_field(array $field_arr) : ?array
     {
-        if (empty($field_arr) || !is_array($field_arr)) {
-            $field_arr = [];
-        }
-
-        $def_values = self::_default_field_arr();
-        $new_field_arr = [];
-        foreach ($def_values as $key => $val) {
-            if (!array_key_exists($key, $field_arr)) {
-                $new_field_arr[$key] = $val;
-            } else {
-                $new_field_arr[$key] = $field_arr[$key];
-            }
-        }
-
-        $field_arr = $new_field_arr;
+        $field_arr = self::validate_array_to_new_array($field_arr, self::_default_field_arr());
 
         if (empty($field_arr['type'])
-         || !($field_details = $this->valid_field_type($field_arr['type']))) {
-            return false;
+            || !($field_details = $this->valid_field_type($field_arr['type']))) {
+            return null;
         }
 
         if ($field_details['default_length'] === null
-         && isset($field_arr['length'])) {
+            && isset($field_arr['length'])) {
             $field_arr['length'] = null;
         }
 
         if (isset($field_details['nullable'])) {
-            $field_arr['nullable'] = (!empty($field_details['nullable']));
+            $field_arr['nullable'] = !empty($field_details['nullable']);
         }
 
         if (!isset($field_arr['length'])
-         && isset($field_details['default_length'])) {
+            && isset($field_details['default_length'])) {
             $field_arr['length'] = $field_details['default_length'];
         }
 
         if ($field_arr['default'] === null
-         && isset($field_details['default_value'])) {
+            && isset($field_details['default_value'])) {
             $field_arr['default'] = $field_details['default_value'];
         }
 
         if (empty($field_arr['raw_default'])
-         && !empty($field_details['raw_default'])) {
+            && !empty($field_details['raw_default'])) {
             $field_arr['raw_default'] = $field_details['raw_default'];
         }
 
@@ -1745,13 +1731,9 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _validate_field_value($value, $field_name, $field_details, $params = false)
+    protected function _validate_field_value(mixed $value, string $field_name, array $field_details) : mixed
     {
         $this->reset_error();
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
 
         if (empty($field_name)) {
             $field_name = self::_t('N/A');
@@ -2995,7 +2977,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
         ];
     }
 
-    private static function _default_field_arr()
+    private static function _default_field_arr() : array
     {
         // if 'default_value' is set in field definition that value will be used for 'default' key
         return [
@@ -3013,9 +2995,11 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
             // in case we renamed the field from something else we add old name here...
             // we add all old names here so in case we update structure from an old version it would still recognise field names
             // update will check if current database structures field names in this array and if any match will rename old field with current definition
-            // eg. old_names = array( 'old_field1', 'old_field2' ) =>
+            // e.g. old_names = array( 'old_field1', 'old_field2' ) =>
             //     if we find in current structure old_field1 or old_field2 as fields will rename them in current field and will apply current definition
             'old_names' => [],
+            // Let framework know this field is holding sensitive data, so it will no get exported
+            'sensitive_data' => false,
         ];
     }
     //

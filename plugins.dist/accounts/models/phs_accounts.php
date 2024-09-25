@@ -1582,26 +1582,14 @@ class PHS_Model_Accounts extends PHS_Model
             PHS_Model_Roles::class, 'role_id', 'user_id',
             ['table_name' => 'roles'],
             ['table_name' => 'roles_users'],
-            // filter_fn: function (null|array|PHS_Record_data $role_data) {
-            //     if(!is_array($role_data)) {
-            //         return $role_data['role_units'] ?? [];
-            //     }
-            //
-            //     $return_arr = [];
-            //     foreach($role_data as $role_arr) {
-            //         if(!($role_units = $role_arr->role_units(0, 1000))) {
-            //             continue;
-            //         }
-            //
-            //         var_dump($role_units); exit;
-            //
-            //         foreach($role_units as $slug) {
-            //             $return_arr[] = $slug;
-            //         }
-            //     }
-            //
-            //     return $return_arr;
-            // }
+            filter_fn: function(PHS_Record_data $result) {
+                $return_arr = [];
+                foreach ($result->role_units(0, 100)?->yield() ?? [] as $role_unit_slug) {
+                    $return_arr[] = $role_unit_slug;
+                }
+
+                return $return_arr;
+            }
         );
     }
 

@@ -1392,21 +1392,8 @@ class PHS_Model_Roles extends PHS_Model
             ['table_name' => 'roles_units'],
             ['table_name' => 'roles_units_links'],
             for_flow: ['table_name' => 'roles'],
-            filter_fn: function(null | array | PHS_Record_data $role_data) {
-                if (empty($role_data)) {
-                    return $role_data;
-                }
-
-                if (!is_array($role_data)) {
-                    return [$role_data['slug']];
-                }
-
-                $return_arr = [];
-                foreach ($role_data as $role_arr) {
-                    $return_arr[] = $role_arr['slug'];
-                }
-
-                return $return_arr;
+            filter_fn: function(PHS_Record_data $role_data) {
+                return $role_data['slug'] ?? '';
             }
         );
     }

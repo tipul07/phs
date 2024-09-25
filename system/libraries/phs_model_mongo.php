@@ -1362,40 +1362,26 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _validate_field($field_arr)
+    protected function _validate_field(array $field_arr) : ?array
     {
-        if (empty($field_arr) || !is_array($field_arr)) {
-            $field_arr = [];
-        }
-
-        $def_values = self::_default_field_arr();
-        $new_field_arr = [];
-        foreach ($def_values as $key => $val) {
-            if (!array_key_exists($key, $field_arr)) {
-                $new_field_arr[$key] = $val;
-            } else {
-                $new_field_arr[$key] = $field_arr[$key];
-            }
-        }
-
-        $field_arr = $new_field_arr;
+        $field_arr = self::validate_array_to_new_array($field_arr, self::_default_field_arr());
 
         if (empty($field_arr['type'])
-         || !($field_details = $this->valid_field_type($field_arr['type']))) {
-            return false;
+            || !($field_details = $this->valid_field_type($field_arr['type']))) {
+            return null;
         }
 
         if (isset($field_details['nullable'])) {
-            $field_arr['nullable'] = (!empty($field_details['nullable']) ? true : false);
+            $field_arr['nullable'] = !empty($field_details['nullable']);
         }
 
         if ($field_arr['default'] === null
-        && isset($field_details['default_value'])) {
+            && isset($field_details['default_value'])) {
             $field_arr['default'] = $field_details['default_value'];
         }
 
         if (empty($field_arr['raw_default'])
-        && !empty($field_details['raw_default'])) {
+            && !empty($field_details['raw_default'])) {
             $field_arr['raw_default'] = $field_details['raw_default'];
         }
 
@@ -1405,13 +1391,9 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _validate_field_value($value, $field_name, $field_details, $params = false)
+    protected function _validate_field_value(mixed $value, string $field_name, array $field_details) : mixed
     {
         $this->reset_error();
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
 
         if (empty($field_name)) {
             $field_name = self::_t('N/A');
@@ -2156,6 +2138,8 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
             'raw_default' => null,
             'nullable'    => false,
             'comment'     => '',
+            // Let framework know this field is holding sensitive data, so it will no get exported
+            'sensitive_data' => false,
         ];
     }
     //

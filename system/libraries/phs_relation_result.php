@@ -19,6 +19,7 @@ class PHS_Relation_result implements Countable, Iterator
     public function __construct(
         readonly private PHS_Relation $relation,
         private readonly Closure $read_fn,
+        private readonly mixed $read_value,
         private int $read_limit = 20,
     ) {
     }
@@ -52,7 +53,7 @@ class PHS_Relation_result implements Countable, Iterator
         $this->read_offset = $offset;
         $this->read_limit = $limit;
 
-        $this->_data = ($this->read_fn)($offset, $limit);
+        $this->_data = ($this->read_fn)($this->read_value, $offset, $limit);
         $this->_data_read = true;
 
         return $this;
@@ -73,7 +74,7 @@ class PHS_Relation_result implements Countable, Iterator
             foreach ($current as $current_item) {
                 yield $current_item;
             }
-        } while ( is_array(($current = $this->next()) ) && $current );
+        } while ( ($current = $this->next()) && is_array($current) );
 
         return null;
     }

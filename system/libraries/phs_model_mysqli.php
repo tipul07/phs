@@ -1018,10 +1018,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 $key = $params['arr_index_field'];
             }
 
+            $key = $this->validate_field_value($item_arr[$key], $key, $params);
+
             if (!empty($params['return_record_data_items'])) {
-                $ret_arr[$item_arr[$key]] = $this->record_data_from_array($item_arr);
+                $ret_arr[$key] = $this->record_data_from_array($item_arr);
             } else {
-                $ret_arr[$item_arr[$key]] = $item_arr;
+                $ret_arr[$key] = $item_arr;
             }
         }
 
@@ -1665,50 +1667,36 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _validate_field($field_arr)
+    protected function _validate_field(array $field_arr) : ?array
     {
-        if (empty($field_arr) || !is_array($field_arr)) {
-            $field_arr = [];
-        }
-
-        $def_values = self::_default_field_arr();
-        $new_field_arr = [];
-        foreach ($def_values as $key => $val) {
-            if (!array_key_exists($key, $field_arr)) {
-                $new_field_arr[$key] = $val;
-            } else {
-                $new_field_arr[$key] = $field_arr[$key];
-            }
-        }
-
-        $field_arr = $new_field_arr;
+        $field_arr = self::validate_array_to_new_array($field_arr, self::_default_field_arr());
 
         if (empty($field_arr['type'])
-         || !($field_details = $this->valid_field_type($field_arr['type']))) {
-            return false;
+            || !($field_details = $this->valid_field_type($field_arr['type']))) {
+            return null;
         }
 
         if ($field_details['default_length'] === null
-         && isset($field_arr['length'])) {
+            && isset($field_arr['length'])) {
             $field_arr['length'] = null;
         }
 
         if (isset($field_details['nullable'])) {
-            $field_arr['nullable'] = (!empty($field_details['nullable']));
+            $field_arr['nullable'] = !empty($field_details['nullable']);
         }
 
         if (!isset($field_arr['length'])
-         && isset($field_details['default_length'])) {
+            && isset($field_details['default_length'])) {
             $field_arr['length'] = $field_details['default_length'];
         }
 
         if ($field_arr['default'] === null
-         && isset($field_details['default_value'])) {
+            && isset($field_details['default_value'])) {
             $field_arr['default'] = $field_details['default_value'];
         }
 
         if (empty($field_arr['raw_default'])
-         && !empty($field_details['raw_default'])) {
+            && !empty($field_details['raw_default'])) {
             $field_arr['raw_default'] = $field_details['raw_default'];
         }
 
@@ -1771,13 +1759,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _validate_field_value($value, $field_name, $field_details, $params = false)
+    protected function _validate_field_value(mixed $value, string $field_name, array $field_details) : mixed
     {
         $this->reset_error();
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
 
         if (empty($field_name)) {
             $field_name = self::_t('N/A');
@@ -1786,7 +1770,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         if (!($field_details = $this->_validate_field($field_details))
          || empty($field_details['type'])
          || !($mysql_type = $this->valid_field_type($field_details['type']))) {
-            self::st_set_error(self::ERR_MODEL_FIELDS, self::_t('Couldn\'t validate field %s.', $field_name));
+            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Couldn\'t validate field %s.', $field_name));
 
             return false;
         }
@@ -1846,7 +1830,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 $d_val = 0;
                 if (!empty($field_details['length'])) {
                     if (is_string($field_details['length'])
-                     && false !== strpos($field_details['length'], ',')
+                        && str_contains($field_details['length'], ',')
                      && ($length_arr = explode(',', $field_details['length'], 2))) {
                         $m_val = (!empty($length_arr[0]) ? (int)trim($length_arr[0]) : 10);
                         $d_val = (!empty($length_arr[1]) ? (int)trim($length_arr[1]) : 0);
@@ -1864,9 +1848,9 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
                 // resolve the m part (if too big)
                 // this should be really validated in model if you don't want errors...
-                elseif (false !== strpos($value, '.')
-                     && ($digits_value_arr = explode('.', $value, 2))
-                     && strlen($digits_value_arr[0]) > $m_val - $d_val) {
+                elseif (str_contains($value, '.')
+                        && ($digits_value_arr = explode('.', $value, 2))
+                        && strlen($digits_value_arr[0]) > $m_val - $d_val) {
                     $value = substr($digits_value_arr[0], 0, $m_val - $d_val).(isset($digits_value_arr[1]) ? '.'.$digits_value_arr[1] : '');
                 }
                 break;
@@ -1909,7 +1893,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
                 $values_arr = [];
                 if (!empty($field_details['length'])
-                 && is_string($field_details['length'])) {
+                    && is_string($field_details['length'])) {
                     $values_arr = explode(',', $field_details['length']);
                     $trim_value = trim($value);
                     $lower_value = strtolower($trim_value);
@@ -1919,15 +1903,15 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                         $lower_possible_value = strtolower($trim_value);
 
                         if ($value === $possible_value
-                         || $trim_value === $trim_possible_value
-                         || $lower_value === $lower_possible_value) {
+                            || $trim_value === $trim_possible_value
+                            || $lower_value === $lower_possible_value) {
                             $value_valid = true;
                             break;
                         }
                     }
 
                     if (empty($value_valid)) {
-                        self::st_set_error(self::ERR_MODEL_FIELDS, self::_t('Field %s is not in enum scope.', $field_name));
+                        $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Field %s is not in enum scope.', $field_name));
 
                         return false;
                     }
@@ -2993,6 +2977,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             // e.g. old_names = [ 'old_field1', 'old_field2' ] =>
             //     if we find in current structure old_field1 or old_field2 as fields will rename them in current field and will apply current definition
             'old_names' => [],
+            // Let framework know this field is holding sensitive data, so it will no get exported
+            'sensitive_data' => false,
         ];
     }
     //

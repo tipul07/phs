@@ -104,11 +104,7 @@ trait PHS_Trait_Has_relations
             return;
         }
 
-        var_dump($relation_key, $record_key, $record_data[$record_key], $record_data[$relation_key] ?? null);
-
-        $record_data[$relation_key] = $relation->get_value($record_data[$record_key]);
-
-        var_dump('canci', $record_data[$relation_key] ?? null);
+        $record_data[$relation_key] = $relation->load_relation_result($record_data[$record_key]);
     }
 
     public function load_relations(PHS_Record_data $record_data, array $relations_key) : void

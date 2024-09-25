@@ -134,7 +134,8 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
     {
         if (!array_key_exists($key, $this->_data)
             && !array_key_exists($key, $this->_data_structure)
-            && !$this->data_key_is_allowed($key)) {
+            && !$this->data_key_is_allowed($key)
+            && !$this->is_relation_key($key)) {
             return;
         }
 
@@ -340,9 +341,9 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
     {
         $this->_load_relation($key);
 
-        if (($relation = $this->_data[$key] ?? null)
-           && $relation instanceof PHS_Relation_result) {
-            $relation->read($offset, $limit);
+        if (($relation_result = $this->_data[$key] ?? null)
+           && $relation_result instanceof PHS_Relation_result) {
+            $relation_result->read($offset, $limit);
         }
     }
 

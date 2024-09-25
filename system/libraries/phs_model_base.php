@@ -213,20 +213,19 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      * Validate a field definition
      * @param array $field_arr
      *
-     * @return mixed
+     * @return null|array
      */
-    abstract protected function _validate_field($field_arr);
+    abstract protected function _validate_field(array $field_arr) : ?array;
 
     /**
      * Validate a value for a field according to field definition
      * @param mixed $value
      * @param string $field_name
      * @param array $field_details
-     * @param bool|array $params
      *
      * @return mixed
      */
-    abstract protected function _validate_field_value($value, $field_name, $field_details, $params = false);
+    abstract protected function _validate_field_value(mixed $value, string $field_name, array $field_details) : mixed;
 
     /**
      * @return string Should return INSTANCE_TYPE_* constant
@@ -735,6 +734,17 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         }
 
         return $data_arr;
+    }
+
+    public function validate_field_value(mixed $value, string $field_name, array $flow_arr = []) : mixed
+    {
+        if ( !($field_details = $this->table_field_details($field_name, $flow_arr)) ) {
+            $this->set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Cannot obtain table field details.'));
+
+            return null;
+        }
+
+        return $this->_validate_field_value($value, $field_name, $field_details);
     }
 
     /**

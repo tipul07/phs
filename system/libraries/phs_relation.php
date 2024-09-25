@@ -12,8 +12,6 @@ class PHS_Relation
 
     private ?PHS_Model_Core_base $using_model_obj = null;
 
-    private ?PHS_Relation_result $result = null;
-
     public function __construct(
         readonly private string $key = '',
         readonly private string $with_model_class = '',
@@ -31,7 +29,7 @@ class PHS_Relation
     ) {
     }
 
-    public function get_value(mixed $key_value) : ?PHS_Relation_result
+    public function load_relation_result(mixed $key_value) : ?PHS_Relation_result
     {
         $this->_load_models();
 
@@ -39,20 +37,16 @@ class PHS_Relation
             return null;
         }
 
-        if ($this->result !== null) {
-            return $this->result;
-        }
-
         $relation = $this;
 
-        $this->result = new PHS_Relation_result(
+        return new PHS_Relation_result(
             relation: $this,
-            read_fn: function(int $offset = 0, int $limit = 0) use ($relation, $key_value) : null | array | PHS_Record_data {
+            read_fn: function(mixed $read_value, int $offset = 0, int $limit = 0) use ($relation) : null | array | PHS_Record_data {
                 $result = match ($relation->get_type()) {
-                    $relation::ONE_TO_ONE         => $relation->get_one_to_one_record($key_value),
-                    $relation::REVERSE_ONE_TO_ONE => $relation->get_reverse_one_to_one_record($key_value),
-                    $relation::ONE_TO_MANY        => $relation->get_one_to_many_records($key_value, $offset, $limit),
-                    $relation::MANY_TO_MANY       => $relation->get_many_to_many_records($key_value, $offset, $limit),
+                    $relation::ONE_TO_ONE         => $relation->get_one_to_one_record($read_value),
+                    $relation::REVERSE_ONE_TO_ONE => $relation->get_reverse_one_to_one_record($read_value),
+                    $relation::ONE_TO_MANY        => $relation->get_one_to_many_records($read_value, $offset, $limit),
+                    $relation::MANY_TO_MANY       => $relation->get_many_to_many_records($read_value, $offset, $limit),
                     default                       => null,
                 };
 
@@ -60,12 +54,20 @@ class PHS_Relation
                     return $result;
                 }
 
-                return $filter_fn($result);
+                if (!is_array($result)) {
+                    return $filter_fn($result);
+                }
+
+                $return_arr = [];
+                foreach ($result as $key => $result_item) {
+                    $return_arr[$key] = $filter_fn($result_item);
+                }
+
+                return $return_arr;
             },
+            read_value: $key_value,
             read_limit: $this->read_limit,
         );
-
-        return $this->result;
     }
 
     public function get_one_to_one_record(mixed $key_value) : ?PHS_Record_data
