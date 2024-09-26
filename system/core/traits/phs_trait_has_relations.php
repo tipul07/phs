@@ -18,6 +18,8 @@ trait PHS_Trait_Has_relations
         ?array $with_flow = [],
         ?array $for_flow = [],
         ?Closure $filter_fn = null,
+        ?Closure $read_fn = null,
+        array $options = [],
     ) : bool {
         if (!($this instanceof PHS_Model_Core_base)
             || !empty($this->_relations[$key])) {
@@ -25,7 +27,7 @@ trait PHS_Trait_Has_relations
         }
 
         $this->_relations[$key] = new PHS_Relation($key, $with_model, $with_flow, PHS_Relation::ONE_TO_ONE, $with_key,
-            for_flow: $for_flow, filter_fn: $filter_fn );
+            for_flow: $for_flow, filter_fn: $filter_fn, read_fn: $read_fn, options: $options);
 
         return true;
     }
@@ -35,6 +37,8 @@ trait PHS_Trait_Has_relations
         ?array $with_flow = [], string $with_key = '',
         ?array $for_flow = [],
         ?Closure $filter_fn = null,
+        ?Closure $read_fn = null,
+        array $options = [],
     ) : bool {
         if (!($this instanceof PHS_Model_Core_base)
             || !empty($this->_relations[$key])) {
@@ -42,7 +46,7 @@ trait PHS_Trait_Has_relations
         }
 
         $this->_relations[$key] = new PHS_Relation($key, $with_model, $with_flow, PHS_Relation::REVERSE_ONE_TO_ONE, $with_key,
-            reverse_key: $reverse_key, for_flow: $for_flow, filter_fn: $filter_fn);
+            reverse_key: $reverse_key, for_flow: $for_flow, filter_fn: $filter_fn, read_fn: $read_fn, options: $options);
 
         return true;
     }
@@ -50,7 +54,10 @@ trait PHS_Trait_Has_relations
     public function relation_one_to_many(
         string $key, string $with_model, string $with_key, ?array $with_flow = [],
         ?array $for_flow = [],
-        ?Closure $filter_fn = null, int $read_limit = 20
+        ?Closure $filter_fn = null,
+        ?Closure $read_fn = null,
+        int $read_limit = 20,
+        array $options = [],
     ) : bool {
         if (!($this instanceof PHS_Model_Core_base)
             || !empty($this->_relations[$key])) {
@@ -58,7 +65,7 @@ trait PHS_Trait_Has_relations
         }
 
         $this->_relations[$key] = new PHS_Relation($key, $with_model, $with_flow, PHS_Relation::ONE_TO_MANY, $with_key,
-            for_flow: $for_flow, filter_fn: $filter_fn, read_limit: $read_limit );
+            for_flow: $for_flow, filter_fn: $filter_fn, read_fn: $read_fn, read_limit: $read_limit, options: $options);
 
         return true;
     }
@@ -69,7 +76,10 @@ trait PHS_Trait_Has_relations
         string $using_model, string $using_key, string $using_with_key,
         ?array $with_flow = [], ?array $using_flow = [],
         ?array $for_flow = [],
-        ?Closure $filter_fn = null, int $read_limit = 20
+        ?Closure $filter_fn = null,
+        ?Closure $read_fn = null,
+        int $read_limit = 20,
+        array $options = [],
     ) : bool {
         if (!($this instanceof PHS_Model_Core_base)
             || !empty($this->_relations[$key])) {
@@ -80,7 +90,7 @@ trait PHS_Trait_Has_relations
             PHS_Relation::MANY_TO_MANY, $with_key,
             $using_model, $using_flow, $using_key,
             using_with_key: $using_with_key,
-            for_flow: $for_flow, filter_fn: $filter_fn, read_limit: $read_limit);
+            for_flow: $for_flow, filter_fn: $filter_fn, read_fn: $read_fn, read_limit: $read_limit, options: $options);
 
         return true;
     }

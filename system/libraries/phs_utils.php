@@ -470,19 +470,9 @@ class PHS_Utils extends PHS_Language
         return true;
     }
 
-    /**
-     * @param string $directory
-     * @param bool|array $params
-     *
-     * @return array
-     */
-    public static function get_files_recursive($directory, $params = false)
+    public static function get_files_recursive(string $directory, array $params = []) : array
     {
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if (substr($directory, -1) === '/') {
+        if (str_ends_with($directory, '/')) {
             $directory = substr($directory, 0, -1);
         }
 
@@ -490,24 +480,17 @@ class PHS_Utils extends PHS_Language
             return [];
         }
 
-        if (empty($params['basename_regex'])) {
-            $params['basename_regex'] = '';
-        }
-
-        if (empty($params['accept_symlinks'])) {
-            $params['accept_symlinks'] = false;
-        }
+        $params['basename_regex'] ??= '';
+        $params['accept_symlinks'] = !empty($params['accept_symlinks']);
 
         if (empty($params['extensions_arr']) || !is_array($params['extensions_arr'])) {
             $params['extensions_arr'] = [];
         }
 
-        // you don't have to pas <level> as it is used internally
-        if (empty($params['{level}'])) {
-            $params['{level}'] = 0;
-        }
+        // you don't have to pass {level} as it is used internally
+        $params['{level}'] ??= 0;
 
-        if (!empty($params['extensions_arr']) && is_array($params['extensions_arr'])) {
+        if (!empty($params['extensions_arr'])) {
             $new_extensions_arr = [];
             foreach ($params['extensions_arr'] as $ext) {
                 $new_extensions_arr[] = strtolower($ext);
@@ -524,24 +507,23 @@ class PHS_Utils extends PHS_Language
                 }
 
                 if (@is_file($filename)
-                 || (@is_link($filename) && !empty($params['accept_symlinks']))) {
-                    if (!empty($params['basename_regex'])) {
-                        if (($base_name = @basename($filename))
-                         && !@preg_match($params['basename_regex'], $base_name)) {
-                            continue;
-                        }
+                    || (!empty($params['accept_symlinks']) && @is_link($filename))) {
+                    if (!empty($params['basename_regex'])
+                        && ($base_name = @basename($filename))
+                        && !@preg_match($params['basename_regex'], $base_name)) {
+                        continue;
                     }
 
                     $file_ext = '';
                     if (($file_arr = explode('.', $filename))
-                     && count($file_arr) > 1) {
+                        && count($file_arr) > 1) {
                         $file_ext = array_pop($file_arr);
                     }
 
                     if (empty($params['extensions_arr'])
-                     || empty($file_ext)
-                     || in_array(strtolower($file_ext), $params['extensions_arr'], true)) {
-                        $found_files[$filename] = 1;
+                        || empty($file_ext)
+                        || in_array(strtolower($file_ext), $params['extensions_arr'], true)) {
+                        $found_files[] = [$filename => 1];
                     }
 
                     continue;
@@ -551,12 +533,13 @@ class PHS_Utils extends PHS_Language
                     $new_params = $params;
                     $new_params['{level}']++;
 
-                    if (($dir_found_files = self::get_files_recursive($filename, $new_params))
-                     && is_array($dir_found_files)) {
-                        $found_files = array_merge($found_files, $dir_found_files);
+                    if (($dir_found_files = self::get_files_recursive($filename, $new_params))) {
+                        $found_files[] = $dir_found_files;
                     }
                 }
             }
+
+            $found_files = array_merge(...$found_files);
         }
 
         // top level...

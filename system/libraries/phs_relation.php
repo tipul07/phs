@@ -25,8 +25,11 @@ class PHS_Relation
         readonly private string $using_with_key = '',
         readonly private ?array $for_flow = [],
         readonly private ?Closure $filter_fn = null,
+        readonly private ?Closure $read_fn = null,
         readonly private int $read_limit = 20,
+        private array $options = [],
     ) {
+        $this->options = PHS_Registry::validate_array($this->options, $this->_default_options_array());
     }
 
     public function load_relation_result(mixed $key_value) : ?PHS_Relation_result
@@ -37,20 +40,18 @@ class PHS_Relation
             return null;
         }
 
-        $relation = $this;
-
         return new PHS_Relation_result(
             relation: $this,
-            read_fn: function(mixed $read_value, int $offset = 0, int $limit = 0) use ($relation) : null | array | PHS_Record_data {
-                $result = match ($relation->get_type()) {
-                    $relation::ONE_TO_ONE         => $relation->get_one_to_one_record($read_value),
-                    $relation::REVERSE_ONE_TO_ONE => $relation->get_reverse_one_to_one_record($read_value),
-                    $relation::ONE_TO_MANY        => $relation->get_one_to_many_records($read_value, $offset, $limit),
-                    $relation::MANY_TO_MANY       => $relation->get_many_to_many_records($read_value, $offset, $limit),
-                    default                       => null,
+            read_fn: $this->read_fn ?? function(mixed $read_value, int $offset = 0, int $limit = 0) : null | array | PHS_Record_data {
+                $result = match ($this->get_type()) {
+                    self::ONE_TO_ONE         => $this->get_one_to_one_record($read_value),
+                    self::REVERSE_ONE_TO_ONE => $this->get_reverse_one_to_one_record($read_value),
+                    self::ONE_TO_MANY        => $this->get_one_to_many_records($read_value, $offset, $limit),
+                    self::MANY_TO_MANY       => $this->get_many_to_many_records($read_value, $offset, $limit),
+                    default                  => null,
                 };
 
-                if (!($filter_fn = $relation->get_filter_fn())) {
+                if (!($filter_fn = $this->get_filter_fn())) {
                     return $result;
                 }
 
@@ -59,8 +60,21 @@ class PHS_Relation
                 }
 
                 $return_arr = [];
+                $merge_results = $this->_get_options_value('merge_relation_results');
                 foreach ($result as $key => $result_item) {
-                    $return_arr[$key] = $filter_fn($result_item);
+                    if (null === ($filtered_result = $filter_fn($result_item))) {
+                        continue;
+                    }
+
+                    if ($merge_results && is_array($filtered_result)) {
+                        $return_arr[] = $filtered_result;
+                    } else {
+                        $return_arr[$key] = $filtered_result;
+                    }
+                }
+
+                if ($merge_results) {
+                    $return_arr = array_merge(...$return_arr);
                 }
 
                 return $return_arr;
@@ -232,5 +246,17 @@ class PHS_Relation
         }
 
         return $limit;
+    }
+
+    private function _get_options_value(string $key) : mixed
+    {
+        return $this->options[$key] ?? null;
+    }
+
+    private function _default_options_array() : array
+    {
+        return [
+            'merge_relation_results' => false,
+        ];
     }
 }

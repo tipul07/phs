@@ -1574,22 +1574,33 @@ class PHS_Model_Accounts extends PHS_Model
     protected function _relations_definition() : void
     {
         $this->relation_one_to_one( 'details',
-            PHS_Model_Accounts_details::class, 'details_id', ['table_name' => 'users_details']
+            PHS_Model_Accounts_details::class, 'details_id', ['table_name' => 'users_details'],
         );
 
-        $this->relation_many_to_many('roles',
+        $this->relation_many_to_many('roles_slugs',
+            PHS_Model_Roles::class, 'id',
+            PHS_Model_Roles::class, 'role_id', 'user_id',
+            ['table_name' => 'roles'],
+            ['table_name' => 'roles_users'],
+            filter_fn: function(PHS_Record_data $role_data) {
+                return $role_data['slug'] ?? '';
+            },
+        );
+
+        $this->relation_many_to_many('roles_units_slugs',
             PHS_Model_Roles::class, 'id',
             PHS_Model_Roles::class, 'role_id', 'user_id',
             ['table_name' => 'roles'],
             ['table_name' => 'roles_users'],
             filter_fn: function(PHS_Record_data $result) {
                 $return_arr = [];
-                foreach ($result->role_units(0, 100)?->yield() ?? [] as $role_unit_slug) {
+                foreach ($result->role_units_slugs(0, 100)?->yield() ?? [] as $role_unit_slug) {
                     $return_arr[] = $role_unit_slug;
                 }
 
                 return $return_arr;
-            }
+            },
+            options: ['merge_relation_results' => true],
         );
     }
 

@@ -1386,7 +1386,7 @@ class PHS_Model_Roles extends PHS_Model
 
     protected function _relations_definition() : void
     {
-        $this->relation_many_to_many('role_units',
+        $this->relation_many_to_many('role_units_slugs',
             self::class, 'id',
             self::class, 'role_unit_id', 'role_id',
             ['table_name' => 'roles_units'],

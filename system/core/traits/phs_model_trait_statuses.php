@@ -57,14 +57,14 @@ trait PHS_Model_Trait_statuses
         return $key_val_arr;
     }
 
-    public function valid_status(int $status, null | bool | string $lang = false) : ?array
+    public function valid_status(?int $status, null | bool | string $lang = false) : ?array
     {
         $all_statuses = $this->get_statuses($lang);
 
         return $all_statuses[$status] ?? null;
     }
 
-    public function get_status_title(int $status, null | bool | string $lang = false) : ?string
+    public function get_status_title(?int $status, null | bool | string $lang = false) : ?string
     {
         return ($status_arr = $this->valid_status($status, $lang))
             ? ($status_arr['title'] ?? null)
