@@ -1711,7 +1711,7 @@ class PHS_Utils extends PHS_Language
 
         $result_arr = [];
         foreach ($line_arr as $line_str) {
-            if (!is_string($line_str)) {
+            if (!is_scalar($line_str)) {
                 continue;
             }
 
