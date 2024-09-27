@@ -30,12 +30,7 @@ class PHS_Model_Accounts_services extends PHS_Model
         return 'users_services';
     }
 
-    /**
-     * @param bool|string $lang
-     *
-     * @return array
-     */
-    public function get_services($lang = false)
+    public function get_services(null | bool | string $lang = false) : array
     {
         static $services_arr = [];
 
@@ -43,31 +38,26 @@ class PHS_Model_Accounts_services extends PHS_Model
             return [];
         }
 
-        if ($lang === false
-         && !empty($services_arr)) {
+        if (empty($lang)
+            && !empty($services_arr)) {
             return $services_arr;
         }
 
         $result_arr = $this->translate_array_keys(self::$SERVICES_ARR, ['title'], $lang);
 
-        if ($lang === false) {
+        if (empty($lang)) {
             $services_arr = $result_arr;
         }
 
         return $result_arr;
     }
 
-    /**
-     * @param bool|string $lang
-     *
-     * @return array
-     */
-    public function get_services_as_key_val($lang = false)
+    public function get_services_as_key_val(null | bool | string $lang = false) : array
     {
-        static $services_key_val_arr = false;
+        static $services_key_val_arr = null;
 
-        if ($lang === false
-         && $services_key_val_arr !== false) {
+        if (empty($lang)
+            && $services_key_val_arr !== null) {
             return $services_key_val_arr;
         }
 
@@ -82,77 +72,50 @@ class PHS_Model_Accounts_services extends PHS_Model
             }
         }
 
-        if ($lang === false) {
+        if (empty($lang)) {
             $services_key_val_arr = $key_val_arr;
         }
 
         return $key_val_arr;
     }
 
-    /**
-     * @param int $service
-     * @param bool|string $lang
-     *
-     * @return bool|array
-     */
-    public function valid_service($service, $lang = false)
+    public function valid_service(int $service, null | bool | string $lang = false) : ?array
     {
         $all_services = $this->get_services($lang);
-        if (empty($service)
-         || !isset($all_services[$service])) {
-            return false;
-        }
 
-        return $all_services[$service];
+        return $all_services[$service] ?? null;
     }
 
-    /**
-     * @param int $user_id User ID
-     * @param int $service_id 3rd party service ID
-     *
-     * @return array|bool
-     */
-    public function user_is_linked_with_service($user_id, $service_id)
+    public function user_is_linked_with_service(int $user_id, int $service_id) : ?array
     {
         $this->reset_error();
 
-        $user_id = (int)$user_id;
         if (empty($user_id)) {
-            return false;
-        }
-
-        if ($service_id !== false) {
-            $service_id = (int)$service_id;
+            return null;
         }
 
         if (!empty($service_id)
-         && !$this->valid_service($service_id)) {
+            && !$this->valid_service($service_id)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid service ID provided.'));
 
-            return false;
+            return null;
         }
 
-        $as_flow_params = $this->fetch_default_flow_params(['table_name' => 'users_services']);
-
-        $check_arr = [];
-        $check_arr['user_id'] = $user_id;
-        $check_arr['service_id'] = $service_id;
-
-        return $this->get_details_fields($check_arr, $as_flow_params);
+        return $this->get_details_fields(
+            ['user_id' => $user_id, 'service_id' => $service_id],
+            $this->fetch_default_flow_params(['table_name' => 'users_services'])
+        ) ?: null;
     }
 
-    public function link_user_with_service($user_id, $service_id, $account_details = null)
+    public function link_user_with_service(int $user_id, int $service_id, ?string $account_details = null) : ?array
     {
         $this->reset_error();
 
-        $user_id = (int)$user_id;
-        $service_id = (int)$service_id;
-
         if (empty($service_id)
-         || !$this->valid_service($service_id)) {
+            || !$this->valid_service($service_id)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid service ID provided.'));
 
-            return false;
+            return null;
         }
 
         $flow_params = $this->fetch_default_flow_params(['table_name' => 'users_services']);
@@ -166,10 +129,10 @@ class PHS_Model_Accounts_services extends PHS_Model
         $action_arr['fields'] = $action_fields_arr;
 
         if (($existing_arr = $this->get_details_fields(['user_id' => $user_id, 'service_id' => $service_id], $flow_params))) {
-            return $this->edit($existing_arr, $action_arr);
+            return $this->edit($existing_arr, $action_arr) ?: null;
         }
 
-        return $this->insert($action_arr);
+        return $this->insert($action_arr) ?: null;
     }
 
     /**
@@ -243,7 +206,7 @@ class PHS_Model_Accounts_services extends PHS_Model
 
         if (!empty($params['fields']['account_details'])
          && (!is_string($params['fields']['account_details'])
-            || !($account_details_arr = @json_decode($params['fields']['account_details'], true))
+            || !@json_decode($params['fields']['account_details'], true)
          )) {
             $this->set_error(self::ERR_INSERT, $this->_pt('Please provide service account details. This should be a JSON string.'));
 
@@ -268,7 +231,7 @@ class PHS_Model_Accounts_services extends PHS_Model
         }
 
         if (isset($params['fields']['service_id'])
-         && !$this->valid_service($params['fields']['service_id'])) {
+            && !$this->valid_service($params['fields']['service_id'])) {
             $this->set_error(self::ERR_EDIT, $this->_pt('Please provide a valid service for this account.'));
 
             return false;
@@ -280,7 +243,7 @@ class PHS_Model_Accounts_services extends PHS_Model
 
         if (!empty($params['fields']['account_details'])
          && (!is_string($params['fields']['account_details'])
-             || !($account_details_arr = @json_decode($params['fields']['account_details'], true))
+             || !@json_decode($params['fields']['account_details'], true)
          )) {
             $this->set_error(self::ERR_EDIT, $this->_pt('Please provide valid service account details. This should be a JSON string.'));
 

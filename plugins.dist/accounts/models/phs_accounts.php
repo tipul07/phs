@@ -1582,9 +1582,10 @@ class PHS_Model_Accounts extends PHS_Model
             PHS_Model_Roles::class, 'role_id', 'user_id',
             ['table_name' => 'roles'],
             ['table_name' => 'roles_users'],
-            filter_fn: function(PHS_Record_data $role_data) {
+            filter_fn: function(PHS_Record_data $role_data, mixed $read_value) {
                 return $role_data['slug'] ?? '';
             },
+            read_limit: 1000,
         );
 
         $this->relation_many_to_many('roles_units_slugs',
@@ -1592,14 +1593,16 @@ class PHS_Model_Accounts extends PHS_Model
             PHS_Model_Roles::class, 'role_id', 'user_id',
             ['table_name' => 'roles'],
             ['table_name' => 'roles_users'],
-            filter_fn: function(PHS_Record_data $result) {
-                $return_arr = [];
-                foreach ($result->role_units_slugs(0, 100)?->yield() ?? [] as $role_unit_slug) {
-                    $return_arr[] = $role_unit_slug;
+            read_fn: function(mixed $read_value, int $offset = 0, int $limit = 0) {
+                /** @var PHS_Model_Roles $roles_model */
+                if (!($roles_model = PHS_Model_Roles::get_instance())
+                   || !($roles_units = $roles_model->get_user_role_units_slugs($read_value))) {
+                    return [];
                 }
 
-                return $return_arr;
+                return array_slice($roles_units, $offset, $limit);
             },
+            read_limit: 1000,
             options: ['merge_relation_results' => true],
         );
     }

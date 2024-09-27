@@ -56,13 +56,13 @@ class PHS_Relation
                 }
 
                 if (!is_array($result)) {
-                    return $filter_fn($result);
+                    return $filter_fn($result, $read_value);
                 }
 
                 $return_arr = [];
                 $merge_results = $this->_get_options_value('merge_relation_results');
                 foreach ($result as $key => $result_item) {
-                    if (null === ($filtered_result = $filter_fn($result_item))) {
+                    if (null === ($filtered_result = $filter_fn($result_item, $read_value))) {
                         continue;
                     }
 
@@ -75,6 +75,10 @@ class PHS_Relation
 
                 if ($merge_results) {
                     $return_arr = array_merge(...$return_arr);
+
+                    if ($this->_get_options_value('merge_unique_results')) {
+                        $return_arr = array_values(array_unique($return_arr));
+                    }
                 }
 
                 return $return_arr;
@@ -257,6 +261,7 @@ class PHS_Relation
     {
         return [
             'merge_relation_results' => false,
+            'merge_unique_results'   => true,
         ];
     }
 }

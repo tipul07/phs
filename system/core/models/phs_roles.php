@@ -1392,7 +1392,7 @@ class PHS_Model_Roles extends PHS_Model
             ['table_name' => 'roles_units'],
             ['table_name' => 'roles_units_links'],
             for_flow: ['table_name' => 'roles'],
-            filter_fn: function(PHS_Record_data $role_data) {
+            filter_fn: function(PHS_Record_data $role_data, mixed $read_value) {
                 return $role_data['slug'] ?? '';
             }
         );
