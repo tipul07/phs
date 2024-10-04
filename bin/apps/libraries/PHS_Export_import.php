@@ -288,18 +288,15 @@ trait PHS_Export_import
 
         // Import plugin settings for provided plugins...
         if (!empty($action_json_arr['import_plugin_settings'])
-         && isset($import_arr['plugins']['settings'])
-         && is_array($import_arr['plugins']['settings'])
-         && !empty($imported_symlinks_arr)
-         && ($plugin_names = @array_keys($imported_symlinks_arr))) {
-            if (false === $this->_do_platform_import_settings_for_plugins($import_arr['plugins']['settings'], $action_json_arr['crypt_key'], $plugin_names)) {
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_PARAMETERS,
-                        self::_t('Error importing plugin settings from import file.'));
-                }
+            && isset($import_arr['plugins']['settings'])
+            && is_array($import_arr['plugins']['settings'])
+            && !empty($imported_symlinks_arr)
+            && ($plugin_names = @array_keys($imported_symlinks_arr))
+            && !$this->_do_platform_import_settings_for_plugins($import_arr['plugins']['settings'], $action_json_arr['crypt_key'], $plugin_names)) {
+            $this->set_error_if_not_set(self::ERR_PARAMETERS,
+                self::_t('Error importing plugin settings from import file.'));
 
-                return false;
-            }
+            return false;
         }
 
         return true;

@@ -1,4 +1,4 @@
-## Welcome to PHoSphorus
+## Welcome to MorPHSpiral
 
 [![GitHub issues](https://img.shields.io/github/issues/tipul07/phs.svg)](https://github.com/tipul07/phs/issues/)
 [![GitHub contributors](https://img.shields.io/github/contributors/tipul07/phs.svg)](https://GitHub.com/tipul07/phs/graphs/contributors/)

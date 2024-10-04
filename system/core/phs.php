@@ -13,6 +13,7 @@ use phs\libraries\PHS_Library;
 use phs\libraries\PHS_Contract;
 use phs\libraries\PHS_Registry;
 use phs\libraries\PHS_Controller;
+use phs\libraries\PHS_Record_data;
 use phs\libraries\PHS_Instantiable;
 use phs\system\core\views\PHS_View;
 use phs\libraries\PHS_Notifications;
@@ -346,14 +347,13 @@ final class PHS extends PHS_Registry
         return $hook_args['session_db_data'];
     }
 
-    public static function account_structure($account_data) : ?array
+    public static function account_structure(int | array | PHS_Record_data $account_data) : null | array | PHS_Record_data
     {
         $hook_args = PHS_Hooks::default_account_structure_hook_args();
         $hook_args['account_data'] = $account_data;
 
         if (!($hook_result = PHS_Hooks::trigger_account_structure($hook_args))
-            || empty($hook_result['account_structure'])
-            || !is_array($hook_result['account_structure'])) {
+            || empty($hook_result['account_structure'])) {
             return null;
         }
 
@@ -1986,9 +1986,7 @@ final class PHS extends PHS_Registry
         self::st_reset_error();
 
         if (!($scope_obj = PHS_Scope::get_scope_instance())) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_EXECUTE_ROUTE, self::_t('Error spawning scope instance.'));
-            }
+            self::st_set_error_if_not_set(self::ERR_EXECUTE_ROUTE, self::_t('Error spawning scope instance.'));
 
             if (!empty($params['die_on_error'])) {
                 $error_msg = self::st_get_full_error_message();
@@ -2142,7 +2140,7 @@ final class PHS extends PHS_Registry
         return PHS_CORE_LIBRARIES_DIR.$library.'.php';
     }
 
-    public static function spl_autoload_register($class_name) : void
+    public static function spl_autoload_register(string $class_name) : void
     {
         self::st_reset_error();
 
@@ -2589,17 +2587,17 @@ final class PHS extends PHS_Registry
 
     /**
      * @param string $scope
-     * @param string|bool $plugin
+     * @param null|string $plugin
      *
      * @return null|PHS_Scope Returns false on error or an instance of loaded scope
      */
-    public static function load_scope(string $scope, $plugin = false) : ?PHS_Scope
+    public static function load_scope(string $scope, ?string $plugin = null) : ?PHS_Scope
     {
         self::st_reset_error();
 
         if (!($scope_name = PHS_Instantiable::safe_escape_class_name($scope))) {
             self::st_set_error(self::ERR_LOAD_SCOPE, self::_t('Couldn\'t load scope %s from plugin %s.',
-                $scope, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
+                $scope, $plugin ?? PHS_Instantiable::CORE_PLUGIN));
 
             return null;
         }
@@ -2607,13 +2605,13 @@ final class PHS extends PHS_Registry
         $class_name = 'PHS_Scope_'.ucfirst(strtolower($scope_name));
 
         if ($plugin === PHS_Instantiable::CORE_PLUGIN) {
-            $plugin = false;
+            $plugin = null;
         }
 
         /** @var PHS_Scope */
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_SCOPE))) {
             self::st_set_error_if_not_set(self::ERR_LOAD_SCOPE, self::_t('Couldn\'t obtain instance for scope %s from plugin %s.',
-                $scope, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
+                $scope, $plugin ?? PHS_Instantiable::CORE_PLUGIN));
 
             return null;
         }

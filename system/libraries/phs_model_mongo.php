@@ -3,7 +3,10 @@
 namespace phs\libraries;
 
 use phs\PHS;
+use Exception;
 use phs\PHS_Db;
+use MongoDB\BSON\ObjectId;
+use phs\system\core\events\models\PHS_Event_Model_delete;
 
 abstract class PHS_Model_Mongo extends PHS_Model_Core_base
 {
@@ -56,7 +59,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
      *
      * (override the method if not `_id`)
      */
-    public function get_primary_key($params = false) : string
+    public function get_primary_key(null | bool | array $params = []) : string
     {
         return '_id';
     }
@@ -66,7 +69,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
      *
      * Default primary key a hash, override this method if otherwise
      */
-    public function prepare_primary_key($id, $params = false)
+    public function prepare_primary_key(int | string $id, null | bool | array $params = []) : int | string
     {
         return trim($id);
     }
@@ -77,20 +80,6 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     public function get_field_types() : array
     {
         return self::$FTYPE_ARR;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function valid_field_type(int $type) : ?array
-    {
-        if (empty($type)
-         || !($fields_arr = $this->get_field_types())
-         || empty($fields_arr[$type]) || !is_array($fields_arr[$type])) {
-            return null;
-        }
-
-        return $fields_arr[$type];
     }
 
     /**
@@ -115,41 +104,6 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     public function get_count_prepare_params($params = false)
     {
         return $params;
-    }
-
-    public function table_field_details(string $field, $params = false)
-    {
-        $this->reset_error();
-
-        $table = false;
-        if (strstr($field, '.') !== false) {
-            [$table, $field] = explode('.', $field, 2);
-        }
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        $params['table_name'] = $table;
-
-        if (!($params = $this->fetch_default_flow_params($params))) {
-            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Failed validating flow parameters.'));
-
-            return false;
-        }
-
-        if (!($table_fields = $this->get_definition($params))
-         || !is_array($table_fields)) {
-            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Invalid table definition.'));
-
-            return false;
-        }
-
-        if (empty($table_fields[$field]) || !is_array($table_fields[$field])) {
-            return null;
-        }
-
-        return $table_fields[$field];
     }
 
     final public function alter_table_add_column($field_name, $field_details, $flow_params = false, $params = false)
@@ -783,12 +737,12 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_details_for_model($id, $params = false)
+    protected function _get_details_for_model(int | string $id, null | bool | array $params = []) : ?array
     {
         $this->reset_error();
 
         if (!($params = $this->fetch_default_flow_params($params))) {
-            return false;
+            return null;
         }
 
         $db_connection = $this->get_db_connection($params);
@@ -796,26 +750,24 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         /** @var PHS_Db_mongo $mongo_driver */
         if (empty($id)
          || !($mongo_driver = PHS_Db::db($db_connection))) {
-            return false;
+            return null;
         }
 
         $id_obj = false;
         try {
-            if (@class_exists('\\MongoDB\\BSON\\ObjectID', false)) {
-                $id_obj = new \MongoDB\BSON\ObjectID($id);
-            } elseif (@class_exists('\\MongoDB\\BSON\\ObjectId', false)) {
-                $id_obj = new \MongoDB\BSON\ObjectId($id);
+            if (@class_exists(ObjectId::class, false)) {
+                $id_obj = new ObjectId($id);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Cannot obtain Object Id instance.'));
 
-            return false;
+            return null;
         }
 
         if (empty($id_obj)) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Cannot obtain Object Id instance.'));
 
-            return false;
+            return null;
         }
 
         $query_arr = $mongo_driver::default_query_arr();
@@ -826,8 +778,8 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         $query_arr['query_options']['limit'] = 1;
 
         if (!($qid = $mongo_driver->query($query_arr, $db_connection))
-         || !($item_arr = $mongo_driver->fetch_assoc($qid))) {
-            return false;
+            || !($item_arr = $mongo_driver->fetch_assoc($qid))) {
+            return null;
         }
 
         return $item_arr;
@@ -836,13 +788,13 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_details_fields_for_model($constrain_arr, $params = false)
+    protected function _get_details_fields_for_model(array $constrain_arr, null | bool | array $params = []) : ?array
     {
         if (!($params = $this->fetch_default_flow_params($params))
-         || !($common_arr = $this->get_details_common($constrain_arr, $params))
-         || !is_array($common_arr)
-         || (empty($params['return_query']) && empty($common_arr['qid']))) {
-            return false;
+            || !($common_arr = $this->get_details_common($constrain_arr, $params))
+            || !is_array($common_arr)
+            || (empty($params['return_query']) && empty($common_arr['qid']))) {
+            return null;
         }
 
         if (!empty($params['return_query'])) {
@@ -860,12 +812,12 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
             try {
                 if (!($result_arr = $qid->toArray())
                  || empty($result_arr[0])) {
-                    return false;
+                    return null;
                 }
 
                 return $result_arr[0];
-            } catch (\Exception $e) {
-                return false;
+            } catch (Exception $e) {
+                return null;
             }
         }
 
@@ -881,7 +833,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _check_table_exists_for_model($flow_params = false, bool $force = false) : bool
+    protected function _check_table_exists_for_model(null | bool | array $flow_params = [], bool $force = false) : bool
     {
         $this->reset_error();
 
@@ -1269,14 +1221,14 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _uninstall_table_for_model($flow_params) : bool
+    protected function _uninstall_table_for_model(null | bool | array $flow_params) : bool
     {
         $this->reset_error();
 
-        if (empty($this->_definition) || !is_array($this->_definition)
-         || !($flow_params = $this->fetch_default_flow_params($flow_params))
-         || !($db_connection = $this->get_db_connection($flow_params))
-         || !($full_table_name = $this->get_flow_table_name($flow_params))) {
+        if (empty($this->_definition)
+            || !($flow_params = $this->fetch_default_flow_params($flow_params))
+            || !($db_connection = $this->get_db_connection($flow_params))
+            || !($full_table_name = $this->get_flow_table_name($flow_params))) {
             return true;
         }
 
@@ -1292,7 +1244,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_table_definition_for_model_from_database($flow_params = false, $force = false)
+    protected function _get_table_definition_for_model_from_database(null | bool | array $flow_params = [], bool $force = false) : ?array
     {
         $this->reset_error();
 
@@ -1302,7 +1254,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
          || !($my_driver = $this->get_model_driver())) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Failed validating flow parameters.'));
 
-            return false;
+            return null;
         }
 
         if (($qid = db_query('SHOW FULL COLUMNS FROM `'.$flow_table_name.'`', $flow_params['db_connection']))) {
@@ -1359,12 +1311,12 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _hard_delete_for_model($existing_data, $params = false) : bool
+    protected function _hard_delete_for_model(array | PHS_Record_data $existing_data, null | bool | array $params = []) : bool
     {
         self::st_reset_error();
         $this->reset_error();
 
-        if (empty($existing_data) || !is_array($existing_data)
+        if (empty($existing_data)
          || !($params = $this->fetch_default_flow_params($params))
          || empty($params['table_index'])
          || !isset($existing_data[$params['table_index']])) {
@@ -1373,12 +1325,19 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
 
         $db_connection = $this->get_db_connection($params['db_connection']);
 
-        $result = false;
-        if (db_query('DELETE FROM `'.$this->get_flow_table_name($params).'` WHERE `'.$params['table_index'].'` = \''.db_escape($existing_data[$params['table_index']], $db_connection).'\'', $db_connection)) {
-            $result = true;
+        if (!db_query('DELETE FROM `'.$this->get_flow_table_name($params).'` '
+                      .'WHERE `'.$params['table_index'].'` = \''.db_escape($existing_data[$params['table_index']], $db_connection).'\'',
+            $db_connection)) {
+            return false;
         }
 
-        return $result;
+        PHS_Event_Model_delete::trigger_for_model($this::class, [
+            'flow_params' => $params,
+            'record_data' => $existing_data,
+            'model_obj'   => $this,
+        ]);
+
+        return true;
     }
 
     /**
@@ -1403,40 +1362,26 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _validate_field($field_arr)
+    protected function _validate_field(array $field_arr) : ?array
     {
-        if (empty($field_arr) || !is_array($field_arr)) {
-            $field_arr = [];
-        }
-
-        $def_values = self::_default_field_arr();
-        $new_field_arr = [];
-        foreach ($def_values as $key => $val) {
-            if (!array_key_exists($key, $field_arr)) {
-                $new_field_arr[$key] = $val;
-            } else {
-                $new_field_arr[$key] = $field_arr[$key];
-            }
-        }
-
-        $field_arr = $new_field_arr;
+        $field_arr = self::validate_array_to_new_array($field_arr, self::_default_field_arr());
 
         if (empty($field_arr['type'])
-         || !($field_details = $this->valid_field_type($field_arr['type']))) {
-            return false;
+            || !($field_details = $this->valid_field_type($field_arr['type']))) {
+            return null;
         }
 
         if (isset($field_details['nullable'])) {
-            $field_arr['nullable'] = (!empty($field_details['nullable']) ? true : false);
+            $field_arr['nullable'] = !empty($field_details['nullable']);
         }
 
         if ($field_arr['default'] === null
-        && isset($field_details['default_value'])) {
+            && isset($field_details['default_value'])) {
             $field_arr['default'] = $field_details['default_value'];
         }
 
         if (empty($field_arr['raw_default'])
-        && !empty($field_details['raw_default'])) {
+            && !empty($field_details['raw_default'])) {
             $field_arr['raw_default'] = $field_details['raw_default'];
         }
 
@@ -1446,13 +1391,9 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _validate_field_value($value, $field_name, $field_details, $params = false)
+    protected function _validate_field_value(mixed $value, string $field_name, array $field_details) : mixed
     {
         $this->reset_error();
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
 
         if (empty($field_name)) {
             $field_name = self::_t('N/A');
@@ -1617,77 +1558,6 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         return $params;
     }
 
-    protected function validate_data_for_fields(array $params)
-    {
-        $this->reset_error();
-
-        if (!($table_fields = $this->get_definition($params))
-         || !is_array($table_fields)) {
-            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Invalid table definition.'));
-
-            return false;
-        }
-
-        if (empty($params['action'])
-         || !in_array($params['action'], ['insert', 'edit'])) {
-            $params['action'] = 'insert';
-        }
-
-        $hook_params = PHS_Hooks::default_model_validate_data_fields_hook_args();
-        $hook_params['driver'] = $this->get_model_driver();
-        $hook_params['flow_params'] = $params;
-        $hook_params['table_fields'] = $table_fields;
-
-        if (($trigger_result = PHS::trigger_hooks(PHS_Hooks::H_MODEL_VALIDATE_DATA_FIELDS, $hook_params))
-        && is_array($trigger_result)) {
-            if (!empty($trigger_result['flow_params']) && is_array($trigger_result['flow_params'])) {
-                $params = self::merge_array_assoc($params, $trigger_result['flow_params']);
-            }
-            if (!empty($trigger_result['table_fields']) && is_array($trigger_result['table_fields'])) {
-                $table_fields = self::merge_array_assoc($table_fields, $trigger_result['table_fields']);
-            }
-        }
-
-        $validated_fields = [];
-        $data_arr = [];
-        $has_raw_fields = false;
-        foreach ($table_fields as $field_name => $field_details) {
-            if (empty($field_details['editable'])
-            && $params['action'] === 'edit') {
-                continue;
-            }
-
-            if (array_key_exists($field_name, $params['fields'])) {
-                // we can pass raw values (see quick_edit or quick_insert)
-                if (!is_array($params['fields'][$field_name])) {
-                    $field_value = $this->_validate_field_value($params['fields'][$field_name], $field_name, $field_details);
-                } else {
-                    $has_raw_fields = true;
-                    $field_value = $params['fields'][$field_name];
-
-                    if (empty($params['fields'][$field_name]['raw_field'])
-                    && array_key_exists('value', $params['fields'][$field_name])) {
-                        $field_value['value'] = $this->_validate_field_value($params['fields'][$field_name]['value'], $field_name, $field_details);
-                    }
-                }
-
-                $data_arr[$field_name] = $field_value;
-                $validated_fields[] = $field_name;
-            } elseif (isset($field_details['default'])
-                  && $params['action'] === 'insert') {
-                // When editing records only passed fields will be saved in database...
-                $data_arr[$field_name] = $field_details['default'];
-            }
-        }
-
-        $return_arr = [];
-        $return_arr['has_raw_fields'] = $has_raw_fields;
-        $return_arr['data_arr'] = $data_arr;
-        $return_arr['validated_fields'] = $validated_fields;
-
-        return $return_arr;
-    }
-
     protected function _create_table_extra_indexes($flow_params)
     {
         $this->reset_error();
@@ -1745,7 +1615,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     //
     //  region Querying database functionality
     //
-    protected function get_details_common($constrain_arr, $params = false)
+    protected function get_details_common(array $constrain_arr, null | bool | array $params = [])
     {
         if (!($params = $this->fetch_default_flow_params($params))) {
             return false;
@@ -1758,20 +1628,15 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         if (!isset($params['result_type'])) {
             $params['result_type'] = 'single';
         }
-        if (!isset($params['result_key'])) {
-            $params['result_key'] = $params['table_index'];
-        }
-        if (!isset($params['return_query'])) {
-            $params['return_query'] = false;
-        } else {
-            $params['return_query'] = (!empty($params['return_query']) ? true : false);
-        }
+
+        $params['result_key'] ??= $params['table_index'];
+        $params['return_query'] = !isset($params['return_query']) || !empty($params['return_query']);
 
         if (!isset($params['limit'])
-         || $params['result_type'] == 'single') {
+            || $params['result_type'] === 'single') {
             $params['limit'] = 1;
         } else {
-            $params['limit'] = intval($params['limit']);
+            $params['limit'] = (int)$params['limit'];
             $params['result_type'] = 'list';
         }
 
@@ -2273,6 +2138,8 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
             'raw_default' => null,
             'nullable'    => false,
             'comment'     => '',
+            // Let framework know this field is holding sensitive data, so it will no get exported
+            'sensitive_data' => false,
         ];
     }
     //

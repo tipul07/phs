@@ -6,6 +6,7 @@ use phs\PHS;
 use phs\PHS_Scope;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
+use phs\plugins\backup\PHS_Plugin_Backup;
 
 class PHS_Action_Run_backups_ag extends PHS_Action
 {
@@ -16,8 +17,8 @@ class PHS_Action_Run_backups_ag extends PHS_Action
 
     public function execute()
     {
-        /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
-        if (!($backup_plugin = PHS::load_plugin('backup'))) {
+        /** @var PHS_Plugin_Backup $backup_plugin */
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
             PHS_Logger::error('!!! Error: Couldn\'t load backup plugin.', $backup_plugin::LOG_CHANNEL);
 
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Couldn\'t load backup plugin.'));

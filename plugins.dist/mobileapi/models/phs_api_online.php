@@ -6,6 +6,7 @@ use phs\PHS;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
+use phs\plugins\mobileapi\PHS_Plugin_Mobileapi;
 
 class PHS_Model_Api_online extends PHS_Model
 {
@@ -212,8 +213,8 @@ class PHS_Model_Api_online extends PHS_Model
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobileapi_plugin */
-        if (!($mobileapi_plugin = PHS::load_plugin('mobileapi'))) {
+        /** @var PHS_Plugin_Mobileapi $mobileapi_plugin */
+        if (!($mobileapi_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading MobileAPI plugin.'));
 
             return false;
@@ -237,8 +238,8 @@ class PHS_Model_Api_online extends PHS_Model
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobileapi_plugin */
-        if (!($mobileapi_plugin = PHS::load_plugin('mobileapi'))) {
+        /** @var PHS_Plugin_Mobileapi $mobileapi_plugin */
+        if (!($mobileapi_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading MobileAPI plugin.'));
 
             return false;
@@ -841,10 +842,9 @@ class PHS_Model_Api_online extends PHS_Model
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobileapi_plugin */
-        if (!($mobileapi_plugin = PHS::load_plugin('mobileapi'))
-         || !($mapi_online_flow = $this->fetch_default_flow_params(['table_name' => 'mobileapi_online']))
-         || !($mo_table_name = $this->get_flow_table_name($mapi_online_flow))) {
+        /** @var PHS_Plugin_Mobileapi $mobileapi_plugin */
+        if (!($mobileapi_plugin = PHS_Plugin_Mobileapi::get_instance())
+            || !($mapi_online_flow = $this->fetch_default_flow_params(['table_name' => 'mobileapi_online']))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t initialize required resources to check mobile API sessions.'));
 
             return false;
@@ -1376,8 +1376,8 @@ class PHS_Model_Api_online extends PHS_Model
 
     public static function get_api_data_session_fields() : array
     {
-        /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobileapi_plugin */
-        if (!($mobileapi_plugin = PHS::load_plugin('mobileapi'))) {
+        /** @var PHS_Plugin_Mobileapi $mobileapi_plugin */
+        if (!($mobileapi_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             return [];
         }
 
@@ -1419,8 +1419,8 @@ class PHS_Model_Api_online extends PHS_Model
 
     public static function get_api_data_device_fields() : array
     {
-        /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobileapi_plugin */
-        if (!($mobileapi_plugin = PHS::load_plugin('mobileapi'))) {
+        /** @var PHS_Plugin_Mobileapi $mobileapi_plugin */
+        if (!($mobileapi_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             return [];
         }
 

@@ -20,6 +20,7 @@ use phs\PHS_Api_base;
 use phs\PHS_Api_remote;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
+use phs\plugins\remote_phs\PHS_Plugin_Remote_phs;
 
 if (!PHS_Api_remote::framework_allows_api_calls()) {
     PHS_Api_remote::http_header_response(PHS_Api_base::H_CODE_SERVICE_UNAVAILABLE);
@@ -31,8 +32,8 @@ if (!PHS::is_secured_request()) {
     exit;
 }
 
-/** @var \phs\plugins\remote_phs\PHS_Plugin_Remote_phs $remote_plugin */
-if (!($remote_plugin = PHS::load_plugin('remote_phs'))
+/** @var PHS_Plugin_Remote_phs $remote_plugin */
+if (!($remote_plugin = PHS_Plugin_Remote_phs::get_instance())
  || !$remote_plugin->is_accepting_remote_calls()) {
     PHS_Api_remote::http_header_response(PHS_Api_base::H_CODE_SERVICE_UNAVAILABLE, 'Service unavailable.');
     exit;
@@ -56,25 +57,14 @@ if (!($api_obj = PHS_Api_remote::api_factory($api_params))) {
 }
 
 if (!$api_obj->extract_api_request_details()) {
-    if ($api_obj->has_error()) {
-        $error_msg = $api_obj->get_simple_error_message();
-    } else {
-        $error_msg = $api_obj::_t('Unknow error.');
-    }
-
-    PHS_Api::generic_error($error_msg);
+    PHS_Api::generic_error($api_obj->get_simple_error_message($api_obj::_t('Unknow error.')));
     exit;
 }
 
 $api_obj->set_api_credentials();
 
 if (!($action_result = $api_obj->run_route())) {
-    if ($api_obj->has_error()) {
-        $error_msg = $api_obj->get_simple_error_message();
-    } else {
-        $error_msg = PHS_Api::_t('Error running REMOTE request.');
-    }
-
+    $error_msg = $api_obj->get_simple_error_message(PHS_Api::_t('Error running REMOTE request.'));
     $http_code = $api_obj::H_CODE_INTERNAL_SERVER_ERROR;
 
     switch (($error_no = $api_obj->get_error_code())) {

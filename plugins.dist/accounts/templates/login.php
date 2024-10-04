@@ -5,28 +5,20 @@ use phs\PHS;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Utils;
+use phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd;
 
 $trd_party_login_buffer = '';
-/** @var \phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd $trd_party_plugin */
-if (($trd_party_plugin = PHS::load_plugin('accounts_3rd'))
- && $trd_party_plugin->plugin_active()
- && ($hook_args = PHS::trigger_hooks($trd_party_plugin::H_ACCOUNTS_3RD_LOGIN_BUFFER, PHS_Hooks::default_buffer_hook_args()))
- && is_array($hook_args)
- && !empty($hook_args['buffer'])) {
+/** @var PHS_Plugin_Accounts_3rd $trd_party_plugin */
+if (($trd_party_plugin = PHS_Plugin_Accounts_3rd::get_instance())
+    && $trd_party_plugin->plugin_active()
+    && ($hook_args = PHS::trigger_hooks($trd_party_plugin::H_ACCOUNTS_3RD_LOGIN_BUFFER, PHS_Hooks::default_buffer_hook_args()))
+    && !empty($hook_args['buffer'])) {
     $trd_party_login_buffer = $hook_args['buffer'];
 }
 
-if (!($remember_me_session_minutes = $this->view_var('remember_me_session_minutes'))) {
-    $remember_me_session_minutes = 0;
-}
-
-if (!($no_nickname_only_email = $this->view_var('no_nickname_only_email'))) {
-    $no_nickname_only_email = false;
-}
-
-if (!($back_page = $this->view_var('back_page'))) {
-    $back_page = '';
-}
+$remember_me_session_minutes = $this->view_var('remember_me_session_minutes') ?: 0;
+$no_nickname_only_email = $this->view_var('no_nickname_only_email') ?: false;
+$back_page = $this->view_var('back_page') ?: '';
 ?>
 <div class="login_container">
     <form id="login_form" name="login_form" method="post"

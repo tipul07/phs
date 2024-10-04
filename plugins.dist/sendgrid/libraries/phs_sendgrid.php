@@ -2,24 +2,25 @@
 
 namespace phs\plugins\sendgrid\libraries;
 
-use phs\PHS;
+use SendGrid;
+use SendGrid\Mail\Mail;
 use phs\libraries\PHS_Library;
+use phs\plugins\sendgrid\PHS_Plugin_Sendgrid;
 
 class PHS_Sendgrid extends PHS_Library
 {
     public const SENDGRID_DIR = 'sendgrid';
 
-    /** @var bool|\phs\plugins\sendgrid\PHS_Plugin_Sendgrid */
-    private $_sendgrid_plugin = false;
+    private ?PHS_Plugin_Sendgrid $_sendgrid_plugin = null;
 
-    public function get_sendgrid_dir_paths()
+    public function get_sendgrid_dir_paths() : ?array
     {
         $this->reset_error();
 
         if (!($library_paths = $this->get_library_location_paths())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error obtaining SendGrid library directory paths.'));
 
-            return false;
+            return null;
         }
 
         $return_arr = [];
@@ -29,49 +30,42 @@ class PHS_Sendgrid extends PHS_Library
         return $return_arr;
     }
 
-    /**
-     * @param bool $as_static Should we return a static instance
-     *
-     * @return bool|\SendGrid\Mail\Mail
-     */
-    public function get_sendgrid_instance($as_static = false)
+    public function get_sendgrid_instance(bool $as_static = false) : ?Mail
     {
         static $sendgrid_obj = null;
 
         $this->reset_error();
 
         if (!$this->_load_dependencies()) {
-            return false;
+            return null;
         }
 
         if (!$as_static) {
-            return new \SendGrid\Mail\Mail();
+            return new Mail();
         }
 
         if ($sendgrid_obj !== null) {
             return $sendgrid_obj;
         }
 
-        $sendgrid_obj = new \SendGrid\Mail\Mail();
+        $sendgrid_obj = new Mail();
 
         return $sendgrid_obj;
     }
 
-    private function _load_dependencies()
+    private function _load_dependencies() : bool
     {
         $this->reset_error();
 
         if (empty($this->_sendgrid_plugin)
-         && !($this->_sendgrid_plugin = PHS::load_plugin('sendgrid'))) {
+            && !($this->_sendgrid_plugin = PHS_Plugin_Sendgrid::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Couldn\'t load SendGrid plugin instance.'));
 
             return false;
         }
 
         if (!($sendgrid_paths = $this->get_sendgrid_dir_paths())) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error obtaining SendGrid library directory paths.'));
-            }
+            $this->set_error_if_not_set(self::ERR_DEPENDENCIES, $this->_pt('Error obtaining SendGrid library directory paths.'));
 
             return false;
         }
@@ -88,8 +82,8 @@ class PHS_Sendgrid extends PHS_Library
         include_once $autoload_file;
         @ob_get_clean();
 
-        if (!@class_exists('\\SendGrid', true)
-         || !@class_exists('\\SendGrid\\Mail\\Mail', true)) {
+        if (!@class_exists(SendGrid::class, true)
+            || !@class_exists(Mail::class, true)) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('SendGrid required classes not found.'));
 
             return false;

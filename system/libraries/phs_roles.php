@@ -84,10 +84,8 @@ class PHS_Roles extends PHS_Registry
         return $return_arr;
     }
 
-    public static function get_user_roles_slugs(null | bool | int | array $account_data) : ?array
+    public static function get_user_roles_slugs(null | bool | int | array | PHS_Record_data $account_data) : ?array
     {
-        self::st_reset_error();
-
         if (!self::load_dependencies()) {
             return null;
         }
@@ -103,10 +101,8 @@ class PHS_Roles extends PHS_Registry
         return $slugs_arr;
     }
 
-    public static function get_user_role_units_slugs(null | bool | int | array $account_data) : ?array
+    public static function get_user_role_units_slugs(null | bool | int | array | PHS_Record_data $account_data) : ?array
     {
-        self::st_reset_error();
-
         if (!self::load_dependencies()) {
             return null;
         }
@@ -122,12 +118,7 @@ class PHS_Roles extends PHS_Registry
         return $slugs_arr;
     }
 
-    /**
-     * @param int|array|string $role_data
-     *
-     * @return null|array
-     */
-    public static function get_role_role_units_slugs($role_data) : ?array
+    public static function get_role_role_units_slugs(int | string | array | PHS_Record_data $role_data) : ?array
     {
         self::st_reset_error();
 
@@ -148,15 +139,8 @@ class PHS_Roles extends PHS_Registry
         return $slugs_arr;
     }
 
-    /**
-     * @param string|int|array $roles_slugs
-     *
-     * @return null|array
-     */
-    public static function get_role_units_slugs_from_roles_slugs($roles_slugs) : ?array
+    public static function get_role_units_slugs_from_roles_slugs(int | string | array | PHS_Record_data $roles_slugs) : ?array
     {
-        self::st_reset_error();
-
         if (!self::load_dependencies()) {
             return null;
         }
@@ -174,15 +158,13 @@ class PHS_Roles extends PHS_Registry
         return $slugs_arr;
     }
 
-    public static function link_roles_to_user(int | array $account_data, $role_data, array $params = []) : bool
+    public static function link_roles_to_user(int | array | PHS_Record_data $account_data, $role_data, array $params = []) : bool
     {
-        self::st_reset_error();
-
         if (!self::load_dependencies()) {
             return false;
         }
 
-        if (self::$_role_model->link_roles_to_user($account_data, $role_data, $params) === false) {
+        if (!self::$_role_model->link_roles_to_user($account_data, $role_data, $params)) {
             self::st_copy_error(self::$_role_model);
 
             return false;
@@ -191,15 +173,13 @@ class PHS_Roles extends PHS_Registry
         return true;
     }
 
-    public static function unlink_roles_from_user($account_data, $role_data) : bool
+    public static function unlink_roles_from_user(int | array | PHS_Record_data $account_data, string | array $role_data) : bool
     {
-        self::st_reset_error();
-
         if (!self::load_dependencies()) {
             return false;
         }
 
-        if (self::$_role_model->unlink_roles_from_user($account_data, $role_data) === false) {
+        if (!self::$_role_model->unlink_roles_from_user($account_data, $role_data)) {
             self::st_copy_error(self::$_role_model);
 
             return false;
@@ -208,15 +188,13 @@ class PHS_Roles extends PHS_Registry
         return true;
     }
 
-    public static function unlink_all_roles_from_user($account_data) : bool
+    public static function unlink_all_roles_from_user(int | array | PHS_Record_data $account_data) : bool
     {
-        self::st_reset_error();
-
         if (!self::load_dependencies()) {
             return false;
         }
 
-        if (self::$_role_model->unlink_all_roles_from_user($account_data) === false) {
+        if (!self::$_role_model->unlink_all_roles_from_user($account_data)) {
             self::st_copy_error(self::$_role_model);
 
             return false;
@@ -225,15 +203,8 @@ class PHS_Roles extends PHS_Registry
         return true;
     }
 
-    /**
-     * @param array $params
-     *
-     * @return null|array
-     */
     public static function register_role(array $params) : ?array
     {
-        self::st_reset_error();
-
         if (!self::load_dependencies()) {
             return null;
         }
@@ -259,73 +230,68 @@ class PHS_Roles extends PHS_Registry
             unset($params['{role_units}']);
         }
 
-        $role_model = self::$_role_model;
-
         $constrain_arr = [];
         $constrain_arr['slug'] = $params['slug'];
 
-        $check_params = $role_model->fetch_default_flow_params(['table_name' => 'roles']);
+        $check_params = self::$_role_model->fetch_default_flow_params(['table_name' => 'roles']);
 
-        if (($role_arr = $role_model->get_details_fields($constrain_arr, $check_params))) {
+        if (($role_arr = self::$_role_model->get_details_fields($constrain_arr, $check_params))) {
             if (!empty($role_arr['plugin']) && !empty($params['plugin'])
-             && (string)$role_arr['plugin'] !== (string)$params['plugin']) {
+                && (string)$role_arr['plugin'] !== (string)$params['plugin']) {
                 self::st_set_error(self::ERR_PARAMETERS,
                     self::_t('Error adding role [%s] there is already a role with same slug from other plugin.', $params['slug']));
 
                 return null;
             }
 
-            $edit_fields_arr = [];
-            $check_fields = $role_model::get_register_edit_role_unit_fields();
+            $check_fields = self::$_role_model::get_register_edit_role_unit_fields();
 
+            $edit_fields_arr = [];
             foreach ($check_fields as $key => $def_val) {
                 if (array_key_exists($key, $role_arr)
-                 && array_key_exists($key, $params)
-                 && (string)$role_arr[$key] !== (string)$params[$key]) {
+                    && array_key_exists($key, $params)
+                    && (string)$role_arr[$key] !== (string)$params[$key]) {
                     $edit_fields_arr[$key] = $params[$key];
                 }
             }
 
             if (empty($role_arr['plugin'])
-             && !empty($params['plugin'])) {
+                && !empty($params['plugin'])) {
                 $edit_fields_arr['plugin'] = $params['plugin'];
             }
 
-            if ($role_model->is_deleted($role_arr)) {
-                $edit_fields_arr['status'] = $role_model::STATUS_ACTIVE;
+            if (self::$_role_model->is_deleted($role_arr)) {
+                $edit_fields_arr['status'] = self::$_role_model::STATUS_ACTIVE;
             }
 
             if (!empty($edit_fields_arr)) {
-                $edit_arr = $role_model->fetch_default_flow_params(['table_name' => 'roles']);
+                $edit_arr = self::$_role_model->fetch_default_flow_params(['table_name' => 'roles']);
                 $edit_arr['fields'] = $edit_fields_arr;
 
                 // if we have an error because edit didn't work, don't throw error as this is not something major...
-                if (($new_existing_arr = $role_model->edit($role_arr, $edit_arr))) {
+                if (($new_existing_arr = self::$_role_model->edit($role_arr, $edit_arr))) {
                     $role_arr = $new_existing_arr;
                 }
             }
 
             // Don't append role units as we might remove some role units from role...
             if (!empty($role_units_arr)) {
-                $role_model->link_role_units_to_role($role_arr, $role_units_arr, ['append_role_units' => false]);
+                self::$_role_model->link_role_units_to_role($role_arr, $role_units_arr, ['append_role_units' => false]);
             }
         } else {
             if (empty($params['name'])) {
                 $params['name'] = $params['slug'];
             }
 
-            $params['status'] = $role_model::STATUS_ACTIVE;
+            $params['status'] = self::$_role_model::STATUS_ACTIVE;
 
-            $insert_arr = $role_model->fetch_default_flow_params(['table_name' => 'roles']);
+            $insert_arr = self::$_role_model->fetch_default_flow_params(['table_name' => 'roles']);
             $insert_arr['fields'] = $params;
             $insert_arr['{role_units}'] = $role_units_arr;
 
-            if (!($role_arr = $role_model->insert($insert_arr))) {
-                if ($role_model->has_error()) {
-                    self::st_copy_error($role_model);
-                } else {
-                    self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error adding role [%s] to database.', $params['slug']));
-                }
+            if (!($role_arr = self::$_role_model->insert($insert_arr))) {
+                self::st_copy_or_set_error(self::$_role_model,
+                    self::ERR_FUNCTIONALITY, self::_t('Error adding role [%s] to database.', $params['slug']));
 
                 return null;
             }
@@ -369,10 +335,10 @@ class PHS_Roles extends PHS_Registry
         $check_params['result_type'] = 'single';
         $check_params['details'] = '*';
 
-        if (($role_unit_arr = $role_model->get_details_fields($constrain_arr, $check_params))) {
+        if (($role_unit_arr = self::$_role_model->get_details_fields($constrain_arr, $check_params))) {
             // TODO: check $role_arr['plugin'] if it is same as $params['plugin'] (don't allow other plugins to overwrite role units)
             $edit_fields_arr = [];
-            $check_fields = $role_model::get_register_edit_role_unit_fields();
+            $check_fields = self::$_role_model::get_register_edit_role_unit_fields();
 
             foreach ($check_fields as $key => $def_val) {
                 if (array_key_exists($key, $role_unit_arr)
@@ -387,16 +353,16 @@ class PHS_Roles extends PHS_Registry
                 $edit_fields_arr['plugin'] = $params['plugin'];
             }
 
-            if ($role_model->is_deleted($role_unit_arr)) {
-                $edit_fields_arr['status'] = $role_model::STATUS_ACTIVE;
+            if (self::$_role_model->is_deleted($role_unit_arr)) {
+                $edit_fields_arr['status'] = self::$_role_model::STATUS_ACTIVE;
             }
 
             if (!empty($edit_fields_arr)) {
-                $edit_arr = $role_model->fetch_default_flow_params(['table_name' => 'roles_units']);
+                $edit_arr = self::$_role_model->fetch_default_flow_params(['table_name' => 'roles_units']);
                 $edit_arr['fields'] = $edit_fields_arr;
 
                 // if we have an error because edit didn't work, don't throw error as this is not something major...
-                if (($new_existing_arr = $role_model->edit($role_unit_arr, $edit_arr))) {
+                if (($new_existing_arr = self::$_role_model->edit($role_unit_arr, $edit_arr))) {
                     $role_unit_arr = $new_existing_arr;
                 }
             }
@@ -405,14 +371,14 @@ class PHS_Roles extends PHS_Registry
                 $params['name'] = $params['slug'];
             }
 
-            $params['status'] = $role_model::STATUS_ACTIVE;
+            $params['status'] = self::$_role_model::STATUS_ACTIVE;
 
-            $insert_arr = $role_model->fetch_default_flow_params(['table_name' => 'roles_units']);
+            $insert_arr = self::$_role_model->fetch_default_flow_params(['table_name' => 'roles_units']);
             $insert_arr['fields'] = $params;
 
-            if (!($role_unit_arr = $role_model->insert($insert_arr))) {
-                if ($role_model->has_error()) {
-                    self::st_copy_error($role_model);
+            if (!($role_unit_arr = self::$_role_model->insert($insert_arr))) {
+                if (self::$_role_model->has_error()) {
+                    self::st_copy_error(self::$_role_model);
                 } else {
                     self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error adding role unit [%s] to database.', $params['slug']));
                 }

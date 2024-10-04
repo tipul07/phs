@@ -7,12 +7,13 @@ use phs\PHS_Db;
 use phs\PHS_Crypt;
 use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Model;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Db_class;
 use phs\libraries\PHS_Line_params;
 use phs\traits\PHS_Model_Trait_statuses;
+use phs\plugins\backup\PHS_Plugin_Backup;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Model_Rules extends PHS_Model
 {
@@ -259,7 +260,7 @@ class PHS_Model_Rules extends PHS_Model
     {
         $this->reset_error();
 
-        if (!($backup_plugin = PHS::load_plugin('backup'))) {
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Couldn\'t load backup plugin.'));
 
             return false;
@@ -302,7 +303,7 @@ class PHS_Model_Rules extends PHS_Model
     {
         $this->reset_error();
 
-        if (!($backup_plugin = PHS::load_plugin('backup'))) {
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Couldn\'t load backup plugin.'));
 
             return false;
@@ -413,13 +414,13 @@ class PHS_Model_Rules extends PHS_Model
      */
     public function can_user_edit($record_data, $account_data)
     {
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        /** @var \phs\plugins\backup\PHS_Plugin_Backup $plugin_obj */
+        /** @var PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Plugin_Backup $plugin_obj */
         if (empty($record_data) || empty($account_data)
          || !($rule_arr = $this->data_to_array($record_data))
          || $this->is_deleted($rule_arr)
-         || !($plugin_obj = PHS::load_plugin('backup'))
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))
+         || !($plugin_obj = PHS_Plugin_Backup::get_instance())
+         || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($account_arr = $accounts_model->data_to_array($account_data))
          || !can($plugin_obj::ROLEU_MANAGE_RULES, null, $account_arr)) {
             return false;
@@ -450,8 +451,8 @@ class PHS_Model_Rules extends PHS_Model
             return false;
         }
 
-        /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
-        if (!($backup_plugin = PHS::load_plugin('backup'))) {
+        /** @var PHS_Plugin_Backup $backup_plugin */
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load backup plugin.'));
 
             return false;
@@ -480,8 +481,8 @@ class PHS_Model_Rules extends PHS_Model
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
-        if (!($backup_plugin = PHS::load_plugin('backup'))) {
+        /** @var PHS_Plugin_Backup $backup_plugin */
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Couldn\'t load backup plugin.'));
 
             return false;
@@ -536,15 +537,15 @@ class PHS_Model_Rules extends PHS_Model
             return false;
         }
 
-        /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
-        if (!($backup_plugin = PHS::load_plugin('backup'))) {
+        /** @var PHS_Plugin_Backup $backup_plugin */
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Couldn\'t load backup plugin.'));
 
             return false;
         }
 
         /** @var PHS_Model_Results $results_model */
-        if (!($results_model = PHS::load_model('results', 'backup'))) {
+        if (!($results_model = PHS_Model_Results::get_instance())) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Couldn\'t load backup results model.'));
 
             return false;
@@ -678,10 +679,10 @@ class PHS_Model_Rules extends PHS_Model
             return false;
         }
 
-        /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
+        /** @var PHS_Plugin_Backup $backup_plugin */
         /** @var PHS_Model_Results $results_model */
-        if (!($backup_plugin = PHS::load_plugin('backup'))
-         || !($results_model = PHS::load_model('results', 'backup'))) {
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())
+            || !($results_model = PHS_Model_Results::get_instance())) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error loading required resources.'));
 
             return false;
@@ -764,11 +765,11 @@ class PHS_Model_Rules extends PHS_Model
 
         /** @var PHS_Model_Rules $rules_model */
         /** @var PHS_Model_Results $results_model */
-        /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
-        if (!($backup_plugin = PHS::load_plugin('backup'))
-            || !($rules_model = PHS::load_model('rules', 'backup'))
+        /** @var PHS_Plugin_Backup $backup_plugin */
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())
+            || !($rules_model = self::get_instance())
             || !($r_flow_params = $rules_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
-            || !($results_model = PHS::load_model('results', 'backup'))
+            || !($results_model = PHS_Model_Results::get_instance())
             || !($res_flow_params = $results_model->fetch_default_flow_params(['table_name' => 'backup_results']))
         ) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error loading required resources.'));
@@ -1540,8 +1541,8 @@ class PHS_Model_Rules extends PHS_Model
     {
         $this->reset_error();
 
-        /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
-        if (!($backup_plugin = PHS::load_plugin('backup'))) {
+        /** @var PHS_Plugin_Backup $backup_plugin */
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Couldn\'t load backup plugin.'));
 
             return false;
@@ -1861,8 +1862,8 @@ class PHS_Model_Rules extends PHS_Model
 
     protected function get_edit_prepare_params_backup_rules($existing_arr, $params)
     {
-        /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
-        if (!($backup_plugin = PHS::load_plugin('backup'))) {
+        /** @var PHS_Plugin_Backup $backup_plugin */
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load backup plugin.'));
 
             return false;

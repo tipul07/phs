@@ -248,9 +248,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         if (null === ($this->_resulting_data = $this->_parse_data_from_outside_source($this->_definition_arr, $outside_data, $parsing_params))) {
             $this->_resulting_data = [];
 
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_PARAMETERS, self::_t('Error while parsing data from outside source.'));
-            }
+            $this->set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Error while parsing data from outside source.'));
 
             return null;
         }
@@ -585,7 +583,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         return true;
     }
 
-    protected function _make_sure_we_have_definition()
+    protected function _make_sure_we_have_definition() : bool
     {
         if ($this->_definition_initialized) {
             return true;
@@ -603,36 +601,30 @@ abstract class PHS_Contract extends PHS_Instantiable
 
     /**
      * Normalize an array with definitions of data nodes to be used in this contract
-     * @param array|bool $definition_arr Definition of nodes of current node or false to normalize all definition
-     * @param array|bool $params_arr Parameters sent to normalization method
+     * @param null|array $definition_arr Definition of nodes of current node or false to normalize all definition
+     * @param array $params_arr Parameters sent to normalization method
      *
-     * @return bool|array Normalized definition array, false if we had errors
+     * @return null|array Normalized definition array, false if we had errors
      */
-    protected function _normalize_definition_of_nodes($definition_arr = false, $params_arr = false)
+    protected function _normalize_definition_of_nodes(?array $definition_arr = null, array $params_arr = []) : ?array
     {
-        if (empty($params_arr) || !is_array($params_arr)) {
-            $params_arr = [];
-        }
-
         if (empty($params_arr['parent_contracts']) || !is_array($params_arr['parent_contracts'])) {
             $params_arr['parent_contracts'] = [];
         }
 
-        if ($definition_arr === false) {
+        if ($definition_arr === null) {
             if (!($definition_arr = $this->get_contract_data_definition())
              || !is_array($definition_arr)) {
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_PARAMETERS, self::_t('get_contract_data_definition() method should return an array.'));
-                }
+                $this->set_error_if_not_set(self::ERR_PARAMETERS, self::_t('get_contract_data_definition() method should return an array.'));
 
-                return false;
+                return null;
             }
         }
 
-        if (empty($definition_arr) || !is_array($definition_arr)) {
+        if (empty($definition_arr)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Provided node definition is not an array.'));
 
-            return false;
+            return null;
         }
 
         $node_definition = self::_get_contract_node_definition();
@@ -668,10 +660,11 @@ abstract class PHS_Contract extends PHS_Instantiable
 
             /** @var PHS_Contract $contract_obj */
             if (($contract_obj = $node_arr['nodes_from_contract'])
-             && !($contract_obj instanceof self)) {
-                $this->set_error(self::ERR_PARAMETERS, self::_t('Node %s in contract definition doesn\'t provide a valid contract.', $int_key));
+                && !($contract_obj instanceof self)) {
+                $this->set_error(self::ERR_PARAMETERS,
+                    self::_t('Node %s in contract definition doesn\'t provide a valid contract.', $int_key));
 
-                return false;
+                return null;
             }
 
             $contract_instance_id = false;
@@ -681,24 +674,24 @@ abstract class PHS_Contract extends PHS_Instantiable
 
             // Check recurring loop in contracts definition
             if (!empty($params_arr['parent_contracts'])
-             && in_array($contract_instance_id, $params_arr['parent_contracts'], true)) {
+                && in_array($contract_instance_id, $params_arr['parent_contracts'], true)) {
                 continue;
             }
 
             if (!empty($contract_obj)
-             && !($node_arr['nodes'] = $contract_obj->get_contract_data_definition())) {
+                && !($node_arr['nodes'] = $contract_obj->get_contract_data_definition())) {
                 $node_arr['nodes'] = false;
             }
 
             /** @var PHS_Model $model_obj */
             $model_obj = null;
-            $model_flow_arr = false;
+            $model_flow_arr = [];
             if (!empty($node_arr['data_model_obj'])) {
                 $model_obj = $node_arr['data_model_obj'];
                 if (!($model_obj instanceof PHS_Model)) {
                     $this->set_error(self::ERR_PARAMETERS, self::_t('Node %s in contract definition doesn\'t provide a valid data parsing model.', $int_key));
 
-                    return false;
+                    return null;
                 }
             }
 
@@ -713,14 +706,14 @@ abstract class PHS_Contract extends PHS_Instantiable
                  && !($model_obj instanceof PHS_Model)) {
                     $this->set_error(self::ERR_PARAMETERS, self::_t('Node %s in contract definition doesn\'t provide a valid data parsing model.', $int_key));
 
-                    return false;
+                    return null;
                 }
 
                 if (empty($model_flow_arr)
                  && (!($model_flow_arr = $contract_obj->get_parsing_data_model_flow())
                       || !is_array($model_flow_arr)
                  )) {
-                    $model_flow_arr = false;
+                    $model_flow_arr = [];
                 }
 
                 $node_arr['data_model_obj'] = $model_obj;
@@ -733,7 +726,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                 $this->set_error(self::ERR_PARAMETERS, self::_t('Node %s in contract definition is set as recurring, '
                                                                   .'but has no nodes defined as array.', $int_key));
 
-                return false;
+                return null;
             }
 
             $rec_params_arr = $params_arr;
@@ -742,8 +735,8 @@ abstract class PHS_Contract extends PHS_Instantiable
             }
 
             if (!empty($node_arr['nodes']) && is_array($node_arr['nodes'])
-             && false === ($node_arr['nodes'] = $this->_normalize_definition_of_nodes($node_arr['nodes'], $rec_params_arr))) {
-                return false;
+                && null === ($node_arr['nodes'] = $this->_normalize_definition_of_nodes($node_arr['nodes'], $rec_params_arr))) {
+                return null;
             }
 
             $return_arr[$int_key] = $node_arr;
@@ -843,14 +836,14 @@ abstract class PHS_Contract extends PHS_Instantiable
         $return_arr = [];
         foreach ($definition_arr as $node_key => $node_arr) {
             if ($node_arr['key_type'] === self::FROM_INSIDE
-             || (!empty($ignore_nodes) && in_array($node_key, $ignore_nodes, true))) {
+                || (!empty($ignore_nodes) && in_array($node_key, $ignore_nodes, true))) {
                 continue;
             }
 
             // Make sure that we have a data to process
             if (!array_key_exists($node_arr['outside_key'], $outside_data)) {
                 if (!empty($node_arr['import_if_not_found'])
-                 || !empty($params['force_import_if_not_found'])) {
+                    || !empty($params['force_import_if_not_found'])) {
                     $return_arr[$node_arr['inside_key']] = $node_arr['default_inside'];
                 }
 

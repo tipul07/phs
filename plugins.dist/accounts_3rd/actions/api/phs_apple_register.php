@@ -13,6 +13,11 @@ use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Api_action;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\mobileapi\PHS_Plugin_Mobileapi;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd;
+use phs\plugins\mobileapi\models\PHS_Model_Api_online;
+use phs\plugins\accounts_3rd\models\PHS_Model_Accounts_services;
 
 class PHS_Action_Apple_register extends PHS_Api_action
 {
@@ -39,19 +44,17 @@ class PHS_Action_Apple_register extends PHS_Api_action
      */
     public function execute()
     {
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        /** @var \phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd $accounts_trd_plugin */
-        /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobile_plugin */
-        /** @var \phs\plugins\mobileapi\models\PHS_Model_Api_online $online_model */
-        /** @var \phs\plugins\accounts_3rd\models\PHS_Model_Accounts_services $services_model */
-        if (!($accounts_plugin = PHS::load_plugin('accounts'))
-         || !($mobile_plugin = PHS::load_plugin('mobileapi'))
-         || !($online_model = PHS::load_model('api_online', 'mobileapi'))
-         || !($accounts_trd_plugin = PHS::load_plugin('accounts_3rd'))
+        /** @var PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Plugin_Accounts_3rd $accounts_trd_plugin */
+        /** @var PHS_Plugin_Mobileapi $mobile_plugin */
+        /** @var PHS_Model_Api_online $online_model */
+        /** @var PHS_Model_Accounts_services $services_model */
+        if (!($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())
+         || !($online_model = PHS_Model_Api_online::get_instance())
+         || !($accounts_trd_plugin = PHS_Plugin_Accounts_3rd::get_instance())
          || !($apple_lib = $accounts_trd_plugin->get_apple_instance())
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))
-         || !($services_model = PHS::load_model('accounts_services', 'accounts_3rd'))) {
+         || !($accounts_model = PHS_Model_Accounts::get_instance())
+         || !($services_model = PHS_Model_Accounts_services::get_instance())) {
             return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                 $this->_pt('Error loading required resources.'));
         }
@@ -62,20 +65,20 @@ class PHS_Action_Apple_register extends PHS_Api_action
         }
 
         if (!($request_arr = PHS_Api::get_request_body_as_json_array())
-         || empty($request_arr['device_info'])) {
+            || empty($request_arr['device_info'])) {
             return $this->send_api_error(PHS_Api_base::H_CODE_BAD_REQUEST, self::ERR_AUTHENTICATION,
                 $this->_pt('Please provide device info.'));
         }
 
         if (!($session_data = $mobile_plugin::api_session())
-         || empty($session_data['session_arr'])) {
+            || empty($session_data['session_arr'])) {
             return $this->send_api_error(PHS_Api_base::H_CODE_UNAUTHORIZED, self::ERR_API_INIT,
                 $this->_pt('No session.'));
         }
         $session_arr = $session_data['session_arr'];
 
         if (!($account_info = $apple_lib->get_account_details_by_token_id($service_code, $apple_lib::ACTION_REGISTER))
-         || !is_array($account_info) || empty($account_info['email'])) {
+            || empty($account_info['email'])) {
             return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                 $this->_pt('Error obtaining Apple account details.'));
         }
@@ -93,14 +96,8 @@ class PHS_Action_Apple_register extends PHS_Api_action
             $insert_arr['fields'] = $fields_arr;
 
             if (!($account_arr = $accounts_model->insert($insert_arr))) {
-                if ($accounts_model->has_error()) {
-                    $error_msg = $accounts_model->get_simple_error_message();
-                } else {
-                    $error_msg = $this->_pt('Couldn\'t register user. Please try again.');
-                }
-
                 return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
-                    $error_msg);
+                    $accounts_model->get_simple_error_message($this->_pt('Couldn\'t register user. Please try again.')));
             }
 
             PHS_Logger::notice('[APPLE] Registered user #'.$account_arr['id'].' with details ['.print_r($account_info, true).'].', $accounts_trd_plugin::LOG_CHANNEL);
@@ -110,7 +107,7 @@ class PHS_Action_Apple_register extends PHS_Api_action
                 $this->_pt('Registration failed.'));
         }
 
-        if (!($db_linkage_arr = $services_model->link_user_with_service($account_arr['id'], $services_model::SERVICE_APPLE, @json_encode($account_info)))) {
+        if (!$services_model->link_user_with_service($account_arr['id'], $services_model::SERVICE_APPLE, @json_encode($account_info))) {
             PHS_Logger::error('Error linking Apple service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL);
         }
 

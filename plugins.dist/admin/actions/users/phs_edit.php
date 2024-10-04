@@ -67,7 +67,7 @@ class PHS_Action_Edit extends PHS_Action
         $back_page = PHS_Params::_gp('back_page', PHS_Params::T_ASIS);
 
         if (empty($uid)
-         || !($account_arr = $accounts_model->get_details($uid))
+         || !($account_arr = $accounts_model->get_details_to_record_data($uid))
          || $accounts_model->is_deleted($account_arr)) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid account...'));
 

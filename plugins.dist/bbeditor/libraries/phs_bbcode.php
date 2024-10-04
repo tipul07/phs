@@ -647,12 +647,15 @@ class Bbcode extends PHS_Library
                 $old_offset = $parse_params['str_old_offset'];
 
                 if (!empty($parse_params['errors'])) {
-                    $errors_arr = array_merge($errors_arr, $parse_params['errors']);
+                    $errors_arr[] = $parse_params['errors'];
                 }
                 if (!empty($parse_params['nodes'])) {
-                    $result_arr = array_merge($result_arr, $parse_params['nodes']);
+                    $result_arr[] = $parse_params['nodes'];
                 }
             }
+
+            $errors_arr = array_merge(...$errors_arr);
+            $result_arr = array_merge(...$result_arr);
 
             if ($old_offset < $str_len) {
                 $node_arr = $this->default_parser_node_definition();
