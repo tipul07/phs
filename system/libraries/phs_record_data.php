@@ -21,6 +21,8 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
 
     private ?PHS_Model_Core_base $_model = null;
 
+    private string $_model_class = '';
+
     private bool $_new_record;
 
     private bool $_has_relations = false;
@@ -39,10 +41,8 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
 
         if ($model !== null) {
             $this->_model = $model;
-        } elseif (!empty($model_class)
-                  && ($modelobj = $model_class::get_instance())
-                  && ($modelobj instanceof PHS_Model_Core_base)
-        ) {
+        } elseif (!empty($model_class) && ($modelobj
+                = $model_class::get_instance()) && ($modelobj instanceof PHS_Model_Core_base)) {
             $this->_model = $modelobj;
         }
 
@@ -50,8 +50,9 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
             $this->_flow_arr = $flow_arr;
         }
 
-        if ( !empty($this->_model) ) {
+        if (!empty($this->_model)) {
             $this->_flow_arr = $this->_model->fetch_default_flow_params($this->_flow_arr);
+            $this->_model_class = $this->_model::class;
         }
 
         $this->_data_structure_definition();
@@ -121,6 +122,16 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
     public function get_simple_table_name_from_flow() : ?string
     {
         return $this->_model?->get_table_name($this->_flow_arr);
+    }
+
+    public function get_record_data_model_class() : string
+    {
+        return $this->_model_class;
+    }
+
+    public function get_record_data_model_and_table() : string
+    {
+        return $this->_model_class.'::'.($this->get_simple_table_name_from_flow() ?? '');
     }
 
     public function set_data(array $data) : void

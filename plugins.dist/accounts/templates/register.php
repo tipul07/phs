@@ -3,20 +3,18 @@
 
 use phs\PHS;
 use phs\libraries\PHS_Hooks;
+use phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd;
 
 $trd_party_register_buffer = '';
-/** @var \phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd $trd_party_plugin */
-if (($trd_party_plugin = PHS::load_plugin('accounts_3rd'))
- && $trd_party_plugin->plugin_active()
- && ($hook_args = PHS::trigger_hooks($trd_party_plugin::H_ACCOUNTS_3RD_REGISTER_BUFFER, PHS_Hooks::default_buffer_hook_args()))
- && is_array($hook_args)
- && !empty($hook_args['buffer'])) {
+/** @var PHS_Plugin_Accounts_3rd $trd_party_plugin */
+if (($trd_party_plugin = PHS_Plugin_Accounts_3rd::get_instance())
+    && $trd_party_plugin->plugin_active()
+    && ($hook_args = PHS::trigger_hooks($trd_party_plugin::H_ACCOUNTS_3RD_REGISTER_BUFFER, PHS_Hooks::default_buffer_hook_args()))
+    && !empty($hook_args['buffer'])) {
     $trd_party_register_buffer = $hook_args['buffer'];
 }
 
-if (!($no_nickname_only_email = $this->view_var('no_nickname_only_email'))) {
-    $no_nickname_only_email = false;
-}
+$no_nickname_only_email = $this->view_var('no_nickname_only_email') ?: false;
 ?>
 <div>
     <form id="register_form" name="register_form" action="<?php echo PHS::url(['p' => 'accounts', 'a' => 'register']); ?>" method="post">

@@ -1986,9 +1986,7 @@ final class PHS extends PHS_Registry
         self::st_reset_error();
 
         if (!($scope_obj = PHS_Scope::get_scope_instance())) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_EXECUTE_ROUTE, self::_t('Error spawning scope instance.'));
-            }
+            self::st_set_error_if_not_set(self::ERR_EXECUTE_ROUTE, self::_t('Error spawning scope instance.'));
 
             if (!empty($params['die_on_error'])) {
                 $error_msg = self::st_get_full_error_message();
@@ -2142,7 +2140,7 @@ final class PHS extends PHS_Registry
         return PHS_CORE_LIBRARIES_DIR.$library.'.php';
     }
 
-    public static function spl_autoload_register($class_name) : void
+    public static function spl_autoload_register(string $class_name) : void
     {
         self::st_reset_error();
 
@@ -2589,17 +2587,17 @@ final class PHS extends PHS_Registry
 
     /**
      * @param string $scope
-     * @param string|bool $plugin
+     * @param null|string $plugin
      *
      * @return null|PHS_Scope Returns false on error or an instance of loaded scope
      */
-    public static function load_scope(string $scope, $plugin = false) : ?PHS_Scope
+    public static function load_scope(string $scope, ?string $plugin = null) : ?PHS_Scope
     {
         self::st_reset_error();
 
         if (!($scope_name = PHS_Instantiable::safe_escape_class_name($scope))) {
             self::st_set_error(self::ERR_LOAD_SCOPE, self::_t('Couldn\'t load scope %s from plugin %s.',
-                $scope, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
+                $scope, $plugin ?? PHS_Instantiable::CORE_PLUGIN));
 
             return null;
         }
@@ -2607,13 +2605,13 @@ final class PHS extends PHS_Registry
         $class_name = 'PHS_Scope_'.ucfirst(strtolower($scope_name));
 
         if ($plugin === PHS_Instantiable::CORE_PLUGIN) {
-            $plugin = false;
+            $plugin = null;
         }
 
         /** @var PHS_Scope */
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_SCOPE))) {
             self::st_set_error_if_not_set(self::ERR_LOAD_SCOPE, self::_t('Couldn\'t obtain instance for scope %s from plugin %s.',
-                $scope, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
+                $scope, $plugin ?? PHS_Instantiable::CORE_PLUGIN));
 
             return null;
         }

@@ -10,6 +10,8 @@ use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\traits\PHS_Model_Trait_statuses;
+use phs\plugins\remote_phs\PHS_Plugin_Remote_phs;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Model_Phs_remote_domains extends PHS_Model
 {
@@ -1107,13 +1109,13 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
 
     public function can_user_edit($record_data, $account_data)
     {
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        /** @var \phs\plugins\remote_phs\PHS_Plugin_Remote_phs $remote_plugin */
+        /** @var PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Plugin_Remote_phs $remote_plugin */
         if (empty($record_data) || empty($account_data)
          || !($record_arr = $this->data_to_array($record_data, ['table_name' => 'phs_remote_domains']))
          || $this->is_deleted($record_arr)
-         || !($remote_plugin = PHS::load_plugin('remote_phs'))
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))
+         || !($remote_plugin = PHS_Plugin_Remote_phs::get_instance())
+         || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($account_arr = $accounts_model->data_to_array($account_data, ['table_name' => 'users']))
          || !$remote_plugin->can_admin_manage_domains($account_arr)) {
             return false;
@@ -2000,9 +2002,9 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
             }
         }
 
-        /** @var \phs\plugins\remote_phs\PHS_Plugin_Remote_phs $remote_plugin */
-        if (($remote_plugin = PHS::load_plugin('remote_phs'))
-         && $remote_plugin->log_all_outgoing_calls()) {
+        /** @var PHS_Plugin_Remote_phs $remote_plugin */
+        if (($remote_plugin = PHS_Plugin_Remote_phs::get_instance())
+            && $remote_plugin->log_all_outgoing_calls()) {
             ob_start();
             var_dump($api_response);
             $buf = @ob_get_clean();

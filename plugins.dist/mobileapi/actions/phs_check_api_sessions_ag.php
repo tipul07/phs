@@ -6,6 +6,8 @@ use phs\PHS;
 use phs\PHS_Scope;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
+use phs\plugins\mobileapi\PHS_Plugin_Mobileapi;
+use phs\plugins\mobileapi\models\PHS_Model_Api_online;
 
 class PHS_Action_Check_api_sessions_ag extends PHS_Action
 {
@@ -16,17 +18,16 @@ class PHS_Action_Check_api_sessions_ag extends PHS_Action
 
     public function execute()
     {
-        /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobileapi_plugin */
-        /** @var \phs\plugins\mobileapi\models\PHS_Model_Api_online $apionline_model */
-        if (!($mobileapi_plugin = PHS::load_plugin('mobileapi'))
-         || !($apionline_model = PHS::load_model('api_online', 'mobileapi'))) {
+        /** @var PHS_Plugin_Mobileapi $mobileapi_plugin */
+        /** @var PHS_Model_Api_online $apionline_model */
+        if (!($mobileapi_plugin = PHS_Plugin_Mobileapi::get_instance())
+            || !($apionline_model = PHS_Model_Api_online::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
         }
 
         if (!($plugin_settings = $mobileapi_plugin->get_plugin_settings())
-         || !is_array($plugin_settings)
          || empty($plugin_settings['api_session_lifetime'])) {
             return self::default_action_result();
         }

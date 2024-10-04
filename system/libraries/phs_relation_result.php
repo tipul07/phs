@@ -59,9 +59,13 @@ class PHS_Relation_result implements Countable, Iterator
         return $this;
     }
 
-    public function cast_to_array() : ?array
+    public function cast_to_array() : array
     {
-        return $this->current()?->cast_to_array();
+        if (!($current = $this->current())) {
+            return [];
+        }
+
+        return is_array($current) ? $current : $current->cast_to_array();
     }
 
     public function yield() : ?Generator

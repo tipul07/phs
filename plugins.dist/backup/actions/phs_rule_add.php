@@ -9,6 +9,7 @@ use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\backup\PHS_Plugin_Backup;
 use phs\plugins\backup\models\PHS_Model_Rules;
 
 class PHS_Action_Rule_add extends PHS_Action
@@ -28,8 +29,8 @@ class PHS_Action_Rule_add extends PHS_Action
             return action_request_login();
         }
 
-        /** @var \phs\plugins\backup\PHS_Plugin_Backup $backup_plugin */
-        if (!($backup_plugin = PHS::load_plugin('backup'))) {
+        /** @var PHS_Plugin_Backup $backup_plugin */
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load backup plugin.'));
 
             return self::default_action_result();

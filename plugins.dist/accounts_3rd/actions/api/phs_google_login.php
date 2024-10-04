@@ -13,6 +13,12 @@ use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Api_action;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\plugins\mobileapi\PHS_Plugin_Mobileapi;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd;
+use phs\plugins\mobileapi\models\PHS_Model_Api_online;
+use phs\plugins\accounts_3rd\models\PHS_Model_Accounts_services;
 
 class PHS_Action_Google_login extends PHS_Api_action
 {
@@ -39,19 +45,19 @@ class PHS_Action_Google_login extends PHS_Api_action
      */
     public function execute()
     {
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        /** @var \phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd $accounts_trd_plugin */
-        /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobile_plugin */
-        /** @var \phs\plugins\mobileapi\models\PHS_Model_Api_online $online_model */
-        /** @var \phs\plugins\accounts_3rd\models\PHS_Model_Accounts_services $services_model */
-        if (!($accounts_plugin = PHS::load_plugin('accounts'))
-         || !($mobile_plugin = PHS::load_plugin('mobileapi'))
-         || !($online_model = PHS::load_model('api_online', 'mobileapi'))
-         || !($accounts_trd_plugin = PHS::load_plugin('accounts_3rd'))
-         || !($google_lib = $accounts_trd_plugin->get_google_instance())
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))
-         || !($services_model = PHS::load_model('accounts_services', 'accounts_3rd'))) {
+        /** @var PHS_Plugin_Accounts $accounts_plugin */
+        /** @var PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Plugin_Accounts_3rd $accounts_trd_plugin */
+        /** @var PHS_Plugin_Mobileapi $mobile_plugin */
+        /** @var PHS_Model_Api_online $online_model */
+        /** @var PHS_Model_Accounts_services $services_model */
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+            || !($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())
+            || !($online_model = PHS_Model_Api_online::get_instance())
+            || !($accounts_trd_plugin = PHS_Plugin_Accounts_3rd::get_instance())
+            || !($google_lib = $accounts_trd_plugin->get_google_instance())
+            || !($accounts_model = PHS_Model_Accounts::get_instance())
+            || !($services_model = PHS_Model_Accounts_services::get_instance())) {
             return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                 $this->_pt('Error loading required resources.'));
         }

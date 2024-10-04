@@ -7,6 +7,8 @@ use phs\PHS_Scope;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\remote_phs\PHS_Plugin_Remote_phs;
+use phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains;
 
 class PHS_Action_Info_ajax extends PHS_Action
 {
@@ -25,10 +27,10 @@ class PHS_Action_Info_ajax extends PHS_Action
             return action_request_login();
         }
 
-        /** @var \phs\plugins\remote_phs\PHS_Plugin_Remote_phs $remote_plugin */
-        /** @var \phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains $domains_model */
-        if (!($remote_plugin = PHS::load_plugin('remote_phs'))
-         || !($domains_model = PHS::load_model('phs_remote_domains', 'remote_phs'))) {
+        /** @var PHS_Plugin_Remote_phs $remote_plugin */
+        /** @var PHS_Model_Phs_remote_domains $domains_model */
+        if (!($remote_plugin = PHS_Plugin_Remote_phs::get_instance())
+            || !($domains_model = PHS_Model_Phs_remote_domains::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load required resources.'));
 
             return self::default_action_result();

@@ -281,7 +281,7 @@ abstract class PHS_Action extends PHS_Instantiable
         if (($current_scope = PHS_Scope::current_scope())
          && !$this->scope_is_allowed($current_scope)) {
             if (!($emulated_scope = PHS_Scope::emulated_scope())
-             || !$this->scope_is_allowed($emulated_scope)) {
+                || !$this->scope_is_allowed($emulated_scope)) {
                 $this->set_error(self::ERR_RUN_ACTION, self::_t('Action not allowed to run in current scope.'));
 
                 return null;

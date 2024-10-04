@@ -145,9 +145,7 @@ class PHS_Api extends PHS_Api_base
         }
 
         if (!$this->_before_route_run()) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_RUN_ROUTE, self::_t('Running action was stopped by API instance.'));
-            }
+            $this->set_error_if_not_set(self::ERR_RUN_ROUTE, self::_t('Running action was stopped by API instance.'));
 
             return false;
         }

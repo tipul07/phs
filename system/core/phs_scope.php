@@ -21,7 +21,7 @@ abstract class PHS_Scope extends PHS_Instantiable
     private static array $SCOPES_ARR = [
         self::SCOPE_WEB => [
             'title'      => 'Web',
-            'plugin'     => false,
+            'plugin'     => null,
             'class_name' => 'web',
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'web',
@@ -29,7 +29,7 @@ abstract class PHS_Scope extends PHS_Instantiable
 
         self::SCOPE_BACKGROUND => [
             'title'      => 'Background',
-            'plugin'     => false,
+            'plugin'     => null,
             'class_name' => 'background',
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'background',
@@ -37,7 +37,7 @@ abstract class PHS_Scope extends PHS_Instantiable
 
         self::SCOPE_AJAX => [
             'title'      => 'Ajax',
-            'plugin'     => false,
+            'plugin'     => null,
             'class_name' => 'ajax',
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'ajax',
@@ -45,7 +45,7 @@ abstract class PHS_Scope extends PHS_Instantiable
 
         self::SCOPE_API => [
             'title'      => 'API',
-            'plugin'     => false,
+            'plugin'     => null,
             'class_name' => 'api',
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'api',
@@ -53,7 +53,7 @@ abstract class PHS_Scope extends PHS_Instantiable
 
         self::SCOPE_AGENT => [
             'title'      => 'Agent',
-            'plugin'     => false,
+            'plugin'     => null,
             'class_name' => 'agent',
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'agent',
@@ -61,7 +61,7 @@ abstract class PHS_Scope extends PHS_Instantiable
 
         self::SCOPE_TESTS => [
             'title'      => 'Test Suite',
-            'plugin'     => false,
+            'plugin'     => null,
             'class_name' => 'test',
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'test',
@@ -69,7 +69,7 @@ abstract class PHS_Scope extends PHS_Instantiable
 
         self::SCOPE_CLI => [
             'title'      => 'CLI',
-            'plugin'     => false,
+            'plugin'     => null,
             'class_name' => 'cli',
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'cli',
@@ -77,7 +77,7 @@ abstract class PHS_Scope extends PHS_Instantiable
 
         self::SCOPE_REMOTE => [
             'title'      => 'Remote PHS',
-            'plugin'     => false,
+            'plugin'     => null,
             'class_name' => 'remote',
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'remote',
@@ -159,26 +159,15 @@ abstract class PHS_Scope extends PHS_Instantiable
         return self::$SCOPES_ARR;
     }
 
-    /**
-     * @param int $scope
-     *
-     * @return array
-     */
     public static function valid_scope(int $scope) : array
     {
-        if (!($scopes_arr = self::get_scopes())
-         || empty($scopes_arr[$scope])) {
+        if (!($scopes_arr = self::get_scopes())) {
             return [];
         }
 
-        return $scopes_arr[$scope];
+        return $scopes_arr[$scope] ?? [];
     }
 
-    /**
-     * @param string $const_scope
-     *
-     * @return int
-     */
     public static function valid_constant_scope(string $const_scope) : int
     {
         $const_scope = strtolower(trim($const_scope));
@@ -188,7 +177,7 @@ abstract class PHS_Scope extends PHS_Instantiable
 
         foreach ($scopes_arr as $scope_id => $scope_details) {
             if (!empty($scope_details['constant_name'])
-             && $scope_details['constant_name'] === $const_scope) {
+                && $scope_details['constant_name'] === $const_scope) {
                 return $scope_id;
             }
         }
@@ -196,40 +185,33 @@ abstract class PHS_Scope extends PHS_Instantiable
         return 0;
     }
 
-    /**
-     * @return array
-     */
     public static function default_scope_params() : array
     {
         return [
             'title'          => '',
-            'plugin'         => false,
+            'plugin'         => null,
             'class_name'     => '',
             'front_template' => '',
             'admin_template' => '',
         ];
     }
 
-    /**
-     * @param array $scope_params
-     *
-     * @return array|bool
-     */
-    public static function register_scope(array $scope_params)
+    public static function register_scope(array $scope_params) : ?array
     {
         self::st_reset_error();
 
         if (empty($scope_params)
-         || !($scope_params = self::validate_array($scope_params, self::default_scope_params()))
-         || empty($scope_params['title'])
-         || empty($scope_params['class_name'])) {
+            || !($scope_params = self::validate_array($scope_params, self::default_scope_params()))
+            || empty($scope_params['title'])
+            || empty($scope_params['class_name'])) {
             self::_t('Invalid scope parameters.');
 
-            return false;
+            return null;
         }
 
-        if (empty($scope_params['plugin']) || $scope_params['plugin'] === PHS_Instantiable::CORE_PLUGIN) {
-            $scope_params['plugin'] = false;
+        if (empty($scope_params['plugin'])
+            || $scope_params['plugin'] === PHS_Instantiable::CORE_PLUGIN) {
+            $scope_params['plugin'] = null;
         }
 
         $scope_key = count(self::$SCOPES_ARR);
@@ -239,11 +221,6 @@ abstract class PHS_Scope extends PHS_Instantiable
         return ['scope_key' => $scope_key, 'scope_params' => $scope_params];
     }
 
-    /**
-     * @param null|int $scope
-     *
-     * @return int
-     */
     public static function default_scope(?int $scope = null) : int
     {
         if ($scope === null) {
@@ -265,11 +242,6 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $scope;
     }
 
-    /**
-     * @param null|int $scope
-     *
-     * @return int
-     */
     public static function current_scope(?int $scope = null) : int
     {
         if ($scope === null) {
@@ -289,32 +261,24 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $scope;
     }
 
-    /**
-     * @return bool
-     */
     public static function current_scope_is_set() : bool
     {
         return (bool)self::get_data(self::SCOPE_FLOW_KEY);
     }
 
-    /**
-     * @param null|int $scope
-     *
-     * @return false|int
-     */
-    public static function emulated_scope(?int $scope = null)
+    public static function emulated_scope(?int $scope = null) : ?int
     {
         if ($scope === null) {
             if (!($emulated_scope = self::get_data(self::SCOPE_EMULATION_FLOW_KEY))) {
-                return false;
+                return null;
             }
 
             return $emulated_scope;
         }
 
         if ($scope !== 0
-         && !self::valid_scope($scope)) {
-            return false;
+            && !self::valid_scope($scope)) {
+            return null;
         }
 
         self::set_data(self::SCOPE_EMULATION_FLOW_KEY, $scope);
@@ -322,12 +286,7 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $scope;
     }
 
-    /**
-     * @param null|int $scope
-     *
-     * @return bool|PHS_Scope
-     */
-    public static function spawn_scope_instance(?int $scope = null)
+    public static function spawn_scope_instance(?int $scope = null) : ?self
     {
         if ($scope === null) {
             $scope = self::current_scope();
@@ -336,21 +295,19 @@ abstract class PHS_Scope extends PHS_Instantiable
         if (!($scope_details = self::valid_scope($scope))
             || empty($scope_details['class_name'])
             || !($scope_instance = PHS::load_scope($scope_details['class_name'], $scope_details['plugin']))) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_INSTANCE, self::_t('Error spawning scope instance.'));
-            }
+            self::st_set_error_if_not_set(self::ERR_INSTANCE, self::_t('Error spawning scope instance.'));
 
-            return false;
+            return null;
         }
 
         return $scope_instance;
     }
 
-    public static function get_scope_instance()
+    public static function get_scope_instance() : ?self
     {
-        static $one_scope = false;
+        static $one_scope = null;
 
-        if (empty($one_scope)) {
+        if ($one_scope === null) {
             $one_scope = self::spawn_scope_instance();
         }
 
