@@ -4,6 +4,7 @@ use phs\PHS;
 use phs\PHS_Api;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
+use phs\plugins\mobileapi\PHS_Plugin_Mobileapi;
 use phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd;
 
 /** @var PHS_Plugin_Accounts_3rd $trd_party_plugin */
@@ -11,9 +12,9 @@ if (($trd_party_plugin = PHS_Plugin_Accounts_3rd::get_instance())) {
     PHS_Logger::define_channel($trd_party_plugin::LOG_CHANNEL);
     PHS_Logger::define_channel($trd_party_plugin::LOG_ERR_CHANNEL);
 
-    /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobile_plugin */
-    if (($mobile_plugin = PHS::load_plugin('mobileapi'))
-     && $mobile_plugin->plugin_active()) {
+    /** @var PHS_Plugin_Mobileapi $mobile_plugin */
+    if (($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())
+        && $mobile_plugin->plugin_active()) {
         // POST /users/google/login Login an account from 3rd party mobile app using a Google account
         PHS_Api::register_api_route([
             ['exact_match' => 'users', ],

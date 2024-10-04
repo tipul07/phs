@@ -7,6 +7,7 @@ use phs\libraries\PHS_utils;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Library;
+use phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd;
 
 class Apple extends PHS_Library
 {
@@ -16,7 +17,7 @@ class Apple extends PHS_Library
 
     public const ERR_API_INIT = 1;
 
-    /** @var bool|\phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd */
+    /** @var bool|PHS_Plugin_Accounts_3rd */
     private $_accounts_3rd_plugin = false;
 
     private $_settings_arr = [
@@ -265,21 +266,20 @@ class Apple extends PHS_Library
         return $api_response;
     }
 
-    private function _load_dependencies()
+    private function _load_dependencies() : bool
     {
         $this->reset_error();
 
         if (empty($this->_accounts_3rd_plugin)
-         && !($this->_accounts_3rd_plugin = PHS::load_plugin('accounts_3rd'))) {
+            && !($this->_accounts_3rd_plugin = PHS_Plugin_Accounts_3rd::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Couldn\'t load accounts 3rd party plugin instance.'));
 
             return false;
         }
 
         if (!($settings_arr = $this->_accounts_3rd_plugin->get_plugin_settings())
-         || !is_array($settings_arr)
-         || empty($settings_arr['enable_3rd_party'])
-         || empty($settings_arr['enable_apple'])) {
+            || empty($settings_arr['enable_3rd_party'])
+            || empty($settings_arr['enable_apple'])) {
             $this->set_error(self::ERR_SETTINGS, $this->_pt('3rd party Apple services are not enabled.'));
 
             return false;

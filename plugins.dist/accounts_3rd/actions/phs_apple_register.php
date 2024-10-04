@@ -11,7 +11,11 @@ use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd;
 use phs\system\core\events\actions\PHS_Event_Action_after;
+use phs\plugins\accounts_3rd\models\PHS_Model_Accounts_services;
 
 class PHS_Action_Apple_register extends PHS_Action
 {
@@ -40,15 +44,11 @@ class PHS_Action_Apple_register extends PHS_Action
     {
         PHS::page_settings('page_title', $this->_pt('Register with Apple'));
 
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        /** @var \phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd $accounts_trd_plugin */
-        /** @var \phs\plugins\accounts_3rd\models\PHS_Model_Accounts_services $services_model */
-        if (!($accounts_plugin = PHS::load_plugin('accounts'))
-         || !($accounts_trd_plugin = PHS::load_plugin('accounts_3rd'))
-         || !($apple_lib = $accounts_trd_plugin->get_apple_instance())
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))
-         || !($services_model = PHS::load_model('accounts_services', 'accounts_3rd'))) {
+        if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+            || !($accounts_trd_plugin = PHS_Plugin_Accounts_3rd::get_instance())
+            || !($apple_lib = $accounts_trd_plugin->get_apple_instance())
+            || !($accounts_model = PHS_Model_Accounts::get_instance())
+            || !($services_model = PHS_Model_Accounts_services::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();

@@ -191,7 +191,7 @@ class PHS_Model_Results extends PHS_Model
         $params['force'] = !empty($params['force']);
 
         /** @var PHS_Plugin_Backup $backup_plugin */
-        if (!($backup_plugin = PHS::load_plugin('backup'))) {
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load backup plugin.'));
 
             return false;
@@ -453,7 +453,7 @@ class PHS_Model_Results extends PHS_Model
         $params['update_result'] = (!isset($params['update_result']) || !empty($params['update_result']));
 
         /** @var PHS_Plugin_Backup $backup_plugin */
-        if (!($backup_plugin = PHS::load_plugin('backup'))) {
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t load backup plugin.'));
 
             return false;
@@ -527,7 +527,7 @@ class PHS_Model_Results extends PHS_Model
         }
 
         /** @var PHS_Plugin_Backup $backup_plugin */
-        if (!($backup_plugin = PHS::load_plugin('backup'))) {
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t load backup plugin.'));
 
             return false;
@@ -607,7 +607,7 @@ class PHS_Model_Results extends PHS_Model
 
         /** @var PHS_Plugin_Backup $backup_plugin */
         /** @var PHS_Model_Rules $rules_model */
-        if (!($backup_plugin = PHS::load_plugin('backup'))
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())
             || !($rules_model = PHS_Model_Rules::get_instance())
         ) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));

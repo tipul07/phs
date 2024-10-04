@@ -11,6 +11,7 @@ use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\captcha\PHS_Plugin_Captcha;
 
 class PHS_Action_Contact_us extends PHS_Action
 {
@@ -80,7 +81,7 @@ class PHS_Action_Contact_us extends PHS_Action
             } elseif (!PHS_Params::check_type($email, PHS_Params::T_EMAIL)) {
                 PHS_Notifications::add_error_notice(self::_t('Please provide a valid email address.'));
             } elseif (empty($user_logged_in)
-                && !($captcha_plugin = PHS::load_plugin('captcha'))) {
+                && !PHS_Plugin_Captcha::get_instance()) {
                 PHS_Notifications::add_error_notice(self::_t('Couldn\'t load captcha plugin.'));
             } elseif (empty($user_logged_in)
             && ($hook_result = PHS_Hooks::trigger_captcha_check($vcode)) !== null

@@ -6,13 +6,14 @@ use phs\PHS;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Library;
+use phs\plugins\mobileapi\PHS_Plugin_Mobileapi;
 
 class PHS_Firebase extends PHS_Library
 {
     // Maximum of tokens to send notification to (allowed by Firebase)
     public const MAX_TOKENS_IN_NOTIFICATION = 1000;
 
-    /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi */
+    /** @var PHS_Plugin_Mobileapi */
     private $_mobileapi_plugin = false;
 
     private $_api_settings = [];
@@ -206,12 +207,12 @@ class PHS_Firebase extends PHS_Library
         return true;
     }
 
-    private function _load_dependencies()
+    private function _load_dependencies() : bool
     {
         $this->reset_error();
 
         if (empty($this->_mobileapi_plugin)
-         && !($this->_mobileapi_plugin = PHS::load_plugin('mobileapi'))) {
+            && !($this->_mobileapi_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading MobileAPI plugin.'));
 
             return false;

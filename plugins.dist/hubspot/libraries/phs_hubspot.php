@@ -7,6 +7,7 @@ use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Library;
+use phs\plugins\hubspot\PHS_Plugin_Hubspot;
 
 class PHS_Hubspot extends PHS_Library
 {
@@ -14,7 +15,7 @@ class PHS_Hubspot extends PHS_Library
 
     public const MAX_CONTACTS_BULK_UPDATE = 1000;
 
-    /** @var \phs\plugins\hubspot\PHS_Plugin_Hubspot */
+    /** @var PHS_Plugin_Hubspot */
     private $_hubspot_plugin = false;
 
     private $_api_settings = [];
@@ -859,12 +860,12 @@ class PHS_Hubspot extends PHS_Library
         return $contact_arr;
     }
 
-    private function _load_dependencies()
+    private function _load_dependencies() : bool
     {
         $this->reset_error();
 
         if (empty($this->_hubspot_plugin)
-        && !($this->_hubspot_plugin = PHS::load_plugin('hubspot'))) {
+            && !($this->_hubspot_plugin = PHS_Plugin_Hubspot::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading HubSpot plugin.'));
 
             return false;

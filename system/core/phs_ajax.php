@@ -11,21 +11,21 @@ use phs\libraries\PHS_Registry;
 
 class PHS_Ajax extends PHS_Registry
 {
-    public const ERR_DB_INSERT = 30000, ERR_COMMAND = 30001, ERR_RUN_JOB = 30002, ERR_JOB_DB = 30003, ERR_JOB_STALLING = 30004;
+    public const ERR_RUN_JOB = 30000;
 
     public const PARAM_PUB_KEY = '_apk', PARAM_FB_KEY = '_phs_ajax_fb', PARAM_CHECK_SUM = '_achks';
 
     public const TIME_OFFSET = 1460000000;
 
-    private static $_ajax_checksum_timeout = 86400; // checksum will fail after one day...
+    private static int $_ajax_checksum_timeout = 86400; // checksum will fail after one day...
 
-    public static function checksum_timeout($timeout = false)
+    public static function checksum_timeout(?int $timeout = null) : int
     {
-        if ($timeout === false) {
+        if ($timeout === null) {
             return self::$_ajax_checksum_timeout;
         }
 
-        self::$_ajax_checksum_timeout = intval($timeout);
+        self::$_ajax_checksum_timeout = $timeout;
 
         return self::$_ajax_checksum_timeout;
     }
@@ -60,12 +60,8 @@ class PHS_Ajax extends PHS_Registry
         return PHS::url($route_arr, $args, $extra);
     }
 
-    public static function get_ajax_validation_params($args = false)
+    public static function get_ajax_validation_params(array $args = []) : array
     {
-        if (empty($args) || !is_array($args)) {
-            $args = [];
-        }
-
         $pub_key = time() - self::TIME_OFFSET;
         $check_sum = md5($pub_key.':'.PHS_Crypt::crypting_key());
 
@@ -75,10 +71,10 @@ class PHS_Ajax extends PHS_Registry
         return $args;
     }
 
-    public static function validate_input()
+    public static function validate_input() : bool
     {
         if (!($pub_key = PHS_Params::_g(self::PARAM_PUB_KEY, PHS_Params::T_INT))
-         || !($check_sum = PHS_Params::_g(self::PARAM_CHECK_SUM, PHS_Params::T_ASIS))) {
+            || !($check_sum = PHS_Params::_g(self::PARAM_CHECK_SUM, PHS_Params::T_NOHTML))) {
             PHS_Logger::error('Required parameters not found.', PHS_Logger::TYPE_AJAX);
 
             return false;
@@ -88,9 +84,11 @@ class PHS_Ajax extends PHS_Registry
 
         $pub_key += self::TIME_OFFSET;
 
-        if ($computed_checksum != $check_sum
-         || $pub_key + self::checksum_timeout() < time()) {
-            PHS_Logger::error('Checksum failed. ['.$computed_checksum.' != '.$check_sum.']', PHS_Logger::TYPE_AJAX);
+        if ($computed_checksum !== $check_sum
+            || $pub_key + self::checksum_timeout() < time()) {
+            if (self::st_debugging_mode()) {
+                PHS_Logger::error('Checksum failed. ['.$computed_checksum.' != '.$check_sum.']', PHS_Logger::TYPE_AJAX);
+            }
 
             return false;
         }
@@ -99,34 +97,21 @@ class PHS_Ajax extends PHS_Registry
     }
 
     /**
-     * @param false|array $extra
-     *
      * @return array|bool
      */
-    public static function run_route($extra = false)
+    public static function run_route()
     {
         self::st_reset_error();
 
-        if (empty($extra) || !is_array($extra)) {
-            $extra = [];
-        }
-
         if (!PHS_Scope::current_scope(PHS_Scope::SCOPE_AJAX)) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_RUN_JOB, self::_t('Error preparing environment.'));
-            }
+            self::st_set_error_if_not_set(self::ERR_RUN_JOB, self::_t('Error preparing environment.'));
 
             return false;
         }
 
-        $execution_params = [];
-        $execution_params['die_on_error'] = false;
-
-        if (!($action_result = PHS::execute_route($execution_params))) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_RUN_JOB,
-                    self::_t('Error executing route [%s].', PHS::get_route_as_string()));
-            }
+        if (!($action_result = PHS::execute_route(['die_on_error' => false]))) {
+            self::st_set_error_if_not_set(self::ERR_RUN_JOB,
+                self::_t('Error executing route [%s].', PHS::get_route_as_string()));
 
             return false;
         }

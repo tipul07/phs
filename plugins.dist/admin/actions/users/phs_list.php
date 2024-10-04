@@ -96,12 +96,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $all_tenants_arr = [];
         $ut_table_name = 'users_tenants';
         if ($platform_is_multitenant) {
-            if (!($account_tenant_ids = $this->_account_tenants_model->get_account_tenants_as_ids_array($current_user['id']))) {
-                $account_tenant_ids = [];
-            }
-            if (!($all_tenants_arr = $this->_tenants_model->get_tenants_as_key_val())) {
-                $all_tenants_arr = [];
-            }
+            $account_tenant_ids = $this->_account_tenants_model->get_account_tenants_as_ids_array($current_user['id']) ?: [];
+            $all_tenants_arr = $this->_tenants_model->get_tenants_as_key_val() ?: [];
 
             if (!empty($account_tenant_ids)) {
                 $new_all_tenants_arr = [];
@@ -116,7 +112,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             }
 
             if (!($ut_flow = $this->_account_tenants_model->fetch_default_flow_params(['table_name' => 'users_tenants']))
-             || !($ut_table_name = $this->_account_tenants_model->get_flow_table_name($ut_flow))) {
+                || !($ut_table_name = $this->_account_tenants_model->get_flow_table_name($ut_flow))) {
                 $ut_table_name = 'users_tenants';
             }
         }
@@ -152,26 +148,15 @@ class PHS_Action_List extends PHS_Action_Generic_list
             'after_table_callback' => [$this, 'after_table_callback'],
         ];
 
-        if (!($users_levels = $this->_paginator_model->get_levels_as_key_val())) {
-            $users_levels = [];
-        }
-        if (!($users_statuses = $this->_paginator_model->get_statuses_as_key_val())) {
-            $users_statuses = [];
-        }
+        $users_levels = $this->_paginator_model->get_levels_as_key_val() ?: [];
+        $users_statuses = $this->_paginator_model->get_statuses_as_key_val() ?: [];
 
-        if (!empty($users_levels)) {
-            $users_levels = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $users_levels);
-        }
-        if (!empty($users_statuses)) {
-            $users_statuses = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $users_statuses);
-        }
-        $all_tenants_filter = [];
-        if (!empty($all_tenants_arr)) {
-            $all_tenants_filter = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $all_tenants_arr);
-        }
+        $users_levels_filters = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $users_levels);
+        $users_statuses_filters = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $users_statuses);
+        $all_tenants_filter = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $all_tenants_arr);
 
         if (isset($users_statuses[$accounts_model::STATUS_DELETED])) {
-            unset($users_statuses[$accounts_model::STATUS_DELETED]);
+            unset($users_statuses[$accounts_model::STATUS_DELETED], $users_statuses_filters[$accounts_model::STATUS_DELETED]);
         }
 
         $bulk_actions = [
@@ -291,7 +276,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'record_field'        => 'level',
                 'type'                => PHS_Params::T_INT,
                 'default'             => 0,
-                'values_arr'          => $users_levels,
+                'values_arr'          => $users_levels_filters,
                 'extra_records_style' => 'vertical-align:middle;',
             ],
             [
@@ -300,7 +285,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'record_field'        => 'status',
                 'type'                => PHS_Params::T_INT,
                 'default'             => 0,
-                'values_arr'          => $users_statuses,
+                'values_arr'          => $users_statuses_filters,
                 'extra_records_style' => 'vertical-align:middle;',
             ],
         ]);
@@ -433,14 +418,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function manage_action($action) : null | bool | array
+    public function manage_action($action) : bool | array
     {
         $this->reset_error();
-
-        if (empty($this->_paginator_model)
-            && !$this->load_depencies()) {
-            return false;
-        }
 
         $action_result_params = $this->_paginator->default_action_params();
 
@@ -455,8 +435,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
 
                 return true;
-                break;
-
             case 'bulk_reset_account_locking':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
@@ -470,8 +448,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!PHS::user_logged_in()
-                 || !$this->_admin_plugin->can_admin_manage_accounts()) {
+                if (!$this->_admin_plugin->can_admin_manage_accounts()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -779,7 +756,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 if (empty($action['action_params'])
-                 || !($account_arr = $this->_paginator_model->get_details($action['action_params']))) {
+                    || !($account_arr = $this->_paginator_model->get_details($action['action_params']))) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Cannot login as this account. Account not found.'));
 
                     return false;

@@ -5,7 +5,7 @@ namespace phs\system\core\events\models;
 use Closure;
 use phs\libraries\PHS_Event;
 
-class PHS_Event_Model_fields extends PHS_Event
+class PHS_Event_Model_empty_data extends PHS_Event
 {
     /**
      * @inheritdoc
@@ -21,7 +21,7 @@ class PHS_Event_Model_fields extends PHS_Event
             'model_instance_id'  => '',
             'plugin_instance_id' => '',
             'flow_params'        => [],
-            'fields_arr'         => [],
+            'data_arr'           => [],
             'model_obj'          => null,
         ];
     }
@@ -29,7 +29,7 @@ class PHS_Event_Model_fields extends PHS_Event
     protected function _output_parameters() : array
     {
         return [
-            'fields_arr' => [],
+            'data_arr' => [],
         ];
     }
 

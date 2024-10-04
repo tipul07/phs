@@ -6,12 +6,13 @@ use phs\PHS;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Library;
+use phs\plugins\mailchimp\PHS_Plugin_Mailchimp;
 
 class Mailchimp extends PHS_Library
 {
     public const ERR_BB_PARSE = 1;
 
-    /** @var \phs\plugins\mailchimp\PHS_Plugin_Mailchimp */
+    /** @var PHS_Plugin_Mailchimp */
     private $_mailchimp_plugin = false;
 
     private $_api_settings = [];
@@ -305,12 +306,12 @@ class Mailchimp extends PHS_Library
         return $api_response['json_response_arr'];
     }
 
-    private function _load_dependencies()
+    private function _load_dependencies() : bool
     {
         $this->reset_error();
 
         if (empty($this->_mailchimp_plugin)
-        && !($this->_mailchimp_plugin = PHS::load_plugin('mailchimp'))) {
+            && !($this->_mailchimp_plugin = PHS_Plugin_Mailchimp::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading MailChimp plugin.'));
 
             return false;

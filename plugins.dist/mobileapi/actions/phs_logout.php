@@ -7,6 +7,8 @@ use phs\PHS_Api;
 use phs\PHS_Scope;
 use phs\PHS_Api_base;
 use phs\libraries\PHS_Api_action;
+use phs\plugins\mobileapi\PHS_Plugin_Mobileapi;
+use phs\plugins\mobileapi\models\PHS_Model_Api_online;
 
 class PHS_Action_Logout extends PHS_Api_action
 {
@@ -22,12 +24,10 @@ class PHS_Action_Logout extends PHS_Api_action
 
     public function execute()
     {
-        /** @var \phs\plugins\mobileapi\models\PHS_Model_Api_online $online_model */
-        /** @var \phs\plugins\mobileapi\PHS_Plugin_Mobileapi $mobile_plugin */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (!($online_model = PHS::load_model('api_online', 'mobileapi'))
-         || !($mobile_plugin = PHS::load_plugin('mobileapi'))
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))) {
+        /** @var PHS_Model_Api_online $online_model */
+        /** @var PHS_Plugin_Mobileapi $mobile_plugin */
+        if (!($online_model = PHS_Model_Api_online::get_instance())
+            || !($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                 $this->_pt('Error loading required resources.'));
         }
@@ -38,7 +38,7 @@ class PHS_Action_Logout extends PHS_Api_action
                 $this->_pt('No session.'));
         }
 
-        if (!($logout_result = $online_model->logout_session($session_data['session_arr']))) {
+        if (!$online_model->logout_session($session_data['session_arr'])) {
             return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                 $this->_pt('Error deleting session from server.'));
         }

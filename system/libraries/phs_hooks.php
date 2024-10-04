@@ -17,9 +17,6 @@ class PHS_Hooks extends PHS_Registry
         // Language hooks
         H_LANGUAGE_DEFINITION = 'phs_language_definition',
 
-        // Model hooks
-        H_MODEL_EMPTY_DATA = 'phs_model_empty_data', H_MODEL_VALIDATE_DATA_FIELDS = 'phs_model_validate_data_fields',
-
         // Paginator hooks
         H_PAGINATOR_ACTION_PARAMETERS = 'phs_paginator_action_parameters',
 
@@ -67,10 +64,6 @@ class PHS_Hooks extends PHS_Registry
         H_USERS_DETAILS_FIELDS = 'phs_users_details_fields',
         // triggered after user details are updated
         H_USERS_DETAILS_UPDATED = 'phs_users_details_updated',
-        // triggered when encoding user passwords
-        H_USERS_ENCODE_PASS = 'phs_users_encode_pass',
-        // triggered when generating user passwords
-        H_USERS_GENERATE_PASS = 'phs_users_generate_pass',
         // triggered after user logs in successfully
         H_USERS_AFTER_LOGIN = 'phs_users_after_login',
         // triggered right when execute() function of login action is called
@@ -337,55 +330,6 @@ class PHS_Hooks extends PHS_Registry
     //
 
     //
-    // region Database model hooks
-    //
-    public static function default_model_validate_data_fields_hook_args() : array
-    {
-        return self::hook_args_definition([
-            'flow_params'  => false,
-            'table_fields' => [],
-        ]);
-    }
-
-    public static function default_model_empty_data_hook_args() : array
-    {
-        return self::hook_args_definition([
-            'data_arr'    => [],
-            'flow_params' => false,
-        ]);
-    }
-
-    public static function default_model_insert_data_hook_args() : array
-    {
-        return self::hook_args_definition([
-            'fields_arr'    => [],
-            'table_name'    => false,
-            'new_db_record' => false,
-        ]);
-    }
-
-    public static function default_model_edit_data_hook_args() : array
-    {
-        return self::hook_args_definition([
-            'fields_arr'    => [],
-            'table_name'    => false,
-            'new_db_record' => false,
-            'old_db_record' => false,
-        ]);
-    }
-
-    public static function default_model_hard_delete_data_hook_args() : array
-    {
-        return self::hook_args_definition([
-            'table_name' => false,
-            'db_record'  => false,
-        ]);
-    }
-    //
-    // endregion Database model hooks
-    //
-
-    //
     // region User account hooks
     //
     // Default hook parameters sent for hooks related to guest roles
@@ -641,14 +585,7 @@ class PHS_Hooks extends PHS_Registry
     // endregion Captcha hooks
     //
 
-    /**
-     * Trigger an email action
-     *
-     * @param null|array $hook_args
-     *
-     * @return null|bool|array
-     */
-    public static function trigger_email(?array $hook_args)
+    public static function trigger_email(?array $hook_args) : null | bool | array
     {
         self::st_reset_error();
 
@@ -659,9 +596,8 @@ class PHS_Hooks extends PHS_Registry
             return null;
         }
 
-        if (is_array($hook_args)
-         && !empty($hook_args['hook_errors']) && is_array($hook_args['hook_errors'])
-         && self::arr_has_error($hook_args['hook_errors'])) {
+        if (!empty($hook_args['hook_errors']) && is_array($hook_args['hook_errors'])
+            && self::arr_has_error($hook_args['hook_errors'])) {
             self::st_copy_error_from_array($hook_args['hook_errors']);
 
             return false;
@@ -734,7 +670,7 @@ class PHS_Hooks extends PHS_Registry
     {
         $hook_args = self::validate_array($hook_args, self::default_account_structure_hook_args());
 
-        if (($hook_args = PHS::trigger_hooks(self::H_USER_ACCOUNT_STRUCTURE, $hook_args)) === null) {
+        if (null === ($hook_args = PHS::trigger_hooks(self::H_USER_ACCOUNT_STRUCTURE, $hook_args))) {
             return false;
         }
 

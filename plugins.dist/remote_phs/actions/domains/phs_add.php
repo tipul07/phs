@@ -4,11 +4,13 @@ namespace phs\plugins\remote_phs\actions\domains;
 
 use phs\PHS;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_params;
 use phs\libraries\PHS_Notifications;
-use phs\plugins\s2p_libraries\libraries\S2P_Countries;
+use phs\system\core\models\PHS_Model_Api_keys;
+use phs\plugins\remote_phs\PHS_Plugin_Remote_phs;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains;
 
 class PHS_Action_Add extends PHS_Action
 {
@@ -27,14 +29,14 @@ class PHS_Action_Add extends PHS_Action
             return action_request_login();
         }
 
-        /** @var \phs\plugins\remote_phs\PHS_Plugin_Remote_phs $remote_plugin */
-        /** @var \phs\system\core\models\PHS_Model_Api_keys $apikeys_model */
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        /** @var \phs\plugins\remote_phs\models\PHS_Model_Phs_Remote_domains $domains_model */
-        if (!($remote_plugin = PHS::load_plugin('remote_phs'))
-         || !($apikeys_model = PHS::load_model('api_keys'))
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))
-         || !($domains_model = PHS::load_model('phs_remote_domains', 'remote_phs'))) {
+        /** @var PHS_Plugin_Remote_phs $remote_plugin */
+        /** @var PHS_Model_Api_keys $apikeys_model */
+        /** @var PHS_Model_Accounts $accounts_model */
+        /** @var PHS_Model_Phs_remote_domains $domains_model */
+        if (!($remote_plugin = PHS_Plugin_Remote_phs::get_instance())
+         || !($apikeys_model = PHS_Model_Api_keys::get_instance())
+         || !($accounts_model = PHS_Model_Accounts::get_instance())
+         || !($domains_model = PHS_Model_Phs_remote_domains::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();

@@ -57,13 +57,13 @@ class PHS_Event_Layout extends PHS_Event_Layout_buffer
         self::MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_OUT  => [PHS_Hooks::H_MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_OUT],
     ];
 
-    public static function get_buffer(string $area = '', array $event_input = [], array $event_params = []) : string
+    public static function get_buffer(string $area = '', array $input_arr = [], array $params = []) : string
     {
         if (!empty(self::OLD_HOOKS[$area])) {
-            $event_params['old_hooks'] = self::OLD_HOOKS[$area];
+            $params['old_hooks'] = self::OLD_HOOKS[$area];
         }
 
-        if (!($event_obj = self::trigger($event_input, $area, $event_params))
+        if (!($event_obj = self::trigger($input_arr, $area, $params))
          || !($buffer = $event_obj->get_output('buffer'))) {
             return '';
         }

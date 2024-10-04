@@ -9,6 +9,7 @@ use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\admin\PHS_Plugin_Admin;
 
 class PHS_Action_System_logs extends PHS_Action
 {
@@ -29,8 +30,8 @@ class PHS_Action_System_logs extends PHS_Action
             return action_request_login();
         }
 
-        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-        if (!($admin_plugin = PHS::load_plugin('admin'))) {
+        /** @var PHS_Plugin_Admin $admin_plugin */
+        if (!($admin_plugin = PHS_Plugin_Admin::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();

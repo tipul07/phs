@@ -94,7 +94,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * (override the method if not `id`)
      */
-    public function get_primary_key($params = false) : string
+    public function get_primary_key(null | bool | array $params = []) : string
     {
         return 'id';
     }
@@ -104,7 +104,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      * @return int|string
      *                    Default primary key an INT, override this method if otherwise
      */
-    public function prepare_primary_key($id, $params = false)
+    public function prepare_primary_key(int | string $id, null | bool | array $params = []) : int | string
     {
         return (int)$id;
     }
@@ -115,20 +115,6 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     public function get_field_types() : array
     {
         return self::$FTYPE_ARR;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function valid_field_type(int $type) : ?array
-    {
-        if (empty($type)
-         || !($fields_arr = $this->get_field_types())
-         || empty($fields_arr[$type]) || !is_array($fields_arr[$type])) {
-            return null;
-        }
-
-        return $fields_arr[$type];
     }
 
     /**
@@ -153,49 +139,6 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     public function get_count_prepare_params($params = false)
     {
         return $params;
-    }
-
-    /**
-     * @param string $field
-     * @param bool|array $params
-     *
-     * @return null|array|bool|mixed
-     */
-    public function table_field_details(string $field, $params = false)
-    {
-        $this->reset_error();
-
-        $table = false;
-        if (strpos($field, '.') !== false) {
-            [$table, $field] = explode('.', $field, 2);
-        }
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if ($table !== false) {
-            $params['table_name'] = $table;
-        }
-
-        if (!($params = $this->fetch_default_flow_params($params))) {
-            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Failed validating flow parameters.'));
-
-            return false;
-        }
-
-        if (!($table_fields = $this->get_definition($params))
-         || !is_array($table_fields)) {
-            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Invalid table definition.'));
-
-            return false;
-        }
-
-        if (empty($table_fields[$field]) || !is_array($table_fields[$field])) {
-            return null;
-        }
-
-        return $table_fields[$field];
     }
 
     /**
@@ -1018,12 +961,11 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
      *
      * @return array|bool|\mysqli_result
      */
-    public function get_list($params = false)
+    public function get_list(null | bool | array $params = false)
     {
         $this->reset_error();
 
         if (!($common_arr = $this->get_list_common($params))
-         || !is_array($common_arr)
          || (empty($params['return_query_string']) && empty($common_arr['qid']))) {
             return false;
         }
@@ -1049,7 +991,11 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
                 $key = $params['arr_index_field'];
             }
 
-            $ret_arr[$item_arr[$key]] = $item_arr;
+            if (!empty($params['return_record_data_items'])) {
+                $ret_arr[$item_arr[$key]] = $this->record_data_from_array($item_arr);
+            } else {
+                $ret_arr[$item_arr[$key]] = $item_arr;
+            }
         }
 
         return $ret_arr;
@@ -1058,10 +1004,10 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_details_for_model($id, $params = false)
+    protected function _get_details_for_model(int | string $id, null | bool | array $params = []) : ?array
     {
         if (!($params = $this->fetch_default_flow_params($params))) {
-            return false;
+            return null;
         }
 
         if (empty($params['details'])) {
@@ -1069,10 +1015,10 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
         }
 
         if (empty($id)
-         || !($qid = db_query('SELECT '.$params['details'].' FROM `'.$this->get_flow_table_name($params).'` '
-                               .' WHERE `'.$params['table_index'].'` = \''.$id.'\'', $params['db_connection']))
-         || !($item_arr = $qid->fetchArray(SQLITE3_ASSOC))) {
-            return false;
+            || !($qid = db_query('SELECT '.$params['details'].' FROM `'.$this->get_flow_table_name($params).'` '
+                                 .' WHERE `'.$params['table_index'].'` = \''.$id.'\'', $params['db_connection']))
+            || !($item_arr = $qid->fetchArray(SQLITE3_ASSOC))) {
+            return null;
         }
 
         return $item_arr;
@@ -1081,13 +1027,13 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_details_fields_for_model($constrain_arr, $params = false)
+    protected function _get_details_fields_for_model(array $constrain_arr, null | bool | array $params = []) : ?array
     {
         if (!($params = $this->fetch_default_flow_params($params))
          || !($common_arr = $this->get_details_common($constrain_arr, $params))
          || !is_array($common_arr)
          || (empty($params['return_query_string']) && empty($common_arr['qid']))) {
-            return false;
+            return null;
         }
 
         if (!empty($params['return_query_string'])) {
@@ -1099,7 +1045,9 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
         }
 
         if ($params['result_type'] === 'single') {
-            return $common_arr['qid']->fetchArray(SQLITE3_ASSOC);
+            $result = $common_arr['qid']->fetchArray(SQLITE3_ASSOC);
+
+            return !is_array($result) ? null : $result;
         }
 
         $item_arr = [];
@@ -1113,7 +1061,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _check_table_exists_for_model($flow_params = false, bool $force = false) : bool
+    protected function _check_table_exists_for_model(null | bool | array $flow_params = [], bool $force = false) : bool
     {
         $this->reset_error();
 
@@ -1590,7 +1538,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _uninstall_table_for_model($flow_params) : bool
+    protected function _uninstall_table_for_model(null | bool | array $flow_params) : bool
     {
         $this->reset_error();
 
@@ -1613,21 +1561,21 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_table_definition_for_model_from_database($flow_params = false, $force = false)
+    protected function _get_table_definition_for_model_from_database(null | bool | array $flow_params = [], bool $force = false) : ?array
     {
         $this->reset_error();
 
         if (!($flow_params = $this->fetch_default_flow_params($flow_params))
-         || !($flow_table_name = $this->get_flow_table_name($flow_params))
-         || !($my_driver = $this->get_model_driver())) {
+            || !($flow_table_name = $this->get_flow_table_name($flow_params))
+            || !($my_driver = $this->get_model_driver())) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Failed validating flow parameters.'));
 
-            return false;
+            return null;
         }
 
         if (!$this->_get_table_columns_definition_for_model_from_database($flow_params, $my_driver, $flow_table_name, $force)
-         || !$this->_get_table_indexes_definition_for_model_from_database($flow_params, $my_driver, $flow_table_name, $force)) {
-            return false;
+            || !$this->_get_table_indexes_definition_for_model_from_database($flow_params, $my_driver, $flow_table_name, $force)) {
+            return null;
         }
 
         return self::get_cached_db_table_structure($flow_table_name, $my_driver);
@@ -1636,12 +1584,12 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _hard_delete_for_model($existing_data, $params = false) : bool
+    protected function _hard_delete_for_model(array | PHS_Record_data $existing_data, null | bool | array $params = []) : bool
     {
         self::st_reset_error();
         $this->reset_error();
 
-        if (empty($existing_data) || !is_array($existing_data)
+        if (empty($existing_data)
          || !($params = $this->fetch_default_flow_params($params))
          || empty($params['table_index'])
          || !isset($existing_data[$params['table_index']])) {
@@ -1691,50 +1639,36 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _validate_field($field_arr)
+    protected function _validate_field(array $field_arr) : ?array
     {
-        if (empty($field_arr) || !is_array($field_arr)) {
-            $field_arr = [];
-        }
-
-        $def_values = self::_default_field_arr();
-        $new_field_arr = [];
-        foreach ($def_values as $key => $val) {
-            if (!array_key_exists($key, $field_arr)) {
-                $new_field_arr[$key] = $val;
-            } else {
-                $new_field_arr[$key] = $field_arr[$key];
-            }
-        }
-
-        $field_arr = $new_field_arr;
+        $field_arr = self::validate_array_to_new_array($field_arr, self::_default_field_arr());
 
         if (empty($field_arr['type'])
-         || !($field_details = $this->valid_field_type($field_arr['type']))) {
-            return false;
+            || !($field_details = $this->valid_field_type($field_arr['type']))) {
+            return null;
         }
 
         if ($field_details['default_length'] === null
-         && isset($field_arr['length'])) {
+            && isset($field_arr['length'])) {
             $field_arr['length'] = null;
         }
 
         if (isset($field_details['nullable'])) {
-            $field_arr['nullable'] = (!empty($field_details['nullable']));
+            $field_arr['nullable'] = !empty($field_details['nullable']);
         }
 
         if (!isset($field_arr['length'])
-         && isset($field_details['default_length'])) {
+            && isset($field_details['default_length'])) {
             $field_arr['length'] = $field_details['default_length'];
         }
 
         if ($field_arr['default'] === null
-         && isset($field_details['default_value'])) {
+            && isset($field_details['default_value'])) {
             $field_arr['default'] = $field_details['default_value'];
         }
 
         if (empty($field_arr['raw_default'])
-         && !empty($field_details['raw_default'])) {
+            && !empty($field_details['raw_default'])) {
             $field_arr['raw_default'] = $field_details['raw_default'];
         }
 
@@ -1797,13 +1731,9 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _validate_field_value($value, $field_name, $field_details, $params = false)
+    protected function _validate_field_value(mixed $value, string $field_name, array $field_details) : mixed
     {
         $this->reset_error();
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
 
         if (empty($field_name)) {
             $field_name = self::_t('N/A');
@@ -2075,77 +2005,6 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
     protected function get_count_list_common_params($params = false)
     {
         return $params;
-    }
-
-    protected function validate_data_for_fields(array $params)
-    {
-        $this->reset_error();
-
-        if (!($table_fields = $this->get_definition($params))
-         || !is_array($table_fields)) {
-            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Invalid table definition.'));
-
-            return false;
-        }
-
-        if (empty($params['action'])
-         || !in_array($params['action'], ['insert', 'edit'])) {
-            $params['action'] = 'insert';
-        }
-
-        $hook_params = PHS_Hooks::default_model_validate_data_fields_hook_args();
-        $hook_params['driver'] = $this->get_model_driver();
-        $hook_params['flow_params'] = $params;
-        $hook_params['table_fields'] = $table_fields;
-
-        if (($trigger_result = PHS::trigger_hooks(PHS_Hooks::H_MODEL_VALIDATE_DATA_FIELDS, $hook_params))
-         && is_array($trigger_result)) {
-            if (!empty($trigger_result['flow_params']) && is_array($trigger_result['flow_params'])) {
-                $params = self::merge_array_assoc($params, $trigger_result['flow_params']);
-            }
-            if (!empty($trigger_result['table_fields']) && is_array($trigger_result['table_fields'])) {
-                $table_fields = self::merge_array_assoc($table_fields, $trigger_result['table_fields']);
-            }
-        }
-
-        $validated_fields = [];
-        $data_arr = [];
-        $has_raw_fields = false;
-        foreach ($table_fields as $field_name => $field_details) {
-            if (empty($field_details['editable'])
-             && $params['action'] === 'edit') {
-                continue;
-            }
-
-            if (array_key_exists($field_name, $params['fields'])) {
-                // we can pass raw values (see quick_edit or quick_insert)
-                if (!is_array($params['fields'][$field_name])) {
-                    $field_value = $this->_validate_field_value($params['fields'][$field_name], $field_name, $field_details);
-                } else {
-                    $has_raw_fields = true;
-                    $field_value = $params['fields'][$field_name];
-
-                    if (empty($params['fields'][$field_name]['raw_field'])
-                     && array_key_exists('value', $params['fields'][$field_name])) {
-                        $field_value['value'] = $this->_validate_field_value($params['fields'][$field_name]['value'], $field_name, $field_details);
-                    }
-                }
-
-                $data_arr[$field_name] = $field_value;
-                $validated_fields[] = $field_name;
-            } elseif (isset($field_details['default'])
-                   && $params['action'] === 'insert') {
-                // When editing records only passed fields will be saved in database...
-                $data_arr[$field_name] = $field_details['default'];
-            }
-        }
-
-        $return_arr = [];
-        $return_arr['has_raw_fields'] = $has_raw_fields;
-        $return_arr['data_arr'] = $data_arr;
-        $return_arr['validated_fields'] = $validated_fields;
-
-        return $return_arr;
     }
 
     /**
@@ -3118,7 +2977,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
         ];
     }
 
-    private static function _default_field_arr()
+    private static function _default_field_arr() : array
     {
         // if 'default_value' is set in field definition that value will be used for 'default' key
         return [
@@ -3136,9 +2995,11 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
             // in case we renamed the field from something else we add old name here...
             // we add all old names here so in case we update structure from an old version it would still recognise field names
             // update will check if current database structures field names in this array and if any match will rename old field with current definition
-            // eg. old_names = array( 'old_field1', 'old_field2' ) =>
+            // e.g. old_names = array( 'old_field1', 'old_field2' ) =>
             //     if we find in current structure old_field1 or old_field2 as fields will rename them in current field and will apply current definition
             'old_names' => [],
+            // Let framework know this field is holding sensitive data, so it will no get exported
+            'sensitive_data' => false,
         ];
     }
     //

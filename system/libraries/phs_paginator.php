@@ -1185,7 +1185,7 @@ class PHS_Paginator extends PHS_Registry
         $record_data = $this->default_export_record_data();
 
         if (empty($params['ignore_headers'])
-        && ($header_arr = $this->get_columns_header_as_array($export_action_scope))) {
+            && ($header_arr = $this->get_columns_header_as_array($export_action_scope))) {
             $record_data['is_header'] = true;
             $record_data['record_arr'] = $header_arr;
 
@@ -1196,17 +1196,12 @@ class PHS_Paginator extends PHS_Registry
             if (!$exporter_library_obj->record_to_output($record_data)) {
                 $exporter_library_obj->finish_output();
 
-                if ($exporter_library_obj->has_error()) {
-                    $this->copy_error($exporter_library_obj);
-                } else {
-                    $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error outputing header for export.'));
-                }
+                $this->copy_or_set_error($exporter_library_obj,
+                    self::ERR_FUNCTIONALITY, self::_t('Error outputing header for export.'));
 
                 return false;
             }
         }
-
-        $record_data['is_header'] = false;
 
         $records_arr = $this->get_records();
         $query_id = $this->get_query_id();
@@ -1217,9 +1212,6 @@ class PHS_Paginator extends PHS_Registry
         $return_arr['export_full_file_path'] = $exporter_library_obj->export_registry('export_full_file_path');
 
         // sanity check
-        if (empty($records_arr) || !is_array($records_arr)) {
-            $records_arr = false;
-        }
         if (empty($query_id)) {
             $query_id = false;
         }
@@ -1233,7 +1225,7 @@ class PHS_Paginator extends PHS_Registry
         // Records have query fields in keys (usually unique ids, but not necessary consecutive)
         $records_keys_arr = false;
         $records_keys_index = 0;
-        if (!empty($records_arr) && is_array($records_arr)) {
+        if (!empty($records_arr)) {
             $records_keys_arr = array_keys($records_arr);
         }
 
@@ -1263,6 +1255,7 @@ class PHS_Paginator extends PHS_Registry
         $model_flow_params = $this->flow_param('model_flow_params');
         $db_connection = $model_flow_params['db_connection'] ?? false;
 
+        $record_data['is_header'] = false;
         while (true) {
             $record_data = $this->reset_record_data($record_data);
             $record_count++;
@@ -1322,7 +1315,7 @@ class PHS_Paginator extends PHS_Registry
                 $fields_filters = [];
                 foreach ($params['filter_records_fields'] as $field_key => $filter_values) {
                     if (!isset($record_arr[$field_key])
-                     || empty($filter_values) || !is_array($filter_values)) {
+                        || empty($filter_values) || !is_array($filter_values)) {
                         continue;
                     }
 
@@ -1334,7 +1327,7 @@ class PHS_Paginator extends PHS_Registry
                 $should_continue = false;
                 foreach ($fields_filters as $field_key => $filter_values) {
                     if (isset($record_arr[$field_key])
-                    && !in_array($record_arr[$field_key], $filter_values)) {
+                        && !in_array($record_arr[$field_key], $filter_values)) {
                         $should_continue = true;
                         break;
                     }

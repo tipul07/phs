@@ -6,6 +6,8 @@ use phs\PHS_Api_base;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\accounts\models\PHS_Model_Accounts_details;
 use phs\system\core\events\plugins\PHS_Event_Plugin_settings_saved;
 
 /** @var PHS_Plugin_Accounts $accounts_plugin */
