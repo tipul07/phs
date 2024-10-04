@@ -33,8 +33,6 @@ class PHS_Model_Accounts extends PHS_Model
 
     public const ROLES_USER_KEY = '{roles_slugs}', ROLE_UNITS_USER_KEY = '{role_units_slugs}';
 
-    public const HOOK_LEVELS = 'phs_accounts_levels', HOOK_STATUSES = 'phs_accounts_statuses';
-
     // "Hardcoded" minimum password length (if 'min_password_length' is not found in settings)
     public const DEFAULT_MIN_PASSWORD_LENGTH = 8;
 
