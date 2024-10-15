@@ -8,8 +8,8 @@ use phs\PHS_Scope;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
-use phs\system\core\views\PHS_View;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\phs_security\PHS_Plugin_Phs_security;
 
 class PHS_Scope_Ajax extends PHS_Scope
 {
@@ -19,10 +19,7 @@ class PHS_Scope_Ajax extends PHS_Scope
     }
 
     /**
-     * @param array|false $action_result
-     * @param false|array $static_error_arr
-     *
-     * @return bool
+     * @inheritdoc
      */
     public function process_action_result($action_result, $static_error_arr = false)
     {
@@ -66,6 +63,14 @@ class PHS_Scope_Ajax extends PHS_Scope
             }
 
             $result_headers['X-Powered-By'] = 'PHS-'.PHS_VERSION;
+
+            /** @var PHS_Plugin_Phs_security $security_plugin */
+            if (($security_plugin = PHS_Plugin_Phs_security::get_instance())
+               && $security_plugin->security_headers_are_enabled()
+               && ($headers_lib = $security_plugin->get_security_headers_instance())
+               && ($headers_arr = $headers_lib->get_security_headers_for_response())) {
+                $result_headers = self::merge_array_assoc($result_headers, $headers_arr);
+            }
 
             $result_headers = self::unify_array_insensitive($result_headers, ['trim_keys' => true]);
 

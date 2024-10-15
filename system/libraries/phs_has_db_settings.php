@@ -1224,7 +1224,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
             if (self::st_has_warnings()
                 && ($result_warnings_arr = self::st_get_warnings())) {
-                $warnings_arr = array_merge($warnings_arr, $result_warnings_arr);
+                $warnings_arr[] = $result_warnings_arr;
             }
 
             // make sure static error is reset
@@ -1232,6 +1232,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             // make sure static warnings are reset
             self::st_reset_warnings();
         }
+
+        $warnings_arr = array_merge(...$warnings_arr);
     }
 
     private static function _db_details_fields_prepare_for_merge(array $db_details) : array

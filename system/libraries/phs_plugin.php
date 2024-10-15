@@ -18,10 +18,10 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
     public const LIBRARIES_DIR = 'libraries';
 
-    private $_libraries_instances = [];
+    private array $_libraries_instances = [];
 
     // Plugin details as defined in default_plugin_details_fields() method
-    private $_plugin_details = [];
+    private array $_plugin_details = [];
 
     // Plugin details as defined in JSON file
     /** @var null|array */
@@ -208,20 +208,15 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $this->reset_error();
 
         if (empty($template)
-         || !($view_obj = $this->quick_init_view_instance($template, $template_data))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_RENDER, self::_t('Instantiating view from plugin.'));
-            }
+            || !($view_obj = $this->quick_init_view_instance($template, $template_data))) {
+            $this->set_error_if_not_set(self::ERR_RENDER, self::_t('Instantiating view from plugin.'));
 
             return null;
         }
 
         if (($buffer = $view_obj->render()) === null) {
-            if ($view_obj->has_error()) {
-                $this->copy_error($view_obj);
-            } else {
-                $this->set_error(self::ERR_RENDER, self::_t('Error rendering template [%s].', $view_obj->get_template()));
-            }
+            $this->copy_or_set_error($view_obj,
+                self::ERR_RENDER, self::_t('Error rendering template [%s].', $view_obj->get_template()));
 
             return null;
         }

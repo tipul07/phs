@@ -4,13 +4,7 @@
 use phs\PHS;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Roles;
-use phs\libraries\PHS_Action;
-use phs\libraries\PHS_Language;
-use phs\libraries\PHS_Notifications;
-use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\system\core\events\layout\PHS_Event_Layout;
-
-$cuser_arr = PHS::user_logged_in();
 
 $summary_mail_hook_args = PHS_Hooks::default_messages_summary_hook_args();
 $summary_mail_hook_args['summary_container_id'] = 'messages-summary-container';
@@ -43,7 +37,7 @@ if (!($mail_hook_args = PHS::trigger_hooks(PHS_Hooks::H_MSG_GET_SUMMARY, $summar
                 <li><a href="<?php echo PHS::url(); ?>" onfocus="this.blur();"><?php echo $this::_t('Home'); ?></a></li>
 
                 <?php
-if (empty($cuser_arr)) {
+if (!PHS::user_logged_in()) {
     echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_OUT);
 
     if (can(PHS_Roles::ROLEU_REGISTER)) {
