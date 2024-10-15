@@ -28,21 +28,34 @@ class PHS_Plugin_Phs_security extends PHS_Plugin
                         'display_name'    => $this->_pt('Security headers'),
                         'display_hint'    => $this->_pt('Which security headers are enabled to be sent?'),
                         'custom_renderer' => [$this, 'plugin_settings_display_security_headers'],
-                        // 'custom_save'     => [$this, 'plugin_settings_save_security_headers'],
-                        'type'    => PHS_Params::T_ARRAY,
-                        'default' => [],
+                        'type'            => PHS_Params::T_ARRAY,
+                        'default'         => [],
                     ],
                     'headers_values' => [
                         'display_name'   => $this->_pt('Security headers values'),
                         'display_hint'   => $this->_pt('Values of what should actually be sent in headers.'),
                         'skip_rendering' => true,
-                        // 'custom_save'    => [$this, 'plugin_settings_save_security_headers'],
-                        'type'    => PHS_Params::T_ARRAY,
-                        'default' => [],
+                        'type'           => PHS_Params::T_ARRAY,
+                        'default'        => [],
                     ],
                 ],
             ],
         ];
+    }
+
+    public function security_headers_are_enabled() : bool
+    {
+        return (bool)($this->get_plugin_settings()['headers_enabled'] ?? false);
+    }
+
+    public function get_enabled_security_headers() : array
+    {
+        return $this->get_plugin_settings()['headers_selected'] ?? [];
+    }
+
+    public function get_security_headers_values() : array
+    {
+        return $this->get_plugin_settings()['headers_values'] ?? [];
     }
 
     public function plugin_settings_display_security_headers($params) : string
@@ -52,72 +65,11 @@ class PHS_Plugin_Phs_security extends PHS_Plugin
             return 'Error rendering settings field.';
         }
 
-        $params = self::validate_array($params, self::default_custom_renderer_params());
-
         $data_arr = [];
         $data_arr['headers_definition'] = $headers_lib->get_security_headers_definition();
-        $data_arr['current_settings'] = $this->get_security_headers_settings();
+        $data_arr['current_settings'] = $this->get_plugin_settings();
 
         return $this->quick_render_template_for_buffer('plugin_headers_settings', $data_arr);
-    }
-
-    public function plugin_settings_save_security_headers($params) : ?string
-    {
-        $params = self::validate_array($params, self::st_default_custom_save_params());
-
-        if (empty($params['field_name'])
-            || empty($params['form_data']) || !is_array($params['form_data'])
-            || ($params['field_name'] !== 'ekyc_providers' && $params['field_name'] !== 'ekyc_providers_priority')) {
-            return null;
-        }
-
-        if ($params['field_name'] === 'ekyc_providers') {
-            if (empty($params['form_data']['ekyc_providers']) || !is_array($params['form_data']['ekyc_providers'])) {
-                return '[]';
-            }
-
-            $settings_arr = [];
-            foreach ($params['form_data']['ekyc_providers'] as $check_type => $check_details) {
-                if (empty($check_details) || !is_array($check_details)) {
-                    continue;
-                }
-                foreach ($check_details as $provider_slug => $enabled) {
-                    $settings_arr[$check_type][$provider_slug] = !empty($enabled);
-                }
-            }
-
-            return @json_encode($settings_arr);
-        }
-
-        if ($params['field_name'] === 'ekyc_providers_priority') {
-            if (empty($params['form_data']['ekyc_providers_priority']) || !is_array($params['form_data']['ekyc_providers_priority'])) {
-                return '[]';
-            }
-
-            $settings_arr = [];
-            foreach ($params['form_data']['ekyc_providers_priority'] as $check_type => $check_details) {
-                if (empty($check_details) || !is_array($check_details)) {
-                    continue;
-                }
-                foreach ($check_details as $provider_slug => $order) {
-                    $settings_arr[$check_type][$provider_slug] = (int)$order;
-                }
-            }
-
-            return @json_encode($settings_arr);
-        }
-
-        return null;
-    }
-
-    public function get_security_headers_settings() : array
-    {
-        $plugin_settings = $this->get_plugin_settings();
-
-        return [
-            'headers_selected' => $plugin_settings['headers_selected'],
-            'headers_values'   => $plugin_settings['headers_values'],
-        ];
     }
 
     public function get_security_headers_instance() : ?Phs_security_headers

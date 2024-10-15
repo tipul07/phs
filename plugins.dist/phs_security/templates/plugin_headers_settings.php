@@ -57,13 +57,17 @@ foreach ($headers_definition as $h_id => $h_arr) {
                        value="<?php echo form_str($h_value); ?>"
                 /><?php
         }
+
+    if (!empty($h_arr['hint'])) {
+        ?><small class="form-text text-muted"><?php echo $h_arr['hint']; ?></small><?php
+    }
     ?></td>
     </tr>
     <?php
     if ($default_value !== null) {
         ?>
         <tr>
-            <td class="font-italic" colspan="2"><?php echo $this->_pt('Default value:').' '.$default_value; ?></td>
+            <td class="font-italic" colspan="2"><?php echo $this->_pt('Default value:').' '.($default_value ?: '['.$this->_pt('No default value').']'); ?></td>
         </tr>
         <?php
     }

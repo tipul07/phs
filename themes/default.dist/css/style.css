@@ -330,7 +330,7 @@ table tbody tr:hover+tr td  {
 .period_field_custom input { line-height: 50px; float: left; vertical-align: middle; width: 100px !important; margin: 10px 0 !important; }
 
 /* 1.5.1  - Cookies agreement */
-#phs_cookie_policy_agreement { text-align: center; padding: 2em; background: black; color: white; width: 100%; background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNUegoAAS8BCdaQkXcAAAAASUVORK5CYII="); border-bottom: 1px solid #aaa; }
+#phs_cookie_policy_agreement { text-align: center; padding: 2em; color: white; width: 100%; background: #373737; border-bottom: 1px solid #aaa; }
 #phs_cookie_policy_agreement .phs_cookie_policy_agreement_actions { clear: both; margin-top: 1em; }
 #phs_cookie_policy_agreement .phs_cookie_policy_agreement_actions a { margin-right: 1em; }
 
@@ -721,8 +721,7 @@ ul.tabs { margin: 0 !important; padding: 0 !important; font-size: inherit !impor
 /*--- 3.1 - Right / Left Menus - START ---------------------------*/
 	#menu-left-pane, #menu-right-pane {
 		display: none; color: white; width: 90%; max-width: 350px; height: 100%; min-height: 100%; z-index: 1000; position: fixed; overflow-y: auto; overflow-x: hidden;
-		background: transparent;
-		background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNUegoAAS8BCdaQkXcAAAAASUVORK5CYII="); 
+		background: rgb(55,55,55,0.9);
 		padding: 1.5em;
 		}
 	#menu-left-pane {
@@ -821,8 +820,7 @@ ul.tabs { margin: 0 !important; padding: 0 !important; font-size: inherit !impor
 	#messages-summary-popup { 
 		padding: 0; right: 0; color: white; width: 350px; 
 		z-index: 1000; position: absolute; 
-		background: transparent;
-		background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNUegoAAS8BCdaQkXcAAAAASUVORK5CYII="); 
+		background: rgb(55,55,55,0.9);
 		-webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.2);
 		box-shadow: 0 3px 7px rgba(0, 0, 0, 0.2);		
 		}

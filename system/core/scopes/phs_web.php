@@ -10,6 +10,7 @@ use phs\libraries\PHS_Logger;
 use phs\system\core\views\PHS_View;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\plugins\phs_security\PHS_Plugin_Phs_security;
 use phs\system\core\events\layout\PHS_Event_Template;
 use phs\plugins\accounts\models\PHS_Model_Accounts_tfa;
 
@@ -135,6 +136,14 @@ class PHS_Scope_Web extends PHS_Scope
 
             $result_headers['X-Powered-By'] = 'PHS-'.PHS_VERSION;
 
+            /** @var PHS_Plugin_Phs_security $security_plugin */
+            if (($security_plugin = PHS_Plugin_Phs_security::get_instance())
+               && $security_plugin->security_headers_are_enabled()
+               && ($headers_lib = $security_plugin->get_security_headers_instance())
+               && ($headers_arr = $headers_lib->get_security_headers_for_response())) {
+                $result_headers = self::merge_array_assoc($result_headers, $headers_arr);
+            }
+
             $result_headers = self::unify_array_insensitive($result_headers, ['trim_keys' => true]);
 
             foreach ($result_headers as $key => $val) {
@@ -161,12 +170,7 @@ class PHS_Scope_Web extends PHS_Scope
             $view_params['as_singleton'] = false;
 
             if (!($view_obj = PHS_View::init_view($action_result['page_template'], $view_params))) {
-                if (self::st_has_error()) {
-                    echo self::st_get_error_message();
-                } else {
-                    echo self::_t('Error instantiating view object.');
-                }
-
+                echo self::st_get_error_message(self::_t('Error instantiating view object.'));
                 exit;
             }
 

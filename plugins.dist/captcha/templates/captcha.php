@@ -2,14 +2,9 @@
 /** @var \phs\system\core\views\PHS_View $this */
 
 use phs\PHS;
-use phs\libraries\PHS_Hooks;
 
-if (!($hook_args = $this->view_var('hook_args'))) {
-    $hook_args = [];
-}
-if (!($settings_arr = $this->view_var('settings_arr'))) {
-    $settings_arr = [];
-}
+$hook_args = $this->view_var('hook_args') ?: [];
+$settings_arr = $this->view_var('settings_arr') ?: [];
 
 $img_width = $hook_args['default_width'] ?? $settings_arr['default_width'] ?? 200;
 $img_height = $hook_args['default_height'] ?? $settings_arr['default_height'] ?? 50;
