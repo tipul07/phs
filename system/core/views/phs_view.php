@@ -916,9 +916,7 @@ class PHS_View extends PHS_Instantiable
         }
 
         if (!($view_obj = PHS::load_view($params['view_class'], $params['plugin'], $params['as_singleton']))) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_INIT_VIEW, self::_t('Error instantiating view class.'));
-            }
+            self::st_set_error_if_not_set(self::ERR_INIT_VIEW, self::_t('Error instantiating view class.'));
 
             return null;
         }
@@ -929,11 +927,8 @@ class PHS_View extends PHS_Instantiable
          || !$view_obj->set_template($template)
          || (!empty($params['parent_plugin_obj']) && !$view_obj->parent_plugin($params['parent_plugin_obj']))
         ) {
-            if ($view_obj->has_error()) {
-                self::st_copy_error($view_obj);
-            } else {
-                self::st_set_error(self::ERR_INIT_VIEW, self::_t('Error setting up view instance.'));
-            }
+            self::st_copy_or_set_error($view_obj,
+                self::ERR_INIT_VIEW, self::_t('Error setting up view instance.'));
 
             return null;
         }

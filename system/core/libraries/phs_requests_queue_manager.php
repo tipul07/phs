@@ -250,7 +250,7 @@ class PHS_Requests_queue_manager extends PHS_Library
             }
 
             if ($this->_requests_model->is_final($request_arr)) {
-                if(($callback = $this->_requests_model->get_request_fail_callback($request_arr))) {
+                if (($callback = $this->_requests_model->get_request_fail_callback($request_arr))) {
                     $callbacks['final_failure'] = $callback;
                 } elseif ($this->_requests_model->has_error()) {
                     $errors_arr[] = $this->_requests_model->get_simple_error_message();
