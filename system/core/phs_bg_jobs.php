@@ -101,8 +101,7 @@ class PHS_Bg_jobs extends PHS_Registry
         }
 
         $route_parts = false;
-        if ((is_string($route) || is_array($route))
-            && !($route_parts = PHS::parse_route($route, false))) {
+        if (!($route_parts = PHS::parse_route($route, false))) {
             self::st_set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Route is invalid.'));
 
             return false;

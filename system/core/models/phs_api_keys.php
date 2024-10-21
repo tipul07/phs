@@ -5,6 +5,7 @@ namespace phs\system\core\models;
 use phs\PHS;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Roles;
+use phs\libraries\PHS_Record_data;
 use phs\traits\PHS_Model_Trait_statuses;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
@@ -22,7 +23,7 @@ class PHS_Model_Api_keys extends PHS_Model
 
     public function get_model_version() : string
     {
-        return '1.1.0';
+        return '1.2.0';
     }
 
     public function get_table_names() : array
@@ -35,37 +36,25 @@ class PHS_Model_Api_keys extends PHS_Model
         return 'api_keys';
     }
 
-    public function is_active($record_data)
+    public function is_active(int | array | PHS_Record_data $record_data) : bool
     {
-        if (!($record_arr = $this->data_to_array($record_data))
-         || (int)$record_arr['status'] !== self::STATUS_ACTIVE) {
-            return false;
-        }
-
-        return $record_arr;
+        return ($record_arr = $this->data_to_array($record_data))
+               && (int)$record_arr['status'] === self::STATUS_ACTIVE;
     }
 
-    public function is_inactive($record_data)
+    public function is_inactive(int | array | PHS_Record_data $record_data) : bool
     {
-        if (!($record_arr = $this->data_to_array($record_data))
-         || (int)$record_arr['status'] !== self::STATUS_INACTIVE) {
-            return false;
-        }
-
-        return $record_arr;
+        return ($record_arr = $this->data_to_array($record_data))
+               && (int)$record_arr['status'] === self::STATUS_INACTIVE;
     }
 
-    public function is_deleted($record_data)
+    public function is_deleted(int | array | PHS_Record_data $record_data) : bool
     {
-        if (!($record_arr = $this->data_to_array($record_data))
-         || (int)$record_arr['status'] !== self::STATUS_DELETED) {
-            return false;
-        }
-
-        return $record_arr;
+        return ($record_arr = $this->data_to_array($record_data))
+               && (int)$record_arr['status'] === self::STATUS_DELETED;
     }
 
-    public function act_activate($record_data)
+    public function act_activate(int | array | PHS_Record_data $record_data) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -73,23 +62,23 @@ class PHS_Model_Api_keys extends PHS_Model
          || !($record_arr = $this->data_to_array($record_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('API key details not found in database.'));
 
-            return false;
+            return null;
         }
 
         if ($this->is_active($record_arr)) {
             return $record_arr;
         }
 
-        $edit_arr = [];
-        $edit_arr['status'] = self::STATUS_ACTIVE;
+        if ( !($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_ACTIVE]])) ) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error saving API key details.'));
 
-        $edit_params = [];
-        $edit_params['fields'] = $edit_arr;
+            return null;
+        }
 
-        return $this->edit($record_arr, $edit_params);
+        return $new_record;
     }
 
-    public function act_inactivate($record_data)
+    public function act_inactivate(int | array | PHS_Record_data $record_data) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -97,23 +86,23 @@ class PHS_Model_Api_keys extends PHS_Model
          || !($record_arr = $this->data_to_array($record_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('API key details not found in database.'));
 
-            return false;
+            return null;
         }
 
         if ($this->is_inactive($record_arr)) {
             return $record_arr;
         }
 
-        $edit_arr = [];
-        $edit_arr['status'] = self::STATUS_INACTIVE;
+        if ( !($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_INACTIVE]])) ) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error saving API key details.'));
 
-        $edit_params = [];
-        $edit_params['fields'] = $edit_arr;
+            return null;
+        }
 
-        return $this->edit($record_arr, $edit_params);
+        return $new_record;
     }
 
-    public function act_delete($record_data)
+    public function act_delete(int | array | PHS_Record_data $record_data) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -121,44 +110,42 @@ class PHS_Model_Api_keys extends PHS_Model
          || !($record_arr = $this->data_to_array($record_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('API key details not found in database.'));
 
-            return false;
+            return null;
         }
 
         if ($this->is_deleted($record_arr)) {
             return $record_arr;
         }
 
-        $edit_arr = [];
-        $edit_arr['status'] = self::STATUS_DELETED;
+        if ( !($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_DELETED]])) ) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error saving API key details.'));
 
-        $edit_params_arr = [];
-        $edit_params_arr['fields'] = $edit_arr;
+            return null;
+        }
 
-        return $this->edit($record_arr, $edit_params_arr);
+        return $new_record;
     }
 
-    public function can_user_edit($record_data, $account_data)
+    public function can_user_edit(int | array | PHS_Record_data $record_data, int | array | PHS_Record_data $account_data) : ?array
     {
         /** @var PHS_Model_Accounts $accounts_model */
         if (empty($record_data) || empty($account_data)
-         || !($apikey_arr = $this->data_to_array($record_data))
-         || $this->is_deleted($apikey_arr)
-         || !($accounts_model = PHS_Model_Accounts::get_instance())
-         || !($account_arr = $accounts_model->data_to_array($account_data))
-         || !can(PHS_Roles::ROLEU_MANAGE_API_KEYS, null, $account_arr)) {
-            return false;
+            || !($apikey_arr = $this->data_to_array($record_data))
+            || $this->is_deleted($apikey_arr)
+            || !($accounts_model = PHS_Model_Accounts::get_instance())
+            || !($account_arr = $accounts_model->data_to_array($account_data))
+            || !can(PHS_Roles::ROLEU_MANAGE_API_KEYS, null, $account_arr)) {
+            return null;
         }
 
-        $return_arr = [];
-        $return_arr['apikey_data'] = $apikey_arr;
-        $return_arr['account_data'] = $account_arr;
-
-        return $return_arr;
+        return [
+            'apikey_data'  => $apikey_arr,
+            'account_data' => $account_arr,
+        ];
     }
 
-    public function get_apikeys_for_user_id($user_id)
+    public function get_apikeys_for_user_id(int $user_id) : array
     {
-        $user_id = (int)$user_id;
         if (empty($user_id)) {
             return [];
         }
@@ -176,28 +163,21 @@ class PHS_Model_Api_keys extends PHS_Model
         return $return_arr;
     }
 
-    public function apikeys_count_for_user_id($user_id) : int
+    public function apikeys_count_for_user_id(int $user_id) : int
     {
-        $user_id = (int)$user_id;
         if (!empty($user_id)
-         && ($flow_params = $this->fetch_default_flow_params())
-         && ($table_name = $this->get_flow_table_name($flow_params))
-         && ($qid = db_query('SELECT COUNT(*) AS total_apikeys '
-                              .' FROM `'.$table_name.'`'
-                              .' WHERE status != \''.self::STATUS_DELETED.'\' AND uid = \''.$user_id.'\'', $flow_params['db_connection']))
-         && ($total_arr = db_fetch_assoc($qid, $flow_params['db_connection']))
-         && !empty($total_arr['total_apikeys'])) {
-            return (int)$total_arr['total_apikeys'];
+            && ($flow_params = $this->fetch_default_flow_params())
+            && ($table_name = $this->get_flow_table_name($flow_params))
+            && ($qid = db_query('SELECT COUNT(*) AS total_apikeys '
+                                .' FROM `'.$table_name.'`'
+                                .' WHERE status != \''.self::STATUS_DELETED.'\' AND uid = \''.$user_id.'\'', $flow_params['db_connection']))
+            && ($total_arr = db_fetch_assoc($qid, $flow_params['db_connection']))) {
+            return 0;
         }
 
-        return 0;
+        return (int)($total_arr['total_apikeys'] ?? 0);
     }
 
-    /**
-     * @param bool $only_active
-     *
-     * @return array
-     */
     public function get_all_api_keys(bool $only_active = false) : array
     {
         static $cached_api_keys = null, $cached_active_api_keys = null;
@@ -208,10 +188,8 @@ class PHS_Model_Api_keys extends PHS_Model
             if ($cached_api_keys !== null) {
                 return $cached_api_keys;
             }
-        } else {
-            if ($cached_active_api_keys !== null) {
-                return $cached_active_api_keys;
-            }
+        } elseif ($cached_active_api_keys !== null) {
+            return $cached_active_api_keys;
         }
 
         $list_arr = $this->fetch_default_flow_params(['table_name' => 'api_keys']);
@@ -238,11 +216,6 @@ class PHS_Model_Api_keys extends PHS_Model
         return $cached_api_keys;
     }
 
-    /**
-     * @param bool $only_active
-     *
-     * @return array
-     */
     public function get_all_api_keys_as_key_val(bool $only_active = false) : array
     {
         $this->reset_error();
@@ -269,9 +242,6 @@ class PHS_Model_Api_keys extends PHS_Model
         return md5(uniqid(mt_rand(), true));
     }
 
-    /**
-     * @inheritdoc
-     */
     final public function fields_definition($params = false) : ?array
     {
         if (empty($params['table_name'])) {
@@ -330,6 +300,10 @@ class PHS_Model_Api_keys extends PHS_Model
                         'type'   => self::FTYPE_TINYINT,
                         'length' => 2,
                     ],
+                    'allow_graphql' => [
+                        'type'   => self::FTYPE_TINYINT,
+                        'length' => 2,
+                    ],
                     'allowed_ips' => [
                         'type'     => self::FTYPE_TEXT,
                         'nullable' => true,
@@ -370,6 +344,7 @@ class PHS_Model_Api_keys extends PHS_Model
         }
 
         $params['fields']['allow_sw'] = empty($params['fields']['allow_sw']) ? 0 : 1;
+        $params['fields']['allow_graphql'] = empty($params['fields']['allow_graphql']) ? 0 : 1;
 
         if (!empty($params['fields']['tenant_id']) && PHS::is_multi_tenant()) {
             $params['fields']['tenant_id'] = (int)$params['fields']['tenant_id'];
@@ -412,6 +387,9 @@ class PHS_Model_Api_keys extends PHS_Model
 
         if (array_key_exists('allow_sw', $params['fields'])) {
             $params['fields']['allow_sw'] = !empty($params['fields']['allow_sw']) ? 1 : 0;
+        }
+        if (array_key_exists('allow_graphql', $params['fields'])) {
+            $params['fields']['allow_graphql'] = !empty($params['fields']['allow_graphql']) ? 1 : 0;
         }
 
         if (PHS::is_multi_tenant()) {

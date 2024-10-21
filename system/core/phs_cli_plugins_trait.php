@@ -184,8 +184,7 @@ trait PHS_Cli_plugins_trait
 
     protected function _get_plugins_model() : ?PHS_Model_Plugins
     {
-        if (empty($this->_plugins_model)
-         && !$this->_load_plugins_model()) {
+        if (!$this->_load_plugins_model()) {
             return null;
         }
 
@@ -194,6 +193,8 @@ trait PHS_Cli_plugins_trait
 
     private function _load_plugins_model() : bool
     {
+        $this->reset_error();
+
         if (empty($this->_plugins_model)
          && !($this->_plugins_model = PHS_Model_Plugins::get_instance())) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error instantiating plugins model.'));

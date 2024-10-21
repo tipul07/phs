@@ -17,9 +17,7 @@ use phs\plugins\admin\actions\PHS_Action_Users_autocomplete;
 class PHS_Action_Edit extends PHS_Action
 {
     /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
+     * @inheritdoc
      */
     public function allowed_scopes() : array
     {
@@ -27,7 +25,7 @@ class PHS_Action_Edit extends PHS_Action
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {
@@ -98,9 +96,7 @@ class PHS_Action_Edit extends PHS_Action
             PHS_Notifications::add_success_notice($this->_pt('API key details saved.'));
         }
 
-        if (!($api_methods_arr = $api_obj->allowed_http_methods())) {
-            $api_methods_arr = [];
-        }
+        $api_methods_arr = $api_obj->allowed_http_methods() ?: [];
 
         $all_tenants_arr = [];
         if ($is_multi_tenant
@@ -116,6 +112,7 @@ class PHS_Action_Edit extends PHS_Action
         $api_key = PHS_Params::_p('api_key', PHS_Params::T_NOHTML);
         $api_secret = PHS_Params::_p('api_secret', PHS_Params::T_NOHTML);
         $allow_sw = PHS_Params::_p('allow_sw', PHS_Params::T_NUMERIC_BOOL);
+        $allow_graphql = PHS_Params::_p('allow_graphql', PHS_Params::T_NUMERIC_BOOL);
         if (!($allowed_methods = PHS_Params::_p('allowed_methods', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML, 'trim_before' => true]))) {
             $allowed_methods = [];
         }
@@ -138,6 +135,7 @@ class PHS_Action_Edit extends PHS_Action
             $api_key = $apikey_arr['api_key'];
             $api_secret = $apikey_arr['api_secret'];
             $allow_sw = (!empty($apikey_arr['allow_sw']) ? 1 : 0);
+            $allow_graphql = (!empty($apikey_arr['allow_graphql']) ? 1 : 0);
 
             if (empty($apikey_arr['allowed_methods'])) {
                 $allowed_methods = [];
@@ -209,6 +207,7 @@ class PHS_Action_Edit extends PHS_Action
             $edit_arr['api_key'] = $api_key;
             $edit_arr['api_secret'] = $api_secret;
             $edit_arr['allow_sw'] = $allow_sw;
+            $edit_arr['allow_graphql'] = $allow_graphql;
             $edit_arr['allowed_methods'] = (!empty($allowed_methods) ? implode(',', $allowed_methods) : null);
             $edit_arr['denied_methods'] = (!empty($denied_methods) ? implode(',', $denied_methods) : null);
 
@@ -243,6 +242,7 @@ class PHS_Action_Edit extends PHS_Action
             'api_key'          => $api_key,
             'api_secret'       => $api_secret,
             'allow_sw'         => $allow_sw,
+            'allow_graphql'    => $allow_graphql,
             'allowed_methods'  => $allowed_methods,
             'denied_methods'   => $denied_methods,
 

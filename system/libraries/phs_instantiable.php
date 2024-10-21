@@ -1527,6 +1527,43 @@ abstract class PHS_Instantiable extends PHS_Registry
         return self::_get_instance_json_details($plugin_name, $scope_name, self::INSTANCE_TYPE_SCOPE);
     }
 
+    public static function get_class_name_from_instance_name(string $instance_type, ?string $instance_name = null) : ?string
+    {
+        $instance_name = ucfirst(strtolower($instance_name ?: 'Index'));
+
+        switch ($instance_type) {
+            case self::INSTANCE_TYPE_PLUGIN:
+                $class_name = 'PHS_Plugin_'.$instance_name;
+                break;
+            case self::INSTANCE_TYPE_MODEL:
+                $class_name = 'PHS_Model_'.$instance_name;
+                break;
+            case self::INSTANCE_TYPE_CONTROLLER:
+                $class_name = 'PHS_Controller_'.$instance_name;
+                break;
+            case self::INSTANCE_TYPE_ACTION:
+                $class_name = 'PHS_Action_'.$instance_name;
+                break;
+            case self::INSTANCE_TYPE_CONTRACT:
+                $class_name = 'PHS_Contract_'.$instance_name;
+                break;
+            case self::INSTANCE_TYPE_VIEW:
+                $class_name = 'PHS_View_'.$instance_name;
+                break;
+            case self::INSTANCE_TYPE_SCOPE:
+                $class_name = 'PHS_Scope_'.$instance_name;
+                break;
+            case self::INSTANCE_TYPE_EVENT:
+                $class_name = 'PHS_Event_'.$instance_name;
+                break;
+
+            default:
+                return null;
+        }
+
+        return $class_name;
+    }
+
     /**
      * @param string $type_dir
      *
@@ -1581,42 +1618,12 @@ abstract class PHS_Instantiable extends PHS_Registry
     {
         self::st_reset_error();
 
-        if (empty($instance_name)) {
-            $instance_name = 'Index';
-        } else {
-            $instance_name = ucfirst(strtolower($instance_name));
-        }
+        $instance_name = ucfirst(strtolower($instance_name ?: 'Index'));
 
-        switch ($instance_type) {
-            case self::INSTANCE_TYPE_PLUGIN:
-                $class_name = 'PHS_Plugin_'.$instance_name;
-                break;
-            case self::INSTANCE_TYPE_MODEL:
-                $class_name = 'PHS_Model_'.$instance_name;
-                break;
-            case self::INSTANCE_TYPE_CONTROLLER:
-                $class_name = 'PHS_Controller_'.$instance_name;
-                break;
-            case self::INSTANCE_TYPE_ACTION:
-                $class_name = 'PHS_Action_'.$instance_name;
-                break;
-            case self::INSTANCE_TYPE_CONTRACT:
-                $class_name = 'PHS_Contract_'.$instance_name;
-                break;
-            case self::INSTANCE_TYPE_VIEW:
-                $class_name = 'PHS_View_'.$instance_name;
-                break;
-            case self::INSTANCE_TYPE_SCOPE:
-                $class_name = 'PHS_Scope_'.$instance_name;
-                break;
-            case self::INSTANCE_TYPE_EVENT:
-                $class_name = 'PHS_Event_'.$instance_name;
-                break;
+        if ( !($class_name = self::get_class_name_from_instance_name($instance_type, $instance_name)) ) {
+            self::st_set_error(self::ERR_JSON_DETAILS, self::_t('Invalid instance type to get JSON info.'));
 
-            default:
-                self::st_set_error(self::ERR_JSON_DETAILS, self::_t('Invalid instance type to get JSON info.'));
-
-                return null;
+            return null;
         }
 
         if (empty($plugin) || $plugin === self::CORE_PLUGIN) {

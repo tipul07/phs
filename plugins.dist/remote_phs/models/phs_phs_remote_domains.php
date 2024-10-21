@@ -1812,7 +1812,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         $url_extra['use_rewrite_url'] = true;
         $url_extra['raw_route'] = $api_route;
 
-        if (!($full_url = PHS::url(['force_https' => true], false, $url_extra))) {
+        if (!($full_url = PHS::url(['force_https' => true], null, $url_extra))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error obtaining full API URL for remote domain.'));
 
             return false;

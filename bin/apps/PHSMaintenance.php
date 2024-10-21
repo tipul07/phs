@@ -40,8 +40,6 @@ class PHSMaintenance extends PHS_Cli
 
     public function cmd_plugin_action() : bool
     {
-        $this->reset_error();
-
         if (null === ($plugins_dirs_arr = $this->get_plugins_as_dirs())) {
             $this->_echo_error(self::_t('Couldn\'t obtain plugins list: %s', $this->get_simple_error_message()));
 
@@ -401,8 +399,6 @@ class PHSMaintenance extends PHS_Cli
 
     public function cmd_list_plugins() : bool
     {
-        $this->reset_error();
-
         if (null === ($plugins_dirs_arr = $this->get_plugins_as_dirs())) {
             $this->_echo_error(self::_t('Couldn\'t obtain plugins list: %s', $this->get_simple_error_message()));
 
@@ -761,7 +757,7 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    private function _activate_plugin($plugin_name) : bool
+    private function _activate_plugin(string $plugin_name) : bool
     {
         if (!($plugin_obj = PHS::load_plugin($plugin_name))) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error instantiating plugin.'));
@@ -783,7 +779,7 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    private function _inactivate_plugin($plugin_name) : bool
+    private function _inactivate_plugin(string $plugin_name) : bool
     {
         if (!($plugin_obj = PHS::load_plugin($plugin_name))) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error instantiating plugin.'));

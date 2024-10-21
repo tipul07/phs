@@ -10,8 +10,6 @@ use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\system\core\models\PHS_Model_Api_keys;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
-// ! @version 1.00
-
 abstract class PHS_Api_base extends PHS_Registry
 {
     public const ERR_RUN_ROUTE = 30001, ERR_AUTHENTICATION = 30002, ERR_HTTP_METHOD = 30003, ERR_HTTP_PROTOCOL = 30004, ERR_APIKEY = 30005;
@@ -219,29 +217,17 @@ abstract class PHS_Api_base extends PHS_Registry
         return true;
     }
 
-    /**
-     * @return bool
-     */
     public function extract_api_request_details() : bool
     {
         if (empty($_SERVER) || !is_array($_SERVER)) {
             return true;
         }
 
-        $content_type = false;
-        if (!empty($_SERVER['CONTENT_TYPE'])) {
-            $content_type = $_SERVER['CONTENT_TYPE'];
-        } elseif (!empty($_SERVER['HTTP_CONTENT_TYPE'])) {
-            $content_type = $_SERVER['HTTP_CONTENT_TYPE'];
-        }
+        $content_type = $_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? null;
 
         if (!empty($content_type)
-         && !$this->set_content_type(strtolower(trim($content_type)))) {
-            if ($this->has_error()) {
-                $error_msg = $this->get_simple_error_message();
-            } else {
-                $error_msg = self::_t('Couldn\'t set content type to API object.');
-            }
+            && !$this->set_content_type(strtolower(trim($content_type)))) {
+            $error_msg = $this->get_simple_error_message(self::_t('Couldn\'t set content type to API object.'));
 
             PHS_Logger::error('Error setting content type in API instance: ['.$error_msg.']', PHS_Logger::TYPE_DEBUG);
 
@@ -251,12 +237,8 @@ abstract class PHS_Api_base extends PHS_Registry
         }
 
         if (!empty($_SERVER['REQUEST_METHOD'])
-         && !$this->set_http_method($_SERVER['REQUEST_METHOD'])) {
-            if ($this->has_error()) {
-                $error_msg = $this->get_simple_error_message();
-            } else {
-                $error_msg = self::_t('Couldn\'t set HTTP method to API object.');
-            }
+            && !$this->set_http_method($_SERVER['REQUEST_METHOD'])) {
+            $error_msg = $this->get_simple_error_message(self::_t('Couldn\'t set HTTP method to API object.'));
 
             PHS_Logger::error('Error setting HTTP method in API instance: ['.$error_msg.']', PHS_Logger::TYPE_DEBUG);
 
@@ -267,11 +249,7 @@ abstract class PHS_Api_base extends PHS_Registry
 
         if (!empty($_SERVER['SERVER_PROTOCOL'])
          && !$this->set_http_protocol(trim($_SERVER['SERVER_PROTOCOL']))) {
-            if ($this->has_error()) {
-                $error_msg = $this->get_simple_error_message();
-            } else {
-                $error_msg = self::_t('Couldn\'t set response protocol to API object.');
-            }
+            $error_msg = $this->get_simple_error_message(self::_t('Couldn\'t set response protocol to API object.'));
 
             PHS_Logger::error('Error setting response protocol in API instance: ['.$error_msg.']', PHS_Logger::TYPE_DEBUG);
 
@@ -283,9 +261,6 @@ abstract class PHS_Api_base extends PHS_Registry
         return true;
     }
 
-    /**
-     * @param null|array $credentials_arr
-     */
     public function set_api_credentials(?array $credentials_arr = null) : void
     {
         $new_credentials_arr = [
@@ -785,18 +760,18 @@ abstract class PHS_Api_base extends PHS_Registry
             ];
         }
 
-        if (!($token = $this->api_flow_value('bearer_token'))
-            && $authentication_is_optional) {
+        if ($authentication_is_optional
+            && !($token = $this->api_flow_value('bearer_token'))) {
             return null;
         }
 
         if (empty($token)
-         || !($token_arr = $accounts_plugin->decode_bearer_token($token))
-         || !($online_arr = $accounts_model->get_details_fields(['wid' => $token], ['table_name' => 'online']))
-         || empty($online_arr['uid'])
-         || $token_arr['account_id'] !== (int)$online_arr['uid']
-         || !($account_arr = $accounts_model->get_details($online_arr['uid']))
-         || !$accounts_model->is_active($account_arr)
+            || !($token_arr = $accounts_plugin->decode_bearer_token($token))
+            || !($online_arr = $accounts_model->get_details_fields(['wid' => $token], ['table_name' => 'online']))
+            || empty($online_arr['uid'])
+            || $token_arr['account_id'] !== (int)$online_arr['uid']
+            || !($account_arr = $accounts_model->get_details($online_arr['uid']))
+            || !$accounts_model->is_active($account_arr)
         ) {
             return [
                 'http_code' => self::H_CODE_UNAUTHORIZED,
@@ -808,17 +783,8 @@ abstract class PHS_Api_base extends PHS_Registry
         $this->api_flow_value('api_key_data', false);
         $this->api_flow_value('api_key_user_id', 0);
 
-        if (!empty($account_arr)) {
-            $this->api_flow_value('api_account_data', $account_arr);
-        } else {
-            $this->api_flow_value('api_account_data', false);
-        }
-
-        if (!empty($online_arr)) {
-            $this->api_flow_value('api_session_data', $online_arr);
-        } else {
-            $this->api_flow_value('api_session_data', false);
-        }
+        $this->api_flow_value('api_account_data', $account_arr);
+        $this->api_flow_value('api_session_data', $online_arr);
 
         PHS::user_logged_in(true);
 
@@ -852,6 +818,16 @@ abstract class PHS_Api_base extends PHS_Registry
         if (empty($apikey_arr['allow_sw'])
             && $this->is_web_simulation()) {
             PHS_Logger::warning('Web simulation not allowed (#'.$apikey_arr['id'].').', PHS_Logger::TYPE_API);
+
+            return [
+                'http_code' => self::H_CODE_FORBIDDEN,
+                'error_msg' => $this->_pt('Access not allowed.'),
+            ];
+        }
+
+        if (empty($apikey_arr['allow_graphql'])
+            && PHS_Scope::current_scope() === PHS_Scope::SCOPE_GRAPHQL) {
+            PHS_Logger::warning('GraphQL calls not allowed (#'.$apikey_arr['id'].').', PHS_Logger::TYPE_API);
 
             return [
                 'http_code' => self::H_CODE_FORBIDDEN,
@@ -895,13 +871,8 @@ abstract class PHS_Api_base extends PHS_Registry
         }
 
         $this->api_flow_value('api_key_data', $apikey_arr);
-        if (!empty($account_arr)) {
-            $this->api_flow_value('api_key_user_id', (int)$account_arr['id']);
-            $this->api_flow_value('api_account_data', $account_arr);
-        } else {
-            $this->api_flow_value('api_key_user_id', 0);
-            $this->api_flow_value('api_account_data', false);
-        }
+        $this->api_flow_value('api_key_user_id', (int)($account_arr['id'] ?? 0));
+        $this->api_flow_value('api_account_data', $account_arr);
 
         PHS::user_logged_in(true);
 
@@ -1390,13 +1361,13 @@ abstract class PHS_Api_base extends PHS_Registry
             return self::$_framework_settings;
         }
 
-        self::$_framework_settings['allow_api_calls'] = (!empty($admin_plugin_settings['allow_api_calls']));
-        self::$_framework_settings['allow_api_calls_over_http'] = (!empty($admin_plugin_settings['allow_api_calls_over_http']));
-        self::$_framework_settings['api_can_simulate_web'] = (!empty($admin_plugin_settings['api_can_simulate_web']));
-        self::$_framework_settings['allow_bearer_token_authentication'] = (!empty($admin_plugin_settings['allow_bearer_token_authentication']));
+        self::$_framework_settings['allow_api_calls'] = !empty($admin_plugin_settings['allow_api_calls']);
+        self::$_framework_settings['allow_api_calls_over_http'] = !empty($admin_plugin_settings['allow_api_calls_over_http']);
+        self::$_framework_settings['api_can_simulate_web'] = !empty($admin_plugin_settings['api_can_simulate_web']);
+        self::$_framework_settings['allow_bearer_token_authentication'] = !empty($admin_plugin_settings['allow_bearer_token_authentication']);
 
         // CORS settings
-        self::$_framework_settings['allow_cors_api_calls'] = (!empty($admin_plugin_settings['allow_cors_api_calls']));
+        self::$_framework_settings['allow_cors_api_calls'] = !empty($admin_plugin_settings['allow_cors_api_calls']);
         self::$_framework_settings['monitor_cors_options_calls'] = $admin_plugin->monitor_api_incoming_cors_calls();
         self::$_framework_settings['cors_origins'] = $admin_plugin_settings['cors_origins'] ?? '';
         self::$_framework_settings['cors_methods'] = $admin_plugin_settings['cors_methods'] ?? '';

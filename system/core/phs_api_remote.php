@@ -5,8 +5,6 @@ namespace phs;
 use phs\libraries\PHS_Logger;
 use phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains;
 
-// ! @version 1.00
-
 class PHS_Api_remote extends PHS_Api_base
 {
     public const ERR_API_INIT = 40000, ERR_API_ROUTE = 40001, ERR_REMOTE_MESSAGE = 40002;
@@ -59,9 +57,7 @@ class PHS_Api_remote extends PHS_Api_base
          || empty($apikey_arr['id'])
          || empty($domain_arr['apikey_id'])
          || (int)$domain_arr['apikey_id'] !== (int)$apikey_arr['id']) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_RUN_ROUTE, self::_t('Authentication failed.'));
-            }
+            $this->set_error_if_not_set(self::ERR_RUN_ROUTE, self::_t('Authentication failed.'));
 
             return false;
         }
@@ -79,9 +75,7 @@ class PHS_Api_remote extends PHS_Api_base
         PHS::set_route($phs_route);
 
         if (!$this->_before_route_run()) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_RUN_ROUTE, self::_t('Running action was stopped by API instance.'));
-            }
+            $this->set_error_if_not_set(self::ERR_RUN_ROUTE, self::_t('Running action was stopped by API instance.'));
 
             return false;
         }
@@ -116,16 +110,9 @@ class PHS_Api_remote extends PHS_Api_base
         // Reset any edit errors as we don't care about them...
         self::$_domains_model->reset_error();
 
-        $execution_params = [];
-        $execution_params['die_on_error'] = false;
-
-        if (!($action_result = PHS::execute_route($execution_params))) {
-            if (self::st_has_error()) {
-                $this->copy_static_error(self::ERR_RUN_ROUTE);
-            } else {
-                $this->set_error(self::ERR_RUN_ROUTE,
-                    self::_t('Error executing route [%s].', PHS::get_route_as_string()));
-            }
+        if (!($action_result = PHS::execute_route(['die_on_error' => false]))) {
+            $this->copy_or_set_static_error(self::ERR_RUN_ROUTE,
+                self::_t('Error executing route [%s].', PHS::get_route_as_string()));
 
             if (!empty($remote_log_arr)) {
                 $log_fields = [];
@@ -142,9 +129,7 @@ class PHS_Api_remote extends PHS_Api_base
         }
 
         if (!$this->_after_route_run()) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_RUN_ROUTE, self::_t('Flow was stopped by API instance after action run.'));
-            }
+            $this->set_error_if_not_set(self::ERR_RUN_ROUTE, self::_t('Flow was stopped by API instance after action run.'));
 
             if (!empty($remote_log_arr)) {
                 $log_fields = [];
