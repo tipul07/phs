@@ -3,6 +3,7 @@
 namespace phs;
 
 use phs\libraries\PHS_Logger;
+use phs\graphql\libraries\PHS_Graphql;
 use phs\plugins\admin\PHS_Plugin_Admin;
 
 class PHS_Api_graphql extends PHS_Api_base
@@ -22,105 +23,31 @@ class PHS_Api_graphql extends PHS_Api_base
         }
     }
 
-    final public function run_route(array $extra = [])
+    final public function run_route(array $extra = []) : ?array
     {
         $this->reset_error();
 
         if (!PHS_Scope::current_scope(PHS_Scope::SCOPE_GRAPHQL)) {
             $this->set_error(self::ERR_RUN_ROUTE, self::_t('Error preparing API environment.'));
 
-            return false;
+            return null;
         }
 
         // Check if we have authentication...
         if (!$this->_check_api_authentication()) {
             $this->set_error_if_not_set(self::ERR_AUTHENTICATION, self::_t('Authentication failed.'));
 
-            return false;
+            return null;
         }
 
-        if (!$this->_before_route_run()) {
-            $this->set_error_if_not_set(self::ERR_RUN_ROUTE, self::_t('Running action was stopped by API instance.'));
-
-            return false;
-        }
-
-        // Update last_incoming for the domain...
-        $edit_arr = self::$_domains_model->fetch_default_flow_params(['table_name' => 'phs_remote_domains']);
-        $edit_arr['fields'] = [];
-        $edit_arr['fields']['last_incoming'] = date(self::$_domains_model::DATETIME_DB);
-
-        if (($new_domain_arr = self::$_domains_model->edit($domain_arr, $edit_arr))) {
-            $domain_arr = $new_domain_arr;
-        }
-
-        // Log request right before running the actual action...
-        $remote_log_arr = false;
-        if (self::$_domains_model->should_log_requests($domain_arr)) {
-            if (!self::$_domains_model->should_log_request_body($domain_arr)
-             || !($req_body_arr = $this->api_flow_value('remote_domain_message'))
-             || !($req_body_str = @json_encode($req_body_arr))) {
-                $req_body_str = null;
-            }
-
-            $log_fields = [];
-            $log_fields['route'] = PHS::get_route_as_string();
-            $log_fields['body'] = $req_body_str;
-
-            if (!($remote_log_arr = self::$_domains_model->domain_incoming_log($domain_arr, $log_fields))) {
-                $remote_log_arr = false;
-            }
-        }
-
-        // Reset any edit errors as we don't care about them...
-        self::$_domains_model->reset_error();
-
-        if (!($action_result = PHS::execute_route(['die_on_error' => false]))) {
+        if (!PHS_Graphql::resolve_request()) {
             $this->copy_or_set_static_error(self::ERR_RUN_ROUTE,
-                self::_t('Error executing route [%s].', PHS::get_route_as_string()));
+                self::_t('Error resolving request.', PHS::get_route_as_string()));
 
-            if (!empty($remote_log_arr)) {
-                $log_fields = [];
-                $log_fields['status'] = self::$_domains_model::LOG_STATUS_ERROR;
-                $log_fields['error_log'] = $this->get_simple_error_message();
-
-                // We don't care about errors...
-                if (!self::$_domains_model->domain_incoming_log($domain_arr, $log_fields, $remote_log_arr)) {
-                    self::$_domains_model->reset_error();
-                }
-            }
-
-            return false;
+            return null;
         }
 
-        if (!$this->_after_route_run()) {
-            $this->set_error_if_not_set(self::ERR_RUN_ROUTE, self::_t('Flow was stopped by API instance after action run.'));
-
-            if (!empty($remote_log_arr)) {
-                $log_fields = [];
-                $log_fields['status'] = self::$_domains_model::LOG_STATUS_ERROR;
-                $log_fields['error_log'] = $this->get_simple_error_message();
-
-                // We don't care about errors...
-                if (!self::$_domains_model->domain_incoming_log($domain_arr, $log_fields, $remote_log_arr)) {
-                    self::$_domains_model->reset_error();
-                }
-            }
-
-            return false;
-        }
-
-        if (!empty($remote_log_arr)) {
-            $log_fields = [];
-            $log_fields['status'] = self::$_domains_model::LOG_STATUS_RECEIVED;
-
-            // We don't care about errors...
-            if (!self::$_domains_model->domain_incoming_log($domain_arr, $log_fields, $remote_log_arr)) {
-                self::$_domains_model->reset_error();
-            }
-        }
-
-        return $action_result;
+        return ['junk_response' => true];
     }
 
     /**

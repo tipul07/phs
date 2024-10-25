@@ -50,19 +50,15 @@ if (!$api_obj->extract_api_request_details()) {
 
 $api_obj->set_api_credentials();
 
-if ($api_obj->run_route()) {
+if (!$api_obj->run_route()) {
     $error_msg = $api_obj->get_simple_error_message(PHS_Api_graphql::_t('Error running GraphQL request.'));
 
     PHS_Logger::error('Error running GraphQL: ['.$error_msg.']', PHS_Logger::TYPE_GRAPHQL);
 
-    PHS_Model_Api_monitor::graphql_request_error('Error running API route: '.$error_msg);
+    PHS_Model_Api_monitor::graphql_request_error('Error resolving GraphQL request: '.$error_msg);
 
     PHS_Api_graphql::generic_error($error_msg);
-
-    exit;
-}
-
-if (($debug_data = PHS::platform_debug_data())) {
+} elseif (($debug_data = PHS::platform_debug_data())) {
     PHS_Logger::notice('GraphQL ['.$api_obj->http_method().'] run with success: '.$debug_data['db_queries_count'].' queries, '
                       .' bootstrap: '.number_format($debug_data['bootstrap_time'], 6, '.', '').'s, '
                       .' running: '.number_format($debug_data['running_time'], 6, '.', '').'s',

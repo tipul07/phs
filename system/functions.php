@@ -234,6 +234,9 @@ function phs_init_before_bootstrap() : bool
     if (!defined('PHS_CORE_EVENT_DIR')) {
         define('PHS_CORE_EVENT_DIR', PHS_CORE_DIR.'events/');
     }
+    if (!defined('PHS_CORE_GRAPHQL_DIR')) {
+        define('PHS_CORE_GRAPHQL_DIR', PHS_CORE_DIR.'graphql/');
+    }
     if (!defined('PHS_CORE_PLUGIN_DIR')) {
         define('PHS_CORE_PLUGIN_DIR', PHS_CORE_DIR.'plugins/');
     }

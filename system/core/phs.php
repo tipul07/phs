@@ -14,6 +14,7 @@ use phs\libraries\PHS_Contract;
 use phs\libraries\PHS_Registry;
 use phs\libraries\PHS_Controller;
 use phs\libraries\PHS_Record_data;
+use phs\libraries\PHS_Graphql_Type;
 use phs\libraries\PHS_Instantiable;
 use phs\system\core\views\PHS_View;
 use phs\libraries\PHS_Notifications;
@@ -26,7 +27,7 @@ final class PHS extends PHS_Registry
     public const ERR_HOOK_REGISTRATION = 2000,
         ERR_LOAD_MODEL = 2001, ERR_LOAD_CONTROLLER = 2002, ERR_LOAD_ACTION = 2003, ERR_LOAD_VIEW = 2004, ERR_LOAD_PLUGIN = 2005,
         ERR_LOAD_SCOPE = 2006, ERR_ROUTE = 2007, ERR_EXECUTE_ROUTE = 2008, ERR_THEME = 2009, ERR_SCOPE = 2010,
-        ERR_SCRIPT_FILES = 2011, ERR_LIBRARY = 2012, ERR_LOAD_CONTRACT = 2013, ERR_LOAD_EVENT = 2014;
+        ERR_SCRIPT_FILES = 2011, ERR_LIBRARY = 2012, ERR_LOAD_CONTRACT = 2013, ERR_LOAD_EVENT = 2014, ERR_LOAD_GRAPHQL = 2015;
 
     public const ACTION_DIR_ACTION_SEPARATOR = '__';
 
@@ -2218,7 +2219,7 @@ final class PHS extends PHS_Registry
      * @param string $model Model to be loaded (part of class name after PHS_Model_)
      * @param null|string $plugin Plugin where model is located (false means a core model)
      *
-     * @return null|PHS_Instantiable|libraries\PHS_Model_Mysqli
+     * @return null|PHS_Model
      */
     public static function load_model(string $model, ?string $plugin = null) : ?PHS_Model
     {
@@ -2237,6 +2238,7 @@ final class PHS extends PHS_Registry
             $plugin = null;
         }
 
+        /** @var PHS_Model $instance_obj */
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_MODEL))) {
             self::st_set_error_if_not_set(self::ERR_LOAD_MODEL, self::_t('Couldn\'t obtain instance for model %s from plugin %s.',
                 $model, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
@@ -2280,6 +2282,7 @@ final class PHS extends PHS_Registry
         }
 
         // Views are not singletons
+        /** @var PHS_View $instance_obj */
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_VIEW, $as_singleton))) {
             if (empty($plugin)) {
                 self::st_set_error_if_not_set(self::ERR_LOAD_VIEW,
@@ -2328,6 +2331,7 @@ final class PHS extends PHS_Registry
             $plugin = null;
         }
 
+        /** @var PHS_Controller $instance_obj */
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER))) {
             self::st_set_error_if_not_set(self::ERR_LOAD_CONTROLLER,
                 self::_t('Couldn\'t obtain instance for controller %s from plugin %s.',
@@ -2386,7 +2390,7 @@ final class PHS extends PHS_Registry
             $action_dir = str_replace('_', '/', $action_dir);
         }
 
-        /** @var PHS_Action */
+        /** @var PHS_Action $instance_obj */
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads(
             $class_name,
             $plugin,
@@ -2452,7 +2456,7 @@ final class PHS extends PHS_Registry
             $contract_dir = str_replace('_', '/', $contract_dir);
         }
 
-        /** @var PHS_Action */
+        /** @var PHS_Action $instance_obj */
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTRACT, true, $contract_dir))) {
             self::st_set_error_if_not_set(self::ERR_LOAD_CONTRACT,
                 self::_t('Couldn\'t obtain instance for contract %s from plugin %s.',
@@ -2512,12 +2516,69 @@ final class PHS extends PHS_Registry
             $event_dir = str_replace('_', '/', $event_dir);
         }
 
-        /** @var PHS_Event */
+        /** @var PHS_Event $instance_obj */
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin,
             PHS_Instantiable::INSTANCE_TYPE_EVENT, true, $event_dir))) {
             self::st_set_error_if_not_set(self::ERR_LOAD_EVENT,
                 self::_t('Couldn\'t obtain instance for event %s from plugin %s.',
                     ($event_dir !== '' ? $event_dir.'/' : '').$event,
+                    (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
+
+            return null;
+        }
+
+        return $instance_obj;
+    }
+
+    /**
+     * @param string $graphql_type
+     * @param null|string $plugin
+     * @param string $type_dir
+     *
+     * @return null|PHS_Graphql_Type Returns null on error or an instance of loaded GraphQL type
+     */
+    public static function load_graphql_type(string $graphql_type, ?string $plugin = null, string $type_dir = '') : ?PHS_Graphql_Type
+    {
+        self::st_reset_error();
+
+        $type_dir = trim(trim($type_dir), '/\\');
+
+        if (!($graphql_class = PHS_Instantiable::safe_escape_class_name($graphql_type))) {
+            self::st_set_error(self::ERR_LOAD_EVENT,
+                self::_t('Couldn\'t load event %s from plugin %s.',
+                    ($type_dir !== '' ? $type_dir.'/' : '').$graphql_type,
+                    (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
+
+            return null;
+        }
+
+        if ('' !== $type_dir
+         && !($type_dir = PHS_Instantiable::safe_escape_instance_subdir($type_dir))) {
+            self::st_set_error(self::ERR_LOAD_EVENT,
+                self::_t('Couldn\'t load event %s from plugin %s.',
+                    $type_dir.'/'.$graphql_type,
+                    (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
+
+            return null;
+        }
+
+        $class_name = 'PHS_Graphql_'.ucfirst(strtolower($graphql_class));
+
+        if ($plugin === PHS_Instantiable::CORE_PLUGIN) {
+            $plugin = null;
+        }
+
+        // From this point on, $type_dir is a system path...
+        if ($type_dir !== '') {
+            $type_dir = str_replace('_', '/', $type_dir);
+        }
+
+        /** @var PHS_Graphql_Type $instance_obj */
+        if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin,
+            PHS_Instantiable::INSTANCE_TYPE_GRAPHQL, true, $type_dir))) {
+            self::st_set_error_if_not_set(self::ERR_LOAD_GRAPHQL,
+                self::_t('Couldn\'t obtain instance for GraphQL type %s from plugin %s.',
+                    ($type_dir !== '' ? $type_dir.'/' : '').$graphql_type,
                     (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
             return null;
@@ -2549,7 +2610,7 @@ final class PHS extends PHS_Registry
             $plugin = null;
         }
 
-        /** @var PHS_Scope */
+        /** @var PHS_Scope $instance_obj */
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_SCOPE))) {
             self::st_set_error_if_not_set(self::ERR_LOAD_SCOPE, self::_t('Couldn\'t obtain instance for scope %s from plugin %s.',
                 $scope, $plugin ?? PHS_Instantiable::CORE_PLUGIN));
@@ -3013,7 +3074,6 @@ final class PHS extends PHS_Registry
                     echo @json_encode($error_arr);
 
                     exit;
-                    break;
 
                 case PHS_Scope::SCOPE_BACKGROUND:
                 case PHS_Scope::SCOPE_AGENT:

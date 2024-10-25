@@ -1,7 +1,7 @@
 {
     "vendor_id": "phs",
     "vendor_name": "PHS",
-    "name": "PHS Securty Settings Plugin",
+    "name": "PHS Security Settings Plugin",
     "description": "Framework security settings.",
     "version": "1.0.0"
 }

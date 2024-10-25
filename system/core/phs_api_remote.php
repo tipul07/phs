@@ -27,20 +27,20 @@ class PHS_Api_remote extends PHS_Api_base
     /**
      * @inheritdoc
      */
-    final public function run_route(array $extra = [])
+    final public function run_route(array $extra = []) : ?array
     {
         $this->reset_error();
 
         if (!PHS_Scope::current_scope(PHS_Scope::SCOPE_REMOTE)) {
             $this->set_error(self::ERR_RUN_ROUTE, self::_t('Error preparing API environment.'));
 
-            return false;
+            return null;
         }
 
         if (!($request_arr = $this->_parse_remote_message())) {
             $this->set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Error interpreting the request.'));
 
-            return false;
+            return null;
         }
 
         $domain_arr = $request_arr['domain_data'];
@@ -59,7 +59,7 @@ class PHS_Api_remote extends PHS_Api_base
          || (int)$domain_arr['apikey_id'] !== (int)$apikey_arr['id']) {
             $this->set_error_if_not_set(self::ERR_RUN_ROUTE, self::_t('Authentication failed.'));
 
-            return false;
+            return null;
         }
 
         if (PHS::st_debugging_mode()) {
@@ -77,7 +77,7 @@ class PHS_Api_remote extends PHS_Api_base
         if (!$this->_before_route_run()) {
             $this->set_error_if_not_set(self::ERR_RUN_ROUTE, self::_t('Running action was stopped by API instance.'));
 
-            return false;
+            return null;
         }
 
         // Update last_incoming for the domain...
@@ -125,7 +125,7 @@ class PHS_Api_remote extends PHS_Api_base
                 }
             }
 
-            return false;
+            return null;
         }
 
         if (!$this->_after_route_run()) {
@@ -142,7 +142,7 @@ class PHS_Api_remote extends PHS_Api_base
                 }
             }
 
-            return false;
+            return null;
         }
 
         if (!empty($remote_log_arr)) {

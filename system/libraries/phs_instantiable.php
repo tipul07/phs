@@ -12,7 +12,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     public const INSTANCE_TYPE_UNDEFINED = 'undefined',
         INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller',
         INSTANCE_TYPE_ACTION = 'action', INSTANCE_TYPE_VIEW = 'view', INSTANCE_TYPE_SCOPE = 'scope',
-        INSTANCE_TYPE_CONTRACT = 'contract', INSTANCE_TYPE_EVENT = 'event';
+        INSTANCE_TYPE_CONTRACT = 'contract', INSTANCE_TYPE_EVENT = 'event', INSTANCE_TYPE_GRAPHQL = 'graphql';
 
     public const CORE_PLUGIN = 'core', TEMPLATES_DIR = 'templates', LANGUAGES_DIR = 'languages', MIGRATIONS_DIR = 'migrations',
         THEMES_PLUGINS_TEMPLATES_DIR = 'plugins',
@@ -42,6 +42,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         self::INSTANCE_TYPE_SCOPE      => ['title' => 'Scope', 'dir_name' => 'scopes', 'phs_loader_method' => 'load_scope'],
         self::INSTANCE_TYPE_CONTRACT   => ['title' => 'Contract', 'dir_name' => 'contracts', 'phs_loader_method' => 'load_contract'],
         self::INSTANCE_TYPE_EVENT      => ['title' => 'Event', 'dir_name' => 'events', 'phs_loader_method' => 'load_event'],
+        self::INSTANCE_TYPE_GRAPHQL    => ['title' => 'GraphQL Type', 'dir_name' => 'graphql/types', 'phs_loader_method' => 'load_graphql_type'],
     ];
 
     /**
@@ -569,7 +570,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     public static function get_instance_type_dirs_that_allow_subdirs() : array
     {
         if (!($allow_arr = self::instance_types_that_allow_subdirs())
-         || !($types_arr = self::get_instance_types())) {
+            || !($types_arr = self::get_instance_types())) {
             return [];
         }
 
@@ -692,8 +693,12 @@ abstract class PHS_Instantiable extends PHS_Registry
      *
      * @return null|array Returns array with details about a class in core or plugin
      */
-    public static function get_instance_details(string $class, ?string $plugin_name = null, ?string $instance_type = '', string $instance_subdir = '') : ?array
-    {
+    public static function get_instance_details(
+        string $class,
+        ?string $plugin_name = null,
+        ?string $instance_type = '',
+        string $instance_subdir = ''
+    ) : ?array {
         self::st_reset_error();
 
         if (!($instance_type_details = self::valid_instance_type($instance_type))) {
@@ -704,15 +709,13 @@ abstract class PHS_Instantiable extends PHS_Registry
 
         $instance_type_accepts_subdirs = in_array($instance_type, self::instance_types_that_allow_subdirs(), true);
 
-        if (!is_string($instance_subdir)) {
-            $instance_subdir = '';
-        } else {
-            $instance_subdir = trim(trim($instance_subdir), '/\\');
-        }
+        $instance_subdir = trim(trim($instance_subdir), '/\\');
 
         if ('' !== $instance_subdir
-         && (!$instance_type_accepts_subdirs || '' === ($instance_subdir = self::safe_escape_instance_subdir_path($instance_subdir)))) {
-            self::st_set_error(self::ERR_INSTANCE, self::_t('Provided instance type doesn\'t support sub-directories or sub-directory is not allowed.'));
+            && (!$instance_type_accepts_subdirs
+                || '' === ($instance_subdir = self::safe_escape_instance_subdir_path($instance_subdir)))) {
+            self::st_set_error(self::ERR_INSTANCE,
+                self::_t('Provided instance type doesn\'t support sub-directories or sub-directory is not allowed.'));
 
             return null;
         }
@@ -748,7 +751,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         }
 
         $return_arr = self::empty_instance_details();
-        $return_arr['loader_method'] = (!empty($instance_type_details['phs_loader_method']) ? $instance_type_details['phs_loader_method'] : false);
+        $return_arr['loader_method'] = $instance_type_details['phs_loader_method'] ?? false;
         $return_arr['plugin_name'] = $plugin_name;
         $return_arr['instance_type'] = $instance_type;
         $return_arr['instance_type_accepts_subdirs'] = $instance_type_accepts_subdirs;
@@ -886,6 +889,29 @@ abstract class PHS_Instantiable extends PHS_Registry
                 }
                 break;
 
+            case self::INSTANCE_TYPE_GRAPHQL:
+
+                if (stripos($class, 'phs_graphql_') !== 0) {
+                    self::st_set_error(self::ERR_INSTANCE, self::_t('Class name is not a framework GraphQL type.'));
+
+                    return null;
+                }
+
+                $return_arr['instance_name'] = trim(substr($class, 12), '_');
+
+                if (empty($return_arr['instance_name'])) {
+                    $return_arr['instance_name'] = 'index';
+                }
+
+                if ($plugin_name === self::CORE_PLUGIN) {
+                    $return_arr['instance_path'] = PHS_CORE_GRAPHQL_DIR;
+                } else {
+                    $return_arr['plugin_www'] = PHS_PLUGINS_WWW.$plugin_name.'/';
+                    $return_arr['plugin_path'] = PHS_PLUGINS_DIR.$plugin_name.'/';
+                    $return_arr['instance_path'] = PHS_PLUGINS_DIR.$plugin_name.'/'.$instance_type_dir.'/';
+                }
+                break;
+
             case self::INSTANCE_TYPE_VIEW:
 
                 if (stripos($class, 'phs_view_') !== 0
@@ -963,13 +989,13 @@ abstract class PHS_Instantiable extends PHS_Registry
         if ($plugin_name === self::CORE_PLUGIN) {
             $return_arr['plugin_is_setup'] = true;
         } elseif (!empty($return_arr['plugin_path'])
-         && ($noslash_path = rtrim($return_arr['plugin_path'], '/'))
-         && ($return_arr['plugin_is_setup'] = @file_exists($noslash_path))) {
+                  && ($noslash_path = rtrim($return_arr['plugin_path'], '/'))
+                  && ($return_arr['plugin_is_setup'] = @file_exists($noslash_path))) {
             if (($return_arr['plugin_is_link'] = @is_link($noslash_path))
-             && ($link_details = @readlink($noslash_path))) {
+                && ($link_details = @readlink($noslash_path))) {
                 $return_arr['plugin_real_path'] = $return_arr['plugin_link_path'] = $link_details;
-                if (substr($link_details, 0, 1) !== '/'
-                 && ($real_path = @realpath(PHS_PLUGINS_DIR.$return_arr['plugin_link_path']))) {
+                if ($link_details[0] !== '/'
+                    && ($real_path = @realpath(PHS_PLUGINS_DIR.$return_arr['plugin_link_path']))) {
                     $return_arr['plugin_real_path'] = $real_path;
                 }
             }
@@ -1019,7 +1045,10 @@ abstract class PHS_Instantiable extends PHS_Registry
 
     final public static function instance_types_that_allow_subdirs() : array
     {
-        return [self::INSTANCE_TYPE_ACTION, self::INSTANCE_TYPE_CONTRACT, self::INSTANCE_TYPE_EVENT];
+        return [
+            self::INSTANCE_TYPE_ACTION, self::INSTANCE_TYPE_CONTRACT,
+            self::INSTANCE_TYPE_EVENT, self::INSTANCE_TYPE_GRAPHQL,
+        ];
     }
 
     /**
@@ -1287,9 +1316,13 @@ abstract class PHS_Instantiable extends PHS_Registry
      *
      * @return null|PHS_Instantiable
      */
-    final public static function get_instance_for_loads(?string $class_name = null, ?string $plugin_name = null,
-        ?string $instance_type = null, bool $singleton = true, string $instance_subdir = '') : ?self
-    {
+    final public static function get_instance_for_loads(
+        ?string $class_name = null,
+        ?string $plugin_name = null,
+        ?string $instance_type = null,
+        bool $singleton = true,
+        string $instance_subdir = ''
+    ) : ?self {
         self::st_reset_error();
 
         if ($class_name === null) {
@@ -1351,7 +1384,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         try {
             // Check if class is abstract...
             if (($is_abstract = new \ReflectionClass($instance_class))
-             && $is_abstract->isAbstract()) {
+                && $is_abstract->isAbstract()) {
                 self::st_set_error(self::ERR_INSTANCE_CLASS,
                     self::_t('Error instantiating abstract class %s.',
                         $instance_details['instance_full_class']));
@@ -1564,39 +1597,41 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $class_name;
     }
 
-    /**
-     * @param string $type_dir
-     *
-     * @return null|array
-     */
-    private static function _validate_instance_type_dir_from_namespace(string $type_dir) : ?array
+    private static function _validate_instance_type_dir_from_namespace(string $namespace_path) : ?array
     {
         if (!($types_arr = self::get_instance_types())) {
             return null;
         }
 
-        if (!($allow_subdirs = self::get_instance_type_dirs_that_allow_subdirs())) {
-            $allow_subdirs = [];
-        }
+        $subdir_types = self::instance_types_that_allow_subdirs();
 
         foreach ($types_arr as $type => $type_details) {
-            $type_dir_parts = null;
-            if ($type_details['dir_name'] === $type_dir
+            $real_path = null;
+            if ($type_details['dir_name'] === str_replace('\\', '/', $namespace_path)
                 // Instances with subdirs
-                || (
-                    false !== ($dir_pos = array_search($type_details['dir_name'], $allow_subdirs, true))
-                 && false !== strpos($type_dir, '\\')
-                 && ($type_dir_parts = explode('\\', $type_dir))
-                 && is_array($type_dir_parts)
-                 && ($path_dir = array_shift($type_dir_parts))
-                 && $dir_pos === array_search($path_dir, $allow_subdirs, true)
+                || (in_array($type, $subdir_types, true)
+                    && ($real_path = self::_extract_instance_dir_from_namespace_path($namespace_path, $type_details['dir_name']))
                 )
             ) {
                 return [
                     'type'   => $type,
-                    'subdir' => ((!empty($type_dir_parts) && is_array($type_dir_parts)) ? implode('/', $type_dir_parts) : ''),
+                    'subdir' => $real_path ?: '',
                 ];
             }
+        }
+
+        return null;
+    }
+
+    private static function _extract_instance_dir_from_namespace_path(string $namespace_path, string $type_dir) : ?string
+    {
+        $namespace_dir = str_replace('\\', '/', $namespace_path);
+        if ($namespace_dir === $type_dir) {
+            return '';
+        }
+
+        if (str_starts_with($namespace_dir, $type_dir)) {
+            return ltrim(substr($namespace_dir, strlen($type_dir)), '/');
         }
 
         return null;
