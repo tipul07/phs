@@ -11,6 +11,11 @@ const PHS_SCRIPT_SCOPE = 'graphql';
 
 include_once '../main.php';
 
+const PHS_GRAPHQL_LIBRARIES_DIR = PHS_GRAPHQL_DIR.'libraries/';
+
+include_once PHS_CORE_DIR.'phs_api_graphql.php';
+include_once PHS_GRAPHQL_LIBRARIES_DIR.'phs_graphql.php';
+
 use phs\PHS;
 use phs\PHS_Api_base;
 use phs\PHS_Api_graphql;

@@ -2544,8 +2544,8 @@ final class PHS extends PHS_Registry
         $type_dir = trim(trim($type_dir), '/\\');
 
         if (!($graphql_class = PHS_Instantiable::safe_escape_class_name($graphql_type))) {
-            self::st_set_error(self::ERR_LOAD_EVENT,
-                self::_t('Couldn\'t load event %s from plugin %s.',
+            self::st_set_error(self::ERR_LOAD_GRAPHQL,
+                self::_t('Couldn\'t load GraphQL type %s from plugin %s.',
                     ($type_dir !== '' ? $type_dir.'/' : '').$graphql_type,
                     (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
@@ -2553,9 +2553,9 @@ final class PHS extends PHS_Registry
         }
 
         if ('' !== $type_dir
-         && !($type_dir = PHS_Instantiable::safe_escape_instance_subdir($type_dir))) {
-            self::st_set_error(self::ERR_LOAD_EVENT,
-                self::_t('Couldn\'t load event %s from plugin %s.',
+            && !($type_dir = PHS_Instantiable::safe_escape_instance_subdir($type_dir))) {
+            self::st_set_error(self::ERR_LOAD_GRAPHQL,
+                self::_t('Couldn\'t load GraphQL type %s from plugin %s.',
                     $type_dir.'/'.$graphql_type,
                     (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 

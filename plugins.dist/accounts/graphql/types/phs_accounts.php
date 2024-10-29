@@ -4,6 +4,7 @@ namespace phs\plugins\accounts\graphql\types;
 
 use GraphQL\Type\Definition\Type;
 use phs\libraries\PHS_Graphql_Type;
+use phs\graphql\libraries\PHS_Graphql;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Graphql_Accounts extends PHS_Graphql_Type
@@ -23,6 +24,11 @@ class PHS_Graphql_Accounts extends PHS_Graphql_Type
         return PHS_Model_Accounts::class;
     }
 
+    public function get_model_flow_params() : array
+    {
+        return ['table_name' => 'users'];
+    }
+
     public function get_type_fields() : array
     {
         return [
@@ -30,7 +36,7 @@ class PHS_Graphql_Accounts extends PHS_Graphql_Type
             'nick'    => Type::string(),
             'email'   => Type::string(),
             'details' => [
-                'type'        => $accountDetailsType,
+                'type'        => PHS_Graphql::ref_by_class(PHS_Graphql_Account_details::class),
                 'description' => 'Account details',
                 'resolve'     => static function($account) {
                     return $account?->details()?->current() ?: null;

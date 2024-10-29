@@ -1713,6 +1713,66 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         return true;
     }
 
+    /**
+     * @param array $flow_params
+     *
+     * @return null|array
+     */
+    public function all_fields_definition(?array $flow_params) : ?array
+    {
+        $this->reset_error();
+
+        if (!($flow_params = $this->fetch_default_flow_params($flow_params))
+            || !($fields_arr = $this->fields_definition($flow_params))) {
+            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Failed validating flow parameters.'));
+
+            return null;
+        }
+
+        $instance_id = $this->instance_id();
+        $plugin_instance_id = null;
+        if (($plugin_obj = $this->get_plugin_instance())) {
+            $plugin_instance_id = $plugin_obj->instance_id();
+        }
+
+        $hook_params = self::default_table_fields_hook_args();
+        $hook_params['model_id'] = $instance_id;
+        $hook_params['flow_params'] = $flow_params;
+        $hook_params['fields_arr'] = $fields_arr;
+
+        // Plugin level customization
+        if (!empty($plugin_instance_id)
+         && ($extra_fields_arr = PHS::trigger_hooks(self::HOOK_TABLE_FIELDS.'_'.$plugin_instance_id, $hook_params))) {
+            $fields_arr = self::merge_array_assoc($extra_fields_arr['fields_arr'], $fields_arr);
+        }
+
+        // Model level customization
+        if (($extra_fields_arr = PHS::trigger_hooks(self::HOOK_TABLE_FIELDS.'_'.$instance_id, $hook_params))) {
+            $fields_arr = self::merge_array_assoc($extra_fields_arr['fields_arr'], $fields_arr);
+        }
+
+        // Table level customization
+        if (($extra_fields_arr = PHS::trigger_hooks(self::HOOK_TABLE_FIELDS, $hook_params))) {
+            $fields_arr = self::merge_array_assoc($extra_fields_arr['fields_arr'], $fields_arr);
+        }
+
+        $input_arr = [
+            'model_instance_id'  => $instance_id,
+            'plugin_instance_id' => $plugin_instance_id,
+            'flow_params'        => $flow_params,
+            'fields_arr'         => $fields_arr,
+            'model_obj'          => $this,
+        ];
+
+        /** @var PHS_Event_Model_fields $event_obj */
+        if (($event_obj = PHS_Event_Model_fields::trigger_for_model($this::class, $input_arr))
+           && ($new_fields_arr = $event_obj->get_output('fields_arr'))) {
+            $fields_arr = $new_fields_arr;
+        }
+
+        return $fields_arr;
+    }
+
     protected function _relations_definition() : void
     {
     }
@@ -2017,66 +2077,6 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     }
 
     /**
-     * @param array $flow_params
-     *
-     * @return null|array
-     */
-    private function _all_fields_definition(array $flow_params) : ?array
-    {
-        $this->reset_error();
-
-        if (!($flow_params = $this->fetch_default_flow_params($flow_params))
-            || !($fields_arr = $this->fields_definition($flow_params))) {
-            $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Failed validating flow parameters.'));
-
-            return null;
-        }
-
-        $instance_id = $this->instance_id();
-        $plugin_instance_id = null;
-        if (($plugin_obj = $this->get_plugin_instance())) {
-            $plugin_instance_id = $plugin_obj->instance_id();
-        }
-
-        $hook_params = self::default_table_fields_hook_args();
-        $hook_params['model_id'] = $instance_id;
-        $hook_params['flow_params'] = $flow_params;
-        $hook_params['fields_arr'] = $fields_arr;
-
-        // Plugin level customization
-        if (!empty($plugin_instance_id)
-         && ($extra_fields_arr = PHS::trigger_hooks(self::HOOK_TABLE_FIELDS.'_'.$plugin_instance_id, $hook_params))) {
-            $fields_arr = self::merge_array_assoc($extra_fields_arr['fields_arr'], $fields_arr);
-        }
-
-        // Model level customization
-        if (($extra_fields_arr = PHS::trigger_hooks(self::HOOK_TABLE_FIELDS.'_'.$instance_id, $hook_params))) {
-            $fields_arr = self::merge_array_assoc($extra_fields_arr['fields_arr'], $fields_arr);
-        }
-
-        // Table level customization
-        if (($extra_fields_arr = PHS::trigger_hooks(self::HOOK_TABLE_FIELDS, $hook_params))) {
-            $fields_arr = self::merge_array_assoc($extra_fields_arr['fields_arr'], $fields_arr);
-        }
-
-        $input_arr = [
-            'model_instance_id'  => $instance_id,
-            'plugin_instance_id' => $plugin_instance_id,
-            'flow_params'        => $flow_params,
-            'fields_arr'         => $fields_arr,
-            'model_obj'          => $this,
-        ];
-
-        /** @var PHS_Event_Model_fields $event_obj */
-        if (($event_obj = PHS_Event_Model_fields::trigger_for_model($this::class, $input_arr))
-           && ($new_fields_arr = $event_obj->get_output('fields_arr'))) {
-            $fields_arr = $new_fields_arr;
-        }
-
-        return $fields_arr;
-    }
-
-    /**
      * Validate a single table definition (provided in flow parameters)
      *
      * @param null|array $params Flow parameters
@@ -2095,7 +2095,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return true;
         }
 
-        if (!($model_fields = $this->_all_fields_definition($params))) {
+        if (!($model_fields = $this->all_fields_definition($params))) {
             $this->set_error(self::ERR_MODEL_FIELDS, self::_t('Invalid fields definition for table %s.', $params['table_name']));
 
             return false;

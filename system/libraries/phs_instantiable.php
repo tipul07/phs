@@ -14,7 +14,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         INSTANCE_TYPE_ACTION = 'action', INSTANCE_TYPE_VIEW = 'view', INSTANCE_TYPE_SCOPE = 'scope',
         INSTANCE_TYPE_CONTRACT = 'contract', INSTANCE_TYPE_EVENT = 'event', INSTANCE_TYPE_GRAPHQL = 'graphql';
 
-    public const CORE_PLUGIN = 'core', TEMPLATES_DIR = 'templates', LANGUAGES_DIR = 'languages', MIGRATIONS_DIR = 'migrations',
+    public const CORE_PLUGIN = 'core', TEMPLATES_DIR = 'templates', LANGUAGES_DIR = 'languages', MIGRATIONS_DIR = 'migrations', GRAPHQL_DIR = 'graphql',
         THEMES_PLUGINS_TEMPLATES_DIR = 'plugins',
         TESTS_DIR = 'tests',
         // Behat features directory in tests directory of plugin
@@ -42,7 +42,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         self::INSTANCE_TYPE_SCOPE      => ['title' => 'Scope', 'dir_name' => 'scopes', 'phs_loader_method' => 'load_scope'],
         self::INSTANCE_TYPE_CONTRACT   => ['title' => 'Contract', 'dir_name' => 'contracts', 'phs_loader_method' => 'load_contract'],
         self::INSTANCE_TYPE_EVENT      => ['title' => 'Event', 'dir_name' => 'events', 'phs_loader_method' => 'load_event'],
-        self::INSTANCE_TYPE_GRAPHQL    => ['title' => 'GraphQL Type', 'dir_name' => 'graphql/types', 'phs_loader_method' => 'load_graphql_type'],
+        self::INSTANCE_TYPE_GRAPHQL    => ['title' => 'GraphQL Type', 'dir_name' => self::GRAPHQL_DIR.'/types', 'phs_loader_method' => 'load_graphql_type'],
     ];
 
     /**
@@ -768,7 +768,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         if (!($instance_type_dir = self::instance_type_dir($instance_type))) {
             $instance_type_dir = '';
         } else {
-            $return_arr['instance_namespace'] .= $instance_type_dir.'\\';
+            $return_arr['instance_namespace'] .= str_replace('/', '\\', $instance_type_dir).'\\';
         }
 
         if (!empty($subdir_namespace)) {
@@ -1119,7 +1119,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     public static function safe_escape_class_name(string $name) : string
     {
         if (empty($name)
-         || preg_match('@[^a-zA-Z0-9_]@', $name)) {
+            || preg_match('@[^a-zA-Z0-9_]@', $name)) {
             return '';
         }
 
@@ -1247,7 +1247,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 
     /**
      * @param bool $as_singleton
-     * @param null|string $full_class_name Required for autoloader...
+     * @param null|string|class-string $full_class_name Required for autoloader...
      *
      * @return null|static::class|\phs\libraries\PHS_Plugin|\phs\libraries\PHS_Model|\phs\libraries\PHS_Controller|\phs\libraries\PHS_Action|\phs\system\core\views\PHS_View|\phs\PHS_Scope|\phs\libraries\PHS_Contract|\phs\libraries\PHS_Undefined_instantiable
      */
@@ -1265,7 +1265,7 @@ abstract class PHS_Instantiable extends PHS_Registry
          || !($instance_details = self::get_instance_details($details['class_name'], $details['plugin_name'], $details['instance_type'], $details['instance_subdir']))
          || empty($instance_details['loader_method'])
          || !@method_exists(PHS::class, $instance_details['loader_method'])) {
-            self::st_set_error(self::ERR_CLASS_NAME, self::_t('Cannot extract required information to instantiate class.'));
+            self::st_set_error_if_not_set(self::ERR_CLASS_NAME, self::_t('Cannot extract required information to instantiate class.'));
 
             return null;
         }
@@ -1343,7 +1343,6 @@ abstract class PHS_Instantiable extends PHS_Registry
 
         if (!@class_exists($instance_details['instance_full_class'], false)) {
             $instance_file_path = $instance_details['instance_path'].$instance_details['instance_file_name'];
-
             if (!@file_exists($instance_file_path)) {
                 if (PHS::st_debugging_mode()) {
                     self::st_set_error(self::ERR_INSTANCE_CLASS,

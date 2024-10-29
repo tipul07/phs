@@ -2,7 +2,6 @@
 
 namespace GraphQL\Type\Definition;
 
-use phs\PHS;
 use GraphQL\Error\Error;
 use GraphQL\Error\SerializationError;
 use GraphQL\Language\AST\Node;
@@ -27,8 +26,6 @@ represent free-form human-readable text.';
             || $value === null;
 
         if (! $canCast) {
-            var_dump(PHS::st_debug_call_backtrace());
-            var_dump($value);
             $notStringable = Utils::printSafe($value);
             throw new SerializationError("String cannot represent value: {$notStringable}");
         }
