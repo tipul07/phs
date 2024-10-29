@@ -392,7 +392,7 @@ class PHS_Requests_queue_manager extends PHS_Library
 
         if ($payload !== null) {
             $curl_params['raw_post_str'] = $payload;
-            $method = 'POST';
+            $method ??= 'POST';
         }
 
         if (!empty($method)) {
