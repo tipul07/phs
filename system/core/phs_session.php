@@ -661,10 +661,7 @@ final class PHS_Session extends PHS_Registry
             $maxlifetime = 2592000;
         } // delete all sessions older than 30 days if session max lifetime is 0...
 
-        $dir_pattern = $sess_dir;
-        for ($i = 0; $i < self::SESS_DIR_MAX_SEGMENTS; $i++) {
-            $dir_pattern .= '/*';
-        }
+        $dir_pattern = $sess_dir.str_repeat('/*', self::SESS_DIR_MAX_SEGMENTS);
 
         $return_arr = [];
         $return_arr['sess_dir'] = $sess_dir;

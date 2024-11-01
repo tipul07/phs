@@ -91,12 +91,8 @@ class PHS_Api extends PHS_Api_base
             }
 
             if (!($phs_route = PHS::parse_route(implode('/', $final_api_route_tokens), true))) {
-                if (self::st_has_error()) {
-                    $this->copy_static_error(self::ERR_RUN_ROUTE);
-                } else {
-                    $this->set_error(self::ERR_RUN_ROUTE,
-                        self::_t('Couldn\'t parse provided API route into a framework route.'));
-                }
+                $this->copy_or_set_static_error(self::ERR_RUN_ROUTE,
+                    self::_t('Couldn\'t parse provided API route into a framework route.'));
 
                 return false;
             }
@@ -488,7 +484,7 @@ class PHS_Api extends PHS_Api_base
         }
 
         if (empty($phs_route)
-         || !($phs_route = PHS::parse_route($phs_route, true))) {
+            || !($parsed_route = PHS::parse_route($phs_route, true))) {
             self::st_set_error(self::ERR_API_ROUTE, self::_t('Couldn\'t parse provided PHS route for API calls.'));
 
             return false;
@@ -496,7 +492,7 @@ class PHS_Api extends PHS_Api_base
 
         $api_route = self::merge_array_assoc(self::default_api_route_structure(), $route_params);
         $api_route['api_route'] = $api_route_parts;
-        $api_route['phs_route'] = $phs_route;
+        $api_route['phs_route'] = $parsed_route;
 
         $api_route = self::_normalize_api_route($api_route);
 

@@ -459,7 +459,7 @@ class PHS_Model_Data_retention extends PHS_Model
         $this->reset_error();
 
         if (empty($table_name)
-           || !($fields_arr = $model_obj->fields_definition(['table_name' => $table_name])) ) {
+           || !($fields_arr = $model_obj->all_fields_definition(['table_name' => $table_name])) ) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Could not obtain date fields for provided table.'));
 
             return null;

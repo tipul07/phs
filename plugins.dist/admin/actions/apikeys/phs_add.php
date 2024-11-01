@@ -74,9 +74,7 @@ class PHS_Action_Add extends PHS_Action
             return self::default_action_result();
         }
 
-        if (!($api_methods_arr = $api_obj->allowed_http_methods())) {
-            $api_methods_arr = [];
-        }
+        $api_methods_arr = $api_obj->allowed_http_methods() ?: [];
 
         $all_tenants_arr = [];
         if ($is_multi_tenant
@@ -92,6 +90,7 @@ class PHS_Action_Add extends PHS_Action
         $api_key = PHS_Params::_p('api_key', PHS_Params::T_NOHTML);
         $api_secret = PHS_Params::_p('api_secret', PHS_Params::T_NOHTML);
         $allow_sw = PHS_Params::_p('allow_sw', PHS_Params::T_NUMERIC_BOOL);
+        $allow_graphql = PHS_Params::_p('allow_graphql', PHS_Params::T_NUMERIC_BOOL);
         if (!($allowed_methods = PHS_Params::_p('allowed_methods', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML, 'trim_before' => true]))) {
             $allowed_methods = [];
         }
@@ -158,6 +157,7 @@ class PHS_Action_Add extends PHS_Action
             $insert_arr['api_key'] = $api_key;
             $insert_arr['api_secret'] = $api_secret;
             $insert_arr['allow_sw'] = $allow_sw;
+            $insert_arr['allow_graphql'] = $allow_graphql;
             $insert_arr['allowed_methods'] = (!empty($allowed_methods) ? implode(',', $allowed_methods) : null);
             $insert_arr['denied_methods'] = (!empty($denied_methods) ? implode(',', $denied_methods) : null);
 
@@ -170,11 +170,7 @@ class PHS_Action_Add extends PHS_Action
                 return action_redirect(['p' => 'admin', 'a' => 'list', 'ad' => 'apikeys'], ['api_key_added' => 1]);
             }
 
-            if ($apikeys_model->has_error()) {
-                PHS_Notifications::add_error_notice($apikeys_model->get_error_message());
-            } else {
-                PHS_Notifications::add_error_notice($this->_pt('Error saving details to database. Please try again.'));
-            }
+            PHS_Notifications::add_error_notice($apikeys_model->get_error_message($this->_pt('Error saving details to database. Please try again.')));
         }
 
         $data = [
@@ -185,6 +181,7 @@ class PHS_Action_Add extends PHS_Action
             'api_key'          => $api_key,
             'api_secret'       => $api_secret,
             'allow_sw'         => $allow_sw,
+            'allow_graphql'    => $allow_graphql,
             'allowed_methods'  => $allowed_methods,
             'denied_methods'   => $denied_methods,
 

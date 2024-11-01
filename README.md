@@ -25,55 +25,61 @@ Please, read our documentation (work in progress): [Here](https://github.com/tip
 
 ### Built-in functionalities:
 
-1. Domain Driven Development using plugins
+1. Multi-tenant support
+   - Framework supports serving multiple sites from the same codebase
+   - Each site can have its own theme, plugins, plugin configuration, etc.
+   - Accounts can be shared between sites or can be specific to a site
 
-2. Support for front-application development
+2. Domain Driven Development using plugins
+    - Plugins are used to extend the framework's functionalities
+
+3. Support for front-application development
     - Bearer token authentication
 
-3. Mobile applications integration
+4. Mobile applications integration
     - Register/login accounts using mobile API plugin
     - Send push notifications (GCM and APN) to registered devices/accounts
 
-4. User management:
-    - Predefined user roles: guest, member, operator, admin, super-admin and developer, however authorization is done using roles
+5. User management:
+    - Predefined user levels: guest, member, operator, admin, super-admin and developer, however authorization is done using roles
     - TFA authentication available
     - Setup password validation rules such as force users to change passwords after x days, don't allow changing password to an already used passwords
     - Use nickname or email when authenticating users
     - Account activation (if required) and email validation
 
-5. Register and login 3rd party services
+6. Register and login 3rd party services
     - Register and Login using Apple
-    - Register and Login using Facebook
+    - Register and Login using Google
 
-6. Roles system:
+7. Roles system:
     - Role units give access to a user to specific functionalities
     - Role units are grouped in roles
     - Roles are assigned to users
     - An admin account can define custom roles which give users access to different sections of the site
 
-7. Email sending
+8. Email sending
     - Send emails using SMTP
-    - Send email using SendGrid
+    - Send emails using SendGrid
 
-8. Built-in backup system
+9. Built-in backup system
     - Create backups for database and uploaded content based on rules (daily, weekly, once x days etc.)
     - Delete old backups (older than x days)
     - Upload backup archives to a sFTP server (if required)
 
-9. Built-in paginator for reports
-    - Base model, columns, filters and actions definitions are required in order to present listings
-    - Paginator handles CSV exports with no extra coding
-    - Can use same action to generate JSON response when requesting action with an API call
+10. Built-in paginator for reports
+     - Base model, columns, filters and actions definitions are required in order to present listings
+     - Paginator handles CSV exports with no extra coding
+     - Can use same action to generate JSON response when requesting action with an API call
 
-10. Background tasks management
+11. Background tasks management
     - Agent jobs: actions exectuted once x seconds (depending on crontab setup)
     - Event based background actions
 
-11. Internal messaging
+12. Internal messaging
     - Email like messaging system
     - Custom message types can be programmatically added
 
-12. Other built-in features
+13. Other built-in features
     - Custom Captcha
     - Cookie acceptance notification
     - Simple BB editor

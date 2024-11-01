@@ -143,8 +143,6 @@ class PHSTests extends PHS_Cli
 
     public function cmd_plugin_action() : bool
     {
-        $this->reset_error();
-
         if (null === ($plugins_dirs_arr = $this->get_plugins_as_dirs())) {
             $this->_echo_error(self::_t('Couldn\'t obtain plugins list: %s', $this->get_simple_error_message()));
 
@@ -187,7 +185,7 @@ class PHSTests extends PHS_Cli
 
         switch ($plugin_action) {
             case 'behat_enable':
-                if (!($result_arr = $this->_install_behat_tests_for_plugin($plugin_name))) {
+                if (!$this->_install_behat_tests_for_plugin($plugin_name)) {
                     return false;
                 }
 
@@ -195,7 +193,7 @@ class PHSTests extends PHS_Cli
                 break;
 
             case 'behat_disable':
-                if (!($result_arr = $this->_uninstall_behat_tests_for_plugin($plugin_name))) {
+                if (!$this->_uninstall_behat_tests_for_plugin($plugin_name)) {
                     return false;
                 }
 
@@ -208,8 +206,6 @@ class PHSTests extends PHS_Cli
 
     public function cmd_list_plugins() : bool
     {
-        $this->reset_error();
-
         if (null === ($plugins_dirs_arr = $this->get_plugins_as_dirs())) {
             $this->_echo_error(self::_t('Couldn\'t obtain plugins list: %s', $this->get_simple_error_message()));
 
@@ -575,7 +571,7 @@ class PHSTests extends PHS_Cli
      *
      * @return bool|array
      */
-    protected function _get_behat_plugin_stats($plugin_name, $plugin_obj = false) : ?array
+    protected function _get_behat_plugin_stats(string $plugin_name, $plugin_obj = false) : ?array
     {
         $this->reset_error();
 
@@ -790,11 +786,11 @@ class PHSTests extends PHS_Cli
 
     /**
      * @param string $plugin_name Plugin name
-     * @param bool|PHS_Plugin $plugin_obj Plugin instance (if available)
+     * @param null|PHS_Plugin $plugin_obj Plugin instance (if available)
      *
-     * @return bool|array
+     * @return bool
      */
-    private function _uninstall_behat_tests_for_plugin($plugin_name, $plugin_obj = false)
+    private function _uninstall_behat_tests_for_plugin(string $plugin_name, ?PHS_Plugin $plugin_obj = null) : bool
     {
         $this->reset_error();
 
@@ -840,7 +836,7 @@ class PHSTests extends PHS_Cli
             return false;
         }
 
-        return !(!$this->_generate_behat_plugins_config_file());
+        return $this->_generate_behat_plugins_config_file();
     }
 
     /**

@@ -13,7 +13,7 @@ class PHS_Logger extends PHS_Registry
     public const L_DEBUG = 1, L_INFO = 2, L_NOTICE = 3, L_WARNING = 4, L_ERROR = 5, L_CRITICAL = 6, L_ALERT = 7, L_EMERGENCY = 8;
 
     public const TYPE_MAINTENANCE = 'maintenance.log', TYPE_ERROR = 'errors.log', TYPE_DEBUG = 'debug.log', TYPE_INFO = 'info.log',
-        TYPE_BACKGROUND = 'background.log', TYPE_AJAX = 'ajax.log', TYPE_AGENT = 'agent.log', TYPE_API = 'api.log',
+        TYPE_BACKGROUND = 'background.log', TYPE_AJAX = 'ajax.log', TYPE_AGENT = 'agent.log', TYPE_API = 'api.log', TYPE_GRAPHQL = 'phs_graphql.log',
         TYPE_TESTS = 'phs_tests.log', TYPE_CLI = 'phs_cli.log', TYPE_REMOTE = 'phs_remote.log', TYPE_TENANTS = 'phs_tenants.log',
         TYPE_HTTP_CALLS = 'phs_http_calls.log',
         // these constants are used only to tell log_channels() method it should log redefined sets of channels
@@ -134,7 +134,7 @@ class PHS_Logger extends PHS_Registry
     {
         return [
             self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG, self::TYPE_INFO,
-            self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API,
+            self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API, self::TYPE_GRAPHQL,
             self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE, self::TYPE_TENANTS, self::TYPE_HTTP_CALLS,
         ];
     }
@@ -255,12 +255,10 @@ class PHS_Logger extends PHS_Registry
             switch ($types_arr) {
                 default:
                     return null;
-                    break;
-
                 case self::TYPE_DEF_ALL:
                     $types_arr = [
                         self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG, self::TYPE_INFO,
-                        self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API,
+                        self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT, self::TYPE_API, self::TYPE_GRAPHQL,
                         self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE, self::TYPE_TENANTS, self::TYPE_HTTP_CALLS,
                     ];
                     break;
@@ -269,7 +267,7 @@ class PHS_Logger extends PHS_Registry
                     $types_arr = [
                         self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG,
                         self::TYPE_BACKGROUND, self::TYPE_AJAX, self::TYPE_AGENT,
-                        self::TYPE_API, self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE, self::TYPE_TENANTS,
+                        self::TYPE_API, self::TYPE_GRAPHQL, self::TYPE_TESTS, self::TYPE_CLI, self::TYPE_REMOTE, self::TYPE_TENANTS,
                         self::TYPE_HTTP_CALLS,
                     ];
                     break;
@@ -277,7 +275,7 @@ class PHS_Logger extends PHS_Registry
                 case self::TYPE_DEF_PRODUCTION:
                     $types_arr = [
                         self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_BACKGROUND,
-                        self::TYPE_AGENT, self::TYPE_API, self::TYPE_CLI, self::TYPE_REMOTE,
+                        self::TYPE_AGENT, self::TYPE_API, self::TYPE_GRAPHQL, self::TYPE_CLI, self::TYPE_REMOTE,
                         self::TYPE_HTTP_CALLS,
                     ];
                     break;
@@ -619,6 +617,9 @@ class PHS_Logger extends PHS_Registry
                     break;
                 case PHS_Scope::SCOPE_API:
                     $channel = self::TYPE_API;
+                    break;
+                case PHS_Scope::SCOPE_GRAPHQL:
+                    $channel = self::TYPE_GRAPHQL;
                     break;
                 case PHS_Scope::SCOPE_TESTS:
                     $channel = self::TYPE_TESTS;

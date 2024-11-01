@@ -19,7 +19,7 @@ use phs\system\core\libraries\PHS_Requests_queue_manager;
 
 function phs_version() : string
 {
-    return '1.2.4.1';
+    return '1.2.4.2';
 }
 
 // region Helper functions
@@ -50,7 +50,7 @@ function action_redirect(array | string $path = '', ?array $args = null, ?array 
         }
         $action_result['redirect_to_url'] = $path;
     } elseif (is_array($path)) {
-        $action_result['redirect_to_url'] = PHS::url($path, $args ?? [], $extra ?? []);
+        $action_result['redirect_to_url'] = PHS::url($path, $args, $extra);
     }
 
     return $action_result;
@@ -234,6 +234,9 @@ function phs_init_before_bootstrap() : bool
     if (!defined('PHS_CORE_EVENT_DIR')) {
         define('PHS_CORE_EVENT_DIR', PHS_CORE_DIR.'events/');
     }
+    if (!defined('PHS_CORE_GRAPHQL_DIR')) {
+        define('PHS_CORE_GRAPHQL_DIR', PHS_CORE_DIR.'graphql/');
+    }
     if (!defined('PHS_CORE_PLUGIN_DIR')) {
         define('PHS_CORE_PLUGIN_DIR', PHS_CORE_DIR.'plugins/');
     }
@@ -253,6 +256,9 @@ function phs_init_before_bootstrap() : bool
     }
     if (!defined('PHS_LANGUAGES_DIR')) {
         define('PHS_LANGUAGES_DIR', PHS_PATH.'languages/');
+    }
+    if (!defined('PHS_GRAPHQL_DIR')) {
+        define('PHS_GRAPHQL_DIR', PHS_PATH.'graphql/');
     }
 
     // name of directory where email templates are stored (either theme relative or plugin relative)
