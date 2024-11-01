@@ -34,6 +34,17 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
         return [];
     }
 
+    /**
+     * Override this method when using default extract_fields_from_model_definition() method
+     * to extract GraphQL type fields from model fields, but you don't want to expose all database fields to GraphQL
+     *
+     * @return array
+     */
+    public function do_not_extract_model_fields_for_graphql_type() : array
+    {
+        return [];
+    }
+
     public function get_query_definition() : array
     {
         return [
@@ -93,12 +104,26 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
             return [];
         }
 
+        $exclude_fields = $this->do_not_extract_model_fields_for_graphql_type() ?: [];
+
         $fields_arr = [];
         foreach ($model_obj->all_fields_definition($this->get_model_flow_params()) ?: [] as $field_name => $field_definition) {
+            if (!empty($exclude_fields)
+               && in_array($field_name, $exclude_fields, true)) {
+                continue;
+            }
+
             $fields_arr[$field_name] = self::_model_field_type_to_graphql_type($field_definition);
         }
+
+        // TODO: Add relations as well. Find a way to link relations with GraphQL types
         // foreach ($model_obj->relations() as $rel_name => $rel_definition) {
-        //     $fields_arr[$rel_name] = $field_definition;
+        //     if(!empty($exclude_fields)
+        //        && in_array($field_name, $exclude_fields, true)) {
+        //         continue;
+        //     }
+        //
+        //     $fields_arr[$rel_name] = self::_convert_relation_definition_to_graphql_type_dedfinition($field_definition);
         // }
 
         return $fields_arr;
@@ -171,6 +196,10 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
 
     protected static function _model_field_type_to_graphql_type(array $field_definition) : ScalarType
     {
+        if ( !empty($field_definition['primary'])) {
+            return self::id();
+        }
+
         if (empty($field_definition['type'])) {
             return self::string();
         }

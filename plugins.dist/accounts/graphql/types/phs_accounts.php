@@ -32,10 +32,22 @@ class PHS_Graphql_Accounts extends PHS_Graphql_Type
     public function get_type_fields() : array
     {
         return [
-            'id'      => Type::id(),
-            'nick'    => Type::string(),
-            'email'   => Type::string(),
-            'details' => [
+            'id'               => Type::id(),
+            'nick'             => Type::string(),
+            'email'            => Type::string(),
+            'email_verified'   => Type::int(),
+            'language'         => Type::string(),
+            'status'           => Type::int(),
+            'status_date'      => Type::string(),
+            'level'            => Type::int(),
+            'is_multitenant'   => Type::int(),
+            'failed_logins'    => Type::int(),
+            'locked_date'      => Type::string(),
+            'last_pass_change' => Type::string(),
+            'lastlog'          => Type::string(),
+            'lastip'           => Type::string(),
+            'cdate'            => Type::string(),
+            'details'          => [
                 'type'        => PHS_Graphql::ref_by_class(PHS_Graphql_Account_details::class),
                 'description' => 'Account details',
                 'resolve'     => static function($account) {
@@ -78,7 +90,6 @@ class PHS_Graphql_Accounts extends PHS_Graphql_Type
                     return $account->roles_units_slugs($args['offset'] ?? 0, $args['limit'] ?? 1000)?->cast_to_array() ?: null;
                 },
             ],
-            'cdate' => Type::string(),
         ];
     }
 }
