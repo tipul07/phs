@@ -2,7 +2,6 @@
 
 namespace phs\plugins\accounts\graphql\types;
 
-use GraphQL\Type\Definition\Type;
 use phs\libraries\PHS_Graphql_Type;
 use phs\graphql\libraries\PHS_Graphql;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
@@ -32,21 +31,21 @@ class PHS_Graphql_Accounts extends PHS_Graphql_Type
     public function get_type_fields() : array
     {
         return [
-            'id'               => Type::id(),
-            'nick'             => Type::string(),
-            'email'            => Type::string(),
-            'email_verified'   => Type::int(),
-            'language'         => Type::string(),
-            'status'           => Type::int(),
-            'status_date'      => Type::string(),
-            'level'            => Type::int(),
-            'is_multitenant'   => Type::int(),
-            'failed_logins'    => Type::int(),
-            'locked_date'      => Type::string(),
-            'last_pass_change' => Type::string(),
-            'lastlog'          => Type::string(),
-            'lastip'           => Type::string(),
-            'cdate'            => Type::string(),
+            'id'               => self::id(),
+            'nick'             => self::string(),
+            'email'            => self::string(),
+            'email_verified'   => self::int(),
+            'language'         => self::string(),
+            'status'           => self::int(),
+            'status_date'      => self::string(),
+            'level'            => self::int(),
+            'is_multitenant'   => self::int(),
+            'failed_logins'    => self::int(),
+            'locked_date'      => self::string(),
+            'last_pass_change' => self::string(),
+            'lastlog'          => self::string(),
+            'lastip'           => self::string(),
+            'cdate'            => self::string(),
             'details'          => [
                 'type'        => PHS_Graphql::ref_by_class(PHS_Graphql_Account_details::class),
                 'description' => 'Account details',
@@ -55,15 +54,15 @@ class PHS_Graphql_Accounts extends PHS_Graphql_Type
                 },
             ],
             'roles_slugs' => [
-                'type' => Type::listOf(Type::string()),
+                'type' => self::listOf(self::string()),
                 'args' => [
                     'offset' => [
-                        'type'         => Type::int(),
+                        'type'         => self::int(),
                         'description'  => 'Offset of the list of role units returned',
                         'defaultValue' => 0,
                     ],
                     'limit' => [
-                        'type'         => Type::int(),
+                        'type'         => self::int(),
                         'description'  => 'Limit the number of role units returned',
                         'defaultValue' => 1000,
                     ],
@@ -73,15 +72,15 @@ class PHS_Graphql_Accounts extends PHS_Graphql_Type
                 },
             ],
             'roles_units_slugs' => [
-                'type' => Type::listOf(Type::string()),
+                'type' => self::listOf(self::string()),
                 'args' => [
                     'offsett' => [
-                        'type'         => Type::int(),
+                        'type'         => self::int(),
                         'description'  => 'Offset of the list of role units returned',
                         'defaultValue' => 0,
                     ],
                     'limit' => [
-                        'type'         => Type::int(),
+                        'type'         => self::int(),
                         'description'  => 'Limit the number of role units returned',
                         'defaultValue' => 1000,
                     ],

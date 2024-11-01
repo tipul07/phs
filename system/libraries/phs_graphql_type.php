@@ -6,6 +6,7 @@ use Closure;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Error\InvariantViolation;
 use phs\graphql\libraries\PHS_Graphql;
+use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ScalarType;
 
@@ -192,6 +193,11 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
     public static function string() : ScalarType
     {
         return Type::string();
+    }
+
+    public static function listOf($type) : ListOfType
+    {
+        return Type::listOf($type);
     }
 
     protected static function _model_field_type_to_graphql_type(array $field_definition) : ScalarType
