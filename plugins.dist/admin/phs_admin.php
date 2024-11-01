@@ -153,6 +153,24 @@ class PHS_Plugin_Admin extends PHS_Plugin
                     ],
                 ],
             ],
+            'graphql_settings_group' => [
+                'display_name' => $this->_pt('GraphQL settings'),
+                'display_hint' => $this->_pt('Settings related to GraphQL calls made to this platform.'),
+                'group_fields' => [
+                    'allow_graphql_calls' => [
+                        'display_name' => $this->_pt('Allow GraphQL calls'),
+                        'display_hint' => $this->_pt('Are GraphQL calls allowed to this platform?'),
+                        'type'         => PHS_Params::T_BOOL,
+                        'default'      => false,
+                    ],
+                    'monitor_graphql_calls' => [
+                        'display_name' => $this->_pt('Monitor GraphQL calls'),
+                        'display_hint' => $this->_pt('If GraphQL calls are monitored.'),
+                        'type'         => PHS_Params::T_BOOL,
+                        'default'      => false,
+                    ],
+                ],
+            ],
             'agent_jobs_group' => [
                 'display_name' => $this->_pt('Agent Jobs Settings'),
                 'display_hint' => $this->_pt('Settings related to agent jobs details on this platform.'),
@@ -214,67 +232,67 @@ class PHS_Plugin_Admin extends PHS_Plugin
 
     public function use_default_theme_in_admin() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['default_theme_in_admin']);
+        return (bool)($this->get_plugin_settings()['default_theme_in_admin'] ?? false);
     }
 
     public function use_current_theme_as_default_in_admin() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['current_theme_as_default_in_admin']);
+        return (bool)($this->get_plugin_settings()['current_theme_as_default_in_admin'] ?? false);
     }
 
     public function monitor_agent_jobs() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings())
-               && !empty($settings_arr['monitor_agent_jobs']);
+        return (bool)($this->get_plugin_settings()['monitor_agent_jobs'] ?? false);
     }
 
     public function agent_jobs_allowance_interval() : int
     {
-        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['agent_jobs_allowance_interval'])
-            ? (int)$settings_arr['agent_jobs_allowance_interval']
-            : 60;
+        return (int)($this->get_plugin_settings()['data_retention_run_hour'] ?? 60);
     }
 
     public function data_retention_agent_run_hour() : int
     {
-        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['data_retention_run_hour'])
-            ? (int)$settings_arr['data_retention_run_hour']
-            : 3;
+        return (int)($this->get_plugin_settings()['data_retention_run_hour'] ?? 3);
     }
 
     public function monitor_api_incoming_calls() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings())
-               && !empty($settings_arr['monitor_api_incoming_calls']);
+        return (bool)($this->get_plugin_settings()['monitor_api_incoming_calls'] ?? false);
     }
 
     public function monitor_api_incoming_cors_calls() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings())
-               && !empty($settings_arr['monitor_api_incoming_cors_calls']);
+        return (bool)($this->get_plugin_settings()['monitor_api_incoming_cors_calls'] ?? false);
     }
 
     public function monitor_api_outgoing_calls() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings())
-               && !empty($settings_arr['monitor_api_outgoing_calls']);
+        return (bool)($this->get_plugin_settings()['monitor_api_outgoing_calls'] ?? false);
     }
 
     public function monitor_api_full_request_body() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings())
-               && !empty($settings_arr['monitor_api_full_request_body']);
+        return (bool)($this->get_plugin_settings()['monitor_api_full_request_body'] ?? false);
     }
 
     public function monitor_api_full_response_body() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings())
-               && !empty($settings_arr['monitor_api_full_response_body']);
+        return (bool)($this->get_plugin_settings()['monitor_api_full_response_body'] ?? false);
+    }
+
+    public function allow_graphql_calls() : bool
+    {
+        return (bool)($this->get_plugin_settings()['allow_graphql_calls'] ?? false);
+    }
+
+    public function monitor_graphql_calls() : bool
+    {
+        return (bool)($this->get_plugin_settings()['monitor_graphql_calls'] ?? false);
     }
 
     public function is_log_rotation_enabled() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['logs_rotation_enabled']);
+        return (bool)($this->get_plugin_settings()['logs_rotation_enabled'] ?? false);
     }
 
     public function log_add_loggedin_user() : bool
@@ -284,9 +302,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
 
     public function log_rotation_policy() : int
     {
-        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_rotate_policy'])
-            ? (int)$settings_arr['log_rotate_policy']
-            : 0;
+        return (int)($this->get_plugin_settings()['log_rotate_policy'] ?? 0);
     }
 
     /**

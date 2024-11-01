@@ -1,16 +1,13 @@
 <?php
 
 header('Cache-Control: no-store, no-cache, must-revalidate');
-
 header('Cache-Control: post-check=0, pre-check=0', false);
-
 // HTTP/1.0
-
 header('Pragma: no-cache');
 
-define('PHS_PREVENT_SESSION', true);
+const PHS_PREVENT_SESSION = true;
 
-define('PHS_SCRIPT_SCOPE', 'remote');
+const PHS_SCRIPT_SCOPE = 'remote';
 
 include_once 'main.php';
 

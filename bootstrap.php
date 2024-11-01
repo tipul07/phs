@@ -306,15 +306,11 @@ const PHS_HTTPS = 'https://'.PHS_FULL_SSL_PATH_WWW;
 $base_url = PHS::get_base_url() ?: '/';
 
 define('PHS_SETUP_WWW', $base_url.'_setup/');
-
 define('PHS_PLUGINS_WWW', $base_url.'plugins/');
-
 define('PHS_CORE_LIBRARIES_WWW', $base_url.'system/core/libraries/');
-
 define('PHS_THEMES_WWW', $base_url.'themes/');
-
 define('PHS_LANGUAGES_WWW', $base_url.'languages/');
-
+define('PHS_GRAPHQL_WWW', $base_url.'graphql/');
 define('PHS_UPLOADS_WWW', $base_url.'_uploads/');
 
 // most used functionalities defined as functions for quick access (doh...)

@@ -7,7 +7,7 @@ use phs\PHS_Scope;
 
 abstract class PHS_Action_Autocomplete extends PHS_Action
 {
-    private $autocomplete_params = [
+    private array $autocomplete_params = [
         // Data to be used when we have a single record to be displayed (eg. when user selected one record)
         'data' => false,
 
@@ -92,19 +92,15 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
     /**
      * This method is called from action/view where autocomplete is needed and sets where AJAX call will be sent when requiring autocomplete functionality
      * @param array $route_arr
-     * @param false|array $route_params_arr
+     * @param null|array $route_params_arr
      */
-    public function set_ajax_route($route_arr, $route_params_arr = false)
+    public function set_ajax_route(array $route_arr, ?array $route_params_arr = null) : void
     {
         $route_arr = PHS::validate_route_from_parts($route_arr, true);
 
-        if (empty($route_params_arr) || !is_array($route_params_arr)) {
-            $route_params_arr = false;
-        }
-
         $this->autocomplete_params([
             'route_arr'        => $route_arr,
-            'route_params_arr' => $route_params_arr,
+            'route_params_arr' => $route_params_arr ?? [],
         ]);
     }
 
@@ -191,11 +187,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
         return $action_result;
     }
 
-    /**
-     * @param null|string|array $key
-     * @param null|mixed $val
-     */
-    public function autocomplete_params($key = null, $val = null)
+    public function autocomplete_params(null | string | array $key = null, mixed $val = null)
     {
         if ($key === null) {
             return $this->autocomplete_params;

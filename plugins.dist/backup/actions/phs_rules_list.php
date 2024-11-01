@@ -674,10 +674,8 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
 
         ob_start();
         if ($is_inactive || $is_active) {
-            $edit_url_params = ['p' => 'backup', 'a' => 'rule_edit'];
-
             ?>
-            <a href="<?php echo PHS::url($edit_url_params, ['rid' => $rule_arr['id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
+            <a href="<?php echo PHS::url(['p' => 'backup', 'a' => 'rule_edit'], ['rid' => $rule_arr['id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
                 ><i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt('Edit backup rule'); ?>"></i></a>
             <?php
         }

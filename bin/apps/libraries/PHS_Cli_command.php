@@ -16,6 +16,7 @@ abstract class PHS_Cli_command extends PHS_Registry
 
     public function get_command_options() : array
     {
+        return [];
     }
 
     public function get_description() : string

@@ -12,24 +12,13 @@ if (!($apikeys_model = $this->view_var('apikeys_model'))
     return $this->_pt('Couldn\'t initialize view.');
 }
 
-if (!($api_methods_arr = $this->view_var('api_methods_arr'))) {
-    $api_methods_arr = [];
-}
-if (!($allowed_methods = $this->view_var('allowed_methods'))) {
-    $allowed_methods = [];
-}
-if (!($denied_methods = $this->view_var('denied_methods'))) {
-    $denied_methods = [];
-}
+$api_methods_arr = $this->view_var('api_methods_arr') ?: [];
+$allowed_methods = $this->view_var('allowed_methods') ?: [];
+$denied_methods = $this->view_var('denied_methods') ?: [];
 
 /** @var null|\phs\system\core\models\PHS_Model_Tenants $tenants_model */
-if (!($tenants_model = $this->view_var('tenants_model'))) {
-    $tenants_model = null;
-}
-
-if (!($all_tenants_arr = $this->view_var('all_tenants_arr'))) {
-    $all_tenants_arr = [];
-}
+$tenants_model = $this->view_var('tenants_model') ?: null;
+$all_tenants_arr = $this->view_var('all_tenants_arr') ?: [];
 
 $is_multi_tenant = PHS::is_multi_tenant();
 
@@ -160,6 +149,17 @@ foreach ($api_methods_arr as $api_method) {
                         <?php echo $this->view_var('allow_sw') ? 'checked="checked"' : ''; ?> />
                 </div>
                 <small class="text-muted"><?php echo $this->_pt('If ticked, API key will be allowed to access actions which are normally available in web scope (by sending %s=1 in GET).', PHS_Api::PARAM_WEB_SIMULATION); ?></small>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="allow_graphql" class="col-sm-2 col-form-label"><?php echo $this->_pt('Allow GraphQL'); ?></label>
+            <div class="col-sm-10">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input position-static" id="allow_graphql" name="allow_graphql" value="1"
+                        <?php echo $this->view_var('allow_graphql') ? 'checked="checked"' : ''; ?> />
+                </div>
+                <small class="text-muted"><?php echo $this->_pt('If ticked, API key can be used when authenticating requests to GraphQL endpoint.'); ?></small>
             </div>
         </div>
 

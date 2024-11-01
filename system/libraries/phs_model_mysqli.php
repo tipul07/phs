@@ -50,6 +50,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         self::FTYPE_DECIMAL => ['title' => 'decimal', 'default_length' => '5,2', 'default_value' => 0.0, ],
         self::FTYPE_FLOAT   => ['title' => 'float', 'default_length' => '5,2', 'default_value' => 0.0, ],
         self::FTYPE_DOUBLE  => ['title' => 'double', 'default_length' => '5,2', 'default_value' => 0.0, ],
+        self::FTYPE_REAL    => ['title' => 'real', 'default_length' => '5,2', 'default_value' => 0.0, ],
 
         self::FTYPE_DATE      => ['title' => 'date', 'default_length' => null, 'default_value' => null, 'nullable' => true, ],
         self::FTYPE_DATETIME  => ['title' => 'datetime', 'default_length' => null, 'default_value' => null, 'nullable' => true, ],
@@ -1822,6 +1823,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             case self::FTYPE_DECIMAL:
             case self::FTYPE_FLOAT:
             case self::FTYPE_DOUBLE:
+            case self::FTYPE_REAL:
 
                 // The maximum number of digits (M) for DECIMAL is 65.
                 // The maximum number of supported decimals (D) is 30.
@@ -2564,17 +2566,15 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
             if (!empty($matches[3])) {
                 $type_extras_str = trim($matches[3]);
-                if (($type_extras_arr = explode(strtolower(str_replace('  ', ' ', $type_extras_str)), ' '))) {
-                    if (in_array('unsigned', $type_extras_arr, true)) {
-                        $return_arr['unsigned'] = true;
-                    }
+                if (($type_extras_arr = explode(strtolower(str_replace('  ', ' ', $type_extras_str)), ' '))
+                    && in_array('unsigned', $type_extras_arr, true)) {
+                    $return_arr['unsigned'] = true;
                 }
             }
         }
 
         if (!empty($mysql_type)
-         && ($field_types = $this->get_field_types())
-         && is_array($field_types)) {
+            && ($field_types = $this->get_field_types())) {
             $mysql_type = strtolower(trim($mysql_type));
             foreach ($field_types as $field_type => $field_arr) {
                 if (empty($field_arr['title'])) {
@@ -2588,7 +2588,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             }
         }
 
-        if (!($field_arr = $this->valid_field_type($return_arr['type']))) {
+        if (!$this->valid_field_type($return_arr['type'])) {
             return $return_arr;
         }
 
@@ -2700,6 +2700,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             case self::FTYPE_DECIMAL:
             case self::FTYPE_FLOAT:
             case self::FTYPE_DOUBLE:
+            case self::FTYPE_REAL:
                 return (float)$default_val;
             default:
                 return (string)$default_val;

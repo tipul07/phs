@@ -2,7 +2,6 @@
 
 namespace phs\libraries;
 
-use phs\PHS;
 use Exception;
 use phs\PHS_Db;
 use MongoDB\BSON\ObjectId;
@@ -14,7 +13,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         FTYPE_OBJECT_ID = 7, FTYPE_BOOLEAN = 8, FTYPE_DATE = 9, FTYPE_NULL = 10, FTYPE_REGULAR_EXPRESSION = 11, FTYPE_JAVASCRIPT = 12,
         FTYPE_SYMBOL = 13, FTYPE_SCOPE_JAVASCRIPT = 14, FTYPE_INTEGER = 15, FTYPE_TIMESTAMP = 16, FTYPE_MIN_KEY = 17, FTYPE_MAX_KEY = 18;
 
-    private static $FTYPE_ARR = [
+    private static array $FTYPE_ARR = [
         self::FTYPE_DOUBLE             => ['title' => 'Double', 'type_ids' => [1], 'default_value' => 0, ],
         self::FTYPE_STRING             => ['title' => 'String', 'type_ids' => [2], 'default_value' => '', ],
         self::FTYPE_OBJECT             => ['title' => 'Object', 'type_ids' => [3], 'default_value' => null, ],

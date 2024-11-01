@@ -15,7 +15,7 @@ abstract class PHS_Scope extends PHS_Instantiable
     public const SCOPE_VAR_PREFIX = '__scp_pre_';
 
     public const SCOPE_WEB = 1, SCOPE_BACKGROUND = 2, SCOPE_AJAX = 3, SCOPE_API = 4,
-        SCOPE_AGENT = 5, SCOPE_TESTS = 6, SCOPE_CLI = 7, SCOPE_REMOTE = 8;
+        SCOPE_AGENT = 5, SCOPE_TESTS = 6, SCOPE_CLI = 7, SCOPE_REMOTE = 8, SCOPE_GRAPHQL = 9;
 
     /** @var array */
     private static array $SCOPES_ARR = [
@@ -26,7 +26,6 @@ abstract class PHS_Scope extends PHS_Instantiable
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'web',
         ],
-
         self::SCOPE_BACKGROUND => [
             'title'      => 'Background',
             'plugin'     => null,
@@ -34,7 +33,6 @@ abstract class PHS_Scope extends PHS_Instantiable
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'background',
         ],
-
         self::SCOPE_AJAX => [
             'title'      => 'Ajax',
             'plugin'     => null,
@@ -42,7 +40,6 @@ abstract class PHS_Scope extends PHS_Instantiable
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'ajax',
         ],
-
         self::SCOPE_API => [
             'title'      => 'API',
             'plugin'     => null,
@@ -50,7 +47,6 @@ abstract class PHS_Scope extends PHS_Instantiable
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'api',
         ],
-
         self::SCOPE_AGENT => [
             'title'      => 'Agent',
             'plugin'     => null,
@@ -58,7 +54,6 @@ abstract class PHS_Scope extends PHS_Instantiable
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'agent',
         ],
-
         self::SCOPE_TESTS => [
             'title'      => 'Test Suite',
             'plugin'     => null,
@@ -66,7 +61,6 @@ abstract class PHS_Scope extends PHS_Instantiable
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'test',
         ],
-
         self::SCOPE_CLI => [
             'title'      => 'CLI',
             'plugin'     => null,
@@ -74,13 +68,19 @@ abstract class PHS_Scope extends PHS_Instantiable
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'cli',
         ],
-
         self::SCOPE_REMOTE => [
             'title'      => 'Remote PHS',
             'plugin'     => null,
             'class_name' => 'remote',
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'remote',
+        ],
+        self::SCOPE_GRAPHQL => [
+            'title'      => 'GraphQL',
+            'plugin'     => null,
+            'class_name' => 'graphql',
+            // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
+            'constant_name' => 'graphql',
         ],
     ];
 

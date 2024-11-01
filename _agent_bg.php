@@ -37,8 +37,8 @@ if (!($parsed_input = PHS_Agent::bg_validate_input($input))
 $job_arr = $parsed_input['job_data'];
 
 $run_job_extra = [];
-$run_job_extra['agent_jobs_model'] = (!empty($parsed_input['agent_jobs_model']) ? $parsed_input['agent_jobs_model'] : false);
-$run_job_extra['force_run'] = (!empty($parsed_input['force_run']));
+$run_job_extra['agent_jobs_model'] = $parsed_input['agent_jobs_model'] ?? null;
+$run_job_extra['force_run'] = !empty($parsed_input['force_run']);
 
 if (!($run_result = PHS_Agent::bg_run_job($job_arr, $run_job_extra))) {
     PHS_Logger::error('Error running agent job [#'.$job_arr['id'].'] ('.$job_arr['route'].')', PHS_Logger::TYPE_AGENT);

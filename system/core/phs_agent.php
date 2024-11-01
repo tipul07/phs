@@ -6,6 +6,7 @@ use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Registry;
+use phs\libraries\PHS_Record_data;
 use phs\libraries\PHS_Instantiable;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\models\PHS_Model_Plugins;
@@ -367,8 +368,7 @@ class PHS_Agent extends PHS_Registry
             $plugin = null;
         }
 
-        if (!($action_names = PHS::get_plugin_scripts_from_dir($plugin, PHS_Instantiable::INSTANCE_TYPE_ACTION))
-         || !is_array($action_names)) {
+        if (!($action_names = PHS::get_plugin_scripts_from_dir($plugin, PHS_Instantiable::INSTANCE_TYPE_ACTION))) {
             return [];
         }
 
@@ -491,15 +491,6 @@ class PHS_Agent extends PHS_Registry
         return $job_arr;
     }
 
-    /**
-     * @param string $handler
-     * @param string|array $route
-     * @param int $once_every_seconds
-     * @param bool|array $params
-     * @param bool|array $extra
-     *
-     * @return array|bool|int
-     */
     public static function add_job(string $handler, string | array $route, int $once_every_seconds, array $params = [], array $extra = []) : ?array
     {
         // We don't use here PHS::route_exists() because route_exists() will instantiate plugin, controller and action and if they have errors
@@ -764,25 +755,14 @@ class PHS_Agent extends PHS_Registry
         return $new_job;
     }
 
-    /**
-     * @param int|array $job_data
-     * @param null|array $extra
-     *
-     * @return null|array
-     */
-    public static function bg_run_job($job_data, ?array $extra = null) : ?array
+    public static function bg_run_job(int | array | PHS_Record_data $job_data, array $extra = []) : ?array
     {
         self::st_reset_error();
 
-        $extra ??= [];
         $extra['force_run'] = !empty($extra['force_run']);
 
         /** @var PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!empty($extra['agent_jobs_model'])) {
-            $agent_jobs_model = $extra['agent_jobs_model'];
-        } else {
-            $agent_jobs_model = PHS_Model_Agent_jobs::get_instance();
-        }
+        $agent_jobs_model = $extra['agent_jobs_model'] ?? PHS_Model_Agent_jobs::get_instance();
 
         if (empty($agent_jobs_model)) {
             self::st_set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
@@ -796,9 +776,7 @@ class PHS_Agent extends PHS_Registry
                 self::st_copy_error($agent_jobs_model);
             }
 
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_RUN_JOB, self::_t('Couldn\'t get agent job details.'));
-            }
+            self::st_set_error_if_not_set(self::ERR_RUN_JOB, self::_t('Couldn\'t get agent job details.'));
 
             return null;
         }
@@ -827,17 +805,12 @@ class PHS_Agent extends PHS_Registry
             }
         }
 
-        $job_params = [];
-        $job_params['force_job'] = (!empty($extra['force_run']));
-
-        if (!($new_job_arr = $agent_jobs_model->start_job($job_arr, $job_params))) {
+        if (!($new_job_arr = $agent_jobs_model->start_job($job_arr, ['force_job' => !empty($extra['force_run'])]))) {
             if ($agent_jobs_model->has_error()) {
                 self::st_copy_error($agent_jobs_model);
             }
 
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_RUN_JOB, self::_t('Couldn\'t save background jobs details in database.'));
-            }
+            self::st_set_error_if_not_set(self::ERR_RUN_JOB, self::_t('Couldn\'t save background jobs details in database.'));
 
             return null;
         }
@@ -848,9 +821,7 @@ class PHS_Agent extends PHS_Registry
 
         if (!PHS_Scope::current_scope(PHS_Scope::SCOPE_AGENT)
             || !PHS::set_route($job_arr['route'])) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_RUN_JOB, self::_t('Error preparing environment.'));
-            }
+            self::st_set_error_if_not_set(self::ERR_RUN_JOB, self::_t('Error preparing environment.'));
 
             $error_arr = self::st_get_error();
 

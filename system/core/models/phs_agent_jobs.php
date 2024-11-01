@@ -650,12 +650,8 @@ class PHS_Model_Agent_jobs extends PHS_Model
         self::st_reset_error();
 
         if (empty($params['fields']['route'])
-         || !PHS::route_exists($params['fields']['route'], ['action_accepts_scopes' => PHS_Scope::SCOPE_AGENT])) {
-            if (self::st_has_error()) {
-                $this->copy_static_error(self::ERR_INSERT);
-            } else {
-                $this->set_error(self::ERR_INSERT, self::_t('Please provide a route.'));
-            }
+            || !PHS::route_exists($params['fields']['route'], ['action_accepts_scopes' => PHS_Scope::SCOPE_AGENT])) {
+            $this->copy_or_set_static_error(self::ERR_INSERT, self::_t('Please provide a route.'));
 
             return false;
         }
