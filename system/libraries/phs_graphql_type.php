@@ -14,11 +14,13 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
 {
     private ?PHS_Model $model_obj = null;
 
-    abstract public function get_model_class() : ?string;
+    private ?ObjectType $graphql_type = null;
 
-    abstract public function get_type_name() : string;
+    abstract public static function get_model_class() : ?string;
 
-    abstract public function get_type_description() : string;
+    abstract public static function get_type_name() : string;
+
+    abstract public static function get_type_description() : string;
 
     public function instance_type() : string
     {
@@ -58,20 +60,24 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
     public function get_type_definition() : array
     {
         return [
-            'name'        => $this->get_type_name(),
-            'description' => $this->get_type_description(),
+            'name'        => static::get_type_name(),
+            'description' => static::get_type_description(),
             'fields'      => $this->get_type_fields() ?: $this->extract_fields_from_model_definition(),
         ];
     }
 
     public function graphql_type() : ObjectType
     {
-        return new ObjectType($this->get_type_definition());
+        if (!$this->graphql_type) {
+            $this->graphql_type = new ObjectType($this->get_type_definition());
+        }
+
+        return $this->graphql_type;
     }
 
     public function lazy_graphql_type() : Closure
     {
-        return static fn () => $this->graphql_type();
+        return fn () => $this->graphql_type();
     }
 
     public function get_model_instance() : ?PHS_Model
@@ -80,7 +86,7 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
             return $this->model_obj;
         }
 
-        if (!($model_class = $this->get_model_class())) {
+        if (!($model_class = static::get_model_class())) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Model class not set.'));
 
             return null;

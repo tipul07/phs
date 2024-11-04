@@ -12,5 +12,5 @@ if (!PHS_Graphql::valid_context()
     return;
 }
 
-PHS_Graphql::register_type('account', PHS_Graphql_Accounts::class, true);
-PHS_Graphql::register_type('accountDetails', PHS_Graphql_Account_details::class, true);
+PHS_Graphql::register_type(PHS_Graphql_Accounts::class, true);
+PHS_Graphql::register_type(PHS_Graphql_Account_details::class, true);
