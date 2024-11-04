@@ -40,14 +40,30 @@ class PHS_Api_graphql extends PHS_Api_base
             return null;
         }
 
-        if (!PHS_Graphql::resolve_request()) {
+        if (!($request_response = PHS_Graphql::resolve_request($extra))) {
             $this->copy_or_set_static_error(self::ERR_RUN_ROUTE,
-                self::_t('Error resolving request.', PHS::get_route_as_string()));
+                self::_t('Error resolving GraphQL request.'));
 
             return null;
         }
 
-        return ['junk_response' => true];
+        return $request_response;
+    }
+
+    final public function process_result(array $result) : bool
+    {
+        self::st_reset_error();
+
+        if (!($scope_obj = PHS_Scope::get_scope_instance())) {
+            PHS_Logger::critical(self::st_get_full_error_message(self::_t('Error spawning scope instance.')),
+                PHS_Logger::TYPE_DEF_DEBUG);
+
+            echo '{"errors":[{"message":"Error spawining scope."}]}';
+
+            return false;
+        }
+
+        return (bool)$scope_obj->process_action_result($result);
     }
 
     /**

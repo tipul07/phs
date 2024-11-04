@@ -4,6 +4,7 @@ namespace phs\system\core\models;
 
 use phs\PHS;
 use phs\PHS_Api;
+use phs\PHS_Scope;
 use phs\PHS_Api_base;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Logger;
@@ -309,7 +310,7 @@ class PHS_Model_Api_monitor extends PHS_Model
     }
 
     // region Incoming monitoring
-    public static function graphql_request_success(?string $response_body = null, int $http_code = 200) : ?array
+    public static function graphql_request_started() : ?array
     {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
@@ -324,9 +325,31 @@ class PHS_Model_Api_monitor extends PHS_Model
         $fields_arr = [];
         $fields_arr['method'] = $_SERVER['REQUEST_METHOD'] ?? null;
         $fields_arr['request_body'] = PHS_Api_base::get_php_input();
-        $fields_arr['request_time'] = $fields_arr['response_time'] = date(self::DATETIME_DB);
-        $fields_arr['status'] = self::STATUS_SUCCESS;
+        $fields_arr['request_time'] = date(self::DATETIME_DB);
+        $fields_arr['status'] = self::STATUS_STARTED;
         $fields_arr['type'] = self::TYPE_GRAPHQL;
+
+        return self::_update_api_monitor_record($fields_arr);
+    }
+
+    public static function graphql_request_success(
+        ?string $response_body = null,
+        int $http_code = 200,
+        null | int | array | PHS_Record_data $force_record = null,
+    ) : ?array {
+        if (!self::_load_dependencies()) {
+            self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
+
+            return null;
+        }
+
+        if (!self::$_admin_plugin->monitor_graphql_calls()) {
+            return null;
+        }
+
+        $fields_arr = [];
+        $fields_arr['response_time'] = date(self::DATETIME_DB);
+        $fields_arr['status'] = self::STATUS_SUCCESS;
         if ($http_code !== null) {
             $fields_arr['response_code'] = $http_code;
         }
@@ -334,11 +357,22 @@ class PHS_Model_Api_monitor extends PHS_Model
             $fields_arr['response_body'] = $response_body;
         }
 
-        return self::_update_api_monitor_record($fields_arr);
+        if ( !($record = $force_record ?? PHS_Api::incoming_monitoring_record() ?? null) ) {
+            $fields_arr['type'] = self::TYPE_GRAPHQL;
+            $fields_arr['method'] = $_SERVER['REQUEST_METHOD'] ?? null;
+            $fields_arr['request_body'] = PHS_Api_base::get_php_input();
+            $fields_arr['request_time'] = $fields_arr['response_time'];
+        }
+
+        return self::_update_api_monitor_record($fields_arr, $record);
     }
 
-    public static function graphql_request_error(?string $error_message = null, int $http_code = 500, ?string $response_body = null) : ?array
-    {
+    public static function graphql_request_error(
+        ?string $error_message = null,
+        int $http_code = 500,
+        ?string $response_body = null,
+        null | int | array | PHS_Record_data $force_record = null,
+    ) : ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -350,11 +384,8 @@ class PHS_Model_Api_monitor extends PHS_Model
         }
 
         $fields_arr = [];
-        $fields_arr['method'] = $_SERVER['REQUEST_METHOD'] ?? null;
-        $fields_arr['request_body'] = PHS_Api_base::get_php_input();
-        $fields_arr['request_time'] = $fields_arr['response_time'] = date(self::DATETIME_DB);
+        $fields_arr['response_time'] = date(self::DATETIME_DB);
         $fields_arr['status'] = self::STATUS_ERROR;
-        $fields_arr['type'] = self::TYPE_GRAPHQL;
         if ($error_message !== null) {
             $fields_arr['error_message'] = $error_message;
         }
@@ -365,7 +396,14 @@ class PHS_Model_Api_monitor extends PHS_Model
             $fields_arr['response_body'] = $response_body;
         }
 
-        return self::_update_api_monitor_record($fields_arr);
+        if ( !($record = $force_record ?? PHS_Api::incoming_monitoring_record() ?? null) ) {
+            $fields_arr['type'] = self::TYPE_GRAPHQL;
+            $fields_arr['method'] = $_SERVER['REQUEST_METHOD'] ?? null;
+            $fields_arr['request_body'] = PHS_Api_base::get_php_input();
+            $fields_arr['request_time'] = $fields_arr['response_time'];
+        }
+
+        return self::_update_api_monitor_record($fields_arr, $record);
     }
 
     public static function api_incoming_request_started() : ?array
@@ -389,8 +427,11 @@ class PHS_Model_Api_monitor extends PHS_Model
         return self::_update_api_monitor_record($fields_arr);
     }
 
-    public static function api_incoming_request_success(?int $http_code = null, ?string $response_body = null, $force_record = null) : ?array
-    {
+    public static function api_incoming_request_success(
+        ?int $http_code = null,
+        ?string $response_body = null,
+        null | int | array | PHS_Record_data $force_record = null,
+    ) : ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -416,7 +457,10 @@ class PHS_Model_Api_monitor extends PHS_Model
     }
 
     public static function api_incoming_request_error(
-        ?int $http_code = null, ?string $error_message = null, ?string $response_body = null, $force_record = null
+        ?int $http_code = null,
+        ?string $error_message = null,
+        ?string $response_body = null,
+        null | int | array | PHS_Record_data $force_record = null,
     ) : ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
@@ -446,7 +490,9 @@ class PHS_Model_Api_monitor extends PHS_Model
     }
 
     public static function api_incoming_request_direct_error(
-        int $http_code, ?string $error_message = null, ?string $response_body = null
+        int $http_code,
+        ?string $error_message = null,
+        ?string $response_body = null,
     ) : ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
@@ -471,14 +517,10 @@ class PHS_Model_Api_monitor extends PHS_Model
         return $monitor_record;
     }
 
-    /**
-     * @param array $fields_arr
-     * @param null|int|array $force_record
-     *
-     * @return null|array
-     */
-    public static function update_incoming_request_record(array $fields_arr, $force_record = null) : ?array
-    {
+    public static function update_incoming_request_record(
+        array $fields_arr,
+        null | int | array | PHS_Record_data $force_record = null,
+    ) : ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -512,8 +554,11 @@ class PHS_Model_Api_monitor extends PHS_Model
     // endregion Incoming monitoring
 
     // region Outgoing monitoring
-    public static function api_outgoing_request_started(string $url, ?string $request_body = null, string $method = 'GET') : ?array
-    {
+    public static function api_outgoing_request_started(
+        string $url,
+        ?string $request_body = null,
+        string $method = 'GET',
+    ) : ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -534,15 +579,11 @@ class PHS_Model_Api_monitor extends PHS_Model
         return self::_update_api_monitor_record($fields_arr);
     }
 
-    /**
-     * @param null|int|array $outgoing_request
-     * @param null|int $http_code
-     * @param null|string $response_body
-     *
-     * @return null|array
-     */
-    public static function api_outgoing_request_success($outgoing_request, ?int $http_code = null, ?string $response_body = null) : ?array
-    {
+    public static function api_outgoing_request_success(
+        null | int | array | PHS_Record_data $outgoing_request,
+        ?int $http_code = null,
+        ?string $response_body = null,
+    ) : ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -565,17 +606,11 @@ class PHS_Model_Api_monitor extends PHS_Model
         return self::_update_api_monitor_record($fields_arr, $outgoing_request);
     }
 
-    /**
-     * @param null|int|array $outgoing_request
-     * @param null|int $http_code
-     * @param null|string $error_message
-     * @param null|string $response_body
-     *
-     * @return null|array
-     */
     public static function api_outgoing_request_error(
         null | int | array | PHS_Record_data $outgoing_request,
-        ?int $http_code = null, ?string $error_message = null, ?string $response_body = null
+        ?int $http_code = null,
+        ?string $error_message = null,
+        ?string $response_body = null,
     ) : ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
@@ -602,16 +637,6 @@ class PHS_Model_Api_monitor extends PHS_Model
         return self::_update_api_monitor_record($fields_arr, $outgoing_request);
     }
 
-    /**
-     * @param string $url
-     * @param null|string $request_body
-     * @param null|string $method
-     * @param null|int $http_code
-     * @param null|string $error_message
-     * @param null|string $response_body
-     *
-     * @return null|array
-     */
     public static function api_outgoing_request_direct_error(
         string $url, ?string $request_body = null, ?string $method = null,
         ?int $http_code = null, ?string $error_message = null, ?string $response_body = null
@@ -647,14 +672,10 @@ class PHS_Model_Api_monitor extends PHS_Model
         return $monitor_record;
     }
 
-    /**
-     * @param array $fields_arr
-     * @param int|array $force_record
-     *
-     * @return null|array
-     */
-    public static function update_outgoing_request_record(array $fields_arr, $force_record) : ?array
-    {
+    public static function update_outgoing_request_record(
+        array $fields_arr,
+        null | int | array | PHS_Record_data $force_record,
+    ) : ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -684,8 +705,10 @@ class PHS_Model_Api_monitor extends PHS_Model
         return self::_update_api_monitor_record($new_fields_arr, $force_record);
     }
 
-    private static function _update_api_monitor_record(array $fields_arr, null | int | array | PHS_Record_data $record_data = null) : ?array
-    {
+    private static function _update_api_monitor_record(
+        array $fields_arr,
+        null | int | array | PHS_Record_data $record_data = null,
+    ) : ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -714,15 +737,24 @@ class PHS_Model_Api_monitor extends PHS_Model
 
         if (empty($existing_record['internal_route'])
             && empty($fields_arr['internal_route'])) {
-            $fields_arr['internal_route'] = PHS::get_route_as_string();
+            $fields_arr['internal_route'] = PHS_Scope::current_scope() === PHS_Scope::SCOPE_GRAPHQL
+                ? '/graphql'
+                : PHS::get_route_as_string();
         }
 
         if (empty($existing_record['external_route'])
-            && empty($fields_arr['external_route'])
-            && ($type = $fields_arr['type'] ?? $existing_record['type'] ?? 0)
-            && (int)$type === self::TYPE_INCOMING
-            && ($api_obj = PHS_Api::global_api_instance())) {
-            $fields_arr['external_route'] = $api_obj->get_api_route();
+            && empty($fields_arr['external_route'])) {
+            switch ((int)($fields_arr['type'] ?? $existing_record['type'] ?? 0)) {
+                case self::TYPE_INCOMING:
+                    if (($api_obj = PHS_Api::global_api_instance())) {
+                        $fields_arr['external_route'] = $api_obj->get_api_route();
+                    }
+                    break;
+
+                case self::TYPE_GRAPHQL:
+                    $fields_arr['external_route'] = '/graphql';
+                    break;
+            }
         }
 
         if (!empty($fields_arr['request_body'])

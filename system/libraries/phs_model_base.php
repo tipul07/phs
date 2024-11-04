@@ -805,6 +805,22 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
     }
 
     /**
+     * @param array $constrain_arr Conditional db fields
+     * @param array|bool $flow_params Parameters in the flow
+     *
+     * @return null|PHS_Record_data Returns single record as PHS_Record_data
+     */
+    public function get_details_fields_to_record_data(array $constrain_arr, null | bool | array $flow_params = []) : ?PHS_Record_data
+    {
+        if (!($flow_params = $this->fetch_default_flow_params($flow_params))
+            || !($record_arr = $this->get_details_fields($constrain_arr, [...$flow_params, ...['result_type' => 'single']]))) {
+            return null;
+        }
+
+        return $this->record_data_from_array($record_arr, $flow_params);
+    }
+
+    /**
      * Retrieve one record from database by its primary key
      *
      * @param string|int $id Id of record we want to get from database
@@ -836,7 +852,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return null;
         }
 
-        return $this->data_to_record_data($data_arr, $flow_params);
+        return $this->record_data_from_array($data_arr, $flow_params);
     }
 
     /**

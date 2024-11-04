@@ -30,9 +30,12 @@ final class PHS_Graphql
     /** @var array Types that should go to query root */
     private static array $query_types = [];
 
-    public static function resolve_request() : bool
+    public static function resolve_request(array $input) : array
     {
-        $has_error = false;
+        $return_arr = [];
+        $return_arr['has_error'] = false;
+        $return_arr['error_msg'] = '';
+        $return_arr['output_arr'] = [];
 
         try {
             include_once PHS_GRAPHQL_DIR.'bootstrap.php';
@@ -44,46 +47,37 @@ final class PHS_Graphql
                     ->setMutation(self::_get_mutation_types())
             );
 
-            if (!($input = PHS_Api::get_request_body_as_json_array())
-                || empty($input['query'])) {
-                throw new RuntimeException('Malformed JSON string');
-            }
+            $result = GraphQL::executeQuery(schema: $schema, source: $input['query'] ?? '', variableValues: $input['variables'] ?? null);
 
-            $result = GraphQL::executeQuery(schema: $schema, source: $input['query'], variableValues: $input['variables'] ?? null);
-
-            $output = $result->toArray(PHS::st_debugging_mode()
+            $return_arr['output_arr'] = $result->toArray(PHS::st_debugging_mode()
                 ? DebugFlag::INCLUDE_DEBUG_MESSAGE | DebugFlag::RETHROW_INTERNAL_EXCEPTIONS | DebugFlag::RETHROW_UNSAFE_EXCEPTIONS
                 : DebugFlag::NONE);
         } catch (Throwable $e) {
-            $output = [
+            $return_arr['output_arr'] = [
                 'errors' => [
                     ['message' => $e->getMessage()],
                 ],
             ];
-            $has_error = true;
+
+            $return_arr['error_msg'] = 'Error while running query: '.$e->getMessage();
+            $return_arr['has_error'] = true;
         }
 
-        @header('Content-Type: application/json; charset=UTF-8');
-
-        try {
-            echo @json_encode($output, JSON_THROW_ON_ERROR);
-        } catch (Exception $e) {
-            echo '{"error":{"message":"Internal error.'
-                 .(PHS::st_debugging_mode() ? ' ('.$e->getMessage().')' : '').'"}}';
-            $has_error = true;
-        }
-
-        return !$has_error;
+        return $return_arr;
     }
 
-    public static function register_type(string $type_name, string $type_class, bool $is_query_type = false) : bool
+    /**
+     * @param class-string<PHS_Graphql_Type> $type_class
+     * @param bool $is_query_type
+     *
+     * @return bool
+     */
+    public static function register_type(string $type_class, bool $is_query_type = false) : bool
     {
-        if (!empty(self::$types[$type_name])) {
-            return false;
-        }
-
         if ( !($instance_details = PHS_Instantiable::extract_details_from_full_namespace_name($type_class))
-            || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_GRAPHQL ) {
+             || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_GRAPHQL
+             || !($type_name = $type_class::get_type_name())
+             || !empty(self::$types[$type_name])) {
             return false;
         }
 
@@ -185,7 +179,7 @@ final class PHS_Graphql
         return static function() {
             $types = [];
             foreach (self::get_types() as $type_name => $type_class) {
-                if (!($type_instance = self::instance_by_name($type_name))) {
+                if (!($type_instance = self::phs_instance_by_name($type_name))) {
                     continue;
                 }
 

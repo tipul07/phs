@@ -8,21 +8,6 @@ use phs\plugins\accounts\models\PHS_Model_Accounts_details;
 
 class PHS_Graphql_Account_details extends PHS_Graphql_Type
 {
-    public function get_type_name() : string
-    {
-        return 'accountDetails';
-    }
-
-    public function get_type_description() : string
-    {
-        return 'Account details type';
-    }
-
-    public function get_model_class() : ?string
-    {
-        return PHS_Model_Accounts_details::class;
-    }
-
     public function get_model_flow_params() : array
     {
         return ['table_name' => 'users_details'];
@@ -48,10 +33,25 @@ class PHS_Graphql_Account_details extends PHS_Graphql_Type
             }
 
             if (!empty($args['account_id'])) {
-                return $accounts_details_model->data_to_record_data($args['account_id'], $this->get_model_flow_params()) ?: null;
+                return $accounts_details_model->get_details_fields_to_record_data(['uid' => $args['account_id']], $this->get_model_flow_params()) ?: null;
             }
 
             return null;
         };
+    }
+
+    public static function get_type_name() : string
+    {
+        return 'accountDetails';
+    }
+
+    public static function get_type_description() : string
+    {
+        return 'Account details type';
+    }
+
+    public static function get_model_class() : ?string
+    {
+        return PHS_Model_Accounts_details::class;
     }
 }

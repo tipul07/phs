@@ -8,21 +8,6 @@ use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Graphql_Accounts extends PHS_Graphql_Type
 {
-    public function get_type_name() : string
-    {
-        return 'account';
-    }
-
-    public function get_type_description() : string
-    {
-        return 'Account type';
-    }
-
-    public function get_model_class() : ?string
-    {
-        return PHS_Model_Accounts::class;
-    }
-
     public function get_model_flow_params() : array
     {
         return ['table_name' => 'users'];
@@ -67,14 +52,14 @@ class PHS_Graphql_Accounts extends PHS_Graphql_Type
                         'defaultValue' => 1000,
                     ],
                 ],
-                'resolve' => static function($account) {
+                'resolve' => static function($account, array $args) {
                     return $account->roles_slugs($args['offset'] ?? 0, $args['limit'] ?? 1000)?->cast_to_array() ?: null;
                 },
             ],
             'roles_units_slugs' => [
                 'type' => self::listOf(self::string()),
                 'args' => [
-                    'offsett' => [
+                    'offset' => [
                         'type'         => self::int(),
                         'description'  => 'Offset of the list of role units returned',
                         'defaultValue' => 0,
@@ -90,5 +75,20 @@ class PHS_Graphql_Accounts extends PHS_Graphql_Type
                 },
             ],
         ];
+    }
+
+    public static function get_type_name() : string
+    {
+        return 'account';
+    }
+
+    public static function get_type_description() : string
+    {
+        return 'Account type';
+    }
+
+    public static function get_model_class() : ?string
+    {
+        return PHS_Model_Accounts::class;
     }
 }
