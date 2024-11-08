@@ -14,9 +14,9 @@ trait PHS_Trait_Has_relations
     abstract protected function _relations_definition() : void;
 
     public function relation_one_to_one(
-        string $key, string $with_model, string $with_key,
-        ?array $with_flow = [],
-        ?array $for_flow = [],
+        string $key,
+        string $dest_model, string $dest_key, ?array $dest_flow = [],
+        ?array $source_flow = [], string $source_key = '',
         ?Closure $filter_fn = null,
         ?Closure $read_fn = null,
         array $options = [],
@@ -26,16 +26,17 @@ trait PHS_Trait_Has_relations
             return false;
         }
 
-        $this->_relations[$key] = new PHS_Relation($key, $with_model, $with_flow, PHS_Relation::ONE_TO_ONE, $with_key,
-            for_flow: $for_flow, filter_fn: $filter_fn, read_fn: $read_fn, options: $options);
+        $this->_relations[$key] = new PHS_Relation($key, $dest_model, $dest_flow, PHS_Relation::ONE_TO_ONE, $dest_key,
+            source_flow: $source_flow, source_key: $source_key, source_model: $this,
+            filter_fn: $filter_fn, read_fn: $read_fn, options: $options);
 
         return true;
     }
 
     public function relation_reverse_one_to_one(
-        string $key, string $with_model, string $reverse_key,
-        ?array $with_flow = [], string $with_key = '',
-        ?array $for_flow = [],
+        string $key,
+        string $dest_model, string $reverse_key, ?array $dest_flow = [], string $dest_key = '',
+        ?array $source_flow = [], string $source_key = '',
         ?Closure $filter_fn = null,
         ?Closure $read_fn = null,
         array $options = [],
@@ -45,15 +46,19 @@ trait PHS_Trait_Has_relations
             return false;
         }
 
-        $this->_relations[$key] = new PHS_Relation($key, $with_model, $with_flow, PHS_Relation::REVERSE_ONE_TO_ONE, $with_key,
-            reverse_key: $reverse_key, for_flow: $for_flow, filter_fn: $filter_fn, read_fn: $read_fn, options: $options);
+        $this->_relations[$key] = new PHS_Relation($key, $dest_model, $dest_flow,
+            PHS_Relation::REVERSE_ONE_TO_ONE, $dest_key,
+            reverse_key: $reverse_key,
+            source_flow: $source_flow, source_key: $source_key, source_model: $this,
+            filter_fn: $filter_fn, read_fn: $read_fn, options: $options);
 
         return true;
     }
 
     public function relation_one_to_many(
-        string $key, string $with_model, string $with_key, ?array $with_flow = [],
-        ?array $for_flow = [],
+        string $key,
+        string $dest_model, string $dest_key, ?array $dest_flow = [],
+        ?array $source_flow = [], string $source_key = '',
         ?Closure $filter_fn = null,
         ?Closure $read_fn = null,
         int $read_limit = 20,
@@ -64,18 +69,20 @@ trait PHS_Trait_Has_relations
             return false;
         }
 
-        $this->_relations[$key] = new PHS_Relation($key, $with_model, $with_flow, PHS_Relation::ONE_TO_MANY, $with_key,
-            for_flow: $for_flow, filter_fn: $filter_fn, read_fn: $read_fn, read_limit: $read_limit, options: $options);
+        $this->_relations[$key] = new PHS_Relation($key, $dest_model, $dest_flow,
+            PHS_Relation::ONE_TO_MANY, $dest_key,
+            source_flow: $source_flow, source_key: $source_key, source_model: $this,
+            filter_fn: $filter_fn, read_fn: $read_fn, read_limit: $read_limit, options: $options);
 
         return true;
     }
 
     public function relation_many_to_many(
         string $key,
-        string $with_model, string $with_key,
-        string $using_model, string $using_key, string $using_with_key,
-        ?array $with_flow = [], ?array $using_flow = [],
-        ?array $for_flow = [],
+        string $dest_model, string $dest_key,
+        string $link_model, string $link_key, string $link_dest_key,
+        ?array $dest_flow = [], ?array $link_flow = [],
+        ?array $source_flow = [], string $source_key = '',
         ?Closure $filter_fn = null,
         ?Closure $read_fn = null,
         int $read_limit = 20,
@@ -86,11 +93,12 @@ trait PHS_Trait_Has_relations
             return false;
         }
 
-        $this->_relations[$key] = new PHS_Relation($key, $with_model, $with_flow,
-            PHS_Relation::MANY_TO_MANY, $with_key,
-            $using_model, $using_flow, $using_key,
-            using_with_key: $using_with_key,
-            for_flow: $for_flow, filter_fn: $filter_fn, read_fn: $read_fn, read_limit: $read_limit, options: $options);
+        $this->_relations[$key] = new PHS_Relation($key, $dest_model, $dest_flow,
+            PHS_Relation::MANY_TO_MANY, $dest_key,
+            $link_model, $link_flow, $link_key,
+            link_dest_key: $link_dest_key,
+            source_flow: $source_flow, source_key: $source_key, source_model: $this,
+            filter_fn: $filter_fn, read_fn: $read_fn, read_limit: $read_limit, options: $options);
 
         return true;
     }

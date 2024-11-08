@@ -1022,7 +1022,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             $key = $this->validate_field_value($item_arr[$key], $key, $params);
 
             if (!empty($params['return_record_data_items'])) {
-                $ret_arr[$key] = $this->record_data_from_array($item_arr);
+                $ret_arr[$key] = $this->record_data_from_array($item_arr, $params);
             } else {
                 $ret_arr[$key] = $item_arr;
             }

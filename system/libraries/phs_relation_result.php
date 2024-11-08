@@ -34,20 +34,32 @@ class PHS_Relation_result implements Countable, Iterator
     }
 
     #[ReturnTypeWillChange]
-    public function next() : null | array | PHS_Record_data
+    public function next(int $offset = -1, int $limit = 0) : null | array | PHS_Record_data
     {
-        $this->read_offset += $this->read_limit;
+        if ($limit <= 0) {
+            $limit = $this->read_limit;
+        }
+        if ($offset < 0) {
+            $offset = $this->read_offset + $limit;
+        }
 
-        return $this->read()->current();
+        return $this->read($offset, $limit)->current();
     }
 
-    public function read(int $offset = -1, int $limit = 0) : static
+    public function read(int $offset = -1, int $limit = 0, bool $reload = false) : static
     {
         if ($offset < 0) {
             $offset = $this->read_offset;
         }
         if ($limit <= 0) {
             $limit = $this->read_limit;
+        }
+
+        if (!$reload
+           && $this->_data_read
+           && $this->read_offset === $offset
+           && $this->read_limit === $limit) {
+            return $this;
         }
 
         $this->read_offset = $offset;

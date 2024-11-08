@@ -1633,7 +1633,7 @@ final class PHS extends PHS_Registry
         return $route_arr;
     }
 
-    public static function url(?array $route_arr = null, null|bool|array $args = null, ?array $extra = null) : string
+    public static function url(?array $route_arr = null, null | bool | array $args = null, ?array $extra = null) : string
     {
         $route_arr = self::validate_route_from_parts($route_arr, true);
 
