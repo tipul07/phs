@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\events\actions;
 
 use phs\libraries\PHS_Event;

@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 if ((!defined('PHS_SETUP_FLOW') || !constant('PHS_SETUP_FLOW'))
@@ -320,9 +319,9 @@ class PHS_Registry extends PHS_Language
             if (isset($lower_to_raw_arr[$lower_key])) {
                 if (empty($params['use_newer_key_case'])) {
                     $key = $lower_to_raw_arr[$lower_key];
-                } elseif ( !empty($lower_to_raw_arr[$lower_key])
+                } elseif (!empty($lower_to_raw_arr[$lower_key])
                           && $lower_to_raw_arr[$lower_key] !== $key
-                          && array_key_exists($lower_to_raw_arr[$lower_key], $result) ) {
+                          && array_key_exists($lower_to_raw_arr[$lower_key], $result)) {
                     unset($result[$lower_to_raw_arr[$lower_key]]);
                 }
             }
@@ -349,7 +348,7 @@ class PHS_Registry extends PHS_Language
                 $a_key = trim($a_key);
             }
 
-            if (strtolower($a_key) === $lower_key ) {
+            if (strtolower($a_key) === $lower_key) {
                 return true;
             }
         }
@@ -373,7 +372,7 @@ class PHS_Registry extends PHS_Language
                 $a_key = trim($a_key);
             }
 
-            if (strtolower($a_key) === $lower_key ) {
+            if (strtolower($a_key) === $lower_key) {
                 $arr1[$a_key] = $value;
 
                 if ($params['only_first_value']) {

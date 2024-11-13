@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\admin\actions\retention;
 
 use phs\PHS;
@@ -345,7 +344,7 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
             return null;
         }
 
-        if ( !isset($this->policies_cache[(int)$params['record']['retention_policy_id']])) {
+        if (!isset($this->policies_cache[(int)$params['record']['retention_policy_id']])) {
             $this->policies_cache[(int)$params['record']['retention_policy_id']] = $retention_arr;
         }
 

@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\accounts\graphql\types;
 
 use Closure;
@@ -16,7 +15,7 @@ class PHS_Graphql_Account_details extends PHS_Graphql_Type
     protected function _get_query_resolver_args() : array
     {
         return [...parent::_get_query_resolver_args(), ...[
-            'account_id' => ['type' => self::int()],
+            'account_id' => ['type' => self::id()],
         ]];
     }
 
@@ -47,7 +46,7 @@ class PHS_Graphql_Account_details extends PHS_Graphql_Type
 
     public static function get_type_description() : string
     {
-        return 'Account details type';
+        return 'Platform account details';
     }
 
     public static function get_model_class() : ?string

@@ -23,7 +23,7 @@ if (!($plugins_model = PHS_Model_Plugins::get_instance())
     return PHS::st_get_error();
 }
 
-if ( !($migrations_manager = migrations_manager()) ) {
+if (!($migrations_manager = migrations_manager())) {
     PHS::st_reset_error();
 
     return PHS::arr_set_error(-1, PHS::_t('Error instantiating migrations manager.'));
@@ -107,8 +107,8 @@ foreach ($plugins_arr as $plugin_name => $plugin_obj) {
     $installing_plugins_arr[$plugin_name] = $plugin_obj;
 }
 
-if ( ($plugin_names = array_keys($installing_plugins_arr)) ) {
-    if ( null === ($migrations_arr = $migrations_manager->register_migrations_for_plugins($plugin_names)) ) {
+if (($plugin_names = array_keys($installing_plugins_arr))) {
+    if (null === ($migrations_arr = $migrations_manager->register_migrations_for_plugins($plugin_names))) {
         return PHS::arr_set_error(-1,
             PHS::_t('Error registering migration scripts: %s',
                 $migrations_manager->get_simple_error_message(PHS::_t('Unknown error.'))));
@@ -133,8 +133,8 @@ foreach ($installing_plugins_arr as $plugin_name => $plugin_obj) {
 PHS_Maintenance::unlock_db_structure_read();
 
 /** @var PHS_Event_Migrations_finish $event_obj */
-if ( ($event_obj = PHS_Event_Migrations_finish::trigger(['is_dry_update' => PHS_Db::dry_update()]))
-    && $event_obj->result_has_error() ) {
+if (($event_obj = PHS_Event_Migrations_finish::trigger(['is_dry_update' => PHS_Db::dry_update()]))
+    && $event_obj->result_has_error()) {
     PHS_Maintenance::output(PHS::_t('There were some errors while finializing migration scripts:'."\n\n".'%s',
         $event_obj->get_result_errors_as_string()));
 }

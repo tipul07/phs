@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\accounts\models;
 
 use phs\libraries\PHS_Model;
@@ -93,7 +92,7 @@ class PHS_Model_Accounts_details extends PHS_Model
 
     protected function _relations_definition() : void
     {
-        $this->relation_one_to_one( 'account',
+        $this->relation_one_to_one('account',
             PHS_Model_Accounts::class, 'uid'
         );
     }

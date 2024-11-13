@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\events\migrations;
 
 include_once 'phs_migration.php';
@@ -32,7 +31,7 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
-        if ( !$plugin_obj ) {
+        if (!$plugin_obj) {
             return null;
         }
 
@@ -61,7 +60,7 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
-        if ( !$plugin_obj ) {
+        if (!$plugin_obj) {
             return null;
         }
 
@@ -90,7 +89,7 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
-        if ( !$plugin_obj ) {
+        if (!$plugin_obj) {
             return null;
         }
 
@@ -119,7 +118,7 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
-        if ( !$plugin_obj ) {
+        if (!$plugin_obj) {
             return null;
         }
 
@@ -148,7 +147,7 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
-        if ( !$plugin_obj ) {
+        if (!$plugin_obj) {
             return null;
         }
 

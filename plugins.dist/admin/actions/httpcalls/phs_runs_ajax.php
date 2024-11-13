@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\admin\actions\httpcalls;
 
 use phs\PHS;
@@ -34,7 +33,7 @@ class PHS_Action_Runs_ajax extends PHS_Action
         /** @var PHS_Plugin_Admin $admin_plugin */
         /** @var PHS_Model_Request_queue $requests_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
-            || !($requests_model = PHS_Model_Request_queue::get_instance()) ) {
+            || !($requests_model = PHS_Model_Request_queue::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();

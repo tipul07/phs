@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 use phs\PHS;
@@ -993,7 +992,7 @@ abstract class PHS_Model_Sqlite extends PHS_Model_Core_base
             }
 
             if (!empty($params['return_record_data_items'])) {
-                $ret_arr[$item_arr[$key]] = $this->record_data_from_array($item_arr);
+                $ret_arr[$item_arr[$key]] = $this->record_data_from_array($item_arr, $params);
             } else {
                 $ret_arr[$item_arr[$key]] = $item_arr;
             }

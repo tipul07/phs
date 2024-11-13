@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 use Iterator;
@@ -143,8 +142,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
 
     public function set_data_key(string $key, mixed $value) : void
     {
-        if (!array_key_exists($key, $this->_data)
-            && !array_key_exists($key, $this->_data_structure)
+        if (!$this->is_data_structure_key($key)
             && !$this->data_key_is_allowed($key)
             && !$this->is_relation_key($key)) {
             return;
@@ -326,7 +324,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
         $relation_keys = [];
         /** @var PHS_Relation $relation */
         foreach ($relations as $relation) {
-            if ($this->_model->get_table_name($relation->get_for_flow()) !== $this->get_simple_table_name_from_flow()) {
+            if ($this->_model->get_table_name($relation->get_source_flow()) !== $this->get_simple_table_name_from_flow()) {
                 continue;
             }
 
@@ -348,13 +346,13 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
         $this->_model->load_relation($this, $key);
     }
 
-    private function _load_and_read_relation(string $key, int $offset = -1, int $limit = 0) : void
+    private function _load_and_read_relation(string $key, int $offset = -1, int $limit = 0, bool $reload = false, ...$args) : void
     {
         $this->_load_relation($key);
 
         if (($relation_result = $this->_data[$key] ?? null)
            && $relation_result instanceof PHS_Relation_result) {
-            $relation_result->read($offset, $limit);
+            $relation_result->read($offset, $limit, $reload, ...$args);
         }
     }
 

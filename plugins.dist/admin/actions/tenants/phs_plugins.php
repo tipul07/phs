@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\admin\actions\tenants;
 
 use phs\PHS;

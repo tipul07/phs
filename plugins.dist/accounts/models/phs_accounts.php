@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\accounts\models;
 
 use phs\PHS;
@@ -761,7 +760,7 @@ class PHS_Model_Accounts extends PHS_Model
         $edit_arr['fields']['uid'] = $online_arr['auid'];
         $edit_arr['fields']['auid'] = 0;
 
-        if ( !($new_record = $this->edit($online_arr, $edit_arr)) ) {
+        if (!($new_record = $this->edit($online_arr, $edit_arr))) {
             return null;
         }
 
@@ -891,7 +890,7 @@ class PHS_Model_Accounts extends PHS_Model
             return $account_arr;
         }
 
-        if ( !($new_record = $this->edit($account_arr, ['fields' => ['email_verified' => 1]])) ) {
+        if (!($new_record = $this->edit($account_arr, ['fields' => ['email_verified' => 1]]))) {
             return null;
         }
 
@@ -1571,8 +1570,8 @@ class PHS_Model_Accounts extends PHS_Model
 
     protected function _relations_definition() : void
     {
-        $this->relation_one_to_one( 'details',
-            PHS_Model_Accounts_details::class, 'details_id', ['table_name' => 'users_details'],
+        $this->relation_one_to_one('details',
+            PHS_Model_Accounts_details::class, 'details_id', dest_flow: ['table_name' => 'users_details'],
         );
 
         $this->relation_many_to_many('roles_slugs',
@@ -2761,7 +2760,7 @@ class PHS_Model_Accounts extends PHS_Model
     public static function generate_password(int $len = 10, array $params = []) : string
     {
         /** @var PHS_Event_Accounts_generate_password $event_obj */
-        if ( ($event_obj = PHS_Event_Accounts_generate_password::trigger(['length' => $len]))
+        if (($event_obj = PHS_Event_Accounts_generate_password::trigger(['length' => $len]))
             && ($generated_password = $event_obj->get_output('generated_password'))) {
             return (string)$generated_password;
         }
@@ -2861,7 +2860,7 @@ class PHS_Model_Accounts extends PHS_Model
     public static function encode_pass(string $pass, string $salt) : string
     {
         /** @var PHS_Event_Accounts_password_encryption $event_obj */
-        if ( ($event_obj = PHS_Event_Accounts_password_encryption::trigger(['pass' => $pass, 'salt' => $salt]))
+        if (($event_obj = PHS_Event_Accounts_password_encryption::trigger(['pass' => $pass, 'salt' => $salt]))
             && ($encyped_password = $event_obj->get_output('encrypted_password'))) {
             return (string)$encyped_password;
         }

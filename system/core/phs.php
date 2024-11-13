@@ -1,5 +1,4 @@
 <?php
-
 namespace phs;
 
 use phs\libraries\PHS_Event;
@@ -1633,7 +1632,7 @@ final class PHS extends PHS_Registry
         return $route_arr;
     }
 
-    public static function url(?array $route_arr = null, null|bool|array $args = null, ?array $extra = null) : string
+    public static function url(?array $route_arr = null, null | bool | array $args = null, ?array $extra = null) : string
     {
         $route_arr = self::validate_route_from_parts($route_arr, true);
 
@@ -2664,7 +2663,7 @@ final class PHS extends PHS_Registry
     {
         self::st_reset_error();
 
-        if ( !($class_name = PHS_Instantiable::get_class_name_from_instance_name($instance_type)) ) {
+        if (!($class_name = PHS_Instantiable::get_class_name_from_instance_name($instance_type))) {
             self::st_set_error(self::ERR_SCRIPT_FILES, self::_t('Invalid instance type to obtain script files list.'));
 
             return null;

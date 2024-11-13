@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\admin\libraries;
 
 use phs\PHS;
@@ -323,10 +322,10 @@ class Phs_Plugin_settings extends PHS_Library
     {
         $this->reset_error();
 
-        if ( empty( $this->_admin_plugin )
-            && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()) ) {
-            $this->set_error( self::ERR_DEPENDENCIES,
-                $this->_pt( 'Error loading required resources.' ) );
+        if (empty($this->_admin_plugin)
+            && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES,
+                $this->_pt('Error loading required resources.'));
 
             return false;
         }

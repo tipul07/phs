@@ -19,7 +19,7 @@ use phs\system\core\libraries\PHS_Requests_queue_manager;
 
 function phs_version() : string
 {
-    return '1.2.4.3';
+    return '1.2.4.4';
 }
 
 // region Helper functions
@@ -85,7 +85,7 @@ function migrations_manager() : ?PHS_Migrations_manager
     PHS::st_reset_error();
 
     /** @var PHS_Migrations_manager $manager */
-    if ( !($manager = PHS::get_core_library_instance('migrations_manager', ['as_singleton' => true])) ) {
+    if (!($manager = PHS::get_core_library_instance('migrations_manager', ['as_singleton' => true]))) {
         PHS::st_set_error(PHS_Error::ERR_RESOURCES, PHS::_t('Error loading required resources.'));
 
         return null;
@@ -99,7 +99,7 @@ function requests_queue_manager() : ?PHS_Requests_queue_manager
     PHS::st_reset_error();
 
     /** @var PHS_Requests_queue_manager $manager */
-    if ( !($manager = PHS::get_core_library_instance('requests_queue_manager', ['as_singleton' => true])) ) {
+    if (!($manager = PHS::get_core_library_instance('requests_queue_manager', ['as_singleton' => true]))) {
         PHS::st_set_error(PHS_Error::ERR_RESOURCES, PHS::_t('Error loading required resources.'));
 
         return null;
@@ -110,7 +110,7 @@ function requests_queue_manager() : ?PHS_Requests_queue_manager
 
 function http_call(
     string $url,
-    string $method = 'GET',
+    ?string $method = null,
     null | array | string $payload = null,
     ?array $settings = null,
     array $params = [],
@@ -125,16 +125,14 @@ function http_call(
     $params['same_thread_if_bg'] = !isset($params['same_thread_if_bg']) || !empty($params['same_thread_if_bg']);
     $params['run_after'] ??= null;
 
-    if ( !empty($params['run_after'])
+    if (!empty($params['run_after'])
         && ($run_after = parse_db_date($params['run_after']))) {
         $params['run_after'] = date(PHS_Model_Core_base::DATETIME_DB, $run_after);
     } else {
         $params['run_after'] = null;
     }
 
-    $method = strtoupper(trim($method));
-
-    if ( !($result = $rq_manager->http_call($url, $method, $payload, $settings, $params)) ) {
+    if (!($result = $rq_manager->http_call($url, $method, $payload, $settings, $params))) {
         PHS::st_copy_or_set_error($rq_manager, PHS_Error::ERR_RESOURCES, PHS::_t('Error sending HTTP call to background.'));
 
         return null;

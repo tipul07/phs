@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\events\migrations;
 
 use phs\libraries\PHS_Event;
@@ -18,7 +17,7 @@ abstract class PHS_Event_Migration extends PHS_Event
 
     public function get_result_errors_as_string() : string
     {
-        return implode( "\n\t- ", $this->get_result_errors());
+        return implode("\n\t- ", $this->get_result_errors());
     }
 
     public function is_dry_update() : bool

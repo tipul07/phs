@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\admin\actions\retention;
 
 use phs\PHS_Agent;
@@ -20,7 +19,7 @@ class PHS_Action_Data_retention_ag extends PHS_Action
     {
         /** @var PHS_Plugin_Admin $admin_plugin */
         /** @var PHS_Model_Data_retention $retention_model */
-        if ( !($admin_plugin = PHS_Plugin_Admin::get_instance())
+        if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
              || !($retention_lib = $admin_plugin->get_data_retention_instance())
              || !($retention_model = PHS_Model_Data_retention::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES,
@@ -45,7 +44,7 @@ class PHS_Action_Data_retention_ag extends PHS_Action
         $list_arr = $retention_model->fetch_default_flow_params(['table_name' => 'phs_data_retention']);
         $list_arr['fields']['status'] = $retention_model::STATUS_ACTIVE;
 
-        if ( !($retentions_arr = $retention_model->get_list($list_arr)) ) {
+        if (!($retentions_arr = $retention_model->get_list($list_arr))) {
             PHS_Logger::logf('[AGENT] No data retention plocies to be run.',
                 $admin_plugin::LOG_DATA_RETENTION);
 
@@ -55,7 +54,7 @@ class PHS_Action_Data_retention_ag extends PHS_Action
         PHS_Logger::notice('[AGENT] Start running '.count($retentions_arr).' data retention policies.',
             $admin_plugin::LOG_DATA_RETENTION);
 
-        if (($result_arr = $retention_lib->run_data_retention_for_list_bg($retentions_arr)) ) {
+        if (($result_arr = $retention_lib->run_data_retention_for_list_bg($retentions_arr))) {
             PHS_Logger::notice('[AGENT] Finished running '.$result_arr['total_policies'].' data retention policies: '
                                .'policies with errors: '.$result_arr['error_policies'].', '
                                .'affected rows: '.$result_arr['affected_rows'].'/'.$result_arr['total_rows'],

@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\admin\actions\httpcalls;
 
 use phs\PHS_Scope;
@@ -17,7 +16,7 @@ class PHS_Action_Check_ag extends PHS_Action
     {
         PHS_Logger::notice(' ----- Checking HTTP Calls', PHS_Logger::TYPE_HTTP_CALLS);
 
-        if ( !($rq_manager = requests_queue_manager()) ) {
+        if (!($rq_manager = requests_queue_manager())) {
             PHS_Logger::error('Error instantiating requests queue manager.', PHS_Logger::TYPE_HTTP_CALLS);
 
             return self::default_action_result();

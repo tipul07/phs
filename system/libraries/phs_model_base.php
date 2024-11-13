@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 use phs\PHS;
@@ -616,7 +615,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return true;
         }
 
-        if ( ($event_obj = PHS_Event_Model_hard_delete::trigger_for_model($this::class, [
+        if (($event_obj = PHS_Event_Model_hard_delete::trigger_for_model($this::class, [
             'flow_params' => $params,
             'record_data' => $existing_arr,
             'model_obj'   => $this,
@@ -738,7 +737,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
     public function validate_field_value(mixed $value, string $field_name, array $flow_arr = []) : mixed
     {
-        if ( !($field_details = $this->table_field_details($field_name, $flow_arr)) ) {
+        if (!($field_details = $this->table_field_details($field_name, $flow_arr))) {
             $this->set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Cannot obtain table field details.'));
 
             return null;
@@ -1077,7 +1076,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         $model_version = $this->get_model_version();
 
         /** @var null|PHS_Event_Migration_models $event_obj */
-        if ( !($event_obj = PHS_Event_Migration_models::trigger_before_missing(
+        if (!($event_obj = PHS_Event_Migration_models::trigger_before_missing(
             model_obj: $this, old_version: '0.0.0', new_version: $model_version, is_dry_update: $is_dry_update
         ))
              || $event_obj->result_has_error()
@@ -1099,7 +1098,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             }
 
             /** @var null|PHS_Event_Migration_models $event_obj */
-            if ( !($event_obj = PHS_Event_Migration_models::trigger_before_missing(
+            if (!($event_obj = PHS_Event_Migration_models::trigger_before_missing(
                 model_obj: $this, table_name: $table_name, old_version: '0.0.0', new_version: $model_version, is_dry_update: $is_dry_update
             ))
                  || $event_obj->result_has_error()
@@ -1125,7 +1124,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             }
 
             /** @var null|PHS_Event_Migration_models $event_obj */
-            if ( !($event_obj = PHS_Event_Migration_models::trigger_after_missing(
+            if (!($event_obj = PHS_Event_Migration_models::trigger_after_missing(
                 model_obj: $this, table_name: $table_name, old_version: '0.0.0', new_version: $model_version, is_dry_update: $is_dry_update
             ))
                  || $event_obj->result_has_error()
@@ -1141,7 +1140,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         }
 
         /** @var null|PHS_Event_Migration_models $event_obj */
-        if ( !($event_obj = PHS_Event_Migration_models::trigger_after_missing(
+        if (!($event_obj = PHS_Event_Migration_models::trigger_after_missing(
             model_obj: $this, old_version: '0.0.0', new_version: $model_version, is_dry_update: $is_dry_update
         ))
              || $event_obj->result_has_error()
@@ -1195,7 +1194,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         $is_dry_update = PHS_Db::dry_update();
 
         /** @var null|PHS_Event_Migration_models $event_obj */
-        if ( !($event_obj = PHS_Event_Migration_models::trigger_before_update(
+        if (!($event_obj = PHS_Event_Migration_models::trigger_before_update(
             model_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
         ))
              || $event_obj->result_has_error()
@@ -1224,7 +1223,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             }
 
             /** @var null|PHS_Event_Migration_models $event_obj */
-            if ( !($event_obj = PHS_Event_Migration_models::trigger_before_update(
+            if (!($event_obj = PHS_Event_Migration_models::trigger_before_update(
                 model_obj: $this, table_name: $table_name, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
             ))
                  || $event_obj->result_has_error()
@@ -1253,7 +1252,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             }
 
             /** @var null|PHS_Event_Migration_models $event_obj */
-            if ( !($event_obj = PHS_Event_Migration_models::trigger_after_update(
+            if (!($event_obj = PHS_Event_Migration_models::trigger_after_update(
                 model_obj: $this, table_name: $table_name, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
             ))
                  || $event_obj->result_has_error()
@@ -1271,7 +1270,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         }
 
         /** @var null|PHS_Event_Migration_models $event_obj */
-        if ( !($event_obj = PHS_Event_Migration_models::trigger_after_update(
+        if (!($event_obj = PHS_Event_Migration_models::trigger_after_update(
             model_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
         ))
              || $event_obj->result_has_error()
@@ -1323,7 +1322,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         $is_dry_update = PHS_Db::dry_update();
 
         /** @var null|PHS_Event_Migration_models $event_obj */
-        if ( !($event_obj = PHS_Event_Migration_models::trigger_before_missing(
+        if (!($event_obj = PHS_Event_Migration_models::trigger_before_missing(
             model_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
         ))
              || $event_obj->result_has_error()
@@ -1352,7 +1351,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             }
 
             /** @var null|PHS_Event_Migration_models $event_obj */
-            if ( !($event_obj = PHS_Event_Migration_models::trigger_before_missing(
+            if (!($event_obj = PHS_Event_Migration_models::trigger_before_missing(
                 model_obj: $this, table_name: $table_name, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
             ))
                  || $event_obj->result_has_error()
@@ -1384,7 +1383,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             }
 
             /** @var null|PHS_Event_Migration_models $event_obj */
-            if ( !($event_obj = PHS_Event_Migration_models::trigger_after_missing(
+            if (!($event_obj = PHS_Event_Migration_models::trigger_after_missing(
                 model_obj: $this, table_name: $table_name, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
             ))
                  || $event_obj->result_has_error()
@@ -1402,7 +1401,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         }
 
         /** @var null|PHS_Event_Migration_models $event_obj */
-        if ( !($event_obj = PHS_Event_Migration_models::trigger_after_missing(
+        if (!($event_obj = PHS_Event_Migration_models::trigger_after_missing(
             model_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
         ))
              || $event_obj->result_has_error()
@@ -1700,8 +1699,8 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
             return true;
         }
 
-        if ( !($connection_name = $this->get_db_connection($this->fetch_default_flow_params($flow_arr)))
-            || !($settings_arr = PHS_Db::get_db_connection($connection_name)) ) {
+        if (!($connection_name = $this->get_db_connection($this->fetch_default_flow_params($flow_arr)))
+            || !($settings_arr = PHS_Db::get_db_connection($connection_name))) {
             return false;
         }
 
@@ -1715,11 +1714,11 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
     public function reset_maintenance_database_credentials(array $flow_arr = []) : bool
     {
-        if ( empty($this->_old_db_settings) ) {
+        if (empty($this->_old_db_settings)) {
             return true;
         }
 
-        if ( !($connection_name = $this->get_db_connection($this->fetch_default_flow_params($flow_arr)))
+        if (!($connection_name = $this->get_db_connection($this->fetch_default_flow_params($flow_arr)))
             || !PHS_Db::add_db_connection($connection_name, $this->_old_db_settings)) {
             return false;
         }
@@ -1972,7 +1971,7 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
         ];
 
         /** @var PHS_Event_Model_validate_data_fields $event_obj */
-        if (($event_obj = PHS_Event_Model_validate_data_fields::trigger( $input_arr ))) {
+        if (($event_obj = PHS_Event_Model_validate_data_fields::trigger($input_arr))) {
             if (($new_flow_params = $event_obj->get_output('flow_params'))) {
                 $flow_params = self::merge_array_assoc($flow_params, $new_flow_params);
             }

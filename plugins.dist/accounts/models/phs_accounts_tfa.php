@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\accounts\models;
 
 use phs\PHS;
@@ -828,8 +827,8 @@ class PHS_Model_Accounts_tfa extends PHS_Model
 
     protected function _relations_definition() : void
     {
-        $this->relation_one_to_one( 'account',
-            PHS_Model_Accounts::class, 'uid', ['table_name' => 'users']
+        $this->relation_one_to_one('account',
+            PHS_Model_Accounts::class, 'uid', dest_flow: ['table_name' => 'users']
         );
     }
 

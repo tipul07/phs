@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 use Closure;
@@ -14,7 +13,11 @@ class PHS_Relation_result implements Countable, Iterator
 
     private bool $_data_read = false;
 
+    private array $_read_args = [];
+
     private int $read_offset = 0;
+
+    private int $next_read_limit = 0;
 
     public function __construct(
         readonly private PHS_Relation $relation,
@@ -27,33 +30,47 @@ class PHS_Relation_result implements Countable, Iterator
     public function current() : null | array | PHS_Record_data
     {
         if (!$this->_data_read) {
-            $this->read();
+            $this->_internal_read();
         }
 
         return $this->_data;
     }
 
     #[ReturnTypeWillChange]
-    public function next() : null | array | PHS_Record_data
+    public function next(int $offset = -1, int $limit = 0) : null | array | PHS_Record_data
     {
-        $this->read_offset += $this->read_limit;
+        if ($limit <= 0) {
+            $limit = $this->next_read_limit ?: $this->read_limit;
+        }
+        if ($offset < 0) {
+            $offset = $this->read_offset + $limit;
+        }
 
-        return $this->read()->current();
+        return $this->_internal_read($offset, $limit)->current();
     }
 
-    public function read(int $offset = -1, int $limit = 0) : static
+    public function read(int $offset = -1, int $limit = 0, bool $reload = false, ...$args) : static
     {
         if ($offset < 0) {
             $offset = $this->read_offset;
         }
         if ($limit <= 0) {
-            $limit = $this->read_limit;
+            $limit = $this->next_read_limit ?: $this->read_limit;
+        }
+
+        if (!$reload
+            && $this->_data_read
+            && $this->read_offset === $offset
+            && $this->next_read_limit === $limit
+            && PHS_Utils::arrays_are_same($args, $this->_read_args)) {
+            return $this;
         }
 
         $this->read_offset = $offset;
-        $this->read_limit = $limit;
+        $this->next_read_limit = $limit;
+        $this->_read_args = $args;
 
-        $this->_data = ($this->read_fn)($this->read_value, $offset, $limit);
+        $this->_data = ($this->read_fn)($this->read_value, $offset, $limit, ...$args);
         $this->_data_read = true;
 
         return $this;
@@ -70,7 +87,7 @@ class PHS_Relation_result implements Countable, Iterator
 
     public function yield() : ?Generator
     {
-        if ( !is_array(($current = $this->current())) ) {
+        if (!is_array(($current = $this->current()))) {
             return $current;
         }
 
@@ -78,7 +95,13 @@ class PHS_Relation_result implements Countable, Iterator
             foreach ($current as $current_item) {
                 yield $current_item;
             }
-        } while ( ($current = $this->next()) && is_array($current) );
+        } while (
+            count($current) === $this->next_read_limit
+            && ($current = $this->next())
+            && is_array($current)
+        );
+
+        $this->_reset_data();
 
         return null;
     }
@@ -109,6 +132,20 @@ class PHS_Relation_result implements Countable, Iterator
     public function rewind() : void
     {
         $this->read_offset = 0;
+    }
+
+    protected function _internal_read(int $offset = -1, int $limit = 0) : static
+    {
+        return $this->read($offset, $limit, false, ...$this->_read_args);
+    }
+
+    private function _reset_data() : void
+    {
+        $this->_data = null;
+        $this->_data_read = false;
+        $this->_read_args = [];
+        $this->read_offset = 0;
+        $this->next_read_limit = 0;
     }
 
     public function __call(string $name, array $arguments) : mixed

@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\models;
 
 use phs\libraries\PHS_Model;
@@ -1389,9 +1388,9 @@ class PHS_Model_Roles extends PHS_Model
         $this->relation_many_to_many('role_units_slugs',
             self::class, 'id',
             self::class, 'role_unit_id', 'role_id',
-            ['table_name' => 'roles_units'],
-            ['table_name' => 'roles_units_links'],
-            for_flow: ['table_name' => 'roles'],
+            dest_flow: ['table_name' => 'roles_units'],
+            link_flow: ['table_name' => 'roles_units_links'],
+            source_flow: ['table_name' => 'roles'],
             filter_fn: function(PHS_Record_data $role_data, mixed $read_value) {
                 return $role_data['slug'] ?? '';
             }

@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\admin\actions\retention;
 
 use phs\PHS;
@@ -350,8 +349,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 $result = null;
-                if ( !empty($running_ids_arr)
-                    && ($result = $this->_data_retention_lib->run_data_retention_for_list($running_ids_arr)) ) {
+                if (!empty($running_ids_arr)
+                    && ($result = $this->_data_retention_lib->run_data_retention_for_list($running_ids_arr))) {
                 }
 
                 if (!empty($remaining_ids_arr)) {
@@ -780,7 +779,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     public function after_filters_callback($params)
     {
-        if ( !$this->_admin_plugin->can_admin_manage_data_retention() ) {
+        if (!$this->_admin_plugin->can_admin_manage_data_retention()) {
             return '';
         }
 

@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\__PLUGIN_NAME__\events__CLASS_NAMESPACE__;
 
 use phs\libraries\PHS_Event;

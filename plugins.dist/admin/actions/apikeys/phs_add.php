@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\admin\actions\apikeys;
 
 use phs\PHS;

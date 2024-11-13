@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\admin;
 
 use phs\PHS;

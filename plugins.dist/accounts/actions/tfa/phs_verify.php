@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\accounts\actions\tfa;
 
 use phs\PHS;

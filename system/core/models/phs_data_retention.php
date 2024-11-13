@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\models;
 
 use phs\PHS;
@@ -257,13 +256,13 @@ class PHS_Model_Data_retention extends PHS_Model
 
         $edit_params = $this->fetch_default_flow_params(['table_name' => 'phs_data_retention_runs']);
         $edit_params['fields'] = [];
-        if ( !empty($destination_table) ) {
+        if (!empty($destination_table)) {
             $edit_params['fields']['to_table'] = $destination_table;
         }
-        if ( $error !== false) {
+        if ($error !== false) {
             $edit_params['fields']['error'] = $error;
         }
-        if ( !empty($also_finish) ) {
+        if (!empty($also_finish)) {
             $edit_params['fields']['end_date'] = $now_date;
         }
 
@@ -296,7 +295,7 @@ class PHS_Model_Data_retention extends PHS_Model
             return null;
         }
 
-        if ( empty($record_arr['retention'])
+        if (empty($record_arr['retention'])
             || !($interval_arr = $this->parse_retention_interval($record_arr['retention']))) {
             $this->set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Data retention interval is invalid.'));
 
@@ -310,10 +309,10 @@ class PHS_Model_Data_retention extends PHS_Model
     {
         $this->reset_error();
 
-        if ( !$retention
+        if (!$retention
             || !($interval_count = (int)substr($retention, 0, -1))
             || !($interval = substr($retention, -1))
-            || !$this->valid_interval($interval) ) {
+            || !$this->valid_interval($interval)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Data retention interval is invalid.'));
 
             return null;
@@ -327,16 +326,16 @@ class PHS_Model_Data_retention extends PHS_Model
 
     public function generate_retention_interval_time(array $retention_data) : string
     {
-        if ( empty($retention_data['count'])
+        if (empty($retention_data['count'])
              || (int)$retention_data['count'] <= 0
              || empty($retention_data['interval'])
              || !$this->valid_interval($retention_data['interval'])
-             || !($strtime = match ($retention_data['interval'] ) {
+             || !($strtime = match ($retention_data['interval']) {
                  self::INT_DAYS   => '-'.$retention_data['count'].' day',
                  self::INT_MONTHS => '-'.$retention_data['count'].' month',
                  self::INT_YEARS  => '-'.$retention_data['count'].' year',
                  default          => '',
-             }) ) {
+             })) {
             return '';
         }
 
@@ -345,7 +344,7 @@ class PHS_Model_Data_retention extends PHS_Model
 
     public function generate_retention_field(array $retention_data) : string
     {
-        if ( empty($retention_data['count'])
+        if (empty($retention_data['count'])
             || (int)$retention_data['count'] <= 0
             || empty($retention_data['interval'])
             || !$this->valid_interval($retention_data['interval'])) {
@@ -459,7 +458,7 @@ class PHS_Model_Data_retention extends PHS_Model
         $this->reset_error();
 
         if (empty($table_name)
-           || !($fields_arr = $model_obj->all_fields_definition(['table_name' => $table_name])) ) {
+           || !($fields_arr = $model_obj->all_fields_definition(['table_name' => $table_name]))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Could not obtain date fields for provided table.'));
 
             return null;
@@ -658,13 +657,13 @@ class PHS_Model_Data_retention extends PHS_Model
             return false;
         }
 
-        if ( !$model_obj->set_maintenance_database_credentials($flow_arr) ) {
+        if (!$model_obj->set_maintenance_database_credentials($flow_arr)) {
             $this->set_error(self::ERR_INSERT, self::_t('Error setting up maintenance credentials.'));
 
             return false;
         }
 
-        if ( !($field_definition = $model_obj->check_column_exists($params['fields']['date_field'], $flow_arr))
+        if (!($field_definition = $model_obj->check_column_exists($params['fields']['date_field'], $flow_arr))
             || empty($field_definition['type'])
             || !in_array($field_definition['type'], [self::FTYPE_DATE, self::FTYPE_DATETIME], true)
         ) {
@@ -674,7 +673,7 @@ class PHS_Model_Data_retention extends PHS_Model
         }
 
         // If we have error when resetting maintenance credentials, just ignore the error
-        if ( !$model_obj->reset_maintenance_database_credentials($flow_arr) ) {
+        if (!$model_obj->reset_maintenance_database_credentials($flow_arr)) {
             $this->reset_error();
         }
 
@@ -683,7 +682,7 @@ class PHS_Model_Data_retention extends PHS_Model
             'model'  => $params['fields']['model'],
             'table'  => $params['fields']['table'],
             'status' => ['check' => '!=', 'value' => self::STATUS_DELETED],
-        ]) ) {
+        ])) {
             $this->set_error(self::ERR_INSERT, self::_t('There is already a data retention policy defined on provided table.'));
 
             return false;
@@ -739,13 +738,13 @@ class PHS_Model_Data_retention extends PHS_Model
             return null;
         }
 
-        if ( !$model_obj->set_maintenance_database_credentials($flow_arr) ) {
+        if (!$model_obj->set_maintenance_database_credentials($flow_arr)) {
             $this->set_error(self::ERR_INSERT, self::_t('Error setting up maintenance credentials.'));
 
             return null;
         }
 
-        if ( !($field_definition = $model_obj->check_column_exists($date_field, ['table_name' => $table]))
+        if (!($field_definition = $model_obj->check_column_exists($date_field, ['table_name' => $table]))
             || empty($field_definition['type'])
             || !in_array($field_definition['type'], [self::FTYPE_DATE, self::FTYPE_DATETIME], true)
         ) {
@@ -755,7 +754,7 @@ class PHS_Model_Data_retention extends PHS_Model
         }
 
         // If we have error when resetting maintenance credentials, just ignore the error
-        if ( !$model_obj->reset_maintenance_database_credentials($flow_arr) ) {
+        if (!$model_obj->reset_maintenance_database_credentials($flow_arr)) {
             $this->reset_error();
         }
 
@@ -765,7 +764,7 @@ class PHS_Model_Data_retention extends PHS_Model
             'table'  => $table,
             'id'     => ['check' => '!=', 'value' => $existing_data['id']],
             'status' => ['check' => '!=', 'value' => self::STATUS_DELETED],
-        ]) ) {
+        ])) {
             $this->set_error(self::ERR_INSERT, self::_t('There is already a data retention policy defined on provided table.'));
 
             return null;

@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\admin\actions\retention;
 
 use phs\PHS;
@@ -98,7 +97,7 @@ class PHS_Action_Edit extends PHS_Action
             $table = $retention_arr['table'] ?? null;
             $date_field = $retention_arr['date_field'] ?? null;
             $type = $retention_arr['type'] ?? null;
-            if ( ($interval_arr = $retention_model->parse_retention_interval($retention_arr['retention'])) ) {
+            if (($interval_arr = $retention_model->parse_retention_interval($retention_arr['retention']))) {
                 $retention_interval = $interval_arr['interval'] ?? '';
                 $retention_count = $interval_arr['count'] ?? '';
             }
@@ -118,7 +117,7 @@ class PHS_Action_Edit extends PHS_Action
         $types_arr = $retention_model->get_types_as_key_val();
         $intervals_arr = $retention_model->get_intervals_as_key_val();
 
-        if ( (!empty($plugin)
+        if ((!empty($plugin)
              && $plugin !== PHS_Instantiable::CORE_PLUGIN
              && empty($plugins_arr[$plugin]))
             || (!empty($model)
@@ -135,11 +134,11 @@ class PHS_Action_Edit extends PHS_Action
             $table = '';
             $date_field = '';
 
-            if ( isset($do_submit) ) {
+            if (isset($do_submit)) {
                 unset($do_submit);
             }
 
-            if ( empty($foobar)) {
+            if (empty($foobar)) {
                 PHS_Notifications::add_warning_notice(
                     self::_t('Initial data retention details are not valid anymore. Please delete or re-setup the policy.'));
             } else {
@@ -149,7 +148,7 @@ class PHS_Action_Edit extends PHS_Action
         }
 
         if (!empty($do_submit)) {
-            if ( !($retention = $retention_model->generate_retention_field(['count' => $retention_count, 'interval' => $retention_interval])) ) {
+            if (!($retention = $retention_model->generate_retention_field(['count' => $retention_count, 'interval' => $retention_interval]))) {
                 PHS_Notifications::add_error_notice(self::_t('Invalid retention interval. Please try again.'));
             } else {
                 $edit_arr = [];

@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\remote_phs\actions\remote;
 
 use phs\libraries\PHS_Remote_action;

@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 use Closure;
@@ -48,6 +47,11 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
         return [];
     }
 
+    public function get_query_definition_type_name() : ?string
+    {
+        return null;
+    }
+
     public function get_query_definition() : array
     {
         return [
@@ -77,7 +81,7 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
 
     public function lazy_graphql_type() : Closure
     {
-        return fn () => $this->graphql_type();
+        return fn() => $this->graphql_type();
     }
 
     public function get_model_instance() : ?PHS_Model
@@ -92,8 +96,8 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
             return null;
         }
 
-        if ( !($model_obj = $model_class::get_instance())
-            || !($model_obj instanceof PHS_Model) ) {
+        if (!($model_obj = $model_class::get_instance())
+            || !($model_obj instanceof PHS_Model)) {
             $this->set_error(self::ERR_FUNCTIONALITY,
                 self::_t('Error instantiating model class.'));
 
@@ -208,7 +212,7 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
 
     protected static function _model_field_type_to_graphql_type(array $field_definition) : ScalarType
     {
-        if ( !empty($field_definition['primary'])) {
+        if (!empty($field_definition['primary'])) {
             return self::id();
         }
 

@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\cli\apps;
 
 include_once PHS_CORE_DIR.'phs_cli_plugins_trait.php';
@@ -23,7 +22,7 @@ class PHSMaintenance extends PHS_Cli
         APP_VERSION = '1.1.0',
         APP_DESCRIPTION = 'Manage framework functionality and plugins.';
 
-    public const ITEM_TYPE_EVENT = 'event', ITEM_TYPE_MIGRATION = 'migration';
+    public const ITEM_TYPE_EVENT = 'event', ITEM_TYPE_MIGRATION = 'migration', ITEM_TYPE_GQLTYPE = 'gqltype';
 
     public function get_app_dir() : string
     {
@@ -88,8 +87,6 @@ class PHSMaintenance extends PHS_Cli
         switch ($plugin_action) {
             case 'info':
                 return $this->_echo_plugin_details($plugin_name);
-                break;
-
             case 'activate':
                 if (!$this->_activate_plugin($plugin_name)) {
                     if ($this->has_error()) {
@@ -219,7 +216,7 @@ class PHSMaintenance extends PHS_Cli
             return false;
         }
 
-        if ( !($item_details = $this->_get_stub_item_details($item_type, $item_name_with_path))
+        if (!($item_details = $this->_get_stub_item_details($item_type, $item_name_with_path))
             || empty($item_details['item_name'])) {
             $this->_echo_error($this->get_simple_error_message(self::_t('Error extracting stub info.')));
 
@@ -228,7 +225,7 @@ class PHSMaintenance extends PHS_Cli
             return false;
         }
 
-        if ( !($result_arr = $this->_create_file_for_stub(
+        if (!($result_arr = $this->_create_file_for_stub(
             $item_type, $item_details['item_name'], $item_details['item_path'],
             $destination_dir,
             $plugin_obj))
@@ -533,7 +530,7 @@ class PHSMaintenance extends PHS_Cli
     ) : ?array {
         $this->reset_error();
 
-        if ( !($file_details = $this->_get_stub_item_destination_file_details($item_type, $item_path, $item_name))
+        if (!($file_details = $this->_get_stub_item_destination_file_details($item_type, $item_path, $item_name))
             || empty($file_details['file_name'])
             || empty($file_details['class_name'])
         ) {
@@ -543,7 +540,7 @@ class PHSMaintenance extends PHS_Cli
             return null;
         }
 
-        if ( !($file_buf = $this->_get_stub_file_content($item_type))
+        if (!($file_buf = $this->_get_stub_file_content($item_type))
             || !($file_buf = $this->_convert_stub_content_from_context($file_buf, $file_details['class_name'], $plugin, $file_details['class_namespace']))
         ) {
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
@@ -555,14 +552,14 @@ class PHSMaintenance extends PHS_Cli
         $destination_dir = rtrim(rtrim($destination_dir, '/').'/'.$file_details['file_subdir'], '/');
 
         if (!@file_exists($destination_dir)
-           && !PHS_Utils::mkdir_tree( $destination_dir )) {
+           && !PHS_Utils::mkdir_tree($destination_dir)) {
             $this->set_error(self::ERR_FUNCTIONALITY,
                 self::_t('Error creating destination directory.'));
 
             return null;
         }
 
-        if ( !@file_put_contents($destination_dir.'/'.$file_details['file_name'], $file_buf)) {
+        if (!@file_put_contents($destination_dir.'/'.$file_details['file_name'], $file_buf)) {
             $this->set_error(self::ERR_FUNCTIONALITY,
                 self::_t('Error saving resulting file to its destination.'));
 
@@ -592,10 +589,10 @@ class PHSMaintenance extends PHS_Cli
 
     private function _get_stub_item_destination_file_details(string $item_type, string $item_path, string $item_name) : ?array
     {
-        $escaped_name = str_replace( ' ', '_', strtolower($item_name));
+        $escaped_name = str_replace(' ', '_', strtolower($item_name));
 
         if ($item_type === self::ITEM_TYPE_MIGRATION) {
-            if ( !($migrations_manager = migrations_manager()) ) {
+            if (!($migrations_manager = migrations_manager())) {
                 self::st_reset_error();
                 $this->set_error(self::ERR_DEPENDENCIES,
                     self::_t('Error loading required resources.'));
@@ -612,7 +609,7 @@ class PHSMaintenance extends PHS_Cli
             ];
         }
 
-        if ($item_type === self::ITEM_TYPE_EVENT) {
+        if (in_array($item_type, [self::ITEM_TYPE_EVENT, self::ITEM_TYPE_GQLTYPE], true)) {
             return [
                 'class_name'      => ucfirst($escaped_name),
                 'class_namespace' => str_replace('/', '\\', strtolower($item_path)),
@@ -628,7 +625,7 @@ class PHSMaintenance extends PHS_Cli
     {
         $item_path = '';
         $item_name = @basename($item_name_with_path);
-        if ( $item_type !== self::ITEM_TYPE_MIGRATION
+        if ($item_type !== self::ITEM_TYPE_MIGRATION
              && $item_name !== $item_name_with_path) {
             $item_path = trim(substr($item_name_with_path, 0, -strlen($item_name)), '/');
 
@@ -660,6 +657,13 @@ class PHSMaintenance extends PHS_Cli
                 : null;
         }
 
+        if ($item_type === self::ITEM_TYPE_GQLTYPE) {
+            return
+                ($details_arr = PHS_Instantiable::get_instance_details('PHS_Graphql_Test', $plugin_obj->instance_plugin_name(), PHS_Instantiable::INSTANCE_TYPE_GRAPHQL))
+                ? ($details_arr['instance_path'] ?? null)
+                : null;
+        }
+
         return null;
     }
 
@@ -682,12 +686,12 @@ class PHSMaintenance extends PHS_Cli
             $stub_dirs[] = PHS_CORE_STUBS_DIR;
         }
 
-        if ( empty($stub_dirs) ) {
+        if (empty($stub_dirs)) {
             return null;
         }
 
         foreach ($stub_dirs as $dir) {
-            if ( !@file_exists($dir.'phs_'.$item_type.'.php') ) {
+            if (!@file_exists($dir.'phs_'.$item_type.'.php')) {
                 continue;
             }
 
@@ -995,6 +999,6 @@ class PHSMaintenance extends PHS_Cli
 
     private static function _get_items_command_valid_item_types() : array
     {
-        return [self::ITEM_TYPE_MIGRATION, self::ITEM_TYPE_EVENT];
+        return [self::ITEM_TYPE_MIGRATION, self::ITEM_TYPE_EVENT, self::ITEM_TYPE_GQLTYPE];
     }
 }

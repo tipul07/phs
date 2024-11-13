@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 use Closure;
@@ -8,22 +7,24 @@ class PHS_Relation
 {
     public const ONE_TO_ONE = 1, REVERSE_ONE_TO_ONE = 2, ONE_TO_MANY = 3, MANY_TO_MANY = 4;
 
-    private ?PHS_Model_Core_base $with_model_obj = null;
+    private ?PHS_Model_Core_base $dest_model_obj = null;
 
-    private ?PHS_Model_Core_base $using_model_obj = null;
+    private ?PHS_Model_Core_base $link_model_obj = null;
 
     public function __construct(
         readonly private string $key = '',
-        readonly private string $with_model_class = '',
-        readonly private ?array $with_flow_arr = [],
+        readonly private string $dest_model_class = '',
+        readonly private ?array $dest_flow_arr = [],
         readonly private int $type = self::ONE_TO_ONE,
-        private string $with_key = '',
-        readonly private string $using_model_class = '',
-        readonly private ?array $using_flow_arr = [],
-        readonly private string $using_key = '',
+        readonly private string $dest_key = '',
+        readonly private string $link_model_class = '',
+        readonly private ?array $link_flow_arr = [],
+        readonly private string $link_key = '',
         readonly private string $reverse_key = '',
-        readonly private string $using_with_key = '',
-        readonly private ?array $for_flow = [],
+        readonly private string $link_dest_key = '',
+        readonly private ?array $source_flow = [],
+        readonly private string $source_key = '',
+        readonly private ?PHS_Model_Core_base $source_model = null,
         readonly private ?Closure $filter_fn = null,
         readonly private ?Closure $read_fn = null,
         readonly private int $read_limit = 20,
@@ -36,7 +37,7 @@ class PHS_Relation
     {
         $this->_load_models();
 
-        if (!$this->with_model_obj) {
+        if (!$this->dest_model_obj) {
             return null;
         }
 
@@ -44,10 +45,10 @@ class PHS_Relation
             relation: $this,
             read_fn: $this->read_fn ?? function(mixed $read_value, int $offset = 0, int $limit = 0) : null | array | PHS_Record_data {
                 $result = match ($this->get_type()) {
-                    self::ONE_TO_ONE         => $this->get_one_to_one_record($read_value),
-                    self::REVERSE_ONE_TO_ONE => $this->get_reverse_one_to_one_record($read_value),
-                    self::ONE_TO_MANY        => $this->get_one_to_many_records($read_value, $offset, $limit),
-                    self::MANY_TO_MANY       => $this->get_many_to_many_records($read_value, $offset, $limit),
+                    self::ONE_TO_ONE         => $this->_get_one_to_one_record($read_value),
+                    self::REVERSE_ONE_TO_ONE => $this->_get_reverse_one_to_one_record($read_value),
+                    self::ONE_TO_MANY        => $this->_get_one_to_many_records($read_value, $offset, $limit),
+                    self::MANY_TO_MANY       => $this->_get_many_to_many_records($read_value, $offset, $limit),
                     default                  => null,
                 };
 
@@ -88,73 +89,6 @@ class PHS_Relation
         );
     }
 
-    public function get_one_to_one_record(mixed $key_value) : ?PHS_Record_data
-    {
-        return $this->with_model_obj->data_to_record_data($key_value, $this->with_flow_arr);
-    }
-
-    public function get_reverse_one_to_one_record(mixed $key_value) : ?PHS_Record_data
-    {
-        if (!($reverse_key = $this->get_reverse_key())) {
-            return null;
-        }
-
-        $with_flow_arr = ($this->with_flow_arr ?? []) ?: [];
-        $with_flow_arr['fields'] ??= [];
-        $with_flow_arr['fields'][$reverse_key] = $key_value;
-
-        if (!($data_arr = $this->with_model_obj->get_details_fields($with_flow_arr['fields'], $this->with_flow_arr ?? []))) {
-            return null;
-        }
-
-        return $this->with_model_obj->record_data_from_array($data_arr, $this->with_flow_arr ?? []);
-    }
-
-    public function get_one_to_many_records(mixed $key_value, int $offset = 0, int $limit = 0) : array
-    {
-        if ($this->type !== self::ONE_TO_MANY
-            || !$this->with_model_obj
-            || !($with_key = $this->get_with_key())) {
-            return [];
-        }
-
-        $list_arr = $this->with_flow_arr ?: [];
-        $list_arr['offset'] = $offset;
-        $list_arr['enregs_no'] = $this->_fix_limit($limit);
-        $list_arr['return_record_data_items'] = true;
-        $list_arr['fields'] ??= [];
-        $list_arr['fields'][$with_key] = $key_value;
-
-        return $this->with_model_obj->get_list($list_arr) ?: [];
-    }
-
-    public function get_many_to_many_records(mixed $key_value, int $offset = 0, int $limit = 0) : array
-    {
-        if (!$this->with_model_obj
-            || !$this->using_model_obj
-            || !($using_key = $this->get_using_key())
-            || !($using_with_key = $this->get_using_with_key())
-            || !($with_flow = $this->with_model_obj->fetch_default_flow_params($this->with_flow_arr ?: []))
-            || !($using_flow = $this->using_model_obj->fetch_default_flow_params($this->using_flow_arr ?: []))
-            || !($with_table_name = $this->with_model_obj->get_flow_table_name($with_flow))
-            || !($using_table_name = $this->using_model_obj->get_flow_table_name($using_flow))
-            || !($with_key = $this->get_with_key() ?: $this->with_model_obj->get_primary_key($with_flow))
-        ) {
-            return [];
-        }
-
-        $list_arr = $this->with_flow_arr ?: [];
-        $list_arr['offset'] = $offset;
-        $list_arr['enregs_no'] = $this->_fix_limit($limit);
-        $list_arr['return_record_data_items'] = true;
-        $list_arr['extra_sql'] = 'EXISTS (SELECT 1 FROM `'.$using_table_name.'` WHERE '
-                                 .'`'.$using_table_name.'`.`'.$using_with_key.'` = \''.prepare_data($key_value).'\''
-                                 .' AND `'.$using_table_name.'`.`'.$using_key.'` = `'.$with_table_name.'`.`'.$with_key.'`'
-                                 .')';
-
-        return $this->with_model_obj->get_list($list_arr) ?: [];
-    }
-
     public function get_type() : int
     {
         return $this->type;
@@ -165,14 +99,14 @@ class PHS_Relation
         return $this->key;
     }
 
-    public function get_with_key() : string
+    public function get_dest_key() : string
     {
-        return $this->with_key;
+        return $this->dest_key;
     }
 
-    public function get_using_key() : string
+    public function get_link_key() : string
     {
-        return $this->using_key;
+        return $this->link_key;
     }
 
     public function get_reverse_key() : string
@@ -180,9 +114,9 @@ class PHS_Relation
         return $this->reverse_key;
     }
 
-    public function get_using_with_key() : string
+    public function get_link_dest_key() : string
     {
-        return $this->using_with_key;
+        return $this->link_dest_key;
     }
 
     public function get_filter_fn() : ?Closure
@@ -190,39 +124,104 @@ class PHS_Relation
         return $this->filter_fn;
     }
 
-    public function get_for_flow() : ?array
+    public function get_source_flow() : ?array
     {
-        return $this->for_flow;
+        return $this->source_flow;
+    }
+
+    public function get_source_key() : string
+    {
+        return $this->source_key;
+    }
+
+    public function get_source_model() : ?PHS_Model_Core_base
+    {
+        return $this->source_model;
     }
 
     public function get_record_data_relation_key() : string
     {
-        if (($with_key = $this->get_with_key())) {
-            return $with_key;
+        return $this->get_source_key()
+            ?: $this->get_source_model()?->get_primary_key($this->get_source_flow())
+                ?: '';
+    }
+
+    protected function _get_one_to_one_record(mixed $key_value) : ?PHS_Record_data
+    {
+        return $this->dest_model_obj->data_to_record_data($key_value, $this->dest_flow_arr);
+    }
+
+    protected function _get_reverse_one_to_one_record(mixed $key_value) : ?PHS_Record_data
+    {
+        if (!($reverse_key = $this->get_reverse_key())) {
+            return null;
         }
 
-        if ($this->type === self::REVERSE_ONE_TO_ONE) {
-            $this->_load_models();
+        $dest_flow_arr = ($this->dest_flow_arr ?? []) ?: [];
+        $dest_flow_arr['fields'] ??= [];
+        $dest_flow_arr['fields'][$reverse_key] = $key_value;
 
-            $this->with_key = $this->with_model_obj->get_primary_key($this->with_flow_arr);
-
-            return $this->with_key;
+        if (!($data_arr = $this->dest_model_obj->get_details_fields($dest_flow_arr['fields'], $this->dest_flow_arr ?? []))) {
+            return null;
         }
 
-        return '';
+        return $this->dest_model_obj->record_data_from_array($data_arr, $this->dest_flow_arr ?? []);
+    }
+
+    protected function _get_one_to_many_records(mixed $key_value, int $offset = 0, int $limit = 0) : array
+    {
+        if (!($dest_key = $this->get_dest_key())) {
+            return [];
+        }
+
+        $list_arr = $this->dest_flow_arr ?: [];
+        $list_arr['offset'] = $offset;
+        $list_arr['enregs_no'] = $this->_fix_limit($limit);
+        $list_arr['return_record_data_items'] = true;
+        $list_arr['fields'] ??= [];
+        $list_arr['fields'][$dest_key] = $key_value;
+
+        return $this->dest_model_obj->get_list($list_arr) ?: [];
+    }
+
+    protected function _get_many_to_many_records(mixed $key_value, int $offset = 0, int $limit = 0) : array
+    {
+        if (!$this->dest_model_obj
+            || !$this->link_model_obj
+            || !($link_key = $this->get_link_key())
+            || !($link_dest_key = $this->get_link_dest_key())
+            || !($dest_flow = $this->dest_model_obj->fetch_default_flow_params($this->dest_flow_arr ?: []))
+            || !($link_flow = $this->link_model_obj->fetch_default_flow_params($this->link_flow_arr ?: []))
+            || !($dest_table_name = $this->dest_model_obj->get_flow_table_name($dest_flow))
+            || !($link_table_name = $this->link_model_obj->get_flow_table_name($link_flow))
+            || !($dest_key = $this->get_dest_key() ?: $this->dest_model_obj->get_primary_key($dest_flow))
+        ) {
+            return [];
+        }
+
+        $list_arr = $this->dest_flow_arr ?: [];
+        $list_arr['offset'] = $offset;
+        $list_arr['enregs_no'] = $this->_fix_limit($limit);
+        $list_arr['return_record_data_items'] = true;
+        $list_arr['extra_sql'] = 'EXISTS (SELECT 1 FROM `'.$link_table_name.'` WHERE '
+                                 .'`'.$link_table_name.'`.`'.$link_dest_key.'` = \''.prepare_data($key_value).'\''
+                                 .' AND `'.$link_table_name.'`.`'.$link_key.'` = `'.$dest_table_name.'`.`'.$dest_key.'`'
+                                 .' LIMIT 0, 1)';
+
+        return $this->dest_model_obj->get_list($list_arr) ?: [];
     }
 
     private function _load_models() : void
     {
-        if (!$this->with_model_obj) {
-            $this->with_model_obj = $this->with_model_class !== ''
-                ? $this->_load_models_by_class_name($this->with_model_class)
+        if (!$this->dest_model_obj) {
+            $this->dest_model_obj = $this->dest_model_class !== ''
+                ? $this->_load_models_by_class_name($this->dest_model_class)
                 : null;
         }
 
-        if (!$this->using_model_obj) {
-            $this->using_model_obj = $this->using_model_class !== ''
-                ? $this->_load_models_by_class_name($this->using_model_class)
+        if (!$this->link_model_obj) {
+            $this->link_model_obj = $this->link_model_class !== ''
+                ? $this->_load_models_by_class_name($this->link_model_class)
                 : null;
         }
     }
@@ -243,7 +242,7 @@ class PHS_Relation
 
     private function _fix_limit(int $limit) : int
     {
-        if ( $limit <= 0 ) {
+        if ($limit <= 0) {
             $limit = $this->read_limit <= 0
                 ? 1
                 : $this->read_limit;
@@ -262,6 +261,7 @@ class PHS_Relation
         return [
             'merge_relation_results' => false,
             'merge_unique_results'   => true,
+            'cache_results'          => true,
         ];
     }
 }

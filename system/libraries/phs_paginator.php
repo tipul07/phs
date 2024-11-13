@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 use phs\PHS;
@@ -1469,7 +1468,7 @@ class PHS_Paginator extends PHS_Registry
             }
 
             if (($filter_callback = $filter_arr['check_callback'] ?? null)) {
-                if ( !@is_callable($filter_callback)
+                if (!@is_callable($filter_callback)
                     || !($filter_callback_result = $filter_callback($filter_arr, $scope_arr[$filter_arr['var_name']] ?? null))) {
                     continue;
                 }

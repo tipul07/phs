@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\accounts\graphql\types;
 
 use phs\libraries\PHS_Graphql_Type;
@@ -53,7 +52,7 @@ class PHS_Graphql_Accounts extends PHS_Graphql_Type
                     ],
                 ],
                 'resolve' => static function($account, array $args) {
-                    return $account->roles_slugs($args['offset'] ?? 0, $args['limit'] ?? 1000)?->cast_to_array() ?: null;
+                    return $account?->roles_slugs($args['offset'] ?? 0, $args['limit'] ?? 1000)?->cast_to_array() ?: null;
                 },
             ],
             'roles_units_slugs' => [
@@ -71,10 +70,15 @@ class PHS_Graphql_Accounts extends PHS_Graphql_Type
                     ],
                 ],
                 'resolve' => static function($account, array $args) {
-                    return $account->roles_units_slugs($args['offset'] ?? 0, $args['limit'] ?? 1000)?->cast_to_array() ?: null;
+                    return $account?->roles_units_slugs($args['offset'] ?? 0, $args['limit'] ?? 1000)?->cast_to_array() ?: null;
                 },
             ],
         ];
+    }
+
+    public static function get_model_class() : ?string
+    {
+        return PHS_Model_Accounts::class;
     }
 
     public static function get_type_name() : string
@@ -84,11 +88,6 @@ class PHS_Graphql_Accounts extends PHS_Graphql_Type
 
     public static function get_type_description() : string
     {
-        return 'Account type';
-    }
-
-    public static function get_model_class() : ?string
-    {
-        return PHS_Model_Accounts::class;
+        return 'Platform account';
     }
 }

@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\tests\phs;
 
 include_once PHS_CORE_DIR.'phs_cli_plugins_trait.php';

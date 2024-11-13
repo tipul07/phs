@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\views;
 
 use phs\PHS;

@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\libraries;
 
 use phs\libraries\PHS_Utils;

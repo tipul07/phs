@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\accounts\actions;
 
 use phs\PHS;
@@ -46,7 +45,7 @@ class PHS_Action_Activation extends PHS_Action
             return self::default_action_result();
         }
 
-        if ( !is_string( ($confirmation_param = PHS_Params::_gp($accounts_plugin::PARAM_CONFIRMATION, PHS_Params::T_NOHTML) ?: '') ) ) {
+        if (!is_string(($confirmation_param = PHS_Params::_gp($accounts_plugin::PARAM_CONFIRMATION, PHS_Params::T_NOHTML) ?: ''))) {
             $confirmation_param = '';
         }
 

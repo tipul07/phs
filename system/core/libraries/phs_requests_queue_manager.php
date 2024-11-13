@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\libraries;
 
 use phs\PHS;
@@ -8,6 +7,7 @@ use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Library;
+use phs\libraries\PHS_Record_data;
 use phs\system\core\models\PHS_Model_Api_monitor;
 use phs\system\core\models\PHS_Model_Request_queue;
 
@@ -20,16 +20,20 @@ class PHS_Requests_queue_manager extends PHS_Library
 
     public function http_call(
         string $url,
-        string $method = 'get',
+        ?string $method = 'GET',
         null | array | string $payload = null,
         ?array $settings = null,
         array $params = [],
     ) : ?array {
-        if ( !$this->_load_dependencies()) {
+        if (!$this->_load_dependencies()) {
             return null;
         }
 
-        $method = strtoupper(trim($method));
+        if (!$method) {
+            $method = 'GET';
+        } else {
+            $method = strtoupper(trim($method)) ?: 'GET';
+        }
 
         $params['max_retries'] = (int)($params['max_retries'] ?? 1);
         $params['handle'] ??= null;
@@ -37,14 +41,14 @@ class PHS_Requests_queue_manager extends PHS_Library
         $params['same_thread_if_bg'] = !isset($params['same_thread_if_bg']) || !empty($params['same_thread_if_bg']);
         $params['run_after'] ??= null;
 
-        if ( !empty($params['run_after'])
+        if (!empty($params['run_after'])
             && ($run_after = parse_db_date($params['run_after']))) {
             $params['run_after'] = date($this->_requests_model::DATETIME_DB, $run_after);
         } else {
             $params['run_after'] = null;
         }
 
-        if ( !($request_arr = $this->_requests_model->create_request($url, $method, $payload, $settings, $params['max_retries'], $params['handle'], $params['run_after'])) ) {
+        if (!($request_arr = $this->_requests_model->create_request($url, $method, $payload, $settings, $params['max_retries'], $params['handle'], $params['run_after']))) {
             $this->copy_or_set_error($this->_requests_model,
                 self::ERR_FUNCTIONALITY, self::_t('Error adding the request to the queue.'));
 
@@ -57,7 +61,7 @@ class PHS_Requests_queue_manager extends PHS_Library
                 ? $this->run_request_bg($request_arr)
                 : $this->run_request($request_arr);
 
-            if ( !$request_arr ) {
+            if (!$request_arr) {
                 return null;
             }
         }
@@ -67,7 +71,7 @@ class PHS_Requests_queue_manager extends PHS_Library
 
     public function check_http_calls_queue() : ?array
     {
-        if ( !$this->_load_dependencies() ) {
+        if (!$this->_load_dependencies()) {
             return null;
         }
 
@@ -142,13 +146,13 @@ class PHS_Requests_queue_manager extends PHS_Library
         return $return_arr;
     }
 
-    public function run_request(int | array $request_data, bool $force_run = false) : ?array
+    public function run_request(int | array | PHS_Record_data $request_data, bool $force_run = false) : ?array
     {
-        if ( !$this->_load_dependencies()) {
+        if (!$this->_load_dependencies()) {
             return null;
         }
 
-        if ( !($request_arr = $this->_requests_model->data_to_array($request_data, ['table_name' => 'phs_request_queue'])) ) {
+        if (!($request_arr = $this->_requests_model->data_to_array($request_data, ['table_name' => 'phs_request_queue']))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Request details not found in database.'));
 
             return null;
@@ -177,13 +181,13 @@ class PHS_Requests_queue_manager extends PHS_Library
         return $request_response;
     }
 
-    public function run_request_bg(int | array $request_data, bool $force_run = false) : ?array
+    public function run_request_bg(int | array | PHS_Record_data $request_data, bool $force_run = false) : ?array
     {
-        if ( !$this->_load_dependencies()) {
+        if (!$this->_load_dependencies()) {
             return null;
         }
 
-        if ( !($request_arr = $this->_requests_model->data_to_array($request_data, ['table_name' => 'phs_request_queue'])) ) {
+        if (!($request_arr = $this->_requests_model->data_to_array($request_data, ['table_name' => 'phs_request_queue']))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Request details not found in database.'));
 
             return null;
@@ -196,13 +200,13 @@ class PHS_Requests_queue_manager extends PHS_Library
             return null;
         }
 
-        if ( ($new_request = $this->_requests_model->start_request($request_arr)) ) {
+        if (($new_request = $this->_requests_model->start_request($request_arr))) {
             $request_arr = $new_request;
         }
 
         $request_response = $this->_do_api_call($request_arr);
 
-        if ( !($update_result = $this->_update_request_for_result($request_arr, $request_response)) ) {
+        if (!($update_result = $this->_update_request_for_result($request_arr, $request_response))) {
             self::_logf(
                 self::_LOG_METHOD_ERROR,
                 'Error updating request status (request #'.$request_arr['id'].') after run: '
@@ -237,13 +241,13 @@ class PHS_Requests_queue_manager extends PHS_Library
         $callbacks = [];
         $errors_arr = [];
         if ($this->_requests_model->is_success($request_arr)) {
-            if ( ($callback = $this->_requests_model->get_request_success_callback($request_arr)) ) {
+            if (($callback = $this->_requests_model->get_request_success_callback($request_arr))) {
                 $callbacks['success'] = $callback;
             } elseif ($this->_requests_model->has_error()) {
                 $errors_arr[] = $this->_requests_model->get_simple_error_message();
             }
         } elseif ($this->_requests_model->is_failed($request_arr)) {
-            if ( ($callback = $this->_requests_model->get_request_one_fail_callback($request_arr)) ) {
+            if (($callback = $this->_requests_model->get_request_one_fail_callback($request_arr))) {
                 $callbacks['one_failure'] = $callback;
             } elseif ($this->_requests_model->has_error()) {
                 $errors_arr[] = $this->_requests_model->get_simple_error_message();
@@ -266,7 +270,7 @@ class PHS_Requests_queue_manager extends PHS_Library
             );
         }
 
-        if ( empty($callbacks) ) {
+        if (empty($callbacks)) {
             return;
         }
 
@@ -280,7 +284,7 @@ class PHS_Requests_queue_manager extends PHS_Library
 
             /** @var ?\phs\libraries\PHS_Instantiable $callback_obj */
             $callback_obj = $callback[0] ?? null;
-            if ( !@$callback($request_response) ) {
+            if (!@$callback($request_response)) {
                 self::_logf(
                     self::_LOG_METHOD_ERROR,
                     '[Callback] Error in callback '.$callack_str.' after request run: '
@@ -310,9 +314,9 @@ class PHS_Requests_queue_manager extends PHS_Library
         return $obj::class.'::'.$callback[1].'()';
     }
 
-    private function _do_api_call(array $request_arr, array $params = []) : array
+    private function _do_api_call(array | PHS_Record_data $request_arr, array $params = []) : array
     {
-        if ( !($settings_arr = $this->_requests_model->get_request_full_settings($request_arr)) ) {
+        if (!($settings_arr = $this->_requests_model->get_request_full_settings($request_arr))) {
             $settings_arr = $this->_requests_model->empty_request_settings_arr();
         }
 
@@ -335,13 +339,13 @@ class PHS_Requests_queue_manager extends PHS_Library
             $curl_params = self::validate_array($curl_params, $settings_arr['curl_params']);
         }
 
-        if ( !empty($settings_arr['auth_basic']) ) {
+        if (!empty($settings_arr['auth_basic'])) {
             $curl_params['userpass'] = [
                 'user' => $settings_arr['auth_basic']['user'] ?? '',
                 'pass' => $settings_arr['auth_basic']['pass'] ?? '',
             ];
         }
-        if ( !empty($settings_arr['auth_bearer']['token']) ) {
+        if (!empty($settings_arr['auth_bearer']['token'])) {
             $curl_params['header_keys_arr'] ??= [];
             $curl_params['header_keys_arr']['Authorization'] = 'Bearer '.$settings_arr['auth_bearer']['token'];
         }
@@ -392,7 +396,9 @@ class PHS_Requests_queue_manager extends PHS_Library
 
         if ($payload !== null) {
             $curl_params['raw_post_str'] = $payload;
-            $method ??= 'POST';
+            if (!$method || strtoupper(trim($method)) === 'GET') {
+                $method = 'POST';
+            }
         }
 
         if (!empty($method)) {

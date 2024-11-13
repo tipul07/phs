@@ -1,11 +1,11 @@
 <?php
-
 namespace phs\system\core\models;
 
 use phs\PHS_Crypt;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
+use phs\libraries\PHS_Record_data;
 use phs\libraries\PHS_Instantiable;
 use phs\traits\PHS_Model_Trait_statuses;
 
@@ -40,56 +40,56 @@ class PHS_Model_Request_queue extends PHS_Model
         return 'phs_request_queue';
     }
 
-    public function is_pending(int | array $record_data) : bool
+    public function is_pending(int | array | PHS_Record_data $record_data) : bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_PENDING;
     }
 
-    public function is_running(int | array $record_data) : bool
+    public function is_running(int | array | PHS_Record_data $record_data) : bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_RUNNING;
     }
 
-    public function is_failed(int | array $record_data) : bool
+    public function is_failed(int | array | PHS_Record_data $record_data) : bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_FAILED;
     }
 
-    public function is_paused(int | array $record_data) : bool
+    public function is_paused(int | array | PHS_Record_data $record_data) : bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_PAUSED;
     }
 
-    public function is_success(int | array $record_data) : bool
+    public function is_success(int | array | PHS_Record_data $record_data) : bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_SUCCESS;
     }
 
-    public function is_final(int | array $record_data) : bool
+    public function is_final(int | array | PHS_Record_data $record_data) : bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && !empty($record_arr['is_final']);
     }
 
-    public function is_timed(int | array $record_data) : bool
+    public function is_timed(int | array | PHS_Record_data $record_data) : bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && !empty($record_arr['run_after']);
     }
 
-    public function should_delete_on_completion(int | array $record_data) : bool
+    public function should_delete_on_completion(int | array | PHS_Record_data $record_data) : bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
@@ -97,7 +97,7 @@ class PHS_Model_Request_queue extends PHS_Model
                && !empty($settings_arr['delete_on_completion']);
     }
 
-    public function can_run_request(int | array $requet_data, bool $forced = false) : bool
+    public function can_run_request(int | array | PHS_Record_data $requet_data, bool $forced = false) : bool
     {
         return !empty($requet_data)
                && ($request_arr = $this->data_to_array($requet_data))
@@ -105,7 +105,7 @@ class PHS_Model_Request_queue extends PHS_Model
                && ($forced || $request_arr['max_retries'] > $request_arr['fails']);
     }
 
-    public function can_be_forced(int | array $requet_data) : bool
+    public function can_be_forced(int | array | PHS_Record_data $requet_data) : bool
     {
         return !empty($requet_data)
                && ($request_arr = $this->data_to_array($requet_data))
@@ -114,7 +114,7 @@ class PHS_Model_Request_queue extends PHS_Model
                    || seconds_passed($request_arr['status_date']) > self::FORCE_RUNNING_SECONDS);
     }
 
-    public function act_pause(int | array $record_data) : ?array
+    public function act_pause(int | array | PHS_Record_data $record_data) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -143,7 +143,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return $new_record;
     }
 
-    public function act_unpause(int | array $record_data) : ?array
+    public function act_unpause(int | array $record_data) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -174,13 +174,13 @@ class PHS_Model_Request_queue extends PHS_Model
 
     public function create_request(
         string $url,
-        string $method = 'get',
+        string $method = 'GET',
         null | array | string $payload = null,
         ?array $settings = null,
         int $max_retries = 1,
         ?string $handle = null,
         ?string $run_after = null,
-    ) : ?array {
+    ) : null | array | PHS_Record_data {
         $this->reset_error();
 
         $method = strtoupper(trim($method));
@@ -221,8 +221,8 @@ class PHS_Model_Request_queue extends PHS_Model
     }
 
     public function start_request(
-        int | array $request_data,
-    ) : ?array {
+        int | array | PHS_Record_data $request_data,
+    ) : null | array | PHS_Record_data {
         $this->reset_error();
 
         if (empty($request_data)
@@ -273,7 +273,7 @@ class PHS_Model_Request_queue extends PHS_Model
     {
         $this->reset_error();
 
-        if ( !($queue_flow = $this->fetch_default_flow_params(['table_name' => 'phs_request_queue']))
+        if (!($queue_flow = $this->fetch_default_flow_params(['table_name' => 'phs_request_queue']))
             || !($runs_flow = $this->fetch_default_flow_params(['table_name' => 'phs_request_queue_runs']))
             || !($queue_run_table = $this->get_flow_table_name($runs_flow))) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
@@ -314,8 +314,8 @@ class PHS_Model_Request_queue extends PHS_Model
             return null;
         }
 
-        if ( !empty($payload)
-            && ($json_arr = @json_decode($payload, true)) ) {
+        if (!empty($payload)
+            && ($json_arr = @json_decode($payload, true))) {
             $payload = @json_encode($json_arr);
         }
 
@@ -353,7 +353,7 @@ class PHS_Model_Request_queue extends PHS_Model
 
     public function obfuscate_minimum_settings(int | array $record_data) : ?array
     {
-        if ( null === ($settings_arr = $this->get_request_minimum_settings($record_data)) ) {
+        if (null === ($settings_arr = $this->get_request_minimum_settings($record_data))) {
             return null;
         }
 
@@ -383,26 +383,26 @@ class PHS_Model_Request_queue extends PHS_Model
             }
         }
 
-        if ( !empty($new_settings_arr['auth_basic']) ) {
-            if ( !is_array($new_settings_arr['auth_basic']) ) {
+        if (!empty($new_settings_arr['auth_basic'])) {
+            if (!is_array($new_settings_arr['auth_basic'])) {
                 $new_settings_arr['auth_basic'] = [];
             }
 
             $new_settings_arr['auth_basic']['pass'] = ($new_settings_arr['auth_basic']['pass'] ?? '');
-            if ( !isset($new_settings_arr['auth_basic']['user'])
+            if (!isset($new_settings_arr['auth_basic']['user'])
                  || !is_string($new_settings_arr['auth_basic']['user'])
                  || !is_string($new_settings_arr['auth_basic']['pass'])) {
                 unset($new_settings_arr['auth_basic']);
             }
         }
 
-        if ( isset($settings_arr['auth_bearer'])
-             && (empty($settings_arr['auth_bearer']['token']) || !is_string($settings_arr['auth_bearer']['token'])) ) {
+        if (isset($settings_arr['auth_bearer'])
+             && (empty($settings_arr['auth_bearer']['token']) || !is_string($settings_arr['auth_bearer']['token']))) {
             unset($settings_arr['auth_bearer']);
         }
 
-        if ( empty($new_settings_arr['success_codes'])
-             || !is_array($new_settings_arr['success_codes']) ) {
+        if (empty($new_settings_arr['success_codes'])
+             || !is_array($new_settings_arr['success_codes'])) {
             $new_settings_arr['success_codes'] = [200];
         }
 
@@ -424,54 +424,54 @@ class PHS_Model_Request_queue extends PHS_Model
             return null;
         }
 
-        if ( isset($settings_arr['delete_on_completion']) ) {
+        if (isset($settings_arr['delete_on_completion'])) {
             $settings_arr['delete_on_completion'] = !empty($settings_arr['delete_on_completion']);
         }
-        if ( isset($settings_arr['expect_json_response']) ) {
+        if (isset($settings_arr['expect_json_response'])) {
             $settings_arr['expect_json_response'] = !empty($settings_arr['expect_json_response']);
         }
 
-        if ( !empty($settings_arr['success_codes'])
-             && !is_array($settings_arr['success_codes']) ) {
+        if (!empty($settings_arr['success_codes'])
+             && !is_array($settings_arr['success_codes'])) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid success codes provided for HTTP call settings.'));
 
             return null;
         }
 
-        if ( !empty($settings_arr['curl_params'])
-             && !is_array($settings_arr['curl_params']) ) {
+        if (!empty($settings_arr['curl_params'])
+             && !is_array($settings_arr['curl_params'])) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid cURL parameters provided for HTTP call settings.'));
 
             return null;
         }
 
-        if ( !empty($settings_arr['headers'])
-             && !is_array($settings_arr['headers']) ) {
+        if (!empty($settings_arr['headers'])
+             && !is_array($settings_arr['headers'])) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid headers provided for HTTP call settings.'));
 
             return null;
         }
 
-        if ( !empty($settings_arr['auth_basic'])
+        if (!empty($settings_arr['auth_basic'])
              && (!is_array($settings_arr['auth_basic'])
                  || !isset($settings_arr['auth_basic']['user']) || !is_string($settings_arr['auth_basic']['user'])
-             ) ) {
+             )) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid basic authentication provided for HTTP call settings.'));
 
             return null;
         }
 
-        if ( !empty($settings_arr['auth_bearer'])
+        if (!empty($settings_arr['auth_bearer'])
              && (!is_array($settings_arr['auth_bearer'])
                  || !isset($settings_arr['auth_bearer']['token']) || !is_string($settings_arr['auth_bearer']['token'])
-             ) ) {
+             )) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid bearer authentication provided for HTTP call settings.'));
 
             return null;
         }
 
-        if ( !empty($settings_arr['success_callback']) ) {
-            if ( !($callback = $this->validate_request_callback($settings_arr['success_callback'])) ) {
+        if (!empty($settings_arr['success_callback'])) {
+            if (!($callback = $this->validate_request_callback($settings_arr['success_callback']))) {
                 $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid success callback provided for HTTP call settings.'));
 
                 return null;
@@ -480,8 +480,8 @@ class PHS_Model_Request_queue extends PHS_Model
             $settings_arr['success_callback'] = $callback;
         }
 
-        if ( !empty($settings_arr['one_fail_callback']) ) {
-            if ( !($callback = $this->validate_request_callback($settings_arr['one_fail_callback'])) ) {
+        if (!empty($settings_arr['one_fail_callback'])) {
+            if (!($callback = $this->validate_request_callback($settings_arr['one_fail_callback']))) {
                 $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid one failure callback provided for HTTP call settings.'));
 
                 return null;
@@ -490,8 +490,8 @@ class PHS_Model_Request_queue extends PHS_Model
             $settings_arr['one_fail_callback'] = $callback;
         }
 
-        if ( !empty($settings_arr['fail_callback']) ) {
-            if ( !($callback = $this->validate_request_callback($settings_arr['fail_callback'])) ) {
+        if (!empty($settings_arr['fail_callback'])) {
+            if (!($callback = $this->validate_request_callback($settings_arr['fail_callback']))) {
                 $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid final failure callback provided for HTTP call settings.'));
 
                 return null;
@@ -518,7 +518,7 @@ class PHS_Model_Request_queue extends PHS_Model
 
         if (empty($class) || empty($method)
             || (!is_string($class) && !is_object($class))
-            || !is_string($method) ) {
+            || !is_string($method)) {
             return null;
         }
 
@@ -571,7 +571,7 @@ class PHS_Model_Request_queue extends PHS_Model
             : null;
     }
 
-    public function get_request_minimum_settings(int | array $request_data) : ?array
+    public function get_request_minimum_settings(int | array | PHS_Record_data $request_data) : ?array
     {
         $this->reset_error();
 
@@ -591,7 +591,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return $this->validate_settings_arr($settings_arr);
     }
 
-    public function get_request_full_settings(int | array $request_data) : ?array
+    public function get_request_full_settings(int | array | PHS_Record_data $request_data) : ?array
     {
         $this->reset_error();
 
@@ -602,12 +602,12 @@ class PHS_Model_Request_queue extends PHS_Model
         }
 
         $default_settings = $this->empty_request_settings_arr();
-        if ( !($settings_arr = $this->get_request_minimum_settings($request_arr)) ) {
+        if (!($settings_arr = $this->get_request_minimum_settings($request_arr))) {
             return $default_settings;
         }
 
         foreach ($default_settings as $field => $def_value) {
-            if ( array_key_exists($field, $settings_arr) ) {
+            if (array_key_exists($field, $settings_arr)) {
                 $default_settings[$field] = $settings_arr[$field];
             }
         }
@@ -632,7 +632,7 @@ class PHS_Model_Request_queue extends PHS_Model
         $list_arr['fields'] = [];
         $list_arr['fields']['request_id'] = $request_arr['id'];
 
-        if ( !($result_arr = $this->get_list($list_arr)) ) {
+        if (!($result_arr = $this->get_list($list_arr))) {
             return [];
         }
 
@@ -776,7 +776,7 @@ class PHS_Model_Request_queue extends PHS_Model
         $params['fields']['handle'] = ($params['fields']['handle'] ?? null);
 
         if (!empty($params['fields']['handle'])
-            && $this->get_details_fields(['handle' => $params['fields']['handle'], ]) ) {
+            && $this->get_details_fields(['handle' => $params['fields']['handle'], ])) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('There is already a request in database with provided handle.'));
 
             return null;
@@ -792,7 +792,7 @@ class PHS_Model_Request_queue extends PHS_Model
                 return null;
             }
 
-            if ( null === ($validated_settings = $this->check_settings_for_errors($params['fields']['settings'])) ) {
+            if (null === ($validated_settings = $this->check_settings_for_errors($params['fields']['settings']))) {
                 return null;
             }
 
@@ -802,7 +802,7 @@ class PHS_Model_Request_queue extends PHS_Model
         $now_date = date(self::DATETIME_DB);
 
         if (!empty($params['fields']['run_after'])
-           && ($run_after_time = parse_db_date($params['fields']['run_after'])) ) {
+           && ($run_after_time = parse_db_date($params['fields']['run_after']))) {
             $params['fields']['run_after'] = date(self::DATETIME_DB, $run_after_time);
         } else {
             $params['fields']['run_after'] = null;
@@ -856,7 +856,7 @@ class PHS_Model_Request_queue extends PHS_Model
                 return null;
             }
 
-            if ( null === ($validated_settings = $this->check_settings_for_errors($params['fields']['settings'])) ) {
+            if (null === ($validated_settings = $this->check_settings_for_errors($params['fields']['settings']))) {
                 return null;
             }
 
@@ -868,7 +868,7 @@ class PHS_Model_Request_queue extends PHS_Model
             && $this->get_details_fields([
                 'handle' => $handle,
                 'id'     => ['check' => '!=', 'value' => $existing_data['id']],
-            ]) ) {
+            ])) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('There is already a request in database with provided handle.'));
 
             return null;
@@ -913,10 +913,10 @@ class PHS_Model_Request_queue extends PHS_Model
 
         $edit_params = $flow_arr;
         $edit_params['fields'] = [];
-        if ( $method !== null) {
+        if ($method !== null) {
             $edit_params['fields']['method'] = $method;
         }
-        if ( $status !== null
+        if ($status !== null
             && $this->valid_status($status)) {
             $edit_params['fields']['status'] = $status;
         }
@@ -936,7 +936,7 @@ class PHS_Model_Request_queue extends PHS_Model
             } elseif ($edit_params['fields']['status'] === self::STATUS_FAILED) {
                 $http_code ??= 0;
                 $edit_params['fields']['fails'] = ['raw_field' => true, 'value' => 'fails + 1'];
-                if ( $request_arr['max_retries'] <= $request_arr['fails'] + 1 ) {
+                if ($request_arr['max_retries'] <= $request_arr['fails'] + 1) {
                     $edit_params['fields']['is_final'] = 1;
                 }
             }
@@ -944,13 +944,13 @@ class PHS_Model_Request_queue extends PHS_Model
 
         $edit_params['fields']['last_edit'] = $now_date;
 
-        if ( !($request_run_arr = $this->_request_run_result(
+        if (!($request_run_arr = $this->_request_run_result(
             $request_arr,
             $http_code ?: 0,
             $response ?: null,
             $error ?: null,
             $edit_params['fields']['status'] ?? null,
-        )) ) {
+        ))) {
             return null;
         }
 
@@ -1014,7 +1014,7 @@ class PHS_Model_Request_queue extends PHS_Model
         }
 
         if (is_string($callback)) {
-            if ( !@function_exists($callback) ) {
+            if (!@function_exists($callback)) {
                 $this->set_error(self::ERR_PARAMETERS,
                     self::_t('Function for provided callback doesn\'t exist: %s.', $callback.'()'));
 

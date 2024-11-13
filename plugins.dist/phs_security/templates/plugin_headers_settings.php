@@ -41,7 +41,7 @@ foreach ($headers_definition as $h_id => $h_arr) {
     ?>
         </td>
         <td><?php
-        if ( !empty($h_arr['values_arr']) && is_array($h_arr['values_arr'])) {
+        if (!empty($h_arr['values_arr']) && is_array($h_arr['values_arr'])) {
             ?>
             <select class="form-control"
                     id="headers_values_<?php echo $h_id; ?>" name="headers_values[<?php echo $h_id; ?>]"><?php
