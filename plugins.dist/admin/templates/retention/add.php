@@ -60,7 +60,7 @@ $retention_count = (int)($this->view_var('retention_count') ?: 0);
             <label for="model" class="col-sm-2 col-form-label"><?php echo $this->_pt('Model'); ?></label>
             <div class="col-sm-10">
                 <?php
-if ( empty($plugin)) {
+if (empty($plugin)) {
     echo $this::_t('Select a plugin first.');
 } else {
     ?>
@@ -87,7 +87,7 @@ if ( empty($plugin)) {
             <label for="table" class="col-sm-2 col-form-label"><?php echo $this->_pt('Table'); ?></label>
             <div class="col-sm-10">
                 <?php
-if ( empty($model)) {
+if (empty($model)) {
     echo $this::_t('Select a model first.');
 } else {
     ?>
@@ -114,7 +114,7 @@ if ( empty($model)) {
             <label for="date_field" class="col-sm-2 col-form-label"><?php echo $this->_pt('Date field'); ?></label>
             <div class="col-sm-10">
                 <?php
-if ( empty($table)) {
+if (empty($table)) {
     echo $this::_t('Select a table first.');
 } else {
     ?>

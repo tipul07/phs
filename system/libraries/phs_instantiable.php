@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 use phs\PHS;
@@ -1654,7 +1653,7 @@ abstract class PHS_Instantiable extends PHS_Registry
 
         $instance_name = ucfirst(strtolower($instance_name ?: 'Index'));
 
-        if ( !($class_name = self::get_class_name_from_instance_name($instance_type, $instance_name)) ) {
+        if (!($class_name = self::get_class_name_from_instance_name($instance_type, $instance_name))) {
             self::st_set_error(self::ERR_JSON_DETAILS, self::_t('Invalid instance type to get JSON info.'));
 
             return null;

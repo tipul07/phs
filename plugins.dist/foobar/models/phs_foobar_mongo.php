@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\foobar\models;
 
 use phs\libraries\PHS_Model;

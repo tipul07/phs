@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\mailchimp;
 
 use phs\libraries\PHS_Logger;

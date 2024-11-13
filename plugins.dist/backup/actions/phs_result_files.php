@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\backup\actions;
 
 use phs\PHS;
@@ -80,7 +79,7 @@ class PHS_Action_Result_files extends PHS_Action
         if (!empty($action)) {
             $action_result = self::default_action_result();
 
-            if ($action !== 'delete' ) {
+            if ($action !== 'delete') {
                 PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
             } elseif (!can($backup_plugin::ROLEU_DELETE_BACKUPS)) {
                 PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));

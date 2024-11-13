@@ -22,7 +22,7 @@ $runs_arr = $this->view_var('runs_arr') ?: [];
 <div class="form-group row">
     <label class="col-sm-2 col-form-label"><?php echo $this->_pt('Retries'); ?></label>
     <div class="col-sm-10"><?php
-        echo $this->_pt('Fails: %s, Max retries: %s', $request_arr['fails'], $request_arr['max_retries'] );
+        echo $this->_pt('Fails: %s, Max retries: %s', $request_arr['fails'], $request_arr['max_retries']);
 ?></div>
 </div>
 

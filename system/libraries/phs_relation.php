@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 use Closure;
@@ -243,7 +242,7 @@ class PHS_Relation
 
     private function _fix_limit(int $limit) : int
     {
-        if ( $limit <= 0 ) {
+        if ($limit <= 0) {
             $limit = $this->read_limit <= 0
                 ? 1
                 : $this->read_limit;

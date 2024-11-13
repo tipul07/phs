@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\actions;
 
 use phs\libraries\PHS_Action;

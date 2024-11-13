@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\admin\libraries;
 
 use phs\PHS;
@@ -30,7 +29,7 @@ class Phs_Data_retention extends PHS_Library
 
     public function run_data_retention(int | array $retention_data, array $job_extra = []) : bool
     {
-        if ( !$this->_load_dependencies()) {
+        if (!$this->_load_dependencies()) {
             return false;
         }
 
@@ -47,7 +46,7 @@ class Phs_Data_retention extends PHS_Library
 
     public function run_data_retention_for_list(array $retention_list, array $job_extra = []) : bool
     {
-        if ( !$this->_load_dependencies()) {
+        if (!$this->_load_dependencies()) {
             return false;
         }
 
@@ -62,7 +61,7 @@ class Phs_Data_retention extends PHS_Library
             $retention_ids[] = (int)$retention_arr['id'];
         }
 
-        if ( empty($retention_ids) ) {
+        if (empty($retention_ids)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid data retention policy ids.'));
 
             return false;
@@ -73,7 +72,7 @@ class Phs_Data_retention extends PHS_Library
         $job_route = ['plugin' => 'admin', 'controller' => 'index_bg', 'action' => 'run_retention_bg', 'action_dir' => 'retention'];
         $job_params = ['retention_ids' => $retention_ids];
 
-        if ( !PHS_Bg_jobs::run($job_route, $job_params, $job_extra) ) {
+        if (!PHS_Bg_jobs::run($job_route, $job_params, $job_extra)) {
             $this->set_error(self::ERR_FUNCTIONALITY,
                 $this->_pt('Error launching background job for data retention run.'));
 
@@ -85,7 +84,7 @@ class Phs_Data_retention extends PHS_Library
 
     public function run_data_retention_for_list_bg(array $retention_list) : ?array
     {
-        if ( !$this->_load_dependencies()) {
+        if (!$this->_load_dependencies()) {
             return null;
         }
 
@@ -100,7 +99,7 @@ class Phs_Data_retention extends PHS_Library
             $retentions_arr[] = $retention_arr;
         }
 
-        if ( empty($retentions_arr) ) {
+        if (empty($retentions_arr)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid retention policy list.'));
 
             return null;
@@ -115,8 +114,8 @@ class Phs_Data_retention extends PHS_Library
             'total_rows'     => 0,
             'affected_rows'  => 0,
         ];
-        foreach ( $retentions_arr as $retention_arr ) {
-            if ( !($run_result = $this->run_data_retention_bg($retention_arr)) ) {
+        foreach ($retentions_arr as $retention_arr) {
+            if (!($run_result = $this->run_data_retention_bg($retention_arr))) {
                 $return_arr['error_policies']++;
 
                 PHS_Logger::notice('[ERROR] Error running data retention policy #'.$retention_arr['id'].': '
@@ -145,23 +144,23 @@ class Phs_Data_retention extends PHS_Library
 
     public function run_data_retention_bg(int | array $retention_data) : ?array
     {
-        if ( !$this->_load_dependencies() ) {
+        if (!$this->_load_dependencies()) {
             return null;
         }
 
-        if ( empty($retention_data)
+        if (empty($retention_data)
             || !($retention_arr = $this->_data_retention_model->data_to_array($retention_data))
-            || !$this->_data_retention_model->is_active($retention_arr) ) {
-            $this->set_error( self::ERR_PARAMETERS,
-                $this->_pt( 'Data retention not found in database.' ) );
+            || !$this->_data_retention_model->is_active($retention_arr)) {
+            $this->set_error(self::ERR_PARAMETERS,
+                $this->_pt('Data retention not found in database.'));
 
             return null;
         }
 
-        if ( !$this->_check_retention_requirements($retention_arr)
+        if (!$this->_check_retention_requirements($retention_arr)
             || !($migration_result = $this->_do_retention_migration($retention_arr))) {
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
-                $this->_pt( 'Error running data retention migration.' ));
+                $this->_pt('Error running data retention migration.'));
 
             return null;
         }
@@ -171,27 +170,27 @@ class Phs_Data_retention extends PHS_Library
 
     private function _check_retention_requirements(int | array $retention_data) : bool
     {
-        if ( !$this->_load_dependencies() ) {
+        if (!$this->_load_dependencies()) {
             return false;
         }
 
-        if ( empty($retention_data)
+        if (empty($retention_data)
             || !($retention_arr = $this->_data_retention_model->data_to_array($retention_data))
-            || !$this->_data_retention_model->is_active($retention_arr) ) {
-            $this->set_error( self::ERR_PARAMETERS,
-                $this->_pt( 'Data retention not found in database.' ) );
+            || !$this->_data_retention_model->is_active($retention_arr)) {
+            $this->set_error(self::ERR_PARAMETERS,
+                $this->_pt('Data retention not found in database.'));
 
             return false;
         }
 
-        if ( !$this->_check_retention_requirements_for_existing_table($retention_arr) ) {
+        if (!$this->_check_retention_requirements_for_existing_table($retention_arr)) {
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
                 self::_t('Error while checking data retention existing table.'));
 
             return false;
         }
 
-        if ( !$this->_check_retention_requirements_for_destination_table($retention_arr) ) {
+        if (!$this->_check_retention_requirements_for_destination_table($retention_arr)) {
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
                 self::_t('Error while checking data retention destination table.'));
 
@@ -206,7 +205,7 @@ class Phs_Data_retention extends PHS_Library
         /** @var PHS_Plugin $plugin_obj */
         /** @var PHS_Model $model_obj */
         $plugin = $retention_arr['plugin'] ?? null;
-        if ( empty($retention_arr['model'])
+        if (empty($retention_arr['model'])
              || empty($retention_arr['table'])
              || empty($retention_arr['date_field'])
              || (!empty($plugin)
@@ -233,9 +232,9 @@ class Phs_Data_retention extends PHS_Library
     {
         $this->reset_error();
 
-        if ( empty($retention_arr['model'])
+        if (empty($retention_arr['model'])
             || empty($retention_arr['table'])
-            || empty($retention_arr['date_field']) ) {
+            || empty($retention_arr['date_field'])) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Data retention record is invalid.'));
 
             return false;
@@ -247,7 +246,7 @@ class Phs_Data_retention extends PHS_Library
             return false;
         }
 
-        if ( !$this->_retention_mock_model->inject_data_retention_model($model_obj, $retention_arr) ) {
+        if (!$this->_retention_mock_model->inject_data_retention_model($model_obj, $retention_arr)) {
             $this->copy_or_set_error($this->_retention_mock_model,
                 self::ERR_PARAMETERS, self::_t('Error setting up data retention model.'));
 
@@ -259,33 +258,33 @@ class Phs_Data_retention extends PHS_Library
 
     private function _do_retention_migration(int | array $retention_data) : ?array
     {
-        if ( !$this->_load_dependencies() ) {
+        if (!$this->_load_dependencies()) {
             return null;
         }
 
-        if ( empty($retention_data)
+        if (empty($retention_data)
              || !($retention_arr = $this->_data_retention_model->data_to_array($retention_data))
-             || !$this->_data_retention_model->is_active($retention_arr) ) {
-            $this->set_error( self::ERR_PARAMETERS,
-                $this->_pt( 'Data retention not found in database.' ) );
+             || !$this->_data_retention_model->is_active($retention_arr)) {
+            $this->set_error(self::ERR_PARAMETERS,
+                $this->_pt('Data retention not found in database.'));
 
             return null;
         }
 
-        if ( !($interval = $this->_data_retention_model->parse_retention_interval_from_retention_data($retention_arr))
+        if (!($interval = $this->_data_retention_model->parse_retention_interval_from_retention_data($retention_arr))
             || !($retention_time = $this->_data_retention_model->generate_retention_interval_time($interval))
             || !($retention_date = date($this->_data_retention_model::DATE_DB, $retention_time))
             || !$this->_data_retention_model->valid_type($retention_arr['type'])
         ) {
-            $this->copy_or_set_error( $this->_data_retention_model,
-                self::ERR_PARAMETERS, $this->_pt( 'Data retention details are invalid.' ) );
+            $this->copy_or_set_error($this->_data_retention_model,
+                self::ERR_PARAMETERS, $this->_pt('Data retention details are invalid.'));
 
             return null;
         }
 
-        if ( !($retention_result = $this->_retention_mock_model->move_data_for_retention($retention_date)) ) {
-            $this->copy_or_set_error( $this->_data_retention_model,
-                self::ERR_PARAMETERS, $this->_pt( 'Error moving records for data retention policy.' ) );
+        if (!($retention_result = $this->_retention_mock_model->move_data_for_retention($retention_date))) {
+            $this->copy_or_set_error($this->_data_retention_model,
+                self::ERR_PARAMETERS, $this->_pt('Error moving records for data retention policy.'));
 
             return null;
         }
@@ -297,15 +296,15 @@ class Phs_Data_retention extends PHS_Library
     {
         $this->reset_error();
 
-        if ( (empty( $this->_admin_plugin )
+        if ((empty($this->_admin_plugin)
               && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-             || (empty( $this->_data_retention_model )
+             || (empty($this->_data_retention_model)
                  && !($this->_data_retention_model = PHS_Model_Data_retention::get_instance()))
-             || (empty( $this->_retention_mock_model )
+             || (empty($this->_retention_mock_model)
                  && !($this->_retention_mock_model = PHS_Model_Retention_mock::get_instance()))
         ) {
-            $this->set_error( self::ERR_DEPENDENCIES,
-                $this->_pt( 'Error loading required resources.' ) );
+            $this->set_error(self::ERR_DEPENDENCIES,
+                $this->_pt('Error loading required resources.'));
 
             return false;
         }

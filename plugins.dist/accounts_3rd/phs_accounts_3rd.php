@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\accounts_3rd;
 
 use phs\libraries\PHS_Hooks;

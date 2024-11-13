@@ -1,5 +1,4 @@
 <?php
-
 namespace phs;
 
 use phs\libraries\PHS_Event;
@@ -2664,7 +2663,7 @@ final class PHS extends PHS_Registry
     {
         self::st_reset_error();
 
-        if ( !($class_name = PHS_Instantiable::get_class_name_from_instance_name($instance_type)) ) {
+        if (!($class_name = PHS_Instantiable::get_class_name_from_instance_name($instance_type))) {
             self::st_set_error(self::ERR_SCRIPT_FILES, self::_t('Invalid instance type to obtain script files list.'));
 
             return null;

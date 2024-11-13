@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 use Closure;
@@ -499,7 +498,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         }
 
         if (is_string($callback)
-            || $callback instanceof Closure ) {
+            || $callback instanceof Closure) {
             return $callback;
         }
 
@@ -689,7 +688,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
                 $callback[0] = @get_class($callback[0]);
             }
 
-            if ( is_string($callback[0])) {
+            if (is_string($callback[0])) {
                 // Call id is only used to unique identify this callable, not for triggering the callable...
                 return '\\'.ltrim($callback[0], '\\').'::'.$callback[1].'()';
             }

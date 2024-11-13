@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\models;
 
 use phs\libraries\PHS_Model;
@@ -38,8 +37,8 @@ class PHS_Model_Migrations extends PHS_Model
 
     public function migration_model_is_installed(bool $force = false) : bool
     {
-        if ( empty($force)
-             && null !== self::$_model_installed ) {
+        if (empty($force)
+             && null !== self::$_model_installed) {
             return self::$_model_installed;
         }
 
@@ -52,7 +51,7 @@ class PHS_Model_Migrations extends PHS_Model
     {
         $this->reset_error();
 
-        if ( !$this->migration_model_is_installed() ) {
+        if (!$this->migration_model_is_installed()) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Migrations model is not installed.'));
 
             return null;
@@ -93,7 +92,7 @@ class PHS_Model_Migrations extends PHS_Model
     {
         $this->reset_error();
 
-        if ( !$this->migration_model_is_installed() ) {
+        if (!$this->migration_model_is_installed()) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Migrations model is not installed.'));
 
             return null;
@@ -115,10 +114,10 @@ class PHS_Model_Migrations extends PHS_Model
             $edit_arr['pid'] = $pid;
         }
 
-        if ( $total_count !== null ) {
+        if ($total_count !== null) {
             $edit_arr['total_count'] = $total_count;
         }
-        if ( $current_count !== null ) {
+        if ($current_count !== null) {
             $edit_arr['current_count'] = $current_count;
         }
 
@@ -137,7 +136,7 @@ class PHS_Model_Migrations extends PHS_Model
     {
         $this->reset_error();
 
-        if ( !$this->migration_model_is_installed() ) {
+        if (!$this->migration_model_is_installed()) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Migrations model is not installed.'));
 
             return null;
@@ -168,7 +167,7 @@ class PHS_Model_Migrations extends PHS_Model
     {
         $this->reset_error();
 
-        if ( !$this->migration_model_is_installed() ) {
+        if (!$this->migration_model_is_installed()) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Migrations model is not installed.'));
 
             return null;
@@ -214,7 +213,7 @@ class PHS_Model_Migrations extends PHS_Model
     {
         $this->reset_error();
 
-        if ( !$this->migration_model_is_installed() ) {
+        if (!$this->migration_model_is_installed()) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Migrations model is not installed.'));
 
             return null;
@@ -234,7 +233,7 @@ class PHS_Model_Migrations extends PHS_Model
     {
         $this->reset_error();
 
-        if ( !$this->migration_model_is_installed() ) {
+        if (!$this->migration_model_is_installed()) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Migrations model is not installed.'));
 
             return null;

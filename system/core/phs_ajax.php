@@ -1,5 +1,4 @@
 <?php
-
 namespace phs;
 
 use phs\PHS_Crypt;

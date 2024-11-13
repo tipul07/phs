@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 class PHS_File_upload extends PHS_Registry

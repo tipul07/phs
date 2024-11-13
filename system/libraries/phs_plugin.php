@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 use phs\PHS;
@@ -1146,7 +1145,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $plugin_version = $this->get_plugin_version();
 
         /** @var null|PHS_Event_Migration_plugins $event_obj */
-        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_install(
+        if (!($event_obj = PHS_Event_Migration_plugins::trigger_install(
             plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
         ))
              || $event_obj->result_has_error()
@@ -1161,7 +1160,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         /** @var null|PHS_Event_Migration_plugins $event_obj */
-        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_start(
+        if (!($event_obj = PHS_Event_Migration_plugins::trigger_start(
             plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
         ))
              || $event_obj->result_has_error()
@@ -1175,7 +1174,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        if (null === $this->install_roles() ) {
+        if (null === $this->install_roles()) {
             PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error installing plugin roles: '
                                     .$this->get_simple_error_message('Unknown error.'));
 
@@ -1183,7 +1182,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         /** @var null|PHS_Event_Migration_plugins $event_obj */
-        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_after_roles(
+        if (!($event_obj = PHS_Event_Migration_plugins::trigger_after_roles(
             plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
         ))
              || $event_obj->result_has_error()
@@ -1197,7 +1196,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        if ( !$this->install_agent_jobs()) {
+        if (!$this->install_agent_jobs()) {
             PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error installing plugin agent jobs: '
                                     .$this->get_simple_error_message('Unknown error.'));
 
@@ -1205,7 +1204,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         /** @var null|PHS_Event_Migration_plugins $event_obj */
-        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_after_jobs(
+        if (!($event_obj = PHS_Event_Migration_plugins::trigger_after_jobs(
             plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
         ))
              || $event_obj->result_has_error()
@@ -1299,7 +1298,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         /** @var null|PHS_Event_Migration_plugins $event_obj */
-        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_finish(
+        if (!($event_obj = PHS_Event_Migration_plugins::trigger_finish(
             plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
         ))
              || $event_obj->result_has_error()
@@ -1440,7 +1439,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $is_dry_update = PHS_Db::dry_update();
 
         /** @var null|PHS_Event_Migration_plugins $event_obj */
-        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_start(
+        if (!($event_obj = PHS_Event_Migration_plugins::trigger_start(
             plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
         ))
              || $event_obj->result_has_error()
@@ -1464,7 +1463,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         /** @var null|PHS_Event_Migration_plugins $event_obj */
-        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_after_roles(
+        if (!($event_obj = PHS_Event_Migration_plugins::trigger_after_roles(
             plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
         ))
              || $event_obj->result_has_error()
@@ -1487,7 +1486,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         /** @var null|PHS_Event_Migration_plugins $event_obj */
-        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_after_jobs(
+        if (!($event_obj = PHS_Event_Migration_plugins::trigger_after_jobs(
             plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
         ))
              || $event_obj->result_has_error()
@@ -1578,7 +1577,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         /** @var null|PHS_Event_Migration_plugins $event_obj */
-        if ( !($event_obj = PHS_Event_Migration_plugins::trigger_finish(
+        if (!($event_obj = PHS_Event_Migration_plugins::trigger_finish(
             plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
         ))
              || $event_obj->result_has_error()

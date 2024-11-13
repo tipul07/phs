@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\remote_phs\actions\domains;
 
 use phs\PHS;

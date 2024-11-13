@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\models;
 
 use phs\PHS;
@@ -357,7 +356,7 @@ class PHS_Model_Api_monitor extends PHS_Model
             $fields_arr['response_body'] = $response_body;
         }
 
-        if ( !($record = $force_record ?? PHS_Api::incoming_monitoring_record() ?? null) ) {
+        if (!($record = $force_record ?? PHS_Api::incoming_monitoring_record() ?? null)) {
             $fields_arr['type'] = self::TYPE_GRAPHQL;
             $fields_arr['method'] = $_SERVER['REQUEST_METHOD'] ?? null;
             $fields_arr['request_body'] = PHS_Api_base::get_php_input();
@@ -396,7 +395,7 @@ class PHS_Model_Api_monitor extends PHS_Model
             $fields_arr['response_body'] = $response_body;
         }
 
-        if ( !($record = $force_record ?? PHS_Api::incoming_monitoring_record() ?? null) ) {
+        if (!($record = $force_record ?? PHS_Api::incoming_monitoring_record() ?? null)) {
             $fields_arr['type'] = self::TYPE_GRAPHQL;
             $fields_arr['method'] = $_SERVER['REQUEST_METHOD'] ?? null;
             $fields_arr['request_body'] = PHS_Api_base::get_php_input();

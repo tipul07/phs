@@ -2,6 +2,7 @@
 
 use PhpCsFixer\Config;
 use PhpCsFixer\Finder;
+use PhpCsFixer\Runner\Parallel\ParallelConfig;
 
 $rules = [
     'php_unit_method_casing' => [
@@ -22,15 +23,18 @@ $rules = [
         'sort_algorithm' => 'none',
     ],
     'function_declaration' => [
+        'closure_fn_spacing'       => 'none',
         'closure_function_spacing' => 'none',
     ],
-    'function_typehint_space' => true,
-    'method_argument_space'   => [
+    'type_declaration_spaces' => [
+        'elements' => ['function'],
+    ],
+    'method_argument_space' => [
         'keep_multiple_spaces_after_comma' => false,
         'on_multiline'                     => 'ignore',
     ],
-    'single_space_after_construct' => [
-        'constructs' => [
+    'single_space_around_construct' => [
+        'constructs_followed_by_a_single_space' => [
             'abstract', 'as', 'attribute', 'break', 'case', 'catch', 'class', 'clone', 'comment', 'const',
             'const_import', 'continue', 'do', 'echo', 'else', 'elseif', 'enum', 'extends', 'final', 'finally',
             'for', 'foreach', 'function', 'function_import', 'global', 'goto', 'if', 'implements', 'include',
@@ -78,35 +82,31 @@ $rules = [
     'control_structure_continuation_position'          => [
         'position' => 'same_line',
     ],
-    'control_structure_braces'                => true,
-    'single_line_comment_spacing'             => true,
-    'no_empty_comment'                        => false,
-    'comment_to_phpdoc'                       => true,
-    'single_trait_insert_per_statement'       => false,
-    'no_null_property_initialization'         => true,
-    'no_unset_cast'                           => true,
-    'modernize_types_casting'                 => false,
-    'native_function_type_declaration_casing' => true,
-    'integer_literal_case'                    => true,
-    'no_multiple_statements_per_line'         => true,
-    'class_reference_name_casing'             => true,
-    'array_indentation'                       => true,
-    'array_syntax'                            => ['syntax' => 'short'],
-    'blank_line_between_import_groups'        => true,
-    'no_blank_lines_before_namespace'         => true,
-    'blank_line_after_namespace'              => true,
-    'blank_line_after_opening_tag'            => true,
-    'blank_line_before_statement'             => [
+    'control_structure_braces'          => true,
+    'single_line_comment_spacing'       => true,
+    'no_empty_comment'                  => false,
+    'comment_to_phpdoc'                 => true,
+    'single_trait_insert_per_statement' => false,
+    'no_null_property_initialization'   => true,
+    'no_unset_cast'                     => true,
+    'modernize_types_casting'           => false,
+    'native_type_declaration_casing'    => true,
+    'integer_literal_case'              => true,
+    'no_multiple_statements_per_line'   => true,
+    'class_reference_name_casing'       => true,
+    'array_indentation'                 => true,
+    'array_syntax'                      => ['syntax' => 'short'],
+    'blank_line_between_import_groups'  => true,
+    'blank_lines_before_namespace'      => [
+        'max_line_breaks' => 1,
+        'min_line_breaks' => 1,
+    ],
+    'blank_line_after_namespace'   => true,
+    'blank_line_after_opening_tag' => true,
+    'blank_line_before_statement'  => [
         'statements' => ['return', 'switch'],
     ],
-    'braces' => [
-        'allow_single_line_anonymous_class_with_empty_body' => false,
-        'allow_single_line_closure'                         => false,
-        'position_after_functions_and_oop_constructs'       => 'next',
-        'position_after_control_structures'                 => 'same',
-        'position_after_anonymous_constructs'               => 'same',
-    ],
-    'curly_braces_position' => [
+    'braces_position' => [
         'control_structures_opening_brace'          => 'same_line',
         'functions_opening_brace'                   => 'next_line_unless_newline_at_signature_end',
         'classes_opening_brace'                     => 'next_line_unless_newline_at_signature_end',
@@ -140,7 +140,7 @@ $rules = [
     'elseif'                                 => true,
     'encoding'                               => true,
     'full_opening_tag'                       => true,
-    'fully_qualified_strict_types'           => true, // added by Shift
+    'fully_qualified_strict_types'           => true,
     'general_phpdoc_tag_rename'              => true,
     'heredoc_to_nowdoc'                      => true,
     'include'                                => true,
@@ -150,8 +150,8 @@ $rules = [
     'line_ending'                            => true,
     'lowercase_cast'                         => true,
     'lowercase_keywords'                     => true,
-    'lowercase_static_reference'             => true, // added from Symfony
-    'magic_method_casing'                    => true, // added from Symfony
+    'lowercase_static_reference'             => true,
+    'magic_method_casing'                    => true,
     'magic_constant_casing'                  => true,
     'multiline_whitespace_before_semicolons' => [
         'strategy' => 'no_multi_line',
@@ -185,14 +185,9 @@ $rules = [
     'no_spaces_around_offset'                     => [
         'positions' => ['inside', 'outside'],
     ],
-    'no_spaces_inside_parenthesis' => true,
-    // Deprecated
-    // 'no_trailing_comma_in_list_call'  => true,
     'no_trailing_comma_in_singleline' => [
-        'elements' => [], // ['arguments', 'array_destructuring', 'array', 'group_import'],
+        'elements' => [],
     ],
-    // Deprecated
-    // 'no_trailing_comma_in_singleline_array' => false,
     'no_trailing_whitespace'            => true,
     'no_trailing_whitespace_in_comment' => true,
     'no_unneeded_control_parentheses'   => [
@@ -215,7 +210,7 @@ $rules = [
     'phpdoc_scalar'                                 => true,
     'phpdoc_single_line_var_spacing'                => true,
     'phpdoc_summary'                                => false,
-    'phpdoc_to_comment'                             => false, // override to preserve user preference
+    'phpdoc_to_comment'                             => false,
     'phpdoc_tag_type'                               => true,
     'phpdoc_trim'                                   => true,
     'phpdoc_trim_consecutive_blank_line_separation' => true,
@@ -230,19 +225,14 @@ $rules = [
     'self_accessor'                                 => true,
     'self_static_accessor'                          => true,
     'short_scalar_cast'                             => true,
-    'compact_nullable_typehint'                     => true,
-    'simplified_null_return'                        => false, // disabled as "risky"
+    'compact_nullable_type_declaration'             => true,
+    'simplified_null_return'                        => false,
     'single_blank_line_at_eof'                      => true,
-    // 'single_class_element_per_statement' => [
-    //      'elements' => [],//['const', 'property'],
-    // ],
-    'single_import_per_statement' => true,
-    'single_line_after_imports'   => true,
-    'single_line_comment_style'   => [
+    'single_import_per_statement'                   => true,
+    'single_line_after_imports'                     => true,
+    'single_line_comment_style'                     => [
         'comment_types' => ['hash'],
     ],
-    // VERY risky...
-    // 'single_quote' => ['strings_containing_single_quote_chars' => true],
     'space_after_semicolon'          => true,
     'standardize_not_equals'         => true,
     'switch_case_semicolon_to_colon' => true,
@@ -255,6 +245,7 @@ $rules = [
         'elements' => ['method', 'property', 'const'],
     ],
     'whitespace_after_comma_in_array' => true,
+    'spaces_inside_parentheses'       => ['space' => 'none'],
 ];
 
 $finder = Finder::create()
@@ -263,7 +254,9 @@ $finder = Finder::create()
     ])
     ->name('*.php')
     ->notPath(['main.dist.php'])
-    ->exclude(['vendor', 'plugins', 'contexts', 'features', '_uploads', 'system/logs', 'plugins.dist/phs_libs/libraries/qrcode'])
+    ->exclude(['vendor', 'plugins', 'contexts', 'features', '_uploads', 'system/logs',
+        'plugins.dist/phs_libs/libraries/qrcode',
+        'graphql/libraries/webonyx'])
     ->ignoreDotFiles(true)
     ->ignoreVCS(true);
 
@@ -271,4 +264,5 @@ return (new Config())
     ->setFinder($finder)
     ->setRules($rules)
     ->setRiskyAllowed(true)
+    ->setParallelConfig(new ParallelConfig(8, 20, 600)) // ONLY for when running in console without cache
     ->setUsingCache(true);

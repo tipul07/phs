@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\admin\actions\apikeys;
 
 use phs\PHS;
@@ -746,7 +745,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     public function after_filters_callback($params)
     {
-        if ( !$this->_admin_plugin->can_admin_manage_api_keys() ) {
+        if (!$this->_admin_plugin->can_admin_manage_api_keys()) {
             return '';
         }
 

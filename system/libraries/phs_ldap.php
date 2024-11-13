@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 class PHS_Ldap extends PHS_Registry

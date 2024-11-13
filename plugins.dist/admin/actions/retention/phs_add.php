@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\admin\actions\retention;
 
 use phs\PHS;
@@ -82,7 +81,7 @@ class PHS_Action_Add extends PHS_Action
         $types_arr = $retention_model->get_types_as_key_val();
         $intervals_arr = $retention_model->get_intervals_as_key_val();
 
-        if ( (!empty($plugin)
+        if ((!empty($plugin)
              && $plugin !== PHS_Instantiable::CORE_PLUGIN
              && empty($plugins_arr[$plugin]))
             || (!empty($model)
@@ -99,7 +98,7 @@ class PHS_Action_Add extends PHS_Action
             $table = '';
             $date_field = '';
 
-            if ( isset($do_submit) ) {
+            if (isset($do_submit)) {
                 unset($do_submit);
             }
 
@@ -108,7 +107,7 @@ class PHS_Action_Add extends PHS_Action
         }
 
         if (!empty($do_submit)) {
-            if ( !($retention = $retention_model->generate_retention_field(['count' => $retention_count, 'interval' => $retention_interval])) ) {
+            if (!($retention = $retention_model->generate_retention_field(['count' => $retention_count, 'interval' => $retention_interval]))) {
                 PHS_Notifications::add_error_notice(self::_t('Invalid retention interval. Please try again.'));
             } else {
                 $insert_arr = [];

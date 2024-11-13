@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\models;
 
 use phs\PHS;
@@ -69,7 +68,7 @@ class PHS_Model_Api_keys extends PHS_Model
             return $record_arr;
         }
 
-        if ( !($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_ACTIVE]])) ) {
+        if (!($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_ACTIVE]]))) {
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error saving API key details.'));
 
             return null;
@@ -93,7 +92,7 @@ class PHS_Model_Api_keys extends PHS_Model
             return $record_arr;
         }
 
-        if ( !($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_INACTIVE]])) ) {
+        if (!($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_INACTIVE]]))) {
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error saving API key details.'));
 
             return null;
@@ -117,7 +116,7 @@ class PHS_Model_Api_keys extends PHS_Model
             return $record_arr;
         }
 
-        if ( !($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_DELETED]])) ) {
+        if (!($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_DELETED]]))) {
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error saving API key details.'));
 
             return null;

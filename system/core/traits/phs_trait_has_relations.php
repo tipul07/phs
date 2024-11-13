@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\traits;
 
 use Closure;
@@ -15,8 +14,9 @@ trait PHS_Trait_Has_relations
 
     public function relation_one_to_one(
         string $key,
-        string $dest_model, string $dest_key, ?array $dest_flow = [],
-        ?array $source_flow = [], string $source_key = '',
+        string $dest_model, string $source_key,
+        string $dest_key = '', ?array $dest_flow = [],
+        ?array $source_flow = [],
         ?Closure $filter_fn = null,
         ?Closure $read_fn = null,
         array $options = [],

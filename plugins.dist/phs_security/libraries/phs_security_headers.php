@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\phs_security\libraries;
 
 use phs\libraries\PHS_Library;
@@ -88,11 +87,11 @@ class Phs_security_headers extends PHS_Library
 
     public function get_security_headers_for_response() : ?array
     {
-        if ( !$this->_load_dependencies() ) {
+        if (!$this->_load_dependencies()) {
             return null;
         }
 
-        if ( !$this->_security_plugin->security_headers_are_enabled() ) {
+        if (!$this->_security_plugin->security_headers_are_enabled()) {
             return [];
         }
 
@@ -100,8 +99,8 @@ class Phs_security_headers extends PHS_Library
         $headers_values = $this->_security_plugin->get_security_headers_values();
 
         $headers_arr = [];
-        foreach ( $this->get_security_headers_definition() as $h_id => $h_arr ) {
-            if ( empty( $enabled_headers[$h_id] ) ) {
+        foreach ($this->get_security_headers_definition() as $h_id => $h_arr) {
+            if (empty($enabled_headers[$h_id])) {
                 continue;
             }
 

@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\graphql\libraries;
 
 use Closure;
@@ -74,7 +73,7 @@ final class PHS_Graphql
      */
     public static function register_type(string $type_class, bool $is_query_type = false) : bool
     {
-        if ( !($instance_details = PHS_Instantiable::extract_details_from_full_namespace_name($type_class))
+        if (!($instance_details = PHS_Instantiable::extract_details_from_full_namespace_name($type_class))
              || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_GRAPHQL
              || !($type_name = $type_class::get_type_name())
              || !empty(self::$types[$type_name])) {
@@ -114,12 +113,12 @@ final class PHS_Graphql
 
     public static function ref_by_class(string $type_class) : Closure
     {
-        return static fn () => self::instance_by_class($type_class);
+        return static fn() => self::instance_by_class($type_class);
     }
 
     public static function ref_by_name(string $type_name) : Closure
     {
-        return static fn () => self::instance_by_name($type_name);
+        return static fn() => self::instance_by_name($type_name);
     }
 
     public static function instance_by_class(string $type_class) : ?ObjectType
@@ -192,14 +191,18 @@ final class PHS_Graphql
 
     private static function _get_query_types_as_fields() : array
     {
-        if ( !($query_types = self::get_query_types()) ) {
+        if (!($query_types = self::get_query_types())) {
             return [];
         }
 
         $query_fields = [];
         foreach ($query_types as $type_name => $type_class) {
-            if ( !($type_instance = self::phs_instance_by_name($type_name)) ) {
+            if (!($type_instance = self::phs_instance_by_name($type_name))) {
                 continue;
+            }
+
+            if (($custom_type_name = $type_instance->get_query_definition_type_name())) {
+                $type_name = $custom_type_name;
             }
 
             $query_fields[$type_name] = $type_instance->get_query_definition();

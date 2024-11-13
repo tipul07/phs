@@ -1,11 +1,8 @@
 <?php
-
 namespace phs\libraries;
 
 use phs\PHS;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Hooks;
-use phs\libraries\PHS_Action;
 use phs\system\core\actions\PHS_Action_Foobar;
 
 abstract class PHS_Controller extends PHS_Instantiable

@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\__PLUGIN_NAME__\migrations__CLASS_NAMESPACE__;
 
 use phs\libraries\PHS_Migration;

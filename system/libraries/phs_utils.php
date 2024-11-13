@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 /*! \file phs_utils.php
@@ -802,7 +801,7 @@ class PHS_Utils extends PHS_Language
         return $file_mime_type;
     }
 
-    public static function mypathinfo($str)
+    public static function mypathinfo($str) : array
     {
         $ret = [];
         $ret['dirname'] = '';
@@ -818,13 +817,13 @@ class PHS_Utils extends PHS_Language
             $file = explode('.', $str);
         } elseif ($dir_file[$knt - 1] === '') {
             $ret['dirname'] = implode('/', array_slice($dir_file, 0, -1));
-            $file = false;
+            $file = null;
         } else {
             $ret['dirname'] = implode('/', array_slice($dir_file, 0, -1));
             $file = explode('.', $dir_file[$knt - 1]);
         }
 
-        if ($file !== false) {
+        if ($file !== null) {
             if (($dot_count = count($file)) <= 1) {
                 $ret['basename'] = implode('.', $file);
                 $ret['extension'] = '';
@@ -928,16 +927,16 @@ class PHS_Utils extends PHS_Language
         $host_port = '';
         $user_pass = '';
         if ($host_present) {
-            if (false !== strpos($mystr, '@')) {
+            if (str_contains($mystr, '@')) {
                 $res = explode('@', $mystr, 2);
                 $user_pass = $res[0];
-                $host_port = $res[1];
+                $host_port = $res[1] ?? '';
             } else {
                 $host_port = $mystr;
             }
         }
 
-        if (false !== strpos($host_port, ':')) {
+        if (str_contains($host_port, ':')) {
             $res = explode(':', $host_port, 2);
             $ret['host'] = $res[0];
             $ret['port'] = $res[1];
@@ -948,12 +947,8 @@ class PHS_Utils extends PHS_Language
 
         if ($user_pass !== '') {
             $res = explode(':', $user_pass, 2);
-            if (isset($res[1]) && $res[1] !== '') {
-                $ret['pass'] = $res[1];
-            } else {
-                $ret['pass'] = '';
-            }
             $ret['user'] = $res[0];
+            $ret['pass'] = $res[1] ?? '';
         } else {
             $ret['user'] = '';
             $ret['pass'] = '';
@@ -964,7 +959,7 @@ class PHS_Utils extends PHS_Language
 
     public static function rebuild_url(array $url_parts) : string
     {
-        if (empty($url_parts)) {
+        if (!$url_parts) {
             return '';
         }
 
@@ -1335,8 +1330,8 @@ class PHS_Utils extends PHS_Language
 
     public static function obfuscate_authorization_header_from_string(string $headers) : string
     {
-        if ( preg_match('/^(Authorization)\s*:\s*?(.*)\s*$/miU', $headers, $matches) ) {
-            $auth_str = explode( ' ', $matches[2] ?? '', 2);
+        if (preg_match('/^(Authorization)\s*:\s*?(.*)\s*$/miU', $headers, $matches)) {
+            $auth_str = explode(' ', $matches[2] ?? '', 2);
             $headers = str_replace(
                 $matches[0],
                 ($matches[1] ?? 'Authorization').': '
@@ -1750,5 +1745,48 @@ class PHS_Utils extends PHS_Language
         }
 
         return $count;
+    }
+
+    public static function arrays_are_same(array $arr1, array $arr2, bool $skip_nulls = false) : bool
+    {
+        return !self::array_diff_assoc_recursive($arr1, $arr2, $skip_nulls)
+               && !self::array_diff_assoc_recursive($arr2, $arr1, $skip_nulls);
+    }
+
+    public static function array_diff_assoc_recursive(array $arr1, array $arr2, bool $skip_nulls = false) : ?array
+    {
+        $diff_arr = [];
+        foreach ($arr2 as $key => $val) {
+            if (!array_key_exists($key, $arr1)) {
+                if ($skip_nulls
+                    && $val === null) {
+                    continue;
+                }
+
+                $diff_arr[$key] = $val;
+                continue;
+            }
+
+            if (is_array($val)) {
+                if (!is_array($arr1[$key])) {
+                    $diff_arr[$key] = $val;
+                    continue;
+                }
+
+                if (!($recursive_diff = self::array_diff_assoc_recursive($arr1[$key], $val, $skip_nulls))) {
+                    continue;
+                }
+
+                $diff_arr[$key] = $recursive_diff;
+
+                continue;
+            }
+
+            if ((string)$val !== (string)$arr1[$key]) {
+                $diff_arr[$key] = $val;
+            }
+        }
+
+        return $diff_arr;
     }
 }

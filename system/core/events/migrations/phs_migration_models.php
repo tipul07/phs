@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\events\migrations;
 
 include_once 'phs_migration.php';
@@ -33,7 +32,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
-        if ( !$model_obj ) {
+        if (!$model_obj) {
             return null;
         }
 
@@ -52,7 +51,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
-        if ( !$model_obj ) {
+        if (!$model_obj) {
             return null;
         }
 
@@ -71,7 +70,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
-        if ( !$model_obj ) {
+        if (!$model_obj) {
             return null;
         }
 
@@ -90,7 +89,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         bool $is_dry_update = false,
         bool $is_forced = false,
     ) : ?self {
-        if ( !$model_obj ) {
+        if (!$model_obj) {
             return null;
         }
 

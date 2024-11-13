@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\admin\actions\retention;
 
 use phs\PHS_Scope;
@@ -38,7 +37,7 @@ class PHS_Action_Run_retention_bg extends PHS_Action
         PHS_Logger::notice('[START] Running '.count($retention_ids).' data retention policies.',
             $admin_plugin::LOG_DATA_RETENTION);
 
-        if ( !($result = $retention_lib->run_data_retention_for_list_bg($retention_ids)) ) {
+        if (!($result = $retention_lib->run_data_retention_for_list_bg($retention_ids))) {
             PHS_Logger::error('[ERROR] Error running data retention policies: '
                               .$retention_lib->get_simple_error_message($this->_pt('Unknown error.')),
                 $admin_plugin::LOG_DATA_RETENTION);

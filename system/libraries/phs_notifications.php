@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 class PHS_Notifications extends PHS_Language
