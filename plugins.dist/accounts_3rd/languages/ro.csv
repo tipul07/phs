@@ -16,8 +16,8 @@ Error obtaining Apple account details. Please try again.,Eroare la obţinerea de
 This email address is not registered on this platform.,Adresa de email nu este înregistrată pe această platformă.
 Error registering account.,Eroare la înregistrarea contului.
 Please try again.,Încercaţi din nou.
-Account linked with this email address is not active.,Contul legat de această adresă de email este inactiv.
-Please try logging in using a different email address.,Vă rugăm să vă logaţi cu altă adresă de email.
+Account linked with this email address is not active.,Contul asociat cu această adresă de e-mail nu este activ.
+Please try logging in using a different email address.,Vă rugăm să încercați să vă conectați folosind o altă adresă de e-mail.
 Error logging in.,Eroare la logarea în cont.
 Error decoding Google account details. Please try again.,Eroare la decodarea datelor contului Google. Încercaţi din nou.
 Invalid Google token. Please try again.,Token-ul Google este invalid. Încercaţi din nou.
@@ -72,3 +72,4 @@ Register with Apple,Înregistrare cu Apple
 Login with Google,Logare cu Google
 Register with Google,Înregistrare cu Google
 Login with Facebook,Login cu Facebook
+This email address is already registered on this platform.,Această adresă de e-mail este deja înregistrată pe această platformă.
