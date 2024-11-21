@@ -500,7 +500,7 @@ class PHS_Hooks extends PHS_Registry
                 'extra_paths' => [],
             ], // default template
 
-            // In case we don't use a template and we just pass a string as email body
+            // In case we don't use a template, and we just pass a string as email body
             'body_buffer' => false,
 
             'route'          => false,

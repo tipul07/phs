@@ -1,18 +1,13 @@
 <?php
 namespace phs\plugins\emails\libraries;
 
+use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Library;
-
-/*! \file phs_smtp.php
- *  \brief Contains PHS_Smtp class (send emails trough smtp)
- *  \version 1.10
- */
 
 class PHS_Smtp extends PHS_Library
 {
     public const CLASS_VERSION = '1.20';
 
-    // ! /descr Class was initialised succesfully
     public const ERR_CONNECT = 1, ERR_AUTHENTICATION = 2, ERR_EMAIL_DETAILS = 3, ERR_NOT_EXPECTED = 4,
         ERR_FROM = 5, ERR_TO = 6, ERR_DATA = 7, ERR_BODY = 8, ERR_NOOP = 9;
 
@@ -56,6 +51,8 @@ class PHS_Smtp extends PHS_Library
         'smtp_resend_hello'   => false,
     ];
 
+    private array $_last_email_details = [];
+
     private array $debug_log = [];
 
     private static array $AUTHENTICATION_METHODS_ARR
@@ -77,6 +74,8 @@ class PHS_Smtp extends PHS_Library
             $this->settings($params);
         }
 
+        $this->_reset_email_details();
+
         $this->reset_error();
     }
 
@@ -97,7 +96,7 @@ class PHS_Smtp extends PHS_Library
         return self::$ENCRYPTIONS_ARR;
     }
 
-    public function valid_encryption($item) : bool
+    public function valid_encryption(string $item) : bool
     {
         $item = strtolower(trim($item));
 
@@ -164,22 +163,17 @@ class PHS_Smtp extends PHS_Library
         return $this->email_settings;
     }
 
-    /**
-     * @param null|array $params
-     *
-     * @return bool
-     */
     public function send(?array $params = null) : bool
     {
         $this->reset_error();
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
+        $this->_reset_email_details();
+
+        $params ??= [];
 
         $this->debug_log = [];
 
-        $params['close_after_send'] = (!isset($params['close_after_send']) || !empty($params['close_after_send']));
+        $params['close_after_send'] = !isset($params['close_after_send']) || !empty($params['close_after_send']);
 
         if (!($email_details = $this->email_details())
          || empty($email_details['to_email']) || empty($email_details['from_email'])
@@ -306,8 +300,13 @@ class PHS_Smtp extends PHS_Library
             $headers_str .= self::EOL;
         }
 
+        $this->_email_details([
+            'to_email' => $email_details['headers']['To'] ?? '',
+            'subject'  => $email_details['headers']['Subject'] ?? '',
+        ]);
+
         $raw_message = $headers_str.$raw_message.self::EOL.'.';
-        if (null === $this->_exec($raw_message, '250')) {
+        if (null === ($last_response = $this->_exec($raw_message, '250'))) {
             $this->_exec('RSET');
 
             if (!empty($params['close_after_send'])) {
@@ -318,6 +317,8 @@ class PHS_Smtp extends PHS_Library
 
             return false;
         }
+
+        $this->_email_details('server_response', $last_response);
 
         if (null === $this->_exec('NOOP', '250')) {
             if (!empty($params['close_after_send'])) {
@@ -333,12 +334,19 @@ class PHS_Smtp extends PHS_Library
             $this->_disconnect();
         }
 
+        $this->_email_details('sent_success', true);
+
         return true;
     }
 
     public function is_connected() : bool
     {
         return !empty($this->fd);
+    }
+
+    public function get_last_email_details() : array
+    {
+        return $this->_email_details();
     }
 
     protected function _read() : string
@@ -375,12 +383,6 @@ class PHS_Smtp extends PHS_Library
         ];
     }
 
-    /**
-     * @param string $cmd
-     * @param null|string $expected
-     *
-     * @return null|string
-     */
     protected function _exec(string $cmd, ?string $expected = null) : ?string
     {
         if (!$this->_write($cmd)) {
@@ -391,8 +393,8 @@ class PHS_Smtp extends PHS_Library
 
         if ($expected !== null
             && (!$response || !preg_match('/^'.$expected.'/S', $response))) {
-            $this->_add_debug_log($cmd, 'Expected ['.$expected.'], got ['.($response ?? 'N/A').']');
-            $this->set_error(self::ERR_NOT_EXPECTED, 'Expected ['.$expected.'], got ['.($response ?? 'N/A').']');
+            $this->_add_debug_log($cmd, 'Expected ['.$expected.'], got ['.($response ?: 'N/A').']');
+            $this->set_error(self::ERR_NOT_EXPECTED, 'Expected ['.$expected.'], got ['.($response ?: 'N/A').']');
 
             return null;
         }
@@ -402,12 +404,6 @@ class PHS_Smtp extends PHS_Library
         return $response;
     }
 
-    /**
-     * @param string $response
-     * @param null|array $smtp_settings
-     *
-     * @return bool
-     */
     protected function _authenticate(string $response, ?array $smtp_settings = null) : bool
     {
         if (!$this->is_connected()) {
@@ -517,6 +513,8 @@ class PHS_Smtp extends PHS_Library
 
         $stream_url .= '://'.$smtp_settings['smtp_host'].':'.$smtp_settings['smtp_port'];
 
+        $this->_email_details(['server' => $stream_url]);
+
         if (!($this->fd = @stream_socket_client($stream_url, $errno, $errstr, $smtp_settings['smtp_timeout'], STREAM_CLIENT_CONNECT | STREAM_CLIENT_PERSISTENT))) {
             $this->fd = 0;
             $this->set_error(self::ERR_CONNECT, 'Failed connecting to SMTP server');
@@ -541,7 +539,7 @@ class PHS_Smtp extends PHS_Library
         if ($smtp_settings['smtp_encryption'] === self::ENCRYPTION_TLS) {
             $this->_exec('STARTTLS', '220');
             if (!defined('STREAM_CRYPTO_METHOD_TLS_CLIENT')
-             || !@stream_socket_enable_crypto($this->fd, true, constant('STREAM_CRYPTO_METHOD_TLS_CLIENT'))) {
+                || !@stream_socket_enable_crypto($this->fd, true, constant('STREAM_CRYPTO_METHOD_TLS_CLIENT'))) {
                 $this->_disconnect();
                 $this->set_error(self::ERR_CONNECT, 'Unexpected TLS encryption error!');
 
@@ -557,9 +555,48 @@ class PHS_Smtp extends PHS_Library
             return false;
         }
 
-        $response = trim($response);
+        return $this->_authenticate(trim($response));
+    }
 
-        return $this->_authenticate($response);
+    private function _reset_email_details() : void
+    {
+        $this->_last_email_details = [
+            'to_email'        => '',
+            'subject'         => '',
+            'server_response' => '',
+            'sent_success'    => false,
+        ];
+
+        if (empty($this->_last_email_details['server'])) {
+            $this->_last_email_details['server'] = '';
+        }
+    }
+
+    private function _email_details(array | string | null $key = null, mixed $val = null) : ?array
+    {
+        if ($key === null) {
+            return $this->_last_email_details;
+        }
+
+        if ($val === null) {
+            if (is_array($key)) {
+                foreach ($key as $kkey => $kval) {
+                    if (!array_key_exists($kkey, $this->_last_email_details)) {
+                        continue;
+                    }
+
+                    $this->_last_email_details[$kkey] = $kval;
+                }
+
+                return $this->_last_email_details;
+            }
+
+            return $this->_last_email_details[$key] ?? null;
+        }
+
+        $this->_last_email_details[$key] = $val;
+
+        return $this->_last_email_details;
     }
 
     private function _disconnect() : void

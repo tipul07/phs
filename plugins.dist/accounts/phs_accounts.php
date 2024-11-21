@@ -319,9 +319,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         ];
     }
 
-    /**
-     * @return bool
-     */
     public function tfa_policy_is_off() : bool
     {
         return ($settings_arr = $this->get_plugin_settings())
@@ -329,9 +326,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                && (int)$settings_arr['2fa_policy'] === self::TFA_POLICY_OFF;
     }
 
-    /**
-     * @return bool
-     */
     public function tfa_policy_is_optional() : bool
     {
         return ($settings_arr = $this->get_plugin_settings())
@@ -339,9 +333,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                && (int)$settings_arr['2fa_policy'] === self::TFA_POLICY_OPTIONAL;
     }
 
-    /**
-     * @return bool
-     */
     public function tfa_policy_is_enforced() : bool
     {
         return ($settings_arr = $this->get_plugin_settings())
@@ -349,66 +340,42 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                && (int)$settings_arr['2fa_policy'] === self::TFA_POLICY_ENFORCED;
     }
 
-    /**
-     * @return bool
-     */
     public function tfa_remember_device_length() : int
     {
         return !($settings_arr = $this->get_plugin_settings()) || empty($settings_arr['2fa_remember_device_length'])
             ? 0 : (int)$settings_arr['2fa_remember_device_length'];
     }
 
-    /**
-     * @return bool
-     */
     public function lockout_is_enabled() : bool
     {
         return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['lockout_enabled']);
     }
 
-    /**
-     * @return bool
-     */
     public function should_log_account_creation() : bool
     {
         return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_account_creation']);
     }
 
-    /**
-     * @return bool
-     */
     public function should_log_account_logins() : bool
     {
         return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_account_logins']);
     }
 
-    /**
-     * @return bool
-     */
     public function should_log_password_changes() : bool
     {
         return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_password_changes']);
     }
 
-    /**
-     * @return bool
-     */
     public function should_log_roles_changes() : bool
     {
         return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_roles_changes']);
     }
 
-    /**
-     * @return bool
-     */
     public function is_password_decryption_enabled() : bool
     {
         return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['password_decryption_enabled']);
     }
 
-    /**
-     * @return bool
-     */
     public function settings_password_is_mandatory() : bool
     {
         return ($settings_arr = $this->get_plugin_settings())
@@ -416,9 +383,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                 && $settings_arr['registration_password_policy'] === self::PASS_POLICY_MANDATORY;
     }
 
-    /**
-     * @return bool
-     */
     public function settings_generate_pass_if_not_present() : bool
     {
         return ($settings_arr = $this->get_plugin_settings())
@@ -426,9 +390,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                 && $settings_arr['registration_password_policy'] === self::PASS_POLICY_GENERATE;
     }
 
-    /**
-     * @return bool
-     */
     public function settings_setup_pass_at_login_if_not_present() : bool
     {
         return ($settings_arr = $this->get_plugin_settings())
