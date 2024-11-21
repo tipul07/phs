@@ -38,7 +38,7 @@ class PHS_Model_Api_monitor extends PHS_Model
 
     public function get_model_version() : string
     {
-        return '1.0.3';
+        return '1.0.4';
     }
 
     public function get_table_names() : array
@@ -150,12 +150,14 @@ class PHS_Model_Api_monitor extends PHS_Model
                     ],
                     'request_time' => [
                         'type' => self::FTYPE_DATETIME,
+                        'index'   => true,
                     ],
                     'request_body' => [
                         'type' => self::FTYPE_MEDIUMTEXT,
                     ],
                     'response_time' => [
                         'type' => self::FTYPE_DATETIME,
+                        'index'   => true,
                     ],
                     'response_body' => [
                         'type' => self::FTYPE_MEDIUMTEXT,
