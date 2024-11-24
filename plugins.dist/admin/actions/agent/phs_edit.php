@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\admin\actions\agent;
 
 use phs\PHS;

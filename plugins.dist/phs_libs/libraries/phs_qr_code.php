@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\phs_libs\libraries;
 
 use Exception;

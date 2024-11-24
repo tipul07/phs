@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\system\core\events\models;
 
 use Closure;

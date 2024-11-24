@@ -56,11 +56,12 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
         $list_arr['flags'] = ['include_account_details'];
 
         $flow_params = [
-            'term_singular'        => $this->_pt('API call'),
-            'term_plural'          => $this->_pt('API calls'),
-            'initial_list_arr'     => $list_arr,
-            'after_table_callback' => [$this, 'after_table_callback'],
-            'listing_title'        => $this->_pt('API Monitor Report'),
+            'term_singular'          => $this->_pt('API call'),
+            'term_plural'            => $this->_pt('API calls'),
+            'initial_list_arr'       => $list_arr,
+            'after_table_callback'   => [$this, 'after_table_callback'],
+            'listing_title'          => $this->_pt('API Monitor Report'),
+            'simulate_records_count' => true,
         ];
 
         if (!($statuses_arr = $this->_paginator_model->get_statuses_as_key_val())) {

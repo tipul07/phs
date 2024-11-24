@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\foobar;
 
 use phs\libraries\PHS_Params;

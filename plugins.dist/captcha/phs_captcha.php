@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\captcha;
 
 use phs\PHS;

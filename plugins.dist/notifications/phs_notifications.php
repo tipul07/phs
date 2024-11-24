@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\notifications;
 
 use phs\PHS;

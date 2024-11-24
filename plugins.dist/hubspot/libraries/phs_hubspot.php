@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\hubspot\libraries;
 
 use phs\PHS;

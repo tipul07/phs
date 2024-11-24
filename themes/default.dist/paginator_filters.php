@@ -11,40 +11,27 @@ if (!($paginator_obj = $this->view_var('paginator'))) {
     return;
 }
 
-if (!($base_url = $paginator_obj->base_url())) {
-    $base_url = '#';
-}
-if (!($full_listing_url = $paginator_obj->get_full_url(['include_filters' => false]))) {
-    $full_listing_url = '#';
-}
+$base_url = $paginator_obj->base_url() ?: '#';
 
-if (!($flow_params_arr = $paginator_obj->flow_params())) {
-    $flow_params_arr = $paginator_obj->default_flow_params();
-}
+$full_listing_url = $paginator_obj->get_full_url(['include_filters' => false]) ?: '#';
 
-if (!($filters_form_name = $paginator_obj->get_filters_form_name())) {
-    $filters_form_name = $flow_params_arr['form_prefix'].'paginator_filters_form';
-}
+$flow_params_arr = $paginator_obj->flow_params() ?: $paginator_obj->default_flow_params();
 
-if (!($filters_arr = $paginator_obj->get_filters())) {
-    $filters_arr = [];
-}
-if (!($scope_arr = $paginator_obj->get_scope())) {
-    $scope_arr = [];
-}
-if (!($originals_arr = $paginator_obj->get_originals())) {
-    $originals_arr = [];
-}
+$filters_form_name = $paginator_obj->get_filters_form_name() ?: $flow_params_arr['form_prefix'].'paginator_filters_form';
+
+$filters_arr = $paginator_obj->get_filters() ?: [];
+$scope_arr = $paginator_obj->get_scope() ?: [];
+$originals_arr = $paginator_obj->get_originals() ?: [];
 
 $show_filters = (bool)PHS_Params::_g('show_filters', PHS_Params::T_INT);
 
-if (!empty($flow_params_arr['before_filters_callback'])
- && @is_callable($flow_params_arr['before_filters_callback'])) {
+if ($flow_params_arr['before_filters_callback']
+    && @is_callable($flow_params_arr['before_filters_callback'])) {
     $callback_params = $paginator_obj->default_others_render_call_params();
     $callback_params['filters'] = $filters_arr;
 
-    if (($cell_content = @call_user_func($flow_params_arr['before_filters_callback'], $callback_params)) === false
-     || $cell_content === null) {
+    if (false === ($cell_content = @call_user_func($flow_params_arr['before_filters_callback'], $callback_params))
+        || $cell_content === null) {
         $cell_content = '['.$this->_pt('Render before filters call failed.').']';
     }
 
@@ -70,10 +57,10 @@ $phs_first_ac_autocomplete_action = false;
             $filters_display_arr = [];
 foreach ($filters_arr as $filter_details) {
     if (empty($filter_details['var_name'])
-     || !empty($filter_details['hidden_filter'])
-     || (!empty($filter_details['autocomplete'])
-            && (!is_array($filter_details['autocomplete']) || empty($filter_details['autocomplete']['action']))
-     )) {
+        || !empty($filter_details['hidden_filter'])
+        || (!empty($filter_details['autocomplete'])
+            && empty($filter_details['autocomplete']['action']))
+    ) {
         continue;
     }
 
@@ -323,18 +310,18 @@ function clear_filter_value( obj_id, scalar_default_val, for_autocomplete )
     }
 
     var obj = $("#"+obj_id);
-    if( !obj )
+    if( !obj ) {
         return;
+    }
 
     var obj_type = obj.prop( "type" );
-    if( obj_type !== "select-one" && obj_type !== "select-multiple" )
-        obj.val( scalar_default_val );
-
-    else
-    {
+    if( obj_type !== "select-one" && obj_type !== "select-multiple" ) {
+        obj.val(scalar_default_val);
+    } else {
         var default_val = "";
-        if( obj[0] && obj[0][0] )
+        if( obj[0] && obj[0][0] ) {
             default_val = obj[0][0].value;
+        }
 
         obj.val( default_val );
 
@@ -346,10 +333,12 @@ function toggle_filters_inputs_and_text( filters_form_name )
     var inputs_obj = $("#" + filters_form_name + "_inputs");
     var text_obj = $("#" + filters_form_name + "_text");
 
-    if( inputs_obj )
+    if( inputs_obj ) {
         inputs_obj.slideToggle('fast');
-    if( text_obj )
+    }
+    if( text_obj ) {
         text_obj.slideToggle('fast');
+    }
 }
 function phs_filters_force_open( path_id, filters_form_name )
 {
@@ -357,23 +346,28 @@ function phs_filters_force_open( path_id, filters_form_name )
     var text_obj = $("#" + filters_form_name + "_text");
     var checkbox_obj = $("#" + path_id);
 
-    if( checkbox_obj )
-        checkbox_obj.prop( "checked", true );
-    if( inputs_obj )
+    if( checkbox_obj ) {
+        checkbox_obj.prop("checked", true);
+    }
+    if( inputs_obj ) {
         inputs_obj.show();
-    if( text_obj )
+    }
+    if( text_obj ) {
         text_obj.hide();
+    }
 }
 function phs_keep_filters_opened_tick( path_id )
 {
     var checkbox_obj = $("#" + path_id);
-    if( !checkbox_obj )
+    if( !checkbox_obj ) {
         return false;
+    }
 
     let ac_opened_filters = PHS_JSEN.load_storage( "__PHS_PACF_" );
     let opened_filters_obj = {};
-    if( ac_opened_filters && ac_opened_filters.length > 0 )
-        opened_filters_obj = JSON.parse( ac_opened_filters );
+    if( ac_opened_filters && ac_opened_filters.length > 0 ) {
+        opened_filters_obj = JSON.parse(ac_opened_filters);
+    }
 
     if( checkbox_obj.is( ":checked" ) ) {
         opened_filters_obj[path_id] = true;
@@ -387,8 +381,9 @@ function phs_keep_filters_opened_tick( path_id )
 function phs_filters_should_be_opened( path_id )
 {
     let ac_opened_filters = PHS_JSEN.load_storage( "__PHS_PACF_" );
-    if( !ac_opened_filters || ac_opened_filters.length <= 0 )
+    if( !ac_opened_filters || ac_opened_filters.length <= 0 ) {
         return false;
+    }
 
     let opened_filters_obj = JSON.parse( ac_opened_filters );
 
@@ -397,13 +392,13 @@ function phs_filters_should_be_opened( path_id )
 </script>
 <?php
 
-    if (!empty($flow_params_arr['after_filters_callback'])
-     && @is_callable($flow_params_arr['after_filters_callback'])) {
+    if ($flow_params_arr['after_filters_callback']
+        && @is_callable($flow_params_arr['after_filters_callback'])) {
         $callback_params = $paginator_obj->default_others_render_call_params();
         $callback_params['filters'] = $filters_arr;
 
-        if (($cell_content = @call_user_func($flow_params_arr['after_filters_callback'], $callback_params)) === false
-         || $cell_content === null) {
+        if (false === ($cell_content = @call_user_func($flow_params_arr['after_filters_callback'], $callback_params))
+            || $cell_content === null) {
             $cell_content = '['.$this->_pt('Render after filters call failed.').']';
         }
 

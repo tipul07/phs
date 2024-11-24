@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\messages\models;
 
 use phs\PHS;

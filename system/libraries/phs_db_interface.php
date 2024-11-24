@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 interface PHS_Db_interface

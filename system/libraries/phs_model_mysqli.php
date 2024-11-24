@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS;
@@ -643,7 +644,6 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
             $insert_after_exists
             && !($new_insert_arr = @$this->{'insert_after_'.$params['table_name']}($insert_arr, $params))
         )
-
         || (
             !$insert_after_exists
             && !($new_insert_arr = $this->insert_after($insert_arr, $params))
@@ -653,11 +653,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
 
             $this->hard_delete($insert_arr);
 
-            if (self::arr_has_error($error_arr)) {
-                $this->copy_error_from_array($error_arr);
-            } else {
-                $this->set_error_if_not_set(self::ERR_INSERT, self::_t('Failed actions after database insert.'));
-            }
+            $this->copy_or_set_error_from_array($error_arr,
+                self::ERR_INSERT, self::_t('Failed actions after database insert.'));
 
             return false;
         }
@@ -672,6 +669,17 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         ]);
 
         return $insert_arr;
+    }
+
+    public function insert_as_record_data(array $params) : ?PHS_Record_data
+    {
+        if (!($new_record = $this->insert($params))) {
+            $this->set_error_if_not_set(self::ERR_INSERT, self::_t('Error inserting record to the database.'));
+
+            return null;
+        }
+
+        return $this->record_data_from_array($new_record);
     }
 
     public function record_is_new(array | PHS_Record_data $record_arr) : bool

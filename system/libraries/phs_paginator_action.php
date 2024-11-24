@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use phs\PHS;
@@ -187,6 +188,10 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             $paginator_params = self::validate_array($hook_args['paginator_params'], $this->default_paginator_params());
         }
 
+        if (empty($paginator_params['flow_parameters']) || !is_array($paginator_params['flow_parameters'])) {
+            $paginator_params['flow_parameters'] = [];
+        }
+
         if (!($this->_paginator = new PHS_Paginator($paginator_params['base_url'], $paginator_params['flow_parameters']))
             || !$this->we_have_paginator()) {
             PHS_Notifications::add_error_notice($this->get_simple_error_message(self::_t('Couldn\'t instantiate paginator class.')));
@@ -205,14 +210,8 @@ abstract class PHS_Action_Generic_list extends PHS_Action
              && is_array($paginator_params['bulk_actions'])
              && !$this->_paginator->set_bulk_actions($paginator_params['bulk_actions']))
         ) {
-            if ($this->_paginator->has_error()) {
-                $error_msg = $this->_paginator->get_simple_error_message();
-            } else {
-                $error_msg = self::_t('Something went wrong while preparing paginator class.');
-            }
-
             $data = [
-                'filters' => $error_msg,
+                'filters' => $this->_paginator->get_simple_error_message(self::_t('Something went wrong while preparing paginator class.')),
                 'listing' => '',
             ];
 
@@ -221,18 +220,13 @@ abstract class PHS_Action_Generic_list extends PHS_Action
 
         if ($init_went_ok) {
             if (!$this->we_initialized_paginator()) {
-                if ($this->has_error()) {
-                    PHS_Notifications::add_error_notice($this->get_simple_error_message());
-                } else {
-                    PHS_Notifications::add_error_notice(self::_t('Couldn\'t initialize paginator class.'));
-                }
+                PHS_Notifications::add_error_notice($this->get_simple_error_message(self::_t('Couldn\'t initialize paginator class.')));
 
                 return self::default_action_result();
             }
 
             // check actions...
             if (($current_action = $this->_paginator->get_current_action())
-             && is_array($current_action)
              && !empty($current_action['action'])) {
                 if (!($pagination_action_result = $this->manage_action($current_action))) {
                     if ($this->has_error()) {
@@ -247,7 +241,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
                     ];
 
                     if (!empty($pagination_action_result['action_redirect_url_params'])
-                     && is_array($pagination_action_result['action_redirect_url_params'])) {
+                        && is_array($pagination_action_result['action_redirect_url_params'])) {
                         $url_params = self::merge_array_assoc($pagination_action_result['action_redirect_url_params'],
                             $url_params);
                     }
@@ -261,7 +255,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
                 $action_result = PHS_Action::default_action_result();
 
                 if (!($json_result = $this->_paginator->get_listing_result())
-                 || !is_array($json_result)) {
+                    || !is_array($json_result)) {
                     $json_result = [];
                 }
 

@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\setup\libraries;
 
 class PHS_Setup_layout extends PHS_Setup_view

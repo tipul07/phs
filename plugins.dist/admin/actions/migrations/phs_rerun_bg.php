@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\admin\actions\migrations;
 
 use phs\PHS_Scope;

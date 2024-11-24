@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 abstract class PHS_Model_Core_generator extends PHS_Model_Core_base

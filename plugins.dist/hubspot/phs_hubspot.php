@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\hubspot;
 
 use phs\libraries\PHS_Logger;

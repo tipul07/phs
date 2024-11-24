@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 use Closure;

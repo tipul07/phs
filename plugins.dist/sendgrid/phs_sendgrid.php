@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\sendgrid;
 
 use phs\PHS;

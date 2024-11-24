@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 // ! All plugin libraries should extend this class

@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\backup\actions;
 
 use phs\PHS_Scope;

@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\system\core\controllers;
 
 use phs\libraries\PHS_Controller_Background;

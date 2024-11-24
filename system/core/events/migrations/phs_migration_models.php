@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\system\core\events\migrations;
 
 include_once 'phs_migration.php';

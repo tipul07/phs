@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\mobileapi\libraries;
 
 use phs\PHS;

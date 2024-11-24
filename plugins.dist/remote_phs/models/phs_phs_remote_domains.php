@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\remote_phs\models;
 
 use phs\PHS;

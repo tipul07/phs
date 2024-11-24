@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\phs_security\libraries;
 
 use phs\libraries\PHS_Library;

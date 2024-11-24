@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\libraries;
 
 if (!defined('PHS_VERSION')
@@ -7,6 +8,7 @@ if (!defined('PHS_VERSION')
 }
 
 use phs\PHS;
+use Exception;
 
 class PHS_Language_Container extends PHS_Error
 {
@@ -610,7 +612,7 @@ class PHS_Language_Container extends PHS_Error
                 if (($result = @vsprintf($working_index, $args))) {
                     return $result;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
             }
 
             return $working_index.' ['.count($args).' args]';

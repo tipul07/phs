@@ -1,4 +1,5 @@
 <?php
+
 namespace phs\plugins\accounts_3rd\actions;
 
 use phs\PHS;
