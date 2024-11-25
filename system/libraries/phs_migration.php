@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 use Closure;
@@ -137,16 +136,16 @@ abstract class PHS_Migration extends PHS_Registry
         $this->_keep_listener(
             [PHS_Event_Migration_plugins::class, 'trigger_install'],
             [
-                'plugin_obj'    => fn () => $plugin_class::get_instance(),
-                'old_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
-                'new_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
+                'plugin_obj'    => fn() => $plugin_class::get_instance(),
+                'old_version'   => fn() => $plugin_class::get_instance()?->get_plugin_version(),
+                'new_version'   => fn() => $plugin_class::get_instance()?->get_plugin_version(),
                 'is_dry_update' => false,
                 'is_forced'     => true,
             ]
         );
 
         if (!($listen_obj = PHS_Event_Migration_plugins::listen_install(
-            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper(PHS_Event_Migration_plugins::EP_INSTALL, $event_obj, $callback),
+            fn(PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper(PHS_Event_Migration_plugins::EP_INSTALL, $event_obj, $callback),
             $plugin_class,
             $priority
         ))) {
@@ -179,16 +178,16 @@ abstract class PHS_Migration extends PHS_Registry
         $this->_keep_listener(
             [PHS_Event_Migration_plugins::class, 'trigger_start'],
             [
-                'plugin_obj'    => fn () => $plugin_class::get_instance(),
-                'old_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
-                'new_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
+                'plugin_obj'    => fn() => $plugin_class::get_instance(),
+                'old_version'   => fn() => $plugin_class::get_instance()?->get_plugin_version(),
+                'new_version'   => fn() => $plugin_class::get_instance()?->get_plugin_version(),
                 'is_dry_update' => false,
                 'is_forced'     => true,
             ]
         );
 
         if (!($listen_obj = PHS_Event_Migration_plugins::listen_start(
-            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper(PHS_Event_Migration_plugins::EP_START, $event_obj, $callback),
+            fn(PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper(PHS_Event_Migration_plugins::EP_START, $event_obj, $callback),
             $plugin_class,
             $priority
         ))) {
@@ -220,16 +219,16 @@ abstract class PHS_Migration extends PHS_Registry
         $this->_keep_listener(
             [PHS_Event_Migration_plugins::class, 'trigger_after_roles'],
             [
-                'plugin_obj'    => fn () => $plugin_class::get_instance(),
-                'old_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
-                'new_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
+                'plugin_obj'    => fn() => $plugin_class::get_instance(),
+                'old_version'   => fn() => $plugin_class::get_instance()?->get_plugin_version(),
+                'new_version'   => fn() => $plugin_class::get_instance()?->get_plugin_version(),
                 'is_dry_update' => false,
                 'is_forced'     => true,
             ]
         );
 
         if (!($listen_obj = PHS_Event_Migration_plugins::listen_after_roles(
-            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper(PHS_Event_Migration_plugins::EP_AFTER_ROLES, $event_obj, $callback),
+            fn(PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper(PHS_Event_Migration_plugins::EP_AFTER_ROLES, $event_obj, $callback),
             $plugin_class,
             $priority
         ))) {
@@ -261,16 +260,16 @@ abstract class PHS_Migration extends PHS_Registry
         $this->_keep_listener(
             [PHS_Event_Migration_plugins::class, 'trigger_after_jobs'],
             [
-                'plugin_obj'    => fn () => $plugin_class::get_instance(),
-                'old_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
-                'new_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
+                'plugin_obj'    => fn() => $plugin_class::get_instance(),
+                'old_version'   => fn() => $plugin_class::get_instance()?->get_plugin_version(),
+                'new_version'   => fn() => $plugin_class::get_instance()?->get_plugin_version(),
                 'is_dry_update' => false,
                 'is_forced'     => true,
             ]
         );
 
         if (!($listen_obj = PHS_Event_Migration_plugins::listen_after_jobs(
-            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper(PHS_Event_Migration_plugins::EP_AFTER_JOBS, $event_obj, $callback),
+            fn(PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper(PHS_Event_Migration_plugins::EP_AFTER_JOBS, $event_obj, $callback),
             $plugin_class,
             $priority
         ))) {
@@ -302,16 +301,16 @@ abstract class PHS_Migration extends PHS_Registry
         $this->_keep_listener(
             [PHS_Event_Migration_plugins::class, 'trigger_finish'],
             [
-                'plugin_obj'    => fn () => $plugin_class::get_instance(),
-                'old_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
-                'new_version'   => fn () => $plugin_class::get_instance()?->get_plugin_version(),
+                'plugin_obj'    => fn() => $plugin_class::get_instance(),
+                'old_version'   => fn() => $plugin_class::get_instance()?->get_plugin_version(),
+                'new_version'   => fn() => $plugin_class::get_instance()?->get_plugin_version(),
                 'is_dry_update' => false,
                 'is_forced'     => true,
             ]
         );
 
         if (!($listen_obj = PHS_Event_Migration_plugins::listen_finish(
-            fn (PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper(PHS_Event_Migration_plugins::EP_FINISH, $event_obj, $callback),
+            fn(PHS_Event_Migration_plugins $event_obj) => $this->plugin_event_listener_wrapper(PHS_Event_Migration_plugins::EP_FINISH, $event_obj, $callback),
             $plugin_class,
             $priority
         ))) {
@@ -370,17 +369,17 @@ abstract class PHS_Migration extends PHS_Registry
         $this->_keep_listener(
             [PHS_Event_Migration_models::class, 'trigger_before_missing'],
             [
-                'model_obj'     => fn () => $model_class::get_instance(),
+                'model_obj'     => fn() => $model_class::get_instance(),
                 'table_name'    => $table_name,
-                'old_version'   => fn () => $model_class::get_instance()?->get_model_version(),
-                'new_version'   => fn () => $model_class::get_instance()?->get_model_version(),
+                'old_version'   => fn() => $model_class::get_instance()?->get_model_version(),
+                'new_version'   => fn() => $model_class::get_instance()?->get_model_version(),
                 'is_dry_update' => false,
                 'is_forced'     => true,
             ]
         );
 
         if (!($listen_obj = PHS_Event_Migration_models::listen_before_missing(
-            fn (PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper(PHS_Event_Migration_models::EP_BEFORE_MISSING, $event_obj, $callback),
+            fn(PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper(PHS_Event_Migration_models::EP_BEFORE_MISSING, $event_obj, $callback),
             $model_class,
             $table_name,
             $priority
@@ -415,17 +414,17 @@ abstract class PHS_Migration extends PHS_Registry
         $this->_keep_listener(
             [PHS_Event_Migration_models::class, 'trigger_after_missing'],
             [
-                'model_obj'     => fn () => $model_class::get_instance(),
+                'model_obj'     => fn() => $model_class::get_instance(),
                 'table_name'    => $table_name,
-                'old_version'   => fn () => $model_class::get_instance()?->get_model_version(),
-                'new_version'   => fn () => $model_class::get_instance()?->get_model_version(),
+                'old_version'   => fn() => $model_class::get_instance()?->get_model_version(),
+                'new_version'   => fn() => $model_class::get_instance()?->get_model_version(),
                 'is_dry_update' => false,
                 'is_forced'     => true,
             ]
         );
 
         if (!($listen_obj = PHS_Event_Migration_models::listen_after_missing(
-            fn (PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper(PHS_Event_Migration_models::EP_AFTER_MISSING, $event_obj, $callback),
+            fn(PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper(PHS_Event_Migration_models::EP_AFTER_MISSING, $event_obj, $callback),
             $model_class,
             $table_name,
             $priority
@@ -460,17 +459,17 @@ abstract class PHS_Migration extends PHS_Registry
         $this->_keep_listener(
             [PHS_Event_Migration_models::class, 'trigger_before_update'],
             [
-                'model_obj'     => fn () => $model_class::get_instance(),
+                'model_obj'     => fn() => $model_class::get_instance(),
                 'table_name'    => $table_name,
-                'old_version'   => fn () => $model_class::get_instance()?->get_model_version(),
-                'new_version'   => fn () => $model_class::get_instance()?->get_model_version(),
+                'old_version'   => fn() => $model_class::get_instance()?->get_model_version(),
+                'new_version'   => fn() => $model_class::get_instance()?->get_model_version(),
                 'is_dry_update' => false,
                 'is_forced'     => true,
             ]
         );
 
         if (!($listen_obj = PHS_Event_Migration_models::listen_before_update(
-            fn (PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper(PHS_Event_Migration_models::EP_BEFORE_UPDATE, $event_obj, $callback),
+            fn(PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper(PHS_Event_Migration_models::EP_BEFORE_UPDATE, $event_obj, $callback),
             $model_class,
             $table_name,
             $priority
@@ -505,17 +504,17 @@ abstract class PHS_Migration extends PHS_Registry
         $this->_keep_listener(
             [PHS_Event_Migration_models::class, 'trigger_after_update'],
             [
-                'model_obj'     => fn () => $model_class::get_instance(),
+                'model_obj'     => fn() => $model_class::get_instance(),
                 'table_name'    => $table_name,
-                'old_version'   => fn () => $model_class::get_instance()?->get_model_version(),
-                'new_version'   => fn () => $model_class::get_instance()?->get_model_version(),
+                'old_version'   => fn() => $model_class::get_instance()?->get_model_version(),
+                'new_version'   => fn() => $model_class::get_instance()?->get_model_version(),
                 'is_dry_update' => false,
                 'is_forced'     => true,
             ]
         );
 
         if (!($listen_obj = PHS_Event_Migration_models::listen_after_update(
-            fn (PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper(PHS_Event_Migration_models::EP_AFTER_UPDATE, $event_obj, $callback),
+            fn(PHS_Event_Migration_models $event_obj) => $this->model_event_listener_wrapper(PHS_Event_Migration_models::EP_AFTER_UPDATE, $event_obj, $callback),
             $model_class,
             $table_name,
             $priority

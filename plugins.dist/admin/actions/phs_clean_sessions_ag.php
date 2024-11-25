@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\admin\actions;
 
 use phs\PHS_Scope;

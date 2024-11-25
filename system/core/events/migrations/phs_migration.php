@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\events\migrations;
 
 use phs\libraries\PHS_Event;

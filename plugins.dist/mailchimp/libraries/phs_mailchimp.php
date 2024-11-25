@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\mailchimp\libraries;
 
 use phs\PHS;

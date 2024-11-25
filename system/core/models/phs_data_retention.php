@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\models;
 
 use phs\PHS;

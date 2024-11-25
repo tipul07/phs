@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\captcha\actions;
 
 use phs\PHS_Scope;

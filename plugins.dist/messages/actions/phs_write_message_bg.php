@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\messages\actions;
 
 use phs\PHS_Scope;

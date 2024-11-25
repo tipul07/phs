@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\emails;
 
 use phs\PHS;

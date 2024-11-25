@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\cookie_notice;
 
 use phs\PHS_Session;

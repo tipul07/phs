@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\traits;
 
 use Closure;

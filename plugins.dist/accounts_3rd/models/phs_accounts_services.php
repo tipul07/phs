@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\accounts_3rd\models;
 
 use phs\libraries\PHS_Model;

@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\libraries;
 
 use phs\PHS;
@@ -34,6 +33,10 @@ class PHS_Requests_queue_manager extends PHS_Library
             $method = 'GET';
         } else {
             $method = strtoupper(trim($method)) ?: 'GET';
+        }
+
+        if ($payload && $method === 'GET') {
+            $method = 'POST';
         }
 
         $params['max_retries'] = (int)($params['max_retries'] ?? 1);

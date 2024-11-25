@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\phs_libs\actions;
 
 use phs\PHS;

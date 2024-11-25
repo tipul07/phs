@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\accounts\graphql\types;
 
 use Closure;

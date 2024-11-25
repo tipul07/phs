@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\__PLUGIN_NAME__\graphql\types__CLASS_NAMESPACE__;
 
 use phs\libraries\PHS_Graphql_Type;

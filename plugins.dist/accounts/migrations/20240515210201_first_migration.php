@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\accounts\migrations;
 
 use phs\PHS_Maintenance;

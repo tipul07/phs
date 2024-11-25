@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\admin\actions\retention;
 
 use phs\PHS_Scope;

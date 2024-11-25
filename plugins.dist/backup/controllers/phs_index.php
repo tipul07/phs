@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\backup\controllers;
 
 use phs\PHS;

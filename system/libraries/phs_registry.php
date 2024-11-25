@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 if ((!defined('PHS_SETUP_FLOW') || !constant('PHS_SETUP_FLOW'))

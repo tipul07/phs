@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\events\routing;
 
 use phs\libraries\PHS_Event;

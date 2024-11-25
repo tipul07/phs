@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\libraries;
 
 use Closure;
@@ -82,7 +81,7 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
 
     public function lazy_graphql_type() : Closure
     {
-        return fn () => $this->graphql_type();
+        return fn() => $this->graphql_type();
     }
 
     public function get_model_instance() : ?PHS_Model

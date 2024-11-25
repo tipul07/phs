@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\graphql\libraries;
 
 use Closure;
@@ -114,12 +113,12 @@ final class PHS_Graphql
 
     public static function ref_by_class(string $type_class) : Closure
     {
-        return static fn () => self::instance_by_class($type_class);
+        return static fn() => self::instance_by_class($type_class);
     }
 
     public static function ref_by_name(string $type_name) : Closure
     {
-        return static fn () => self::instance_by_name($type_name);
+        return static fn() => self::instance_by_name($type_name);
     }
 
     public static function instance_by_class(string $type_class) : ?ObjectType

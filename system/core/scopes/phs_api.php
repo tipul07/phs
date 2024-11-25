@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\system\core\scopes;
 
 use phs\PHS_Api;

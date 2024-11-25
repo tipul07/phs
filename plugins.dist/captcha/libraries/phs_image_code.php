@@ -1,5 +1,4 @@
 <?php
-
 namespace phs\plugins\captcha\libraries;
 
 use phs\PHS_Session;
