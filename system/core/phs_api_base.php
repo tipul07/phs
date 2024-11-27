@@ -90,7 +90,7 @@ abstract class PHS_Api_base extends PHS_Registry
         return $response_arr;
     }
 
-    public function api_flow_value($key = null, $val = null)
+    public function api_flow_value(null | string | array $key = null, mixed $val = null) : mixed
     {
         if (empty($this->my_flow)) {
             $this->my_flow = $this->_default_api_flow();
@@ -103,18 +103,13 @@ abstract class PHS_Api_base extends PHS_Registry
         // 'api_method' will be set using $this->set_http_method();
         if ($val === null) {
             if (!is_array($key)) {
-                if (is_scalar($key)
-                 && array_key_exists($key, $this->my_flow)) {
-                    return $this->my_flow[$key];
-                }
-
-                return null;
+                return $this->my_flow[$key] ?? null;
             }
 
             foreach ($key as $kkey => $kval) {
                 if (!is_scalar($kkey)
-                 || !array_key_exists($kkey, $this->my_flow)
-                 || in_array($kkey, $this->_special_flow_keys(), true)) {
+                    || !array_key_exists($kkey, $this->my_flow)
+                    || in_array($kkey, $this->_special_flow_keys(), true)) {
                     continue;
                 }
 
@@ -125,8 +120,8 @@ abstract class PHS_Api_base extends PHS_Registry
         }
 
         if (!is_scalar($key)
-         || !array_key_exists($key, $this->my_flow)
-         || in_array($key, $this->_special_flow_keys(), true)) {
+            || !array_key_exists($key, $this->my_flow)
+            || in_array($key, $this->_special_flow_keys(), true)) {
             return null;
         }
 
@@ -387,15 +382,11 @@ abstract class PHS_Api_base extends PHS_Registry
 
     /**
      * Returns Api Key used when authenticating request (if any)
-     * @return false|array
+     * @return null|array
      */
-    public function get_request_apikey()
+    public function get_request_apikey() : ?array
     {
-        if (!($apikey_arr = $this->api_flow_value('api_key_data'))) {
-            return false;
-        }
-
-        return $apikey_arr;
+        return $this->api_flow_value('api_key_data') ?: null;
     }
 
     public function default_query_params() : array
@@ -509,10 +500,10 @@ abstract class PHS_Api_base extends PHS_Registry
      *
      * @return bool|string
      */
-    public function response_body(?string $body_str = null)
+    public function response_body(?string $body_str = null) : string | bool
     {
         if ($body_str === null) {
-            return $this->my_flow['response_body'];
+            return ($this->my_flow['response_body'] ?? '') ?: '';
         }
 
         $this->my_flow['response_body'] = $body_str;
@@ -520,21 +511,16 @@ abstract class PHS_Api_base extends PHS_Registry
         return true;
     }
 
-    public function http_method()
+    public function http_method() : string
     {
         if (empty($this->my_flow)) {
             $this->my_flow = $this->_default_api_flow();
         }
 
-        return $this->my_flow['api_method'];
+        return ($this->my_flow['api_method'] ?? '') ?: '';
     }
 
-    /**
-     * @param string $method
-     *
-     * @return false|string
-     */
-    public function set_http_method(string $method)
+    public function set_http_method(string $method) : ?string
     {
         $this->reset_error();
 
@@ -542,12 +528,11 @@ abstract class PHS_Api_base extends PHS_Registry
             $this->my_flow = $this->_default_api_flow();
         }
 
-        $method = self::_prepare_http_method($method);
-        if (empty($method)
-         || !in_array($method, $this->allowed_http_methods(), true)) {
+        if (!($method = self::_prepare_http_method($method))
+            || !in_array($method, $this->allowed_http_methods(), true)) {
             $this->set_error(self::ERR_HTTP_METHOD, self::_t('HTTP method %s not allowed.', $method));
 
-            return false;
+            return null;
         }
 
         $this->my_flow['api_method'] = $method;
@@ -555,9 +540,6 @@ abstract class PHS_Api_base extends PHS_Registry
         return $this->my_flow['api_method'];
     }
 
-    /**
-     * @return string
-     */
     public function http_protocol() : string
     {
         if (empty($this->my_flow)) {
@@ -567,11 +549,6 @@ abstract class PHS_Api_base extends PHS_Registry
         return $this->my_flow['http_protocol'];
     }
 
-    /**
-     * @param string $protocol
-     *
-     * @return null|string
-     */
     public function set_http_protocol(string $protocol) : ?string
     {
         $this->reset_error();
@@ -591,9 +568,6 @@ abstract class PHS_Api_base extends PHS_Registry
         return $this->my_flow['http_protocol'];
     }
 
-    /**
-     * @return string
-     */
     public function content_type() : string
     {
         if (empty($this->my_flow)) {
@@ -603,11 +577,6 @@ abstract class PHS_Api_base extends PHS_Registry
         return $this->my_flow['content_type'];
     }
 
-    /**
-     * @param string $type
-     *
-     * @return null|string
-     */
     public function set_content_type(string $type) : ?string
     {
         $this->reset_error();
@@ -616,7 +585,7 @@ abstract class PHS_Api_base extends PHS_Registry
             $this->my_flow = $this->_default_api_flow();
         }
 
-        if (empty($type)) {
+        if (!$type) {
             $this->set_error(self::ERR_HTTP_PROTOCOL, self::_t('Invalid content type.'));
 
             return null;
@@ -627,9 +596,6 @@ abstract class PHS_Api_base extends PHS_Registry
         return $this->my_flow['content_type'];
     }
 
-    /**
-     * @return int
-     */
     public function api_user_account_id() : int
     {
         if (empty($this->my_flow)) {
@@ -639,36 +605,24 @@ abstract class PHS_Api_base extends PHS_Registry
         return $this->my_flow['api_key_user_id'] ?? 0;
     }
 
-    /**
-     * @return null|array
-     */
     public function api_account_data() : ?array
     {
         if (empty($this->my_flow)) {
             $this->my_flow = $this->_default_api_flow();
         }
 
-        return !empty($this->my_flow['api_account_data']) ? $this->my_flow['api_account_data'] : null;
+        return ($this->my_flow['api_account_data'] ?? null) ?: null;
     }
 
-    /**
-     * @return null|array
-     */
     public function api_session_data() : ?array
     {
         if (empty($this->my_flow)) {
             $this->my_flow = $this->_default_api_flow();
         }
 
-        return !empty($this->my_flow['api_session_data']) ? $this->my_flow['api_session_data'] : null;
+        return ($this->my_flow['api_session_data'] ?? null) ?: null;
     }
 
-    /**
-     * @param int $code
-     * @param null|string $msg
-     *
-     * @return bool
-     */
     public function send_header_response(int $code, ?string $msg = null) : bool
     {
         return self::http_header_response($code, $msg, $this->http_protocol());
@@ -714,8 +668,8 @@ abstract class PHS_Api_base extends PHS_Registry
 
     protected function _api_authentication_failed(?array $auth_methods = null, bool $authentication_is_optional = false) : ?array
     {
-        if (empty($auth_methods)
-         && !($auth_methods = $this->allowed_authentication_methods())) {
+        if (!$auth_methods
+            && !($auth_methods = $this->allowed_authentication_methods())) {
             $auth_methods = static::get_default_authentication_methods();
         }
 
@@ -759,18 +713,19 @@ abstract class PHS_Api_base extends PHS_Registry
             ];
         }
 
-        if ($authentication_is_optional
-            && !($token = $this->api_flow_value('bearer_token'))) {
+        $token = $this->api_flow_value('bearer_token');
+
+        if (!$authentication_is_optional && !$token) {
             return null;
         }
 
-        if (empty($token)
-            || !($token_arr = $accounts_plugin->decode_bearer_token($token))
-            || !($online_arr = $accounts_model->get_details_fields(['wid' => $token], ['table_name' => 'online']))
-            || empty($online_arr['uid'])
-            || $token_arr['account_id'] !== (int)$online_arr['uid']
-            || !($account_arr = $accounts_model->get_details($online_arr['uid']))
-            || !$accounts_model->is_active($account_arr)
+        if ($token
+            && (!($token_arr = $accounts_plugin->decode_bearer_token($token))
+             || !($online_arr = $accounts_model->get_details_fields(['wid' => $token], ['table_name' => 'online']))
+             || empty($online_arr['uid'])
+             || $token_arr['account_id'] !== (int)$online_arr['uid']
+             || !($account_arr = $accounts_model->get_details($online_arr['uid']))
+             || !$accounts_model->is_active($account_arr))
         ) {
             return [
                 'http_code' => self::H_CODE_UNAUTHORIZED,
@@ -782,8 +737,8 @@ abstract class PHS_Api_base extends PHS_Registry
         $this->api_flow_value('api_key_data', false);
         $this->api_flow_value('api_key_user_id', 0);
 
-        $this->api_flow_value('api_account_data', $account_arr);
-        $this->api_flow_value('api_session_data', $online_arr);
+        $this->api_flow_value('api_account_data', $account_arr ?? null);
+        $this->api_flow_value('api_session_data', $online_arr ?? null);
 
         PHS::user_logged_in(true);
 
