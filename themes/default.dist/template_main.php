@@ -6,6 +6,7 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Language;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\system\core\events\layout\PHS_Event_Layout;
 
 $accounts_plugin_settings = [];
 /** @var PHS_Model_Accounts $accounts_model */
@@ -34,7 +35,7 @@ if (!($mail_hook_args = PHS::trigger_hooks(PHS_Hooks::H_MSG_GET_SUMMARY, $summar
 <head>
 <?php
 
-    echo $this->sub_view('template_main_head_meta');
+echo $this->sub_view('template_main_head_meta');
 
 echo $this->sub_view('template_main_head_css');
 
@@ -44,26 +45,18 @@ echo $this->sub_view('template_main_skinning');
 
 echo $this->sub_view('template_main_messages_js');
 ?>
-    <title><?php echo $action_result['page_settings']['page_title']; ?></title>
-    <?php echo $action_result['page_settings']['page_in_header']; ?>
+<title><?php echo $action_result['page_settings']['page_title']; ?></title>
 <?php
+echo $action_result['page_settings']['page_in_header'];
 
-if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_MAIN_TEMPLATE_PAGE_HEAD, PHS_Hooks::default_buffer_hook_args()))
-&& is_array($hook_args)
-&& !empty($hook_args['buffer'])) {
-    echo $hook_args['buffer'];
-}
+echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::MAIN_TEMPLATE_PAGE_HEAD);
 ?>
 </head>
 
 <body<?php echo (($page_body_class = PHS::page_settings('page_body_class')) ? ' class="'.$page_body_class.'" ' : '').$action_result['page_body_extra_tags']; ?>>
 <?php
 
-if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_MAIN_TEMPLATE_PAGE_START, PHS_Hooks::default_buffer_hook_args()))
-&& is_array($hook_args)
-&& !empty($hook_args['buffer'])) {
-    echo $hook_args['buffer'];
-}
+echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::MAIN_TEMPLATE_PAGE_START);
 
 if (empty($action_result['page_settings']['page_only_buffer'])) {
     ?>
@@ -97,13 +90,9 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
 <header id="header"><?php echo $this->sub_view('template_main_header'); ?></header>
 
 <div id="content"><?php
-if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_MAIN_TEMPLATE_PAGE_FIRST_CONTENT, PHS_Hooks::default_buffer_hook_args()))
-     && is_array($hook_args)
-     && !empty($hook_args['buffer'])) {
-    echo $hook_args['buffer'];
-}
-    ?>
-    <div id="main_content"><?php
+echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::MAIN_TEMPLATE_PAGE_FIRST_CONTENT);
+
+    ?><div id="main_content"><?php
 }
 
 if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_NOTIFICATIONS_DISPLAY, PHS_Hooks::default_notifications_hook_args()))
@@ -121,16 +110,9 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
 </div>
 </div>
 <?php
-if (false) {
-    ?><script type="text/javascript" src="<?php echo $this->get_resource_url('js/lightbox.js'); ?>"></script><?php
-}
 }
 
-if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_MAIN_TEMPLATE_PAGE_END, PHS_Hooks::default_buffer_hook_args()))
-&& is_array($hook_args)
-&& !empty($hook_args['buffer'])) {
-    echo $hook_args['buffer'];
-}
+echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::MAIN_TEMPLATE_PAGE_END);
 ?>
 </body>
 </html>

@@ -149,15 +149,15 @@ class PHS_Model_Api_monitor extends PHS_Model
                         'index'   => true,
                     ],
                     'request_time' => [
-                        'type' => self::FTYPE_DATETIME,
-                        'index'   => true,
+                        'type'  => self::FTYPE_DATETIME,
+                        'index' => true,
                     ],
                     'request_body' => [
                         'type' => self::FTYPE_MEDIUMTEXT,
                     ],
                     'response_time' => [
-                        'type' => self::FTYPE_DATETIME,
-                        'index'   => true,
+                        'type'  => self::FTYPE_DATETIME,
+                        'index' => true,
                     ],
                     'response_body' => [
                         'type' => self::FTYPE_MEDIUMTEXT,

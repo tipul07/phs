@@ -35,6 +35,10 @@ class PHS_Requests_queue_manager extends PHS_Library
             $method = strtoupper(trim($method)) ?: 'GET';
         }
 
+        if ($payload && $method === 'GET') {
+            $method = 'POST';
+        }
+
         $params['max_retries'] = (int)($params['max_retries'] ?? 1);
         $params['handle'] ??= null;
         $params['sync_run'] = !isset($params['sync_run']) || !empty($params['sync_run']);

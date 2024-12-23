@@ -1,65 +1,38 @@
 <?php
-/** @var \phs\system\core\views\PHS_View $this */
+/** @var phs\system\core\views\PHS_View $this */
 
-use phs\PHS;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Params;
 
-/** @var \phs\libraries\PHS_Paginator $paginator_obj */
+/** @var phs\libraries\PHS_Paginator $paginator_obj */
 if (!($paginator_obj = $this->view_var('paginator'))) {
     echo $this::_t('Rendered from outside of paginator.');
 
     return;
 }
 
-if (!($model_obj = $paginator_obj->get_model())) {
-    $model_obj = null;
-}
+$model_obj = $paginator_obj->get_model() ?: null;
 
-if (!($base_url = $paginator_obj->base_url())) {
-    $base_url = '#';
-}
-if (!($full_filters_url = $paginator_obj->get_full_url())) { // [ 'include_filters' => false ] )) )
-    $full_filters_url = '#';
-}
+$base_url = $paginator_obj->base_url() ?: '#';
+$full_filters_url = $paginator_obj->get_full_url() ?: '#';
 
-if (!($flow_params_arr = $paginator_obj->flow_params())) {
-    $flow_params_arr = $paginator_obj->default_flow_params();
-}
+$flow_params_arr = $paginator_obj->flow_params() ?: $paginator_obj->default_flow_params();
 
-if (!($pagination_arr = $paginator_obj->pagination_params())) {
-    $pagination_arr = $paginator_obj->default_pagination_params();
-}
+$pagination_arr = $paginator_obj->pagination_params() ?: $paginator_obj->default_pagination_params();
 
-if (!($listing_form_name = $paginator_obj->get_listing_form_name())) {
-    $listing_form_name = $flow_params_arr['form_prefix'].'paginator_list_form';
-}
-if (!($bulk_select_name = $paginator_obj->get_bulk_action_select_name())) {
-    $bulk_select_name = '';
-}
+$listing_form_name = $paginator_obj->get_listing_form_name() ?: $flow_params_arr['form_prefix'].'paginator_list_form';
+$bulk_select_name = $paginator_obj->get_bulk_action_select_name() ?: '';
 
-if (!($bulk_actions = $paginator_obj->get_bulk_actions())) {
-    $bulk_actions = [];
-}
-if (!($filters_arr = $paginator_obj->get_filters())) {
-    $filters_arr = [];
-}
-if (!($columns_arr = $paginator_obj->get_columns_for_scope())) {
-    $columns_arr = [];
-}
-if (!($records_arr = $paginator_obj->get_records())) {
-    $records_arr = [];
-}
-
-if (!($scope_arr = $paginator_obj->get_scope())) {
-    $scope_arr = [];
-}
+$bulk_actions = $paginator_obj->get_bulk_actions() ?: [];
+$filters_arr = $paginator_obj->get_filters() ?: [];
+$columns_arr = $paginator_obj->get_columns_for_scope() ?: [];
+$records_arr = $paginator_obj->get_records() ?: [];
+$scope_arr = $paginator_obj->get_scope() ?: [];
 
 $per_page_options_arr = [20, 50, 100];
 
 $columns_count = 0;
 $current_scope = PHS_Scope::current_scope();
-if (!empty($columns_arr) && is_array($columns_arr)) {
+if ($columns_arr) {
     foreach ($columns_arr as $column_arr) {
         if (!isset($column_arr['column_colspan'])) {
             $column_arr['column_colspan'] = 1;
@@ -128,12 +101,14 @@ if ($is_api_scope) {
 
 		function submit_bulk_action( area )
 		{
-			if( area !== 'top' && area !== 'bottom' )
-				return false;
+			if( area !== 'top' && area !== 'bottom' ) {
+                return false;
+            }
 
 			var bulk_select_obj = $('#<?php echo $bulk_select_name; ?>' + area);
-			if( !bulk_select_obj )
-				return false;
+			if( !bulk_select_obj ) {
+                return false;
+            }
 
 			return submit_bulk_action_with_name( bulk_select_obj.val() );
 		}
@@ -141,7 +116,7 @@ if ($is_api_scope) {
 		function submit_bulk_action_with_name( bulk_action )
 		{
 			if( !bulk_action
-			 || !(bulk_action in phs_paginator_bulk_actions) )
+                || !(bulk_action in phs_paginator_bulk_actions) )
 			{
 				alert( '<?php echo $this::_e('Please choose an action first.', '\''); ?>' );
 				return false;
@@ -150,12 +125,14 @@ if ($is_api_scope) {
 			var action_func = false;
 			if( typeof phs_paginator_bulk_actions !== "undefined"
 			 && typeof phs_paginator_bulk_actions[bulk_action] !== "undefined"
-			 && typeof phs_paginator_bulk_actions[bulk_action]["js_callback"] !== "undefined" )
-				action_func = phs_paginator_bulk_actions[bulk_action]["js_callback"];
+			 && typeof phs_paginator_bulk_actions[bulk_action]["js_callback"] !== "undefined" ) {
+                action_func = phs_paginator_bulk_actions[bulk_action]["js_callback"];
+            }
 
 			if( action_func
-			 && typeof window[action_func] === "function" )
-				return eval( action_func+"()" );
+                && typeof window[action_func] === "function" ) {
+                return eval(action_func + "()");
+            }
 
 			return phs_paginator_default_bulk_action( bulk_action );
 		}
@@ -179,8 +156,8 @@ if (!empty($flow_params_arr['display_top_bulk_actions'])
             foreach ($bulk_top_actions_arr as $action_arr) {
                 $selected_option = '';
                 if ($select_with_action
-                && !empty($flow_params_arr['bulk_action'])
-                && $action_arr['action'] === $flow_params_arr['bulk_action']) {
+                    && !empty($flow_params_arr['bulk_action'])
+                    && $action_arr['action'] === $flow_params_arr['bulk_action']) {
                     $selected_option = 'selected="selected"';
                 }
 
@@ -217,22 +194,20 @@ $per_page_var_name = $flow_params_arr['form_prefix'].$pagination_arr['per_page_v
 	<?php
 
 if (!empty($columns_count)
- && !empty($flow_params_arr['before_table_callback'])
- && is_callable($flow_params_arr['before_table_callback'])) {
+    && !empty($flow_params_arr['before_table_callback'])
+    && is_callable($flow_params_arr['before_table_callback'])) {
     $callback_params = $paginator_obj->default_others_render_call_params();
     $callback_params['columns'] = $columns_arr;
     $callback_params['filters'] = $filters_arr;
 
-    if (($cell_content = @call_user_func($flow_params_arr['before_table_callback'], $callback_params)) === false
-     || $cell_content === null) {
+    if (false === ($cell_content = @call_user_func($flow_params_arr['before_table_callback'], $callback_params))
+        || $cell_content === null) {
         $cell_content = '['.$this::_t('Render before table call failed.').']';
     }
 
     echo $cell_content;
 }
-
 ?>
-
 	<div>
 	<table style="min-width:100%;margin-bottom:5px;" class="tgrid">
 	<?php
@@ -333,12 +308,12 @@ if (!$is_api_scope
 		<tr>
 			<td colspan="<?php echo $columns_count; ?>"><?php
 
-        $callback_params = $paginator_obj->default_others_render_call_params();
+    $callback_params = $paginator_obj->default_others_render_call_params();
     $callback_params['columns'] = $columns_arr;
     $callback_params['filters'] = $filters_arr;
 
-    if (($cell_content = @call_user_func($flow_params_arr['table_after_headers_callback'], $callback_params)) === false
-     || $cell_content === null) {
+    if (false === ($cell_content = @call_user_func($flow_params_arr['table_after_headers_callback'], $callback_params))
+        || $cell_content === null) {
         $cell_content = '['.$this::_t('Render after headers call failed.').']';
     }
 
@@ -620,8 +595,8 @@ if (!$is_api_scope
 if (!function_exists('phs_paginator_display_js_functionality')) {
     function phs_paginator_display_js_functionality($this_object, $paginator_obj)
     {
-        /** @var \phs\libraries\PHS_Paginator $paginator_obj */
-        /** @var \phs\system\core\views\PHS_View $this_object */
+        /** @var phs\libraries\PHS_Paginator $paginator_obj */
+        /** @var phs\system\core\views\PHS_View $this_object */
         static $js_displayed = false;
 
         if (empty($js_displayed)) {
