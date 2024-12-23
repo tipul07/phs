@@ -123,9 +123,7 @@ class PHS_Api extends PHS_Api_base
         }
 
         if (($authentication_failed = $this->_api_route_authentication_failed($api_route, $phs_route))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_RUN_ROUTE, self::_t('Authentication failed.'));
-            }
+            $this->set_error_if_not_set(self::ERR_RUN_ROUTE, self::_t('Authentication failed.'));
 
             $http_code = $authentication_failed['http_code'] ?? self::H_CODE_UNAUTHORIZED;
             $error_msg = $authentication_failed['error_msg'] ?? self::_t('Authentication failed.');
@@ -149,20 +147,14 @@ class PHS_Api extends PHS_Api_base
         $execution_params['die_on_error'] = false;
 
         if (!($action_result = PHS::execute_route($execution_params))) {
-            if (self::st_has_error()) {
-                $this->copy_static_error(self::ERR_RUN_ROUTE);
-            } else {
-                $this->set_error(self::ERR_RUN_ROUTE,
-                    self::_t('Error executing route [%s].', PHS::get_route_as_string()));
-            }
+            $this->copy_or_set_static_error(self::ERR_RUN_ROUTE,
+                self::_t('Error executing route [%s].', PHS::get_route_as_string()));
 
             return false;
         }
 
         if (!$this->_after_route_run()) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_RUN_ROUTE, self::_t('Flow was stopped by API instance after action run.'));
-            }
+            $this->set_error_if_not_set(self::ERR_RUN_ROUTE, self::_t('Flow was stopped by API instance after action run.'));
 
             return false;
         }

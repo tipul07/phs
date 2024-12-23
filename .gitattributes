@@ -1,0 +1,2 @@
+bin/phs eol=lf
+bin/tests eol=lf
