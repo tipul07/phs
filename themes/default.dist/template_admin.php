@@ -396,10 +396,10 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
     <footer id="footer">
         <div id="footer_content">
             <div class="footerlinks">
-                <?php echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::ADMIN_TEMPLATE_BEFORE_FOOTER_LINKS);?>
+                <?php echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::ADMIN_TEMPLATE_BEFORE_FOOTER_LINKS); ?>
                 <a href="<?php echo PHS::url(['a' => 'contact_us']); ?>"><?php echo $this::_t('Contact Us'); ?></a> |
                 <a href="<?php echo PHS::url(['a' => 'tandc']); ?>" ><?php echo $this::_t('Terms and Conditions'); ?></a>
-                <?php echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::ADMIN_TEMPLATE_AFTER_FOOTER_LINKS);?>
+                <?php echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::ADMIN_TEMPLATE_AFTER_FOOTER_LINKS); ?>
             </div>
             <div class="clearfix"></div>
             <?php
@@ -420,15 +420,9 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
 
 </div>
 <?php
-if (false) {
-    ?><script type="text/javascript" src="<?php echo $this->get_resource_url('js/lightbox.js'); ?>"></script><?php
-}
 }
 
-if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_ADMIN_TEMPLATE_PAGE_END, PHS_Hooks::default_buffer_hook_args()))
- && !empty($hook_args['buffer'])) {
-    echo $hook_args['buffer'];
-}
+echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::ADMIN_TEMPLATE_PAGE_END);
 ?>
 </body>
 </html>
