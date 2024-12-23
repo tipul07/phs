@@ -121,9 +121,6 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
 </div>
 </div>
 <?php
-if (false) {
-    ?><script type="text/javascript" src="<?php echo $this->get_resource_url('js/lightbox.js'); ?>"></script><?php
-}
 }
 
 if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_MAIN_TEMPLATE_PAGE_END, PHS_Hooks::default_buffer_hook_args()))

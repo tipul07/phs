@@ -18,6 +18,9 @@ class PHS_Event_Layout extends PHS_Event_Layout_buffer
         ADMIN_TEMPLATE_BEFORE_MAIN_MENU = 'phs_admin_template_before_main_menu',
         ADMIN_TEMPLATE_AFTER_MAIN_MENU = 'phs_admin_template_after_main_menu',
 
+        ADMIN_TEMPLATE_BEFORE_FOOTER_LINKS = 'phs_admin_template_before_footer_links',
+        ADMIN_TEMPLATE_AFTER_FOOTER_LINKS = 'phs_admin_template_after_footer_links',
+
         MAIN_TEMPLATE_BEFORE_LEFT_MENU = 'phs_main_template_before_left_menu',
         MAIN_TEMPLATE_AFTER_LEFT_MENU = 'phs_main_template_after_left_menu',
         MAIN_TEMPLATE_BEFORE_RIGHT_MENU = 'phs_main_template_before_right_menu',
@@ -28,7 +31,11 @@ class PHS_Event_Layout extends PHS_Event_Layout_buffer
         MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_IN = 'phs_main_template_before_main_menu_logged_in',
         MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_IN = 'phs_main_template_after_main_menu_logged_in',
         MAIN_TEMPLATE_BEFORE_MAIN_MENU_LOGGED_OUT = 'phs_main_template_before_main_menu_logged_out',
-        MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_OUT = 'phs_main_template_after_main_menu_logged_out';
+        MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_OUT = 'phs_main_template_after_main_menu_logged_out',
+
+        MAIN_TEMPLATE_BEFORE_FOOTER_LINKS = 'phs_main_template_before_footer_links',
+        MAIN_TEMPLATE_AFTER_FOOTER_LINKS = 'phs_main_template_after_footer_links'
+    ;
 
     public const OLD_HOOKS = [
         self::ADMIN_TEMPLATE_PAGE_HEAD          => [PHS_Hooks::H_ADMIN_TEMPLATE_PAGE_HEAD],
@@ -63,7 +70,7 @@ class PHS_Event_Layout extends PHS_Event_Layout_buffer
         }
 
         if (!($event_obj = self::trigger($input_arr, $area, $params))
-         || !($buffer = $event_obj->get_output('buffer'))) {
+            || !($buffer = $event_obj->get_output('buffer'))) {
             return '';
         }
 
