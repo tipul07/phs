@@ -3,7 +3,6 @@ namespace phs\plugins\admin;
 
 use phs\PHS;
 use phs\PHS_Api;
-use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
