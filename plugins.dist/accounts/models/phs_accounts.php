@@ -57,7 +57,7 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function get_model_version() : string
     {
-        return '1.3.8';
+        return '1.3.9';
     }
 
     public function get_table_names() : array
@@ -511,6 +511,23 @@ class PHS_Model_Accounts extends PHS_Model
         }
 
         return $clean_pass;
+    }
+
+    public function remove_encrypted_password_for_account(int | array | PHS_Record_data $account_data) : ?bool
+    {
+        $this->reset_error();
+
+        if (empty($account_data)
+            || !($flow_arr = $this->fetch_default_flow_params(['table_name' => 'users']))
+            || !($account_arr = $this->data_to_array($account_data))
+            || $this->is_deleted($account_arr)) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
+
+            return null;
+        }
+
+        return (bool)(empty($account_arr['pass_clear'])
+           || db_query('UPDATE `'.$this->get_flow_table_name($flow_arr).'` SET pass_clear = NULL WHERE id = \''.$account_arr['id'].'\'', $flow_arr['db_connection']));
     }
 
     public function is_password_expired(int | array | PHS_Record_data $account_data) : array
@@ -1287,11 +1304,8 @@ class PHS_Model_Accounts extends PHS_Model
             $details_params['fields'] = $user_details_arr;
 
             if (!($users_details = $accounts_details_model->insert($details_params))) {
-                if ($accounts_details_model->has_error()) {
-                    $this->copy_error($accounts_details_model);
-                } else {
-                    $this->set_error(self::ERR_INSERT, $this->_pt('Error saving account details in database. Please try again.'));
-                }
+                $this->copy_or_set_error($accounts_details_model,
+                    self::ERR_FUNCTIONALITY, $this->_pt('Error saving account details in database. Please try again.'));
 
                 return null;
             }
@@ -1301,7 +1315,7 @@ class PHS_Model_Accounts extends PHS_Model
 
             if (!($users_details = $accounts_details_model->edit($users_details, $details_params))) {
                 $this->copy_or_set_error($accounts_details_model,
-                    self::ERR_INSERT, $this->_pt('Error saving account details in database. Please try again.'));
+                    self::ERR_FUNCTIONALITY, $this->_pt('Error saving account details in database. Please try again.'));
 
                 return null;
             }
@@ -1413,6 +1427,7 @@ class PHS_Model_Accounts extends PHS_Model
                     'level' => [
                         'type'   => self::FTYPE_TINYINT,
                         'length' => 2,
+                        'index'  => true,
                     ],
                     'is_multitenant' => [
                         'type'    => self::FTYPE_TINYINT,
@@ -1443,7 +1458,6 @@ class PHS_Model_Accounts extends PHS_Model
                     ],
                     'lastip' => [
                         'type'     => self::FTYPE_VARCHAR,
-                        'index'    => false,
                         'length'   => 50,
                         'nullable' => true,
                     ],
@@ -1468,8 +1482,8 @@ class PHS_Model_Accounts extends PHS_Model
                         'index' => true,
                     ],
                     'changed_by_uid' => [
-                        'type'  => self::FTYPE_INT,
-                        'index' => true, ],
+                        'type' => self::FTYPE_INT,
+                    ],
                     'pass' => [
                         'type'     => self::FTYPE_VARCHAR,
                         'length'   => 100,
@@ -1621,15 +1635,6 @@ class PHS_Model_Accounts extends PHS_Model
          && !$this->_update_to_110_or_higher());
     }
 
-    /**
-     * Called first in insert flow.
-     * Parses flow parameters if anything special should be done.
-     * This should do checks on raw parameters received by insert method.
-     *
-     * @param array $params Parameters in the flow
-     *
-     * @return array|bool Flow parameters array
-     */
     protected function get_insert_prepare_params_users($params)
     {
         /** @var PHS_Plugin_Accounts $accounts_plugin */
@@ -1749,7 +1754,8 @@ class PHS_Model_Accounts extends PHS_Model
             }
 
             $encoded_clear = null;
-            if ($accounts_plugin->is_password_decryption_enabled()
+            if (($accounts_plugin->is_password_decryption_enabled()
+                 || ($params['fields']['pass_generated'] && !empty($params['{send_confirmation_email}'])))
                 && false === ($encoded_clear = PHS_Crypt::quick_encode($params['fields']['pass']))) {
                 $this->set_error(self::ERR_INSERT, $this->_pt('Error encrypting account password. Please retry.'));
 
@@ -1806,8 +1812,8 @@ class PHS_Model_Accounts extends PHS_Model
         /** @var PHS_Plugin_Accounts $accounts_plugin */
         /** @var PHS_Model_Accounts_details $accounts_details_model */
         if (!($accounts_details_model = PHS_Model_Accounts_details::get_instance())
-            || !($accounts_plugin = $this->get_plugin_instance())) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
+            || !($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return null;
         }
@@ -1876,8 +1882,7 @@ class PHS_Model_Accounts extends PHS_Model
         $registration_email_params['send_confirmation_email'] = $params['{send_confirmation_email}'];
 
         if (!($email_result = $this->send_after_registration_email($insert_arr, $registration_email_params))
-         || !is_array($email_result)
-         || !empty($email_result['has_error'])) {
+            || !empty($email_result['has_error'])) {
             if (empty($email_result) || !is_array($email_result)) {
                 $email_result = [];
             }
@@ -2502,7 +2507,6 @@ class PHS_Model_Accounts extends PHS_Model
             return false;
         }
 
-        $old_pass_salt = '';
         // If salt was changed we will have salt record in ths key
         if (!empty($account_arr['{old_pass_salt}']) && is_array($account_arr['{old_pass_salt}'])
          && !empty($account_arr['{old_pass_salt}']['pass_salt'])) {

@@ -321,86 +321,72 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
     public function tfa_policy_is_off() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings())
-               && !empty($settings_arr['2fa_policy'])
-               && (int)$settings_arr['2fa_policy'] === self::TFA_POLICY_OFF;
+        return (int)($this->get_plugin_settings()['2fa_policy'] ?? 0) === self::TFA_POLICY_OFF;
     }
 
     public function tfa_policy_is_optional() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings())
-               && !empty($settings_arr['2fa_policy'])
-               && (int)$settings_arr['2fa_policy'] === self::TFA_POLICY_OPTIONAL;
+        return (int)($this->get_plugin_settings()['2fa_policy'] ?? 0) === self::TFA_POLICY_OPTIONAL;
     }
 
     public function tfa_policy_is_enforced() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings())
-               && !empty($settings_arr['2fa_policy'])
-               && (int)$settings_arr['2fa_policy'] === self::TFA_POLICY_ENFORCED;
+        return (int)($this->get_plugin_settings()['2fa_policy'] ?? 0) === self::TFA_POLICY_ENFORCED;
     }
 
     public function tfa_remember_device_length() : int
     {
-        return !($settings_arr = $this->get_plugin_settings()) || empty($settings_arr['2fa_remember_device_length'])
-            ? 0 : (int)$settings_arr['2fa_remember_device_length'];
+        return (int)($this->get_plugin_settings()['2fa_remember_device_length'] ?? 0);
     }
 
     public function lockout_is_enabled() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['lockout_enabled']);
+        return (bool)($this->get_plugin_settings()['lockout_enabled'] ?? false);
     }
 
     public function should_log_account_creation() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_account_creation']);
+        return (bool)($this->get_plugin_settings()['log_account_creation'] ?? false);
     }
 
     public function should_log_account_logins() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_account_logins']);
+        return (bool)($this->get_plugin_settings()['log_account_logins'] ?? false);
     }
 
     public function should_log_password_changes() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_password_changes']);
+        return (bool)($this->get_plugin_settings()['log_password_changes'] ?? false);
     }
 
     public function should_log_roles_changes() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_roles_changes']);
+        return (bool)($this->get_plugin_settings()['log_roles_changes'] ?? false);
     }
 
     public function is_password_decryption_enabled() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['password_decryption_enabled']);
+        return (bool)($this->get_plugin_settings()['password_decryption_enabled'] ?? false);
     }
 
     public function settings_password_is_mandatory() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings())
-                && !empty($settings_arr['registration_password_policy'])
-                && $settings_arr['registration_password_policy'] === self::PASS_POLICY_MANDATORY;
+        return (int)($this->get_plugin_settings()['registration_password_policy'] ?? 0) === self::PASS_POLICY_MANDATORY;
     }
 
     public function settings_generate_pass_if_not_present() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings())
-                && !empty($settings_arr['registration_password_policy'])
-                && $settings_arr['registration_password_policy'] === self::PASS_POLICY_GENERATE;
+        return (int)($this->get_plugin_settings()['registration_password_policy'] ?? 0) === self::PASS_POLICY_GENERATE;
     }
 
     public function settings_setup_pass_at_login_if_not_present() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings())
-                && !empty($settings_arr['registration_password_policy'])
-                && $settings_arr['registration_password_policy'] === self::PASS_POLICY_SETUP;
+        return (int)($this->get_plugin_settings()['registration_password_policy'] ?? 0) === self::PASS_POLICY_SETUP;
     }
 
     public function should_setup_password_at_first_login() : bool
     {
-        return $this->settings_setup_pass_at_login_if_not_present()
-                || !$this->is_password_decryption_enabled();
+        return $this->settings_setup_pass_at_login_if_not_present();
     }
 
     public function registration_password_mandatory() : bool
@@ -410,8 +396,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
     public function registration_email_mandatory() : bool
     {
-        return ($settings_arr = $this->get_plugin_settings())
-                && !empty($settings_arr['email_mandatory']);
+        return (bool)($this->get_plugin_settings()['email_mandatory'] ?? false);
     }
 
     /**
@@ -1571,9 +1556,10 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
-        $clean_pass = $this->is_password_decryption_enabled()
-            ? $this->_accounts_model->clean_password($account_arr)
-            : $this->_accounts_model::OBFUSCATED_PASSWORD;
+        PHS_Logger::notice('Sending confirmation email for account #'.$account_arr['id'].'.', self::LOG_SECURITY);
+
+        $clean_pass = $this->_accounts_model->clean_password($account_arr)
+            ?: $this->_accounts_model::OBFUSCATED_PASSWORD;
 
         $hook_args = [];
         $hook_args['template'] = $this->email_template_resource_from_file('confirmation');
@@ -1601,6 +1587,16 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return false;
         }
 
+        PHS_Logger::notice('Confirmation email sent for account #'.$account_arr['id'].'.', self::LOG_SECURITY);
+
+        // Password decryption is disabled, remove encrypted password if available
+        if (!$this->is_password_decryption_enabled()
+           && $this->_accounts_model->can_obtain_password($account_arr)
+           && !$this->_accounts_model->remove_encrypted_password_for_account($account_arr)) {
+            PHS_Logger::warning('Cannot remove encrypted password for account #'.$account_arr['id'].' after sending confirmation email.',
+                self::LOG_SECURITY);
+        }
+
         return true;
     }
 
@@ -1619,6 +1615,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
             return false;
         }
+
+        PHS_Logger::notice('Sending password setup email for account #'.$account_arr['id'].'.', self::LOG_SECURITY);
 
         $hook_args = [];
         $hook_args['template'] = $this->email_template_resource_from_file('password_setup');
@@ -1644,6 +1642,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
             return false;
         }
+
+        PHS_Logger::notice('Password setup email sent for account #'.$account_arr['id'].'.', self::LOG_SECURITY);
 
         return true;
     }
