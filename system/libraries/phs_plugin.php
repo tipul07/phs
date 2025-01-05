@@ -50,12 +50,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      */
     public function is_multi_tenant() : bool
     {
-        return !($json_arr = $this->get_json_info()) || !empty($json_arr['is_multi_tenant']);
+        return (bool)($this->get_json_info()['is_multi_tenant'] ?? false);
     }
 
     final public function is_always_active() : bool
     {
-        return ($details_arr = $this->get_plugin_info()) && !empty($details_arr['is_always_active']);
+        return (bool)($this->get_plugin_info()['is_always_active'] ?? false);
     }
 
     /**
@@ -63,12 +63,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      */
     public function get_models() : array
     {
-        if (!($json_arr = $this->get_json_info())
-         || empty($json_arr['models'])) {
-            return [];
-        }
-
-        return $json_arr['models'];
+        return (array)($this->get_json_info()['models'] ?? []);
     }
 
     /**
@@ -76,12 +71,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      */
     public function get_plugin_version() : string
     {
-        if (!($json_arr = $this->get_json_info())
-         || empty($json_arr['version'])) {
-            return '0.0.0';
-        }
-
-        return $json_arr['version'];
+        return $this->get_json_info()['version'] ?? '0.0.0';
     }
 
     /**
@@ -143,13 +133,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      */
     public function get_agent_jobs_definition() : array
     {
-        if (!($json_arr = $this->get_json_info())
-            || empty($json_arr['agent_jobs'])
-            || !is_array($json_arr['agent_jobs'])) {
-            return [];
-        }
-
-        return $json_arr['agent_jobs'];
+        return (array)($this->get_json_info()['agent_jobs'] ?? []);
     }
 
     /**
@@ -674,9 +658,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
     final public function get_plugin_display_name() : string
     {
-        return ($details_arr = $this->get_plugin_info()) && !empty($details_arr['name'])
-            ? $details_arr['name']
-            : '';
+        return $this->get_plugin_info()['name'] ?? '';
     }
 
     final public function inactivate_plugin()

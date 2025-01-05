@@ -362,7 +362,7 @@ class PHS_Model_Plugins extends PHS_Model
         $this->reset_error();
 
         if (!empty($force)
-         && !empty(self::$dir_plugins)) {
+            && !empty(self::$dir_plugins)) {
             self::$dir_plugins = [];
         }
 

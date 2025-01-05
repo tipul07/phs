@@ -52,19 +52,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return null;
     }
 
-    // Do any actions required after paginator was instantiated and initialized (eg. columns, filters, model and bulk actions were set)
     public function we_initialized_paginator(): bool
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model)
-            && !$this->load_depencies()) {
-            return false;
-        }
-
-        if (!($scope_arr = $this->_paginator->get_scope())) {
-            $scope_arr = [];
-        }
+        $scope_arr = $this->_paginator->get_scope() ?: [];
 
         if (PHS_Params::_g('unknown_plugin', PHS_Params::T_INT)) {
             PHS_Notifications::add_error_notice($this->_pt('Plugin ID is invalid or plugin was not found.'));
@@ -73,9 +65,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             PHS_Notifications::add_error_notice($this->_pt('Invalid tenant or tenant was not found in database.'));
         }
 
-        if (!($records_arr = $this->_paginator_model->get_all_records_for_paginator())) {
-            $records_arr = [];
-        }
+        $records_arr = $this->_paginator_model->get_all_records_for_paginator() ?: [];
 
         $this->_paginator->set_records_count(count($records_arr));
 
@@ -132,16 +122,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
             'after_table_callback' => [$this, 'after_table_callback'],
         ];
 
-        if (!($plugins_statuses = $this->_paginator_model->get_statuses_as_key_val())) {
-            $plugins_statuses = [];
-        }
-        if (!empty($plugins_statuses)) {
-            $plugins_statuses = self::merge_array_assoc([0 => $this->_pt(' - Choose - '), -1 => $this->_pt('Not Installed')], $plugins_statuses);
-        }
+        $plugins_statuses = self::merge_array_assoc([
+            0 => $this->_pt(' - Choose - '),
+            -1 => $this->_pt('Not Installed')
+        ], $this->_paginator_model->get_statuses_as_key_val()
+        );
 
-        if ($is_multi_tenant
-           && !($this->_tenants_key_val_arr = $this->_tenants_model->get_tenants_as_key_val())) {
-            $this->_tenants_key_val_arr = [];
+        if ($is_multi_tenant) {
+            $this->_tenants_key_val_arr = $this->_tenants_model->get_tenants_as_key_val() ?: [];
         }
 
         $tenants_filter_arr = [];
@@ -316,12 +304,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
     public function manage_action($action): null|bool|array
     {
         $this->reset_error();
-
-        if (empty($this->_paginator_model)
-            && !$this->load_depencies()) {
-            return false;
-        }
-
         $action_result_params = $this->_paginator->default_action_params();
 
         if (empty($action['action'])) {
@@ -335,7 +317,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
 
                 return true;
-                break;
 
             case 'bulk_export_selected':
                 if (!empty($action['action_result'])) {
