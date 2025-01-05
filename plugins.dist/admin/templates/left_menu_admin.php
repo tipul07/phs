@@ -15,6 +15,7 @@ $is_multi_tenant = PHS::is_multi_tenant();
 
 $can_list_plugins = $admin_plugin->can_admin_list_plugins();
 $can_manage_plugins = $admin_plugin->can_admin_manage_plugins();
+$can_import_plugin_settings = $admin_plugin->can_admin_import_plugins_settings();
 $can_list_agent_jobs = $admin_plugin->can_admin_list_agent_jobs();
 $can_manage_agent_jobs = $admin_plugin->can_admin_manage_agent_jobs();
 $can_list_api_keys = $admin_plugin->can_admin_list_api_keys();
@@ -35,7 +36,7 @@ $can_manage_data_retention = $admin_plugin->can_admin_manage_data_retention();
 $can_list_http_calls = $admin_plugin->can_admin_list_http_calls();
 $can_manage_http_calls = $admin_plugin->can_admin_manage_http_calls();
 
-if (!$can_list_plugins && !$can_manage_plugins
+if (!$can_list_plugins && !$can_manage_plugins && !$can_import_plugin_settings
  && !$can_list_api_keys && !$can_manage_api_keys && !$can_view_api_monitoring_report
  && !$can_list_agent_jobs && !$can_manage_agent_jobs
  && !$can_list_roles && !$can_manage_roles
@@ -121,31 +122,40 @@ if ($can_list_roles || $can_manage_roles) {
     </li>
     <?php
 }
-if ($can_list_plugins || $can_manage_plugins) {
+if ($can_list_plugins || $can_manage_plugins || $can_import_plugin_settings) {
     ?>
     <li><?php echo $this::_t('Plugins Management'); ?>
         <ul>
-            <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'plugins', 'p' => 'admin']); ?>"><?php echo $this::_t('List Plugins'); ?></a></li>
             <?php
-            if (!$is_multi_tenant || $can_list_tenants) {
+            if ($can_list_plugins || $can_manage_plugins) {
                 ?>
-                <li><a href="<?php echo PHS::url(['a' => 'plugins', 'ad' => 'tenants', 'p' => 'admin']); ?>"><?php echo $this::_t('Tenant Plugin Management'); ?></a></li>
+                <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'plugins', 'p' => 'admin']); ?>"><?php echo $this::_t('List Plugins'); ?></a></li>
                 <?php
+                if ($can_manage_plugins) {
+                    ?>
+                    <li><a href="<?php echo PHS::url(['a' => 'plugins', 'ad' => 'tenants', 'p' => 'admin']); ?>"><?php echo $this::_t('Tenant Plugin Management'); ?></a></li>
+                    <li><a href="<?php echo PHS::url(['a' => 'plugins_integrity', 'p' => 'admin']); ?>"><?php echo $this::_t('Plugins\' Integrity'); ?></a></li>
+                    <?php
+                }
             }
+    if ($can_import_plugin_settings) {
+        ?>
+                <li><a href="<?php echo PHS::url(['a' => 'import', 'ad' => 'plugins', 'p' => 'admin']); ?>"><?php echo $this::_t('Import Settings'); ?></a></li>
+                <?php
+    }
     ?>
-            <li><a href="<?php echo PHS::url(['a' => 'plugins_integrity', 'p' => 'admin']); ?>"><?php echo $this::_t('Plugins\' Integrity'); ?></a></li>
         </ul>
     </li>
     <?php
-    if ($can_list_migrations || $can_manage_migrations) {
-        ?>
-        <li><?php echo $this::_t('Plugins Migrations'); ?>
-            <ul>
-                <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'migrations', 'p' => 'admin']); ?>"><?php echo $this::_t('List Migrations'); ?></a></li>
-            </ul>
-        </li>
-        <?php
-    }
+}
+if ($can_list_migrations || $can_manage_migrations) {
+    ?>
+    <li><?php echo $this::_t('Plugins Migrations'); ?>
+        <ul>
+            <li><a href="<?php echo PHS::url(['a' => 'list', 'ad' => 'migrations', 'p' => 'admin']); ?>"><?php echo $this::_t('List Migrations'); ?></a></li>
+        </ul>
+    </li>
+    <?php
 }
 if ($can_list_agent_jobs || $can_manage_agent_jobs) {
     ?>

@@ -53,7 +53,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         if (!$this->_admin_plugin->can_admin_list_data_retention()) {
             PHS_Notifications::add_warning_notice($this->_pt('You don\'t have rights to access this section.'));
 
-            return action_request_login();
+            return self::default_action_result();
         }
 
         return null;
