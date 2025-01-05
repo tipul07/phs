@@ -360,7 +360,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 $export_params = [];
                 $export_params['export_file_name'] = 'plugin_settings_'.date('YmdHi').'.json';
 
-                if (!$plugin_settings_lib->export_plugin_settings($crypt_key, $scope_arr[$scope_key], $export_params)) {
+                if (!$plugin_settings_lib->export_plugin_settings_from_interface($crypt_key, $scope_arr[$scope_key], $export_params)) {
                     $action_result_params['action_result'] = 'failed';
                     $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
                 }
@@ -400,7 +400,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 $export_params = [];
                 $export_params['export_file_name'] = 'plugin_settings_all_'.date('YmdHi').'.json';
 
-                if (!$plugin_settings_lib->export_plugin_settings($crypt_key, [], $export_params)) {
+                if (!$plugin_settings_lib->export_plugin_settings_from_interface($crypt_key, [], $export_params)) {
                     $action_result_params['action_result'] = 'failed';
                 }
                 break;

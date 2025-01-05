@@ -2,6 +2,7 @@
 namespace phs\plugins\admin\libraries;
 
 use phs\PHS;
+use Exception;
 use phs\PHS_Crypt;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Library;
@@ -82,7 +83,7 @@ class Phs_Plugin_settings extends PHS_Library
     //
     // region Export plugin settings
     //
-    public function export_plugin_settings(string $crypting_key, array $plugins_arr = [], array $export_params = []) : bool
+    public function export_plugin_settings_from_interface(string $crypting_key, array $plugins_arr = [], array $export_params = []) : bool
     {
         $this->reset_error();
 
@@ -95,7 +96,7 @@ class Phs_Plugin_settings extends PHS_Library
 
         $export_params['export_file_name'] ??= 'plugin_settings_export_'.date('YmdHi').'.json';
 
-        if (!($settings_json = $this->get_settings_for_plugins_as_encrypted_json_for_export($crypting_key, $plugins_arr))) {
+        if (!($settings_json = $this->get_settings_for_plugins_as_encrypted_json_for_export_from_interface($crypting_key, $plugins_arr))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Nothing to export.'));
 
             return false;
@@ -173,18 +174,35 @@ class Phs_Plugin_settings extends PHS_Library
         return $result_arr;
     }
 
-    public function get_settings_for_plugins_as_encrypted_json_for_export(string $crypting_key, array $plugins_arr = []) : ?string
+    public function get_settings_for_plugins_as_encrypted_json_for_export_from_interface(string $crypting_key, array $plugins_arr = []) : ?string
     {
-        if (!($settings_json = $this->get_settings_for_plugins_as_json_for_export($plugins_arr))) {
+        if (!($settings_json = $this->get_settings_for_plugins_as_json_for_export_from_interface($plugins_arr))) {
             return null;
         }
 
         return PHS_Crypt::quick_encode_buffer_for_export_as_json($settings_json, $crypting_key);
     }
 
+    public function get_settings_for_plugins_as_json_for_export_from_interface(array $plugins_arr = []) : string
+    {
+        try {
+            return @json_encode([
+                'source_name' => PHS_SITE_NAME.' ('.PHS_SITEBUILD_VERSION.')',
+                'source_url'  => PHS::url(['force_https' => true]),
+                'settings'    => $this->get_settings_for_plugins_as_array_for_export($plugins_arr),
+            ], JSON_THROW_ON_ERROR) ?: '';
+        } catch (Exception) {
+            return '';
+        }
+    }
+
     public function get_settings_for_plugins_as_json_for_export(array $plugins_arr = []) : string
     {
-        return @json_encode($this->get_settings_for_plugins_as_array_for_export($plugins_arr)) ?: '';
+        try {
+            return @json_encode($this->get_settings_for_plugins_as_array_for_export($plugins_arr), JSON_THROW_ON_ERROR) ?: '';
+        } catch (Exception) {
+            return '';
+        }
     }
 
     public function get_settings_for_plugins_as_array_for_export(array $plugins_arr = []) : array
