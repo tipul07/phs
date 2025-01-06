@@ -3,6 +3,12 @@
 
 use phs\PHS;
 use phs\PHS_Tenants;
+use phs\system\core\models\PHS_Model_Plugins;
+
+/** @var PHS_Model_Plugins $plugins_model */
+if( !($plugins_model = PHS_Model_Plugins::get_instance())) {
+    return $this->_pt('Error loading required resources.');
+}
 
 $tenant_id = (int)($this->view_var('tenant_id') ?: 0);
 $all_tenants_arr = $this->view_var('all_tenants_arr') ?: [];
@@ -125,7 +131,7 @@ $is_multi_tenant = PHS::is_multi_tenant();
                     <tr>
                         <th rowspan="2" class="text-center">#</th>
                         <th colspan="3" class="text-center"><?php echo $this->_pt('In import file')?></th>
-                        <th class="text-center"><?php echo $this->_pt('In current platform')?></th>
+                        <th colspan="2" class="text-center"><?php echo $this->_pt('In current platform')?></th>
                     </tr>
                     <tr>
                         <th class="text-center"><?php echo $this->_pt('Plugin (in file)')?></th>
@@ -135,21 +141,36 @@ $is_multi_tenant = PHS::is_multi_tenant();
                         </th>
                         <th class="text-center"><?php echo $this->_pt('Version')?></th>
                         <th class="text-center"><?php echo $this->_pt('Version')?></th>
+                        <th class='text-center'><?php echo $this->_pt('Status') ?></th>
                     </tr>
                     </thead>
                     <?php
                     $knti = 0;
                     foreach($decoded_settings_arr['settings'] as $plugin_name => $details_arr) {
                         $knti++;
+
+                        $plugin_instance = null;
+                        $can_import = !$plugin_name || ($plugin_instance = PHS::load_plugin($plugin_name));
                         $this_version = $plugin_name
-                            ? PHS::load_plugin($plugin_name)?->get_plugin_version()
+                            ? $plugin_instance?->get_plugin_version()
                             : PHS_VERSION;
+                        $this_status = $plugin_name
+                            ? (int)($plugin_instance->get_plugin_info()['db_details']['status'] ?? -1)
+                            : PHS_Model_Plugins::STATUS_ACTIVE;
                         ?>
                         <tr>
-                            <td class="text-center">
-                                <input type="checkbox" id="selected_plugins_<?php echo $knti?>"
-                                       name="selected_plugins[]" value="<?php echo form_str($plugin_name)?>"
-                                    <?php echo in_array($plugin_name, $selected_plugins, true) ? 'checked="checked"' : ''; ?> />
+                            <td class='text-center'><?php
+                                if (!$can_import) {
+                                    echo '-';
+                                } else {
+                                    ?>
+                                    <input type="checkbox" id="selected_plugins_<?php echo $knti ?>"
+                                           name="selected_plugins[]" value="<?php echo form_str($plugin_name) ?>"
+                                        <?php echo in_array($plugin_name, $selected_plugins, true) ? 'checked="checked"' : ''; ?>
+                                    />
+                                    <?php
+                                }
+                                ?>
                             </td>
                             <td class="text-left"><?php
                                 echo '<strong>'.($details_arr['name'] ?? $plugin_name).'</strong>'.
@@ -158,6 +179,7 @@ $is_multi_tenant = PHS::is_multi_tenant();
                             <td class="text-center"><?php echo implode(', ', array_column($details_arr['models'] ?? [], 'name')) ?: '-'?></td>
                             <td class="text-center"><?php echo $details_arr['version'] ?? $this->_pt('N/A')?></td>
                             <td class="text-center"><?php echo $this_version ?: $this->_pt('N/A')?></td>
+                            <td class='text-center'><?php echo $plugins_model->get_status_title($this_status) ?: $this->_pt('N/A') ?></td>
                         </tr>
                         <?php
                     }

@@ -109,8 +109,10 @@ class Phs_Plugin_settings extends PHS_Library
         foreach ($all_settings_arr as $plugin_name => $plugin_settings_arr) {
             if (empty($plugin_settings_arr) || !is_array($plugin_settings_arr)
                 || ($only_plugins
-                    && !in_array($plugin_name, $only_plugins, true)
-                )) {
+                    && !in_array($plugin_name, $only_plugins, true))
+                || ($plugin_name && !PHS::load_plugin($plugin_name))
+            ) {
+                PHS_Maintenance::output('['.($plugin_name ?: 'core').'] Skipping plugin...');
                 continue;
             }
 
