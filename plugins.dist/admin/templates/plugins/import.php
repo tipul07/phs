@@ -226,6 +226,7 @@ $is_multi_tenant = PHS::is_multi_tenant();
                 <div class="form-group row">
                     <pre style="width:100%;height:800px;background-color:black;color:lightgrey;font-size:12px;overflow:auto;"><?php echo $result_buffer?></pre>
                 </div>
+                <div class='form-group row'><small><?php echo $this->_pt('Import information is also available in maintenance.log file.')?></small></div>
                 <?php
             }
             ?>
