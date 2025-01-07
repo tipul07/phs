@@ -417,7 +417,7 @@ if (empty($records_arr) || !is_array($records_arr)) {
             $callback_params['record'] = $record_arr;
             $callback_params['for_scope'] = $current_scope;
 
-            if (($row_content = @call_user_func($flow_params_arr['after_record_callback'], $callback_params)) !== false
+            if (false !== ($row_content = @call_user_func($flow_params_arr['after_record_callback'], $callback_params))
              && $row_content !== null) {
                 echo $row_content;
             }
@@ -439,8 +439,8 @@ if (!$is_api_scope
     $callback_params['columns'] = $columns_arr;
     $callback_params['filters'] = $filters_arr;
 
-    if (($cell_content = @call_user_func($flow_params_arr['table_before_footer_callback'], $callback_params)) === false
-     || $cell_content === null) {
+    if (false === ($cell_content = @call_user_func($flow_params_arr['table_before_footer_callback'], $callback_params))
+        || $cell_content === null) {
         $cell_content = '['.$this::_t('Render before footer call failed.').']';
     }
 
@@ -545,7 +545,7 @@ if (!$is_api_scope
     $callback_params['columns'] = $columns_arr;
     $callback_params['filters'] = $filters_arr;
 
-    if (($cell_content = @call_user_func($flow_params_arr['after_table_callback'], $callback_params)) === false
+    if (false === ($cell_content = @call_user_func($flow_params_arr['after_table_callback'], $callback_params))
      || $cell_content === null) {
         $cell_content = '['.$this::_t('Render after table call failed.').']';
     }
@@ -663,14 +663,13 @@ if (!function_exists('phs_paginator_display_js_functionality')) {
                     selected_records = checkboxes_list.length;
 
                 let confirm_text = "";
-                if( selected_records === -1 )
+                if( selected_records === -1 ) {
                     confirm_text = "<?php echo sprintf($this_object::_e('Are you sure you want to run action %s?', '"'),
                         '" + action_display_name + "'); ?>";
+                }
 
-                else
-                {
-                    if( selected_records <= 0 )
-                    {
+                else {
+                    if( selected_records <= 0 ) {
                         alert( "<?php echo sprintf($this_object::_e('Please select records for which you want to run action %s first.', '"'),
                             '" + action_display_name + "'); ?>" );
                         return false;
@@ -686,8 +685,9 @@ if (!function_exists('phs_paginator_display_js_functionality')) {
             function phs_paginator_get_checkboxes( column )
             {
                 const checkboxes_list = $("input[type='checkbox'][name='<?php echo @sprintf($paginator_obj->get_checkbox_name_format(), '" + column + "'); ?>[]']");
-                if( !checkboxes_list || !checkboxes_list.length )
+                if( !checkboxes_list || !checkboxes_list.length ) {
                     return [];
+                }
 
                 return checkboxes_list;
             }
@@ -695,14 +695,14 @@ if (!function_exists('phs_paginator_display_js_functionality')) {
             function phs_paginator_get_checkboxes_checked( column )
             {
                 const checkboxes_list = phs_paginator_get_checkboxes(column);
-                if( !checkboxes_list || !checkboxes_list.length )
+                if( !checkboxes_list || !checkboxes_list.length ) {
                     return [];
+                }
 
                 const list_length = checkboxes_list.length;
 
                 const checkboxes_checked = [];
-                for( let i = 0; i < list_length; i++ )
-                {
+                for( let i = 0; i < list_length; i++ ) {
                     if( $( checkboxes_list[i] ).is( ":checked" ) )
                         checkboxes_checked.push( checkboxes_list[i] );
                 }
@@ -718,7 +718,7 @@ if (!$is_api_scope) {
     phs_paginator_display_js_functionality($this, $paginator_obj);
 
     if (!empty($flow_params_arr['after_full_list_callback'])
-    && is_callable($flow_params_arr['after_full_list_callback'])) {
+        && is_callable($flow_params_arr['after_full_list_callback'])) {
         $callback_params = $paginator_obj->default_others_render_call_params();
         $callback_params['columns'] = $columns_arr;
         $callback_params['filters'] = $filters_arr;

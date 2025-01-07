@@ -61,13 +61,9 @@ class PHS_Action_Report extends PHS_Action_Generic_list
             'listing_title'        => $this->_pt('Agent Jobs Report'),
         ];
 
-        if (!($statuses_arr = $this->_paginator_model->get_statuses_as_key_val())) {
-            $statuses_arr = [];
-        }
+        $statuses_arr = $this->_paginator_model->get_statuses_as_key_val() ?: [];
 
-        if (!empty($statuses_arr)) {
-            $statuses_arr = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $statuses_arr);
-        }
+        $statuses_arr = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $statuses_arr);
 
         $bulk_actions = [
             [
