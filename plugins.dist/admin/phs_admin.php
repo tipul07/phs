@@ -3,7 +3,6 @@ namespace phs\plugins\admin;
 
 use phs\PHS;
 use phs\PHS_Api;
-use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
@@ -11,6 +10,7 @@ use phs\plugins\admin\libraries\Phs_Data_retention;
 use phs\system\core\events\layout\PHS_Event_Layout;
 use phs\plugins\admin\libraries\Phs_Plugin_settings;
 use phs\system\core\events\layout\PHS_Event_Template;
+use phs\libraries\PHS_Hooks;
 
 class PHS_Plugin_Admin extends PHS_Plugin
 {
@@ -659,7 +659,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
 
     public function trigger_after_left_menu_admin($hook_args = false)
     {
-        $hook_args = self::validate_array($hook_args, PHS_Hooks::default_buffer_hook_args());
+        $hook_args = self::validate_array($hook_args ?: [], PHS_Hooks::default_buffer_hook_args());
 
         $hook_args['buffer'] = $this->quick_render_template_for_buffer('left_menu_admin');
 
