@@ -657,6 +657,15 @@ class PHS_Plugin_Admin extends PHS_Plugin
         return true;
     }
 
+    public function trigger_after_left_menu_admin($hook_args = false)
+    {
+        $hook_args = self::validate_array($hook_args, PHS_Hooks::default_buffer_hook_args());
+
+        $hook_args['buffer'] = $this->quick_render_template_for_buffer('left_menu_admin');
+
+        return $hook_args;
+    }
+
     public function listen_web_template_rendering(PHS_Event_Template $event_obj) : bool
     {
         if ($event_obj->get_input('page_template') === 'template_admin'
