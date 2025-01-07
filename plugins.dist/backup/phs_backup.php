@@ -747,9 +747,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
     {
         $hook_args = self::validate_array($hook_args, PHS_Hooks::default_buffer_hook_args());
 
-        $data = [];
-
-        $hook_args['buffer'] = $this->quick_render_template_for_buffer('left_menu_admin', $data);
+        $hook_args['buffer'] = $this->quick_render_template_for_buffer('left_menu_admin');
 
         return $hook_args;
     }
