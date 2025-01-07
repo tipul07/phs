@@ -12,6 +12,7 @@ use phs\libraries\PHS_Instantiable;
 use phs\traits\PHS_Cli_plugins_trait;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\models\PHS_Model_Plugins;
+use phs\plugins\admin\libraries\Phs_Plugin_settings;
 
 /**
  * Use import/export functionality
@@ -117,9 +118,7 @@ trait PHS_Export_import
         if (!($buf = $this->_do_platform_export_action_as_buffer($action_json_arr))
          || empty($action_json_arr['export_full_file'])
          || !@file_put_contents($action_json_arr['export_full_file'], $buf)) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error exporting data to file.'));
-            }
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, self::_t('Error exporting data to file.'));
 
             return false;
         }
@@ -132,10 +131,8 @@ trait PHS_Export_import
         $this->reset_error();
 
         if (!($arr = $this->_do_platform_export_action_as_array($action_json_arr))
-         || !($buf = @json_encode($arr))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error obtaining export data.'));
-            }
+            || !($buf = @json_encode($arr))) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, self::_t('Error obtaining export data.'));
 
             return null;
         }
@@ -149,16 +146,16 @@ trait PHS_Export_import
 
         /** @var PHS_Plugin_Admin $admin_plugin */
         /** @var PHS_Model_Plugins $plugins_model */
+        /** @var Phs_Plugin_settings $plugin_settings_lib */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
-         || !($plugins_model = PHS_Model_Plugins::get_instance())) {
+            || !($plugin_settings_lib = $admin_plugin->get_plugin_settings_instance())
+            || !($plugins_model = PHS_Model_Plugins::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
             return null;
         }
 
-        if (!($plugins_dirs_arr = $plugins_model->get_all_plugin_names_from_dir())) {
-            $plugins_dirs_arr = [];
-        }
+        $plugins_dirs_arr = $plugins_model->get_all_plugin_names_from_dir() ?: [];
 
         $repo_links = [];
         $repo_plugins = [];
@@ -193,26 +190,25 @@ trait PHS_Export_import
         }
 
         if (!empty($action_json_arr['export_symlinks'])
-         || !empty($action_json_arr['export_plugin_settings'])) {
+            || !empty($action_json_arr['export_plugin_settings'])) {
             $export_plugins_arr = [];
             if ($action_json_arr['export_symlinks']) {
                 $export_plugins_arr['symlinks'] = $repo_links;
             }
 
             if ($action_json_arr['export_plugin_settings']
-             && null === ($export_plugins_arr['settings']
-                = $admin_plugin->get_settings_for_plugins_as_encrypted_array($action_json_arr['crypt_key'],
-                    ($all_plugins ? [] : $repo_plugins)))) {
-                if ($admin_plugin->has_error()) {
-                    $this->copy_error($admin_plugin, self::ERR_FUNCTIONALITY);
-                } else {
-                    $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error obtaining plugin settings.'));
-                }
+                && null === ($export_plugins_arr['settings']
+                    = $plugin_settings_lib->get_settings_for_plugins_as_encrypted_array_for_export(
+                        $action_json_arr['crypt_key'], ($all_plugins ? [] : $repo_plugins))
+                )
+            ) {
+                $this->copy_or_set_error($plugin_settings_lib,
+                    self::ERR_FUNCTIONALITY, self::_t('Error obtaining plugin settings.'));
 
                 return null;
             }
 
-            if (!empty($export_plugins_arr)) {
+            if ($export_plugins_arr) {
                 $export_arr['plugins'] = $export_plugins_arr;
             }
         }
@@ -233,7 +229,7 @@ trait PHS_Export_import
             // this can be null (all languages) or an array of language names...
             'only_languages' => null,
             'crypt_key'      => '',
-            'import_file'    => $this->_get_phs_uploads_path(false).'/import_setup.json',
+            'import_file'    => $this->_get_phs_uploads_path(false).'import_setup.json',
         ];
     }
 
@@ -253,45 +249,40 @@ trait PHS_Export_import
         return $import_arr;
     }
 
-    protected function _do_platform_import_action($action_json_arr) : bool
+    protected function _do_platform_import_action(array $action_json_arr) : bool
     {
         $this->reset_error();
 
-        if (!($action_json_arr = $this->_validate_setup_action_import_json_structure($action_json_arr))) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('Error validating import JSON structure.'));
+        /** @var PHS_Plugin_Admin $admin_plugin */
+        if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
+            || !($plugin_settings_lib = $admin_plugin->get_plugin_settings_instance())) {
+            $this->set_error_if_not_set(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
             return false;
         }
 
         if (empty($action_json_arr['import_file'])
-         || !($import_arr = $this->_do_platform_import_action_read_import_file($action_json_arr['import_file']))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_PARAMETERS, self::_t('Error obtaining import JSON data.'));
-            }
+            || !($import_arr = $this->_do_platform_import_action_read_import_file($action_json_arr['import_file']))) {
+            $this->set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Error obtaining import JSON data.'));
 
             return false;
         }
 
-        $imported_symlinks_arr = null;
         // Make sure we have symlinks to plugins
         if (!empty($action_json_arr['import_symlinks'])
-         && isset($import_arr['plugins']['symlinks'])) {
-            if (null === ($imported_symlinks_arr = $this->_do_platform_import_action_for_plugin_symlinks($import_arr['plugins']['symlinks'], $action_json_arr['only_plugins']))) {
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_PARAMETERS, self::_t('Error importing symlinks from import file.'));
-                }
+            && isset($import_arr['plugins']['symlinks'])
+            && null === $this->_do_platform_import_action_for_plugin_symlinks($import_arr['plugins']['symlinks'], $action_json_arr['only_plugins'])
+        ) {
+            $this->set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Error importing symlinks from import file.'));
 
-                return false;
-            }
+            return false;
         }
 
         // Import plugin settings for provided plugins...
         if (!empty($action_json_arr['import_plugin_settings'])
             && isset($import_arr['plugins']['settings'])
             && is_array($import_arr['plugins']['settings'])
-            && !empty($imported_symlinks_arr)
-            && ($plugin_names = @array_keys($imported_symlinks_arr))
-            && !$this->_do_platform_import_settings_for_plugins($import_arr['plugins']['settings'], $action_json_arr['crypt_key'], $plugin_names)) {
+            && !$plugin_settings_lib->do_platform_import_settings_for_plugins_from_cli($import_arr['plugins']['settings'], $action_json_arr['crypt_key'], $action_json_arr['only_plugins'])) {
             $this->set_error_if_not_set(self::ERR_PARAMETERS,
                 self::_t('Error importing plugin settings from import file.'));
 
@@ -301,21 +292,11 @@ trait PHS_Export_import
         return true;
     }
 
-    /**
-     * @param array $symlinks
-     * @param null|array $only_plugins
-     *
-     * @return null|array
-     */
-    protected function _do_platform_import_action_for_plugin_symlinks(array $symlinks, ?array $only_plugins = null) : ?array
+    protected function _do_platform_import_action_for_plugin_symlinks(array $symlinks, array $only_plugins = []) : ?array
     {
         $this->reset_error();
 
-        if (empty($only_plugins)) {
-            $only_plugins = [];
-        }
-
-        if (empty($symlinks)) {
+        if (!$symlinks) {
             PHS_Maintenance::output('Importing symlinks... Nothing to import');
 
             return [];
@@ -325,31 +306,30 @@ trait PHS_Export_import
 
         $imported_symlinks = [];
         foreach ($symlinks as $plugin_name => $symlink) {
-            if (!empty($only_plugins)
-             && in_array($plugin_name, $only_plugins, true)) {
+            if ($only_plugins
+                && in_array($plugin_name, $only_plugins, true)) {
                 continue;
             }
 
             if (($repo_dir = @dirname($symlink))
-             && PHS_Maintenance::plugin_is_symlinked_with_repo($plugin_name, $repo_dir)) {
-                PHS_Maintenance::output('Plugin ['.$plugin_name.'] already symlinked to ['.$symlink.']');
+                && PHS_Maintenance::plugin_is_symlinked_with_repo($plugin_name, $repo_dir)) {
+                PHS_Maintenance::output('['.$plugin_name.'] Plugin already symlinked to ['.$symlink.']');
                 $imported_symlinks[$plugin_name] = $symlink;
                 continue;
             }
 
             if (!$repo_dir
              || !PHS_Maintenance::symlink_plugin_from_repo($plugin_name, $repo_dir)) {
-                if (PHS_Maintenance::st_has_error()) {
-                    $this->copy_static_error();
-                } else {
-                    $this->set_error(self::ERR_PARAMETERS, self::_t('Couldn\'t locate plugin repository directory %s for plugin %s.',
-                        (!empty($repo_dir) ? $repo_dir : 'N/A'), $plugin_name));
-                }
+                $this->copy_or_set_static_error(
+                    self::ERR_PARAMETERS,
+                    self::_t('Couldn\'t locate plugin repository directory %s for plugin %s.',
+                        $repo_dir ?: 'N/A', $plugin_name)
+                );
 
                 return null;
             }
 
-            PHS_Maintenance::output('Imported plugin ['.$plugin_name.'] as symlink to ['.$symlink.']');
+            PHS_Maintenance::output('['.$plugin_name.'] Plugin symlinked to ['.$symlink.']');
             $imported_symlinks[$plugin_name] = $symlink;
         }
 
@@ -358,107 +338,6 @@ trait PHS_Export_import
         return $imported_symlinks;
     }
 
-    /**
-     * @param array $encrypted_setting_arr
-     * @param string $crypting_key
-     * @param false|array $only_plugins
-     *
-     * @return bool
-     */
-    protected function _do_platform_import_settings_for_plugins(array $encrypted_setting_arr, string $crypting_key, ?array $only_plugins = null) : bool
-    {
-        if (null === ($all_settings_arr = $this->_do_platform_import_get_plugins_settings_array_from_encrypted_array($encrypted_setting_arr, $crypting_key))
-         || !is_array($all_settings_arr)) {
-            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error decoding settings from encrypted array.'));
-
-            return false;
-        }
-
-        PHS_Maintenance::output('Importing settings for '.count($all_settings_arr).' plugins...');
-
-        foreach ($all_settings_arr as $plugin_name => $plugin_settings_arr) {
-            if (empty($plugin_name)
-             || empty($plugin_settings_arr) || !is_array($plugin_settings_arr)
-             || (!empty($only_plugins)
-                && !in_array($plugin_name, $only_plugins, true)
-             )) {
-                continue;
-            }
-
-            if (!$this->_import_settings_for_plugin($plugin_name, $plugin_settings_arr)) {
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error saving settings for plugin %s.', $plugin_name));
-                }
-
-                return false;
-            }
-
-            PHS_Maintenance::output('Imported settings for plugin ['.$plugin_name.']');
-        }
-
-        PHS_Maintenance::output('Imported settings for '.count($all_settings_arr).' plugins...');
-
-        return true;
-    }
-
-    /**
-     * @param string $json_buf
-     * @param string $crypting_key
-     *
-     * @return null|array
-     */
-    protected function _do_platform_import_settings_for_plugins_from_json_buffer(string $json_buf, string $crypting_key) : ?array
-    {
-        $this->reset_error();
-
-        if (empty($json_buf)) {
-            return [];
-        }
-
-        if (!($json_arr = @json_decode($json_buf, true))
-         || !is_array($json_arr)) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('Error decoding JSON buffer to array.'));
-
-            return null;
-        }
-
-        return $this->_do_platform_import_get_plugins_settings_array_from_encrypted_array($json_arr, $crypting_key);
-    }
-
-    /**
-     * @param array $json_arr
-     * @param string $crypting_key
-     *
-     * @return null|array
-     */
-    protected function _do_platform_import_get_plugins_settings_array_from_encrypted_array(array $json_arr, string $crypting_key) : ?array
-    {
-        $this->reset_error();
-
-        if (!($settings_buf = PHS_Crypt::quick_decode_from_export_array($json_arr, $crypting_key))) {
-            if (PHS_Crypt::st_has_error()) {
-                $this->copy_static_error();
-            } else {
-                $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error decoding settings from encrypted array.'));
-            }
-
-            return null;
-        }
-
-        if (!($settings_arr = @json_decode($settings_buf, true))
-         || !is_array($settings_arr)) {
-            $settings_arr = [];
-        }
-
-        return $settings_arr;
-    }
-
-    /**
-     * @param null|array $json_arr
-     * @param array $structure
-     *
-     * @return null|array
-     */
     private function _validate_import_export_json_structure(?array $json_arr, array $structure) : ?array
     {
         $this->reset_error();
@@ -515,27 +394,12 @@ trait PHS_Export_import
         return $action_json_arr;
     }
 
-    /**
-     * @param array $json_arr
-     *
-     * @return null|array
-     */
     private function _validate_platform_export_action_json_structure(array $json_arr) : ?array
     {
         $this->reset_error();
 
         if (!($return_arr = $this->_validate_import_export_json_structure($json_arr, $this->platform_export_json_structure()))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_PARAMETERS, self::_t('Error validating export JSON structure.'));
-            }
-
-            return null;
-        }
-
-        if (!empty($return_arr['export_plugin_settings'])
-         && empty($return_arr['crypt_key'])) {
-            $this->set_error(self::ERR_PARAMETERS,
-                self::_t('Please provide a crypting key required when working with sensitive data.'));
+            $this->set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Error validating export JSON structure.'));
 
             return null;
         }
@@ -592,6 +456,14 @@ trait PHS_Export_import
         $return_arr['export_themes'] = ($return_arr['export_all'] || in_array('themes', $return_arr['export'], true));
         $return_arr['export_languages'] = ($return_arr['export_all'] || in_array('languages', $return_arr['export'], true));
 
+        if (!($return_arr['crypt_key'] ?? '')
+            && $return_arr['export_plugin_settings']) {
+            $this->set_error(self::ERR_PARAMETERS,
+                self::_t('Please provide a crypting key required when working with sensitive data.'));
+
+            return null;
+        }
+
         return $return_arr;
     }
     //
@@ -643,55 +515,15 @@ trait PHS_Export_import
         $return_arr['import_themes'] = ($return_arr['import_all'] || in_array('themes', $return_arr['import'], true));
         $return_arr['import_languages'] = ($return_arr['import_all'] || in_array('languages', $return_arr['import'], true));
 
+        if (!($return_arr['crypt_key'] ?? '')
+            && $return_arr['import_plugin_settings']) {
+            $this->set_error(self::ERR_PARAMETERS,
+                self::_t('Please provide a crypting key required when working with sensitive data.'));
+
+            return null;
+        }
+
         return $return_arr;
-    }
-
-    /**
-     * @param string $plugin_name
-     * @param array $plugin_settings_arr
-     *
-     * @return bool
-     */
-    private function _import_settings_for_plugin(string $plugin_name, array $plugin_settings_arr) : bool
-    {
-        $this->reset_error();
-
-        if (!($plugin_obj = PHS::load_plugin($plugin_name))) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('Error instantiating plugin %s.', $plugin_name));
-
-            return false;
-        }
-
-        foreach ($plugin_settings_arr as $instance_id => $settings_arr) {
-            if (!is_array($settings_arr)
-             || !($instance_arr = PHS_Instantiable::valid_instance_id($instance_id))
-             || empty($instance_arr['instance_type'])
-             || empty($instance_arr['instance_name'])
-             // Plugins and models have settings at the moment
-             || !in_array($instance_arr['instance_type'],
-                 [PHS_Instantiable::INSTANCE_TYPE_PLUGIN, PHS_Instantiable::INSTANCE_TYPE_MODEL], true)) {
-                continue;
-            }
-
-            if ($instance_arr['instance_type'] === PHS_Instantiable::INSTANCE_TYPE_PLUGIN) {
-                if (!$plugin_obj->save_db_settings($settings_arr)) {
-                    $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error saving settings for plugin %s.', $plugin_name));
-
-                    return false;
-                }
-
-                continue;
-            }
-
-            if (!($model_obj = PHS::load_model($instance_arr['instance_name'], $plugin_name))
-             || !$model_obj->save_db_settings($settings_arr)) {
-                $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error saving settings for model %s, plugin %s.', $instance_arr['instance_name'], $plugin_name));
-
-                return false;
-            }
-        }
-
-        return true;
     }
     //
     // endregion Import functionality

@@ -135,6 +135,8 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     {
         PHS::page_body_class('phs_paginator_action');
 
+        $this->reset_error();
+
         if (!$this->load_depencies()) {
             PHS_Notifications::add_error_notice($this->get_simple_error_message(self::_t('Error loading required resources.')));
 
@@ -286,7 +288,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             'base_url'        => '',
             'flow_parameters' => [],
             'bulk_actions'    => [],
-            'export_actions'    => [],
+            'export_actions'  => [],
             'filters_arr'     => [],
             'columns_arr'     => [],
             // an action result array or null

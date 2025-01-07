@@ -116,37 +116,19 @@ class PHS_Crypt extends PHS_Language
         return $enc_dec->decrypt($str);
     }
 
-    /**
-     * @param string $buf
-     * @param string $crypting_key
-     * @param null|array $params
-     *
-     * @return false|string
-     */
-    public static function quick_encode_buffer_for_export_as_json(string $buf, string $crypting_key, ?array $params = null)
+    public static function quick_encode_buffer_for_export_as_json(string $buf, string $crypting_key, array $params = []) : ?string
     {
         if (!($json_arr = self::quick_encode_buffer_for_export_as_array($buf, $crypting_key, $params))
-         || !($json_buf = @json_encode($json_arr))) {
-            return false;
+            || !($json_buf = @json_encode($json_arr))) {
+            return null;
         }
 
         return $json_buf;
     }
 
-    /**
-     * @param string $buf
-     * @param string $crypting_key
-     * @param null|array $params
-     *
-     * @return null|array
-     */
-    public static function quick_encode_buffer_for_export_as_array(string $buf, string $crypting_key, ?array $params = null) : ?array
+    public static function quick_encode_buffer_for_export_as_array(string $buf, string $crypting_key, array $params = []) : ?array
     {
         self::st_reset_error();
-
-        if (empty($params)) {
-            $params = [];
-        }
 
         if (empty($crypting_key)) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Crypting internal keys not provided.'));
@@ -159,7 +141,7 @@ class PHS_Crypt extends PHS_Language
 
         $enc_buf = '';
         if ($buf !== ''
-         && !($enc_buf = self::quick_encode($buf, $params))) {
+            && !($enc_buf = self::quick_encode($buf, $params))) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Error encrypting buffer.'));
 
             return null;
@@ -172,14 +154,7 @@ class PHS_Crypt extends PHS_Language
         ];
     }
 
-    /**
-     * @param string $json_str
-     * @param string $crypting_key
-     * @param null|array $params
-     *
-     * @return null|string
-     */
-    public static function quick_decode_from_export_json_string(string $json_str, string $crypting_key, ?array $params = null) : ?string
+    public static function quick_decode_from_export_json_string(string $json_str, string $crypting_key, array $params = []) : ?string
     {
         self::st_reset_error();
 
@@ -194,14 +169,7 @@ class PHS_Crypt extends PHS_Language
         return self::quick_decode_from_export_array($json_arr, $crypting_key, $params);
     }
 
-    /**
-     * @param array $export_arr
-     * @param string $crypting_key
-     * @param null|array $params
-     *
-     * @return null|string
-     */
-    public static function quick_decode_from_export_array(array $export_arr, string $crypting_key, ?array $params = null) : ?string
+    public static function quick_decode_from_export_array(array $export_arr, string $crypting_key, array $params = []) : ?string
     {
         self::st_reset_error();
 
@@ -211,22 +179,17 @@ class PHS_Crypt extends PHS_Language
             return null;
         }
 
-        if (empty($export_arr)
-         || empty($export_arr['ik']) || !is_array($export_arr['ik'])) {
+        if (empty($export_arr['ik']) || !is_array($export_arr['ik'])) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Invalid export data provided.'));
 
             return null;
-        }
-
-        if (empty($params)) {
-            $params = [];
         }
 
         $params['crypting_key'] = $crypting_key;
         $params['internal_keys'] = $export_arr['ik'];
 
         if (empty($export_arr['data'])
-         || !($dec_buf = self::quick_decode($export_arr['data'], $params))) {
+            || !($dec_buf = self::quick_decode($export_arr['data'], $params))) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Error decrypting buffer.'));
 
             return null;
