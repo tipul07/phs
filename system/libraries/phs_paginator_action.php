@@ -64,15 +64,11 @@ abstract class PHS_Action_Generic_list extends PHS_Action
      */
     public function insert_columns_arr(array $current_columns_arr, $where, array $new_columns_arr) : array
     {
-        if (empty($new_columns_arr)) {
-            if (empty($current_columns_arr)) {
-                $current_columns_arr = [];
-            }
-
-            return $current_columns_arr;
+        if (!$new_columns_arr) {
+            return $current_columns_arr ?: [];
         }
 
-        if (empty($current_columns_arr)) {
+        if (!$current_columns_arr) {
             return $new_columns_arr;
         }
 
@@ -119,7 +115,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             }
         }
 
-        if (empty($new_columns_added)) {
+        if (!$new_columns_added) {
             foreach ($new_columns_arr as $new_column_key => $new_column_arr) {
                 if (!is_numeric($new_column_key)) {
                     $columns_arr[$new_column_key] = $new_column_arr;
@@ -200,6 +196,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             return self::default_action_result();
         }
 
+        $data = [];
         $init_went_ok = true;
         if (!$this->_paginator->set_columns($paginator_params['columns_arr'])
          || (!empty($paginator_params['filters_arr'])
@@ -233,8 +230,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
                     if ($this->has_error()) {
                         PHS_Notifications::add_error_notice($this->get_simple_error_message());
                     }
-                } elseif (is_array($pagination_action_result)
-                       && !empty($pagination_action_result['action'])) {
+                } elseif (!empty($pagination_action_result['action'])) {
                     $pagination_action_result = self::validate_array($pagination_action_result, $this->_paginator->default_action_params());
 
                     $url_params = [
@@ -273,7 +269,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             ];
         }
 
-        if (empty($data)) {
+        if (!$data) {
             PHS_Notifications::add_error_notice(self::_t('Error rendering paginator details.'));
 
             $data = [
@@ -292,6 +288,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             'base_url'        => '',
             'flow_parameters' => [],
             'bulk_actions'    => [],
+            'export_actions'    => [],
             'filters_arr'     => [],
             'columns_arr'     => [],
             // an action result array or null
