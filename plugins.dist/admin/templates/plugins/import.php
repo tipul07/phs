@@ -155,7 +155,7 @@ $is_multi_tenant = PHS::is_multi_tenant();
                             ? $plugin_instance?->get_plugin_version()
                             : PHS_VERSION;
                         $this_status = $plugin_name
-                            ? (int)($plugin_instance->get_plugin_info()['db_details']['status'] ?? -1)
+                            ? (int)($plugin_instance?->get_plugin_info()['db_details']['status'] ?? -1)
                             : PHS_Model_Plugins::STATUS_ACTIVE;
                         ?>
                         <tr>

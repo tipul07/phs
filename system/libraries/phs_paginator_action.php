@@ -288,7 +288,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             'base_url'        => '',
             'flow_parameters' => [],
             'bulk_actions'    => [],
-            'export_actions'    => [],
+            'export_actions'  => [],
             'filters_arr'     => [],
             'columns_arr'     => [],
             // an action result array or null
