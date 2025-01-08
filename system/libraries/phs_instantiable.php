@@ -1050,74 +1050,39 @@ abstract class PHS_Instantiable extends PHS_Registry
         ];
     }
 
-    /**
-     * @param string $dir
-     *
-     * @return string
-     */
     public static function safe_escape_instance_subdir_path(string $dir) : string
     {
-        if (empty($dir)
-         || preg_match('@[^a-zA-Z0-9/]@', $dir)) {
+        if (!$dir
+            || preg_match('@[^a-zA-Z0-9/]@', $dir)) {
             return '';
         }
 
         return strtolower(trim($dir));
     }
 
-    /**
-     * @param string $dir
-     *
-     * @return string
-     */
     public static function safe_escape_instance_subdir(string $dir) : string
     {
-        if (empty($dir)
-         || preg_match('@[^a-zA-Z0-9_]@', $dir)) {
+        if (!$dir
+            || preg_match('@[^a-zA-Z0-9_]@', $dir)) {
             return '';
         }
 
         return strtolower(trim($dir));
     }
 
-    /**
-     * @param string $name
-     *
-     * @return string
-     */
     public static function safe_escape_action_name(string $name) : string
     {
-        if (empty($name)
-         || preg_match('@[^a-zA-Z0-9_]@', $name)) {
+        if (!$name
+            || preg_match('@[^a-zA-Z0-9_]@', $name)) {
             return '';
         }
 
         return strtolower($name);
     }
 
-    /**
-     * @param string $name
-     *
-     * @return string
-     */
     public static function safe_escape_library_name(string $name) : string
     {
-        if (empty($name)
-         || preg_match('@[^a-zA-Z0-9_]@', $name)) {
-            return '';
-        }
-
-        return $name;
-    }
-
-    /**
-     * @param string $name
-     *
-     * @return string
-     */
-    public static function safe_escape_class_name(string $name) : string
-    {
-        if (empty($name)
+        if (!$name
             || preg_match('@[^a-zA-Z0-9_]@', $name)) {
             return '';
         }
@@ -1125,44 +1090,39 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $name;
     }
 
-    /**
-     * @param string $name
-     *
-     * @return bool|string
-     */
-    public static function safe_escape_class_name_with_subdirs(string $name)
+    public static function safe_escape_class_name(string $name) : string
     {
-        if (empty($name)
+        if (!$name
+            || preg_match('@[^a-zA-Z0-9_]@', $name)) {
+            return '';
+        }
+
+        return $name;
+    }
+
+    public static function safe_escape_class_name_with_subdirs(string $name) : string
+    {
+        if (!$name
          || preg_match('@[^a-zA-Z0-9_\\]@', $name)) {
-            return false;
+            return '';
         }
 
         return $name;
     }
 
-    /**
-     * @param string $name
-     *
-     * @return bool|string
-     */
-    public static function safe_escape_class_name_with_namespace(string $name)
+    public static function safe_escape_class_name_with_namespace(string $name) : string
     {
-        if (empty($name)
+        if (!$name
          || preg_match('@[^a-zA-Z0-9_/]@', $name)) {
-            return false;
+            return '';
         }
 
         return $name;
     }
 
-    /**
-     * @param string|false $name
-     *
-     * @return string
-     */
     public static function safe_escape_plugin_name($name) : string
     {
-        if (empty($name) || !is_string($name)
+        if (!$name || !is_string($name)
          || preg_match('@[^a-zA-Z0-9_]@', $name)) {
             return '';
         }
@@ -1170,14 +1130,9 @@ abstract class PHS_Instantiable extends PHS_Registry
         return strtolower($name);
     }
 
-    /**
-     * @param string $name
-     *
-     * @return string
-     */
     public static function safe_escape_theme_name(string $name) : string
     {
-        if (empty($name)
+        if (!$name
          || preg_match('@[^a-zA-Z0-9_]@', $name)) {
             return '';
         }
@@ -1254,11 +1209,11 @@ abstract class PHS_Instantiable extends PHS_Registry
     {
         self::st_reset_error();
 
-        if (empty($full_class_name)) {
+        if (!$full_class_name) {
             $full_class_name = static::class;
         }
 
-        if (empty($full_class_name)
+        if (!$full_class_name
          || !($details = self::extract_details_from_full_namespace_name($full_class_name))
          || empty($details['class_name']) || empty($details['plugin_name']) || empty($details['instance_type'])
          || !($instance_details = self::get_instance_details($details['class_name'], $details['plugin_name'], $details['instance_type'], $details['instance_subdir']))
@@ -1288,7 +1243,7 @@ abstract class PHS_Instantiable extends PHS_Registry
             $obj = PHS::$loader_method($instance_details['instance_name'], $details['plugin_name']);
         }
 
-        if (empty($obj) || self::st_has_error()) {
+        if (!$obj || self::st_has_error()) {
             if (self::st_debugging_mode()) {
                 $error_msg = 'Error loading class ['.$full_class_name.']';
                 if (self::st_has_error()) {
@@ -1453,11 +1408,6 @@ abstract class PHS_Instantiable extends PHS_Registry
         ];
     }
 
-    /**
-     * @param string $json_file_full_path
-     *
-     * @return array
-     */
     public static function read_plugin_json_details(string $json_file_full_path) : array
     {
         // Plugin might not have even directory created meaning no script files
@@ -1480,79 +1430,36 @@ abstract class PHS_Instantiable extends PHS_Registry
         return $json_arr;
     }
 
-    /**
-     * @param string $plugin_name
-     *
-     * @return null|array
-     */
     public static function get_plugin_json_info(string $plugin_name) : ?array
     {
         return self::_get_instance_json_details($plugin_name, $plugin_name, self::INSTANCE_TYPE_PLUGIN);
     }
 
-    /**
-     * @param string $plugin_name
-     * @param string $model_name
-     *
-     * @return null|array
-     */
     public static function get_model_json_info(string $plugin_name, string $model_name) : ?array
     {
         return self::_get_instance_json_details($plugin_name, $model_name, self::INSTANCE_TYPE_MODEL);
     }
 
-    /**
-     * @param string $plugin_name
-     * @param string $controller_name
-     *
-     * @return null|array
-     */
     public static function get_controller_json_info(string $plugin_name, string $controller_name) : ?array
     {
         return self::_get_instance_json_details($plugin_name, $controller_name, self::INSTANCE_TYPE_CONTROLLER);
     }
 
-    /**
-     * @param string $plugin_name
-     * @param string $action_name
-     * @param string $action_dir
-     *
-     * @return null|array
-     */
     public static function get_action_json_info(string $plugin_name, string $action_name, string $action_dir = '') : ?array
     {
         return self::_get_instance_json_details($plugin_name, $action_name, self::INSTANCE_TYPE_ACTION, $action_dir);
     }
 
-    /**
-     * @param string $plugin_name
-     * @param string $contract_name
-     * @param string $contract_dir
-     *
-     * @return null|array
-     */
     public static function get_contract_json_info(string $plugin_name, string $contract_name, string $contract_dir = '') : ?array
     {
         return self::_get_instance_json_details($plugin_name, $contract_name, self::INSTANCE_TYPE_CONTRACT, $contract_dir);
     }
 
-    /**
-     * @param string $plugin_name
-     * @param string $view_name
-     *
-     * @return null|array
-     */
     public static function get_view_json_info(string $plugin_name, string $view_name) : ?array
     {
         return self::_get_instance_json_details($plugin_name, $view_name, self::INSTANCE_TYPE_VIEW);
     }
 
-    /**
-     * @param string $plugin_name
-     * @param string $scope_name
-     *
-     * @return null|array
-     */
     public static function get_scope_json_info(string $plugin_name, string $scope_name) : ?array
     {
         return self::_get_instance_json_details($plugin_name, $scope_name, self::INSTANCE_TYPE_SCOPE);

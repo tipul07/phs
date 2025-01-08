@@ -28,9 +28,6 @@ class PHSMaintenance extends PHS_Cli
     {
         return __DIR__.'/';
     }
-    //
-    // endregion Environment initialization
-    //
 
     public function cli_maintenance_output($msg) : void
     {
@@ -504,9 +501,6 @@ class PHSMaintenance extends PHS_Cli
         ];
     }
 
-    //
-    // region Environment initialization
-    //
     protected function _init_app() : bool
     {
         $this->reset_error();
@@ -819,14 +813,12 @@ class PHSMaintenance extends PHS_Cli
 
     private function _symlink_plugin($plugin_name) : bool
     {
-        if (!($repo_dir = $this->_get_argument_chained())) {
-            $repo_dir = '';
-        }
+        $repo_dir = $this->_get_argument_chained() ?: '';
 
         // Normally we could call PHS_Maintenance::symlink_plugin_from_repo() directly,
         // but for a better error handling we call methods separately
-        if (empty($repo_dir)
-         || !($real_path = PHS_Maintenance::convert_plugin_repo_to_real_path($repo_dir))) {
+        if (!$repo_dir
+            || !($real_path = PHS_Maintenance::convert_plugin_repo_to_real_path($repo_dir))) {
             $this->_echo_error(self::_t('Couldn\'t locate plugin repository directory %s.',
                 $this->cli_color((!empty($repo_dir) ? $repo_dir : 'N/A'), 'white')
             ));
@@ -884,7 +876,6 @@ class PHSMaintenance extends PHS_Cli
     //
     // region setup action
     //
-
     private function _display_cmd_setup_action_usage() : void
     {
         $this->_echo('Usage: '.$this->get_app_cli_script().' [options] setup [export|import] {[action_json_file]}');
@@ -893,7 +884,10 @@ class PHSMaintenance extends PHS_Cli
     private function _setup_do_export(?array $action_json_arr) : bool
     {
         if (!($action_json_arr = $this->_validate_platform_export_action_json_structure($action_json_arr))) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('Error validating export JSON structure.'));
+            $this->_set_and_echo_error(
+                $this->get_simple_error_message(self::_t('Error validating export JSON structure.')),
+                $this->get_error_code(self::ERR_PARAMETERS)
+            );
 
             return false;
         }
@@ -903,15 +897,10 @@ class PHSMaintenance extends PHS_Cli
         }
 
         if (!$this->_do_platform_export_action_to_file($action_json_arr)) {
-            if ($this->has_error()) {
-                $error_msg = $this->get_simple_error_message();
-                $error_no = $this->get_error_code();
-            } else {
-                $error_msg = self::_t('Error exporting data. Please try again.');
-                $error_no = self::ERR_FUNCTIONALITY;
-            }
-
-            $this->_set_and_echo_error($error_msg, $error_no);
+            $this->_set_and_echo_error(
+                $this->get_simple_error_message(self::_t('Error exporting data. Please try again.')),
+                $this->get_error_code(self::ERR_FUNCTIONALITY)
+            );
 
             return false;
         }
@@ -936,21 +925,19 @@ class PHSMaintenance extends PHS_Cli
     private function _setup_do_import(?array $action_json_arr) : bool
     {
         if (!($action_json_arr = $this->_validate_setup_action_import_json_structure($action_json_arr))) {
-            $this->_set_and_echo_error(self::_t('Error validating import JSON structure.'), self::ERR_PARAMETERS, false);
+            $this->_set_and_echo_error(
+                $this->get_simple_error_message(self::_t('Error validating import JSON structure.')),
+                $this->get_error_code(self::ERR_PARAMETERS)
+            );
 
             return false;
         }
 
         if (!$this->_do_platform_import_action($action_json_arr)) {
-            if (!$this->has_error()) {
-                $error_msg = $this->get_simple_error_message();
-                $error_no = $this->get_error_code();
-            } else {
-                $error_msg = self::_t('Error importing data. Please try again.');
-                $error_no = self::ERR_FUNCTIONALITY;
-            }
-
-            $this->_set_and_echo_error($error_msg, $error_no);
+            $this->_set_and_echo_error(
+                $this->get_simple_error_message(self::_t('Error importing data. Please try again.')),
+                $this->get_error_code(self::ERR_FUNCTIONALITY)
+            );
 
             return false;
         }

@@ -2,9 +2,12 @@
 namespace phs\plugins\admin\libraries;
 
 use phs\PHS;
+use Exception;
 use phs\PHS_Crypt;
+use phs\PHS_Maintenance;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Library;
+use phs\libraries\PHS_Instantiable;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\models\PHS_Model_Plugins;
 
@@ -30,10 +33,7 @@ class Phs_Plugin_settings extends PHS_Library
             return null;
         }
 
-        if (!($dir_entries = $plugins_model->cache_all_dir_details())
-            || !is_array($dir_entries)) {
-            $dir_entries = [];
-        }
+        $dir_entries = $plugins_model->cache_all_dir_details() ?: [];
 
         $return_arr = [];
 
@@ -78,6 +78,97 @@ class Phs_Plugin_settings extends PHS_Library
 
         return $settings_arr;
     }
+
+    public function do_platform_import_settings_for_plugins_from_cli(array $encrypted_setting_arr, string $crypting_key, array $only_plugins = [], ?int $tenant_id = null) : bool
+    {
+        if (null === ($all_settings_arr = $this->do_platform_import_get_plugins_settings_array_from_encrypted_array($encrypted_setting_arr, $crypting_key))
+            || !is_array($all_settings_arr)) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error decoding settings from encrypted array.'));
+
+            return false;
+        }
+
+        return $this->do_platform_import_settings_for_plugins($all_settings_arr, $only_plugins, $tenant_id);
+    }
+
+    public function do_platform_import_settings_for_plugins_from_interface(array $decoded_settings_arr, array $only_plugins = [], ?int $tenant_id = null) : bool
+    {
+        if (empty($decoded_settings_arr['settings']) || !is_array($decoded_settings_arr['settings'])) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Import JSON doesn\'t contain settngs for import..'));
+
+            return false;
+        }
+
+        return $this->do_platform_import_settings_for_plugins($decoded_settings_arr['settings'], $only_plugins, $tenant_id);
+    }
+
+    public function do_platform_import_settings_for_plugins(array $all_settings_arr, array $only_plugins = [], ?int $tenant_id = null) : bool
+    {
+        PHS_Maintenance::output('Importing settings for '.count($only_plugins ?? $all_settings_arr).' plugins, tenant '.($tenant_id ?: 'Default').'...');
+
+        foreach ($all_settings_arr as $plugin_name => $plugin_settings_arr) {
+            if (empty($plugin_settings_arr) || !is_array($plugin_settings_arr)
+                || ($only_plugins
+                    && !in_array($plugin_name, $only_plugins, true))
+                || ($plugin_name && !PHS::load_plugin($plugin_name))
+            ) {
+                PHS_Maintenance::output('['.($plugin_name ?: 'core').'] Skipping plugin...');
+                continue;
+            }
+
+            PHS_Maintenance::output('['.($plugin_name ?: 'core').'] Importing settings...');
+
+            if (!$this->_import_settings_for_plugin($plugin_name, $plugin_settings_arr, $tenant_id)) {
+                $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
+                    $this->_pt('Error saving settings for plugin %s.', $plugin_name ?: 'core'));
+
+                return false;
+            }
+
+            PHS_Maintenance::output('['.($plugin_name ?: 'core').'] DONE');
+        }
+
+        PHS_Maintenance::output('Imported settings for '.count($only_plugins ?? $all_settings_arr).' plugins, tenant '.($tenant_id ?: 'Default').'...');
+
+        return true;
+    }
+
+    public function do_platform_import_settings_for_plugins_from_json_buffer(string $json_buf, string $crypting_key) : ?array
+    {
+        $this->reset_error();
+
+        if (empty($json_buf)) {
+            return [];
+        }
+
+        if (!($json_arr = @json_decode($json_buf, true))
+            || !is_array($json_arr)) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error decoding JSON buffer to array.'));
+
+            return null;
+        }
+
+        return $this->do_platform_import_get_plugins_settings_array_from_encrypted_array($json_arr, $crypting_key);
+    }
+
+    public function do_platform_import_get_plugins_settings_array_from_encrypted_array(array $json_arr, string $crypting_key) : ?array
+    {
+        $this->reset_error();
+
+        if (!$json_arr
+            || !($settings_buf = PHS_Crypt::quick_decode_from_export_array($json_arr, $crypting_key))) {
+            $this->copy_or_set_static_error(self::ERR_FUNCTIONALITY, $this->_pt('Error decoding settings from encrypted array.'));
+
+            return null;
+        }
+
+        if (!($settings_arr = @json_decode($settings_buf, true))
+            || !is_array($settings_arr)) {
+            $settings_arr = [];
+        }
+
+        return $settings_arr;
+    }
     //
     // endregion Import plugin settings
     //
@@ -85,26 +176,20 @@ class Phs_Plugin_settings extends PHS_Library
     //
     // region Export plugin settings
     //
-    public function export_plugin_settings(string $crypting_key, array $plugins_arr = [], ?array $export_params = null) : bool
+    public function export_plugin_settings_from_interface(string $crypting_key, array $plugins_arr = [], array $export_params = []) : bool
     {
         $this->reset_error();
 
-        $export_params ??= [];
-
-        if (empty($export_params['export_file_dir'])) {
-            $export_params['export_file_dir'] = '';
-        }
+        $export_params['export_file_dir'] ??= '';
 
         if (empty($export_params['export_to'])
             || !self::valid_export_to($export_params['export_to'])) {
             $export_params['export_to'] = self::EXPORT_TO_BROWSER;
         }
 
-        if (empty($export_params['export_file_name'])) {
-            $export_params['export_file_name'] = 'plugin_settings_export_'.date('YmdHi').'.json';
-        }
+        $export_params['export_file_name'] ??= 'plugin_settings_export_'.date('YmdHi').'.json';
 
-        if (!($settings_json = $this->get_settings_for_plugins_as_encrypted_json($crypting_key, $plugins_arr))) {
+        if (!($settings_json = $this->get_settings_for_plugins_as_encrypted_json_for_export_from_interface($crypting_key, $plugins_arr))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Nothing to export.'));
 
             return false;
@@ -159,7 +244,7 @@ class Phs_Plugin_settings extends PHS_Library
         return true;
     }
 
-    public function get_settings_for_plugins_as_encrypted_array(string $crypting_key, array $plugins_arr = []) : ?array
+    public function get_settings_for_plugins_as_encrypted_array_for_export(string $crypting_key, array $plugins_arr = []) : ?array
     {
         $this->reset_error();
 
@@ -169,16 +254,12 @@ class Phs_Plugin_settings extends PHS_Library
             return null;
         }
 
-        if (!($settings_json = $this->get_settings_for_plugins_as_json($plugins_arr))) {
+        if (!($settings_json = $this->get_settings_for_plugins_as_json_for_export($plugins_arr))) {
             return null;
         }
 
         if (!($result_arr = PHS_Crypt::quick_encode_buffer_for_export_as_array($settings_json, $crypting_key))) {
-            if (PHS_Crypt::st_has_error()) {
-                $this->copy_static_error();
-            } else {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error encrypting plugin settings.'));
-            }
+            $this->copy_or_set_static_error(self::ERR_FUNCTIONALITY, $this->_pt('Error encrypting plugin settings.'));
 
             return null;
         }
@@ -186,37 +267,48 @@ class Phs_Plugin_settings extends PHS_Library
         return $result_arr;
     }
 
-    public function get_settings_for_plugins_as_encrypted_json(string $crypting_key, array $plugins_arr = []) : ?string
+    public function get_settings_for_plugins_as_encrypted_json_for_export_from_interface(string $crypting_key, array $plugins_arr = []) : ?string
     {
-        if (!($settings_json = $this->get_settings_for_plugins_as_json($plugins_arr))) {
+        if (!($settings_json = $this->get_settings_for_plugins_as_json_for_export_from_interface($plugins_arr))) {
             return null;
         }
 
         return PHS_Crypt::quick_encode_buffer_for_export_as_json($settings_json, $crypting_key);
     }
 
-    public function get_settings_for_plugins_as_json(array $plugins_arr = []) : string
+    public function get_settings_for_plugins_as_json_for_export_from_interface(array $plugins_arr = []) : string
     {
-        if (!($return_arr = @json_encode($this->get_settings_for_plugins_as_array($plugins_arr)))) {
-            $return_arr = '';
+        try {
+            return @json_encode([
+                'source_name' => PHS_SITE_NAME.' ('.PHS_SITEBUILD_VERSION.')',
+                'source_url'  => PHS::url(['force_https' => true]),
+                'settings'    => $this->_get_settings_for_plugins_as_array_for_export($plugins_arr),
+            ], JSON_THROW_ON_ERROR) ?: '';
+        } catch (Exception) {
+            return '';
         }
-
-        return $return_arr;
     }
 
-    public function get_settings_for_plugins_as_array(array $plugins_arr = []) : array
+    public function get_settings_for_plugins_as_json_for_export(array $plugins_arr = []) : string
+    {
+        try {
+            return @json_encode($this->_get_settings_for_plugins_as_array_for_export($plugins_arr), JSON_THROW_ON_ERROR) ?: '';
+        } catch (Exception) {
+            return '';
+        }
+    }
+
+    protected function _get_settings_for_plugins_as_array_for_export(array $plugins_arr = []) : array
     {
         $this->reset_error();
 
-        if (!($plugins_list = $this->get_plugins_list_as_array())) {
-            $plugins_list = [];
-        }
+        $plugins_list = $this->get_plugins_list_as_array() ?: [];
 
         $settings_arr = [];
         foreach ($plugins_list as $plugin_name => $plugin_details) {
-            if ((!empty($plugins_arr)
+            if (($plugins_arr
                  && !in_array($plugin_name, $plugins_arr, true))
-                || !($plugin_settings = $this->extract_settings_for_plugin($plugin_name, $plugin_details['instance'] ?? null))
+                || !($plugin_settings = $this->_extract_settings_for_plugin_for_export($plugin_name))
             ) {
                 continue;
             }
@@ -227,93 +319,179 @@ class Phs_Plugin_settings extends PHS_Library
         return $settings_arr;
     }
 
-    public function extract_settings_for_plugin(?string $plugin_name, ?PHS_Plugin $plugin_instance = null) : ?array
+    protected function _extract_settings_for_plugin_for_export(?string $plugin_name) : ?array
     {
         $this->reset_error();
 
-        $is_core = ($plugin_name === '' || $plugin_name === null);
-        if (
-            // Instantiate plugin (if instance is not already provided)
-            (!$is_core
-             && $plugin_instance === null
-             && !($plugin_instance = PHS::load_plugin($plugin_name))
-            )
-            // Instance checks... (keep separate from above statement)
-            || (!$is_core
-                && !($plugin_instance instanceof PHS_Plugin)
-            )
-        ) {
+        $plugin_name = $plugin_name ?: null;
+
+        $plugin_instance = null;
+        if ($plugin_name
+            && !($plugin_instance = PHS::load_plugin($plugin_name))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid plugin provided.'));
 
             return null;
         }
 
-        if ($is_core) {
-            $plugin_instance = null;
-            $plugin_instance_id = '';
-            if (!($models_arr = PHS::get_core_models())) {
-                $models_arr = [];
-            }
-        } else {
-            if (!($plugin_instance_id = $plugin_instance->instance_id())) {
-                $this->set_error(self::ERR_PARAMETERS, $this->_pt('Couldn\'t obtain plugin instance id.'));
+        if (!($plugin_settings_arr = $this->_extract_settings_for_plugin_only_for_export($plugin_name, $plugin_instance))) {
+            $this->set_error_if_not_set(
+                self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t obtain plugin settings.')
+            );
 
-                return null;
-            }
-
-            if (!($models_arr = $plugin_instance->get_models())) {
-                $models_arr = [];
-            }
+            return null;
         }
 
-        $plugin_settings_arr = [];
+        if (null === ($models_setings_arr = $this->_get_settings_for_models_as_array_for_export(
+            $plugin_instance ? $plugin_instance->get_models() : PHS::get_core_models(), $plugin_name))
+        ) {
+            $this->set_error_if_not_set(
+                self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t obtain plugin\'s models settings.')
+            );
 
-        if ($plugin_instance
-            && ($settings_arr = $plugin_instance->get_plugin_settings())) {
-            $plugin_settings_arr[$plugin_instance_id] = $settings_arr;
+            return null;
         }
 
-        foreach ($models_arr as $model_name) {
-            if (!($settings = $this->_extract_settings_for_model($model_name, $plugin_name))) {
-                $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
-                    $this->_pt('Couldn\'t instantiate model %s to extract settings.',
-                        (empty($model_name) ? '-' : $model_name)));
+        if (!$plugin_settings_arr['settings'] && !$models_setings_arr) {
+            return [];
+        }
 
-                return null;
-            }
-
-            // No need to export no settings...
-            if (empty($settings['instance_id'])
-                || empty($settings['settings'])) {
-                continue;
-            }
-
-            $plugin_settings_arr[$settings['instance_id']] = $settings['settings'];
+        if ($models_setings_arr) {
+            $plugin_settings_arr['models'] = $models_setings_arr;
         }
 
         return $plugin_settings_arr;
     }
 
-    private function _extract_settings_for_model(string $model_name, ?string $plugin = null) : ?array
+    private function _import_settings_for_plugin(string $plugin_name, array $plugin_settings_arr, ?int $tenant_id = null) : bool
     {
         $this->reset_error();
 
-        if (empty($model_name)
-            || !($model_instance = PHS::load_model($model_name, $plugin ?: null))
-            || !($instance_id = $model_instance->instance_id())) {
-            $this->set_error(self::ERR_PARAMETERS,
-                $this->_pt('Couldn\'t initiate model %s to extract settings.',
-                    (empty($model_name) ? '-' : $model_name)));
+        $plugin_instance = null;
+        if ($plugin_name
+            && !($plugin_instance = PHS::load_plugin($plugin_name))) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error instantiating plugin %s.', $plugin_name));
 
-            return null;
+            return false;
         }
 
-        if (!($settings_arr = $model_instance->get_db_settings())) {
-            $settings_arr = [];
+        if (!empty($plugin_settings_arr['settings']) && is_array($plugin_settings_arr['settings'])
+            && !$plugin_instance->save_db_settings($plugin_settings_arr['settings'], $tenant_id)) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error saving settings for plugin %s.', $plugin_name ?: 'core'));
+
+            return false;
+        }
+
+        if (!empty($plugin_settings_arr['models']) && is_array($plugin_settings_arr['models'])
+            && !$this->_import_settings_for_plugin_models($plugin_name, $plugin_settings_arr['models'], $tenant_id)) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error saving models settings for plugin %s.', $plugin_name ?: 'core'));
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function _import_settings_for_plugin_models(string $plugin_name, array $models_arr, ?int $tenant_id = null) : bool
+    {
+        $this->reset_error();
+
+        foreach ($models_arr as $models_settings_arr) {
+            if (empty($models_settings_arr['instance_id'])
+                || empty($models_settings_arr['settings'])
+                || !is_array($models_settings_arr['settings'])
+                || !($instance_arr = PHS_Instantiable::valid_instance_id($models_settings_arr['instance_id']))
+                || empty($instance_arr['instance_type'])
+                || empty($instance_arr['instance_name'])
+                || $instance_arr['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_MODEL) {
+                continue;
+            }
+
+            if (!($model_obj = PHS::load_model($instance_arr['instance_name'], $plugin_name ?: null))
+                || !$model_obj->save_db_settings($models_settings_arr['settings'], $tenant_id)) {
+                $this->set_error(self::ERR_FUNCTIONALITY,
+                    $this->_pt('Error saving settings for model %s, plugin %s.', $instance_arr['instance_name'], $plugin_name ?: 'core'));
+
+                return false;
+            }
+
+            PHS_Maintenance::output('['.($plugin_name ?: 'core').'] Imported settings for model ['.$instance_arr['instance_name'].']');
+        }
+
+        return true;
+    }
+
+    private function _extract_settings_for_plugin_only_for_export(?string $plugin_name, ?PHS_Plugin $plugin_instance) : ?array
+    {
+        $this->reset_error();
+
+        if ($plugin_instance) {
+            if (!($instance_id = $plugin_instance->instance_id())) {
+                $this->set_error(self::ERR_PARAMETERS, $this->_pt('Couldn\'t obtain plugin instance id.'));
+
+                return null;
+            }
+            $name = $plugin_instance->get_plugin_display_name() ?: $plugin_name;
+            $version = $plugin_instance->get_plugin_version();
+            $settings = $plugin_instance->get_plugin_settings();
+        } else {
+            $instance_id = '';
+            $name = $this->_pt('Core');
+            $version = PHS_VERSION;
+            $settings = [];
         }
 
         return [
             'instance_id' => $instance_id,
+            'name'        => $name,
+            'version'     => $version,
+            'settings'    => $settings,
+            'models'      => [],
+        ];
+    }
+
+    private function _get_settings_for_models_as_array_for_export(array $models_arr, ?string $plugin_name) : ?array
+    {
+        $models_settings_arr = [];
+
+        foreach ($models_arr as $model_name) {
+            if (null === ($settings = $this->_extract_settings_for_model($model_name, $plugin_name))) {
+                $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
+                    $this->_pt('Couldn\'t instantiate model %s to extract settings.', $model_name ?: '-'));
+
+                return null;
+            }
+
+            if (!$settings) {
+                continue;
+            }
+
+            $models_settings_arr[] = $settings;
+        }
+
+        return $models_settings_arr;
+    }
+
+    private function _extract_settings_for_model(string $model_name, ?string $plugin_name) : ?array
+    {
+        $this->reset_error();
+
+        if (empty($model_name)
+            || !($model_instance = PHS::load_model($model_name, $plugin_name ?: null))
+            || !($instance_id = $model_instance->instance_id())) {
+            $this->set_error(self::ERR_PARAMETERS,
+                $this->_pt('Couldn\'t initiate model %s to extract settings.', $model_name ?: '-'));
+
+            return null;
+        }
+
+        if (!($settings_arr = $model_instance->get_db_settings() ?: [])) {
+            return [];
+        }
+
+        return [
+            'instance_id' => $instance_id,
+            'name'        => $model_name,
+            'version'     => $model_instance->get_model_version(),
             'settings'    => $settings_arr,
         ];
     }

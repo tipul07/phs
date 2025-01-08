@@ -8,7 +8,7 @@ use phs\system\core\models\PHS_Model_Roles;
 class PHS_Roles extends PHS_Registry
 {
     public const ROLE_GUEST = 'phs_guest', ROLE_MEMBER = 'phs_member', ROLE_OPERATOR = 'phs_operator', ROLE_ADMIN = 'phs_admin',
-        ROLE_TENANT_ADMIN = 'phs_tenant_admin';
+        ROLE_TENANT_ADMIN = 'phs_tenant_admin', ROLE_PLATFORM_OPERATIONS = 'phs_platform_operations';
 
     public const ROLEU_CONTACT_US = 'phs_contact_us', ROLEU_REGISTER = 'phs_register',
         ROLEU_MANAGE_ROLES = 'phs_manage_roles', ROLEU_LIST_ROLES = 'phs_list_roles',

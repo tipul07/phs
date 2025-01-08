@@ -3,6 +3,7 @@ namespace phs\plugins\admin;
 
 use phs\PHS;
 use phs\PHS_Api;
+use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
@@ -10,7 +11,6 @@ use phs\plugins\admin\libraries\Phs_Data_retention;
 use phs\system\core\events\layout\PHS_Event_Layout;
 use phs\plugins\admin\libraries\Phs_Plugin_settings;
 use phs\system\core\events\layout\PHS_Event_Template;
-use phs\libraries\PHS_Hooks;
 
 class PHS_Plugin_Admin extends PHS_Plugin
 {
@@ -394,11 +394,46 @@ class PHS_Plugin_Admin extends PHS_Plugin
                 ],
             ],
 
+            PHS_Roles::ROLE_PLATFORM_OPERATIONS => [
+                'name'        => 'Platform operations',
+                'description' => 'Role assigned to accounts that do operation tasks on the platform.',
+                'role_units'  => [
+                    // Migrations...
+                    PHS_Roles::ROLEU_LIST_MIGRATIONS => [
+                        'name'        => 'List migrations',
+                        'description' => 'Allow user to list migration scripts',
+                    ],
+                    PHS_Roles::ROLEU_MANAGE_MIGRATIONS => [
+                        'name'        => 'Manage migrations',
+                        'description' => 'Allow user to manage migration scripts',
+                    ],
+
+                    // Data retention...
+                    PHS_Roles::ROLEU_LIST_DATA_RETENTION => [
+                        'name'        => 'List data retention policies',
+                        'description' => 'Allow user to list data retention policies',
+                    ],
+                    PHS_Roles::ROLEU_MANAGE_DATA_RETENTION => [
+                        'name'        => 'Manage data retention policies',
+                        'description' => 'Allow user to manage data retention policies',
+                    ],
+
+                    // Plugins...
+                    PHS_Roles::ROLEU_EXPORT_PLUGINS_SETTINGS => [
+                        'name'        => 'Export plugin settings',
+                        'description' => 'Allow user to export plugins settings',
+                    ],
+                    PHS_Roles::ROLEU_IMPORT_PLUGINS_SETTINGS => [
+                        'name'        => 'Import plugin settings',
+                        'description' => 'Allow user to import plugins settings',
+                    ],
+                ],
+            ],
+
             PHS_Roles::ROLE_ADMIN => [
                 'name'        => 'Admin accounts',
                 'description' => 'Role assigned to admin accounts.',
                 'role_units'  => [
-                    // Roles...
                     PHS_Roles::ROLEU_MANAGE_ROLES => [
                         'name'        => 'Manage roles',
                         'description' => 'Allow user to define or edit roles',
@@ -416,14 +451,6 @@ class PHS_Plugin_Admin extends PHS_Plugin
                     PHS_Roles::ROLEU_LIST_PLUGINS => [
                         'name'        => 'List plugins',
                         'description' => 'Allow user to list plugins',
-                    ],
-                    PHS_Roles::ROLEU_EXPORT_PLUGINS_SETTINGS => [
-                        'name'        => 'Export plugin settings',
-                        'description' => 'Allow user to export plugins settings',
-                    ],
-                    PHS_Roles::ROLEU_IMPORT_PLUGINS_SETTINGS => [
-                        'name'        => 'Import plugin settings',
-                        'description' => 'Allow user to import plugins settings',
                     ],
 
                     // Agent...
@@ -476,26 +503,6 @@ class PHS_Plugin_Admin extends PHS_Plugin
                     PHS_Roles::ROLEU_IMPORT_ACCOUNTS => [
                         'name'        => 'Accounts Import',
                         'description' => 'Allow user to import user accounts',
-                    ],
-
-                    // Migrations...
-                    PHS_Roles::ROLEU_LIST_MIGRATIONS => [
-                        'name'        => 'List migrations',
-                        'description' => 'Allow user to list migration scripts',
-                    ],
-                    PHS_Roles::ROLEU_MANAGE_MIGRATIONS => [
-                        'name'        => 'Manage migrations',
-                        'description' => 'Allow user to manage migration scripts',
-                    ],
-
-                    // Data retention...
-                    PHS_Roles::ROLEU_LIST_DATA_RETENTION => [
-                        'name'        => 'List data retention policies',
-                        'description' => 'Allow user to list data retention policies',
-                    ],
-                    PHS_Roles::ROLEU_MANAGE_DATA_RETENTION => [
-                        'name'        => 'Manage data retention policies',
-                        'description' => 'Allow user to manage data retention policies',
                     ],
 
                     // HTTP calls...

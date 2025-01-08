@@ -126,6 +126,7 @@ class PHS_Action_Register extends PHS_Action
         }
 
         if (!empty($template_data['do_submit'])) {
+            $account_arr = null;
             /** @var \phs\plugins\captcha\PHS_Plugin_Captcha $captcha_plugin */
             /*
             if( !($captcha_plugin = PHS::load_plugin( 'captcha' )) )
@@ -141,7 +142,7 @@ class PHS_Action_Register extends PHS_Action
                 } else {
                     PHS_Notifications::add_error_notice($this->_pt('Invalid validation code.'));
                 }
-            } elseif ($template_data['pass1'] != $template_data['pass2']) {
+            } elseif ($template_data['pass1'] !== $template_data['pass2']) {
                 PHS_Notifications::add_error_notice($this->_pt('Passwords mistmatch.'));
             } else {
                 $insert_arr = [];
@@ -152,25 +153,19 @@ class PHS_Action_Register extends PHS_Action
                 $insert_arr['lastip'] = request_ip();
 
                 if (!($account_arr = $accounts_model->insert(['fields' => $insert_arr]))) {
-                    if ($accounts_model->has_error()) {
-                        PHS_Notifications::add_error_notice($accounts_model->get_error_message());
-                    } else {
-                        PHS_Notifications::add_error_notice($this->_pt('Couldn\'t register user. Please try again.'));
-                    }
+                    PHS_Notifications::add_error_notice($accounts_model->get_simple_error_message($this->_pt('Couldn\'t register user. Please try again.')));
                 } else {
                     PHS_Hooks::trigger_captcha_regeneration();
                 }
             }
 
-            if (!empty($account_arr)
-             && !PHS_Notifications::have_notifications_errors()) {
-                if (!$accounts_model->is_active($account_arr)) {
-                    $redirect_to_url = PHS::url(['p' => 'accounts', 'a' => 'register'], ['registered' => 1, 'nick' => $nick, 'email' => $email]);
-                } else {
-                    $redirect_to_url = PHS::url(['p' => 'accounts', 'a' => 'login'], ['registered' => 1, 'nick' => $nick]);
-                }
-
-                return action_redirect($redirect_to_url);
+            if ($account_arr
+                && !PHS_Notifications::have_notifications_errors()) {
+                return action_redirect(
+                    !$accounts_model->is_active($account_arr)
+                        ? PHS::url(['p' => 'accounts', 'a' => 'register'], ['registered' => 1, 'nick' => $nick, 'email' => $email])
+                        : PHS::url(['p' => 'accounts', 'a' => 'login'], ['registered' => 1, 'nick' => $nick])
+                );
             }
         }
 

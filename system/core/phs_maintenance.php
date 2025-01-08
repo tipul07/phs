@@ -181,9 +181,9 @@ final class PHS_Maintenance extends PHS_Registry
      * @param string $plugin
      * @param string $repo_dir An absolute path or relative path from framework plugins directory
      *
-     * @return false|array
+     * @return null|array
      */
-    public static function check_plugin_in_repo(string $plugin, string $repo_dir)
+    public static function check_plugin_in_repo(string $plugin, string $repo_dir) : ?array
     {
         self::st_reset_error();
 
@@ -193,7 +193,7 @@ final class PHS_Maintenance extends PHS_Registry
          || !@is_dir($real_path.$plugin)) {
             self::st_set_error(self::ERR_PLUGIN_SETUP, self::_t('Plugin repository directory is not valid.'));
 
-            return false;
+            return null;
         }
 
         // Check if JSON file is present in plugin directory
@@ -202,23 +202,15 @@ final class PHS_Maintenance extends PHS_Registry
          || !($json_arr = PHS_Instantiable::read_plugin_json_details($json_full_path))) {
             self::st_set_error(self::ERR_PLUGIN_SETUP, self::_t('Plugin repository directory is not valid.'));
 
-            return false;
+            return null;
         }
 
         return $json_arr;
     }
 
-    /**
-     * Check if provided dir
-     *
-     * @param string $repo_dir
-     * @param bool $slash_ended
-     *
-     * @return string
-     */
     public static function convert_plugin_repo_to_real_path(string $repo_dir, bool $slash_ended = true) : string
     {
-        if (substr($repo_dir, 0, 1) === '/') {
+        if (str_starts_with($repo_dir, '/')) {
             return $slash_ended ? rtrim($repo_dir, '/').'/' : $repo_dir;
         }
 
@@ -238,11 +230,9 @@ final class PHS_Maintenance extends PHS_Registry
          || !self::check_plugin_in_repo($plugin, $repo_dir)
          || !($instance_details = PHS_Instantiable::get_instance_details('PHS_Plugin_'.ucfirst(strtolower($plugin)),
              $plugin, PHS_Instantiable::INSTANCE_TYPE_PLUGIN))) {
-            if (!self::st_has_error()) {
-                self::st_set_error(self::ERR_PLUGIN_SETUP,
-                    self::_t('Error creating symlink for plugin %s from %s (%s) plugin repository directory.',
-                        ($plugin ?: 'N/A'), ($repo_dir ?: 'N/A'), (!empty($real_path) ? $real_path : 'N/A')));
-            }
+            self::st_set_error_if_not_set(self::ERR_PLUGIN_SETUP,
+                self::_t('Error creating symlink for plugin %s from %s (%s) plugin repository directory.',
+                    ($plugin ?: 'N/A'), ($repo_dir ?: 'N/A'), (!empty($real_path) ? $real_path : 'N/A')));
 
             return false;
         }

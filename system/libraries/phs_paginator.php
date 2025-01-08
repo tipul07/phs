@@ -138,16 +138,16 @@ class PHS_Paginator extends PHS_Registry
             'display_bottom_bulk_actions' => true,
 
             // Callbacks to alter display
-            'after_record_callback' => false,
+            'after_record_callback' => null,
 
             'before_filters_callback'  => null,
             'after_filters_callback'   => null,
-            'before_table_callback'    => false,
-            'after_table_callback'     => false,
-            'after_full_list_callback' => false,
+            'before_table_callback'    => null,
+            'after_table_callback'     => null,
+            'after_full_list_callback' => null,
 
-            'table_after_headers_callback' => false,
-            'table_before_footer_callback' => false,
+            'table_after_headers_callback' => null,
+            'table_before_footer_callback' => null,
         ];
     }
 
@@ -178,7 +178,7 @@ class PHS_Paginator extends PHS_Registry
             'action'                     => '',
             'action_params'              => '',
             'action_result'              => '',
-            'action_redirect_url_params' => false,
+            'action_redirect_url_params' => [],
         ];
     }
 

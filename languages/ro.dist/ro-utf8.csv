@@ -17,15 +17,15 @@ Couldn't change current language. Please try again.,Eroare la schimbarea limbii 
 You don't have rights to use contact us form.,Nu aveţi drepturi de a folosi formularul de contact.
 Failed sending email. Please try again.,Eroare la trimiterea emailului. Încercaţi din nou.
 Error loading autocomplete contract.,Eroare la incărcarea contractului de auto-completare.
-Agent job details not found in database.,Detaliile companiei nu s-au găsit în baza de date.
-Job not found in database.,Compania nu a fost gasita in baza de date.
+Agent job details not found in database.,Detaliile jobului de agent nu s-au găsit în baza de date.
+Job not found in database.,Jobul nu a fost găsit în baza de date.
 Handler already defined in database.,Detaliile companiei salvate in baza de date.
-API key details not found in database.,Detaliile companiei nu s-au găsit în baza de date.
+API key details not found in database.,Detaliile cheii API nu au fost găsite în baza de date.
 Error saving settings in database.,Eroare la salvarea detaliilor în baza de date. Încercați din nou.
 Error saving registry data in database.,Eroare la salvarea detaliilor producătorului în baza de date. Încercaţi din nou.
 Error preparing query to obtain plugins records.,Eroare la pregătirea datelor companiei ca răspuns.
 Couldn't save plugin details to database.,Detaliile companiei nu s-au găsit în baza de date.
-Error deleting registry database entry for instance %s.,Eroare la salvarea detaliilor în baza de date. Încercați din nou.
+Error deleting registry database entry for instance %s.,Eroare la ștergerea intrării de registru din baza de date pentru instanța %s.
 Role not found in database.,Rolul nu a fost găsit în baza de date.
 Couldn't obtain route.,Nu am putut obţine ruta.
 Couldn't parse route.,Nu am putut analiza ruta.
@@ -35,7 +35,7 @@ Couldn't load plugin %s.,Nu am putut încărca pluginul %s.
 Couldn't save agent job details in database. Please try again.,Eroare la salvarea detaliilor producătorului în baza de date. Încercaţi din nou.
 Error preparing environment.,Eroare la pregătirea mediului.
 Please provide credentials,"Vă rugăm, oferiţi credenţiale"
-Error preparing API environment.,Eroare la pregătirea datelor companiei ca răspuns.
+Error preparing API environment.,Eroare la pregătirea mediului API.
 Api key not found in database.,Cheia API nu a fost găsită în baza de date.
 Invalid content type.,Tip conţinut invalid.
 Couldn't load background jobs model.,Nu am putut încărca meniul de editare produs.
@@ -235,3 +235,212 @@ Controller doesn't appear to be a PHS instance.,Controller-ul nu pare a fi un co
 Unknown or not active controller.,Controller necunoscut sau inactiv.
 Private key is empty.,Cheia privată este goală.
 Internal keys array is invalid!,Arraz-ul de chei interne este invalid!
+Couldn't create export file.,Nu am putut crea fişierul de export.
+Headers already sent. Cannot send export file to browser.,Nu am putut trimite fişierul de export către browser. Hederele au fost deja trimise.
+Crypting key not provided.,Cheia de criptare nu este furnizată.
+Crypting internal keys not provided.,Cheile interne de criptare nu sunt furnizate.
+Error encrypting buffer.,Eroare la criptarea bufferului.
+Invalid export data provided.,Date de export furnizate invalide.
+Error decrypting buffer.,Eroare la decriptarea bufferului.
+Failed rendering cell,Eroare la randarea celulei
+Error validating crypto internal keys array.,Eroare de validare a matricei de chei cripto interne.
+Loaded class doesn't appear to be a PHS instance.,Clasa încărcată nu pare a fi o instanţă de PHS.
+Please provide crypto internal keys array.,Trebuie precizat un array de chei interne de criptare.
+Config file saved with success. Redirecting to next step...,Fișierul de configurare salvat. Redirectare la pasul următor...
+Error saving config file for current step.,Eroare la salvarea configurării pentru pasul curent.
+Crypto internal keys parameter is not an array.,Parametrul de chei interne de criptare nu este un array.
+Crypto internal keys array should have exactly 34 elements.,Arrayul intern de chei de criptare trebuie să aibă exact 34 de elemente.
+"Index %s of Crypto internal keys array should be a string with hexa values, 32 chars length.","Indexul %s al arrayului de chei interne de criptare trebuie să fie un string cu valori hexa, de dimensiunea de 32 de caractere."
+UNINSTALLED,DEZINSTALAT
+SYMLINK,SYMLINK
+UNLINK,UNLINK
+Please provide an action for the setup.,Vă rugăm să oferiți o acțiune pentru setup.
+Please provide action JSON file for action %s.,Furnizaţi un fișier JSON de acțiune pentru operațiune %s.
+Error installing plugin,Eroare la instalarea pluginului
+Error uninstalling plugin,Eroare la dezinstalarea pluginului
+Repository directory %s is invalid.,Directorul de stocare %s este invalid.
+Couldn't locate plugin repository directory %s.,Nu am putut localiza directorul de stocare %s.
+Error instantiating controller or action from provided route.,Eroare la salvarea acțiunii pentru comanda furnizată în baza de date.
+Couldn't obtain instance for model %s from plugin %s.,Nu am putut obține o instanță pentru modelul %s din pluginul %s.
+Couldn't obtain instance for view %s from plugin %s.,Nu am putut obține o instanță pentru view %s din pluginul %s.
+Couldn't obtain instance for controller %s from plugin %s.,Nu am putut obține o instanță pentru controllerul %s din pluginul %s.
+Couldn't obtain instance for action %s from plugin %s.,Nu am putut obține o instanță pentru acțiunea %s din pluginul %s.
+Couldn't obtain instance for contract %s from plugin %s.,Nu am putut obține o instanță pentru contractul %s din pluginul %s.
+Couldn't load event %s from plugin %s.,Nu am putut încărca evenimentul %s din pluginul %s.
+Couldn't obtain instance for event %s from plugin %s.,Nu am putut obține o instanță pentru evenimentul %s din pluginul %s.
+Couldn't obtain instance for scope %s from plugin %s.,Nu am putut obține o instanță pentru scopul %s din pluginul %s.
+No authentication available,Nici o autentificare disponibilă
+Invalid callback provided as listener.,Setările oferite sunt invalide.
+Callback already provided as listener for this event.,Vă rugăm să furnizați un titlu pentru acest furnizor de tunnel.
+Error launching background listners.,Eroare la lansarea acţiunii în background.
+Error instantiating event.,Eroare la instanţierea evenimentului.
+Error triggering the event.,Eroare la activarea evenimentului.
+Error adding listener to the event.,Eroare la adăugarea codului la interogare.
+Plugin %s is not setup.,Plugin-ul %s nu este instalat.
+Cannot instantiate provided class.,Eroare la incărcarea template-ului. Încercaţi din nou.
+Couldn't obtain required instance after loading file.,Nu s-au putut obține idul instanţei de plugin.
+ERROR: %s,EROARE: %s
+Couldn't obtain plugins list: %s,Nu s-a putut obține lista de pluginuri: %s
+"Please provide a valid \""item\"" type.","Furnizați un tip de \""obiect\"" valid."
+"Invalid \""item\"" name.",Temă invalidă.
+Cannot obtain a destination directory for provided item type.,Nu se poate seta ca destinație același produs ca și produsul sursă.
+Error extracting stub info.,Eroare la generarea sesiunii.
+Error generating item file from stub: %s,Eroare la generarea conținutului din fișierului stub: %s
+%s Created %s file %s with success for plugin %s.,%s Creat %s fișier %s cu succes pentru plugin %s.
+Error obtaining destination file details.,Eroare la obținerea detaliilor contului Apple.
+Error obtaining stub file content.,Eroare la obținerea conținutului fișierului stub.
+Error creating destination directory.,Eroare la crearea directorului destinație.
+Error saving resulting file to its destination.,Eroare la salvarea detaliilor sesiunii în baza de date.
+Invalid item sub directory structure.,Structură API de răspuns este invalidă.
+Error installing plugin: %s,Eroare la instalarea pluginului: %s
+Error uninstalling plugin: %s,Eroare la dezinstalarea pluginului %s
+Exported settings to file %s.,Am exportat setările în fișierul %s.
+Error obtaining plugin settings.,Eroare la obținerea setărilor pluginului.
+Migration not found in database.,Migrarea nu a fost găsită in baza de date.
+Data retention not found in database.,Locaţia nu a fost găsită in baza de date.
+Data retention details are invalid.,Detaliile locației salvate...
+Couldn't obtain a plugin instance: %s,Nu s-a putut obține o instanță de plugin: %s
+Migration data not found in database.,Nu s-au găsit detaliile locaţiei în baza de date.
+Error launching background job for migration script.,Eroare la lansarea acţiunii în background pentru scriptul de migrare.
+Error running migration script.,Eroare la rularea scriptului de migrare.
+Could not instantiate the plugin of migration script.,Nu s-au putut iniția modelul %s pentru extragerea setărilor.
+Migration script file not found.,Nu am găsit scriptul de migrare.
+"Error registering script %s, plugin %s: %s","Eroare înregistrare script %s, plugin %s: %s"
+Filestamp failed verification.,Contul nu are nevoie de verificarea adresei de email.
+Error loading migration script.,Eroare la încărcarea pluginului de comunicaţii.
+Migration file is not readable.,Fişierul de import nu este citibil.
+Bad file name format.,Format greșit al numelui fișierului.
+Error checking class %s.,Eroare la verificarea clasei %s.
+Cannot use an abstract class %s.,Nu se poate folosi clasa abstractă %s.
+Could not determine details of class %s.,Nu se pot determina detaliile clasei %s.
+Error obtaining a list of migration scripts.,Eroare la obţinerea detaliilor de plugin pentru %s.
+Error updating job record data.,Eroare la incărcarea template-ului. Încercaţi din nou.
+Please provide a job handle for this agent job monitor record.,Vă rugăm să oferiți numele companiei.
+Please provide a status for this agent job monitor record.,Vă rugăm să oferiți un email valid.
+Error adding agent job monitor error record.,Eroare la adăugarea produsului la comandă.
+Please provide a status for this API monitor record.,Vă rugăm să oferiți un email valid.
+Error laoding required resources.,Eroare la încărcarea resurselor necesare.
+Provided API monitor record is invalid.,Produsul furnizat este invalid.
+Error saving API monitor record.,Eroare la încărcarea modelului API online.
+Error saving data rentention run details in database.,Eroare la salvarea detaliilor sesiunii în baza de date.
+Data retention run record not found in database.,Nu am găsit produsul destinaţie în baza de date.
+Data retention details not found in database.,Nu s-au găsit detaliile locaţiei în baza de date.
+Tenant details not found in database.,Detaliile jobului de agent nu s-au găsit în baza de date.
+Could not obtain date fields for provided table.,Nu am putut obţine detaliile de rută.
+Please provide a valid status for data retention policy.,Vă rugăm să oferiți un email valid.
+Please provide a valid action type for data retention policy.,Vă rugăm să oferiți un email valid.
+Please provide data retention source.,Vă rugăm să oferiți o sursă pentru export.
+Error setting up maintenance credentials.,Eroare la crearea fişierului de credenţiale pentru export.
+Please provide a date or datetime field for data retention source.,Oferiți un câmp cheie valid la poziția %s.
+Please provide a valid retention interval for data retention policy.,Vă rugăm să oferiți un email valid.
+This migration was already considered.,Funcţia %s este deja definită.
+Error updating migration details.,Eroare la salvarea detaliilor contului.
+Please provide a plugin for the migration.,Vă rugăm să oferiți o acțiune pentru setup.
+Please provide a script for the migration.,Vă rugăm să oferiți o acțiune pentru setup.
+Error deleting registry database entries for instance %s.,Eroare la ștergerea intrării de registru din baza de date pentru instanța %s.
+Please provide a valid tenant plugin status.,Furnizaţi un status valid.
+Please provide a tenant plugin id.,Vă rugăm să oferiți un id de AWB valid.
+Multi-tenant is not active.,Compania nu este activă.
+Error saving tenant settings in database.,Eroare la salvarea detaliilor în baza de date. Încercați din nou.
+Cannot save tenant plugin details.,Detaliile companiei nu s-au găsit în baza de date.
+Plugin instance not installed yet.,Nu este instalat nici un plugin.
+Couldn't save tenant plugin details to database.,Detaliile companiei nu s-au găsit în baza de date.
+Error preparing query to obtain tenants plugins records.,Eroare la pregătirea datelor companiei ca răspuns.
+Please provide a valid data retention record.,Vă rugăm să furnizați o acțiune validă.
+Error validating tables definition.,Eroare la validarea mesajului.
+Error setting up database maintenance credentials.,Eroare la salvarea detaliilor în baza de date. Încercați din nou.
+Error updating destination table structure.,Eroare la actualizarea detaliilor mesajului în baza de date.
+Error obtaining flow parameters for source.,Eroare la obținerea parametrului de confirmare. Încercaţi din nou.
+Invalid last date provided.,Limba precizată este invalidă.
+Error querying source table for data.,Eroare la citirea datelor despre conturi din baza de date.
+Error deleting data from source table.,Eroare la prelucrarea datelor din sursa internă.
+Error obtaining flow parameters for destination.,Eroare la obținerea parametrului de confirmare. Încercaţi din nou.
+Error saving role details in database.,Eroare la salvarea detaliilor comenzii în baza de date.
+Please provide a tenant name.,Vă rugăm să oferiți numele companiei.
+Please provide a tenant domain.,Vă rugăm să oferiți un email.
+Please provide a valid status for the tenant.,Vă rugăm să oferiți un email valid.
+A tenant with same identifier already exists.,O companie cu acelaşi nume există deja.
+Provided tenant not found.,Contul nu a fost găsit în baza de date.
+Invalid tenant provided.,Limba precizată este invalidă.
+Error instantiating required core models.,Eroare la încărcarea resurselor necesare.
+Error instantiating migrations manager.,Eroare la instanţierea pluginului.
+Error while checking plugins model installation: %s,Eroare la instalarea modelelor pluginului.
+Error registering migration scripts: %s,Eroare la înregistrarea contului.
+Error in action execution.,Eroare la execuția acțiunii.
+Couldn't delete all registry database record.,Nu am putut localiza directorul de stocare %s.
+Unknown plugin.,Plugin necunoscut.
+Unknown model.,Model necunoscut.
+Error in bootstrap call.,Eroare la incărcarea template-ului. Încercaţi din nou.
+Error creating migration record.,Eroare la cererea raportului pentru import.
+Invalid listener callback.,Chei interne invalide.
+Error running migration functionality.,Eroare la trimiterea emailului de confirmare.
+Error installing migration listener event.,Eroare la instanţierea pluginului.
+Migration record not present.,Generează o parolă daca nu e dată
+Error loading required resources while registering record for migration script.,Eroare la încărcarea resurselor necesare.
+Error in migrations before installing tables for model %s.,Eroare la instalarea modelului %s.
+"Error in migrations before installing table %s, model %s.",Eroare la instalarea modelului %s.
+"Couldn't install table %s, model %s.",Nu am putut încărca modelul de agent jobs.
+"Error in migrations after installing table %s, model %s.",Eroare la instalarea modelului %s.
+Error in migrations after installing tables for model %s.,Eroare la instalarea modelului %s.
+Error in migrations before updating tables for model %s.,Eroare la încărcarea modelului de produse lipsă.
+Invalid roles definition.,Token Google invalid.
+Error in migrations when installing plugin %s.,Eroare la dezinstalarea pluginului
+Error in migrations when starting plugin %s.,Eroare la instanţierea pluginului.
+"Error in migrations after roles, plugin %s.",Eroare la încărcarea pluginului de comunicaţii.
+"Error in migrations after jobs, plugin %s.",Eroare la încărcarea pluginului de comunicaţii.
+"Error in migrations at finish, plugin %s.",Eroare la instanţierea pluginului.
+Crypto Internal Keys Array,Key interne de criptare
+Invalid GraphQL input.,Date de intrare pentru GraphQL invalide.
+Error running GraphQL request.,Eroare la rularea cererii GraphQL.
+Error processing GraphQL result.,Eroare la procesarea răspunsului GraphQL.
+Running,Rulează
+HTTP call not found in database.,Nu am găsit pluginul în baza de date.
+Starting,Pornire
+Launching export script...,Lansare script de export...
+Error adding the request to the queue.,Eroare la adăugarea codului la interogare.
+Couldn't obtain flow parameters.,Eroare la obținerea parametrilor de flow.
+Request details not found in database.,Detaliile companiei nu s-au găsit în baza de date.
+Provided request cannot be run.,Cererea nu poate fi rulată.
+Error launching background job for the provided request.,Eroare la lansarea acţiunii în background.
+Error updating agent job.,Eroare la updatarea sesiunii.
+Error saving API key details.,Eroare la salvarea detaliilor cheii API.
+Error updating background job.,Eroare la updatarea limbii pentru cont.
+HTTP call details not found in database.,Detaliile jobului de agent nu s-au găsit în baza de date.
+Error saving HTTP call details in database.,Eroare la salvarea detaliilor comenzii în baza de date.
+Please provide a valid URL for the HTTP call.,Vă rugăm să oferiți un email valid.
+Error deleting HTTP call runs records.,Eroare la incărcarea template-ului. Încercaţi din nou.
+Error deleting HTTP call record.,Eroare la ştergerea produsului sursă.
+Invalid log file provided for HTTP call settings.,Setările oferite sunt invalide.
+Invalid success codes provided for HTTP call settings.,Utilaj invalid pentru această acţiune.
+Invalid cURL parameters provided for HTTP call settings.,Utilaj invalid pentru această acţiune.
+Invalid headers provided for HTTP call settings.,Utilaj invalid pentru această acţiune.
+Invalid basic authentication provided for HTTP call settings.,Utilaj invalid pentru această acţiune.
+Invalid bearer authentication provided for HTTP call settings.,ID produs invalid furnizat pentru acțiune.
+Invalid success callback provided for HTTP call settings.,Setările oferite sunt invalide.
+Invalid one failure callback provided for HTTP call settings.,Setările oferite sunt invalide.
+Invalid final failure callback provided for HTTP call settings.,Setările oferite sunt invalide.
+Please provide a valid request.,Vă rugăm să oferiți un email.
+Please provide a valid URL for the request.,Vă rugăm să oferiți un email valid.
+Please provide a valid status for the request.,Vă rugăm să oferiți un email valid.
+There is already a request in database with provided handle.,Nu am găsit cod în baza de date cu filtrele precizate.
+Invalid settings provided for the request.,Utilaj invalid pentru această acţiune.
+Request record not found in database.,Compania nu a fost gasita in baza de date.
+Error saving request run details in database.,Eroare la salvarea detaliilor comenzii în baza de date.
+Invalid callback structure.,Regula de backup invalidă...
+Pending,În aşteptare
+Couldn't load GraphQL type %s from plugin %s.,Nu am putut încărca tipul GraphQL %s din pluginul %s.
+Couldn't obtain instance for GraphQL type %s from plugin %s.,Nu am putut obține o instanță pentru tipul GraphQL %s din pluginul %s.
+Couldn't initialize GraphQL API object.,Nu am putut încărca meniul de editare produs.
+Error resolving GraphQL request.,Eroare la servirea cererii.
+Error obtaining GraphQL API instance.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
+Error sending HTTP call to background.,Eroare la lansarea acţiunii în background.
+Model class not set.,Clasa modelului nu e setată.
+Error instantiating model class.,Eroare la instanțierea clasei modelului.
+Cannot obtain table field details.,Nu am putut obţine detaliile de rută.
+Error checking user roles.,Eroare la verificarea codului. Încercaţi din nou.
+Error checking user role units.,Eroare la verificarea codului. Încercaţi din nou.
+Error obtaining user roles slugs.,Eroare la încărcarea modelului providers.
+Error obtaining user role units slugs.,Eroare la obținerea informaţiilor contului Google.
+Please provide mandatory fields in the form.,Furnizați câmpurile obligatorii din formular.
+Couldn't load scope %s from plugin %s.,Nu am putut încărca scopul %s din pluginul %s.
+Access not allowed.,Accesul nu este permis.

@@ -102,11 +102,7 @@ final class PHS_Session extends PHS_Registry
             return $sess_arr;
         }
 
-        if (!isset($sess_arr[$key])) {
-            return null;
-        }
-
-        return $sess_arr[$key];
+        return $sess_arr[$key] ?? null;
     }
 
     /**
@@ -330,19 +326,11 @@ final class PHS_Session extends PHS_Registry
         return true;
     }
 
-    /**
-     * @param string $name
-     *
-     * @return null|string
-     */
     public static function get_cookie(string $name) : ?string
     {
         return $_COOKIE[$name] ?? null;
     }
 
-    /**
-     * @return bool
-     */
     public static function start() : bool
     {
         if (PHS::prevent_session()) {
@@ -389,23 +377,36 @@ final class PHS_Session extends PHS_Registry
                 true);
         }
 
-        @register_shutdown_function(['\\phs\\PHS_Session', 'session_close']);
-
-        @session_start();
+        @register_shutdown_function([__CLASS__, 'session_close']);
 
         // If provided session ID is not safe, generate a new one
         if (!self::safe_session_id(@session_id())) {
             @session_regenerate_id(true);
         }
 
-        self::set_data(self::SESS_STARTED, true);
+        self::start_session_with_data();
 
-        // safe...
-        if (empty($_SESSION) || !is_array($_SESSION)) {
-            $_SESSION = [];
+        return true;
+    }
+
+    public static function get_id() : ?string
+    {
+        return PHS::prevent_session()
+            ? null
+            : (@session_id() ?: null);
+    }
+
+    public static function resume_session(string $id) : ?bool
+    {
+        if (PHS::prevent_session()
+           || !self::safe_session_id($id)) {
+            return null;
         }
 
-        self::set_data(self::SESS_DATA, $_SESSION);
+        @session_reset();
+        @session_id($id);
+
+        self::start_session_with_data();
 
         return true;
     }
@@ -703,6 +704,20 @@ final class PHS_Session extends PHS_Registry
     public static function is_started() : bool
     {
         return (bool)self::get_data(self::SESS_STARTED);
+    }
+
+    private static function start_session_with_data() : void
+    {
+        @session_start();
+
+        self::set_data(self::SESS_STARTED, true);
+
+        // safe...
+        if (empty($_SESSION) || !is_array($_SESSION)) {
+            $_SESSION = [];
+        }
+
+        self::set_data(self::SESS_DATA, $_SESSION);
     }
 
     private static function reset_registry() : void

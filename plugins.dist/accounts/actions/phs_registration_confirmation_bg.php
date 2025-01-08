@@ -1,10 +1,8 @@
 <?php
 namespace phs\plugins\accounts\actions;
 
-use phs\PHS;
 use phs\PHS_Scope;
 use phs\PHS_Bg_jobs;
-use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
@@ -31,7 +29,6 @@ class PHS_Action_Registration_confirmation_bg extends PHS_Action
         /** @var PHS_Model_Accounts $accounts_model */
         /** @var PHS_Plugin_Accounts $accounts_plugin */
         if (!($params = PHS_Bg_jobs::get_current_job_parameters())
-         || !is_array($params)
          || empty($params['uid'])
          || !($accounts_plugin = PHS_Plugin_Accounts::get_instance())
          || !($accounts_model = PHS_Model_Accounts::get_instance())
