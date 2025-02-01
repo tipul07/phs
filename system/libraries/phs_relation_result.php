@@ -20,7 +20,8 @@ class PHS_Relation_result implements Countable, Iterator
     private int $next_read_limit = 0;
 
     public function __construct(
-        readonly private PHS_Relation $relation,
+        private readonly PHS_Record_data $for_record_data,
+        private readonly PHS_Relation $relation,
         private readonly Closure $read_fn,
         private readonly mixed $read_value,
         private int $read_limit = 20,
@@ -37,7 +38,7 @@ class PHS_Relation_result implements Countable, Iterator
     }
 
     #[ReturnTypeWillChange]
-    public function next(int $offset = -1, int $limit = 0) : null | array | PHS_Record_data
+    public function next($offset = -1, $limit = 0) : null | array | PHS_Record_data
     {
         if ($limit <= 0) {
             $limit = $this->next_read_limit ?: $this->read_limit;
@@ -49,8 +50,15 @@ class PHS_Relation_result implements Countable, Iterator
         return $this->_internal_read($offset, $limit)->current();
     }
 
-    public function read(int $offset = -1, int $limit = 0, bool $reload = false, ...$args) : static
+    public function read($offset = -1, $limit = 0, $reload = false, ...$args) : static
     {
+        if ($this->relation->get_type() === PHS_Relation::DYNAMIC) {
+            $this->_data = ($this->read_fn)($this->for_record_data, $offset, $limit, $reload, ...$args);
+            $this->_data_read = true;
+
+            return $this;
+        }
+
         if ($offset < 0) {
             $offset = $this->read_offset;
         }
@@ -134,7 +142,7 @@ class PHS_Relation_result implements Countable, Iterator
         $this->read_offset = 0;
     }
 
-    protected function _internal_read(int $offset = -1, int $limit = 0) : static
+    protected function _internal_read($offset = -1, $limit = 0) : static
     {
         return $this->read($offset, $limit, false, ...$this->_read_args);
     }

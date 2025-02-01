@@ -5,7 +5,7 @@ use Closure;
 
 class PHS_Relation
 {
-    public const ONE_TO_ONE = 1, REVERSE_ONE_TO_ONE = 2, ONE_TO_MANY = 3, MANY_TO_MANY = 4;
+    public const ONE_TO_ONE = 1, REVERSE_ONE_TO_ONE = 2, ONE_TO_MANY = 3, MANY_TO_MANY = 4, DYNAMIC = 5;
 
     private ?PHS_Model_Core_base $dest_model_obj = null;
 
@@ -33,15 +33,18 @@ class PHS_Relation
         $this->options = PHS_Registry::validate_array($this->options, $this->_default_options_array());
     }
 
-    public function load_relation_result(mixed $key_value) : ?PHS_Relation_result
+    public function load_relation_result(mixed $key_value, PHS_Record_data $for_record_data) : ?PHS_Relation_result
     {
         $this->_load_models();
 
-        if (!$this->dest_model_obj) {
+        $is_dynamic = $this->get_type() === self::DYNAMIC;
+        if ((!$this->dest_model_obj && !$is_dynamic)
+            || ($is_dynamic && !$this->read_fn)) {
             return null;
         }
 
         return new PHS_Relation_result(
+            for_record_data: $for_record_data,
             relation: $this,
             read_fn: $this->read_fn ?? function(mixed $read_value, int $offset = 0, int $limit = 0) : null | array | PHS_Record_data {
                 $result = match ($this->get_type()) {
