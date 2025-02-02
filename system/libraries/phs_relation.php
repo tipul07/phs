@@ -38,7 +38,7 @@ class PHS_Relation
         $this->_load_models();
 
         $is_dynamic = $this->get_type() === self::DYNAMIC;
-        if ((!$this->dest_model_obj && !$is_dynamic)
+        if ((!$is_dynamic && !$this->dest_model_obj)
             || ($is_dynamic && !$this->read_fn)) {
             return null;
         }

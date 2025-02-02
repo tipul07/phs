@@ -21,22 +21,11 @@ class PHS_Language extends PHS_Error
     /** @var null|PHS_Language_Container */
     private static ?PHS_Language_Container $lang_callable_obj = null;
 
-    /**
-     * @param string $index Language index
-     * @param string $ch What to escape (quote or double quote)
-     *
-     * @return string
-     */
     public function _pte(string $index, string $ch = '"') : string
     {
         return self::_e($this->_pt($index), $ch);
     }
 
-    /**
-     * @param string $index Language index
-     *
-     * @return string
-     */
     public function _pt(string $index) : string
     {
         /** @var PHS_Plugin|PHS_Library $this */
@@ -54,11 +43,6 @@ class PHS_Language extends PHS_Error
         return $result;
     }
 
-    /**
-     * Returns language class that handles translation tasks
-     *
-     * @return PHS_Language_Container
-     */
     public static function language_container() : PHS_Language_Container
     {
         if (empty(self::$lang_callable_obj)) {
@@ -68,157 +52,82 @@ class PHS_Language extends PHS_Error
         return self::$lang_callable_obj;
     }
 
-    /**
-     * @return bool Returns true if system should try converting language files to utf8
-     */
     public static function get_utf8_conversion_enabled() : bool
     {
         return self::language_container()->get_utf8_conversion_enabled();
     }
 
-    /**
-     * @param bool $enabled Whether utf8 conversion should be enabled or not
-     * @return bool Returns utf8 conversion enabled value currently set
-     */
     public static function set_utf8_conversion(bool $enabled) : bool
     {
         return self::language_container()->set_utf8_conversion($enabled);
     }
 
-    /**
-     * @return bool Returns true if multi-language is enabled or false otherwise
-     */
     public static function get_multi_language_enabled() : bool
     {
         return self::language_container()->get_multi_language_enabled();
     }
 
-    /**
-     * @param bool $enabled Whether multi-language should be enabled or not
-     *
-     * @return bool Returns multi language enabled value currently set
-     */
     public static function set_multi_language(bool $enabled) : bool
     {
         return self::language_container()->set_multi_language($enabled);
     }
 
-    /**
-     * @return array Returns array of defined languages
-     */
     public static function get_defined_languages() : array
     {
         return self::language_container()->get_defined_languages();
     }
 
-    /**
-     * Returns language details as it was defined using self::define_language()
-     *
-     * @param string $lang
-     *
-     * @return null|array
-     */
     public static function get_defined_language(string $lang) : ?array
     {
         return self::language_container()->get_defined_language($lang);
     }
 
-    /**
-     * @param string $key Language array key to be returned
-     *
-     * @return null|mixed Returns currently selected language details from language array definition
-     */
-    public static function get_current_language_key(string $key)
+    public static function get_current_language_key(string $key) : mixed
     {
         return self::language_container()->get_current_language_key($key);
     }
 
-    /**
-     * @return string Returns currently selected language
-     */
     public static function get_default_language() : string
     {
         return self::language_container()->get_default_language();
     }
 
-    /**
-     * @return string Returns currently selected language
-     */
     public static function get_current_language() : string
     {
         return self::language_container()->get_current_language();
     }
 
-    /**
-     * @param string $lang Language to be set as current
-     *
-     * @return null|string Returns currently selected language
-     */
     public static function set_current_language(string $lang) : ?string
     {
         return self::language_container()->set_current_language($lang);
     }
 
-    /**
-     * @param string $lang Language to be set as default
-     *
-     * @return null|string Returns default language
-     */
     public static function set_default_language(string $lang) : ?string
     {
         return self::language_container()->set_default_language($lang);
     }
 
-    /**
-     * @param string $lang For which language to add files
-     * @param array $files_arr Array of files to be added
-     *
-     * @return bool
-     */
     public static function add_language_files(string $lang, array $files_arr) : bool
     {
         return self::language_container()->add_language_files($lang, $files_arr);
     }
 
-    /**
-     * @param string $dir Directory to scan for language files ({en|gb|de|ro}.csv)
-     *
-     * @return bool True on success, false if directory is not readable
-     */
     public static function scan_for_language_files(string $dir) : bool
     {
         return self::language_container()->scan_for_language_files($dir);
     }
 
-    /**
-     * @param string $lang For which language we want to reload the files
-     *
-     * @return bool Returns if language will be reloaded or not
-     */
     public static function force_reload_language_files(string $lang) : bool
     {
         return self::language_container()->force_reload_language_files($lang);
     }
 
-    /**
-     * @param string $lang Language to be checked
-     *
-     * @return string|bool Returns language key if language is valid or false if language is not defined
-     */
-    public static function valid_language($lang)
+    public static function valid_language($lang) : string
     {
         return self::language_container()->valid_language($lang);
     }
 
-    /**
-     * Define a language used by platform
-     *
-     * @param string $lang ISO 2 chars (lowercase) language code
-     * @param array $lang_params Language details
-     *
-     * @return bool True if adding language was successful, false otherwise
-     */
-    public static function define_language($lang, array $lang_params)
+    public static function define_language(string $lang, array $lang_params) : bool
     {
         if (!self::language_container()->define_language($lang, $lang_params)) {
             self::st_copy_error(self::language_container());
@@ -229,14 +138,6 @@ class PHS_Language extends PHS_Error
         return true;
     }
 
-    /**
-     * Parse specified language file and get language array
-     *
-     * @param string $file
-     * @param string $lang
-     *
-     * @return bool|array Returns parsed lines from language CSV file or false on error
-     */
     public static function get_language_file_lines(string $file, string $lang) : ?array
     {
         self::st_reset_error();
@@ -256,15 +157,6 @@ class PHS_Language extends PHS_Error
         return $return_arr;
     }
 
-    /**
-     * Loads a specific CSV file for language $lang. This file is provided in 'files' index of language definition array for provided language
-     *
-     * @param string $file
-     * @param string $lang
-     * @param bool $force Force loading laguange files
-     *
-     * @return bool
-     */
     public static function load_language_file(string $file, string $lang, bool $force = false) : bool
     {
         self::st_reset_error();
@@ -306,14 +198,9 @@ class PHS_Language extends PHS_Error
         return $lang_container::default_lang_files_csv_settings();
     }
 
-    /**
-     * @param string $index Language index
-     *
-     * @return mixed|string
-     */
-    public static function st_pt(string $index)
+    public static function st_pt(string $index) : string
     {
-        if (!($called_class = @get_called_class())
+        if (!($called_class = @static::class)
          || !($clean_class_name = ltrim($called_class, '\\'))
          || stripos($clean_class_name, 'phs\\plugins\\') !== 0
          || !($parts_arr = explode('\\', $clean_class_name, 4))
@@ -324,11 +211,7 @@ class PHS_Language extends PHS_Error
 
         $plugin_obj->include_plugin_language_files();
 
-        if (!($result = @forward_static_call_array([__CLASS__, '_t'], @func_get_args()))) {
-            $result = '';
-        }
-
-        return $result;
+        return @forward_static_call_array([__CLASS__, '_t'], @func_get_args()) ?: '';
     }
 
     /**

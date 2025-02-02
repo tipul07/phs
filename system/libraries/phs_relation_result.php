@@ -11,6 +11,8 @@ class PHS_Relation_result implements Countable, Iterator
 {
     private null | array | PHS_Record_data $_data = null;
 
+    private null | int | float | bool | array | string | PHS_Record_data $_dynamic_data = null;
+
     private bool $_data_read = false;
 
     private array $_read_args = [];
@@ -28,18 +30,22 @@ class PHS_Relation_result implements Countable, Iterator
     ) {
     }
 
-    public function current() : null | array | PHS_Record_data
+    public function current() : null | int | float | bool | array | string | PHS_Record_data
     {
         if (!$this->_data_read) {
-            $this->_internal_read();
+            $this->read();
         }
 
-        return $this->_data;
+        return $this->has_dynamic_relation() ? $this->_dynamic_data : $this->_data;
     }
 
     #[ReturnTypeWillChange]
-    public function next($offset = -1, $limit = 0) : null | array | PHS_Record_data
+    public function next(int $offset = -1, int $limit = 0) : null | int | float | bool | array | string | PHS_Record_data
     {
+        if ($this->has_dynamic_relation()) {
+            return $this->current();
+        }
+
         if ($limit <= 0) {
             $limit = $this->next_read_limit ?: $this->read_limit;
         }
@@ -47,55 +53,48 @@ class PHS_Relation_result implements Countable, Iterator
             $offset = $this->read_offset + $limit;
         }
 
-        return $this->_internal_read($offset, $limit)->current();
+        return $this->_read_list($offset, $limit, false, ...$this->_read_args)->current();
     }
 
-    public function read($offset = -1, $limit = 0, $reload = false, ...$args) : static
+    public function read(...$args) : static
     {
-        if ($this->relation->get_type() === PHS_Relation::DYNAMIC) {
-            $this->_data = ($this->read_fn)($this->for_record_data, $offset, $limit, $reload, ...$args);
-            $this->_data_read = true;
-
-            return $this;
+        if ($this->has_dynamic_relation()) {
+            $this->_read_dynamic(...$args);
+        } else {
+            $this->_read_list((int)($args[0] ?? -1), (int)($args[1] ?? 0), (bool)($args[2] ?? false), ...array_slice($args, 3));
         }
 
-        if ($offset < 0) {
-            $offset = $this->read_offset;
-        }
-        if ($limit <= 0) {
-            $limit = $this->next_read_limit ?: $this->read_limit;
-        }
-
-        if (!$reload
-            && $this->_data_read
-            && $this->read_offset === $offset
-            && $this->next_read_limit === $limit
-            && PHS_Utils::arrays_are_same($args, $this->_read_args)) {
-            return $this;
-        }
-
-        $this->read_offset = $offset;
-        $this->next_read_limit = $limit;
-        $this->_read_args = $args;
-
-        $this->_data = ($this->read_fn)($this->read_value, $offset, $limit, ...$args);
         $this->_data_read = true;
 
         return $this;
     }
 
+    public function has_dynamic_relation() : bool
+    {
+        return $this->relation->get_type() === PHS_Relation::DYNAMIC;
+    }
+
     public function cast_to_array() : array
     {
-        if (!($current = $this->current())) {
+        if (null === ($current = $this->current())) {
             return [];
         }
 
-        return is_array($current) ? $current : $current->cast_to_array();
+        if (is_array($current)) {
+            return $current;
+        }
+
+        if ($current instanceof PHS_Record_data) {
+            return $current->cast_to_array();
+        }
+
+        return [$current];
     }
 
     public function yield() : ?Generator
     {
-        if (!is_array(($current = $this->current()))) {
+        if (!is_array(($current = $this->current()))
+            || $this->has_dynamic_relation()) {
             return $current;
         }
 
@@ -116,7 +115,12 @@ class PHS_Relation_result implements Countable, Iterator
 
     public function count() : int
     {
-        if ($this->_data === null) {
+        $data = $this->has_dynamic_relation()
+            ? $this->_dynamic_data
+            : $this->_data;
+
+        if ($this->_data === null
+            && $this->_dynamic_data === null) {
             return 0;
         }
 
@@ -142,14 +146,50 @@ class PHS_Relation_result implements Countable, Iterator
         $this->read_offset = 0;
     }
 
-    protected function _internal_read($offset = -1, $limit = 0) : static
+    private function _read_dynamic(...$args) : static
     {
-        return $this->read($offset, $limit, false, ...$this->_read_args);
+        if ($this->_data_read
+           && PHS_Utils::arrays_are_same($args, $this->_read_args)) {
+            return $this;
+        }
+
+        $this->_read_args = $args;
+        $this->_dynamic_data = ($this->read_fn)($this->for_record_data, ...$args);
+
+        return $this;
+    }
+
+    private function _read_list(int $offset = -1, int $limit = 0, bool $reload = false, ...$args) : static
+    {
+        if ($offset < 0) {
+            $offset = $this->read_offset;
+        }
+        if ($limit <= 0) {
+            $limit = $this->next_read_limit ?: $this->read_limit;
+        }
+
+        if (!$reload
+            && $this->_data_read
+            && $this->read_offset === $offset
+            && $this->next_read_limit === $limit
+            && PHS_Utils::arrays_are_same($args, $this->_read_args)) {
+            return $this;
+        }
+
+        $this->read_offset = $offset;
+        $this->next_read_limit = $limit;
+        $this->_read_args = $args;
+
+        $this->_data = ($this->read_fn)($this->read_value, $offset, $limit, ...$args);
+        $this->_data_read = true;
+
+        return $this;
     }
 
     private function _reset_data() : void
     {
         $this->_data = null;
+        $this->_dynamic_data = null;
         $this->_data_read = false;
         $this->_read_args = [];
         $this->read_offset = 0;
@@ -158,15 +198,27 @@ class PHS_Relation_result implements Countable, Iterator
 
     public function __call(string $name, array $arguments) : mixed
     {
-        return $this->current()?->$name(...$arguments);
+        if (!($current = $this->current()) instanceof PHS_Record_data) {
+            return null;
+        }
+
+        return $current->$name(...$arguments);
     }
 
     public function __debugInfo()
     {
-        if (!($this->_data instanceof PHS_Record_data)) {
-            return $this->_data;
+        $data = $this->has_dynamic_relation()
+            ? $this->_dynamic_data
+            : $this->_data;
+
+        if (($data instanceof PHS_Record_data)) {
+            return $data->cast_to_array();
         }
 
-        return $this->_data->cast_to_array();
+        if (is_array($data)) {
+            return $data;
+        }
+
+        return [$data];
     }
 }

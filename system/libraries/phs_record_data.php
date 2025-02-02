@@ -177,13 +177,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
 
     public function offsetGet(mixed $key) : mixed
     {
-        if (array_key_exists($key, $this->_data)) {
-            return $this->_data[$key];
-        }
-
-        $this->_load_and_read_relation($key);
-
-        return $this->_data[$key] ?? null;
+        return $this->_return_relation_value($key);
     }
     // endregion ArrayAccess
 
@@ -340,14 +334,27 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
         $this->_model->load_relation($this, $key);
     }
 
-    private function _load_and_read_relation(string $key, $offset = -1, $limit = 0, $reload = false, ...$args) : void
+    private function _load_and_read_relation(string $key, ...$args) : ?PHS_Relation_result
     {
         $this->_load_relation($key);
 
         if (($relation_result = $this->_data[$key] ?? null)
            && $relation_result instanceof PHS_Relation_result) {
-            $relation_result->read($offset, $limit, $reload, ...$args);
+            return $relation_result->read(...$args);
         }
+
+        return null;
+    }
+
+    private function _return_relation_value(string $key, ...$arguments) : mixed
+    {
+        if ($this->is_relation_key($key)
+            && ($relation_result = $this->_load_and_read_relation($key, ...$arguments))
+            && $relation_result->has_dynamic_relation()) {
+            return $relation_result->current();
+        }
+
+        return $this->_data[$key] ?? null;
     }
 
     public function __debugInfo() : array
@@ -378,10 +385,6 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
 
     public function __call(string $name, array $arguments) : mixed
     {
-        if ($this->is_relation_key($name)) {
-            $this->_load_and_read_relation($name, ...$arguments);
-        }
-
-        return $this->_data[$name] ?? null;
+        return $this->_return_relation_value($name, ...$arguments);
     }
 }
