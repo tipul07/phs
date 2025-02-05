@@ -3,6 +3,7 @@ namespace phs\system\core\models;
 
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Params;
+use phs\libraries\PHS_Record_data;
 
 class PHS_Model_Bg_jobs extends PHS_Model
 {
@@ -10,7 +11,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
 
     public function get_model_version() : string
     {
-        return '1.0.1';
+        return '1.0.2';
     }
 
     public function get_table_names() : array
@@ -35,7 +36,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
         ];
     }
 
-    public function refresh_job(int | array $job_data) : ?array
+    public function refresh_job(int | array | PHS_Record_data $job_data) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -66,7 +67,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
         return $new_job_arr;
     }
 
-    public function job_error_stop(int | array $job_data, $params) : ?array
+    public function job_error_stop(int | array $job_data, array $params) : ?array
     {
         $this->reset_error();
 
@@ -101,9 +102,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
             return $stalling_minutes;
         }
 
-        $settings_arr = $this->get_db_settings();
-
-        $stalling_minutes = (int)($settings_arr['minutes_to_stall'] ?? 0);
+        $stalling_minutes = (int)($this->get_db_settings()['minutes_to_stall'] ?? 0);
 
         return $stalling_minutes;
     }
@@ -167,6 +166,9 @@ class PHS_Model_Bg_jobs extends PHS_Model
                     'uid' => [
                         'type'  => self::FTYPE_INT,
                         'index' => true,
+                    ],
+                    'session_id' => [
+                        'type' => self::FTYPE_INT,
                     ],
                     'pid' => [
                         'type' => self::FTYPE_INT,

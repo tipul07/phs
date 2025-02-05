@@ -191,9 +191,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
 
         /** @var PHS_Image_code $img_library */
         if (!($img_library = $this->load_library('phs_image_code', $library_params))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading image captcha library.'));
-            }
+            $this->set_error_if_not_set(self::ERR_LIBRARY, $this->_pt('Error loading image captcha library.'));
 
             return null;
         }

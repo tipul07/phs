@@ -1,7 +1,6 @@
 <?php
 namespace phs\system\core\libraries;
 
-use phs\PHS;
 use phs\libraries\PHS_Library;
 
 class PHS_Jwt extends PHS_Library
@@ -11,7 +10,7 @@ class PHS_Jwt extends PHS_Library
      * we want to provide some extra leeway time to
      * account for clock skew.
      */
-    private $leeway = 0;
+    private int $leeway = 0;
 
     /**
      * Allow the current timestamp to be specified.
@@ -19,9 +18,9 @@ class PHS_Jwt extends PHS_Library
      *
      * Will default to PHP time() value if null.
      */
-    private $timestamp;
+    private ?int $timestamp = null;
 
-    public static $supported_algs = [
+    public static array $supported_algs = [
         'HS256' => ['hash_hmac', 'SHA256'],
         'HS512' => ['hash_hmac', 'SHA512'],
         'HS384' => ['hash_hmac', 'SHA384'],
@@ -35,11 +34,11 @@ class PHS_Jwt extends PHS_Library
      *
      * @param bool|array $params
      */
-    public function __construct($params = false)
+    public function __construct(array $params = [])
     {
         parent::__construct();
 
-        if (!empty($params) && is_array($params)) {
+        if ($params) {
             if (isset($params['timestamp'])) {
                 $this->timestamp($params['timestamp']);
             }
@@ -51,10 +50,10 @@ class PHS_Jwt extends PHS_Library
         $this->reset_error();
     }
 
-    public function timestamp($ts = false)
+    public function timestamp(?int $ts = null) : int
     {
-        if ($ts !== false) {
-            $this->timestamp = (int)$ts;
+        if ($ts !== null) {
+            $this->timestamp = $ts;
 
             return $this->timestamp;
         }
@@ -66,10 +65,10 @@ class PHS_Jwt extends PHS_Library
         return $this->timestamp;
     }
 
-    public function leeway($lw = false)
+    public function leeway(?int $lw = null) : int
     {
-        if ($lw !== false) {
-            $this->leeway = (int)$lw;
+        if ($lw !== null) {
+            $this->leeway = $lw;
 
             return $this->leeway;
         }
@@ -77,19 +76,9 @@ class PHS_Jwt extends PHS_Library
         return $this->leeway;
     }
 
-    /**
-     * @param string $jwt JWT string
-     * @param bool|array $params Action parameters
-     *
-     * @return bool|array Returns payload from JWT
-     */
-    public function decode($jwt, $params = false)
+    public function decode(string $jwt, array $params = []) : ?array
     {
         $this->reset_error();
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
 
         // !!!Public key used in JWT validation. If you don't provide it here be sure to manually do verify_payload() call later!!!
         if (empty($params['verification_key'])) {
@@ -98,11 +87,8 @@ class PHS_Jwt extends PHS_Library
         if (empty($params['allowed_algs']) || !is_array($params['allowed_algs'])) {
             $params['allowed_algs'] = [];
         }
-        if (!isset($params['do_verification'])) {
-            $params['do_verification'] = true;
-        } else {
-            $params['do_verification'] = (!empty($params['do_verification']) ? true : false);
-        }
+
+        $params['do_verification'] = !isset($params['do_verification']) || !empty($params['do_verification']);
 
         if (empty($params['issuer'])) {
             $params['issuer'] = '';
@@ -118,43 +104,43 @@ class PHS_Jwt extends PHS_Library
         $key = $params['verification_key'];
 
         if (!empty($params['do_verification'])
-        && empty($key)) {
+            && empty($key)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT key not provided.'));
 
-            return false;
+            return null;
         }
 
-        if (empty($jwt)
-         || !($segments_arr = @explode('.', $jwt))
-         || !is_array($segments_arr)
-         || count($segments_arr) != 3) {
+        if (!$jwt
+            || !($segments_arr = @explode('.', $jwt))
+            || !is_array($segments_arr)
+            || count($segments_arr) !== 3) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid JWT segments.'));
 
-            return false;
+            return null;
         }
 
         $header_enc = $segments_arr[0];
         $payload_enc = $segments_arr[1];
 
         if (!($header_str = $this->_safe_base64_decode($header_enc))
-         || !($header_arr = @json_decode($header_str, true))
-         || !is_array($header_arr)) {
+            || !($header_arr = @json_decode($header_str, true))
+            || !is_array($header_arr)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Couldn\'t decode JWT header.'));
 
-            return false;
+            return null;
         }
 
         if (!($payload_str = $this->_safe_base64_decode($payload_enc))
-         || null === ($payload_arr = @json_decode($payload_str, true))) {
+            || null === ($payload_arr = @json_decode($payload_str, true))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Couldn\'t decode JWT payload.'));
 
-            return false;
+            return null;
         }
 
         if (!($signature_str = $this->_safe_base64_decode($segments_arr[2]))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Couldn\'t decode JWT signature.'));
 
-            return false;
+            return null;
         }
 
         if (empty($payload_arr)) {
@@ -166,17 +152,17 @@ class PHS_Jwt extends PHS_Library
         }
 
         if (empty($header_arr['alg'])
-         || empty(self::$supported_algs[$header_arr['alg']])) {
+            || empty(self::$supported_algs[$header_arr['alg']])) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT algorithm not supported.'));
 
-            return false;
+            return null;
         }
 
         if (!empty($params['allowed_algs'])
-        && !in_array($header_arr['alg'], $params['allowed_algs'])) {
+            && !in_array($header_arr['alg'], $params['allowed_algs'])) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT algorithm not allowed.'));
 
-            return false;
+            return null;
         }
 
         // Check signature...
@@ -185,36 +171,34 @@ class PHS_Jwt extends PHS_Library
                 if (!isset($header_arr['kid'])) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT key not provided.'));
 
-                    return false;
+                    return null;
                 }
 
                 if (empty($key[$header_arr['kid']])) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT key is invalid.'));
 
-                    return false;
+                    return null;
                 }
 
                 $key = $key[$header_arr['kid']];
             }
 
             if (!$this->verify_payload($header_enc.'.'.$payload_enc, $signature_str, $key, $header_arr['alg'])) {
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT signature verification failed.'));
-                }
+                $this->set_error_if_not_set(self::ERR_PARAMETERS, $this->_pt('JWT signature verification failed.'));
 
-                return false;
+                return null;
             }
         }
 
         $timestamp = $this->timestamp();
         $leeway = $this->leeway();
 
-        // Check if the nbf if it is defined. This is the time that the
+        // Check if the nbf is defined. This is the time that the
         // token can actually be used. If it's not yet that time, abort.
         if (isset($payload_arr['nbf']) && $payload_arr['nbf'] > ($timestamp + $leeway)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT cannot be used now.'));
 
-            return false;
+            return null;
         }
 
         // Check that this token has been created before 'now'. This prevents
@@ -223,32 +207,32 @@ class PHS_Jwt extends PHS_Library
         if (isset($payload_arr['iat']) && $payload_arr['iat'] > ($timestamp + $leeway)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT cannot be used now.'));
 
-            return false;
+            return null;
         }
 
         // Check if this token has expired.
         if (isset($payload_arr['exp']) && ($timestamp - $leeway) > $payload_arr['exp']) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT token expired.'));
 
-            return false;
+            return null;
         }
 
         // Check audience (if present)
         if ((empty($payload_arr['aud']) && !empty($params['audience']))
-         || (!empty($payload_arr['aud'])
+            || (!empty($payload_arr['aud'])
                 && (empty($params['audience']) || !in_array($payload_arr['aud'], $params['audience'], true))
-         )) {
+            )) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT audience is invalid.'));
 
-            return false;
+            return null;
         }
 
         // Check issuer (if present)
         if (!empty($params['issuer'])
-        && (empty($payload_arr['iss']) || $payload_arr['iss'] !== $params['issuer'])) {
+            && (empty($payload_arr['iss']) || $payload_arr['iss'] !== $params['issuer'])) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT issuer is invalid.'));
 
-            return false;
+            return null;
         }
 
         return [
@@ -267,13 +251,13 @@ class PHS_Jwt extends PHS_Library
      *
      * @return bool True is payload passed validation check, false otherwise
      */
-    public function verify_payload($msg, $signature, $key, $alg)
+    public function verify_payload(string $msg, string $signature, string $key, string $alg) : bool
     {
         $this->reset_error();
 
         $alg = strtoupper($alg);
         if (empty($alg)
-         || empty(self::$supported_algs[$alg])) {
+            || empty(self::$supported_algs[$alg])) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT algorithm not supported.'));
 
             return false;
@@ -304,8 +288,6 @@ class PHS_Jwt extends PHS_Library
                 $status |= (self::_safe_strlen($signature) ^ self::_safe_strlen($hash));
 
                 return $status === 0;
-                break;
-
             case 'openssl':
                 if (!function_exists('openssl_verify')) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT algorithm is not supported by PHP.'));
@@ -325,7 +307,6 @@ class PHS_Jwt extends PHS_Library
                 $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error while validating payload.'));
 
                 return false;
-                break;
         }
 
         $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT unknown algorithm when verifying data.'));
@@ -336,33 +317,29 @@ class PHS_Jwt extends PHS_Library
     /**
      * @param array $payload Payload to be encoded
      * @param string $key Public key
-     * @param bool|array $params
+     * @param array $params
      *
-     * @return string|bool Encoded JWT
+     * @return null|string Encoded JWT
      */
-    public function encode($payload, $key, $params = false)
+    public function encode(array $payload, string $key, array $params = []) : ?string
     {
         $this->reset_error();
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
 
         if (empty($params['alg'])) {
             $params['alg'] = 'RS256';
         }
         if (empty($params['key_id'])) {
-            $params['key_id'] = false;
+            $params['key_id'] = null;
         }
         if (empty($params['header_arr']) || !is_array($params['header_arr'])) {
             $params['header_arr'] = [];
         }
 
         if (empty($params['alg'])
-         || empty(self::$supported_algs[$params['alg']])) {
+            || empty(self::$supported_algs[$params['alg']])) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT algorithm not supported.'));
 
-            return false;
+            return null;
         }
 
         $header_arr = $params['header_arr'];
@@ -378,11 +355,9 @@ class PHS_Jwt extends PHS_Library
 
         $signing_input = implode('.', $segments);
         if (!($signature = $this->sign_payload($signing_input, $key, $params['alg']))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('JWT error signing data.'));
-            }
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('JWT error signing data.'));
 
-            return false;
+            return null;
         }
 
         $segments[] = $this->_safe_base64_encode($signature);
@@ -390,15 +365,15 @@ class PHS_Jwt extends PHS_Library
         return implode('.', $segments);
     }
 
-    public function sign_payload($msg, $key, $alg = 'RS256')
+    public function sign_payload(string $msg, string $key, string $alg = 'RS256') : ?string
     {
         $this->reset_error();
 
-        if (empty($alg)
-         || empty(self::$supported_algs[$alg])) {
+        if (!$alg
+            || empty(self::$supported_algs[$alg])) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT algorithm not supported.'));
 
-            return false;
+            return null;
         }
 
         $hash_func = self::$supported_algs[$alg][0];
@@ -409,7 +384,7 @@ class PHS_Jwt extends PHS_Library
                 if (!function_exists('hash_hmac')) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT signing algorithm is not supported by PHP.'));
 
-                    return false;
+                    return null;
                 }
 
                 return @hash_hmac($hash_alg, $msg, $key, true);
@@ -417,14 +392,15 @@ class PHS_Jwt extends PHS_Library
                 if (!function_exists('openssl_sign')) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT signing algorithm is not supported by PHP.'));
 
-                    return false;
+                    return null;
                 }
 
                 $signature = '';
-                if (!@openssl_sign($msg, $signature, $key, $hash_alg)) {
+                if (!@openssl_sign($msg, $signature, $key, $hash_alg)
+                    || !is_string($signature)) {
                     $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('JWT unable to sign data using OpenSSL.'));
 
-                    return false;
+                    return null;
                 }
 
                 return $signature;
@@ -432,10 +408,10 @@ class PHS_Jwt extends PHS_Library
 
         $this->set_error(self::ERR_PARAMETERS, $this->_pt('JWT unknown algorithm when signing data.'));
 
-        return false;
+        return null;
     }
 
-    private function _safe_base64_decode($str)
+    private function _safe_base64_decode(string $str) : string
     {
         if (empty($str)) {
             return '';
@@ -448,19 +424,19 @@ class PHS_Jwt extends PHS_Library
 
         $decoded_str = @base64_decode(strtr($str, '-_', '+/'));
 
-        return $decoded_str ? $decoded_str : '';
+        return $decoded_str !== false ? $decoded_str : '';
     }
 
-    private function _safe_base64_encode($str)
+    private function _safe_base64_encode(string $str) : string
     {
-        if (!is_string($str)) {
+        if ($str === '') {
             return '';
         }
 
         return @str_replace('=', '', @strtr(@base64_encode($str), '+/', '-_'));
     }
 
-    private static function _safe_strlen($str)
+    private static function _safe_strlen(string $str) : int
     {
         if (function_exists('mb_strlen')) {
             return mb_strlen($str, '8bit');

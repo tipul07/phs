@@ -22,13 +22,13 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     public function load_depencies() : bool
     {
-        if ((empty($this->_admin_plugin)
+        if ((!$this->_admin_plugin
              && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-            || (empty($this->_data_retention_lib)
-                && !($this->_data_retention_lib = $this->_admin_plugin->get_data_retention_instance()))
-            || (empty($this->_accounts_model)
+            || (!$this->_data_retention_lib
+                && !($this->_data_retention_lib = Phs_Data_retention::get_instance()))
+            || (!$this->_accounts_model
                 && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
-            || (empty($this->_paginator_model)
+            || (!$this->_paginator_model
                 && !($this->_paginator_model = PHS_Model_Data_retention::get_instance()))
         ) {
             $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
@@ -713,7 +713,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
             switch ($params['request_render_type']) {
                 case $this->_paginator::CELL_RENDER_JSON:
                 case $this->_paginator::CELL_RENDER_TEXT:
-
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     return $params['record']['retention'] ?? $this::_t('N/A');
             }
         }

@@ -179,11 +179,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
             ];
         }
 
-        $action_result = self::default_action_result();
-
-        $action_result['ajax_result'] = $ajax_result;
-
-        return $action_result;
+        return $this->send_ajax_response($ajax_result);
     }
 
     public function autocomplete_params(null | string | array $key = null, mixed $val = null)

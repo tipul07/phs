@@ -17,7 +17,7 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
     {
         $action_result = self::default_action_result();
 
-        $action_result['ajax_result'] = [
+        $ajax_result = [
             'has_error'        => false,
             'plugin_info'      => false,
             'instance_details' => false,
@@ -26,9 +26,9 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
         if (!($params = PHS_Bg_jobs::get_current_job_parameters())
          || empty($params['p'])) {
             $action_result['buffer'] = $this->_pt('Plugin name not provided for validity check');
-            $action_result['ajax_result']['has_error'] = true;
+            $ajax_result['has_error'] = true;
 
-            return $action_result;
+            return $this->send_ajax_response($ajax_result, $action_result);
         }
 
         $params['c'] = ($params['c'] ?? '') ?: '';
@@ -44,7 +44,7 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
             $params['dir'] = str_replace('/', '_', $params['dir']);
         }
 
-        $action_result['ajax_result']['params'] = $params;
+        $ajax_result['params'] = $params;
 
         if (empty($params['c']) && empty($params['m']) && empty($params['a']) && empty($params['co']) && empty($params['e'])) {
             if (!($plugin_obj = PHS::load_plugin($params['p']))) {
@@ -55,9 +55,9 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
                 }
 
                 $action_result['buffer'] = $error_msg;
-                $action_result['ajax_result']['has_error'] = true;
+                $ajax_result['has_error'] = true;
             } elseif (($plugin_info = $plugin_obj->get_plugin_info())) {
-                $action_result['ajax_result']['plugin_info'] = $plugin_info;
+                $ajax_result['plugin_info'] = $plugin_info;
             }
         } elseif (!empty($params['c'])) {
             if (!($controller_obj = PHS::load_controller($params['c'], $params['p']))) {
@@ -68,9 +68,9 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
                 }
 
                 $action_result['buffer'] = $error_msg;
-                $action_result['ajax_result']['has_error'] = true;
+                $ajax_result['has_error'] = true;
             } elseif (($instance_details = $controller_obj->instance_details())) {
-                $action_result['ajax_result']['instance_details'] = $instance_details;
+                $ajax_result['instance_details'] = $instance_details;
             }
         } elseif (!empty($params['a'])) {
             if (!($action_obj = PHS::load_action($params['a'], $params['p'], $params['dir']))) {
@@ -81,9 +81,9 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
                 }
 
                 $action_result['buffer'] = $error_msg;
-                $action_result['ajax_result']['has_error'] = true;
+                $ajax_result['has_error'] = true;
             } elseif (($instance_details = $action_obj->instance_details())) {
-                $action_result['ajax_result']['instance_details'] = $instance_details;
+                $ajax_result['instance_details'] = $instance_details;
             }
         } elseif (!empty($params['co'])) {
             if (!($contract_obj = PHS::load_contract($params['co'], $params['p'], $params['dir']))) {
@@ -94,9 +94,9 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
                 }
 
                 $action_result['buffer'] = $error_msg;
-                $action_result['ajax_result']['has_error'] = true;
+                $ajax_result['has_error'] = true;
             } elseif (($instance_details = $contract_obj->instance_details())) {
-                $action_result['ajax_result']['instance_details'] = $instance_details;
+                $ajax_result['instance_details'] = $instance_details;
             }
         } elseif (!empty($params['e'])) {
             if (!($event_obj = PHS::load_event($params['e'], $params['p'], $params['dir']))) {
@@ -107,9 +107,9 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
                 }
 
                 $action_result['buffer'] = $error_msg;
-                $action_result['ajax_result']['has_error'] = true;
+                $ajax_result['has_error'] = true;
             } elseif (($instance_details = $event_obj->instance_details())) {
-                $action_result['ajax_result']['instance_details'] = $instance_details;
+                $ajax_result['instance_details'] = $instance_details;
             }
         } elseif (!empty($params['m'])) {
             if (!($model_obj = PHS::load_model($params['m'], $params['p']))) {
@@ -120,15 +120,15 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
                 }
 
                 $action_result['buffer'] = $error_msg;
-                $action_result['ajax_result']['has_error'] = true;
+                $ajax_result['has_error'] = true;
             } elseif (($instance_details = $model_obj->instance_details())) {
-                $action_result['ajax_result']['instance_details'] = $instance_details;
+                $ajax_result['instance_details'] = $instance_details;
             }
         } else {
             $action_result['buffer'] = $this->_pt('Nothing to instantiate. Please check parameters.');
-            $action_result['ajax_result']['has_error'] = true;
+            $ajax_result['has_error'] = true;
         }
 
-        return $action_result;
+        return $this->send_ajax_response($ajax_result, $action_result);
     }
 }

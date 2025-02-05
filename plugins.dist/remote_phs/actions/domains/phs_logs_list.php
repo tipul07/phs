@@ -7,7 +7,6 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\libraries\PHS_Action_Generic_list;
 use phs\plugins\remote_phs\PHS_Plugin_Remote_phs;
-use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains;
 
 /** @property PHS_Model_Phs_remote_domains $_paginator_model */

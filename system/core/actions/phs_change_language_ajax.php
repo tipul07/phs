@@ -22,26 +22,24 @@ class PHS_Action_Change_language_ajax extends PHS_Action
 
     public function execute()
     {
-        $action_result = self::default_action_result();
         if (!($to_lang = PHS_Params::_gp(self::LANG_URL_PARAMETER, PHS_Params::T_NOHTML))) {
             PHS_Notifications::add_error_notice($this->_pt('Please provide language you want to switch to.'));
 
-            return $action_result;
+            return self::default_action_result();
         }
 
         if (!($clean_lang = self::valid_language($to_lang))) {
             PHS_Notifications::add_error_notice($this->_pt('Invalid language provided.'));
 
-            return $action_result;
+            return self::default_action_result();
         }
 
         if ($clean_lang !== self::get_current_language()) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t change current language. Please try again.'));
 
-            return $action_result;
+            return self::default_action_result();
         }
 
-        /** @var PHS_Model_Accounts $accounts_model */
         if (($accounts_model = PHS_Model_Accounts::get_instance())
          && ($current_user = PHS::user_logged_in())
          && (!($account_language = $accounts_model->get_account_language($current_user))
@@ -51,10 +49,6 @@ class PHS_Action_Change_language_ajax extends PHS_Action
             $accounts_model->set_account_language($current_user, $clean_lang);
         }
 
-        $action_result['ajax_result'] = [
-            'language_changed' => true,
-        ];
-
-        return $action_result;
+        return $this->send_ajax_response(['language_changed' => true]);
     }
 }

@@ -455,17 +455,14 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
 
             if( typeof func_list !== "undefined"
              && typeof func_list.length !== "undefined"
-             && func_list.length > 0 )
-            {
-                for( var func in func_list )
-                {
+             && func_list.length > 0 ) {
+                for( var func in func_list ) {
                     if( !func_list.hasOwnProperty( func ) )
                         continue;
 
                     var func_callback = func_list[func];
 
-                    if( $.isFunction( func_callback ) )
-                    {
+                    if( $.isFunction( func_callback ) ) {
                         if( queue_item.response_success ) {
                             func_callback( response, status, ajax_obj, data );
                         } else {
@@ -793,6 +790,18 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
             }
 
             url = urlparts[0] + "?" + parts.join( "&" );
+
+            return url;
+        },
+
+        addURLParametersFromObject: function (url, obj) {
+            for( var el in obj ) {
+                if (!obj.hasOwnProperty(el)) {
+                    continue;
+                }
+
+                url = this.addURLParameter(url, el, obj[el]);
+            }
 
             return url;
         },

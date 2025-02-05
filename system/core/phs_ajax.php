@@ -1,12 +1,9 @@
 <?php
 namespace phs;
 
-use phs\PHS_Crypt;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Registry;
-
-// ! @version 1.00
 
 class PHS_Ajax extends PHS_Registry
 {
@@ -29,43 +26,18 @@ class PHS_Ajax extends PHS_Registry
         return self::$_ajax_checksum_timeout;
     }
 
-    /**
-     * @param bool|array $route_arr
-     * @param bool|array $args
-     * @param bool|array $extra
-     *
-     * @return mixed|string
-     */
-    public static function url($route_arr = false, $args = false, $extra = false)
+    public static function url(null | bool | array $route_arr = null, null | bool | array $args = null, null | bool | array $extra = null) : string
     {
-        self::st_reset_error();
-
-        if (empty($route_arr) || !is_array($route_arr)) {
-            $route_arr = [];
-        }
-
-        if (empty($args) || !is_array($args)) {
-            $args = [];
-        }
-
-        if (empty($extra) || !is_array($extra)) {
-            $extra = [];
-        }
-
-        $args = self::get_ajax_validation_params($args);
-
+        $extra = $extra ?: [];
         $extra['for_scope'] = PHS_Scope::SCOPE_AJAX;
 
-        return PHS::url($route_arr, $args, $extra);
+        return PHS::url($route_arr ?: [], self::get_ajax_validation_params($args ?: []), $extra);
     }
 
     public static function get_ajax_validation_params(array $args = []) : array
     {
-        $pub_key = time() - self::TIME_OFFSET;
-        $check_sum = md5($pub_key.':'.PHS_Crypt::crypting_key());
-
-        $args[self::PARAM_PUB_KEY] = $pub_key;
-        $args[self::PARAM_CHECK_SUM] = $check_sum;
+        $args[self::PARAM_PUB_KEY] = time() - self::TIME_OFFSET;
+        $args[self::PARAM_CHECK_SUM] = md5($args[self::PARAM_PUB_KEY].':'.PHS_Crypt::crypting_key());
 
         return $args;
     }
@@ -95,10 +67,7 @@ class PHS_Ajax extends PHS_Registry
         return true;
     }
 
-    /**
-     * @return array|bool
-     */
-    public static function run_route()
+    public static function run_route() : bool | array
     {
         self::st_reset_error();
 

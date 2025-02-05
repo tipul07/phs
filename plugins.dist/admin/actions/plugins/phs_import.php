@@ -9,6 +9,7 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\models\PHS_Model_Tenants;
+use phs\plugins\admin\libraries\Phs_Plugin_settings;
 
 class PHS_Action_Import extends PHS_Action
 {
@@ -40,7 +41,7 @@ class PHS_Action_Import extends PHS_Action
         /** @var PHS_Plugin_Admin $admin_plugin */
         /** @var PHS_Model_Tenants $tenants_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
-            || !($plugin_settings_lib = $admin_plugin->get_plugin_settings_instance())
+            || !($plugin_settings_lib = Phs_Plugin_settings::get_instance())
             || ($is_multi_tenant
                 && !($tenants_model = PHS_Model_Tenants::get_instance()))
         ) {

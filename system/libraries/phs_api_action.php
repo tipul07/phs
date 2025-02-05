@@ -243,7 +243,7 @@ abstract class PHS_Api_action extends PHS_Action
     }
 
     /**
-     * @return array{force_scope:false|int, api_obj:null|\phs\PHS_Api, response_data:null|array, only_response_data_node:bool, http_code_is_error:bool, http_code:int, error: array{code: int, message:string}}
+     * @return array{force_scope:false|int, api_obj:null|PHS_Api, response_data:null|array, only_response_data_node:bool, http_code_is_error:bool, http_code:int, error: array{code: int, message:string}}
      */
     public static function default_api_response() : array
     {

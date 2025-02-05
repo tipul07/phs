@@ -4,12 +4,6 @@ namespace phs\system\core\libraries;
 use phs\PHS;
 use phs\libraries\PHS_Library;
 
-/*! \file phs_ftp.php
- *  \brief Contains PHS_Ftp class (connect to ftp servers)
- *  \author Andy
- *  \version 1.55
- */
-
 class PHS_Ftp extends PHS_Library
 {
     // Hooks...
@@ -65,9 +59,9 @@ class PHS_Ftp extends PHS_Library
         CON_TYPE_SSH = 5;
 
     // ! ftp connection details
-    private $ftp_settings,
+    private $ftp_settings;
 
-        $settings_passed;
+    private bool $settings_passed = false;
 
     // ! CURL ftp connection details (if needed)
     private $ftp_curl_settings;
@@ -75,7 +69,7 @@ class PHS_Ftp extends PHS_Library
     // ! Internal variables
     private $internal_settings;
 
-    protected static $CONNECTION_TYPES_ARR = [
+    protected static array $CONNECTION_TYPES_ARR = [
         self::CON_TYPE_NORMAL     => ['title' => 'Built-in ftp functions'],
         self::CON_TYPE_NORMAL_SSL => ['title' => 'Built-in ftp functions (SSL)'],
         self::CON_TYPE_CURL       => ['title' => 'cURL library'],
@@ -94,8 +88,8 @@ class PHS_Ftp extends PHS_Library
 
         $this->_reset_settings();
 
-        if (!empty($params)) {
-            if (!is_array($params) || empty($params['server']) || !is_array($params['server'])) {
+        if ($params) {
+            if (empty($params['server']) || !is_array($params['server'])) {
                 $this->set_error(self::ERR_PARAMETERS, self::_t('Bad parameters.'));
 
                 return;
@@ -114,7 +108,7 @@ class PHS_Ftp extends PHS_Library
         static $con_types_arr = [];
 
         if ($lang === false
-        && !empty($con_types_arr)) {
+            && !empty($con_types_arr)) {
             return $con_types_arr;
         }
 
@@ -132,7 +126,7 @@ class PHS_Ftp extends PHS_Library
         static $ctypes_key_val_arr = false;
 
         if ($lang === false
-        && $ctypes_key_val_arr !== false) {
+            && $ctypes_key_val_arr !== false) {
             return $ctypes_key_val_arr;
         }
 
@@ -158,7 +152,7 @@ class PHS_Ftp extends PHS_Library
     {
         $con_type = (int)$con_type;
         if (empty($con_type)
-         || !($con_types_arr = $this->get_connection_types()) || !isset($con_types_arr[$con_type])) {
+            || !($con_types_arr = $this->get_connection_types()) || !isset($con_types_arr[$con_type])) {
             return false;
         }
 
@@ -179,7 +173,7 @@ class PHS_Ftp extends PHS_Library
 
             // Check if we have a valid curl connection and set options as required
             if ($return_val !== null && !empty($this->internal_settings['con'])
-            && ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL)) {
+                && ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL)) {
                 if ($mode === self::TRANSFER_MODE_ASCII) {
                     if (defined('CURLOPT_TRANSFERTEXT')) {
                         @curl_setopt($this->internal_settings['con'], constant('CURLOPT_TRANSFERTEXT'), true);
@@ -215,10 +209,10 @@ class PHS_Ftp extends PHS_Library
         }
 
         if ($mode === null) {
-            return !isset($ftp_settings['passive_mode']) ? null : $ftp_settings['passive_mode'];
+            return $ftp_settings['passive_mode'] ?? null;
         }
 
-        $new_mode = (!empty($mode) ? true : false);
+        $new_mode = !empty($mode);
         $this->settings('passive_mode', $new_mode);
 
         if ($this->is_connected()) {
@@ -267,7 +261,7 @@ class PHS_Ftp extends PHS_Library
             return $this->ftp_settings;
         }
 
-        if ($settings !== false && $value !== null) {
+        if ($value !== null) {
             if (!isset($this->ftp_settings[$settings])) {
                 return false;
             }
@@ -290,8 +284,8 @@ class PHS_Ftp extends PHS_Library
         }
 
         if (isset($valid_settings['local_dir'])
-        && $valid_settings['local_dir'] !== ''
-        && !$this->local_dir($valid_settings['local_dir'])) {
+            && $valid_settings['local_dir'] !== ''
+            && !$this->local_dir($valid_settings['local_dir'])) {
             return false;
         }
 
@@ -306,16 +300,14 @@ class PHS_Ftp extends PHS_Library
         return $this->ftp_settings;
     }
 
-    public function is_connected()
+    public function is_connected() : bool
     {
-        // we use !empty to be sure method is not called b4 settings are initialized (somehow...)
-        return !empty($this->internal_settings['con']) ? true : false;
+        return !empty($this->internal_settings['con']);
     }
 
-    public function can_connect()
+    public function can_connect() : bool
     {
-        // we use !empty to be sure method is not called b4 settings are initialized (somehow...)
-        return !empty($this->settings_passed) ? true : false;
+        return $this->settings_passed;
     }
 
     /**
@@ -323,12 +315,8 @@ class PHS_Ftp extends PHS_Library
      *
      * @return array
      */
-    public function curl_url($params = false)
+    public function curl_url(array $params = [])
     {
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
         $ftp_settings = $this->settings();
         $curl_settings = $this->curl_settings();
 
@@ -367,7 +355,7 @@ class PHS_Ftp extends PHS_Library
 
         $current_dir = $this->internal_settings['remote_dir'];
 
-        if (substr($params['file'], 0, 1) !== '/') {
+        if (!str_starts_with($params['file'], '/')) {
             $dir = $current_dir.$params['dir'];
         } else {
             $dir = dirname($params['file']);
@@ -377,10 +365,10 @@ class PHS_Ftp extends PHS_Library
         if ($dir === './') {
             $dir = '/';
         }
-        if (substr($dir, 0, 1) !== '/') {
+        if (!str_starts_with($dir, '/')) {
             $dir = '/'.$dir;
         }
-        if (substr($dir, -1) !== '/') {
+        if (!str_ends_with($dir, '/')) {
             $dir .= '/';
         }
 
@@ -399,230 +387,6 @@ class PHS_Ftp extends PHS_Library
         $return_arr['full_url'] = $full_url;
 
         return $return_arr;
-    }
-
-    // /**
-    //  * Method which will be callback for disconnect signal from libssh2 library
-    //  *
-    //  * @param int $reason
-    //  * @param string $message
-    //  * @param $language
-    //  */
-    // public function signal_ssh_disconnect( $reason, $message, $language )
-    // {
-    //     $this->close();
-    // }
-    //
-    // /**
-    //  * Method which will be called when a packet is received but the message authentication code failed.
-    //  * If the callback returns TRUE, the mismatch will be ignored, otherwise the connection will be terminated.
-    //  * from libssh2 library
-    //  *
-    //  * @param string $packet
-    //  * @return bool
-    //  */
-    // public function signal_ssh_macerror( $packet )
-    // {
-    //     return true;
-    // }
-
-    /**
-     * @param bool|array $params
-     *
-     * @return bool
-     */
-    public function connect($params = false)
-    {
-        if ($this->is_connected()) {
-            return true;
-        }
-
-        if (!$this->can_connect()) {
-            $this->set_error(self::ERR_CONNECTION, 'Cannot connect to server. FTP settings not provided.');
-
-            return false;
-        }
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-        if (!isset($params['skip_callbacks'])) {
-            $params['skip_callbacks'] = false;
-        }
-
-        $this->reset_error();
-
-        $ftp_settings = $this->settings();
-
-        if (empty($params['skip_callbacks'])) {
-            $this->trigger_phs_hooks(self::H_BEFORE_CONNECT, ['server' => $ftp_settings, 'success' => true]);
-        }
-
-        $curl_change_dir = true;
-        if ($ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
-            // Connect
-            if ($ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL) {
-                $this->internal_settings['con'] = @ftp_connect($ftp_settings['host'], $ftp_settings['port'], $ftp_settings['timeout']);
-            } else {
-                $this->internal_settings['con'] = @ftp_ssl_connect($ftp_settings['host'], $ftp_settings['port'], $ftp_settings['timeout']);
-            }
-
-            if (empty($this->internal_settings['con'])) {
-                $this->set_error(self::ERR_CONNECTION, 'FTP connection to server failed.');
-                if (empty($params['skip_callbacks'])) {
-                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
-                }
-
-                return false;
-            }
-
-            // Login
-            if (!@ftp_login($this->internal_settings['con'], $ftp_settings['user'], $ftp_settings['pass'])) {
-                $this->set_error(self::ERR_AUTHENTICATION, 'FTP login failed.');
-                if (empty($params['skip_callbacks'])) {
-                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
-                }
-
-                return false;
-            }
-        } elseif ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-               || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
-            $curl_change_dir = false;
-
-            $curl_url = $this->curl_url(['dir' => '']); // (empty( $this->internal_settings['curl_session_started'] )?$ftp_settings['remote_dir']:'') ) );
-
-            $this->internal_settings['con'] = @curl_init($curl_url['full_url']);
-
-            if (empty($this->internal_settings['con'])) {
-                $this->set_error(self::ERR_CONNECTION, 'FTP/CURL failed to initialize.');
-                if (empty($params['skip_callbacks'])) {
-                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
-                }
-
-                return false;
-            }
-
-            if (!($curl_ftp_settings = $this->curl_settings())
-             || !is_array($curl_ftp_settings)) {
-                $this->set_error(self::ERR_CONNECTION, 'FTP/CURL couldn\'t setup options.');
-                if (empty($params['skip_callbacks'])) {
-                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
-                }
-
-                return false;
-            }
-
-            foreach ($curl_ftp_settings as $opt_name => $opt_value) {
-                @curl_setopt($this->internal_settings['con'], constant($opt_name), $opt_value);
-            }
-
-            if (empty($this->internal_settings['curl_session_started'])) {
-                $this->internal_settings['curl_session_started'] = true;
-                $curl_change_dir = true;
-            }
-        } elseif ($ftp_settings['connection_mode'] === self::CON_TYPE_SSH) {
-            if (!@function_exists('ssh2_connect')
-             || !@function_exists('ssh2_sftp')) {
-                $this->set_error(self::ERR_CONNECTION, 'Functions ssh2_connect or ssh2_sftp not defined. Cannot connect to server.');
-                if (empty($params['skip_callbacks'])) {
-                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
-                }
-
-                return false;
-            }
-
-            // $ssh2_callbacks = array(
-            //     'disconnect' => array( $this, 'signal_ssh_disconnect' ),
-            //     'macerror' => array( $this, 'signal_ssh_macerror' ),
-            // );
-
-            if (!($this->internal_settings['con_ssh2'] = @ssh2_connect($ftp_settings['host'], $ftp_settings['port']))) {// , null, $ssh2_callbacks )) )
-                $error_msg = '';
-                if (($conn_error = @error_get_last())
-                && !empty($conn_error['message'])) {
-                    $error_msg = $conn_error['message'];
-                }
-
-                $this->set_error(self::ERR_CONNECTION, 'FTP connection to server failed.'.(!empty($error_msg) ? ' ('.$error_msg.')' : ''));
-
-                if (empty($params['skip_callbacks'])) {
-                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
-                }
-
-                return false;
-            }
-
-            if (!empty($ftp_settings['ssh2_fingerprint'])
-            && @function_exists('ssh2_fingerprint')
-            && ($server_fingerprint = @ssh2_fingerprint($this->internal_settings['con_ssh2'], SSH2_FINGERPRINT_MD5 | SSH2_FINGERPRINT_HEX))
-            && strtoupper($server_fingerprint) !== strtoupper($ftp_settings['ssh2_fingerprint'])) {
-                unset($this->internal_settings['con_ssh2']);
-                $this->internal_settings['con_ssh2'] = 0;
-
-                $this->set_error(self::ERR_CONNECTION, 'Server fingerprint mismatch.');
-                if (empty($params['skip_callbacks'])) {
-                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
-                }
-
-                return false;
-            }
-
-            // Login
-            if (!@ssh2_auth_password($this->internal_settings['con_ssh2'], $ftp_settings['user'], $ftp_settings['pass'])) {
-                // unset( $this->internal_settings['con_ssh2'] );
-                $this->internal_settings['con_ssh2'] = 0;
-
-                $this->set_error(self::ERR_AUTHENTICATION, 'FTP login failed.');
-
-                if (empty($params['skip_callbacks'])) {
-                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
-                }
-
-                return false;
-            }
-
-            if (!($this->internal_settings['con'] = @ssh2_sftp($this->internal_settings['con_ssh2']))) {
-                unset($this->internal_settings['con_ssh2']);
-                $this->internal_settings['con_ssh2'] = 0;
-
-                $this->set_error(self::ERR_AUTHENTICATION, 'Error creating FTP connection.');
-                if (empty($params['skip_callbacks'])) {
-                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
-                }
-
-                return false;
-            }
-        }
-
-        // set passive mode (if required)
-        if (isset($ftp_settings['passive_mode'])
-        && !$this->passive_mode($ftp_settings['passive_mode'])) {
-            $this->set_error(self::ERR_CONNECTION, 'FTP setting passive mode to '.(!empty($ftp_settings['passive_mode']) ? 'true' : 'false').' failed.');
-            if (empty($params['skip_callbacks'])) {
-                $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
-            }
-
-            return false;
-        }
-
-        // chdir to whatever remote dir says (if required)
-        if (!empty($curl_change_dir)
-        && !empty($ftp_settings['remote_dir'])
-        && !$this->chdir($ftp_settings['remote_dir'], ['skip_callbacks' => $params['skip_callbacks']])) {
-            $this->set_error(self::ERR_CONNECTION, 'FTP changing remote directory failed.');
-            if (empty($params['skip_callbacks'])) {
-                $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
-            }
-
-            return false;
-        }
-
-        if (empty($params['skip_callbacks'])) {
-            $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => true]);
-        }
-
-        return true;
     }
 
     /**
@@ -649,12 +413,10 @@ class PHS_Ftp extends PHS_Library
         $ftp_settings = $this->settings();
 
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
             if (!$this->is_connected()
-            && !$this->connect()) {
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_CONNECTION, 'FTP not connected and cannot (re)connect to server.');
-                }
+                && !$this->_connect()) {
+                $this->set_error_if_not_set(self::ERR_CONNECTION, 'FTP not connected and cannot (re)connect to server.');
 
                 return false;
             }
@@ -671,7 +433,7 @@ class PHS_Ftp extends PHS_Library
         }
 
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
             if (!@ftp_chdir($this->internal_settings['con'], $new_remote_dir)) {
                 $this->set_error(self::ERR_REMOTE_LOCATION, 'FTP cannot change remote directory.');
 
@@ -698,8 +460,8 @@ class PHS_Ftp extends PHS_Library
     {
         if ($dir === false) {
             if ($this->can_connect()
-            && is_array($this->ftp_settings)
-            && isset($this->ftp_settings['local_dir'])) {
+                && is_array($this->ftp_settings)
+                && isset($this->ftp_settings['local_dir'])) {
                 return $this->ftp_settings['local_dir'];
             }
 
@@ -726,32 +488,32 @@ class PHS_Ftp extends PHS_Library
 
         // Check directory structure...
         if ($dir !== ''
-        && !empty($params['create_if_doesnt_exist'])
-        && !@file_exists($dir)) {
+            && !empty($params['create_if_doesnt_exist'])
+            && !@file_exists($dir)) {
             $dir = str_replace('\\', '/', $dir);
             $dir_segments = explode('/', $dir);
             $path = '';
             foreach ($dir_segments as $dir_seg) {
                 // In case we have an absolute path...
                 if ($path === ''
-                && $dir_seg === '') {
+                    && $dir_seg === '') {
                     $path = '/';
                     continue;
                 }
 
                 $path .= ($path !== '' ? '/' : '').$dir_seg;
-                if (!@file_exists($path)) {
-                    if (!@mkdir($path)) {
-                        $this->set_error(self::ERR_LOCAL_LOCATION, 'FTP cannot create local directory.');
+                if (!@file_exists($path)
+                    && !mkdir($path)
+                    && !is_dir($path)) {
+                    $this->set_error(self::ERR_LOCAL_LOCATION, 'FTP cannot create local directory.');
 
-                        return false;
-                    }
+                    return false;
                 }
             }
         }
 
         if ($dir !== ''
-        && (!($dir = @realpath($dir)) || !@is_dir($dir))) {
+            && (!($dir = @realpath($dir)) || !@is_dir($dir))) {
             $this->set_error(self::ERR_LOCAL_LOCATION, 'FTP invalid local directory.');
 
             return false;
@@ -778,15 +540,13 @@ class PHS_Ftp extends PHS_Library
         $ftp_settings = $this->settings();
 
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
             $this->_close_curl_connection();
         }
 
         if (!$this->is_connected()
-        && !$this->connect()) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_CONNECTION, 'FTP not connected and cannot (re)connect to server.');
-            }
+            && !$this->_connect()) {
+            $this->set_error_if_not_set(self::ERR_CONNECTION, 'FTP not connected and cannot (re)connect to server.');
 
             return false;
         }
@@ -809,17 +569,17 @@ class PHS_Ftp extends PHS_Library
         switch ($params['ls_type']) {
             case 'rawlist':
                 if ($ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL
-                 || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
+                    || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
                     $files_arr = @ftp_rawlist($this->internal_settings['con'], $params['dir']);
                 } elseif ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-                    || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+                          || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
                     $curl_settings = $this->curl_settings();
 
                     @curl_setopt($this->internal_settings['con'], constant('CURLOPT_FTPLISTONLY'), false);
 
                     $dir = '';
                     if (!empty($params['dir'])
-                    && $params['dir'] !== '.') {
+                        && $params['dir'] !== '.') {
                         $dir = $params['dir'];
                     }
 
@@ -835,7 +595,7 @@ class PHS_Ftp extends PHS_Library
                     $this->_close_curl_connection();
 
                     if ($content === false
-                     || $err) {
+                        || $err) {
                         $this->set_error(self::ERR_REMOTE_LOCATION, 'FTP/CURL cannot get directory list. ['.$err.']');
 
                         return false;
@@ -885,7 +645,7 @@ class PHS_Ftp extends PHS_Library
                         }
 
                         if ($file_arr['type'] === self::TYPE_SYM_LINK
-                        && ($target = @ssh2_sftp_readlink($this->internal_settings['con'], $remote_dir.'/'.$entry))) {
+                            && ($target = @ssh2_sftp_readlink($this->internal_settings['con'], $remote_dir.'/'.$entry))) {
                             $file_arr['link'] = $target;
                         }
 
@@ -917,17 +677,17 @@ class PHS_Ftp extends PHS_Library
 
             case 'nlist':
                 if ($ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL
-                 || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
+                    || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
                     $files_arr = @ftp_nlist($this->internal_settings['con'], $params['dir']);
                 } elseif ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-                    || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+                          || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
                     $curl_settings = $this->curl_settings();
 
                     @curl_setopt($this->internal_settings['con'], constant('CURLOPT_FTPLISTONLY'), true);
 
                     $dir = '';
                     if (!empty($params['dir'])
-                    && $params['dir'] !== '.') {
+                        && $params['dir'] !== '.') {
                         $dir = $params['dir'];
                     }
 
@@ -942,7 +702,7 @@ class PHS_Ftp extends PHS_Library
                     $this->_close_curl_connection();
 
                     if ($content === false
-                     || $err) {
+                        || $err) {
                         $this->set_error(self::ERR_REMOTE_LOCATION, 'FTP/CURL cannot get directory list. ['.$err.']');
 
                         return false;
@@ -976,7 +736,7 @@ class PHS_Ftp extends PHS_Library
         }
 
         if ($files_arr === false
-         || !is_array($files_arr)) {
+            || !is_array($files_arr)) {
             $this->set_error(self::ERR_REMOTE_LOCATION, 'FTP cannot get directory list.');
 
             return false;
@@ -1028,7 +788,7 @@ class PHS_Ftp extends PHS_Library
         }
 
         if (!is_string($file)
-         || $file === '') {
+            || $file === '') {
             $this->set_error(self::ERR_PARAMETERS, 'Please provide a remote file to get.');
 
             return false;
@@ -1053,12 +813,12 @@ class PHS_Ftp extends PHS_Library
         $ftp_settings = $this->settings();
 
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
             $this->_close_curl_connection();
         }
 
         if (!$this->is_connected()
-        && !$this->connect()) {
+            && !$this->_connect()) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_CONNECTION, 'FTP not connected and cannot (re)connect to server.');
             }
@@ -1068,7 +828,7 @@ class PHS_Ftp extends PHS_Library
 
         $local_file = $ftp_settings['local_dir'];
         if ($local_file !== ''
-        && substr($local_file, -1) !== '/') {
+            && substr($local_file, -1) !== '/') {
             $local_file .= '/';
         }
 
@@ -1083,7 +843,7 @@ class PHS_Ftp extends PHS_Library
         }
 
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
             // 4.3.0    resumepos was added.
             if (!@ftp_get($this->internal_settings['con'], $params['local_file'], $file, ($mode === self::TRANSFER_MODE_BINARY ? FTP_BINARY : FTP_ASCII), $params['resume_pos'])) {
                 $this->set_error(self::ERR_REMOTE_LOCATION, 'FTP couldn\'t GET file.');
@@ -1094,7 +854,7 @@ class PHS_Ftp extends PHS_Library
                 return false;
             }
         } elseif ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-             || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+                  || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
             if (!($fp = @fopen($params['local_file'], 'w'))) {
                 $this->set_error(self::ERR_REMOTE_LOCATION, 'FTP/CURL couldn\'t create local file.');
                 if (empty($params['skip_callbacks'])) {
@@ -1109,7 +869,7 @@ class PHS_Ftp extends PHS_Library
             @curl_setopt($this->internal_settings['con'], constant('CURLOPT_URL'), $curl_url['full_url']);
 
             if (!@curl_setopt($this->internal_settings['con'], constant('CURLOPT_FILE'), $fp)
-             || @curl_exec($this->internal_settings['con']) === false) {
+                || @curl_exec($this->internal_settings['con']) === false) {
                 @fclose($fp);
                 $err = @curl_errno($this->internal_settings['con']);
                 $this->set_error(self::ERR_REMOTE_LOCATION, 'FTP/CURL couldn\'t GET file. ['.$err.']');
@@ -1126,7 +886,7 @@ class PHS_Ftp extends PHS_Library
             $this->_close_curl_connection();
         } elseif ($ftp_settings['connection_mode'] == self::CON_TYPE_SSH) {
             if (substr($file, 0, 1) !== '/'
-            && ($win_drive = substr($file, 1, 2)) !== ':/' && $win_drive !== ':\\') {
+                && ($win_drive = substr($file, 1, 2)) !== ':/' && $win_drive !== ':\\') {
                 $file = trim($file, '/\\');
                 $remote_file = rtrim($this->internal_settings['remote_dir'], '/\\')
                                .($file !== '' ? '/'.$file : '');
@@ -1205,7 +965,7 @@ class PHS_Ftp extends PHS_Library
         }
 
         if (!is_string($file)
-         || $file === '') {
+            || $file === '') {
             $this->set_error(self::ERR_PARAMETERS, 'Unknown file.');
 
             return false;
@@ -1223,7 +983,7 @@ class PHS_Ftp extends PHS_Library
         }
 
         if (!@file_exists($file)
-         || !@is_file($file)) {
+            || !@is_file($file)) {
             $this->set_error(self::ERR_LOCAL_LOCATION, 'Unknown local file to PUT.');
 
             return false;
@@ -1254,12 +1014,12 @@ class PHS_Ftp extends PHS_Library
         }
 
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
             $this->_close_curl_connection();
         }
 
         if (!$this->is_connected()
-        && !$this->connect()) {
+            && !$this->_connect()) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_CONNECTION, 'FTP not connected and cannot (re)connect to server.');
             }
@@ -1278,7 +1038,7 @@ class PHS_Ftp extends PHS_Library
         // CURLOPT_FTPAPPEND // TRUE to append to the remote file instead of overwriting it.
 
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
             // 4.3.0    startpos was added.
             if (!@ftp_put($this->internal_settings['con'], $params['remote_file'], $file, ($mode === self::TRANSFER_MODE_BINARY ? FTP_BINARY : FTP_ASCII), $params['start_pos'])) {
                 $this->set_error(self::ERR_REMOTE_LOCATION, 'FTP couldn\'t PUT file.');
@@ -1293,7 +1053,7 @@ class PHS_Ftp extends PHS_Library
                 @ftp_chmod($this->internal_settings['con'], $params['file_rights'], $params['remote_file']);
             }
         } elseif ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-             || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+                  || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
             if (!($file_size = @filesize($file))) {
                 $file_size = 0;
             }
@@ -1314,7 +1074,7 @@ class PHS_Ftp extends PHS_Library
             @curl_setopt($this->internal_settings['con'], constant('CURLOPT_INFILESIZE'), $file_size);
 
             if (!@curl_setopt($this->internal_settings['con'], constant('CURLOPT_INFILE'), $fp)
-             || @curl_exec($this->internal_settings['con']) === false) {
+                || @curl_exec($this->internal_settings['con']) === false) {
                 @fclose($fp);
                 $err = curl_errno($this->internal_settings['con']);
                 $this->set_error(self::ERR_REMOTE_LOCATION, 'FTP/CURL couldn\'t PUT file. ['.$err.']');
@@ -1330,7 +1090,7 @@ class PHS_Ftp extends PHS_Library
             $this->_close_curl_connection();
         } elseif ($ftp_settings['connection_mode'] === self::CON_TYPE_SSH) {
             if (substr($params['remote_file'], 0, 1) !== '/'
-            && ($win_drive = substr($params['remote_file'], 1, 2)) !== ':/' && $win_drive !== ':\\') {
+                && ($win_drive = substr($params['remote_file'], 1, 2)) !== ':/' && $win_drive !== ':\\') {
                 $remote_file = trim($params['remote_file'], '/\\');
                 $remote_file = rtrim($this->internal_settings['remote_dir'], '/\\')
                                .($remote_file !== '' ? '/'.$remote_file : '');
@@ -1374,14 +1134,17 @@ class PHS_Ftp extends PHS_Library
 
                 $this->set_error(self::ERR_REMOTE_LOCATION, 'SFTP error copying file.');
                 if (empty($params['skip_callbacks'])) {
-                    $this->trigger_phs_hooks(self::H_AFTER_GET, ['server' => $ftp_settings, 'file' => $file, 'mode' => $mode, 'params' => $params, 'success' => false]);
+                    $this->trigger_phs_hooks(
+                        self::H_AFTER_GET,
+                        ['server' => $ftp_settings, 'file' => $file, 'mode' => $mode, 'params' => $params, 'success' => false]
+                    );
                 }
 
                 return false;
             }
 
             if (!empty($params['file_rights'])
-            && @function_exists('ssh2_sftp_chmod')) {
+                && @function_exists('ssh2_sftp_chmod')) {
                 @ssh2_sftp_chmod($this->internal_settings['con'], $remote_file, $params['file_rights']);
             }
         }
@@ -1410,7 +1173,7 @@ class PHS_Ftp extends PHS_Library
         }
 
         if (!is_string($file)
-         || $file === '') {
+            || $file === '') {
             $this->set_error(self::ERR_PARAMETERS, 'Please provide remote file to delete.');
 
             return false;
@@ -1426,12 +1189,12 @@ class PHS_Ftp extends PHS_Library
         }
 
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
             $this->_close_curl_connection();
         }
 
         if (!$this->is_connected()
-        && !$this->connect()) {
+            && !$this->_connect()) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_CONNECTION, 'FTP not connected and cannot (re)connect to server.');
             }
@@ -1442,7 +1205,7 @@ class PHS_Ftp extends PHS_Library
         $remote_file = $file;
         $curl_url = [];
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
             $curl_url = $this->curl_url(['file' => $file]);
             $remote_file = $curl_url['dir'].$curl_url['file'];
         }
@@ -1452,7 +1215,7 @@ class PHS_Ftp extends PHS_Library
         }
 
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
             // 4.3.0    resumepos was added.
             if (!@ftp_delete($this->internal_settings['con'], $file)) {
                 $this->set_error(self::ERR_REMOTE_LOCATION, 'FTP couldn\'t DELETE file.');
@@ -1463,7 +1226,7 @@ class PHS_Ftp extends PHS_Library
                 return false;
             }
         } elseif ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-             || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+                  || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
             if (empty($curl_url)) {
                 $this->set_error(self::ERR_REMOTE_LOCATION, 'FTP/CURL Unknown file to DELETE.');
                 if (empty($params['skip_callbacks'])) {
@@ -1492,10 +1255,10 @@ class PHS_Ftp extends PHS_Library
             $this->_close_curl_connection();
         } elseif ($ftp_settings['connection_mode'] === self::CON_TYPE_SSH) {
             if (substr($file, 0, 1) !== '/'
-            && ($win_drive = substr($file, 1, 2)) !== ':/' && $win_drive !== ':\\') {
+                && ($win_drive = substr($file, 1, 2)) !== ':/' && $win_drive !== ':\\') {
                 $file = trim($file, '/\\');
                 $remote_file = rtrim($this->internal_settings['remote_dir'], '/\\')
-                    .($file !== '' ? '/'.$file : '');
+                               .($file !== '' ? '/'.$file : '');
             } else {
                 $remote_file = $file;
             }
@@ -1534,7 +1297,7 @@ class PHS_Ftp extends PHS_Library
         }
 
         if (!is_string($dir)
-         || $dir === '') {
+            || $dir === '') {
             $this->set_error(self::ERR_PARAMETERS, 'Please provide remote file to delete.');
 
             return false;
@@ -1550,12 +1313,12 @@ class PHS_Ftp extends PHS_Library
         }
 
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
             $this->_close_curl_connection();
         }
 
         if (!$this->is_connected()
-        && !$this->connect()) {
+            && !$this->_connect()) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_CONNECTION, 'FTP not connected and cannot (re)connect to server.');
             }
@@ -1566,7 +1329,7 @@ class PHS_Ftp extends PHS_Library
         $remote_dir = $dir;
         $curl_url = [];
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
             $curl_url = $this->curl_url(['dir' => $dir]);
             $remote_dir = $curl_url['dir'];
         }
@@ -1576,7 +1339,7 @@ class PHS_Ftp extends PHS_Library
         }
 
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
             // 4.3.0    resumepos was added.
             if (!@ftp_rmdir($this->internal_settings['con'], $remote_dir)) {
                 $this->set_error(self::ERR_REMOTE_LOCATION, 'FTP couldn\'t DELETE directory.');
@@ -1587,7 +1350,7 @@ class PHS_Ftp extends PHS_Library
                 return false;
             }
         } elseif ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-             || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+                  || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
             if (empty($curl_url)) {
                 $this->set_error(self::ERR_REMOTE_LOCATION, 'FTP/CURL Unknown directory to DELETE.');
                 if (empty($params['skip_callbacks'])) {
@@ -1658,7 +1421,7 @@ class PHS_Ftp extends PHS_Library
         }
 
         if (!is_string($dir)
-         || $dir === '') {
+            || $dir === '') {
             $this->set_error(self::ERR_PARAMETERS, 'Please provide remote directory to create.');
 
             return false;
@@ -1682,12 +1445,12 @@ class PHS_Ftp extends PHS_Library
         }
 
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
             $this->_close_curl_connection();
         }
 
         if (!$this->is_connected()
-        && !$this->connect()) {
+            && !$this->_connect()) {
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_CONNECTION, 'FTP not connected and cannot (re)connect to server.');
             }
@@ -1698,7 +1461,7 @@ class PHS_Ftp extends PHS_Library
         $remote_dir = $dir;
         $curl_url = [];
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
             $curl_url = $this->curl_url(['dir' => $dir]);
             $remote_dir = $curl_url['dir'];
         }
@@ -1708,7 +1471,7 @@ class PHS_Ftp extends PHS_Library
         }
 
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
             if (!empty($params['recursive'])) {
                 $path_parts = explode('/', $remote_dir);
             } else {
@@ -1747,7 +1510,7 @@ class PHS_Ftp extends PHS_Library
                 @ftp_chdir($this->internal_settings['con'], $old_dir);
             }
         } elseif ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-             || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+                  || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
             if (empty($curl_url)) {
                 $this->set_error(self::ERR_REMOTE_LOCATION, 'FTP/CURL Unknown directory to create.');
                 if (empty($params['skip_callbacks'])) {
@@ -1779,10 +1542,10 @@ class PHS_Ftp extends PHS_Library
             $this->_close_curl_connection();
         } elseif ($ftp_settings['connection_mode'] === self::CON_TYPE_SSH) {
             if (substr($dir, 0, 1) !== '/'
-            && ($win_drive = substr($dir, 1, 2)) !== ':/' && $win_drive !== ':\\') {
+                && ($win_drive = substr($dir, 1, 2)) !== ':/' && $win_drive !== ':\\') {
                 $dir = trim($dir, '/\\');
                 $remote_dir = rtrim($this->internal_settings['remote_dir'], '/\\')
-                    .($dir !== '' ? '/'.$dir : '');
+                              .($dir !== '' ? '/'.$dir : '');
             } else {
                 $remote_dir = $dir;
             }
@@ -1827,14 +1590,14 @@ class PHS_Ftp extends PHS_Library
         }
 
         if (!is_string($old_dir)
-         || $old_dir === '') {
+            || $old_dir === '') {
             $this->set_error(self::ERR_PARAMETERS, 'Please provide remote directory to be renamed.');
 
             return false;
         }
 
         if (!is_string($new_dir)
-         || $new_dir === '') {
+            || $new_dir === '') {
             $this->set_error(self::ERR_PARAMETERS, 'Please provide new remote directory name to be used for rename.');
 
             return false;
@@ -1857,16 +1620,14 @@ class PHS_Ftp extends PHS_Library
 
         switch ($ftp_settings['connection_mode']) {
             case self::CON_TYPE_SSH:
-                if (!$this->is_connected() && !$this->connect()) {
-                    if (!$this->has_error()) {
-                        $this->set_error(self::ERR_CONNECTION, 'FTP not connected and cannot (re)connect to server.');
-                    }
+                if (!$this->is_connected() && !$this->_connect()) {
+                    $this->set_error_if_not_set(self::ERR_CONNECTION, 'FTP not connected and cannot (re)connect to server.');
 
                     $return_val = false;
                 } else {
                     if (substr($old_dir, 0, 1) !== '/'
-                     && ($win_drive = substr($old_dir, 1, 2)) !== ':/'
-                     && $win_drive !== ':\\') {
+                        && ($win_drive = substr($old_dir, 1, 2)) !== ':/'
+                        && $win_drive !== ':\\') {
                         $old_dir = trim($old_dir, '/\\');
                         $old_remote_dir = rtrim($this->internal_settings['remote_dir'], '/\\')
                                           .($old_dir !== '' ? '/'.$old_dir : '');
@@ -1875,8 +1636,8 @@ class PHS_Ftp extends PHS_Library
                     }
 
                     if (substr($new_dir, 0, 1) !== '/'
-                     && ($win_drive = substr($new_dir, 1, 2)) !== ':/'
-                     && $win_drive !== ':\\') {
+                        && ($win_drive = substr($new_dir, 1, 2)) !== ':/'
+                        && $win_drive !== ':\\') {
                         $new_dir = trim($new_dir, '/\\');
                         $new_remote_dir = rtrim($this->internal_settings['remote_dir'], '/\\')
                                           .($new_dir !== '' ? '/'.$new_dir : '');
@@ -1920,7 +1681,7 @@ class PHS_Ftp extends PHS_Library
         }
 
         if (!$this->can_connect()
-         || empty($this->internal_settings['con'])) {
+            || empty($this->internal_settings['con'])) {
             return false;
         }
 
@@ -1938,10 +1699,10 @@ class PHS_Ftp extends PHS_Library
         }
 
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
             @ftp_close($this->internal_settings['con']);
         } elseif ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-             || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+                  || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
             $this->_close_curl_connection();
         } elseif ($ftp_settings['connection_mode'] === self::CON_TYPE_SSH) {
             @ssh2_exec($this->internal_settings['con_ssh2'], 'exit');
@@ -1954,6 +1715,220 @@ class PHS_Ftp extends PHS_Library
 
         if (empty($params['skip_callbacks'])) {
             $this->trigger_phs_hooks(self::H_AFTER_CLOSE, ['server' => $ftp_settings, 'success' => true]);
+        }
+
+        return true;
+    }
+
+    // /**
+    //  * Method which will be callback for disconnect signal from libssh2 library
+    //  *
+    //  * @param int $reason
+    //  * @param string $message
+    //  * @param $language
+    //  */
+    // public function signal_ssh_disconnect( $reason, $message, $language )
+    // {
+    //     $this->close();
+    // }
+    //
+    // /**
+    //  * Method which will be called when a packet is received but the message authentication code failed.
+    //  * If the callback returns TRUE, the mismatch will be ignored, otherwise the connection will be terminated.
+    //  * from libssh2 library
+    //  *
+    //  * @param string $packet
+    //  * @return bool
+    //  */
+    // public function signal_ssh_macerror( $packet )
+    // {
+    //     return true;
+    // }
+
+    protected function _connect(array $params = []) : bool
+    {
+        $this->reset_error();
+
+        if ($this->is_connected()) {
+            return true;
+        }
+
+        if (!$this->can_connect()) {
+            $this->set_error(self::ERR_CONNECTION, 'Cannot connect to server. FTP settings not provided.');
+
+            return false;
+        }
+
+        $params['skip_callbacks'] = !empty($params['skip_callbacks']);
+
+        $ftp_settings = $this->settings();
+
+        if (empty($params['skip_callbacks'])) {
+            $this->trigger_phs_hooks(self::H_BEFORE_CONNECT, ['server' => $ftp_settings, 'success' => true]);
+        }
+
+        $curl_change_dir = true;
+        if ($ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL_SSL) {
+            // Connect
+            if ($ftp_settings['connection_mode'] === self::CON_TYPE_NORMAL) {
+                $this->internal_settings['con'] = @ftp_connect($ftp_settings['host'], $ftp_settings['port'], $ftp_settings['timeout']);
+            } else {
+                $this->internal_settings['con'] = @ftp_ssl_connect($ftp_settings['host'], $ftp_settings['port'], $ftp_settings['timeout']);
+            }
+
+            if (empty($this->internal_settings['con'])) {
+                $this->set_error(self::ERR_CONNECTION, 'FTP connection to server failed.');
+                if (empty($params['skip_callbacks'])) {
+                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
+                }
+
+                return false;
+            }
+
+            // Login
+            if (!@ftp_login($this->internal_settings['con'], $ftp_settings['user'], $ftp_settings['pass'])) {
+                $this->set_error(self::ERR_AUTHENTICATION, 'FTP login failed.');
+                if (empty($params['skip_callbacks'])) {
+                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
+                }
+
+                return false;
+            }
+        } elseif ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
+                  || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+            $curl_change_dir = false;
+
+            $curl_url = $this->curl_url(['dir' => '']); // (empty( $this->internal_settings['curl_session_started'] )?$ftp_settings['remote_dir']:'') ) );
+
+            $this->internal_settings['con'] = @curl_init($curl_url['full_url']);
+
+            if (empty($this->internal_settings['con'])) {
+                $this->set_error(self::ERR_CONNECTION, 'FTP/CURL failed to initialize.');
+                if (empty($params['skip_callbacks'])) {
+                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
+                }
+
+                return false;
+            }
+
+            if (!($curl_ftp_settings = $this->curl_settings())
+                || !is_array($curl_ftp_settings)) {
+                $this->set_error(self::ERR_CONNECTION, 'FTP/CURL couldn\'t setup options.');
+                if (empty($params['skip_callbacks'])) {
+                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
+                }
+
+                return false;
+            }
+
+            foreach ($curl_ftp_settings as $opt_name => $opt_value) {
+                @curl_setopt($this->internal_settings['con'], constant($opt_name), $opt_value);
+            }
+
+            if (empty($this->internal_settings['curl_session_started'])) {
+                $this->internal_settings['curl_session_started'] = true;
+                $curl_change_dir = true;
+            }
+        } elseif ($ftp_settings['connection_mode'] === self::CON_TYPE_SSH) {
+            if (!@function_exists('ssh2_connect')
+                || !@function_exists('ssh2_sftp')) {
+                $this->set_error(self::ERR_CONNECTION, 'Functions ssh2_connect or ssh2_sftp not defined. Cannot connect to server.');
+                if (empty($params['skip_callbacks'])) {
+                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
+                }
+
+                return false;
+            }
+
+            // $ssh2_callbacks = array(
+            //     'disconnect' => array( $this, 'signal_ssh_disconnect' ),
+            //     'macerror' => array( $this, 'signal_ssh_macerror' ),
+            // );
+
+            if (!($this->internal_settings['con_ssh2'] = @ssh2_connect($ftp_settings['host'], $ftp_settings['port']))) {// , null, $ssh2_callbacks )) )
+                $error_msg = '';
+                if (($conn_error = @error_get_last())
+                    && !empty($conn_error['message'])) {
+                    $error_msg = $conn_error['message'];
+                }
+
+                $this->set_error(self::ERR_CONNECTION, 'FTP connection to server failed.'.(!empty($error_msg) ? ' ('.$error_msg.')' : ''));
+
+                if (empty($params['skip_callbacks'])) {
+                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
+                }
+
+                return false;
+            }
+
+            if (!empty($ftp_settings['ssh2_fingerprint'])
+                && @function_exists('ssh2_fingerprint')
+                && ($server_fingerprint = @ssh2_fingerprint($this->internal_settings['con_ssh2'], SSH2_FINGERPRINT_MD5 | SSH2_FINGERPRINT_HEX))
+                && strtoupper($server_fingerprint) !== strtoupper($ftp_settings['ssh2_fingerprint'])) {
+                unset($this->internal_settings['con_ssh2']);
+                $this->internal_settings['con_ssh2'] = 0;
+
+                $this->set_error(self::ERR_CONNECTION, 'Server fingerprint mismatch.');
+                if (empty($params['skip_callbacks'])) {
+                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
+                }
+
+                return false;
+            }
+
+            // Login
+            if (!@ssh2_auth_password($this->internal_settings['con_ssh2'], $ftp_settings['user'], $ftp_settings['pass'])) {
+                // unset( $this->internal_settings['con_ssh2'] );
+                $this->internal_settings['con_ssh2'] = 0;
+
+                $this->set_error(self::ERR_AUTHENTICATION, 'FTP login failed.');
+
+                if (empty($params['skip_callbacks'])) {
+                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
+                }
+
+                return false;
+            }
+
+            if (!($this->internal_settings['con'] = @ssh2_sftp($this->internal_settings['con_ssh2']))) {
+                unset($this->internal_settings['con_ssh2']);
+                $this->internal_settings['con_ssh2'] = 0;
+
+                $this->set_error(self::ERR_AUTHENTICATION, 'Error creating FTP connection.');
+                if (empty($params['skip_callbacks'])) {
+                    $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
+                }
+
+                return false;
+            }
+        }
+
+        // set passive mode (if required)
+        if (isset($ftp_settings['passive_mode'])
+            && !$this->passive_mode($ftp_settings['passive_mode'])) {
+            $this->set_error(self::ERR_CONNECTION, 'FTP setting passive mode to '.(!empty($ftp_settings['passive_mode']) ? 'true' : 'false').' failed.');
+            if (empty($params['skip_callbacks'])) {
+                $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
+            }
+
+            return false;
+        }
+
+        // chdir to whatever remote dir says (if required)
+        if (!empty($curl_change_dir)
+            && !empty($ftp_settings['remote_dir'])
+            && !$this->chdir($ftp_settings['remote_dir'], ['skip_callbacks' => $params['skip_callbacks']])) {
+            $this->set_error(self::ERR_CONNECTION, 'FTP changing remote directory failed.');
+            if (empty($params['skip_callbacks'])) {
+                $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => false]);
+            }
+
+            return false;
+        }
+
+        if (empty($params['skip_callbacks'])) {
+            $this->trigger_phs_hooks(self::H_AFTER_CONNECT, ['server' => $ftp_settings, 'success' => true]);
         }
 
         return true;
@@ -1977,8 +1952,8 @@ class PHS_Ftp extends PHS_Library
         $ftp_settings = $this->settings();
 
         if (($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-                || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL)
-        && !empty($this->internal_settings['con'])) {
+             || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL)
+            && !empty($this->internal_settings['con'])) {
             @curl_setopt($this->internal_settings['con'], constant('CURLOPT_PUT'), false);
 
             if (($in_std = fopen('php://stdin', 'r'))) {
@@ -1999,7 +1974,7 @@ class PHS_Ftp extends PHS_Library
         $ftp_settings = $this->settings();
 
         if ($ftp_settings['connection_mode'] === self::CON_TYPE_CURL
-         || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
+            || $ftp_settings['connection_mode'] === self::CON_TYPE_CURL_SSL) {
             if (!empty($this->internal_settings['con'])) {
                 $this->_reset_curl_opts();
 
@@ -2030,7 +2005,7 @@ class PHS_Ftp extends PHS_Library
     public static function settings_valid($settings)
     {
         return !(empty($settings) || !is_array($settings)
-         || empty($settings['host']) || empty($settings['port']) || empty($settings['user']) || !isset($settings['pass']));
+                 || empty($settings['host']) || empty($settings['port']) || empty($settings['user']) || !isset($settings['pass']));
     }
 
     public static function _default_internal_settings()
@@ -2246,7 +2221,7 @@ class PHS_Ftp extends PHS_Library
     public static function parse_raw_linux_line($str, $line_arr = false)
     {
         if ($line_arr === false
-         || !is_array($line_arr)) {
+            || !is_array($line_arr)) {
             $line_arr = self::default_entry_array();
             $line_arr['raw'] = $str;
         }
@@ -2297,7 +2272,7 @@ class PHS_Ftp extends PHS_Library
     public static function parse_raw_cloud_line($str, $line_arr = false)
     {
         if ($line_arr === false
-         || !is_array($line_arr)) {
+            || !is_array($line_arr)) {
             $line_arr = self::default_entry_array();
             $line_arr['raw'] = $str;
         }
@@ -2308,7 +2283,7 @@ class PHS_Ftp extends PHS_Library
             return $line_arr;
         }
 
-        $datetime_str = (!empty($line_details_arr[0]) ? $line_details_arr[0].' ' : '')
+        $datetime_str = $line_details_arr[0].' '
                         .(!empty($line_details_arr[1]) ? $line_details_arr[1].' ' : '');
         $datetime_str = trim($datetime_str);
         $datetime = self::cloud_parse_datetime_string($datetime_str);
@@ -2324,7 +2299,7 @@ class PHS_Ftp extends PHS_Library
         return $line_arr;
     }
 
-    public static function default_entry_array()
+    public static function default_entry_array() : array
     {
         $default_rights_arr = self::default_rights_array();
 
@@ -2344,7 +2319,7 @@ class PHS_Ftp extends PHS_Library
         return $line_arr;
     }
 
-    public static function default_rights_array()
+    public static function default_rights_array() : array
     {
         $return_arr = [];
         $return_arr['type'] = self::TYPE_FILE;
@@ -2355,9 +2330,9 @@ class PHS_Ftp extends PHS_Library
         return $return_arr;
     }
 
-    public static function cloud_parse_datetime_string($str)
+    public static function cloud_parse_datetime_string(string $str) : int
     {
-        if (empty($str)) {
+        if (!$str) {
             return 0;
         }
 
@@ -2411,7 +2386,7 @@ class PHS_Ftp extends PHS_Library
             $hour += 12;
         }
 
-        return @mktime($hour, $minutes, 0, $month, $day, $year);
+        return @mktime($hour, $minutes, 0, $month, $day, $year) ?: 0;
     }
 
     public static function lin_parse_datetime_string($str)

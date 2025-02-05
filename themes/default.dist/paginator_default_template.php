@@ -9,6 +9,7 @@ $flow_params = $this->view_var('flow_params') ?: [];
 </section>
 <?php
 echo $this->view_var('filters') ?: '';
+echo $this->view_var('export') ?: '';
 echo $this->view_var('listing') ?: '';
 ?>
 </div>

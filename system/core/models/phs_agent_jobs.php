@@ -7,6 +7,7 @@ use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
+use phs\libraries\PHS_Record_data;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\traits\PHS_Model_Trait_statuses;
 
@@ -47,12 +48,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return 'bg_agent';
     }
 
-    /**
-     * @param bool|string $lang
-     *
-     * @return array
-     */
-    public function get_stalling_policies($lang = false) : array
+    public function get_stalling_policies(null | bool | string $lang = false) : array
     {
         static $policies_arr = [];
 
@@ -60,30 +56,25 @@ class PHS_Model_Agent_jobs extends PHS_Model
             return [];
         }
 
-        if ($lang === false
+        if (!$lang
          && !empty($policies_arr)) {
             return $policies_arr;
         }
 
         $result_arr = $this->translate_array_keys(self::$STALLING_ARR, ['title'], $lang);
 
-        if ($lang === false) {
+        if (!$lang) {
             $policies_arr = $result_arr;
         }
 
         return $result_arr;
     }
 
-    /**
-     * @param bool|string $lang
-     *
-     * @return array
-     */
-    public function get_stalling_policies_as_key_val($lang = false) : ?array
+    public function get_stalling_policies_as_key_val(null | bool | string $lang = false) : ?array
     {
         static $policies_key_val_arr = null;
 
-        if ($lang === false
+        if (!$lang
          && $policies_key_val_arr !== null) {
             return $policies_key_val_arr;
         }
@@ -99,28 +90,20 @@ class PHS_Model_Agent_jobs extends PHS_Model
             }
         }
 
-        if ($lang === false) {
+        if (!$lang) {
             $policies_key_val_arr = $key_val_arr;
         }
 
         return $key_val_arr;
     }
 
-    /**
-     * @param int $policy
-     * @param bool|string $lang
-     *
-     * @return null|array
-     */
-    public function valid_stalling_policy(int $policy, $lang = false) : ?array
+    public function valid_stalling_policy(int $policy, null | bool | string $lang = false) : ?array
     {
-        $all_policies = $this->get_stalling_policies($lang);
-        if (empty($policy)
-         || !isset($all_policies[$policy])) {
+        if (!$policy) {
             return null;
         }
 
-        return $all_policies[$policy];
+        return $this->get_stalling_policies($lang)[$policy] ?? null;
     }
 
     public function get_settings_structure() : array
@@ -146,7 +129,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         ];
     }
 
-    public function act_activate($job_data)
+    public function act_activate(int | array | PHS_Record_data $job_data) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -154,19 +137,25 @@ class PHS_Model_Agent_jobs extends PHS_Model
          || !($job_arr = $this->data_to_array($job_data))) {
             $this->set_error(self::ERR_DB_JOB, self::_t('Agent job details not found in database.'));
 
-            return false;
+            return null;
         }
 
         if ($this->job_is_suspended($job_arr)) {
             $this->set_error(self::ERR_DB_JOB, self::_t('Agent job is suspended. You must activate plugin to activate it again.'));
 
-            return false;
+            return null;
         }
 
-        return $this->edit($job_arr, ['fields' => ['status' => self::STATUS_ACTIVE]]);
+        if (!($new_job = $this->edit($job_arr, ['fields' => ['status' => self::STATUS_ACTIVE]]))) {
+            $this->set_error_if_not_set(self::ERR_DB_JOB, self::_t('Error updating job details.'));
+
+            return null;
+        }
+
+        return $new_job;
     }
 
-    public function act_inactivate($job_data)
+    public function act_inactivate(int | array | PHS_Record_data $job_data) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -174,19 +163,25 @@ class PHS_Model_Agent_jobs extends PHS_Model
          || !($job_arr = $this->data_to_array($job_data))) {
             $this->set_error(self::ERR_DB_JOB, self::_t('Agent job details not found in database.'));
 
-            return false;
+            return null;
         }
 
         if ($this->job_is_suspended($job_arr)) {
-            $this->set_error(self::ERR_DB_JOB, self::_t('Agent job is suspended. You must activate plugin to activate it again.'));
+            $this->set_error(self::ERR_DB_JOB, self::_t('Agent job is suspended. You must activate plugin to inactivate it.'));
 
-            return false;
+            return null;
         }
 
-        return $this->edit($job_arr, ['fields' => ['status' => self::STATUS_INACTIVE]]);
+        if (!($new_job = $this->edit($job_arr, ['fields' => ['status' => self::STATUS_INACTIVE]]))) {
+            $this->set_error_if_not_set(self::ERR_DB_JOB, self::_t('Error updating job details.'));
+
+            return null;
+        }
+
+        return $new_job;
     }
 
-    public function act_suspend($job_data)
+    public function act_suspend(int | array | PHS_Record_data $job_data) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -194,20 +189,26 @@ class PHS_Model_Agent_jobs extends PHS_Model
          || !($job_arr = $this->data_to_array($job_data))) {
             $this->set_error(self::ERR_DB_JOB, self::_t('Agent job details not found in database.'));
 
-            return false;
+            return null;
         }
 
-        return $this->edit($job_arr, ['fields' => ['status' => self::STATUS_SUSPENDED]]);
+        if (!($new_job = $this->edit($job_arr, ['fields' => ['status' => self::STATUS_SUSPENDED]]))) {
+            $this->set_error_if_not_set(self::ERR_DB_JOB, self::_t('Error updating job details.'));
+
+            return null;
+        }
+
+        return $new_job;
     }
 
-    public function act_delete($job_data) : bool
+    public function act_delete(int | array | PHS_Record_data $job_data) : bool
     {
         $this->reset_error();
 
         if (empty($job_data)
-         || !($flow_params = $this->fetch_default_flow_params())
-         || !($table_name = $this->get_flow_table_name($flow_params))
-         || !($job_arr = $this->data_to_array($job_data))) {
+            || !($flow_params = $this->fetch_default_flow_params())
+            || !($table_name = $this->get_flow_table_name($flow_params))
+            || !($job_arr = $this->data_to_array($job_data))) {
             $this->set_error(self::ERR_DB_JOB, self::_t('Agent job details not found in database.'));
 
             return false;
@@ -222,17 +223,10 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return true;
     }
 
-    /**
-     * @param int|array $job_data
-     * @param null|array $params
-     *
-     * @return null|array
-     */
-    public function start_job($job_data, ?array $params = null) : ?array
+    public function start_job(int | array | PHS_Record_data $job_data, array $params = []) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
-        $params ??= [];
         $params['force_job'] = !empty($params['force_job']);
 
         if (empty($job_data)
@@ -251,9 +245,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
             $job_params_arr['force_job'] = true;
         }
 
-        if (!($pid = @getmypid())) {
-            $pid = -1;
-        }
+        $pid = @getmypid() ?: -1;
 
         $edit_arr = [];
         $edit_arr['is_running'] = date(self::DATETIME_DB);
@@ -274,13 +266,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $new_job_arr;
     }
 
-    /**
-     * @param int|array $job_data
-     * @param null|array $params
-     *
-     * @return null|array
-     */
-    public function stop_job($job_data, ?array $params = null) : ?array
+    public function stop_job(int | array | PHS_Record_data $job_data, array $params = []) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -302,14 +288,12 @@ class PHS_Model_Agent_jobs extends PHS_Model
             return null;
         }
 
-        if (empty($job_arr['is_running'])) {
-            $next_time = time();
-        } else {
-            $next_time = parse_db_date($job_arr['is_running']);
-        }
+        $next_time = empty($job_arr['is_running'])
+            ? time()
+            : parse_db_date($job_arr['is_running']);
 
-        // Remove one minute to be sure we're not at the limit with few seconds (time which took to bootstrap agent job)
-        // One minute doesn't affect time unit at which scripts can run as linux crontab can run at minimum every minute
+        // Remove allowance interval to be sure we're not at the limit with few seconds (time which took to bootstrap agent job)
+        // Allowance interval doesn't affect time unit at which scripts can run as linux crontab can run at minimum every minute
         if (!empty($job_arr['timed_seconds'])) {
             $next_time += (int)$job_arr['timed_seconds'] - $admin_plugin->agent_jobs_allowance_interval();
         }
@@ -347,7 +331,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $new_job_arr;
     }
 
-    public function refresh_job(int | array $job_data) : ?array
+    public function refresh_job(int | array | PHS_Record_data $job_data) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -392,12 +376,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
             return $stalling_minutes;
         }
 
-        if (!($settings_arr = $this->get_db_settings())
-         || empty($settings_arr['minutes_to_stall'])) {
-            $stalling_minutes = 0;
-        } else {
-            $stalling_minutes = (int)$settings_arr['minutes_to_stall'];
-        }
+        $stalling_minutes = (int)($this->get_db_settings()['minutes_to_stall'] ?? 0);
 
         return $stalling_minutes;
     }
@@ -410,12 +389,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
             return $stalling_policy;
         }
 
-        if (!($settings_arr = $this->get_db_settings())
-         || empty($settings_arr['stalling_policy'])) {
-            $stalling_policy = self::STALLING_PID;
-        } else {
-            $stalling_policy = (int)$settings_arr['stalling_policy'];
-        }
+        $stalling_policy = (int)($this->get_db_settings()['stalling_policy'] ?? self::STALLING_PID);
 
         return $stalling_policy;
     }

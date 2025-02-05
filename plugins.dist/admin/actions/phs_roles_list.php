@@ -79,13 +79,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             PHS_Notifications::add_success_notice($this->_pt('Role details saved in database.'));
         }
 
-        if (!($statuses_arr = $this->_paginator_model->get_statuses_as_key_val())) {
-            $statuses_arr = [];
-        }
-
-        if (!empty($statuses_arr)) {
-            $statuses_arr = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $statuses_arr);
-        }
+        $statuses_arr = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $this->_paginator_model->get_statuses_as_key_val() ?: []);
 
         if (isset($statuses_arr[$this->_paginator_model::STATUS_DELETED])) {
             unset($statuses_arr[$this->_paginator_model::STATUS_DELETED]);
@@ -204,11 +198,6 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model)
-            && !$this->load_depencies()) {
-            return false;
-        }
-
         $action_result_params = $this->_paginator->default_action_params();
 
         if (empty($action['action'])) {
@@ -224,8 +213,6 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                 PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
 
                 return true;
-                break;
-
             case 'bulk_activate':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
@@ -512,31 +499,23 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_role_name($params)
+    public function display_role_name(array $params) : string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])) {
-            return false;
+        if (empty($params['record']) || !is_array($params['record'])) {
+            return '';
         }
 
         return '<strong>'.$params['preset_content'].'</strong>'
                .(!empty($params['record']['description']) ? '<br/><small>'.$params['record']['description'].'</small>' : '');
     }
 
-    public function display_actions($params)
+    public function display_actions(array $params) : string
     {
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            return false;
-        }
-
         if (!$this->_admin_plugin->can_admin_manage_roles()) {
             return '-';
         }
 
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || !($role_arr = $this->_paginator_model->data_to_array($params['record']))) {
             return false;
         }
@@ -576,11 +555,11 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function after_table_callback($params)
+    public function after_table_callback(array $params) : string
     {
         static $js_functionality = false;
 
-        if (!empty($js_functionality)) {
+        if ($js_functionality) {
             return '';
         }
 

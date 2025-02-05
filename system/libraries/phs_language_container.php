@@ -75,12 +75,7 @@ class PHS_Language_Container extends PHS_Error
         return self::st_set_multi_language($enabled);
     }
 
-    /**
-     * @param $key
-     *
-     * @return null|mixed
-     */
-    public function get_current_language_key($key)
+    public function get_current_language_key($key) : mixed
     {
         return self::st_get_current_language_key($key);
     }
@@ -90,17 +85,11 @@ class PHS_Language_Container extends PHS_Error
         return self::st_get_defined_languages();
     }
 
-    /**
-     * @return string
-     */
     public function get_default_language() : string
     {
         return self::st_get_default_language();
     }
 
-    /**
-     * @return string
-     */
     public function get_current_language() : string
     {
         return self::st_get_current_language();
@@ -194,11 +183,6 @@ class PHS_Language_Container extends PHS_Error
         return true;
     }
 
-    /**
-     * @param string $dir Directory to scan for language files ({en|gb|de|ro}.csv)
-     *
-     * @return bool True on success, false if directory is not readable
-     */
     public function scan_for_language_files(string $dir) : bool
     {
         if (!self::st_get_multi_language_enabled()) {
@@ -223,11 +207,6 @@ class PHS_Language_Container extends PHS_Error
         return true;
     }
 
-    /**
-     * @param string $lang
-     *
-     * @return bool
-     */
     public function force_reload_language_files(string $lang) : bool
     {
         $this->reset_error();
@@ -245,11 +224,6 @@ class PHS_Language_Container extends PHS_Error
         return true;
     }
 
-    /**
-     * @param string $lang
-     *
-     * @return bool
-     */
     public function should_reload_language_files(string $lang) : bool
     {
         $this->reset_error();
@@ -265,12 +239,6 @@ class PHS_Language_Container extends PHS_Error
         return !empty(self::$_RELOAD_LANGUAGES[$lang]);
     }
 
-    /**
-     * @param string $lang
-     * @param array $files_arr
-     *
-     * @return bool
-     */
     public function add_language_files(string $lang, array $files_arr) : bool
     {
         $this->reset_error();
@@ -620,11 +588,6 @@ class PHS_Language_Container extends PHS_Error
         return $working_index;
     }
 
-    /**
-     * @param null|bool $loading
-     *
-     * @return bool
-     */
     private function _loading_language(?bool $loading = null) : bool
     {
         static $is_loading = false;
@@ -696,19 +659,11 @@ class PHS_Language_Container extends PHS_Error
         return self::$DEFAULT_LANGUAGE;
     }
 
-    /**
-     * @return string
-     */
     public static function st_get_current_language() : string
     {
         return self::$CURRENT_LANGUAGE;
     }
 
-    /**
-     * @param string $lang
-     *
-     * @return null|string
-     */
     public static function st_set_current_language(string $lang) : ?string
     {
         if (!($lang = self::st_valid_language($lang))) {
@@ -720,11 +675,6 @@ class PHS_Language_Container extends PHS_Error
         return self::$CURRENT_LANGUAGE;
     }
 
-    /**
-     * @param string $lang
-     *
-     * @return null|string
-     */
     public static function st_set_default_language(string $lang) : ?string
     {
         if (!($lang = self::st_valid_language($lang))) {
@@ -736,12 +686,7 @@ class PHS_Language_Container extends PHS_Error
         return self::$DEFAULT_LANGUAGE;
     }
 
-    /**
-     * @param string $key Property in current language definition array
-     *
-     * @return null|mixed
-     */
-    public static function st_get_current_language_key(string $key)
+    public static function st_get_current_language_key(string $key) : mixed
     {
         $clang = self::st_get_current_language();
         if (empty($clang)
@@ -753,33 +698,16 @@ class PHS_Language_Container extends PHS_Error
         return self::$DEFINED_LANGUAGES[$clang][$key];
     }
 
-    /**
-     * Returns defined languages array (defined using self::define_language())
-     *
-     * @return array
-     */
     public static function st_get_defined_languages() : array
     {
         return self::$DEFINED_LANGUAGES;
     }
 
-    /**
-     * @param string $lang
-     *
-     * @return string
-     */
     public static function prepare_lang_index(?string $lang) : string
     {
         return $lang === null ? '' : strtolower(trim($lang));
     }
 
-    /**
-     * Tells if language $lang is a valid language defined in the system
-     *
-     * @param null|string $lang
-     *
-     * @return string
-     */
     public static function st_valid_language(?string $lang) : string
     {
         $lang = self::prepare_lang_index($lang);
@@ -787,13 +715,6 @@ class PHS_Language_Container extends PHS_Error
         return isset(self::$DEFINED_LANGUAGES[$lang]) ? $lang : '';
     }
 
-    /**
-     * Tells if language $lang is loaded (files were parsed and added to indexes array)
-     *
-     * @param null|string $lang
-     *
-     * @return bool
-     */
     public static function language_loaded(?string $lang) : bool
     {
         if (!self::st_get_multi_language_enabled()) {
@@ -818,13 +739,6 @@ class PHS_Language_Container extends PHS_Error
         ];
     }
 
-    /**
-     * Returns language details as it was defined using self::define_language()
-     *
-     * @param null|string $lang
-     *
-     * @return null|array
-     */
     public static function get_defined_language(?string $lang) : ?array
     {
         if (!($lang = self::st_valid_language($lang))) {

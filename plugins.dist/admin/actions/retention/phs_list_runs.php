@@ -3,7 +3,6 @@ namespace phs\plugins\admin\actions\retention;
 
 use phs\PHS;
 use phs\libraries\PHS_Params;
-use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
@@ -27,7 +26,7 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
         if ((empty($this->_admin_plugin)
              && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
             || (empty($this->_data_retention_lib)
-                && !($this->_data_retention_lib = $this->_admin_plugin->get_data_retention_instance()))
+                && !($this->_data_retention_lib = Phs_Data_retention::get_instance()))
             || (empty($this->_accounts_model)
                 && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
             || (empty($this->_paginator_model)

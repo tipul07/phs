@@ -40,16 +40,17 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
 
         if ($model !== null) {
             $this->_model = $model;
-        } elseif (!empty($model_class) && ($modelobj
-                = $model_class::get_instance()) && ($modelobj instanceof PHS_Model_Core_base)) {
+        } elseif ($model_class
+                  && ($modelobj = $model_class::get_instance())
+                  && ($modelobj instanceof PHS_Model_Core_base)) {
             $this->_model = $modelobj;
         }
 
-        if (!empty($flow_arr) && is_array($flow_arr)) {
+        if ($flow_arr && is_array($flow_arr)) {
             $this->_flow_arr = $flow_arr;
         }
 
-        if (!empty($this->_model)) {
+        if ($this->_model) {
             $this->_flow_arr = $this->_model->fetch_default_flow_params($this->_flow_arr);
             $this->_model_class = $this->_model::class;
         }
@@ -60,7 +61,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
 
         $this->_new_record = !empty($data[PHS_Model_Mysqli::RECORD_NEW_INSERT_KEY]);
 
-        if (!empty($data)) {
+        if ($data) {
             $this->set_data($data);
         }
     }
@@ -102,20 +103,12 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
 
     public function get_flow_table_name() : ?string
     {
-        if (empty($this->_model)) {
-            return null;
-        }
-
-        return $this->_model->get_flow_table_name($this->_flow_arr);
+        return $this->_model?->get_flow_table_name($this->_flow_arr);
     }
 
     public function fetch_default_flow_params() : ?array
     {
-        if (empty($this->_model)) {
-            return null;
-        }
-
-        return $this->_model->fetch_default_flow_params($this->_flow_arr);
+        return $this->_model?->fetch_default_flow_params($this->_flow_arr);
     }
 
     public function get_simple_table_name_from_flow() : ?string
@@ -142,7 +135,8 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
 
     public function set_data_key(string $key, mixed $value) : void
     {
-        if (!$this->is_data_structure_key($key)
+        if ($this->_model
+            && !$this->is_data_structure_key($key)
             && !$this->data_key_is_allowed($key)
             && !$this->is_relation_key($key)) {
             return;
@@ -183,13 +177,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
 
     public function offsetGet(mixed $key) : mixed
     {
-        if (array_key_exists($key, $this->_data)) {
-            return $this->_data[$key];
-        }
-
-        $this->_load_and_read_relation($key);
-
-        return $this->_data[$key] ?? null;
+        return $this->_return_relation_value($key);
     }
     // endregion ArrayAccess
 
@@ -307,7 +295,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
 
     private function _check_allowed_extra_keys() : void
     {
-        if (empty($this->_model)) {
+        if (!$this->_model) {
             return;
         }
 
@@ -316,7 +304,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
 
     private function _extract_relations_details() : void
     {
-        if (empty($this->_model)
+        if (!$this->_model
             || !($relations = $this->_model->relations())) {
             return;
         }
@@ -331,14 +319,14 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
             $relation_keys[] = $relation->get_key();
         }
 
-        $this->_has_relations = !empty($relation_keys);
+        $this->_has_relations = (bool)$relation_keys;
         $this->_relation_keys = $relation_keys;
     }
 
     private function _load_relation(string $key) : void
     {
         if (!$this->_has_relations
-            || empty($this->_model)
+            || !$this->_model
             || !empty($this->_data[$key])) {
             return;
         }
@@ -346,14 +334,27 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
         $this->_model->load_relation($this, $key);
     }
 
-    private function _load_and_read_relation(string $key, int $offset = -1, int $limit = 0, bool $reload = false, ...$args) : void
+    private function _load_and_read_relation(string $key, ...$args) : ?PHS_Relation_result
     {
         $this->_load_relation($key);
 
         if (($relation_result = $this->_data[$key] ?? null)
            && $relation_result instanceof PHS_Relation_result) {
-            $relation_result->read($offset, $limit, $reload, ...$args);
+            return $relation_result->read(...$args);
         }
+
+        return null;
+    }
+
+    private function _return_relation_value(string $key, ...$arguments) : mixed
+    {
+        if ($this->is_relation_key($key)
+            && ($relation_result = $this->_load_and_read_relation($key, ...$arguments))
+            && $relation_result->has_dynamic_relation()) {
+            return $relation_result->current();
+        }
+
+        return $this->_data[$key] ?? null;
     }
 
     public function __debugInfo() : array
@@ -384,10 +385,6 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
 
     public function __call(string $name, array $arguments) : mixed
     {
-        if ($this->is_relation_key($name)) {
-            $this->_load_and_read_relation($name, ...$arguments);
-        }
-
-        return $this->_data[$name] ?? null;
+        return $this->_return_relation_value($name, ...$arguments);
     }
 }

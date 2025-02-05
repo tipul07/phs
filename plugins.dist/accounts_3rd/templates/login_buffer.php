@@ -1,20 +1,22 @@
 <?php
 /** @var phs\system\core\views\PHS_View $this */
 
+use phs\plugins\accounts_3rd\libraries\Apple;
+use phs\plugins\accounts_3rd\libraries\Google;
+
 /** @var phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd $plugin_obj */
 if (!($plugin_obj = $this->get_plugin_instance())) {
     return $this->_pt('Couldn\'t get parent plugin object.');
 }
 
 if (!($settings_arr = $plugin_obj->get_plugin_settings())
- || !is_array($settings_arr)
  || empty($settings_arr['enable_3rd_party'])) {
     return '';
 }
 
 ob_start();
 if (!empty($settings_arr['enable_google'])
- && ($google_lib = $plugin_obj->get_google_instance())
+ && ($google_lib = Google::get_instance())
  && ($google_client = $google_lib->get_web_instance_for_login())) {
     ?>
     <a href="<?php echo $google_client->createAuthUrl(); ?>"
@@ -25,7 +27,7 @@ if (!empty($settings_arr['enable_google'])
 }
 
 if (!empty($settings_arr['enable_apple'])
- && ($apple_lib = $plugin_obj->get_apple_instance())
+ && ($apple_lib = Apple::get_instance())
  && $apple_lib->prepare_instance_for_login()) {
     ?>
     <a href="<?php echo $apple_lib->get_url('login'); ?>"

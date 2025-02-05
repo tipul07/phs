@@ -19,7 +19,7 @@ use phs\system\core\libraries\PHS_Requests_queue_manager;
 
 function phs_version() : string
 {
-    return '1.2.4.7';
+    return '1.2.5.0';
 }
 
 // region Helper functions
@@ -32,6 +32,16 @@ function action_request_login() : array
     $action_result['request_login'] = true;
 
     return $action_result;
+}
+
+function action_should_request_login(array $action_result) : bool
+{
+    return !empty($action_result['request_login']);
+}
+
+function action_should_redirect(array $action_result) : bool
+{
+    return !empty($action_result['redirect_to_url']);
 }
 
 /**
@@ -141,6 +151,22 @@ function http_call(
     return $result;
 }
 // endregion Helper functions
+
+function encode_to_utf8(string $str) : string
+{
+    if (@function_exists('mb_convert_encoding')) {
+        try {
+            return ($conv = @mb_convert_encoding($str, 'UTF-8')) === false ? '' : $conv;
+        } catch (Exception) {
+        }
+    }
+
+    if (@function_exists('utf8_encode')) {
+        return @utf8_encode($str);
+    }
+
+    return $str;
+}
 
 function phs_init_before_bootstrap() : bool
 {
@@ -284,11 +310,6 @@ function generate_guid() : string
     }
 }
 
-/**
- * @param string $ip
- *
- * @return string
- */
 function validate_ip(string $ip) : string
 {
     if (!($ip = trim($ip))) {
@@ -319,9 +340,6 @@ function validate_ip(string $ip) : string
     return $parsed_ip;
 }
 
-/**
- * @return string
- */
 function request_ip() : string
 {
     $guessed_ip = '';

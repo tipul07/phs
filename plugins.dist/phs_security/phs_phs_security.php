@@ -60,7 +60,7 @@ class PHS_Plugin_Phs_security extends PHS_Plugin
     public function plugin_settings_display_security_headers($params) : string
     {
         // Load ekyc instance to make sure ekyc is bootstrapped
-        if (!($headers_lib = $this->get_security_headers_instance())) {
+        if (!($headers_lib = Phs_security_headers::get_instance())) {
             return 'Error rendering settings field.';
         }
 
@@ -69,31 +69,5 @@ class PHS_Plugin_Phs_security extends PHS_Plugin
         $data_arr['current_settings'] = $this->get_plugin_settings();
 
         return $this->quick_render_template_for_buffer('plugin_headers_settings', $data_arr);
-    }
-
-    public function get_security_headers_instance() : ?Phs_security_headers
-    {
-        static $security_headers_lib = null;
-
-        if ($security_headers_lib !== null) {
-            return $security_headers_lib;
-        }
-
-        $this->reset_error();
-
-        $library_params = [];
-        $library_params['full_class_name'] = Phs_security_headers::class;
-        $library_params['as_singleton'] = true;
-
-        /** @var Phs_security_headers $loaded_library */
-        if (!($loaded_library = $this->load_library('phs_security_headers', $library_params))) {
-            $this->set_error_if_not_set(self::ERR_LIBRARY, $this->_pt('Error loading security headers library.'));
-
-            return null;
-        }
-
-        $security_headers_lib = $loaded_library;
-
-        return $loaded_library;
     }
 }

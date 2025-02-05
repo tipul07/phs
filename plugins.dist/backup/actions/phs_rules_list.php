@@ -38,6 +38,13 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
             return action_request_login();
         }
 
+        if (!can($this->_backup_plugin::ROLEU_MANAGE_RULES)
+            && !can($this->_backup_plugin::ROLEU_LIST_RULES)) {
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
+
+            return self::default_action_result();
+        }
+
         return null;
     }
 
@@ -49,13 +56,6 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
         PHS::page_settings('page_title', $this->_pt('Backup Rules List'));
 
         $can_manage_rules = can($this->_backup_plugin::ROLEU_MANAGE_RULES);
-
-        if (!$can_manage_rules
-            && !can($this->_backup_plugin::ROLEU_LIST_RULES)) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-            return null;
-        }
 
         if (!($rules_flow = $this->_paginator_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
          || !($rules_table_name = $this->_paginator_model->get_flow_table_name($rules_flow))) {
@@ -80,19 +80,11 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
             PHS_Notifications::add_success_notice($this->_pt('Backup rule details saved in database.'));
         }
 
-        if (!($statuses_arr = $this->_paginator_model->get_statuses_as_key_val())) {
-            $statuses_arr = [];
-        }
-        if (!($rule_days_arr = $this->_paginator_model->get_rule_days())) {
-            $rule_days_arr = [];
-        }
+        $statuses_arr = $this->_paginator_model->get_statuses_as_key_val() ?: [];
+        $rule_days_arr = $this->_paginator_model->get_rule_days() ?: [];
 
-        if (!empty($statuses_arr)) {
-            $statuses_arr = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $statuses_arr);
-        }
-        if (!empty($rule_days_arr)) {
-            $rule_days_arr = self::merge_array_assoc([-1 => $this->_pt(' - Choose - ')], $rule_days_arr);
-        }
+        $statuses_arr = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $statuses_arr);
+        $rule_days_arr = self::merge_array_assoc([-1 => $this->_pt(' - Choose - ')], $rule_days_arr);
 
         if (isset($statuses_arr[$this->_paginator_model::STATUS_DELETED])) {
             unset($statuses_arr[$this->_paginator_model::STATUS_DELETED]);
@@ -148,7 +140,9 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 'invalid_value'       => $this->_pt('N/A'),
                 'extra_style'         => 'min-width:55px;',
                 'extra_records_style' => 'text-align:center;',
-                'display_callback'    => [$this, 'display_hide_id'],
+                'display_callback'    => function(array $params) : string {
+                    return '';
+                },
             ],
             [
                 'column_title' => $this->_pt('Title'),
@@ -213,10 +207,8 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
             ];
         }
 
-        $url_params = ['p' => 'backup', 'a' => 'rules_list'];
-
         $return_arr = $this->default_paginator_params();
-        $return_arr['base_url'] = PHS::url($url_params);
+        $return_arr['base_url'] = PHS::url(['p' => 'backup', 'a' => 'rules_list']);
         $return_arr['flow_parameters'] = $flow_params;
         $return_arr['bulk_actions'] = $bulk_actions;
         $return_arr['filters_arr'] = $filters_arr;
@@ -232,11 +224,6 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model)
-            && !$this->load_depencies()) {
-            return false;
-        }
-
         $action_result_params = $this->_paginator->default_action_params();
 
         if (empty($action['action'])) {
@@ -250,8 +237,6 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
                 PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
 
                 return true;
-                break;
-
             case 'bulk_activate':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
@@ -358,7 +343,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
 
                     $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
                 } else {
-                    if (count($remaining_ids_arr) != count($scope_arr[$scope_key])) {
+                    if (count($remaining_ids_arr) !== count($scope_arr[$scope_key])) {
                         $action_result_params['action_result'] = 'failed_some';
                     } else {
                         $action_result_params['action_result'] = 'failed';
@@ -417,7 +402,7 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
 
                     $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
                 } else {
-                    if (count($remaining_ids_arr) != count($scope_arr[$scope_key])) {
+                    if (count($remaining_ids_arr) !== count($scope_arr[$scope_key])) {
                         $action_result_params['action_result'] = 'failed_some';
                     } else {
                         $action_result_params['action_result'] = 'failed';
@@ -538,26 +523,15 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_hide_id($params)
+    public function display_backup_rule_when(array $params) : ?string
     {
-        return '';
-    }
-
-    public function display_backup_rule_when($params)
-    {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])) {
-            return false;
+        if (empty($params['record']) || !is_array($params['record'])) {
+            return null;
         }
 
-        if (!($days_arr = $this->_paginator_model->get_rule_days())) {
-            $days_arr = [];
-        }
+        $days_arr = $this->_paginator_model->get_rule_days() ?: [];
 
-        if (!($rule_days_arr = $this->_paginator_model->get_rule_days_as_array($params['record']['id']))) {
-            $rule_days_arr = [];
-        }
+        $rule_days_arr = $this->_paginator_model->get_rule_days_as_array($params['record']['id']) ?: [];
 
         $days_str_arr = [];
         foreach ($rule_days_arr as $day) {
@@ -568,15 +542,11 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
             $days_str_arr[] = $days_arr[$day];
         }
 
-        if (empty($days_str_arr)) {
-            $days_str_arr = '';
-        } else {
-            $days_str_arr = implode(', ', $days_str_arr);
-        }
+        $days_str_arr = $days_str_arr ? implode(', ', $days_str_arr) : '';
 
         $hour_str = '';
         if (isset($params['record']['hour'])) {
-            $hour_str = ($days_str_arr != '' ? ' @' : '').$params['record']['hour'].($params['record']['hour'] < 12 ? 'am' : 'pm');
+            $hour_str = ($days_str_arr !== '' ? ' @' : '').$params['record']['hour'].($params['record']['hour'] < 12 ? 'am' : 'pm');
         }
 
         $delete_str = '';
@@ -587,20 +557,14 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
         return $days_str_arr.$hour_str.$delete_str;
     }
 
-    public function display_backup_rule_where($params)
+    public function display_backup_rule_where(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])) {
-            return false;
+        if (empty($params['record']) || !is_array($params['record'])) {
+            return null;
         }
 
-        if (!($location_arr = $this->_paginator_model->get_location_for_rule($params['record']))) {
-            $location_arr = false;
-        }
-        if (!($location_stats_arr = $this->_paginator_model->get_location_stats_for_rule($params['record']))) {
-            $location_stats_arr = false;
-        }
+        $location_arr = $this->_paginator_model->get_location_for_rule($params['record']) ?: [];
+        $location_stats_arr = $this->_paginator_model->get_location_stats_for_rule($params['record']) ?: [];
 
         $extra_str = '';
         if (empty($location_arr['location_exists'])) {
@@ -611,17 +575,15 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
 
         return '<span title="'.self::_e($location_arr['full_path'] ?? '').'" class="no-title-skinning">'.($location_arr['location_path'] ?? '-').'</span>'
                .$extra_str
-               .(empty($location_stats_arr) ? ''
+               .(!$location_stats_arr ? ''
                 : '<br/>'.$this->_pt('Total: %s, Free: %s', format_filesize($location_stats_arr['total_space'] ?? 0), format_filesize($location_stats_arr['free_space'] ?? 0))
                );
     }
 
-    public function display_backup_rule_what($params)
+    public function display_backup_rule_what(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])) {
-            return false;
+        if (empty($params['record']) || !is_array($params['record'])) {
+            return null;
         }
 
         if (!($targets_arr = $this->_paginator_model->get_targets_as_key_val())) {
@@ -641,31 +603,18 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
             $targets_str_arr[] = $targets_arr[$target_id];
         }
 
-        if (empty($targets_str_arr)) {
-            $targets_str_arr = $this->_pt('N/A');
-        } else {
-            $targets_str_arr = implode(', ', $targets_str_arr);
-        }
-
-        return $targets_str_arr;
+        return $targets_str_arr ? implode(', ', $targets_str_arr) : $this->_pt('N/A');
     }
 
-    public function display_actions($params)
+    public function display_actions(array $params) : ?string
     {
-        if (empty($this->_paginator_model)
-            && !$this->load_depencies()) {
-            return false;
-        }
-
         if (!can($this->_backup_plugin::ROLEU_MANAGE_RULES)) {
             return '-';
         }
 
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || !($rule_arr = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
 
         $is_inactive = $this->_paginator_model->is_inactive($rule_arr);

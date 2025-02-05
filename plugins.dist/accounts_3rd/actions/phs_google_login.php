@@ -11,6 +11,7 @@ use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\plugins\accounts_3rd\libraries\Google;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd;
 use phs\system\core\events\actions\PHS_Event_Action_after;
@@ -45,7 +46,7 @@ class PHS_Action_Google_login extends PHS_Action
 
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
             || !($accounts_trd_plugin = PHS_Plugin_Accounts_3rd::get_instance())
-            || !($google_lib = $accounts_trd_plugin->get_google_instance())
+            || !($google_lib = Google::get_instance())
             || !($accounts_model = PHS_Model_Accounts::get_instance())
             || !($services_model = PHS_Model_Accounts_services::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));

@@ -1,6 +1,7 @@
 *
 !_phs_base
 !phs_reactjs
+!default.dist
 !phs_vue
 !.gitignore
 !.htaccess

@@ -148,7 +148,7 @@ trait PHS_Export_import
         /** @var PHS_Model_Plugins $plugins_model */
         /** @var Phs_Plugin_settings $plugin_settings_lib */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
-            || !($plugin_settings_lib = $admin_plugin->get_plugin_settings_instance())
+            || !($plugin_settings_lib = Phs_Plugin_settings::get_instance())
             || !($plugins_model = PHS_Model_Plugins::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
@@ -255,7 +255,7 @@ trait PHS_Export_import
 
         /** @var PHS_Plugin_Admin $admin_plugin */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
-            || !($plugin_settings_lib = $admin_plugin->get_plugin_settings_instance())) {
+            || !($plugin_settings_lib = Phs_Plugin_settings::get_instance())) {
             $this->set_error_if_not_set(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
             return false;

@@ -61,9 +61,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         }
 
         if (!$this->_load_dependencies()) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
-            }
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
 
             PHS_Notifications::add_error_notice($this->get_error_message());
 
@@ -138,11 +136,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
             ];
         }
 
-        $action_result = self::default_action_result();
-
-        $action_result['ajax_result'] = $ajax_result;
-
-        return $action_result;
+        return $this->send_ajax_response($ajax_result);
     }
 
     public function autocomplete_params($key = null, $val = null)
@@ -336,12 +330,8 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         return !empty($action_result['buffer']) ? $action_result['buffer'] : '';
     }
 
-    public function autocomplete_inputs($data)
+    public function autocomplete_inputs(array $data)
     {
-        if (empty($data) || !is_array($data)) {
-            $data = [];
-        }
-
         if (($params_arr = $this->autocomplete_params())
          && is_array($params_arr)) {
             foreach ($params_arr as $key => $val) {
@@ -356,7 +346,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         return !empty($action_result['buffer']) ? $action_result['buffer'] : '';
     }
 
-    private function _load_dependencies()
+    private function _load_dependencies() : bool
     {
         $this->reset_error();
 
@@ -375,13 +365,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         return true;
     }
 
-    /**
-     * @param string $str
-     * @param string $term
-     *
-     * @return string
-     */
-    private function _highlight_data($str, $term)
+    private function _highlight_data(?string $str, string $term) : string
     {
         if (empty($term)) {
             return $str;

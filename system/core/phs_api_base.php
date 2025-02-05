@@ -1015,7 +1015,7 @@ abstract class PHS_Api_base extends PHS_Registry
     }
 
     /**
-     * @return array{api_obj: null|\phs\PHS_Api_base, api_route: null|array, phs_route: null|array}
+     * @return array{api_obj: null|PHS_Api_base, api_route: null|array, phs_route: null|array}
      */
     public static function default_api_authentication_callback_params() : array
     {
@@ -1027,7 +1027,7 @@ abstract class PHS_Api_base extends PHS_Registry
     }
 
     /**
-     * @return array{api_obj: null|\phs\PHS_Api_base, api_route: null|array, phs_route: null|array}
+     * @return array{api_obj: null|PHS_Api_base, api_route: null|array, phs_route: null|array}
      */
     public static function default_api_authentication_callback_response() : array
     {

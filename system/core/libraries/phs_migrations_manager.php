@@ -3,6 +3,7 @@ namespace phs\system\core\libraries;
 
 use phs\PHS;
 use phs\PHS_Bg_jobs;
+use ReflectionClass;
 use phs\PHS_Maintenance;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Plugin;
@@ -399,7 +400,7 @@ class PHS_Migrations_manager extends PHS_Library
         }
 
         try {
-            if (!($reflection = new \ReflectionClass($class_name))) {
+            if (!($reflection = new ReflectionClass($class_name))) {
                 $this->set_error(self::ERR_PARAMETERS, self::_t('Error checking class %s.', $class_name));
 
                 return null;

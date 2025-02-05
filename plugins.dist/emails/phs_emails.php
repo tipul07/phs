@@ -3,7 +3,6 @@ namespace phs\plugins\emails;
 
 use phs\PHS;
 use phs\PHS_Crypt;
-use phs\libraries\PHS_Error;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
@@ -96,7 +95,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
     public function save_settings_routes(array $params) : ?array
     {
-        if (empty($params)) {
+        if (!$params) {
             return null;
         }
 
@@ -660,29 +659,10 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $hook_args;
     }
 
-    public function get_new_smtp_instance() : ?PHS_Smtp
-    {
-        $library_params = [];
-        $library_params['full_class_name'] = PHS_Smtp::class;
-        $library_params['as_singleton'] = false;
-
-        /** @var PHS_Smtp $loaded_library */
-        if (!($loaded_library = $this->load_library('phs_smtp', $library_params))) {
-            $this->set_error_if_not_set(self::ERR_LIBRARY, $this->_pt('Error loading SMTP library.'));
-
-            return null;
-        }
-
-        return $loaded_library;
-    }
-
-    /**
-     * @param false|array $instance_details
-     */
-    protected function _do_construct($instance_details = false) : void
+    protected function _do_construct(array $instance_details = []) : void
     {
         parent::_do_construct($instance_details);
-        $this->smtp_library = $this->get_new_smtp_instance();
+        $this->smtp_library = PHS_Smtp::get_instance();
     }
 
     private function _send_email_smtp(array $hook_args) : array
@@ -702,7 +682,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             return $hook_args;
         }
 
-        if (!($smtp_library = $this->get_new_smtp_instance())) {
+        if (!($smtp_library = PHS_Smtp::get_instance())) {
             $this->set_error_if_not_set(self::ERR_LIBRARY, $this->_pt('Error loading SMTP library.'));
 
             $hook_args['hook_errors'] = self::arr_set_error(self::ERR_SEND, $this->_pt('Error loading SMTP library.'));

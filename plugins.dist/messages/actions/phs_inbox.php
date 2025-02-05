@@ -2,7 +2,6 @@
 namespace phs\plugins\messages\actions;
 
 use phs\PHS;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\libraries\PHS_Action_Generic_list;

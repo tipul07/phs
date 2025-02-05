@@ -20,7 +20,7 @@ class PHS_Db_mongo extends PHS_Db_class
     public const DEFAULT_CONNECTION_NAME = '@def_mongo_connection@';
 
     // ! Last created manager object
-    /** @var bool|\MongoDB\Driver\Manager[] */
+    /** @var bool|Manager[] */
     private $managers_obj;
 
     private $last_errors_arr;

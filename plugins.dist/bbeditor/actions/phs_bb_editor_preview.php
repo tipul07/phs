@@ -3,10 +3,10 @@ namespace phs\plugins\bbeditor\actions;
 
 use phs\PHS;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\bbeditor\libraries\Bbcode;
 
 class PHS_Action_Bb_editor_preview extends PHS_Action
 {
@@ -34,7 +34,7 @@ class PHS_Action_Bb_editor_preview extends PHS_Action
             return $action_result;
         }
 
-        if (!($bbcode_obj = $bbeditor_plugin->get_bbcode_instance())) {
+        if (!($bbcode_obj = Bbcode::get_instance())) {
             $action_result['buffer'] = $this->_pt('Couldn\'t load BB code library.');
 
             return $action_result;

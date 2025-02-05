@@ -103,6 +103,25 @@ trait PHS_Trait_Has_relations
         return true;
     }
 
+    public function relation_dynamic(
+        string $key,
+        ?Closure $read_fn = null,
+        ?array $source_flow = [], string $source_key = '',
+        array $options = [],
+    ) : bool {
+        if (!($this instanceof PHS_Model_Core_base)
+            || !empty($this->_relations[$key])) {
+            return false;
+        }
+
+        $this->_relations[$key] = new PHS_Relation(
+            $key, type: PHS_Relation::DYNAMIC,
+            source_flow: $source_flow, source_key: $source_key, source_model: $this,
+            read_fn: $read_fn, options: $options);
+
+        return true;
+    }
+
     public function relations() : array
     {
         return $this->_relations;
@@ -122,7 +141,7 @@ trait PHS_Trait_Has_relations
             return;
         }
 
-        $record_data[$relation_key] = $relation->load_relation_result($record_data[$record_key]);
+        $record_data[$relation_key] = $relation->load_relation_result($record_data[$record_key], $record_data);
     }
 
     public function load_relations(PHS_Record_data $record_data, array $relations_key) : void

@@ -2,17 +2,11 @@
 namespace phs\plugins\phs_libs;
 
 use phs\PHS;
-use phs\PHS_Api;
 use phs\PHS_Crypt;
-use phs\libraries\PHS_Hooks;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
-use phs\system\core\models\PHS_Model_Plugins;
 use phs\plugins\phs_libs\libraries\Phs_qr_code;
-use phs\plugins\accounts\models\PHS_Model_Accounts;
-use phs\system\core\events\layout\PHS_Event_Template;
 
 class PHS_Plugin_Phs_libs extends PHS_Plugin
 {
@@ -49,43 +43,6 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
         ];
     }
 
-    /**
-     * Returns an instance of QR code library
-     *
-     * @return null|Phs_qr_code
-     */
-    public function get_qr_code_instance() : ?Phs_qr_code
-    {
-        static $qr_code_library = null;
-
-        if ($qr_code_library !== null) {
-            return $qr_code_library;
-        }
-
-        $library_params = [];
-        $library_params['full_class_name'] = Phs_qr_code::class;
-        $library_params['as_singleton'] = true;
-
-        /** @var Phs_qr_code $loaded_library */
-        if (!($loaded_library = $this->load_library('phs_qr_code', $library_params))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading QR code library.'));
-            }
-
-            return null;
-        }
-
-        if ($loaded_library->has_error()) {
-            $this->copy_error($loaded_library, self::ERR_LIBRARY);
-
-            return null;
-        }
-
-        $qr_code_library = $loaded_library;
-
-        return $qr_code_library;
-    }
-
     public function get_qr_code_path(bool $slash_ended = true) : string
     {
         return rtrim(PHS_UPLOADS_DIR, '/').'/'.self::QR_DIR.(!empty($slash_ended) ? '/' : '');
@@ -100,12 +57,8 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
     {
         $this->reset_error();
 
-        if (empty($crypted_data)) {
-            if (empty($from) || !is_string($from)) {
-                $from = 'g';
-            }
-
-            $from = strtolower($from);
+        if (!$crypted_data) {
+            $from = strtolower($from ?: 'g');
 
             switch ($from) {
                 case 'gp':
@@ -124,7 +77,7 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
             }
         }
 
-        if (empty($crypted_data)
+        if (!$crypted_data
             || !($decrypted_param = PHS_Crypt::quick_decode($crypted_data))
             || !($parts_arr = @json_decode($decrypted_param, true))
             || count($parts_arr) !== 5
@@ -172,9 +125,7 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
         $this->reset_error();
 
         if (!($token = $this->_generate_qr_code_img_url_token($url, $options))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error obtaining QR code image token.'));
-            }
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error obtaining QR code image token.'));
 
             return null;
         }
@@ -193,11 +144,16 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
     {
         $this->reset_error();
 
-        if (!($libs_obj = $this->get_qr_code_instance())) {
-            PHS_Logger::error('Error loading required resources while trying to clean QR codes directory.',
-                self::LOG_QR_CODE);
+        if (!($libs_obj = Phs_qr_code::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
-            return true;
+            return false;
+        }
+
+        if (!$this->_create_qr_code_folder()) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error creating QR code folder.'));
+
+            return false;
         }
 
         $qr_code_path = $this->get_qr_code_path();
@@ -249,9 +205,7 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
         $this->reset_error();
 
         if (!$this->_create_qr_code_folder()) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_ACTIVATE, $this->_pt('Error creating QR code folder.'));
-            }
+            $this->set_error_if_not_set(self::ERR_ACTIVATE, $this->_pt('Error creating QR code folder.'));
 
             return false;
         }
@@ -304,7 +258,7 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
         $this->reset_error();
 
         if (!($qr_code_dir = $this->get_qr_code_path(false))) {
-            $this->set_error(self::ERR_ACTIVATE, $this->_pt('Error obtaining temporary upload directory path.'));
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error obtaining temporary upload directory path.'));
 
             return false;
         }
@@ -312,7 +266,7 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
         if (@file_exists($qr_code_dir)) {
             if (!@is_dir($qr_code_dir)
                 || !@is_writable($qr_code_dir)) {
-                $this->set_error(self::ERR_ACTIVATE,
+                $this->set_error(self::ERR_RIGHTS,
                     $this->_pt('QR code directory is not a directory or is not writeable.'));
 
                 return false;
@@ -324,7 +278,7 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
         if (!@mkdir($qr_code_dir, 0775)
             && !@is_dir($qr_code_dir)
         ) {
-            $this->set_error(self::ERR_ACTIVATE, $this->_pt('Error creating QR code directory.'));
+            $this->set_error(self::ERR_RIGHTS, $this->_pt('Error creating QR code directory.'));
 
             return false;
         }

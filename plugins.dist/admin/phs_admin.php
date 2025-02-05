@@ -7,16 +7,14 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
-use phs\plugins\admin\libraries\Phs_Data_retention;
 use phs\system\core\events\layout\PHS_Event_Layout;
-use phs\plugins\admin\libraries\Phs_Plugin_settings;
 use phs\system\core\events\layout\PHS_Event_Template;
 
 class PHS_Plugin_Admin extends PHS_Plugin
 {
     public const H_ADMIN_LEFT_MENU_ADMIN_AFTER_USERS = 'phs_admin_left_menu_admin_after_users';
 
-    public const LOG_API_MONITOR = 'api_monitor.log', LOG_DATA_RETENTION = 'phs_data_retention.log';
+    public const LOG_API_MONITOR = 'api_monitor.log', LOG_DATA_RETENTION = 'phs_data_retention.log', LOG_PAGINATOR = 'phs_paginator.log';
 
     public const LOG_ROTATE_DAILY = 1, LOG_ROTATE_WEEKELY = 2, LOG_ROTATE_MONTHLY = 3, LOG_ROTATE_YEARLY = 4;
 
@@ -687,53 +685,5 @@ class PHS_Plugin_Admin extends PHS_Plugin
         }
 
         return true;
-    }
-
-    public function get_data_retention_instance() : ?Phs_Data_retention
-    {
-        static $data_retention_library = null;
-
-        if ($data_retention_library !== null) {
-            return $data_retention_library;
-        }
-
-        $library_params = [];
-        $library_params['full_class_name'] = Phs_Data_retention::class;
-        $library_params['as_singleton'] = true;
-
-        /** @var Phs_Data_retention $loaded_library */
-        if (!($loaded_library = $this->load_library('phs_data_retention', $library_params))) {
-            $this->set_error_if_not_set(self::ERR_LIBRARY, $this->_pt('Error loading data retention library.'));
-
-            return null;
-        }
-
-        $data_retention_library = $loaded_library;
-
-        return $data_retention_library;
-    }
-
-    public function get_plugin_settings_instance() : ?Phs_Plugin_settings
-    {
-        static $plugin_settings_library = null;
-
-        if ($plugin_settings_library !== null) {
-            return $plugin_settings_library;
-        }
-
-        $library_params = [];
-        $library_params['full_class_name'] = Phs_Plugin_settings::class;
-        $library_params['as_singleton'] = true;
-
-        /** @var Phs_Plugin_settings $loaded_library */
-        if (!($loaded_library = $this->load_library('phs_plugin_settings', $library_params))) {
-            $this->set_error_if_not_set(self::ERR_LIBRARY, $this->_pt('Error loading plugin settings library.'));
-
-            return null;
-        }
-
-        $plugin_settings_library = $loaded_library;
-
-        return $plugin_settings_library;
     }
 }

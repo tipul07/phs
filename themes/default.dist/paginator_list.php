@@ -1,9 +1,11 @@
 <?php
-/** @var phs\system\core\views\PHS_View $this */
 
 use phs\PHS_Scope;
+use phs\libraries\PHS_Paginator;
+use phs\system\core\views\PHS_View;
 
-/** @var phs\libraries\PHS_Paginator $paginator_obj */
+/** @var PHS_View $this */
+/** @var PHS_Paginator $paginator_obj */
 if (!($paginator_obj = $this->view_var('paginator'))) {
     echo $this::_t('Rendered from outside of paginator.');
 
@@ -18,6 +20,8 @@ $full_filters_url = $paginator_obj->get_full_url() ?: '#';
 $flow_params_arr = $paginator_obj->flow_params() ?: $paginator_obj->default_flow_params();
 
 $pagination_arr = $paginator_obj->pagination_params() ?: $paginator_obj->default_pagination_params();
+
+$pagination_arr['page'] = (int)($pagination_arr['page'] ?? 0);
 
 $listing_form_name = $paginator_obj->get_listing_form_name() ?: $flow_params_arr['form_prefix'].'paginator_list_form';
 $bulk_select_name = $paginator_obj->get_bulk_action_select_name() ?: '';
@@ -72,32 +76,33 @@ if ($is_api_scope) {
 
 	<?php
 
-    if (!empty($bulk_actions)
-     && !empty($bulk_select_name)
-     && (!empty($flow_params_arr['display_top_bulk_actions'])
-            || !empty($flow_params_arr['display_bottom_bulk_actions']))) {
-        $json_actions = [];
-        $bulk_top_actions_arr = [];
-        $bulk_bottom_actions_arr = [];
-        foreach ($bulk_actions as $action) {
-            if (empty($action) || !is_array($action)) {
-                continue;
-            }
+    $json_actions = [];
+$bulk_top_actions_arr = [];
+$bulk_bottom_actions_arr = [];
 
-            if (!empty($action['display_in_top'])) {
-                $bulk_top_actions_arr[] = $action;
-            }
-            if (!empty($action['display_in_bottom'])) {
-                $bulk_bottom_actions_arr[] = $action;
-            }
-
-            $json_actions[$action['action']] = $action;
+if (!empty($bulk_actions)
+ && !empty($bulk_select_name)
+ && (!empty($flow_params_arr['display_top_bulk_actions'])
+        || !empty($flow_params_arr['display_bottom_bulk_actions']))) {
+    foreach ($bulk_actions as $action) {
+        if (empty($action) || !is_array($action)) {
+            continue;
         }
 
-        // display js functionality for bulk actions
-        ?>
+        if (!empty($action['display_in_top'])) {
+            $bulk_top_actions_arr[] = $action;
+        }
+        if (!empty($action['display_in_bottom'])) {
+            $bulk_bottom_actions_arr[] = $action;
+        }
+
+        $json_actions[$action['action']] = $action;
+    }
+
+    // display js functionality for bulk actions
+    ?>
 		<script type="text/javascript">
-		var phs_paginator_bulk_actions = <?php echo @json_encode($json_actions); ?>;
+		let phs_paginator_bulk_actions = <?php echo @json_encode($json_actions); ?>;
 
 		function submit_bulk_action( area )
 		{
@@ -105,7 +110,7 @@ if ($is_api_scope) {
                 return false;
             }
 
-			var bulk_select_obj = $('#<?php echo $bulk_select_name; ?>' + area);
+            let bulk_select_obj = $('#<?php echo $bulk_select_name; ?>' + area);
 			if( !bulk_select_obj ) {
                 return false;
             }
@@ -116,13 +121,12 @@ if ($is_api_scope) {
 		function submit_bulk_action_with_name( bulk_action )
 		{
 			if( !bulk_action
-                || !(bulk_action in phs_paginator_bulk_actions) )
-			{
+                || !(bulk_action in phs_paginator_bulk_actions) ) {
 				alert( '<?php echo $this::_e('Please choose an action first.', '\''); ?>' );
 				return false;
 			}
 
-			var action_func = false;
+            let action_func = null;
 			if( typeof phs_paginator_bulk_actions !== "undefined"
 			 && typeof phs_paginator_bulk_actions[bulk_action] !== "undefined"
 			 && typeof phs_paginator_bulk_actions[bulk_action]["js_callback"] !== "undefined" ) {
@@ -138,7 +142,7 @@ if ($is_api_scope) {
 		}
 		</script>
 		<?php
-    }
+}
 
 if (!empty($flow_params_arr['display_top_bulk_actions'])
  && !empty($bulk_select_name)
@@ -146,7 +150,7 @@ if (!empty($flow_params_arr['display_top_bulk_actions'])
     $select_name = $bulk_select_name.'top';
     $select_with_action = (!empty($flow_params_arr['bulk_action_area']) && $flow_params_arr['bulk_action_area'] === 'top');
 
-    if (empty($bulk_top_actions_arr)) {
+    if (!$bulk_top_actions_arr) {
         ?><input type="hidden" name="<?php echo $select_name; ?>" id="<?php echo $select_name; ?>" value="" /><?php
     } else {
         ?><div style="margin-bottom:5px;float:left;">
@@ -458,8 +462,8 @@ if (!$is_api_scope
     $url_without_page = exclude_params($full_filters_url, [$page_var_name]);
 
     // Display pages...
-    $left_pages_no = (!empty($pagination_arr['left_pages_no']) ? $pagination_arr['left_pages_no'] : 10);
-    $right_pages_no = (!empty($pagination_arr['right_pages_no']) ? $pagination_arr['right_pages_no'] : 10);
+    $left_pages_no = (int)($pagination_arr['left_pages_no'] ?? 10);
+    $right_pages_no = (int)($pagination_arr['right_pages_no'] ?? 10);
 
     $left_start = 0;
     $right_end = $pagination_arr['max_pages'];
@@ -483,7 +487,7 @@ if (!$is_api_scope
     }
 
     for ($knti = $left_start; $knti < $right_end; $knti++) {
-        if ($knti == $pagination_arr['page']) {
+        if ($knti === $pagination_arr['page']) {
             echo ' <strong>'.($knti + 1).'</strong> ';
         } else {
             echo ' <a href="'.add_url_params($url_without_page, [$page_var_name => $knti]).'">'.($knti + 1).'</a> ';
@@ -593,10 +597,8 @@ if (!$is_api_scope
 <div class="clearfix"></div>
 <?php
 if (!function_exists('phs_paginator_display_js_functionality')) {
-    function phs_paginator_display_js_functionality($this_object, $paginator_obj)
+    function phs_paginator_display_js_functionality(PHS_View $this_object, PHS_Paginator $paginator_obj) : void
     {
-        /** @var phs\libraries\PHS_Paginator $paginator_obj */
-        /** @var phs\system\core\views\PHS_View $this_object */
         static $js_displayed = false;
 
         if (empty($js_displayed)) {
@@ -614,7 +616,7 @@ if (!function_exists('phs_paginator_display_js_functionality')) {
 
                 checkbox_all_obj.closest( "form" ).find( "input:checkbox" ).each( function()
                 {
-                    var my_name = $( this ).attr( "name" );
+                    let my_name = $( this ).attr( "name" );
 
                     if( my_name === checkbox_name + "[]" )
                     {
@@ -651,24 +653,24 @@ if (!function_exists('phs_paginator_display_js_functionality')) {
                 let action_display_name = "[Not defined]";
                 if( typeof phs_paginator_bulk_actions !== "undefined"
                  && typeof phs_paginator_bulk_actions[action] !== "undefined"
-                 && typeof phs_paginator_bulk_actions[action]["display_name"] !== "undefined" )
+                 && typeof phs_paginator_bulk_actions[action]["display_name"] !== "undefined" ) {
                     action_display_name = phs_paginator_bulk_actions[action]['display_name'];
+                }
 
                 let selected_records = -1;
                 let checkboxes_list = [];
                 if( typeof phs_paginator_bulk_actions !== "undefined"
                  && typeof phs_paginator_bulk_actions[action] !== "undefined"
                  && typeof phs_paginator_bulk_actions[action]["checkbox_column"] !== "undefined"
-                 && (checkboxes_list = phs_paginator_get_checkboxes_checked( phs_paginator_bulk_actions[action]["checkbox_column"] )) )
+                 && (checkboxes_list = phs_paginator_get_checkboxes_checked( phs_paginator_bulk_actions[action]["checkbox_column"] )) ) {
                     selected_records = checkboxes_list.length;
+                }
 
                 let confirm_text = "";
                 if( selected_records === -1 ) {
                     confirm_text = "<?php echo sprintf($this_object::_e('Are you sure you want to run action %s?', '"'),
                         '" + action_display_name + "'); ?>";
-                }
-
-                else {
+                } else {
                     if( selected_records <= 0 ) {
                         alert( "<?php echo sprintf($this_object::_e('Please select records for which you want to run action %s first.', '"'),
                             '" + action_display_name + "'); ?>" );
@@ -709,6 +711,16 @@ if (!function_exists('phs_paginator_display_js_functionality')) {
 
                 return checkboxes_checked;
             }
+
+            function phs_paginator_get_checkboxes_checked_count(column)
+            {
+                let checkboxes_list = phs_paginator_get_checkboxes_checked(column);
+                if( !checkboxes_list || !checkboxes_list.length ) {
+                    return 0;
+                }
+
+                return checkboxes_list.length;
+            }
             </script>
             <?php
         }
@@ -716,6 +728,11 @@ if (!function_exists('phs_paginator_display_js_functionality')) {
 }
 if (!$is_api_scope) {
     phs_paginator_display_js_functionality($this, $paginator_obj);
+
+    if ($paginator_obj->has_export_bulk_actions()) {
+        echo $this->sub_view('ractive/bootstrap');
+        echo $this->sub_view('paginator_export');
+    }
 
     if (!empty($flow_params_arr['after_full_list_callback'])
         && is_callable($flow_params_arr['after_full_list_callback'])) {

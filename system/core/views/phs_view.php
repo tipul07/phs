@@ -366,7 +366,7 @@ class PHS_View extends PHS_Instantiable
         return $subview_buffer;
     }
 
-    public function get_all_view_vars()
+    public function get_all_view_vars() : array
     {
         return $this->get_context(self::VIEW_CONTEXT_DATA_KEY) ?: [];
     }
@@ -380,11 +380,7 @@ class PHS_View extends PHS_Instantiable
      */
     public function view_var(string $key) : mixed
     {
-        if (!($_VIEW_CONTEXT = $this->get_context(self::VIEW_CONTEXT_DATA_KEY))) {
-            return null;
-        }
-
-        return $_VIEW_CONTEXT[$key] ?? null;
+        return $this->get_context(self::VIEW_CONTEXT_DATA_KEY)[$key] ?? null;
     }
 
     final public function set_view_var(string | array $key, mixed $val = null) : bool

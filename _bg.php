@@ -10,9 +10,8 @@ header('Cache-Control: post-check=0, pre-check=0', false);
 
 header('Pragma: no-cache');
 
-define('PHS_PREVENT_SESSION', true);
-
-define('PHS_SCRIPT_SCOPE', 'background');
+const PHS_PREVENT_SESSION = true;
+const PHS_SCRIPT_SCOPE = 'background';
 
 include_once 'main.php';
 
@@ -23,13 +22,7 @@ use phs\libraries\PHS_Logger;
 
 PHS_Logger::notice(' --- Started bg job...', PHS_Logger::TYPE_BACKGROUND);
 
-$input = '';
-
-if (!empty($_SERVER['argv']) && is_array($_SERVER['argv']) && !empty($_SERVER['argv'][1])) {
-    $input = $_SERVER['argv'][1];
-}
-
-if (!($parsed_input = PHS_Bg_jobs::bg_validate_input($input))
+if (!($parsed_input = PHS_Bg_jobs::bg_validate_input($_SERVER['argv'][1] ?? ''))
  || empty($parsed_input['job_data'])) {
     PHS_Logger::error('INVALID job input.', PHS_Logger::TYPE_BACKGROUND);
     exit;
@@ -37,11 +30,7 @@ if (!($parsed_input = PHS_Bg_jobs::bg_validate_input($input))
 
 $job_arr = $parsed_input['job_data'];
 
-$run_job_extra = [];
-
-$run_job_extra['bg_jobs_model'] = (!empty($parsed_input['bg_jobs_model']) ? $parsed_input['bg_jobs_model'] : false);
-
-if (!($action_result = PHS_Bg_jobs::bg_run_job($job_arr, $run_job_extra))) {
+if (!($action_result = PHS_Bg_jobs::bg_run_job($job_arr))) {
     PHS_Logger::error('Error running job [#'.$job_arr['id'].'] ('.$job_arr['route'].')', PHS_Logger::TYPE_BACKGROUND);
     PHS_Logger::error('Job error: '.PHS_Bg_jobs::st_get_error_message(PHS_Bg_jobs::_t('Unknown error.')), PHS_Logger::TYPE_BACKGROUND);
 } elseif (($debug_data = PHS::platform_debug_data())) {
