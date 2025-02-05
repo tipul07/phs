@@ -326,7 +326,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
             return $hook_args;
         }
 
-        if (!$this->sendgrid_library
+        if (!$this->_get_sendgrid_library()
             || !($email_obj = $this->sendgrid_library->get_sendgrid_instance())) {
             $this->set_error(self::ERR_SEND, $this->_pt('Error loading SendGrid library.'));
 
@@ -467,20 +467,11 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         return $hook_args;
     }
 
-    protected function _do_construct(array $instance_details = []) : void
+    private function _get_sendgrid_library() : ?PHS_Sendgrid
     {
-        parent::_do_construct($instance_details);
-        $this->_load_dependencies();
-    }
+        $this->sendgrid_library ??= PHS_Sendgrid::get_instance(as_singleton: false);
 
-    private function _load_dependencies() : void
-    {
-        $this->reset_error();
-
-        if (!($this->sendgrid_library = PHS_Sendgrid::get_instance(as_singleton: false))) {
-            $this->copy_or_set_static_error(self::ERR_LIBRARY, $this->_pt('Error loading SendGrid library.'));
-            $this->sendgrid_library = null;
-        }
+        return $this->sendgrid_library;
     }
 
     public static function default_file_attachment() : array
