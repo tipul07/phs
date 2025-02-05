@@ -99,30 +99,23 @@ class PHS_Firebase extends PHS_Library
         return $this->_api_params;
     }
 
-    public function can_connect()
+    public function can_connect() : bool
     {
         return !(empty($this->_api_settings['fcm_base_url']) || empty($this->_api_settings['fcm_auth_key']));
     }
 
-    /**
-     * @param string|array $token
-     * @param array $payload_arr
-     * @param bool|array $envelope_arr
-     *
-     * @return bool|mixed
-     */
-    public function send_notification($token, $payload_arr, $envelope_arr = false)
+    public function send_notification(string | array $token, array $payload_arr, array $envelope_arr = []) : ?array
     {
         $this->reset_error();
 
-        if (empty($payload_arr) || !is_array($payload_arr)
+        if (!$payload_arr
          || (
              (empty($payload_arr['data']) || !is_array($payload_arr['data']))
              && (empty($payload_arr['notification']) || !is_array($payload_arr['notification']))
          )) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Please provide data and/or notification in payload.'));
 
-            return false;
+            return null;
         }
 
         if (is_string($token)) {
@@ -130,25 +123,21 @@ class PHS_Firebase extends PHS_Library
         } elseif (!is_array($token)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Please provide a device token or an array of tokens.'));
 
-            return false;
+            return null;
         } else {
             // Array of tokens
             $token = self::extract_strings_from_array($token, ['trim_parts' => true, 'dump_empty_parts' => true]);
             if (count($token) > self::MAX_TOKENS_IN_NOTIFICATION) {
                 $this->set_error(self::ERR_PARAMETERS, $this->_pt('You can provide up to %s tokens for a notification.', self::MAX_TOKENS_IN_NOTIFICATION));
 
-                return false;
+                return null;
             }
         }
 
-        if (empty($token)) {
+        if (!$token) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Please provide a device token or an array of device tokens.'));
 
-            return false;
-        }
-
-        if (empty($envelope_arr) || !is_array($envelope_arr)) {
-            $envelope_arr = [];
+            return null;
         }
 
         $this->_api_params('rest_url', 'fcm/send/');
@@ -169,12 +158,10 @@ class PHS_Firebase extends PHS_Library
         }
 
         if (!($api_response = $this->_do_call($full_payload_arr))
-         || empty($api_response['json_response_arr'])) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error sending notification using Firebase.'));
-            }
+            || empty($api_response['json_response_arr'])) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error sending notification using Firebase.'));
 
-            return false;
+            return null;
         }
 
         return $api_response['json_response_arr'];

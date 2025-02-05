@@ -405,21 +405,15 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      */
     public function resolve_idler_sessions() : bool
     {
-        // preserve previous errors...
         $prev_errors = $this->stack_all_errors();
 
-        /** @var PHS_Model_Accounts $accounts_model */
-        if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
-            $this->restore_errors($prev_errors);
-
-            return false;
-        }
-
+        $online_db_data = null;
         // If current request doesn't have a session ID which means it's a logged-in user, there's no use in cleaning old sessions...
-        if (!($online_db_data = $this->_get_current_session_data(['accounts_model' => $accounts_model]))
-         || seconds_passed($online_db_data['idle']) < self::IDLERS_GC_SECONDS) {
-            if (!empty($online_db_data)) {
-                $accounts_model->update_current_session($online_db_data);
+        if (!$this->_load_dependencies()
+            || !($online_db_data = $this->_get_current_session_data())
+            || seconds_passed($online_db_data['idle']) < self::IDLERS_GC_SECONDS) {
+            if ($online_db_data) {
+                $this->_accounts_model->update_current_session($online_db_data);
             }
 
             $this->restore_errors($prev_errors);
@@ -427,17 +421,17 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return true;
         }
 
-        $accounts_model->clear_idler_sessions();
+        $this->_accounts_model->clear_idler_sessions();
 
-        // if session expired refresh cached session data...
+        // if session expired, refresh cached session data...
         if (parse_db_date($online_db_data['expire_date']) < time()
-         && !($online_db_data = $this->_get_current_session_data(['force' => true, 'accounts_model' => $accounts_model]))) {
+            && !($online_db_data = $this->_get_current_session_data(['force' => true]))) {
             $this->restore_errors($prev_errors);
 
             return true;
         }
 
-        $accounts_model->update_current_session($online_db_data);
+        $this->_accounts_model->update_current_session($online_db_data);
 
         $this->restore_errors($prev_errors);
 
@@ -967,7 +961,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
                 return $hook_args;
             }
         } else {
-            if (!($online_db_details = $this->_get_current_session_data(['accounts_model' => $accounts_model, 'force' => $hook_args['force_check']]))) {
+            if (!($online_db_details = $this->_get_current_session_data(['force' => $hook_args['force_check']]))) {
                 $hook_args['session_db_data'] = $accounts_model->get_empty_data(['table_name' => 'online']);
                 $hook_args['user_db_data'] = $this->get_empty_account_structure();
 
@@ -1782,17 +1776,26 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         $params['force'] = !empty($params['force']);
 
-        if (!empty($online_db_details)
+        if ($online_db_details
             && empty($params['force'])) {
             return $online_db_details;
         }
 
-        /** @var PHS_Model_Accounts $accounts_model */
-        $accounts_model = $params['accounts_model'] ?? PHS_Model_Accounts::get_instance();
+        if (!$this->_load_dependencies()) {
+            return null;
+        }
 
-        if (empty($accounts_model)
-            || !($skey_value = PHS_Session::_g(self::session_key()))
-            || !($online_db_details = $accounts_model->get_details_fields(['wid' => $skey_value], ['table_name' => 'online']))) {
+        $db_check_arr = [];
+        if (PHS_Scope::current_scope() === PHS_Scope::SCOPE_BACKGROUND) {
+            if (($session_id = PHS::current_user_force_session_id_for_bg())) {
+                $db_check_arr['id'] = $session_id;
+            }
+        } elseif (($skey_value = PHS_Session::_g(self::session_key()))) {
+            $db_check_arr['wid'] = $skey_value;
+        }
+
+        if (!$db_check_arr
+            || !($online_db_details = $this->_accounts_model->get_details_fields($db_check_arr, ['table_name' => 'online']))) {
             return null;
         }
 
@@ -1850,9 +1853,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $qid;
     }
 
-    /**
-     * @return bool
-     */
     private function _create_required_directories() : bool
     {
         $this->reset_error();

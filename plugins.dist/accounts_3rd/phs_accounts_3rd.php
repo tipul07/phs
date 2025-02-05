@@ -4,6 +4,8 @@ namespace phs\plugins\accounts_3rd;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
+use phs\plugins\accounts_3rd\libraries\Apple;
+use phs\plugins\accounts_3rd\libraries\Google;
 
 class PHS_Plugin_Accounts_3rd extends PHS_Plugin
 {
@@ -14,7 +16,7 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
     public const H_ACCOUNTS_3RD_REGISTER_BUFFER = 'phs_accounts_3rd_register_buffer',
         H_ACCOUNTS_3RD_LOGIN_BUFFER = 'phs_accounts_3rd_login_buffer';
 
-    public function get_settings_keys_to_obfuscate()
+    public function get_settings_keys_to_obfuscate() : array
     {
         return ['google_client_id', 'google_client_secret', 'apple_client_id', 'google_mobile_android_client_id', 'google_mobile_ios_client_id'];
     }
@@ -24,12 +26,12 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
      */
     public function get_settings_structure() : array
     {
-        if (!($google_lib = $this->get_google_instance())) {
+        if (!($google_lib = Google::get_instance())) {
             $this->reset_error();
             $google_lib = null;
         }
 
-        if (!($apple_lib = $this->get_apple_instance())) {
+        if (!($apple_lib = Apple::get_instance())) {
             $this->reset_error();
             $apple_lib = null;
         }
@@ -151,72 +153,6 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
                 ],
             ],
         ];
-    }
-
-    /**
-     * Returns an instance of Google 3rd party services class
-     *
-     * @return bool|libraries\Google
-     */
-    public function get_google_instance()
-    {
-        static $google_library = null;
-
-        $this->reset_error();
-
-        if ($google_library !== null) {
-            return $google_library;
-        }
-
-        $library_params = [];
-        $library_params['full_class_name'] = '\\phs\\plugins\\accounts_3rd\\libraries\\Google';
-        $library_params['as_singleton'] = true;
-
-        /** @var libraries\Google $loaded_library */
-        if (!($loaded_library = $this->load_library('phs_google', $library_params))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading Google 3rd party library.'));
-            }
-
-            return false;
-        }
-
-        $google_library = $loaded_library;
-
-        return $google_library;
-    }
-
-    /**
-     * Returns an instance of Apple 3rd party services class
-     *
-     * @return bool|libraries\Apple
-     */
-    public function get_apple_instance()
-    {
-        static $apple_library = null;
-
-        $this->reset_error();
-
-        if ($apple_library !== null) {
-            return $apple_library;
-        }
-
-        $library_params = [];
-        $library_params['full_class_name'] = '\\phs\\plugins\\accounts_3rd\\libraries\\Apple';
-        $library_params['as_singleton'] = true;
-
-        /** @var libraries\Apple $loaded_library */
-        if (!($loaded_library = $this->load_library('phs_apple', $library_params))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading Apple 3rd party library.'));
-            }
-
-            return false;
-        }
-
-        $apple_library = $loaded_library;
-
-        return $apple_library;
     }
 
     /**

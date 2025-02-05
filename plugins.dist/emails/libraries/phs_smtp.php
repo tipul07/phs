@@ -610,4 +610,9 @@ class PHS_Smtp extends PHS_Library
             $this->helo_word = '';
         }
     }
+
+    public static function instances_as_singletons() : bool
+    {
+        return false;
+    }
 }

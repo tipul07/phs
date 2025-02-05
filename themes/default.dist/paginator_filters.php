@@ -231,42 +231,6 @@ if (!empty($paginator_full_path_id)) {
 
             <div id="<?php echo $filters_form_name; ?>_text" style="display:<?php echo !$show_filters ? 'block' : 'none'; ?>;">
             <?php
-// $filters_str_arr = [];
-// foreach( $filters_arr as $filter_details )
-// {
-        //     if( empty( $filter_details['var_name'] ) )
-        //         continue;
-        //
-        //     $field_value = null;
-        //     /** @var \phs\libraries\PHS_Action_Autocomplete $ac_action */
-        //     if( !empty( $filter_details['autocomplete'] )
-        //      && is_array( $filter_details['autocomplete'] )
-        //      && ($ac_action = $filter_details['autocomplete']['action']) )
-        //     {
-        //         if( isset( $scope_arr[$filter_details['var_name']] ) )
-        //         {
-        //             if( empty( $filter_details['autocomplete']['display_data_format'] ) )
-        //                 $filter_details['autocomplete']['display_data_format'] = false;
-        //
-        //             if( !($field_value = $ac_action->format_data( $scope_arr[$filter_details['var_name']], $filter_details['autocomplete']['display_data_format'], true )) )
-        //                 $field_value = null;
-        //
-        //             var_dump( $field_value );
-        //         }
-        //     } elseif( isset( $scope_arr[$filter_details['var_name']] ) )
-        //         $field_value = $scope_arr[$filter_details['var_name']];
-        //     elseif( $filter_details['default'] !== null && !empty( $filter_details['display_default_as_filter'] ) )
-        //         $field_value = $filter_details['default'];
-        //
-        //     if( $field_value === null )
-        //         continue;
-        //
-        //     if( is_array( $field_value ) )
-        //         $field_value = implode( ',', $field_value );
-        //
-        //     $filters_str_arr[] = $filter_details['display_name'].': '.$field_value;
-// }
-
 if (empty($filters_display_arr)) {
     echo $this->_pt('No filters set.');
 } else {

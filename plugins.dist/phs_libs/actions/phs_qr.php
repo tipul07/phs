@@ -3,12 +3,10 @@ namespace phs\plugins\phs_libs\actions;
 
 use phs\PHS;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Roles;
-use phs\libraries\PHS_utils;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_params;
-use phs\libraries\PHS_Notifications;
 use phs\plugins\phs_libs\PHS_Plugin_Phs_libs;
+use phs\plugins\phs_libs\libraries\Phs_qr_code;
 
 class PHS_Action_Qr extends PHS_Action
 {
@@ -23,15 +21,13 @@ class PHS_Action_Qr extends PHS_Action
 
         /** @var PHS_Plugin_Phs_libs $libs_plugin */
         if (!($libs_plugin = PHS_Plugin_Phs_libs::get_instance())
-         || !($libs_obj = $libs_plugin->get_qr_code_instance())) {
+            || !($libs_obj = Phs_qr_code::get_instance())) {
             echo $this->_pt('Error loading required resources.');
             exit;
         }
 
         if (!($details_arr = $libs_plugin->extract_qr_code_url_details())) {
-            echo $libs_plugin->has_error()
-                ? $libs_plugin->get_simple_error_message()
-                : $this->_pt('Error extracting QR code token.');
+            echo $libs_plugin->get_simple_error_message($this->_pt('Error extracting QR code token.'));
             exit;
         }
 
@@ -50,9 +46,7 @@ class PHS_Action_Qr extends PHS_Action
         @header('Pragma: public');
 
         if (!($result = $libs_obj->render_url_to_output($details_arr['url'], $details_arr['qr_options']))) {
-            echo $libs_plugin->has_error()
-                ? $libs_plugin->get_simple_error_message()
-                : $this->_pt('Error rendering QR code.');
+            echo $libs_plugin->get_simple_error_message($this->_pt('Error rendering QR code.'));
             exit;
         }
 

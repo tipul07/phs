@@ -25,7 +25,7 @@ class Phs_Action_Clean_qrcodes_ag extends PHS_Action
         if (!$libs_plugin->clean_qr_code_directory_bg()) {
             $error_msg = 'Error cleaning QR code directory.';
             if ($libs_plugin->has_error()) {
-                $error_msg .= ' '.$libs_plugin->get_error_message();
+                $error_msg .= ' '.$libs_plugin->get_simple_error_message();
             }
             PHS_Logger::error($error_msg, $libs_plugin::LOG_QR_CODE);
         }

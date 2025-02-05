@@ -6,7 +6,6 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
-use phs\libraries\PHS_Paginator_exporter_library;
 use phs\system\core\models\PHS_Model_Agent_jobs_monitor;
 
 /** @property PHS_Model_Agent_jobs_monitor $_paginator_model */
@@ -64,21 +63,6 @@ class PHS_Action_Report extends PHS_Action_Generic_list
         $statuses_arr = $this->_paginator_model->get_statuses_as_key_val() ?: [];
 
         $statuses_arr = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $statuses_arr);
-
-        $bulk_actions = [
-            [
-                'display_name'    => $this->_pt('Export selected'),
-                'action'          => 'bulk_export_selected',
-                'js_callback'     => 'phs_agent_jobs_report_bulk_export_selected',
-                'checkbox_column' => 'id',
-            ],
-            [
-                'display_name'    => $this->_pt('Export ALL records'),
-                'action'          => 'bulk_export_all',
-                'js_callback'     => 'phs_agent_jobs_report_bulk_export_all',
-                'checkbox_column' => 'id',
-            ],
-        ];
 
         $filters_arr = [
             [
@@ -180,161 +164,27 @@ class PHS_Action_Report extends PHS_Action_Generic_list
 
         $return_arr = $this->default_paginator_params();
         $return_arr['base_url'] = PHS::url(['p' => 'admin', 'a' => 'report', 'ad' => 'agent']);
+        $return_arr['export_actions'] = ['enabled' => true];
         $return_arr['flow_parameters'] = $flow_params;
-        $return_arr['bulk_actions'] = $bulk_actions;
         $return_arr['filters_arr'] = $filters_arr;
         $return_arr['columns_arr'] = $columns_arr;
 
         return $return_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function manage_action($action) : null | bool | array
+    public function display_hide_id(array $params) : null | int | string
     {
-        $this->reset_error();
-
-        if (empty($this->_paginator_model)
-            && !$this->load_depencies()) {
-            return false;
-        }
-
-        $action_result_params = $this->_paginator->default_action_params();
-
-        if (empty($action['action'])) {
-            return $action_result_params;
-        }
-
-        $action_result_params['action'] = $action['action'];
-
-        switch ($action['action']) {
-            default:
-                PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
-
-                return true;
-                break;
-
-            case 'bulk_export_selected':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Creating export file...'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Exporting selected records failed. Please try again.'));
-                    } elseif ($action['action_result'] === 'failed_some') {
-                        PHS_Notifications::add_error_notice($this->_pt('Failed exporting all selected records. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!($scope_arr = $this->_paginator->get_scope())
-                    || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
-                    || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
-                    || !($scope_key = @sprintf($ids_checkboxes_name, 'id'))
-                    || !($scope_all_key = @sprintf($ids_all_checkbox_name, 'id'))
-                    || empty($scope_arr[$scope_key])
-                    || !is_array($scope_arr[$scope_key])) {
-                    return true;
-                }
-
-                if (isset($scope_arr[$scope_all_key])) {
-                    unset($scope_arr[$scope_all_key]);
-                }
-
-                if (empty($scope_arr[$scope_key])
-                    || !is_array($scope_arr[$scope_key])) {
-                    return true;
-                }
-
-                $export_params = [];
-                $export_params['exporter_library_params'] = [
-                    'export_encoding'     => 'UTF-8',
-                    'export_to'           => PHS_Paginator_exporter_library::EXPORT_TO_BROWSER,
-                    'request_render_type' => $this->_paginator::CELL_RENDER_TEXT,
-                    'export_file_name'    => 'phs_agent_jobs_report_'.date('Y_m_d_H_i').'.csv',
-                    'export_mime_type'    => 'text/csv',
-                    'csv_format'          => [
-                        'line_delimiter'   => "\n",
-                        'column_delimiter' => ',',
-                        'field_enclosure'  => '"',
-                        'enclosure_escape' => '"',
-                    ],
-                ];
-                $export_params['filter_records_fields'] = ['id' => $scope_arr[$scope_key], ];
-
-                if (($export_result = $this->_paginator->do_export_records($export_params))) {
-                    if (empty($export_result['exports_failed'])) {
-                        $action_result_params['action_result'] = 'success';
-
-                        unset($scope_arr[$scope_key]);
-                    } else {
-                        $action_result_params['action_result'] = 'failed_some';
-                    }
-                } else {
-                    $action_result_params['action_result'] = 'failed';
-                }
-
-                $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
-                break;
-
-            case 'bulk_export_all':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Creating export file...'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Exporting all records failed. Please try again.'));
-                    } elseif ($action['action_result'] === 'failed_some') {
-                        PHS_Notifications::add_error_notice($this->_pt('Failed exporting all records. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                $export_params = [];
-                $export_params['exporter_library_params'] = [
-                    'export_encoding'     => 'UTF-8',
-                    'export_to'           => PHS_Paginator_exporter_library::EXPORT_TO_BROWSER,
-                    'request_render_type' => $this->_paginator::CELL_RENDER_TEXT,
-                    'export_file_name'    => 'phs_agent_jobs_report_all_'.date('Y_m_d_H_i').'.csv',
-                    'export_mime_type'    => 'text/csv',
-                    'csv_format'          => [
-                        'line_delimiter'   => "\n",
-                        'column_delimiter' => ',',
-                        'field_enclosure'  => '"',
-                        'enclosure_escape' => '"',
-                    ],
-                ];
-                $export_params['model_query_params']['export_all_records'] = true;
-
-                if (($export_result = $this->_paginator->do_export_records($export_params))) {
-                    if (empty($export_result['exports_failed'])) {
-                        $action_result_params['action_result'] = 'success';
-                    } else {
-                        $action_result_params['action_result'] = 'failed_some';
-                    }
-                } else {
-                    $action_result_params['action_result'] = 'failed';
-                }
-                break;
-        }
-
-        return $action_result_params;
-    }
-
-    public function display_hide_id($params)
-    {
-        if (empty($params)
-            || !is_array($params)
-            || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
             || !($agent_job = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
 
         if (!empty($params['request_render_type'])) {
             switch ($params['request_render_type']) {
                 case $this->_paginator::CELL_RENDER_JSON:
                 case $this->_paginator::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     $params['preset_content'] = (int)$agent_job['id'];
                     break;
 
@@ -347,23 +197,21 @@ class PHS_Action_Report extends PHS_Action_Generic_list
         return $params['preset_content'];
     }
 
-    public function display_job_title($params)
+    public function display_job_title(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || !($agent_job = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
 
-        if (empty($params['preset_content'])) {
-            $params['preset_content'] = '';
-        }
+        $params['preset_content'] ??= '';
 
         if (!empty($params['request_render_type'])) {
             switch ($params['request_render_type']) {
                 case $this->_paginator::CELL_RENDER_JSON:
                 case $this->_paginator::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     $params['preset_content'] .= (!empty($params['preset_content']) ? ' - ' : '').$agent_job['job_handle'];
                     break;
 
@@ -380,23 +228,21 @@ class PHS_Action_Report extends PHS_Action_Generic_list
         return $params['preset_content'];
     }
 
-    public function display_error_message($params)
+    public function display_error_message(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || !($agent_job = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
 
-        if (empty($params['preset_content'])) {
-            $params['preset_content'] = '';
-        }
+        $params['preset_content'] ??= '';
 
         if (!empty($params['request_render_type'])) {
             switch ($params['request_render_type']) {
                 case $this->_paginator::CELL_RENDER_JSON:
                 case $this->_paginator::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     $params['preset_content'] = str_replace(["\r", "\n"], ' ', $agent_job['error_message']);
                     break;
 
@@ -412,7 +258,7 @@ class PHS_Action_Report extends PHS_Action_Generic_list
                             <?php echo str_replace('  ', ' &nbsp;', nl2br($agent_job['error_message'])); ?>
                         </div>
                         <?php
-                        $params['preset_content'] = ob_get_clean();
+                        $params['preset_content'] = ob_get_clean() ?: '';
                     }
                     break;
             }
@@ -421,11 +267,18 @@ class PHS_Action_Report extends PHS_Action_Generic_list
         return $params['preset_content'];
     }
 
-    public function after_table_callback($params)
+    public function manage_action($action)
+    {
+        PHS_Notifications::add_warning_notice($this->_pt('Invalid action.'));
+
+        return null;
+    }
+
+    public function after_table_callback(array $params) : string
     {
         static $js_functionality = false;
 
-        if (!empty($js_functionality)) {
+        if ($js_functionality) {
             return '';
         }
 
@@ -434,59 +287,24 @@ class PHS_Action_Report extends PHS_Action_Generic_list
         ob_start();
         ?>
         <script type="text/javascript">
-            function phs_open_agent_job_error( id )
-            {
-                $("#phs_agent_jobs_report_error_" + id).dialog({
-                    title: "<?php echo form_str($this->_pt('Agent job error')); ?>",
-                    width: "500px",
-                    buttons: [
-                        {
-                            text: "<?php echo form_str($this->_pt('Ok')); ?>",
-                            click: function() {
-                                $( this ).dialog( "close" );
-                            }
+        function phs_open_agent_job_error( id )
+        {
+            $("#phs_agent_jobs_report_error_" + id).dialog({
+                title: "<?php echo form_str($this->_pt('Agent job error')); ?>",
+                width: "500px",
+                buttons: [
+                    {
+                        text: "<?php echo form_str($this->_pt('Ok')); ?>",
+                        click: function() {
+                            $( this ).dialog( "close" );
                         }
-                    ]
-                }).show()
-            }
-        function phs_agent_jobs_report_get_checked_ids_count()
-        {
-            const checkboxes_list = phs_paginator_get_checkboxes_checked('id');
-            if( !checkboxes_list || !checkboxes_list.length )
-                return 0;
-
-            return checkboxes_list.length;
-        }
-
-        function phs_agent_jobs_report_bulk_export_selected()
-        {
-            const total_checked = phs_agent_jobs_report_get_checked_ids_count();
-
-            if( !total_checked )
-            {
-                alert( "<?php echo self::_e('Please select records you want to export first.', '"'); ?>" );
-                return false;
-            }
-
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to export %s records?', '"'), '" + total_checked + "'); ?>" ) )
-                return false;
-
-            const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
-                form_obj.submit();
-        }
-        function phs_agent_jobs_report_bulk_export_all()
-        {
-            if( !confirm( "<?php echo self::_e($this->_pt('Are you sure you want to export ALL records?'), '"'); ?>" ) )
-                return false;
-
-            const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
-                form_obj.submit();
+                    }
+                ]
+            }).show()
         }
         </script>
         <?php
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 }

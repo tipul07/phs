@@ -308,6 +308,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
             switch ($params['request_render_type']) {
                 case $this->_paginator::CELL_RENDER_JSON:
                 case $this->_paginator::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     return $params['preset_content'];
             }
         }
@@ -330,7 +332,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
             switch ($params['request_render_type']) {
                 case $this->_paginator::CELL_RENDER_JSON:
                 case $this->_paginator::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     return $record_arr['payload'];
+                case $this->_paginator::CELL_RENDER_CSV:
+                    return str_replace(["\n", "\r"], '', $record_arr['payload']);
             }
         }
 
@@ -364,7 +369,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
             switch ($params['request_render_type']) {
                 case $this->_paginator::CELL_RENDER_JSON:
                 case $this->_paginator::CELL_RENDER_TEXT:
-
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     return $record_arr['fails'].'/'.$record_arr['max_retries'];
             }
         }
@@ -410,7 +416,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         if (!empty($params['request_render_type'])
             && in_array((int)$params['request_render_type'],
-                [$this->_paginator::CELL_RENDER_JSON, $this->_paginator::CELL_RENDER_TEXT], true)) {
+                [$this->_paginator::CELL_RENDER_JSON, $this->_paginator::CELL_RENDER_TEXT,
+                    $this->_paginator::CELL_RENDER_CSV, $this->_paginator::CELL_RENDER_EXCEL], true)) {
             return $params['preset_content'];
         }
 

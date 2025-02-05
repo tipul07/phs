@@ -143,10 +143,7 @@ class PHS_Api extends PHS_Api_base
             return false;
         }
 
-        $execution_params = [];
-        $execution_params['die_on_error'] = false;
-
-        if (!($action_result = PHS::execute_route($execution_params))) {
+        if (!($action_result = PHS::execute_route(['die_on_error' => false]))) {
             $this->copy_or_set_static_error(self::ERR_RUN_ROUTE,
                 self::_t('Error executing route [%s].', PHS::get_route_as_string()));
 

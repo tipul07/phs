@@ -9,6 +9,7 @@ use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\phs_security\PHS_Plugin_Phs_security;
+use phs\plugins\phs_security\libraries\Phs_security_headers;
 
 class PHS_Scope_Ajax extends PHS_Scope
 {
@@ -66,7 +67,7 @@ class PHS_Scope_Ajax extends PHS_Scope
             /** @var PHS_Plugin_Phs_security $security_plugin */
             if (($security_plugin = PHS_Plugin_Phs_security::get_instance())
                && $security_plugin->security_headers_are_enabled()
-               && ($headers_lib = $security_plugin->get_security_headers_instance())
+               && ($headers_lib = Phs_security_headers::get_instance())
                && ($headers_arr = $headers_lib->get_security_headers_for_response())) {
                 $result_headers = self::merge_array_assoc($result_headers, $headers_arr);
             }

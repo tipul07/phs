@@ -3,7 +3,6 @@ namespace phs\system\core\actions;
 
 use phs\PHS_Scope;
 use phs\PHS_Bg_jobs;
-use phs\libraries\PHS_Event;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\system\core\models\PHS_Model_Request_queue;

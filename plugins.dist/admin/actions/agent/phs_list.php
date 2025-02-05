@@ -240,11 +240,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
     {
         $this->reset_error();
 
-        if (empty($this->_paginator_model)
-            && !$this->load_depencies()) {
-            return false;
-        }
-
         $action_result_params = $this->_paginator->default_action_params();
 
         if (empty($action['action'])) {
@@ -258,8 +253,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
 
                 return true;
-                break;
-
             case 'bulk_activate':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
@@ -594,21 +587,17 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_hide_id($params)
+    public function display_hide_id(array $params) : string
     {
         return '';
     }
 
-    public function display_job_title($params)
+    public function display_job_title(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || !($agent_job = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
-
-        $paginator_obj = $this->_paginator;
 
         if (empty($params['preset_content'])) {
             $params['preset_content'] = '';
@@ -616,12 +605,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         if (!empty($params['request_render_type'])) {
             switch ($params['request_render_type']) {
-                case $paginator_obj::CELL_RENDER_JSON:
-                case $paginator_obj::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_JSON:
+                case $this->_paginator::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     $params['preset_content'] .= (!empty($params['preset_content']) ? ' - ' : '').$params['record']['handler'];
                     break;
 
-                case $paginator_obj::CELL_RENDER_HTML:
+                case $this->_paginator::CELL_RENDER_HTML:
                     $last_error = '';
                     if (!empty($agent_job['last_error'])) {
                         ob_start();
@@ -647,17 +638,12 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $params['preset_content'];
     }
 
-    public function display_route_column($params)
+    public function display_route_column(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || !($agent_job = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
-
-        $paginator_obj = $this->_paginator;
-        $paginator_model = $this->_paginator_model;
 
         if (empty($agent_job['route'])) {
             $agent_job['route'] = $this->_pt('N/A');
@@ -666,18 +652,20 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $cell_str = '';
         if (!empty($params['request_render_type'])) {
             switch ($params['request_render_type']) {
-                case $paginator_obj::CELL_RENDER_JSON:
-                case $paginator_obj::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_JSON:
+                case $this->_paginator::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     $cell_str = $agent_job['route'];
                     break;
 
-                case $paginator_obj::CELL_RENDER_HTML:
+                case $this->_paginator::CELL_RENDER_HTML:
 
-                    if ($paginator_model->job_is_running($agent_job)) {
+                    if ($this->_paginator_model->job_is_running($agent_job)) {
                         $cell_str .= '<strong>'.$this->_pt('Running').'</strong>';
                     }
 
-                    if ($paginator_model->job_is_stalling($agent_job)) {
+                    if ($this->_paginator_model->job_is_stalling($agent_job)) {
                         $cell_str .= ' - <span style="color:red;">'.$this->_pt('Stalling').'</span>';
                     }
 
@@ -689,16 +677,12 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $cell_str;
     }
 
-    public function display_timed_seconds($params)
+    public function display_timed_seconds(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || !($agent_job = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
-
-        $paginator_obj = $this->_paginator;
 
         $pretty_params = [];
         $pretty_params['date_format'] = $params['column']['date_format'] ?? null;
@@ -714,12 +698,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         if (!empty($params['request_render_type'])) {
             switch ($params['request_render_type']) {
-                case $paginator_obj::CELL_RENDER_JSON:
-                case $paginator_obj::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_JSON:
+                case $this->_paginator::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     $cell_str .= ', '.$params['record']['timed_seconds'].'s - '.$runs_every_x_str;
                     break;
 
-                case $paginator_obj::CELL_RENDER_HTML:
+                case $this->_paginator::CELL_RENDER_HTML:
                     $cell_str .= '<br/><span title="'.self::_e($runs_every_x_str).'">'.$params['record']['timed_seconds'].'s</span>';
                     break;
             }
@@ -728,16 +714,12 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $cell_str;
     }
 
-    public function display_last_action($params)
+    public function display_last_action(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || !($agent_job = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
-
-        $paginator_obj = $this->_paginator;
 
         $pretty_params = [];
         $pretty_params['date_format'] = $params['column']['date_format'] ?? null;
@@ -752,13 +734,15 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $cell_str = '-';
         if (!empty($params['request_render_type'])) {
             switch ($params['request_render_type']) {
-                case $paginator_obj::CELL_RENDER_JSON:
-                case $paginator_obj::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_JSON:
+                case $this->_paginator::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     $cell_str = (!empty($agent_job['last_action']) ? date('Y-m-d H:i:s', parse_db_date($agent_job['last_action'])) : $this->_pt('N/A'))
                                 .' - '.$stalling_minutes;
                     break;
 
-                case $paginator_obj::CELL_RENDER_HTML:
+                case $this->_paginator::CELL_RENDER_HTML:
                     $cell_str = (!empty($agent_job['last_action']) ? $this->_paginator->pretty_date_independent($agent_job['last_action'], $pretty_params) : $this->_pt('N/A'))
                                 .'<br/><span title="'.self::_e($this->_pt('Stalling %s', $stalling_minutes_str)).'">'.PHS_Utils::parse_period($stalling_seconds, ['show_period' => PHS_Utils::PERIOD_MINUTES]).'</span>';
                     break;
@@ -768,25 +752,15 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $cell_str;
     }
 
-    public function display_actions($params)
+    public function display_actions(array $params) : ?string
     {
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            return false;
-        }
-
-        if (!($current_user = PHS::current_user())) {
-            $current_user = false;
-        }
-
         if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
             return '-';
         }
 
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || !($agent_job = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
 
         $job_is_inactive = $this->_paginator_model->job_is_inactive($agent_job);
@@ -823,7 +797,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         <a href="javascript:void(0)" onclick="phs_agent_jobs_list_delete( '<?php echo $agent_job['id']; ?>', <?php echo !empty($agent_job['plugin']) ? 1 : 0; ?> )"><i class="fa fa-times action-icons" title="<?php echo $this->_pt('Delete agent job'); ?>"></i></a>
         <?php
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 
     public function after_filters_callback($params)
@@ -839,11 +813,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function after_table_callback($params)
+    public function after_table_callback(array $params) : string
     {
         static $js_functionality = false;
 
-        if (!empty($js_functionality)) {
+        if ($js_functionality) {
             return '';
         }
 
@@ -997,6 +971,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
         </script>
         <?php
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 }

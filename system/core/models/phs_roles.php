@@ -1068,8 +1068,8 @@ class PHS_Model_Roles extends PHS_Model
      * Tells if a set of role units are assigned to provided account_data. account_data can be a valid
      * user account (id or array) or an empty account array (not logged-in user)
      *
-     * @param array|int $account_data Account id, account array, or an empty account array.
-     *                                If array provided and $accounts_model::ROLE_UNITS_USER_KEY key is defined it will be used directly
+     * @param int|array|PHS_Record_data $account_data Account id, account array, or an empty account array.
+     *                                                If array provided and $accounts_model::ROLE_UNITS_USER_KEY key is defined it will be used directly
      * @param array|string $role_units_list Single slug or array of ids, slugs or role unit arrays
      *                                      (can be mixed with ids, slugs or arrays)
      * @param array $params Functional parameters
@@ -1077,7 +1077,7 @@ class PHS_Model_Roles extends PHS_Model
      * @return array|bool False if logical operation doesn't match list of role units with role units assigned
      *                    to provided account or an array with account details and matched role units slugs
      */
-    public function user_has_role_units(int | array $account_data, string | array $role_units_list, array $params = []) : ?array
+    public function user_has_role_units(int | array | PHS_Record_data $account_data, string | array $role_units_list, array $params = []) : ?array
     {
         $this->reset_error();
 
@@ -1102,7 +1102,7 @@ class PHS_Model_Roles extends PHS_Model
 
         $account_slugs = [];
         $account_arr = false;
-        if (is_array($account_data)) {
+        if (is_array($account_data) || $account_data instanceof PHS_Record_data) {
             $account_arr = $account_data;
             if (isset($account_arr[$accounts_model::ROLE_UNITS_USER_KEY])
                 && is_array($account_arr[$accounts_model::ROLE_UNITS_USER_KEY])) {

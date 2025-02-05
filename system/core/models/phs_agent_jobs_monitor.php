@@ -2,6 +2,7 @@
 namespace phs\system\core\models;
 
 use phs\libraries\PHS_Model;
+use phs\libraries\PHS_Record_data;
 use phs\traits\PHS_Model_Trait_statuses;
 
 class PHS_Model_Agent_jobs_monitor extends PHS_Model
@@ -31,17 +32,17 @@ class PHS_Model_Agent_jobs_monitor extends PHS_Model
         return 'bg_agent_monitor';
     }
 
-    public function job_started($job_data) : ?array
+    public function job_started(int | array | PHS_Record_data $job_data) : null | array | PHS_Record_data
     {
         return $this->_add_job_monitor_record($job_data, self::STATUS_STARTED);
     }
 
-    public function job_success($job_data) : ?array
+    public function job_success(int | array | PHS_Record_data $job_data) : null | array | PHS_Record_data
     {
         return $this->_add_job_monitor_record($job_data, self::STATUS_SUCCESS);
     }
 
-    public function job_error($job_data, string $error_msg, int $error_code) : ?array
+    public function job_error(int | array | PHS_Record_data $job_data, string $error_msg, int $error_code) : null | array | PHS_Record_data
     {
         return $this->_add_job_monitor_record($job_data, self::STATUS_ERROR, $error_msg, $error_code);
     }
@@ -187,7 +188,7 @@ class PHS_Model_Agent_jobs_monitor extends PHS_Model
         return $params;
     }
 
-    private function _add_job_monitor_record($job_data, int $status, ?string $error_msg = null, int $error_code = 0) : ?array
+    private function _add_job_monitor_record(int | array | PHS_Record_data $job_data, int $status, ?string $error_msg = null, int $error_code = 0) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -216,9 +217,7 @@ class PHS_Model_Agent_jobs_monitor extends PHS_Model
         $insert_arr['fields']['error_code'] = $error_code;
 
         if (!($record_arr = $this->insert($insert_arr))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_INSERT, $this->_pt('Error adding agent job monitor error record.'));
-            }
+            $this->set_error_if_not_set(self::ERR_INSERT, $this->_pt('Error adding agent job monitor error record.'));
 
             return null;
         }

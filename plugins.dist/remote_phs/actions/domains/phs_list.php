@@ -580,25 +580,22 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     public function display_incoming_api_key($params)
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])) {
+        if (empty($params['record']) || !is_array($params['record'])) {
             return false;
         }
 
         if (!PHS::user_logged_in()
-         || empty($params['preset_content'])) {
+            || empty($params['preset_content'])) {
             return '-';
         }
 
-        $paginator_obj = $this->_paginator;
-
         if (!empty($params['request_render_type'])) {
             switch ($params['request_render_type']) {
-                case $paginator_obj::CELL_RENDER_JSON:
-                case $paginator_obj::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_JSON:
+                case $this->_paginator::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     return $params['record']['apikey_id'];
-                    break;
             }
         }
 
@@ -616,18 +613,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     public function display_actions($params)
     {
-        if (empty($this->_paginator_model)
-         && !$this->load_depencies()) {
-            return false;
-        }
-
         if (!$this->_remote_plugin->can_admin_manage_domains()) {
             return '-';
         }
 
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || !($domain_arr = $this->_paginator_model->data_to_array($params['record']))) {
             return false;
         }

@@ -175,10 +175,6 @@ class PHS_Action_Append_messages extends PHS_Action
             }
         }
 
-        $action_result = self::default_action_result();
-
-        $action_result['ajax_result'] = $buffer;
-
-        return $action_result;
+        return $this->send_ajax_response($buffer);
     }
 }

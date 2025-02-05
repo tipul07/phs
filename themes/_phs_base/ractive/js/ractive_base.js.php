@@ -249,7 +249,7 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
         return error_msg;
     },
 
-    read_data: function ( route, data, success, failure, ajax_opts ) {
+    read_data_from_url: function ( full_url, data, success, failure, ajax_opts ) {
         if( typeof ajax_opts === "undefined"
             || !ajax_opts ) {
             ajax_opts = {};
@@ -259,10 +259,10 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
             data_type: "json"
         };
 
-        return this._server_request(route, data, success, failure, $.extend( {}, default_ajax_params, ajax_opts ));
+        return this._server_request(null, full_url, data, success, failure, $.extend( {}, default_ajax_params, ajax_opts ));
     },
 
-    read_html: function ( route, data, success, failure, ajax_opts ) {
+    read_html_from_url: function ( full_url, data, success, failure, ajax_opts ) {
         if( typeof ajax_opts === "undefined"
             || !ajax_opts ) {
             ajax_opts = {};
@@ -272,10 +272,36 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
             data_type: "html"
         };
 
-        return this._server_request(route, data, success, failure, $.extend( {}, default_ajax_params, ajax_opts ));
+        return this._server_request(null, full_url, data, success, failure, $.extend( {}, default_ajax_params, ajax_opts ));
     },
 
-    _server_request: function ( route, data, success, failure, ajax_opts ) {
+    read_data: function ( raw_route, data, success, failure, ajax_opts ) {
+        if( typeof ajax_opts === "undefined"
+            || !ajax_opts ) {
+            ajax_opts = {};
+        }
+
+        var default_ajax_params = {
+            data_type: "json"
+        };
+
+        return this._server_request(raw_route, null, data, success, failure, $.extend( {}, default_ajax_params, ajax_opts ));
+    },
+
+    read_html: function ( raw_route, data, success, failure, ajax_opts ) {
+        if( typeof ajax_opts === "undefined"
+            || !ajax_opts ) {
+            ajax_opts = {};
+        }
+
+        var default_ajax_params = {
+            data_type: "html"
+        };
+
+        return this._server_request(raw_route, null, data, success, failure, $.extend( {}, default_ajax_params, ajax_opts ));
+    },
+
+    _server_request: function ( raw_route, full_url, data, success, failure, ajax_opts ) {
         let self = this;
 
         if( typeof ajax_opts === "undefined"
@@ -290,6 +316,16 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
             ajax_opts.extract_status_messages_from_response = true;
         }
 
+        if( typeof data === "undefined" ) {
+            data = null;
+        }
+        if( typeof success === "undefined" ) {
+            success = null;
+        }
+        if( typeof failure === "undefined" ) {
+            failure = null;
+        }
+
         var default_ajax_params = {
             cache_response: false,
             method: "post",
@@ -301,16 +337,6 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
         };
 
         let ajax_params = $.extend( {}, default_ajax_params, ajax_opts );
-
-        if( typeof data === "undefined" ) {
-            data = null;
-        }
-        if( typeof success === "undefined" ) {
-            success = null;
-        }
-        if( typeof failure === "undefined" ) {
-            failure = null;
-        }
 
         if( ajax_opts.extract_logical_error_from_response
             || ajax_opts.extract_status_messages_from_response ) {
@@ -364,7 +390,14 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
             }
         }
 
-        return PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url(null, null, ['raw_route' => '" + route + "']); ?>", ajax_params );
+        let final_url = '';
+        if(full_url && full_url.length > 0) {
+            final_url = full_url;
+        } else {
+            final_url = "<?php echo PHS_Ajax::url(null, null, ['raw_route' => '" + route + "']); ?>";
+        }
+
+        return PHS_JSEN.do_ajax( final_url, ajax_params );
     },
 
     _extract_error_message_from_response: function( response ) {

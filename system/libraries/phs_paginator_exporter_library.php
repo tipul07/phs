@@ -12,18 +12,17 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
     /** @var null|PHS_Paginator */
     private ?PHS_Paginator $_paginator_obj = null;
 
-    /**
-     * @param false|array $init_params
-     */
-    public function __construct($init_params = false)
+    public function __construct(?array $init_params = null)
     {
         parent::__construct();
 
-        if (!empty($init_params) && is_array($init_params)) {
-            $this->export_registry(self::validate_array($init_params, $this->default_export_registry()));
+        if ($init_params) {
+            $init_params = self::validate_array($init_params, $this->default_export_registry());
         } else {
-            $this->export_registry($this->default_export_registry());
+            $init_params = $this->default_export_registry();
         }
+
+        $this->export_registry($init_params);
     }
 
     /**
@@ -211,8 +210,8 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
                     return true;
                 }
 
-                @fclose($export_registry['export_fd']);
                 @fflush($export_registry['export_fd']);
+                @fclose($export_registry['export_fd']);
 
                 $this->export_registry('export_fd', false);
                 break;
@@ -220,7 +219,6 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
             case self::EXPORT_TO_OUTPUT:
             case self::EXPORT_TO_BROWSER:
                 exit;
-                break;
         }
 
         return true;
@@ -287,15 +285,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
         $this->_export_registry = $this->default_export_registry();
     }
 
-    /**
-     * Set or retrieve values from export settings array
-     *
-     * @param null|string|array $key Null to return full array, a string which is the key to set a value or array key of value to be returned
-     * @param null|mixed $val Null or a value to be set for specified key
-     *
-     * @return null|array|bool Set or retrieve values from export settings array
-     */
-    public function export_registry($key = null, $val = null)
+    public function export_registry(null | array | string $key = null, mixed $val = null) : mixed
     {
         if ($key === null && $val === null) {
             return $this->_export_registry;
@@ -328,11 +318,6 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
         return null;
     }
 
-    /**
-     * @param int $export_to
-     *
-     * @return bool
-     */
     public static function valid_export_to(int $export_to) : bool
     {
         return !empty($export_to)

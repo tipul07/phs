@@ -2,15 +2,11 @@
 namespace phs\plugins\admin\actions\httpcalls;
 
 use phs\PHS;
-use phs\PHS_Ajax;
 use phs\PHS_Scope;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
-use phs\plugins\backup\models\PHS_Model_Rules;
-use phs\plugins\backup\models\PHS_Model_Results;
-use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\system\core\models\PHS_Model_Request_queue;
 
 class PHS_Action_Runs_ajax extends PHS_Action
@@ -30,8 +26,6 @@ class PHS_Action_Runs_ajax extends PHS_Action
             return action_request_login();
         }
 
-        /** @var PHS_Plugin_Admin $admin_plugin */
-        /** @var PHS_Model_Request_queue $requests_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
             || !($requests_model = PHS_Model_Request_queue::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));

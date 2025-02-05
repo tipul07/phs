@@ -20,7 +20,7 @@ class Phs_Plugin_settings extends PHS_Library
     /**
      * @param bool $include_core
      *
-     * @return null|array<string, array{"plugin_info":array, "instance":\phs\libraries\PHS_Plugin}>
+     * @return null|array<string, array{"plugin_info":array, "instance":PHS_Plugin}>
      */
     public function get_plugins_list_as_array(bool $include_core = true) : ?array
     {

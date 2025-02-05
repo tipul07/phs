@@ -9,6 +9,7 @@ use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
 use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\models\PHS_Model_Tenants;
+use phs\plugins\admin\libraries\Phs_Plugin_settings;
 
 /** @property \phs\system\core\models\PHS_Model_Plugins $_paginator_model */
 class PHS_Action_List extends PHS_Action_Generic_list
@@ -351,7 +352,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if (!($plugin_settings_lib = $this->_admin_plugin->get_plugin_settings_instance())) {
+                if (!($plugin_settings_lib = Phs_Plugin_settings::get_instance())) {
                     $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
 
                     return false;
@@ -391,7 +392,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if (!($plugin_settings_lib = $this->_admin_plugin->get_plugin_settings_instance())) {
+                if (!($plugin_settings_lib = Phs_Plugin_settings::get_instance())) {
                     $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
 
                     return false;

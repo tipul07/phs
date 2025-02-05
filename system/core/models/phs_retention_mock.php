@@ -417,7 +417,7 @@ class PHS_Model_Retention_mock extends PHS_Model
              && !($this->_retention_model = PHS_Model_Data_retention::get_instance()))
             || (empty($this->_admin_plugin)
                 && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-            || !($this->_retention_lib = $this->_admin_plugin->get_data_retention_instance())
+            || !($this->_retention_lib = Phs_Data_retention::get_instance())
         ) {
             $this->set_error(self::ERR_DEPENDENCIES, $this::_t('Error loading required resources.'));
 

@@ -331,7 +331,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
             switch ($params['request_render_type']) {
                 case $this->_paginator::CELL_RENDER_JSON:
                 case $this->_paginator::CELL_RENDER_TEXT:
-
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     return $migration_arr['current_count'].'/'.$migration_arr['total_count'];
             }
         }
@@ -341,7 +342,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         ob_start();
         ?>
         <div>
-            <?php echo $migration_arr['total_count']; ?> / <?php echo $migration_arr['current_count']; ?> (<?php echo $progress_perc; ?>%)<br/>
+            <?php echo $migration_arr['current_count'].' / '.$migration_arr['total_count'].' ('.$progress_perc.'%)'; ?><br/>
             <div style="width:100%;height:10px;background-color:red;"><div style="width:<?php echo $progress_perc; ?>%;height:10px;background-color:green;"></div></div>
         </div>
         <?php

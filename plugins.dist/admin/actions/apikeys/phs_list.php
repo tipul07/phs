@@ -614,20 +614,17 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     public function display_apikey($params)
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])) {
+        if (empty($params['record']) || !is_array($params['record'])) {
             return false;
         }
 
-        $paginator_obj = $this->_paginator;
-
         if (!empty($params['request_render_type'])) {
             switch ($params['request_render_type']) {
-                case $paginator_obj::CELL_RENDER_JSON:
-                case $paginator_obj::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_JSON:
+                case $this->_paginator::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     return $params['record']['api_key'].' / '.$params['record']['api_secret'];
-                    break;
             }
         }
 
@@ -650,9 +647,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     public function display_apikey_account($params)
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])) {
+        if (empty($params['record']) || !is_array($params['record'])) {
             return false;
         }
 
@@ -660,15 +655,13 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return '-';
         }
 
-        $paginator_obj = $this->_paginator;
-
         if (!empty($params['request_render_type'])) {
             switch ($params['request_render_type']) {
-                case $paginator_obj::CELL_RENDER_JSON:
-                case $paginator_obj::CELL_RENDER_TEXT:
-
+                case $this->_paginator::CELL_RENDER_JSON:
+                case $this->_paginator::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     return $params['record']['uid'].' / '.$params['record']['account_nick'].' / '.$params['record']['account_email'];
-                    break;
             }
         }
 

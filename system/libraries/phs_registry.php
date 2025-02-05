@@ -18,11 +18,6 @@ class PHS_Registry extends PHS_Language
         return $this->_context;
     }
 
-    /**
-     * @param $key
-     *
-     * @return null|mixed
-     */
     public function get_context(string $key) : mixed
     {
         return $this->_context[$key] ?? null;

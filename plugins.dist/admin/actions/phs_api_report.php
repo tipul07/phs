@@ -138,6 +138,30 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                 'default'      => 0,
                 'values_arr'   => $statuses_arr,
             ],
+            [
+                'display_name'        => $this->_pt('Requests From'),
+                'display_hint'        => $this->_pt('All HTTP requests run after this date'),
+                'display_placeholder' => $this->_pt('Requests after this date'),
+                'var_name'            => 'frequest_time_start',
+                'record_field'        => 'request_time',
+                'record_check'        => ['check' => '>=', 'value' => '%s'],
+                'type'                => PHS_Params::T_DATE,
+                'extra_type'          => ['format' => $this->_paginator_model::DATE_DB.' 00:00:00'],
+                'default'             => '',
+                'linkage_func'        => 'AND',
+            ],
+            [
+                'display_name'        => $this->_pt('Requests Up To'),
+                'display_hint'        => $this->_pt('All HTTP requests run before this date'),
+                'display_placeholder' => $this->_pt('Requests before this date'),
+                'var_name'            => 'frequest_time_end',
+                'record_field'        => 'request_time',
+                'record_check'        => ['check' => '<=', 'value' => '%s'],
+                'type'                => PHS_Params::T_DATE,
+                'extra_type'          => ['format' => $this->_paginator_model::DATE_DB.' 23:59:59'],
+                'default'             => '',
+                'linkage_func'        => 'AND',
+            ],
         ];
 
         $columns_arr = [
@@ -246,19 +270,19 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
         return $this->_paginator->default_action_params();
     }
 
-    public function display_hide_id($params)
+    public function display_hide_id(array $params) : ?string
     {
-        if (empty($params)
-            || !is_array($params)
-            || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
             || !($record_arr = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
 
         if (!empty($params['request_render_type'])) {
             switch ($params['request_render_type']) {
                 case $this->_paginator::CELL_RENDER_JSON:
                 case $this->_paginator::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     $params['preset_content'] = (int)$record_arr['id'];
                     break;
 
@@ -271,25 +295,23 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
         return $params['preset_content'];
     }
 
-    public function display_account_name($params)
+    public function display_account_name(array $params) : ?string
     {
-        if (empty($params) || !is_array($params)
-            || empty($params['record']) || !is_array($params['record'])) {
-            return false;
+        if (empty($params['record']) || !is_array($params['record'])) {
+            return null;
         }
 
         if (empty($params['preset_content'])) {
             return '-';
         }
 
-        $paginator_obj = $this->_paginator;
-
         if (!empty($params['request_render_type'])) {
             switch ($params['request_render_type']) {
-                case $paginator_obj::CELL_RENDER_JSON:
-                case $paginator_obj::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_JSON:
+                case $this->_paginator::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     return $params['preset_content'];
-                    break;
             }
         }
 
@@ -301,13 +323,11 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
         return $params['preset_content'];
     }
 
-    public function display_request_details($params)
+    public function display_request_details(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || !($record_arr = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
 
         $cell_str = '-';
@@ -315,6 +335,8 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
             switch ($params['request_render_type']) {
                 case $this->_paginator::CELL_RENDER_JSON:
                 case $this->_paginator::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     $cell_str = $record_arr['request_time'];
                     break;
 
@@ -342,7 +364,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                         ?></pre>
                         </div>
                         <?php
-                        $cell_str .= ob_get_clean();
+                        $cell_str .= ob_get_clean() ?: '';
                     }
                     break;
             }
@@ -351,13 +373,11 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
         return $cell_str;
     }
 
-    public function display_response_details($params)
+    public function display_response_details(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || !($record_arr = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
 
         $cell_str = '-';
@@ -365,6 +385,8 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
             switch ($params['request_render_type']) {
                 case $this->_paginator::CELL_RENDER_JSON:
                 case $this->_paginator::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     $cell_str = $record_arr['response_time'];
                     break;
 
@@ -392,7 +414,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                         ?></pre>
                         </div>
                         <?php
-                        $cell_str .= ob_get_clean();
+                        $cell_str .= ob_get_clean() ?: '';
                     }
                     break;
             }
@@ -401,13 +423,11 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
         return $cell_str;
     }
 
-    public function display_error_message($params)
+    public function display_error_message(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || !($record_arr = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
 
         $cell_str = $record_arr['response_code'] ?? '0';
@@ -423,7 +443,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
                     <?php echo str_replace('  ', ' &nbsp;', nl2br($record_arr['error_message'])); ?>
                 </div>
                 <?php
-                $cell_str .= ob_get_clean();
+                $cell_str .= ob_get_clean() ?: '';
             }
 
             if (empty($record_arr['request_time'])
@@ -439,11 +459,11 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
         return $cell_str;
     }
 
-    public function after_table_callback($params)
+    public function after_table_callback(array $params) : string
     {
         static $js_functionality = false;
 
-        if (!empty($js_functionality)) {
+        if ($js_functionality) {
             return '';
         }
 
@@ -555,6 +575,6 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
         </script>
         <?php
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 }

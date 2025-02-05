@@ -17,9 +17,7 @@ use phs\system\core\models\PHS_Model_Agent_jobs;
 class PHS_Action_Add extends PHS_Action
 {
     /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
+     * @inheritdoc
      */
     public function allowed_scopes() : array
     {
@@ -27,7 +25,7 @@ class PHS_Action_Add extends PHS_Action
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {
@@ -39,8 +37,6 @@ class PHS_Action_Add extends PHS_Action
             return action_request_login();
         }
 
-        /** @var PHS_Plugin_Admin $admin_plugin */
-        /** @var PHS_Model_Agent_jobs $agent_jobs_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
@@ -54,9 +50,7 @@ class PHS_Action_Add extends PHS_Action
             return self::default_action_result();
         }
 
-        if (!($agent_routes = PHS_Agent::get_agent_routes())) {
-            $agent_routes = [];
-        }
+        $agent_routes = PHS_Agent::get_agent_routes() ?: [];
 
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
         $title = PHS_Params::_p('title', PHS_Params::T_NOHTML);
@@ -84,7 +78,7 @@ class PHS_Action_Add extends PHS_Action
 
             if (empty($handler)) {
                 PHS_Notifications::add_error_notice($this->_pt('Please provide a handler for this agent job.'));
-            } elseif (($existing_job = $agent_jobs_model->get_details_fields(['handler' => $handler]))) {
+            } elseif ($agent_jobs_model->get_details_fields(['handler' => $handler])) {
                 PHS_Notifications::add_error_notice($this->_pt('Agent job handler already exists. Pick another one.'));
             } elseif (!empty($params)
                 && !($params_arr = @json_decode($params, true))) {
@@ -120,11 +114,7 @@ class PHS_Action_Add extends PHS_Action
                     return action_redirect(['p' => 'admin', 'a' => 'list', 'ad' => 'agent'], ['agent_job_added' => 1]);
                 }
 
-                if (PHS::st_has_error()) {
-                    PHS_Notifications::add_error_notice(PHS::st_get_error_message());
-                } else {
-                    PHS_Notifications::add_error_notice($this->_pt('Error saving details to database. Please try again.'));
-                }
+                PHS_Notifications::add_error_notice(PHS::st_get_error_message($this->_pt('Error saving details to database. Please try again.')));
             }
         }
 

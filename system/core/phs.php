@@ -201,7 +201,7 @@ final class PHS extends PHS_Registry
         return (!empty($_SERVER)
              && isset($_SERVER['HTTPS'])
              && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === '1' || $_SERVER['HTTPS'] === 1))
-               // If we run in cli mode assume we are on https calls in order to force https URL generation
+               // If we run in cli mode, assume we are on https calls in order to force https URL generation
                || PHP_SAPI === 'cli';
     }
 
@@ -289,34 +289,25 @@ final class PHS extends PHS_Registry
         return null;
     }
 
-    public static function page_body_class(string $css_class, bool $append = true)
+    public static function page_body_class(string $css_class, bool $append = true) : bool
     {
         $existing_body_classes = $append
             ? (self::page_settings('page_body_class') ?: '')
             : '';
 
-        return self::page_settings('page_body_class', trim($existing_body_classes.' '.ltrim($css_class)));
+        return (bool)self::page_settings('page_body_class', trim($existing_body_classes.' '.ltrim($css_class)));
     }
 
-    /**
-     * @return bool
-     */
     public static function is_secured_request() : bool
     {
         return (bool)self::get_data(self::REQUEST_HTTPS);
     }
 
-    /**
-     * @return bool
-     */
     public static function is_multi_tenant() : bool
     {
         return defined('PHS_MULTI_TENANT') && constant('PHS_MULTI_TENANT');
     }
 
-    /**
-     * @return bool
-     */
     public static function prevent_session() : bool
     {
         return defined('PHS_PREVENT_SESSION') && constant('PHS_PREVENT_SESSION');
@@ -327,7 +318,7 @@ final class PHS extends PHS_Registry
         return (($cuser_arr = self::current_user($force)) && !empty($cuser_arr['id'])) ? $cuser_arr : false;
     }
 
-    public static function current_user(bool $force = false)
+    public static function current_user(bool $force = false) : bool | array
     {
         if (!($hook_args = self::_current_user_trigger($force))
          || empty($hook_args['user_db_data']) || !is_array($hook_args['user_db_data'])) {
@@ -345,6 +336,19 @@ final class PHS extends PHS_Registry
         }
 
         return $hook_args['session_db_data'];
+    }
+
+    public static function current_user_force_session_id_for_bg(?int $force_session_id = null) : ?int
+    {
+        static $session_id = null;
+
+        if ($force_session_id === null) {
+            return $session_id;
+        }
+
+        $session_id = $force_session_id;
+
+        return $session_id;
     }
 
     public static function account_structure(int | array | PHS_Record_data $account_data) : null | array | PHS_Record_data
@@ -370,11 +374,7 @@ final class PHS extends PHS_Registry
         return self::validate_array_recursive($hook_args['password_expired_data'], PHS_Hooks::default_password_expiration_data());
     }
 
-    /**
-     * @param null|PHS_Action $action_obj
-     * @return null|bool|PHS_Action
-     */
-    public static function running_action(?PHS_Action $action_obj = null)
+    public static function running_action(?PHS_Action $action_obj = null) : null | bool | PHS_Action
     {
         if ($action_obj === null) {
             return self::get_data(self::RUNNING_ACTION);
@@ -387,28 +387,19 @@ final class PHS extends PHS_Registry
         return self::set_data(self::RUNNING_ACTION, $action_obj);
     }
 
-    /**
-     * @param null|PHS_Controller $controller_obj
-     * @return null|bool|PHS_Controller
-     */
-    public static function running_controller(?PHS_Controller $controller_obj = null)
+    public static function running_controller(?PHS_Controller $controller_obj = null) : null | bool | PHS_Controller
     {
         if ($controller_obj === null) {
             return self::get_data(self::RUNNING_CONTROLLER);
         }
 
         if (!($controller_obj instanceof PHS_Controller)) {
-            return false;
+            return null;
         }
 
         return self::set_data(self::RUNNING_CONTROLLER, $controller_obj);
     }
 
-    /**
-     * @param null|string $theme
-     *
-     * @return string
-     */
     public static function valid_theme(?string $theme) : string
     {
         self::st_reset_error();
@@ -426,11 +417,6 @@ final class PHS extends PHS_Registry
         return $theme;
     }
 
-    /**
-     * @param null|string $theme
-     *
-     * @return null|string[]
-     */
     public static function get_theme_language_paths(?string $theme = null) : ?array
     {
         self::st_reset_error();
@@ -461,11 +447,6 @@ final class PHS extends PHS_Registry
         ];
     }
 
-    /**
-     * @param string $theme
-     *
-     * @return bool
-     */
     public static function set_theme(string $theme) : bool
     {
         if (!($theme = self::valid_theme($theme))) {
@@ -481,11 +462,6 @@ final class PHS extends PHS_Registry
         return true;
     }
 
-    /**
-     * @param string $theme
-     *
-     * @return bool
-     */
     public static function set_defaut_theme(string $theme) : bool
     {
         if (!($theme = self::valid_theme($theme))) {
@@ -529,11 +505,6 @@ final class PHS extends PHS_Registry
         return true;
     }
 
-    /**
-     * @param string $theme
-     *
-     * @return bool
-     */
     public static function add_theme_to_cascading_themes(string $theme) : bool
     {
         if (!($theme = self::valid_theme($theme))) {
@@ -556,9 +527,6 @@ final class PHS extends PHS_Registry
         return true;
     }
 
-    /**
-     * @return bool
-     */
     public static function resolve_theme() : bool
     {
         // First set default, so it doesn't get auto-set in set_theme() method
@@ -595,9 +563,6 @@ final class PHS extends PHS_Registry
         return $defined_themes;
     }
 
-    /**
-     * @return string
-     */
     public static function get_theme() : string
     {
         $theme = self::get_data(self::CURRENT_THEME);
@@ -627,10 +592,6 @@ final class PHS extends PHS_Registry
         return $theme;
     }
 
-    /**
-     * Return an array with cascading themes
-     * @return array
-     */
     public static function get_cascading_themes() : array
     {
         if (!($themes = self::get_data(self::CASCADE_THEMES))
@@ -667,7 +628,7 @@ final class PHS extends PHS_Registry
 
         $themes_stack[self::BASE_THEME] = true;
 
-        return !empty($themes_stack) ? array_keys($themes_stack) : [];
+        return array_keys($themes_stack);
     }
 
     public static function domain_constants() : array
@@ -715,11 +676,6 @@ final class PHS extends PHS_Registry
         }
     }
 
-    /**
-     * @param bool $force_https
-     *
-     * @return string
-     */
     public static function get_base_url(bool $force_https = false) : string
     {
         if (!empty($force_https)
@@ -748,12 +704,7 @@ final class PHS extends PHS_Registry
         return '';
     }
 
-    /**
-     * @param bool $force_https
-     *
-     * @return bool|string
-     */
-    public static function get_base_domain_and_path(bool $force_https = false)
+    public static function get_base_domain_and_path(bool $force_https = false) : ?string
     {
         if (!empty($force_https)
          || self::is_secured_request()) {
@@ -778,7 +729,7 @@ final class PHS extends PHS_Registry
             }
         }
 
-        return false;
+        return null;
     }
 
     public static function are_we_in_a_background_thread() : bool
@@ -800,8 +751,8 @@ final class PHS extends PHS_Registry
 
     public static function extract_route()
     {
-        if (empty($_GET) || empty($_GET[self::ROUTE_PARAM])
-         || !is_string($_GET[self::ROUTE_PARAM])) {
+        if (empty($_GET[self::ROUTE_PARAM])
+            || !is_string($_GET[self::ROUTE_PARAM])) {
             return '';
         }
 
@@ -1894,14 +1845,13 @@ final class PHS extends PHS_Registry
      *
      * @return null|array|bool
      */
-    public static function execute_route(?array $params = null)
+    public static function execute_route(array $params = [])
     {
         self::st_reset_error();
 
-        $params ??= [];
-        $params['die_on_error'] = (!isset($params['die_on_error']) || !empty($params['die_on_error']));
+        $params['die_on_error'] = !isset($params['die_on_error']) || !empty($params['die_on_error']);
 
-        $action_result = false;
+        $action_result = null;
 
         if (!($route_details = self::get_route_details())
             || empty($route_details[self::ROUTE_CONTROLLER])) {
@@ -1918,7 +1868,7 @@ final class PHS extends PHS_Registry
 
         if (self::st_has_error()) {
             $controller_error_arr = $technical_error_arr = self::st_get_error();
-        } elseif (!empty($action_result)
+        } elseif ($action_result
                   && PHS_Action::action_result_has_errors($action_result)) {
             $controller_error_arr = PHS_Action::get_end_user_error_from_action_result($action_result);
             $technical_error_arr = PHS_Action::get_technical_error_from_action_result($action_result);
@@ -1950,7 +1900,7 @@ final class PHS extends PHS_Registry
                 self::ERR_EXECUTE_ROUTE, self::_t('Error serving request.'));
         }
 
-        if (!empty($action_result) && is_array($action_result)
+        if ($action_result
             && !empty($action_result['custom_headers']) && is_array($action_result['custom_headers'])) {
             $action_result['custom_headers']
                 = self::unify_array_insensitive($action_result['custom_headers'], ['trim_keys' => true]);
@@ -1958,7 +1908,7 @@ final class PHS extends PHS_Registry
 
         $scope_action_result = $scope_obj->generate_response($action_result, $controller_error_arr, $technical_error_arr);
 
-        if (empty($action_result)) {
+        if (!$action_result) {
             $error_msg = null;
             if (self::arr_has_error($technical_error_arr)) {
                 $error_msg = '['.self::get_route_as_string().'] - '
@@ -1967,7 +1917,7 @@ final class PHS extends PHS_Registry
                 $error_msg = $scope_obj->get_full_error_message();
             }
 
-            if (!empty($error_msg)) {
+            if ($error_msg) {
                 PHS_Logger::critical($error_msg, PHS_Logger::TYPE_DEBUG);
             }
 
@@ -2065,51 +2015,74 @@ final class PHS extends PHS_Registry
         return $hook_result['session_db_data'];
     }
 
-    /**
-     * @param string $library
-     *
-     * @return string
-     */
-    public static function get_core_library_full_path(string $library) : string
+    public static function get_core_library_full_path(string $library, string $path_in_lib_dir = '') : string
     {
         $library = PHS_Instantiable::safe_escape_library_name($library);
+
+        if ($path_in_lib_dir !== '') {
+            $path_in_lib_dir = trim(str_replace('.', '', $path_in_lib_dir), '\\/');
+        }
+
         if (empty($library)
-         || !@file_exists(PHS_CORE_LIBRARIES_DIR.$library.'.php')) {
+            || ($path_in_lib_dir !== ''
+                && !@is_dir(PHS_CORE_LIBRARIES_DIR.$path_in_lib_dir))
+            || !@file_exists(PHS_CORE_LIBRARIES_DIR.($path_in_lib_dir !== '' ? '/' : '').$library.'.php')) {
             return '';
         }
 
-        return PHS_CORE_LIBRARIES_DIR.$library.'.php';
+        return PHS_CORE_LIBRARIES_DIR.($path_in_lib_dir !== '' ? '/' : '').$library.'.php';
     }
 
     public static function spl_autoload_register(string $class_name) : void
     {
         self::st_reset_error();
 
+        $instantiable_details = null;
+        $library_details = null;
         if (@class_exists($class_name, false)
-         || !($class_details = PHS_Instantiable::extract_details_from_full_namespace_name($class_name))
-         || empty($class_details['instance_type'])
-         || $class_details['instance_type'] === PHS_Instantiable::INSTANCE_TYPE_UNDEFINED) {
+            || (
+                !($library_details = PHS_Library::extract_details_from_full_namespace_name($class_name))
+                && (!($instantiable_details = PHS_Instantiable::extract_details_from_full_namespace_name($class_name))
+                 || empty($instantiable_details['instance_type'])
+                 || $instantiable_details['instance_type'] === PHS_Instantiable::INSTANCE_TYPE_UNDEFINED
+                )
+            )
+        ) {
             return;
         }
 
-        if (!PHS_Instantiable::get_instance(true, $class_name)) {
-            // class/file cannot be loaded, so we create an undefined instatiable...
+        $load_result = null;
+        if ($instantiable_details) {
+            $load_result = PHS_Instantiable::get_instance(true, $class_name);
+        } elseif (!empty($library_details['plugin'])) {
+            $load_result = ($plugin_obj = self::load_plugin($library_details['plugin']))
+                           && !empty($library_details['library_file'])
+                           && $plugin_obj->load_library_file($library_details['library_file'], $library_details['path_in_lib_dir'] ?? '');
+        } elseif (!empty($library_details['library_file'])) {
+            $load_result = self::load_core_library_file($library_details['library_file'], $library_details['path_in_lib_dir'] ?? '');
+        }
 
+        if (!$load_result) {
+            // class/file cannot be loaded, so we create an undefined instatiable...
             $newclass = new class extends PHS_Undefined_instantiable {
             };
             class_alias(get_class($newclass), $class_name);
         }
     }
 
-    /**
-     * Try loading a core library
-     *
-     * @param string $library Core library file to be loaded
-     * @param null|array $params Loading parameters
-     *
-     * @return null|PHS_Library
-     */
-    public static function load_core_library(string $library, ?array $params = null) : ?PHS_Library
+    public static function load_core_library_by_classname(string $library_class, array $params = []) : ?PHS_Library
+    {
+        $params['full_class_name'] = $library_class;
+
+        $class_parts = explode('\\', $library_class);
+        if (!str_starts_with(strtolower(($file_name = array_pop($class_parts))), 'phs_')) {
+            $file_name = 'phs_'.$file_name;
+        }
+
+        return self::load_core_library(strtolower($file_name), $params);
+    }
+
+    public static function load_core_library(string $library_file, ?array $params = null) : ?PHS_Library
     {
         self::st_reset_error();
 
@@ -2118,36 +2091,32 @@ final class PHS extends PHS_Registry
         // We assume $library represents class name without namespace (otherwise it won't be a valid library name)
         // so class name is from "root" namespace
         if (empty($params['full_class_name'])) {
-            $params['full_class_name'] = '\\'.ltrim($library, '\\');
+            $params['full_class_name'] = '\\'.ltrim($library_file, '\\');
         }
-        if (empty($params['init_params'])) {
-            $params['init_params'] = null;
-        }
-        $params['as_singleton'] = !empty($params['as_singleton']);
 
-        if (!($library = PHS_Instantiable::safe_escape_library_name($library))) {
+        $params['init_params'] ??= null;
+        $params['as_singleton'] = !empty($params['as_singleton']);
+        $params['path_in_lib_dir'] ??= '';
+
+        if (!($library_file = PHS_Instantiable::safe_escape_library_name($library_file))) {
             self::st_set_error(self::ERR_LIBRARY, self::_t('Couldn\'t load core library.'));
 
             return null;
         }
 
         if (!empty($params['as_singleton'])
-            && !empty(self::$_core_libraries_instances[$library])) {
-            return self::$_core_libraries_instances[$library];
+            && !empty(self::$_core_libraries_instances[$library_file])) {
+            return self::$_core_libraries_instances[$library_file];
         }
 
-        if (!($file_path = self::get_core_library_full_path($library))) {
-            self::st_set_error(self::ERR_LIBRARY, self::_t('Couldn\'t load core library [%s].', $library));
+        if (!($file_path = self::load_core_library_file($library_file, $params['path_in_lib_dir']))) {
+            self::st_set_error_if_not_set(self::ERR_LIBRARY, self::_t('Couldn\'t load core library [%s].', $library_file));
 
             return null;
         }
 
-        ob_start();
-        include_once $file_path;
-        ob_get_clean();
-
         if (!@class_exists($params['full_class_name'], false)) {
-            self::st_set_error(self::ERR_LIBRARY, self::_t('Couldn\'t instantiate library class for core library [%s].', $library));
+            self::st_set_error(self::ERR_LIBRARY, self::_t('Couldn\'t instantiate library class for core library [%s].', $library_file));
 
             return null;
         }
@@ -2160,7 +2129,7 @@ final class PHS extends PHS_Registry
         }
 
         if (!($library_instance instanceof PHS_Library)) {
-            self::st_set_error(self::ERR_LIBRARY, self::_t('Core library [%s] is not a PHS library.', $library));
+            self::st_set_error(self::ERR_LIBRARY, self::_t('Core library [%s] is not a PHS library.', $library_file));
 
             return null;
         }
@@ -2171,16 +2140,41 @@ final class PHS extends PHS_Registry
         $location_details['library_www'] = rtrim(PHS_CORE_LIBRARIES_WWW, '/');
 
         if (!$library_instance->set_library_location_paths($location_details)) {
-            self::st_set_error(self::ERR_LIBRARY, self::_t('Core library [%s] couldn\'t set location paths.', $library));
+            self::st_set_error(self::ERR_LIBRARY, self::_t('Core library [%s] couldn\'t set location paths.', $library_file));
 
             return null;
         }
 
         if (!empty($params['as_singleton'])) {
-            self::$_core_libraries_instances[$library] = $library_instance;
+            self::$_core_libraries_instances[$library_file] = $library_instance;
         }
 
         return $library_instance;
+    }
+
+    public static function load_core_library_file(string $library_name, string $path_in_lib_dir = '') : ?string
+    {
+        self::st_reset_error();
+
+        if (!($library_name = PHS_Instantiable::safe_escape_library_name($library_name))) {
+            self::st_set_error(self::ERR_LIBRARY, self::_t('Couldn\'t load core library.'));
+
+            return null;
+        }
+
+        if (!($file_path = self::get_core_library_full_path($library_name, $path_in_lib_dir))) {
+            self::st_set_error(self::ERR_LIBRARY, self::_t('Couldn\'t load core library [%s].', $library_name));
+
+            return null;
+        }
+
+        if (!in_array($file_path, get_included_files(), true)) {
+            ob_start();
+            include_once $file_path;
+            ob_get_clean();
+        }
+
+        return $file_path;
     }
 
     /**
@@ -3128,26 +3122,25 @@ final class PHS extends PHS_Registry
     {
         static $hook_result = null;
 
-        if (!empty($hook_result)
-            && empty($force)) {
+        if ($hook_result
+            && !$force) {
             return $hook_result;
         }
 
         $hook_args = PHS_Hooks::default_user_db_details_hook_args();
         $hook_args['force_check'] = !empty($force);
 
-        if (!($hook_result = PHS_Hooks::trigger_current_user($hook_args))) {
-            $hook_result = null;
-        }
+        $hook_result = PHS_Hooks::trigger_current_user($hook_args) ?: null;
 
         return $hook_result;
     }
 
-    private static function _get_db_user_details($force = false)
+    private static function _get_db_user_details(bool $force = false) : ?array
     {
-        static $hook_result = false;
+        static $hook_result = null;
 
-        if (empty($force) && !empty($hook_result)) {
+        if ($hook_result
+            && !$force) {
             return $hook_result;
         }
 

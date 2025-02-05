@@ -7,6 +7,8 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
+use phs\libraries\PHS_Record_data;
+use phs\plugins\mobileapi\libraries\PHS_Firebase;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\mobileapi\models\PHS_Model_Api_online;
 
@@ -369,41 +371,28 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         return true;
     }
 
-    /**
-     * @param int|array $account_data
-     * @param array $payload_arr
-     * @param bool|array $params
-     *
-     * @return bool|array Returns false or error or a list of devices to which notification was sent and errors (if any)
-     */
-    public function push_notification_to_user($account_data, $payload_arr, $params = false)
+    public function push_notification_to_user(int | array | PHS_Record_data $account_data, array $payload_arr, array $params = []) : ?array
     {
         $this->reset_error();
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        /** @var PHS_Model_Api_online $apionline_model */
-        /** @var PHS_Model_Accounts $accounts_model */
         if (!($apionline_model = PHS_Model_Api_online::get_instance())
             || !($accounts_model = PHS_Model_Accounts::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Couldn\'t load required models.'));
 
-            return false;
+            return null;
         }
 
-        if (empty($account_data)
+        if (!$account_data
          || !($account_arr = $accounts_model->data_to_array($account_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
 
-            return false;
+            return null;
         }
 
         $params['apionline_model'] = $apionline_model;
 
         if (empty($params['devices_params'])
-         || !is_array($params['devices_params'])) {
+            || !is_array($params['devices_params'])) {
             $params['devices_params'] = [];
         }
 
@@ -415,7 +404,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
             if ($apionline_model->has_error()) {
                 $this->copy_error($apionline_model);
 
-                return false;
+                return null;
             }
 
             return $return_arr;
@@ -423,137 +412,66 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
 
         $return_arr['devices'] = $devices_arr;
         foreach ($devices_arr as $device_id => $device_arr) {
-            if (!($send_result = $this->push_notification_to_device($device_arr, $payload_arr, $params))) {
-                $error_msg = $this->_pt('Error sending notification to device.');
-                if ($this->has_error()) {
-                    $error_msg = $this->get_simple_error_message();
-                }
-
-                $return_arr['errors'][$device_id] = $error_msg;
+            if (!$this->push_notification_to_device($device_arr, $payload_arr, $params)) {
+                $return_arr['errors'][$device_id]
+                    = $this->get_simple_error_message($this->_pt('Error sending notification to device.'));
             }
         }
 
         return $return_arr;
     }
 
-    /**
-     * @param int|array $device_data
-     * @param array $payload_arr
-     * @param bool|array $params
-     *
-     * @return bool|void
-     */
-    public function push_notification_to_device($device_data, $payload_arr, $params = false)
+    public function push_notification_to_device(int | array | PHS_Record_data $device_data, array $payload_arr, array $params = []) : ?array
     {
         $this->reset_error();
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
+        if (!($apionline_model = PHS_Model_Api_online::get_instance())
+            || !($devices_flow = $apionline_model->fetch_default_flow_params(['table_name' => 'mobileapi_devices']))) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
-        if (empty($params['apionline_model'])
-        && !($params['apionline_model'] = PHS::load_model('api_online', 'mobileapi'))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading API online model.'));
-
-            return false;
-        }
-
-        /** @var PHS_Model_Api_online $apionline_model */
-        $apionline_model = $params['apionline_model'];
-
-        if (!($devices_flow = $apionline_model->fetch_default_flow_params(['table_name' => 'mobileapi_devices']))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t initiate device module flow.'));
-
-            return false;
+            return null;
         }
 
         if (!($device_arr = $apionline_model->data_to_array($device_data, $devices_flow))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Device not found in database.'));
 
-            return false;
+            return null;
         }
 
         if (empty($device_arr['device_token'])) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Device doesn\'t have a token set.'));
 
-            return false;
+            return null;
         }
 
         return $this->push_notification_to_token($device_arr['device_token'], $payload_arr, $params);
     }
 
-    /**
-     * @param string $token_str
-     * @param array $payload_arr
-     * @param bool|array $params
-     *
-     * @return array|bool
-     */
-    public function push_notification_to_token($token_str, $payload_arr, $params = false)
+    public function push_notification_to_token(string $token_str, array $payload_arr, array $params = []) : ?array
     {
         $this->reset_error();
 
-        if (!($firebase_obj = $this->get_firebase_instance())) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading Firebase library.'));
-            }
+        if (!($firebase_obj = PHS_Firebase::get_instance())) {
+            $this->set_error_if_not_set(self::ERR_LIBRARY, $this->_pt('Error loading Firebase library.'));
 
-            return false;
-        }
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
+            return null;
         }
 
         // Envelope are keys which will be added in root of payload sent to Firebase
         // (e.g. collapse_key, priority, time_to_live, etc)
         // @see https://firebase.google.com/docs/cloud-messaging/http-server-ref
         if (empty($params['envelope']) || !is_array($params['envelope'])) {
-            $params['envelope'] = false;
+            $params['envelope'] = [];
         }
 
         if (!($result = $firebase_obj->send_notification($token_str, $payload_arr, $params['envelope']))) {
-            if ($firebase_obj->has_error()) {
-                $this->copy_error($firebase_obj);
-            } else {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error sending push notification using Firebase library.'));
-            }
+            $this->copy_or_set_error($firebase_obj,
+                self::ERR_FUNCTIONALITY, $this->_pt('Error sending push notification using Firebase library.'));
 
-            return false;
+            return null;
         }
 
         return $result;
-    }
-
-    /**
-     * Returns an instance of PHS_Firebase class
-     *
-     * @return bool|libraries\PHS_Firebase
-     */
-    public function get_firebase_instance()
-    {
-        static $library_obj = null;
-
-        if ($library_obj !== null) {
-            return $library_obj;
-        }
-
-        $library_params = [];
-        $library_params['full_class_name'] = '\\phs\\plugins\\mobileapi\\libraries\\PHS_Firebase';
-        $library_params['as_singleton'] = true;
-
-        /** @var libraries\PHS_Firebase $loaded_library */
-        if (!($loaded_library = $this->load_library('phs_firebase', $library_params))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading Firebase library.'));
-            }
-
-            return false;
-        }
-
-        $library_obj = $loaded_library;
-
-        return $library_obj;
     }
 
     public static function api_session($session_params = null)

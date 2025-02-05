@@ -4,12 +4,8 @@ namespace phs\plugins\admin\actions\agent;
 use phs\PHS;
 use phs\PHS_Agent;
 use phs\PHS_Scope;
-use phs\PHS_Bg_jobs;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
-use phs\libraries\PHS_Plugin;
-use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\models\PHS_Model_Agent_jobs;
@@ -17,9 +13,7 @@ use phs\system\core\models\PHS_Model_Agent_jobs;
 class PHS_Action_Edit extends PHS_Action
 {
     /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
+     * @inheritdoc
      */
     public function allowed_scopes() : array
     {
@@ -27,7 +21,7 @@ class PHS_Action_Edit extends PHS_Action
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {
@@ -39,8 +33,6 @@ class PHS_Action_Edit extends PHS_Action
             return action_request_login();
         }
 
-        /** @var PHS_Plugin_Admin $admin_plugin */
-        /** @var PHS_Model_Agent_jobs $agent_jobs_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
@@ -61,28 +53,18 @@ class PHS_Action_Edit extends PHS_Action
          || !($agent_job_arr = $agent_jobs_model->get_details($aid))) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid agent job...'));
 
-            $args = [
-                'unknown_agent_job' => 1,
-            ];
+            $back_page = !$back_page
+                ? PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'agent'])
+                : from_safe_url($back_page);
 
-            if (empty($back_page)) {
-                $back_page = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'agent']);
-            } else {
-                $back_page = from_safe_url($back_page);
-            }
-
-            $back_page = add_url_params($back_page, $args);
-
-            return action_redirect($back_page);
+            return action_redirect(add_url_params($back_page, ['unknown_agent_job' => 1, ]));
         }
 
         if (PHS_Params::_g('changes_saved', PHS_Params::T_INT)) {
             PHS_Notifications::add_success_notice($this->_pt('Agent job details saved.'));
         }
 
-        if (!($agent_routes = PHS_Agent::get_agent_routes())) {
-            $agent_routes = [];
-        }
+        $agent_routes = PHS_Agent::get_agent_routes() ?: [];
 
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
         $title = PHS_Params::_p('title', PHS_Params::T_NOHTML);
@@ -115,7 +97,7 @@ class PHS_Action_Edit extends PHS_Action
         if (!empty($do_submit)) {
             $action_dir = '';
             $action = trim($action, '/\\');
-            if (strpos($action, '/') !== false) {
+            if (str_contains($action, '/')) {
                 $action_parts = explode('/', $action);
                 $action = array_pop($action_parts);
                 if (!empty($action_parts)) {
@@ -129,7 +111,7 @@ class PHS_Action_Edit extends PHS_Action
 
             if (empty($handler)) {
                 PHS_Notifications::add_error_notice($this->_pt('Please provide a handler for this agent job.'));
-            } elseif (($existing_job = $agent_jobs_model->get_details_fields($job_check_params))) {
+            } elseif ($agent_jobs_model->get_details_fields($job_check_params)) {
                 PHS_Notifications::add_error_notice($this->_pt('Agent job handler already exists. Pick another one.'));
             } elseif (!empty($params)
                  && !($params_arr = @json_decode($params, true))) {
@@ -170,11 +152,7 @@ class PHS_Action_Edit extends PHS_Action
                     return action_redirect(['p' => 'admin', 'a' => 'edit', 'ad' => 'agent'], $url_params);
                 }
 
-                if (PHS::st_has_error()) {
-                    PHS_Notifications::add_error_notice(PHS::st_get_error_message());
-                } else {
-                    PHS_Notifications::add_error_notice($this->_pt('Error saving details to database. Please try again.'));
-                }
+                PHS_Notifications::add_error_notice(PHS::st_get_error_message($this->_pt('Error saving details to database. Please try again.')));
             }
         }
 

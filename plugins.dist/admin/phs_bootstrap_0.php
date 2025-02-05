@@ -11,6 +11,7 @@ use phs\system\core\events\layout\PHS_Event_Template;
 if (($admin_plugin = PHS_Plugin_Admin::get_instance())) {
     PHS_Logger::define_channel($admin_plugin::LOG_API_MONITOR);
     PHS_Logger::define_channel($admin_plugin::LOG_DATA_RETENTION);
+    PHS_Logger::define_channel($admin_plugin::LOG_PAGINATOR);
 
     // Not all projects ready for events
     // PHS_Event_Layout::listen([$admin_plugin, 'listen_after_left_menu_admin'],

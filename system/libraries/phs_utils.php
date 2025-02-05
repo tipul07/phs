@@ -6,6 +6,9 @@ namespace phs\libraries;
  *  \version 1.5
  */
 
+use DateTime;
+use Exception;
+
 class PHS_Utils extends PHS_Language
 {
     // ! Error related to directories
@@ -244,9 +247,9 @@ class PHS_Utils extends PHS_Language
         $pasttime = $nowtime - $seconds_span;
 
         try {
-            $nowdate_obj = new \DateTime('@'.$nowtime);
-            $pastdate_obj = new \DateTime('@'.$pasttime);
-        } catch (\Exception $e) {
+            $nowdate_obj = new DateTime('@'.$nowtime);
+            $pastdate_obj = new DateTime('@'.$pasttime);
+        } catch (Exception $e) {
             return '#Cannot_parse_period#';
         }
 
@@ -1220,7 +1223,7 @@ class PHS_Utils extends PHS_Language
                     break;
                 }
 
-                $post_string .= $key.'='.utf8_encode(rawurlencode($val)).'&';
+                $post_string .= $key.'='.encode_to_utf8(rawurlencode($val)).'&';
             }
 
             if (is_string($post_string) && $post_string !== '') {

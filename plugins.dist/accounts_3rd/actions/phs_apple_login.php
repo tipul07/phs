@@ -11,6 +11,7 @@ use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\plugins\accounts_3rd\libraries\Apple;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd;
 use phs\system\core\events\actions\PHS_Event_Action_after;
@@ -49,7 +50,7 @@ class PHS_Action_apple_login extends PHS_Action
         /** @var PHS_Model_Accounts_services $services_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
             || !($accounts_trd_plugin = PHS_Plugin_Accounts_3rd::get_instance())
-            || !($apple_lib = $accounts_trd_plugin->get_apple_instance())
+            || !($apple_lib = Apple::get_instance())
             || !($accounts_model = PHS_Model_Accounts::get_instance())
             || !($services_model = PHS_Model_Accounts_services::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));

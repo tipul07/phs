@@ -69,14 +69,6 @@ abstract class PHS_Action extends PHS_Instantiable
         return [self::ACT_ROLE_PAGE];
     }
 
-    /**
-     * Define an action role
-     *
-     * @param string $role_key
-     * @param array $role_arr Role definition array
-     *
-     * @return null|array
-     */
     final public function define_action_role(string $role_key, array $role_arr) : ?array
     {
         $this->reset_error();
@@ -106,25 +98,22 @@ abstract class PHS_Action extends PHS_Instantiable
      * Checks if current action has provided role(s)
      *
      * @param string[]|string $role_check action role (string) or action roles (array of strings) to be checked
-     * @param null|array $params Method extra parameters
+     * @param array $params Method extra parameters
      *
      * @return null|array Return null if provided roles are not for current action or a list of matching action roles
      */
-    final public function action_role_is(string | array $role_check, ?array $params = null) : ?array
+    final public function action_role_is(string | array $role_check, array $params = []) : ?array
     {
         if (!is_array($role_check)) {
             $role_check = [$role_check];
         }
 
-        if (!($action_roles = $this->action_roles())) {
-            $action_roles = [self::ACT_ROLE_PAGE];
-        }
+        $action_roles = $this->action_roles() ?: [self::ACT_ROLE_PAGE];
 
         if (!is_array($action_roles)) {
             $action_roles = [$action_roles];
         }
 
-        $params ??= [];
         // Action has all provided roles
         $params['all_provided'] = !empty($params['all_provided']);
 
@@ -142,12 +131,9 @@ abstract class PHS_Action extends PHS_Instantiable
             }
         }
 
-        return empty($return_arr) ? null : $return_arr;
+        return $return_arr ?: null;
     }
 
-    /**
-     * @return string
-     */
     final public function instance_type() : string
     {
         return self::INSTANCE_TYPE_ACTION;
@@ -168,9 +154,9 @@ abstract class PHS_Action extends PHS_Instantiable
             return false;
         }
 
-        return !(($allowed_scopes = $this->allowed_scopes())
-         && is_array($allowed_scopes)
-         && !in_array($scope, $allowed_scopes, true));
+        return !($allowed_scopes = $this->allowed_scopes())
+               || !is_array($allowed_scopes)
+               || in_array($scope, $allowed_scopes, true);
     }
 
     final public function set_action_defaults() : void
@@ -178,20 +164,11 @@ abstract class PHS_Action extends PHS_Instantiable
         $this->_action_result = self::default_action_result();
     }
 
-    /**
-     * @return null|array
-     */
     final public function get_action_result() : ?array
     {
         return $this->_action_result;
     }
 
-    /**
-     * Sets action result for current action
-     * @param array $result
-     *
-     * @return array
-     */
     final public function set_action_result(array $result) : array
     {
         $this->_action_result = self::validate_action_result($result);
@@ -239,9 +216,6 @@ abstract class PHS_Action extends PHS_Instantiable
         return $action_result;
     }
 
-    /**
-     * @return null|array
-     */
     final public function run_action() : ?array
     {
         PHS::running_action($this);
@@ -360,6 +334,18 @@ abstract class PHS_Action extends PHS_Instantiable
         return $this->_controller_obj && $this->_controller_obj->is_admin_controller();
     }
 
+    public function send_ajax_response(string | array $payload, array $action_result = [], ?bool $only_result = null) : array
+    {
+        $action_result = $action_result ?: self::default_action_result();
+
+        $action_result['ajax_result'] = $payload;
+        if ($only_result !== null) {
+            $action_result['ajax_only_result'] = $only_result;
+        }
+
+        return $action_result;
+    }
+
     final public static function default_action_role_definition_array() : array
     {
         return [
@@ -367,10 +353,6 @@ abstract class PHS_Action extends PHS_Instantiable
         ];
     }
 
-    /**
-     * Return an array of defined action roles (custom and builtin)
-     * @return array
-     */
     final public static function get_action_roles() : array
     {
         if (!empty(self::$_action_roles)) {
@@ -382,13 +364,6 @@ abstract class PHS_Action extends PHS_Instantiable
         return self::$_action_roles;
     }
 
-    /**
-     * Check if $role_key is a defined action role. Return action role definiton if role is defined.
-     *
-     * @param string $role_key
-     *
-     * @return null|array
-     */
     final public static function valid_action_role(string $role_key) : ?array
     {
         if (!($roles_arr = self::get_action_roles())

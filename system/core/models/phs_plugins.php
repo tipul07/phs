@@ -355,7 +355,7 @@ class PHS_Model_Plugins extends PHS_Model
      *
      * @param bool $force Force plugins recheck
      *
-     * @return null|array<string, \phs\libraries\PHS_Plugin> False on error or array with plugin name as key and plugin instance as value
+     * @return null|array<string, PHS_Plugin> False on error or array with plugin name as key and plugin instance as value
      */
     public function cache_all_dir_details(bool $force = false) : ?array
     {
@@ -1082,10 +1082,7 @@ class PHS_Model_Plugins extends PHS_Model
         return self::$plugin_tenant_settings[$tenant_id][$instance_id];
     }
 
-    /**
-     * @param false|array $instance_details
-     */
-    protected function _do_construct($instance_details = false) : void
+    protected function _do_construct(array $instance_details = []) : void
     {
         parent::_do_construct($instance_details);
 

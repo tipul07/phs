@@ -259,11 +259,8 @@ abstract class PHS_Controller extends PHS_Instantiable
         $action_obj->set_controller($this);
 
         if (!($action_result = $action_obj->run_action())) {
-            if ($action_obj->has_error()) {
-                $this->copy_error($action_obj);
-            } else {
-                $this->set_error(self::ERR_RUN_ACTION, self::_t('Error executing action [%s].', ($action_dir !== '' ? $action_dir.'/' : '').$action));
-            }
+            $this->copy_or_set_error($action_obj,
+                self::ERR_RUN_ACTION, self::_t('Error executing action [%s].', ($action_dir !== '' ? $action_dir.'/' : '').$action));
 
             return false;
         }

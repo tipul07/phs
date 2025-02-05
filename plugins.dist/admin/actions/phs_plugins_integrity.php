@@ -103,21 +103,11 @@ class PHS_Action_Plugins_integrity extends PHS_Action
 
     private function check_plugin(string $plugin_name) : string
     {
-        if (!($controllers_arr = PHS::get_plugin_scripts_from_dir($plugin_name, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER))) {
-            $controllers_arr = [];
-        }
-        if (!($actions_arr = PHS::get_plugin_scripts_from_dir($plugin_name, PHS_Instantiable::INSTANCE_TYPE_ACTION))) {
-            $actions_arr = [];
-        }
-        if (!($contracts_arr = PHS::get_plugin_scripts_from_dir($plugin_name, PHS_Instantiable::INSTANCE_TYPE_CONTRACT))) {
-            $contracts_arr = [];
-        }
-        if (!($models_arr = PHS::get_plugin_scripts_from_dir($plugin_name, PHS_Instantiable::INSTANCE_TYPE_MODEL))) {
-            $models_arr = [];
-        }
-        if (!($events_arr = PHS::get_plugin_scripts_from_dir($plugin_name, PHS_Instantiable::INSTANCE_TYPE_EVENT))) {
-            $events_arr = [];
-        }
+        $controllers_arr = PHS::get_plugin_scripts_from_dir($plugin_name, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER) ?: [];
+        $actions_arr = PHS::get_plugin_scripts_from_dir($plugin_name, PHS_Instantiable::INSTANCE_TYPE_ACTION) ?: [];
+        $contracts_arr = PHS::get_plugin_scripts_from_dir($plugin_name, PHS_Instantiable::INSTANCE_TYPE_CONTRACT) ?: [];
+        $models_arr = PHS::get_plugin_scripts_from_dir($plugin_name, PHS_Instantiable::INSTANCE_TYPE_MODEL) ?: [];
+        $events_arr = PHS::get_plugin_scripts_from_dir($plugin_name, PHS_Instantiable::INSTANCE_TYPE_EVENT) ?: [];
 
         $return_str = '<hr/><p>'.$this->_pt('Checking plugin %s (%s controllers, %s actions, %s contracts, %s models, %s events)...',
             '<strong>'.$plugin_name.'</strong>',

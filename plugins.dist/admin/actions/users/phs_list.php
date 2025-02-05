@@ -2,9 +2,6 @@
 namespace phs\plugins\admin\actions\users;
 
 use phs\PHS;
-use phs\libraries\PHS_Roles;
-use phs\libraries\PHS_Utils;
-use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
@@ -70,11 +67,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
     {
         PHS::page_settings('page_title', $this->_pt('List Users'));
 
-        if (!($current_user = PHS::user_logged_in())) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
-
-            return null;
-        }
+        $current_user = PHS::user_logged_in();
 
         $platform_is_multitenant = PHS::is_multi_tenant();
 
@@ -1020,14 +1013,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     public function display_locked($params)
     {
-        if (empty($params)
-            || !is_array($params)
-            || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
             || !($account_arr = $this->_paginator_model->data_to_array($params['record']))) {
             return false;
         }
-
-        $paginator_obj = $this->_paginator;
 
         $pretty_params = [];
         $pretty_params['date_format'] = $params['column']['date_format'] ?? null;
@@ -1044,12 +1033,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         if (!empty($params['request_render_type'])) {
             switch ($params['request_render_type']) {
-                case $paginator_obj::CELL_RENDER_JSON:
-                case $paginator_obj::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_JSON:
+                case $this->_paginator::CELL_RENDER_TEXT:
+                case $this->_paginator::CELL_RENDER_CSV:
+                case $this->_paginator::CELL_RENDER_EXCEL:
                     $cell_str = strip_tags($cell_str).' ('.$params['record']['failed_logins'].')';
                     break;
 
-                case $paginator_obj::CELL_RENDER_HTML:
+                case $this->_paginator::CELL_RENDER_HTML:
                     $cell_str .= '<br/>'.$this->_pt('%s failures', $params['record']['failed_logins']);
                     break;
             }
@@ -1158,8 +1149,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         <script type="text/javascript">
         function phs_users_list_sublogin_account( id )
         {
-            if( confirm( "<?php echo $this->_pte('Are you sure you want to change login as this account?', '"'); ?>" ) )
-            {
+            if( confirm( "<?php echo $this->_pte('Are you sure you want to change login as this account?', '"'); ?>" ) ) {
                 <?php
                 $url_params = [];
         $url_params['action'] = [
@@ -1171,8 +1161,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
         function phs_users_list_reset_account_locking( id )
         {
-            if( confirm( "<?php echo $this->_pte('Are you sure you want to reset account locking for this account?', '"'); ?>" ) )
-            {
+            if( confirm( "<?php echo $this->_pte('Are you sure you want to reset account locking for this account?', '"'); ?>" ) ) {
                 <?php
         $url_params = [];
         $url_params['action'] = [
@@ -1184,8 +1173,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
         function phs_users_list_resend_registration_email( id )
         {
-            if( confirm( "<?php echo $this->_pte('Are you sure you want to re-send registration email for this account?', '"'); ?>" ) )
-            {
+            if( confirm( "<?php echo $this->_pte('Are you sure you want to re-send registration email for this account?', '"'); ?>" ) ) {
                 <?php
         $url_params = [];
         $url_params['action'] = [
@@ -1197,8 +1185,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
         function phs_users_list_activate_account( id )
         {
-            if( confirm( "<?php echo $this->_pte('Are you sure you want to activate this account?', '"'); ?>" ) )
-            {
+            if( confirm( "<?php echo $this->_pte('Are you sure you want to activate this account?', '"'); ?>" ) ) {
                 <?php
         $url_params = [];
         $url_params['action'] = [
@@ -1210,8 +1197,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
         function phs_users_list_inactivate_account( id )
         {
-            if( confirm( "<?php echo $this->_pte('Are you sure you want to inactivate this account?', '"'); ?>" ) )
-            {
+            if( confirm( "<?php echo $this->_pte('Are you sure you want to inactivate this account?', '"'); ?>" ) ) {
                 <?php
         $url_params = [];
         $url_params['action'] = [
@@ -1224,8 +1210,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         function phs_users_list_delete_account( id )
         {
             if( confirm( "<?php echo $this->_pte('Are you sure you want to DELETE this account?', '"'); ?>" + "\n" +
-                         "<?php echo $this->_pte('NOTE: You cannot undo this action!', '"'); ?>" ) )
-            {
+                         "<?php echo $this->_pte('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
                 <?php
         $url_params = [];
         $url_params['action'] = [
@@ -1236,113 +1221,105 @@ class PHS_Action_List extends PHS_Action_Generic_list
             }
         }
 
-        function phs_users_list_get_checked_ids_count()
-        {
-            var checkboxes_list = phs_paginator_get_checkboxes_checked( 'id' );
-            if( !checkboxes_list || !checkboxes_list.length )
-                return 0;
-
-            return checkboxes_list.length;
-        }
-
         function phs_users_list_bulk_activate()
         {
-            var total_checked = phs_users_list_get_checked_ids_count();
-
-            if( !total_checked )
-            {
+            let total_checked = phs_paginator_get_checkboxes_checked_count('id');
+            if( !total_checked ) {
                 alert( "<?php echo $this->_pte('Please select accounts you want to activate first.', '"'); ?>" );
                 return false;
             }
 
-            if( !confirm( "<?php echo sprintf($this->_pte('Are you sure you want to activate %s accounts?', '"'), '" + total_checked + "'); ?>" ) )
+            if( !confirm( "<?php echo sprintf($this->_pte('Are you sure you want to activate %s accounts?', '"'), '" + total_checked + "'); ?>" ) ) {
                 return false;
+            }
 
-            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
+            let form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+            if( form_obj ) {
                 form_obj.submit();
+            }
         }
 
         function phs_users_list_bulk_inactivate()
         {
-            var total_checked = phs_users_list_get_checked_ids_count();
-
-            if( !total_checked )
-            {
+            let total_checked = phs_paginator_get_checkboxes_checked_count('id');
+            if( !total_checked ) {
                 alert( "<?php echo $this->_pte('Please select accounts you want to inactivate first.', '"'); ?>" );
                 return false;
             }
 
-            if( !confirm( "<?php echo sprintf($this->_pte('Are you sure you want to inactivate %s accounts?', '"'), '" + total_checked + "'); ?>" ) )
+            if( !confirm( "<?php echo sprintf($this->_pte('Are you sure you want to inactivate %s accounts?', '"'), '" + total_checked + "'); ?>" ) ) {
                 return false;
+            }
 
-            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
+            let form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+            if( form_obj ) {
                 form_obj.submit();
+            }
         }
 
         function phs_users_list_bulk_delete()
         {
-            var total_checked = phs_users_list_get_checked_ids_count();
-
-            if( !total_checked )
-            {
+            let total_checked = phs_paginator_get_checkboxes_checked_count('id');
+            if( !total_checked ) {
                 alert( "<?php echo $this->_pte('Please select accounts you want to delete first.', '"'); ?>" );
                 return false;
             }
 
             if( !confirm( "<?php echo sprintf($this->_pte('Are you sure you want to DELETE %s accounts?', '"'), '" + total_checked + "'); ?>" + "\n" +
-                         "<?php echo $this->_pte('NOTE: You cannot undo this action!', '"'); ?>" ) )
+                         "<?php echo $this->_pte('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
                 return false;
+            }
 
-            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
+            let form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+            if( form_obj ) {
                 form_obj.submit();
+            }
         }
 
         function phs_users_list_bulk_reset_account_locking()
         {
-            var total_checked = phs_users_list_get_checked_ids_count();
-
-            if( !total_checked )
-            {
+            let total_checked = phs_paginator_get_checkboxes_checked_count('id');
+            if( !total_checked ) {
                 alert( "<?php echo $this->_pte('Please select accounts you want to reset locking for first.', '"'); ?>" );
                 return false;
             }
 
-            if( !confirm( "<?php echo sprintf($this->_pte('Are you sure you want to reset locking for %s accounts?', '"'), '" + total_checked + "'); ?>" ) )
+            if( !confirm( "<?php echo sprintf($this->_pte('Are you sure you want to reset locking for %s accounts?', '"'), '" + total_checked + "'); ?>" ) ) {
                 return false;
+            }
 
-            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
+            let form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+            if( form_obj ) {
                 form_obj.submit();
+            }
         }
 
         function phs_users_list_bulk_export_selected()
         {
-            var total_checked = phs_users_list_get_checked_ids_count();
-
-            if( !total_checked )
-            {
+            let total_checked = phs_paginator_get_checkboxes_checked_count('id');
+            if( !total_checked ) {
                 alert( "<?php echo self::_e('Please select accounts you want to export first.', '"'); ?>" );
                 return false;
             }
 
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to export %s accounts?', '"'), '" + total_checked + "'); ?>" ) )
+            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to export %s accounts?', '"'), '" + total_checked + "'); ?>" ) ) {
                 return false;
+            }
 
-            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+            let form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
             if( form_obj )
                 form_obj.submit();
         }
         function phs_users_list_bulk_export_all()
         {
-            if( !confirm( "<?php echo self::_e($this->_pt('Are you sure you want to export ALL accounts?'), '"'); ?>" ) )
+            if( !confirm( "<?php echo self::_e($this->_pt('Are you sure you want to export ALL accounts?'), '"'); ?>" ) ) {
                 return false;
+            }
 
-            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
+            let form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+            if( form_obj ) {
                 form_obj.submit();
+            }
         }
         </script>
         <?php

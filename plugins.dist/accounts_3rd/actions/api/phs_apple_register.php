@@ -12,6 +12,7 @@ use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Api_action;
 use phs\libraries\PHS_Notifications;
+use phs\plugins\accounts_3rd\libraries\Apple;
 use phs\plugins\mobileapi\PHS_Plugin_Mobileapi;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd;
@@ -51,7 +52,7 @@ class PHS_Action_Apple_register extends PHS_Api_action
         if (!($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())
          || !($online_model = PHS_Model_Api_online::get_instance())
          || !($accounts_trd_plugin = PHS_Plugin_Accounts_3rd::get_instance())
-         || !($apple_lib = $accounts_trd_plugin->get_apple_instance())
+         || !($apple_lib = Apple::get_instance())
          || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($services_model = PHS_Model_Accounts_services::get_instance())) {
             return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
