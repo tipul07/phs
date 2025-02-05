@@ -193,7 +193,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         $data_arr = [];
         $data_arr['email_routes'] = $email_routes;
-        $data_arr['smtp_library'] = $this->smtp_library;
+        $data_arr['smtp_library'] = $this->_get_smtp_library();
 
         return $this->quick_render_template_for_buffer('routes_settings', $data_arr);
     }
@@ -273,7 +273,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $data_arr['test_email_sending_success'] = $testing_success;
         $data_arr['test_email_sending_email'] = $test_email_sending_email;
         $data_arr['default_route'] = $default_route;
-        $data_arr['smtp_library'] = $this->smtp_library;
+        $data_arr['smtp_library'] = $this->_get_smtp_library();
 
         return $this->quick_render_template_for_buffer('test_email_sending', $data_arr);
     }
@@ -659,10 +659,11 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $hook_args;
     }
 
-    protected function _do_construct(array $instance_details = []) : void
+    private function _get_smtp_library() : ?PHS_Smtp
     {
-        parent::_do_construct($instance_details);
-        $this->smtp_library = PHS_Smtp::get_instance();
+        $this->smtp_library ??= PHS_Smtp::get_instance();
+
+        return $this->smtp_library;
     }
 
     private function _send_email_smtp(array $hook_args) : array
