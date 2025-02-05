@@ -35,6 +35,6 @@ class PHS_Action_Paginator_exporter_bg extends PHS_Action
 
         PHS_Logger::info('[EXPORT] Finished action '.($params['export_context']['action'] ?? 'N/A').'.', $admin_plugin::LOG_PAGINATOR);
 
-        return null;
+        return self::default_action_result();
     }
 }
