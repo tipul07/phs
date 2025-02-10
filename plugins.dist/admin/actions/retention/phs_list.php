@@ -20,25 +20,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     private ?PHS_Model_Accounts $_accounts_model = null;
 
-    public function load_depencies() : bool
-    {
-        if ((!$this->_admin_plugin
-             && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-            || (!$this->_data_retention_lib
-                && !($this->_data_retention_lib = Phs_Data_retention::get_instance()))
-            || (!$this->_accounts_model
-                && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
-            || (!$this->_paginator_model
-                && !($this->_paginator_model = PHS_Model_Data_retention::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
     /**
      * @inheritdoc
      */
@@ -280,18 +261,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function manage_action($action) : null | bool | array
+    public function manage_action(array $action) : null | bool | array
     {
         $this->reset_error();
-
-        if (empty($this->_paginator_model)
-            && !$this->load_depencies()) {
-            return false;
-        }
-
         $action_result_params = $this->_paginator->default_action_params();
 
         if (empty($action['action'])) {
@@ -567,10 +539,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
                 if (empty($action['action_params'])
                     || !($record_arr = $this->_paginator_model->get_details($action['action_params']))) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Cannot launch data retention policy. Data retention policy not found.'));
@@ -600,10 +568,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
-                }
-
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
                 }
 
                 if (empty($action['action_params'])
@@ -637,10 +601,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
                 if (empty($action['action_params'])
                     || !($record_arr = $this->_paginator_model->get_details($action['action_params']))) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Cannot inactivate data retention policy. Data retention policy not found.'));
@@ -672,10 +632,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
                 if (empty($action['action_params'])
                     || !($record_arr = $this->_paginator_model->get_details($action['action_params']))) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Cannot delete data retention policy. Data retention policy not found.'));
@@ -694,45 +650,36 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_plugin($params)
+    public function display_plugin(array $params) : ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
-            return false;
+            return null;
         }
 
         return empty($params['record']['plugin']) ? $this::_t('Core') : $params['record']['plugin'];
     }
 
-    public function display_retention($params)
+    public function display_retention(array $params) : ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
-            return false;
+            return null;
         }
 
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $this->_paginator::CELL_RENDER_JSON:
-                case $this->_paginator::CELL_RENDER_TEXT:
-                case $this->_paginator::CELL_RENDER_CSV:
-                case $this->_paginator::CELL_RENDER_EXCEL:
-                    return $params['record']['retention'] ?? $this::_t('N/A');
-            }
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
+            return $params['record']['retention'] ?? $this::_t('N/A');
         }
 
         return (empty($params['record']['retention'])
                 || !($retention_arr = $this->_paginator_model->parse_retention_interval($params['record']['retention']))
                 || !($interval_arr = $this->_paginator_model->valid_interval($retention_arr['interval'])))
-            ? $this::_t('N/A')
+            ? $this->_pt('N/A')
             : $retention_arr['count'].' '.$interval_arr['title'];
     }
 
-    public function display_actions($params) : ?string
+    public function display_actions(array $params) : ?string
     {
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            return null;
-        }
-
-        if (!$this->_admin_plugin->can_admin_manage_data_retention()) {
+        if (!$this->_paginator->is_cell_rendering_for_html($params)
+            || !$this->_admin_plugin->can_admin_manage_data_retention()) {
             return '-';
         }
 
@@ -778,7 +725,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean() ?: '';
     }
 
-    public function after_filters_callback($params)
+    public function after_filters_callback(array $params) : string
     {
         if (!$this->_admin_plugin->can_admin_manage_data_retention()) {
             return '';
@@ -793,14 +740,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
         <div class="clearfix"></div>
         <?php
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 
-    public function after_table_callback($params)
+    public function after_table_callback(array $params) : string
     {
         static $js_functionality = false;
 
-        if (!empty($js_functionality)) {
+        if ($js_functionality) {
             return '';
         }
 
@@ -956,5 +903,24 @@ class PHS_Action_List extends PHS_Action_Generic_list
         <?php
 
         return ob_get_clean();
+    }
+
+    protected function _load_dependencies() : bool
+    {
+        if ((!$this->_admin_plugin
+             && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
+            || (!$this->_data_retention_lib
+                && !($this->_data_retention_lib = Phs_Data_retention::get_instance()))
+            || (!$this->_accounts_model
+                && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
+            || (!$this->_paginator_model
+                && !($this->_paginator_model = PHS_Model_Data_retention::get_instance()))
+        ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return false;
+        }
+
+        return true;
     }
 }

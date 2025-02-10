@@ -69,7 +69,7 @@ function action_redirect(array | string $path = '', ?array $args = null, ?array 
 /**
  * @param string|array $role_units
  * @param null|array $roles_params
- * @param null|array|int $account_structure
+ * @param null|int|array|\phs\libraries\PHS_Record_data $account_structure
  *
  * @return bool
  */

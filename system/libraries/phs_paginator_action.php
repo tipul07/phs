@@ -7,7 +7,7 @@ use phs\system\core\libraries\PHS_Paginator_exporter_manager;
 
 abstract class PHS_Action_Generic_list extends PHS_Action
 {
-    public const ERR_DEPENCIES = 50000, ERR_ACTION = 50001;
+    public const ERR_ACTION = 50001;
 
     public const ACTION_EXPORT_SELECTED = 'phs_paginator_export_selected_action',
         ACTION_EXPORT_ALL = 'phs_paginator_export_all_action',
@@ -20,25 +20,26 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     protected ?PHS_Model $_paginator_model = null;
 
     /**
-     * @return bool true if all depencies were loaded successfully, false if any error (set_error should be used to pass error message)
-     */
-    abstract public function load_depencies(); // : bool;
-
-    /**
      * @return null|array Returns an array with flow_parameters, bulk_actions, filters_arr and columns_arr keys containing arrays with definitions for paginator class
      */
-    abstract public function load_paginator_params(); // : ?array;
+    abstract public function load_paginator_params() : ?array;
+
+    abstract public function manage_action(array $action) : null | bool | array;
 
     /**
-     * @param array $action Action to be managed
-     *
-     * @return null|bool|array
+     * @return bool true if all depencies were loaded successfully, false if any error (set_error should be used to pass error message)
      */
-    abstract public function manage_action($action);
+    abstract protected function _load_dependencies() : bool;
 
     public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
+    }
+
+    // Backwards compatibility
+    public function load_depencies() : bool
+    {
+        return $this->_load_dependencies();
     }
 
     public function get_internal_actions() : array
@@ -48,13 +49,13 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     }
 
     // Do any actions required immediately after paginator was instantiated
-    public function we_have_paginator()// : bool
+    public function we_have_paginator() : bool
     {
         return true;
     }
 
     // Do any actions required after paginator was instantiated and initialized (eg. columns, filters, model and bulk actions were set)
-    public function we_initialized_paginator()// : bool
+    public function we_initialized_paginator() : bool
     {
         return true;
     }
@@ -262,7 +263,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     {
         $this->reset_error();
 
-        if (!$this->load_depencies()) {
+        if (!$this->_load_dependencies()) {
             PHS_Notifications::add_error_notice($this->get_simple_error_message(self::_t('Error loading required resources.')));
 
             $this->reset_error();

@@ -18,20 +18,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     private ?PHS_Plugin_Remote_phs $_remote_plugin = null;
 
-    public function load_depencies() : bool
-    {
-        if ((!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Phs_remote_domains::get_instance()))
-            || (!$this->_remote_plugin && !($this->_remote_plugin = PHS_Plugin_Remote_phs::get_instance()))
-            || (!$this->_apikeys_model && !($this->_apikeys_model = PHS_Model_Api_keys::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
     /**
      * @inheritdoc
      */
@@ -262,17 +248,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function manage_action($action) : null | bool | array
+    public function manage_action(array $action) : null | bool | array
     {
         $this->reset_error();
-
-        if (empty($this->_paginator_model)
-            && !$this->load_depencies()) {
-            return false;
-        }
 
         $action_result_params = $this->_paginator->default_action_params();
 
@@ -481,10 +459,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
                 if (empty($action['action_params'])
                  || !($payment_category_arr = $this->_paginator_model->get_details($action['action_params']))) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Cannot connect to remote PHS domain. Remote PHS domain not found in database.'));
@@ -514,10 +488,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
-                }
-
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
                 }
 
                 if (empty($action['action_params'])
@@ -551,10 +521,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
                 if (empty($action['action_params'])
                  || !($payment_category_arr = $this->_paginator_model->get_details($action['action_params']))) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Cannot delete remote PHS domain. Remote PHS domain not found in database.'));
@@ -573,30 +539,24 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_hide_id($params)
+    public function display_hide_id(array $params) : string
     {
         return '';
     }
 
-    public function display_incoming_api_key($params)
+    public function display_incoming_api_key(array $params) : ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
-            return false;
+            return null;
         }
 
-        if (!PHS::user_logged_in()
-            || empty($params['preset_content'])) {
+        if (empty($params['preset_content'])
+            || !PHS::user_logged_in()) {
             return '-';
         }
 
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $this->_paginator::CELL_RENDER_JSON:
-                case $this->_paginator::CELL_RENDER_TEXT:
-                case $this->_paginator::CELL_RENDER_CSV:
-                case $this->_paginator::CELL_RENDER_EXCEL:
-                    return $params['record']['apikey_id'];
-            }
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
+            return $params['record']['apikey_id'];
         }
 
         if (!empty($params['record']['apikey_id'])
@@ -611,15 +571,16 @@ class PHS_Action_List extends PHS_Action_Generic_list
                .(!empty($params['record']['api_keys_api_key']) ? '<br/>'.$params['record']['api_keys_api_key'] : '');
     }
 
-    public function display_actions($params)
+    public function display_actions(array $params) : ?string
     {
-        if (!$this->_remote_plugin->can_admin_manage_domains()) {
+        if (!$this->_paginator->is_cell_rendering_for_html($params)
+            || !$this->_remote_plugin->can_admin_manage_domains()) {
             return '-';
         }
 
         if (empty($params['record']) || !is_array($params['record'])
          || !($domain_arr = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
 
         ob_start();
@@ -652,16 +613,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
             <?php
         }
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 
-    public function after_filters_callback($params)
+    public function after_filters_callback(array $params) : string
     {
-        if (empty($this->_paginator_model)
-         && !$this->load_depencies()) {
-            return false;
-        }
-
         if (!$this->_remote_plugin->can_admin_manage_domains()) {
             return '';
         }
@@ -676,14 +632,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
         <div class="clearfix"></div>
         <?php
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 
-    public function after_table_callback($params)
+    public function after_table_callback(array $params) : string
     {
         static $js_functionality = false;
 
-        if (!empty($js_functionality)) {
+        if ($js_functionality) {
             return '';
         }
 
@@ -694,29 +650,31 @@ class PHS_Action_List extends PHS_Action_Generic_list
         <script type="text/javascript">
         function phs_remote_domains_list_connect( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to connect to this remote PHS domain?', '"'); ?>" ) )
-            {
-                <?php
-                $url_params = [];
+            if( !confirm( "<?php echo self::_e('Are you sure you want to connect to this remote PHS domain?', '"'); ?>" ) ) {
+                return;
+            }
+
+            <?php
+            $url_params = [];
         $url_params['action'] = [
             'action'        => 'do_connect',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
         function phs_remote_domains_list_suspend( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to suspend this remote PHS domain?', '"'); ?>" ) )
-            {
-                <?php
+            if( !confirm( "<?php echo self::_e('Are you sure you want to suspend this remote PHS domain?', '"'); ?>" ) ) {
+                return;
+            }
+
+            <?php
         $url_params = [];
         $url_params['action'] = [
             'action'        => 'do_suspend',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
         function phs_remote_domains_list_info( id )
         {
@@ -735,87 +693,104 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
         function phs_remote_domains_list_delete( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to DELETE this remote PHS domain?', '"'); ?>" + "\n" +
-                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
-            {
-                <?php
+            if( !confirm( "<?php echo self::_e('Are you sure you want to DELETE this remote PHS domain?', '"'); ?>" + "\n" +
+                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
+                return;
+            }
+
+            <?php
         $url_params = [];
         $url_params['action'] = [
             'action'        => 'do_delete',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
 
         function phs_remote_domains_list_get_checked_ids_count()
         {
-            var checkboxes_list = phs_paginator_get_checkboxes_checked( 'id' );
-            if( !checkboxes_list || !checkboxes_list.length )
+            const checkboxes_list = phs_paginator_get_checkboxes_checked('id');
+            if( !checkboxes_list || !checkboxes_list.length ) {
                 return 0;
+            }
 
             return checkboxes_list.length;
         }
 
         function phs_remote_domains_list_bulk_suspend()
         {
-            var total_checked = phs_remote_domains_list_get_checked_ids_count();
+            const total_checked = phs_remote_domains_list_get_checked_ids_count();
 
-            if( !total_checked )
-            {
+            if( !total_checked ) {
                 alert( "<?php echo self::_e('Please select remote PHS domains you want to suspend first.', '"'); ?>" );
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf(self::_e('Are you sure you want to suspend %s remote PHS domains?', '"'), '" + total_checked + "'); ?>" ) )
+            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to suspend %s remote PHS domains?', '"'), '" + total_checked + "'); ?>" ) ) {
+                return false;
+            }
 
-            {
-                var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-                if( form_obj )
-                    form_obj.submit();
+            const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+            if( form_obj ) {
+                form_obj.submit();
             }
         }
 
         function phs_remote_domains_list_bulk_connect()
         {
-            var total_checked = phs_remote_domains_list_get_checked_ids_count();
+            const total_checked = phs_remote_domains_list_get_checked_ids_count();
 
-            if( !total_checked )
-            {
+            if( !total_checked ) {
                 alert( "<?php echo self::_e('Please select remote PHS domains you want to connect to first.', '"'); ?>" );
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf(self::_e('Are you sure you want to connect to %s remote PHS domains?', '"'), '" + total_checked + "'); ?>" ) )
+            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to connect to %s remote PHS domains?', '"'), '" + total_checked + "'); ?>" ) ) {
+                return false;
+            }
 
-            {
-                var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-                if( form_obj )
-                    form_obj.submit();
+            const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+            if( form_obj ) {
+                form_obj.submit();
             }
         }
 
         function phs_remote_domains_list_bulk_delete()
         {
-            var total_checked = phs_remote_domains_list_get_checked_ids_count();
+            const total_checked = phs_remote_domains_list_get_checked_ids_count();
 
-            if( !total_checked )
-            {
+            if( !total_checked ) {
                 alert( "<?php echo self::_e('Please select remote PHS domains you want to delete first.', '"'); ?>" );
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf(self::_e('Are you sure you want to DELETE %s remote PHS domains?', '"'), '" + total_checked + "'); ?>" + "\n" +
-                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
-            {
-                var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-                if( form_obj )
-                    form_obj.submit();
+            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to DELETE %s remote PHS domains?', '"'), '" + total_checked + "'); ?>" + "\n" +
+                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
+                return false;
+            }
+
+            const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+            if( form_obj ) {
+                form_obj.submit();
             }
         }
         </script>
         <?php
 
-        return ob_get_clean();
+            return ob_get_clean() ?: '';
+    }
+
+    protected function _load_dependencies() : bool
+    {
+        if ((!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Phs_remote_domains::get_instance()))
+            || (!$this->_remote_plugin && !($this->_remote_plugin = PHS_Plugin_Remote_phs::get_instance()))
+            || (!$this->_apikeys_model && !($this->_apikeys_model = PHS_Model_Api_keys::get_instance()))
+        ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return false;
+        }
+
+        return true;
     }
 }

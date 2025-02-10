@@ -17,21 +17,6 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function load_depencies() : bool
-    {
-        if (!($this->_remote_plugin = PHS_Plugin_Remote_phs::get_instance())
-            || !($this->_paginator_model = PHS_Model_Phs_remote_domains::get_instance())) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function should_stop_execution() : ?array
     {
         if (!PHS::user_logged_in()) {
@@ -215,17 +200,9 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function manage_action($action) : null | bool | array
+    public function manage_action(array $action) : null | bool | array
     {
         $this->reset_error();
-
-        if (empty($this->_paginator_model)
-            && !$this->load_depencies()) {
-            return false;
-        }
 
         if (!($current_user = PHS::user_logged_in())) {
             $current_user = false;
@@ -246,8 +223,6 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
                 PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
 
                 return true;
-                break;
-
             case 'bulk_delete':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
@@ -326,10 +301,6 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
                 if (empty($action['action_params'])
                  || !($record_arr = $this->_paginator_model->get_details($action['action_params'], ['table_name' => 'phs_remote_logs']))) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Cannot delete remote PHS domain log. Remote PHS domain log not found in database.'));
@@ -348,31 +319,21 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_hide_id($params)
+    public function display_hide_id(array $params) : string
     {
         return '';
     }
 
-    public function display_actions($params)
+    public function display_actions(array $params) : ?string
     {
-        if (empty($this->_paginator_model)
-         && !$this->load_depencies()) {
-            return false;
-        }
-
-        if (!($current_user = PHS::current_user())) {
-            $current_user = false;
-        }
-
-        if (!$this->_remote_plugin->can_admin_manage_domains($current_user)) {
+        if (!$this->_paginator->is_cell_rendering_for_html($params)
+            || !$this->_remote_plugin->can_admin_manage_domains()) {
             return '-';
         }
 
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || !($log_arr = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
 
         ob_start();
@@ -383,14 +344,14 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
             <i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt('Delete remote PHS domain log'); ?>"></i></a>
         <?php
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 
-    public function after_table_callback($params)
+    public function after_table_callback(array $params) : string
     {
         static $js_functionality = false;
 
-        if (!empty($js_functionality)) {
+        if ($js_functionality) {
             return '';
         }
 
@@ -416,49 +377,71 @@ class PHS_Action_Logs_list extends PHS_Action_Generic_list
         }
         function phs_remote_domain_logs_list_delete( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to DELETE this remote PHS domain?', '"'); ?>" + "\n" +
-                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
-            {
-                <?php
-                $url_params = [];
+            if( !confirm( "<?php echo self::_e('Are you sure you want to DELETE this remote PHS domain?', '"'); ?>" + "\n" +
+                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
+                return;
+            }
+
+            <?php
+            $url_params = [];
         $url_params['action'] = [
             'action'        => 'do_delete',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
 
         function phs_remote_domain_logs_list_get_checked_ids_count()
         {
-            var checkboxes_list = phs_paginator_get_checkboxes_checked( 'id' );
-            if( !checkboxes_list || !checkboxes_list.length )
+            const checkboxes_list = phs_paginator_get_checkboxes_checked('id');
+            if( !checkboxes_list || !checkboxes_list.length ) {
                 return 0;
+            }
 
             return checkboxes_list.length;
         }
 
         function phs_remote_domain_logs_list_bulk_delete()
         {
-            var total_checked = phs_remote_domain_logs_list_get_checked_ids_count();
+            const total_checked = phs_remote_domain_logs_list_get_checked_ids_count();
 
-            if( !total_checked )
-            {
+            if( !total_checked ) {
                 alert( "<?php echo self::_e('Please select remote PHS domain logs you want to delete first.', '"'); ?>" );
                 return false;
             }
 
-            if( confirm( "<?php echo sprintf(self::_e('Are you sure you want to DELETE %s remote PHS domain logs?', '"'), '" + total_checked + "'); ?>" + "\n" +
-                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
-            {
-                var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-                if( form_obj )
-                    form_obj.submit();
+            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to DELETE %s remote PHS domain logs?', '"'), '" + total_checked + "'); ?>" + "\n" +
+                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
+                return false;
+            }
+
+            const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+            if( form_obj ) {
+                form_obj.submit();
             }
         }
         </script>
         <?php
 
-        return ob_get_clean();
+            return ob_get_clean();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function _load_dependencies() : bool
+    {
+        $this->reset_error();
+
+        if (
+            (!$this->_remote_plugin && !($this->_remote_plugin = PHS_Plugin_Remote_phs::get_instance()))
+            || (!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Phs_remote_domains::get_instance()))
+        ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return false;
+        }
+
+        return true;
     }
 }
