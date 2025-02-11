@@ -15,18 +15,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
 {
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
-    public function load_depencies() : bool
-    {
-        if (!($this->_admin_plugin = PHS_Plugin_Admin::get_instance())
-         || !($this->_paginator_model = PHS_Model_Request_queue::get_instance())) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
     /**
      * @inheritdoc
      */
@@ -36,12 +24,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
-        }
-
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
-
-            return self::default_action_result();
         }
 
         if (!$this->_admin_plugin->can_admin_list_http_calls()
@@ -294,7 +276,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    public function display_url($params) : ?string
+    public function display_url(array $params) : ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
             return null;
@@ -304,20 +286,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return '-';
         }
 
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $this->_paginator::CELL_RENDER_JSON:
-                case $this->_paginator::CELL_RENDER_TEXT:
-                case $this->_paginator::CELL_RENDER_CSV:
-                case $this->_paginator::CELL_RENDER_EXCEL:
-                    return $params['preset_content'];
-            }
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
+            return $params['preset_content'];
         }
 
         return '<a href="'.$params['preset_content'].'" target="_blank">'.$params['preset_content'].'</a>';
     }
 
-    public function display_payload_details($params) : ?string
+    public function display_payload_details(array $params) : ?string
     {
         if (empty($params['record']) || !is_array($params['record'])
          || !($record_arr = $this->_paginator_model->data_to_array($params['record']))) {
@@ -328,15 +304,12 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return '-';
         }
 
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $this->_paginator::CELL_RENDER_JSON:
-                case $this->_paginator::CELL_RENDER_TEXT:
-                case $this->_paginator::CELL_RENDER_EXCEL:
-                    return $record_arr['payload'];
-                case $this->_paginator::CELL_RENDER_CSV:
-                    return str_replace(["\n", "\r"], '', $record_arr['payload']);
-            }
+        if ($this->_paginator->is_cell_rendering_for_csv($params)) {
+            return str_replace(["\n", "\r"], '', $record_arr['payload']);
+        }
+
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
+            return $record_arr['payload'];
         }
 
         ob_start();
@@ -357,7 +330,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function display_httpcall_runs($params) : ?string
+    public function display_httpcall_runs(array $params) : ?string
     {
         if (empty($params['record']['id'])) {
             return null;
@@ -365,14 +338,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         $record_arr = $params['record'];
 
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $this->_paginator::CELL_RENDER_JSON:
-                case $this->_paginator::CELL_RENDER_TEXT:
-                case $this->_paginator::CELL_RENDER_CSV:
-                case $this->_paginator::CELL_RENDER_EXCEL:
-                    return $record_arr['fails'].'/'.$record_arr['max_retries'];
-            }
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
+            return $record_arr['fails'].'/'.$record_arr['max_retries'];
         }
 
         $progress_perc = $this->_paginator_model->is_final($record_arr)
@@ -407,17 +374,16 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function display_is_final($params) : ?string
+    public function display_is_final(array $params) : ?string
     {
         if (empty($params['record']) || !is_array($params['record'])
             || !($record_arr = $this->_paginator_model->data_to_array($params['record']))) {
             return null;
         }
 
-        if (!empty($params['request_render_type'])
-            && in_array((int)$params['request_render_type'],
-                [$this->_paginator::CELL_RENDER_JSON, $this->_paginator::CELL_RENDER_TEXT,
-                    $this->_paginator::CELL_RENDER_CSV, $this->_paginator::CELL_RENDER_EXCEL], true)) {
+        $params['preset_content'] ??= '';
+
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
             return $params['preset_content'];
         }
 
@@ -450,9 +416,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $params['preset_content'].@ob_get_clean();
     }
 
-    public function display_actions($params) : ?string
+    public function display_actions(array $params) : ?string
     {
-        if (!$this->_admin_plugin->can_admin_manage_http_calls()) {
+        if (!$this->_paginator->is_cell_rendering_for_html($params)
+            || !$this->_admin_plugin->can_admin_manage_http_calls()) {
             return '-';
         }
 
@@ -519,10 +486,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function manage_action($action) : null | bool | array
+    public function manage_action(array $action) : null | bool | array
     {
         $this->reset_error();
 
@@ -876,11 +840,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function after_table_callback($params) : ?string
+    public function after_table_callback(array $params) : ?string
     {
         static $js_functionality = false;
 
-        if (!empty($js_functionality)) {
+        if ($js_functionality) {
             return '';
         }
 
@@ -980,8 +944,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
             function closing_phs_httpcalls_list_open_payload(id)
             {
                 const container_obj = $("#phs_httpcalls_list_open_payload_pretty_" + id);
-                if( !container_obj )
+                if( !container_obj ) {
                     return;
+                }
 
                 container_obj.hide();
             }
@@ -1002,8 +967,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
             function phs_httpcalls_record_error_message( id )
             {
                 const container_obj = $("#phs_httpcalls_record_error_message_" + id);
-                if( !container_obj )
+                if( !container_obj ) {
                     return;
+                }
 
                 container_obj.show();
 
@@ -1024,8 +990,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
             function phs_httpcalls_record_error_message_close(id)
             {
                 const container_obj = $("#phs_httpcalls_record_error_message_" + id);
-                if( !container_obj )
+                if( !container_obj ) {
                     return;
+                }
 
                 container_obj.hide();
             }
@@ -1033,8 +1000,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
             function phs_httpcalls_record_settings( id )
             {
                 const container_obj = $("#phs_httpcalls_record_settings_" + id);
-                if( !container_obj )
+                if( !container_obj ) {
                     return;
+                }
 
                 container_obj.show();
 
@@ -1055,8 +1023,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
             function phs_httpcalls_record_settings_close(id)
             {
                 const container_obj = $("#phs_httpcalls_record_settings_" + id);
-                if( !container_obj )
+                if( !container_obj ) {
                     return;
+                }
 
                 container_obj.hide();
             }
@@ -1221,5 +1190,17 @@ class PHS_Action_List extends PHS_Action_Generic_list
         <?php
 
         return ob_get_clean();
+    }
+
+    protected function _load_dependencies() : bool
+    {
+        if (!($this->_admin_plugin = PHS_Plugin_Admin::get_instance())
+         || !($this->_paginator_model = PHS_Model_Request_queue::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return false;
+        }
+
+        return true;
     }
 }

@@ -16,18 +16,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
 {
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
-    public function load_depencies() : bool
-    {
-        if (!($this->_admin_plugin = PHS_Plugin_Admin::get_instance())
-         || !($this->_paginator_model = PHS_Model_Agent_jobs::get_instance())) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
     /**
      * @inheritdoc
      */
@@ -233,10 +221,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function manage_action($action) : null | bool | array
+    public function manage_action(array $action) : null | bool | array
     {
         $this->reset_error();
 
@@ -972,5 +957,17 @@ class PHS_Action_List extends PHS_Action_Generic_list
         <?php
 
         return ob_get_clean() ?: '';
+    }
+
+    protected function _load_dependencies() : bool
+    {
+        if (!($this->_admin_plugin = PHS_Plugin_Admin::get_instance())
+         || !($this->_paginator_model = PHS_Model_Agent_jobs::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return false;
+        }
+
+        return true;
     }
 }

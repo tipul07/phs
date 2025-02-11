@@ -17,23 +17,6 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
 
     private ?PHS_Model_Accounts $_accounts_model = null;
 
-    public function load_depencies() : bool
-    {
-        if ((empty($this->_admin_plugin)
-             && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-         || (empty($this->_accounts_model)
-             && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
-         || (empty($this->_paginator_model)
-             && !($this->_paginator_model = PHS_Model_Roles::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
     /**
      * @inheritdoc
      */
@@ -191,10 +174,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function manage_action($action) : null | bool | array
+    public function manage_action(array $action) : null | bool | array
     {
         $this->reset_error();
 
@@ -676,5 +656,22 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
         <?php
 
         return ob_get_clean();
+    }
+
+    protected function _load_dependencies() : bool
+    {
+        if ((empty($this->_admin_plugin)
+             && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
+         || (empty($this->_accounts_model)
+             && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
+         || (empty($this->_paginator_model)
+             && !($this->_paginator_model = PHS_Model_Roles::get_instance()))
+        ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return false;
+        }
+
+        return true;
     }
 }

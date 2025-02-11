@@ -17,23 +17,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     private ?PHS_Model_Accounts $_accounts_model = null;
 
-    public function load_depencies() : bool
-    {
-        if ((empty($this->_admin_plugin)
-             && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-         || (empty($this->_accounts_model)
-             && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
-         || (empty($this->_paginator_model)
-             && !($this->_paginator_model = PHS_Model_Tenants::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
     /**
      * @inheritdoc
      */
@@ -255,17 +238,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function manage_action($action) : null | bool | array
+    public function manage_action(array $action) : null | bool | array
     {
         $this->reset_error();
-
-        if (empty($this->_paginator_model)
-            && !$this->load_depencies()) {
-            return false;
-        }
 
         $action_result_params = $this->_paginator->default_action_params();
 
@@ -286,8 +261,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
 
                 return true;
-                break;
-
             case 'bulk_activate':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
@@ -382,7 +355,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
                     $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
                 } else {
-                    if (count($remaining_ids_arr) != count($scope_arr[$scope_key])) {
+                    if (count($remaining_ids_arr) !== count($scope_arr[$scope_key])) {
                         $action_result_params['action_result'] = 'failed_some';
                     } else {
                         $action_result_params['action_result'] = 'failed';
@@ -458,10 +431,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
                 if (empty($action['action_params'])
                  || !($tenant_arr = $this->_paginator_model->get_details($action['action_params']))) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Cannot activate tenant. Tenant not found.'));
@@ -485,10 +454,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     }
 
                     return true;
-                }
-
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
                 }
 
                 if (empty($action['action_params'])
@@ -516,10 +481,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
                 if (empty($action['action_params'])
                  || !($tenant_arr = $this->_paginator_model->get_details($action['action_params']))) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Cannot delete tenant. Tenant not found.'));
@@ -538,32 +499,29 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_tenant_name($params)
+    public function display_tenant_name(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])) {
-            return false;
+        if (empty($params['record']) || !is_array($params['record'])) {
+            return null;
+        }
+
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
+            return $params['preset_content'];
         }
 
         return '<strong>'.$params['preset_content'].'</strong>';
     }
 
-    public function display_actions($params)
+    public function display_actions(array $params) : ?string
     {
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            return false;
-        }
-
-        if (!$this->_admin_plugin->can_admin_manage_tenants()) {
+        if (!$this->_paginator->is_cell_rendering_for_html($params)
+            || !$this->_admin_plugin->can_admin_manage_tenants()) {
             return '-';
         }
 
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || !($tenant_arr = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
 
         $is_inactive = $this->_paginator_model->is_inactive($tenant_arr);
@@ -598,10 +556,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
             <?php
         }
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 
-    public function after_filters_callback($params)
+    public function after_filters_callback(array $params) : string
     {
         ob_start();
         ?>
@@ -612,14 +570,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
         <div class="clearfix"></div>
         <?php
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 
-    public function after_table_callback($params)
+    public function after_table_callback(array $params) : string
     {
         static $js_functionality = false;
 
-        if (!empty($js_functionality)) {
+        if ($js_functionality) {
             return '';
         }
 
@@ -630,43 +588,46 @@ class PHS_Action_List extends PHS_Action_Generic_list
         <script type="text/javascript">
         function phs_tenants_list_activate_tenant( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to activate this tenant?', '"'); ?>" ) )
-            {
-                <?php
-                $url_params = [];
+            if( !confirm( "<?php echo self::_e('Are you sure you want to activate this tenant?', '"'); ?>" ) ) {
+                return;
+            }
+
+            <?php
+            $url_params = [];
         $url_params['action'] = [
             'action'        => 'activate_tenant',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
         function phs_tenants_list_inactivate_tenant( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to inactivate this tenant?', '"'); ?>" ) )
-            {
-                <?php
+            if( !confirm( "<?php echo self::_e('Are you sure you want to inactivate this tenant?', '"'); ?>" ) ) {
+                return;
+            }
+
+            <?php
         $url_params = [];
         $url_params['action'] = [
             'action'        => 'inactivate_tenant',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
         function phs_tenants_list_delete_tenant( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to DELETE this tenant?', '"'); ?>" + "\n" +
-                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
-            {
-                <?php
+            if( !confirm( "<?php echo self::_e('Are you sure you want to DELETE this tenant?', '"'); ?>" + "\n" +
+                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
+                return;
+            }
+
+            <?php
         $url_params = [];
         $url_params['action'] = [
             'action'        => 'delete_tenant',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
 
         function phs_tenants_list_get_checked_ids_count()
@@ -683,8 +644,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         {
             const total_checked = phs_tenants_list_get_checked_ids_count();
 
-            if( !total_checked )
-            {
+            if( !total_checked ) {
                 alert( "<?php echo self::_e('Please select tenants you want to activate first.', '"'); ?>" );
                 return false;
             }
@@ -703,8 +663,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         {
             const total_checked = phs_tenants_list_get_checked_ids_count();
 
-            if( !total_checked )
-            {
+            if( !total_checked ) {
                 alert( "<?php echo self::_e('Please select tenants you want to inactivate first.', '"'); ?>" );
                 return false;
             }
@@ -723,8 +682,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         {
             const total_checked = phs_tenants_list_get_checked_ids_count();
 
-            if( !total_checked )
-            {
+            if( !total_checked ) {
                 alert( "<?php echo self::_e('Please select tenants you want to delete first.', '"'); ?>" );
                 return false;
             }
@@ -742,6 +700,23 @@ class PHS_Action_List extends PHS_Action_Generic_list
         </script>
         <?php
 
-        return ob_get_clean();
+            return ob_get_clean() ?: '';
+    }
+
+    protected function _load_dependencies() : bool
+    {
+        if ((empty($this->_admin_plugin)
+             && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
+         || (empty($this->_accounts_model)
+             && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
+         || (empty($this->_paginator_model)
+             && !($this->_paginator_model = PHS_Model_Tenants::get_instance()))
+        ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return false;
+        }
+
+        return true;
     }
 }

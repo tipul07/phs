@@ -13,18 +13,6 @@ class PHS_Action_Report extends PHS_Action_Generic_list
 {
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
-    public function load_depencies() : bool
-    {
-        if (!($this->_admin_plugin = PHS_Plugin_Admin::get_instance())
-         || !($this->_paginator_model = PHS_Model_Agent_jobs_monitor::get_instance())) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
     /**
      * @inheritdoc
      */
@@ -267,11 +255,9 @@ class PHS_Action_Report extends PHS_Action_Generic_list
         return $params['preset_content'];
     }
 
-    public function manage_action($action)
+    public function manage_action(array $action) : null | bool | array
     {
-        PHS_Notifications::add_warning_notice($this->_pt('Invalid action.'));
-
-        return null;
+        return $this->_paginator->default_action_params();
     }
 
     public function after_table_callback(array $params) : string
@@ -306,5 +292,19 @@ class PHS_Action_Report extends PHS_Action_Generic_list
         <?php
 
         return ob_get_clean() ?: '';
+    }
+
+    protected function _load_dependencies() : bool
+    {
+        if (
+            (!$this->_admin_plugin && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
+            || (!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Agent_jobs_monitor::get_instance()))
+        ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return false;
+        }
+
+        return true;
     }
 }

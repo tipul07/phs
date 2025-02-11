@@ -20,12 +20,12 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     private array $_tenants_key_val_arr = [];
 
-    public function load_depencies(): bool
+    protected function _load_dependencies(): bool
     {
         if (!($this->_admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($this->_tenants_model = PHS_Model_Tenants::get_instance())
          || !($this->_paginator_model = PHS_Model_Plugins::get_instance())) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
         }
@@ -299,10 +299,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function manage_action($action): null|bool|array
+    public function manage_action(array $action): null | bool | array
     {
         $this->reset_error();
         $action_result_params = $this->_paginator->default_action_params();
@@ -353,7 +350,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 if (!($plugin_settings_lib = Phs_Plugin_settings::get_instance())) {
-                    $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
+                    $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
                     return false;
                 }
@@ -393,7 +390,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 }
 
                 if (!($plugin_settings_lib = Phs_Plugin_settings::get_instance())) {
-                    $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
+                    $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
                     return false;
                 }
@@ -741,16 +738,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }, $params['record']['tenants']))));
     }
 
-    public function display_actions($params)
+    public function display_actions(array $params)
     {
-        if (empty($this->_paginator_model)
-            && !$this->load_depencies()) {
-            return false;
-        }
-
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])
+        if (empty($params['record']) || !is_array($params['record'])
          || empty($params['record']['id'])) {
             return false;
         }
@@ -817,11 +807,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function after_table_callback($params)
+    public function after_table_callback(array $params): string
     {
         static $js_functionality = false;
 
-        if (!empty($js_functionality)) {
+        if ($js_functionality) {
             return '';
         }
 
@@ -861,60 +851,64 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
         function phs_plugins_list_activate( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to activate this plugin?', '"'); ?>" ) )
-            {
-                show_submit_protection("<?php echo $this->_pte('Please wait...')?>");
-                <?php
-        $url_params = [];
-        $url_params['action'] = [
-            'action'        => 'activate_plugin',
-            'action_params' => '" + id + "',
-        ];
-        ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
+            if( !confirm( "<?php echo self::_e('Are you sure you want to activate this plugin?', '"'); ?>" ) ) {
+                return;
             }
+
+            show_submit_protection("<?php echo $this->_pte('Please wait...')?>");
+            <?php
+    $url_params = [];
+    $url_params['action'] = [
+        'action'        => 'activate_plugin',
+        'action_params' => '" + id + "',
+    ];
+    ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
         }
         function phs_plugins_list_inactivate( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to inactivate this plugin?', '"'); ?>" ) )
-            {
-                show_submit_protection("<?php echo $this->_pte('Please wait...')?>");
-                <?php
-        $url_params = [];
-        $url_params['action'] = [
-            'action'        => 'inactivate_plugin',
-            'action_params' => '" + id + "',
-        ];
-        ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
+            if( !confirm( "<?php echo self::_e('Are you sure you want to inactivate this plugin?', '"'); ?>" ) ) {
+                return;
             }
+
+            show_submit_protection("<?php echo $this->_pte('Please wait...')?>");
+            <?php
+    $url_params = [];
+    $url_params['action'] = [
+        'action'        => 'inactivate_plugin',
+        'action_params' => '" + id + "',
+    ];
+    ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
         }
         function phs_plugins_list_upgrade( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to upgrade this plugin?', '"'); ?>" ) )
-            {
-                show_submit_protection("<?php echo $this->_pte('Please wait...')?>");
-                <?php
-        $url_params = [];
-        $url_params['action'] = [
-            'action'        => 'upgrade_plugin',
-            'action_params' => '" + id + "',
-        ];
-        ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
+            if( !confirm( "<?php echo self::_e('Are you sure you want to upgrade this plugin?', '"'); ?>" ) ) {
+                return;
             }
+
+            show_submit_protection("<?php echo $this->_pte('Please wait...')?>");
+            <?php
+    $url_params = [];
+    $url_params['action'] = [
+        'action'        => 'upgrade_plugin',
+        'action_params' => '" + id + "',
+    ];
+    ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
         }
         function phs_plugins_list_delete( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to DELETE this plugin?', '"'); ?>" + "\n" +
-                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
-            {
-                show_submit_protection("<?php echo $this->_pte('Please wait...')?>");
-                <?php
-        $url_params = [];
-        $url_params['action'] = [
-            'action'        => 'delete_plugin',
-            'action_params' => '" + id + "',
-        ];
-        ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
+            if( !confirm( "<?php echo self::_e('Are you sure you want to DELETE this plugin?', '"'); ?>" + "\n" +
+                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
+                return;
             }
+
+            show_submit_protection("<?php echo $this->_pte('Please wait...')?>");
+            <?php
+    $url_params = [];
+    $url_params['action'] = [
+        'action'        => 'delete_plugin',
+        'action_params' => '" + id + "',
+    ];
+    ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
         }
 
         function phs_plugins_list_get_checked_ids_count()
@@ -932,9 +926,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
         function phs_plugins_list_bulk_export_selected()
         {
-            var container_obj = $("#phs_export_plugins_settings_container");
-            if( !container_obj )
+            const container_obj = $("#phs_export_plugins_settings_container");
+            if( !container_obj ) {
                 return;
+            }
 
             container_obj.show();
 
@@ -954,9 +949,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
         function phs_plugins_list_bulk_export_all()
         {
-            var container_obj = $("#phs_export_plugins_settings_container");
-            if( !container_obj )
+            const container_obj = $("#phs_export_plugins_settings_container");
+            if( !container_obj ) {
                 return;
+            }
 
             container_obj.show();
 
@@ -976,9 +972,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
         function closing_phs_plugins_export_dialogue()
         {
-            var container_obj = $("#phs_export_plugins_settings_container");
-            if( !container_obj )
+            const container_obj = $("#phs_export_plugins_settings_container");
+            if( !container_obj ) {
                 return;
+            }
 
             container_obj.hide();
         }
@@ -986,13 +983,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
         let crypt_key_text = "";
         function submit_plugins_export_functionality()
         {
-            if( crypt_key_text.length === 0 )
-            {
+            if( crypt_key_text.length === 0 ) {
                 alert( "<?php echo $this->_pte('Please provide a crypting key.'); ?>" );
                 return false;
             }
-            if( crypt_key_text.length < 64 )
-            {
+            if( crypt_key_text.length < 64 ) {
                 alert( "<?php echo $this->_pt('Crypting key length should be at least 64 characters length. Current length is %s characters.', '" + crypt_key_text.length + "'); ?>" );
                 return false;
             }
@@ -1058,10 +1053,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
         </div>
         <?php
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 
-    private function _check_record_for_current_scope($record_arr, $scope_arr) : bool
+    private function _check_record_for_current_scope(array $record_arr, array $scope_arr) : bool
     {
         return (empty($scope_arr['fstatus'])
                  || (int)$record_arr['status'] === (int)$scope_arr['fstatus'])

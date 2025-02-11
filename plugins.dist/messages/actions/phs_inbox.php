@@ -19,21 +19,6 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
     private ?PHS_Plugin_Messages $_messages_plugin = null;
 
-    public function load_depencies() : bool
-    {
-        if ((!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Messages::get_instance()))
-            || (!$this->_accounts_model && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
-            || (!$this->_roles_model && !($this->_roles_model = PHS_Model_Roles::get_instance()))
-            || (!$this->_messages_plugin && !($this->_messages_plugin = PHS_Plugin_Messages::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
     /**
      * @inheritdoc
      */
@@ -43,12 +28,6 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
-        }
-
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
-
-            return self::default_action_result();
         }
 
         if (!can($this->_messages_plugin::ROLEU_READ_MESSAGE)) {
@@ -67,11 +46,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
     {
         PHS::page_settings('page_title', $this->_pt('Inbox'));
 
-        if (!($current_user = PHS::user_logged_in())) {
-            $this->set_error(self::ERR_ACTION, $this->_pt('You should login first...'));
-
-            return null;
-        }
+        $current_user = PHS::user_logged_in();
 
         $messages_plugin = $this->_messages_plugin;
         $messages_model = $this->_paginator_model;
@@ -249,18 +224,8 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function manage_action($action) : null | bool | array
+    public function manage_action(array $action) : null | bool | array
     {
-        $this->reset_error();
-
-        if (empty($this->_paginator_model)
-            && !$this->load_depencies()) {
-            return false;
-        }
-
         $messages_plugin = $this->_messages_plugin;
 
         $action_result_params = $this->_paginator->default_action_params();
@@ -276,8 +241,6 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                 PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
 
                 return true;
-                break;
-
             case 'bulk_delete':
                 if (!empty($action['action_result'])) {
                     if ($action['action_result'] === 'success') {
@@ -413,10 +376,6 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
                 if (empty($action['action_params'])
                  || !($mu_flow_params = $this->_paginator_model->fetch_default_flow_params(['table_name' => 'messages_users']))
                  || !($message_user_arr = $this->_paginator_model->get_details($action['action_params'], $mu_flow_params))) {
@@ -436,17 +395,15 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_hide_id($params)
+    public function display_hide_id(array $params) : string
     {
         return '';
     }
 
-    public function display_subject($params)
+    public function display_subject(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])) {
-            return false;
+        if (empty($params['record']) || !is_array($params['record'])) {
+            return null;
         }
 
         $message_link = PHS::url(['p' => 'messages', 'a' => 'view_message'], ['muid' => $params['record']['mu_id']]);
@@ -459,28 +416,24 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         return $extra_str.'<a href="'.$message_link.'">'.$params['record']['subject'].'</a> <span>['.$params['record']['m_thread_count'].']</span>';
     }
 
-    public function display_from($params)
+    public function display_from(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])) {
-            return false;
+        if (empty($params['record']) || !is_array($params['record'])) {
+            return null;
         }
 
         if (($current_user = PHS::current_user())
-        && $current_user['id'] == $params['record']['from_uid']) {
+        && (int)$current_user['id'] === (int)$params['record']['from_uid']) {
             return $this->_pt('You (%s)', $params['record']['from_handle']);
         }
 
         return $params['record']['from_handle'];
     }
 
-    public function display_to($params)
+    public function display_to(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])) {
-            return false;
+        if (empty($params['record']) || !is_array($params['record'])) {
+            return null;
         }
 
         $current_user = PHS::current_user();
@@ -545,12 +498,10 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         return $destination_str;
     }
 
-    public function display_last_reply($params)
+    public function display_last_reply(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])) {
-            return false;
+        if (empty($params['record']) || !is_array($params['record'])) {
+            return null;
         }
 
         $params['column']['record_field'] = 'm_cdate';
@@ -558,12 +509,10 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         return $this->_paginator->pretty_date($params);
     }
 
-    public function display_actions($params)
+    public function display_actions(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])) {
-            return false;
+        if (empty($params['record']) || !is_array($params['record'])) {
+            return null;
         }
 
         ob_start();
@@ -572,14 +521,14 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         <a href="javascript:void(0)" onclick="phs_messages_list_delete( '<?php echo $params['record']['mu_id']; ?>' )"><i class="fa fa-times action-icons" title="<?php echo $this->_pt('Delete message thread'); ?>"></i></a>
         <?php
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 
-    public function after_table_callback($params)
+    public function after_table_callback(array $params) : string
     {
         static $js_functionality = false;
 
-        if (!empty($js_functionality)) {
+        if ($js_functionality) {
             return '';
         }
 
@@ -590,67 +539,86 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         <script type="text/javascript">
         function phs_messages_list_delete( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to DELETE this message thread?', '"'); ?>" + "\n" +
-                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
-            {
-                <?php
-                $url_params = [];
+            if( !confirm( "<?php echo self::_e('Are you sure you want to DELETE this message thread?', '"'); ?>" + "\n" +
+                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
+                return;
+            }
+
+            <?php
+            $url_params = [];
         $url_params['action'] = [
             'action'        => 'do_delete',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
 
         function phs_messages_list_get_checked_ids_count()
         {
-            var checkboxes_list = phs_paginator_get_checkboxes_checked( 'mu_id' );
-            if( !checkboxes_list || !checkboxes_list.length )
+            const checkboxes_list = phs_paginator_get_checkboxes_checked('mu_id');
+            if( !checkboxes_list || !checkboxes_list.length ) {
                 return 0;
+            }
 
             return checkboxes_list.length;
         }
 
         function phs_messages_list_bulk_delete()
         {
-            var total_checked = phs_messages_list_get_checked_ids_count();
+            const total_checked = phs_messages_list_get_checked_ids_count();
 
-            if( !total_checked )
-            {
+            if( !total_checked ) {
                 alert( "<?php echo self::_e('Please select message threads you want to delete first.', '"'); ?>" );
                 return false;
             }
 
             if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to DELETE %s message threads?', '"'), '" + total_checked + "'); ?>" + "\n" +
-                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
+                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
                 return false;
+            }
 
-            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
+            const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+            if( form_obj ) {
                 form_obj.submit();
+            }
         }
 
         function phs_messages_list_bulk_mark_as_read()
         {
-            var total_checked = phs_messages_list_get_checked_ids_count();
+            const total_checked = phs_messages_list_get_checked_ids_count();
 
-            if( !total_checked )
-            {
+            if( !total_checked ) {
                 alert( "<?php echo self::_e('Please select message threads you want to mark as read first.', '"'); ?>" );
                 return false;
             }
 
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to mark as read %s message threads?', '"'), '" + total_checked + "'); ?>" ) )
+            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to mark as read %s message threads?', '"'), '" + total_checked + "'); ?>" ) ) {
                 return false;
+            }
 
-            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
+            const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+            if( form_obj ) {
                 form_obj.submit();
+            }
         }
         </script>
         <?php
 
-        return ob_get_clean();
+            return ob_get_clean() ?: '';
+    }
+
+    protected function _load_dependencies() : bool
+    {
+        if ((!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Messages::get_instance()))
+            || (!$this->_accounts_model && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
+            || (!$this->_roles_model && !($this->_roles_model = PHS_Model_Roles::get_instance()))
+            || (!$this->_messages_plugin && !($this->_messages_plugin = PHS_Plugin_Messages::get_instance()))
+        ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return false;
+        }
+
+        return true;
     }
 }

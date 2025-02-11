@@ -17,20 +17,6 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 
     private ?PHS_Model_Rules $_rules_model = null;
 
-    public function load_depencies() : bool
-    {
-        if ((!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Results::get_instance()))
-            || (!$this->_backup_plugin && !($this->_backup_plugin = PHS_Plugin_Backup::get_instance()))
-            || (!$this->_rules_model && !($this->_rules_model = PHS_Model_Rules::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
     /**
      * @inheritdoc
      */
@@ -198,17 +184,9 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function manage_action($action) : null | bool | array
+    public function manage_action(array $action) : null | bool | array
     {
         $this->reset_error();
-
-        if (empty($this->_paginator_model)
-            && !$this->load_depencies()) {
-            return false;
-        }
 
         $action_result_params = $this->_paginator->default_action_params();
 
@@ -299,10 +277,6 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
                 if (empty($action['action_params'])
                  || !($result_arr = $this->_paginator_model->get_details($action['action_params']))) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Cannot delete backup result. Backup result not found in database.'));
@@ -328,9 +302,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 
     public function display_backup_rule_title($params)
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])) {
+        if (empty($params['record']) || !is_array($params['record'])) {
             return false;
         }
 
@@ -360,19 +332,17 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 
         $hour_str = '';
         if (isset($params['record']['backup_rules_hour'])) {
-            $hour_str = ($days_str_arr != '' ? ' @' : '').$params['record']['backup_rules_hour'].($params['record']['backup_rules_hour'] < 12 ? 'am' : 'pm');
+            $hour_str = ($days_str_arr !== '' ? ' @' : '').$params['record']['backup_rules_hour'].($params['record']['backup_rules_hour'] < 12 ? 'am' : 'pm');
         }
 
         return (!empty($params['record']['backup_rules_title']) ? $params['record']['backup_rules_title'] : '(???)').'<br/>'
                .'<small>'.$days_str_arr.$hour_str.'</small>';
     }
 
-    public function display_backup_rule_where($params)
+    public function display_backup_rule_where(array $params) : ?string
     {
-        if (empty($params)
-         || !is_array($params)
-         || empty($params['record']) || !is_array($params['record'])) {
-            return false;
+        if (empty($params['record']) || !is_array($params['record'])) {
+            return null;
         }
 
         if (empty($params['record']['run_dir'])
@@ -397,10 +367,10 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
             );
     }
 
-    public function display_backup_rule_what($params)
+    public function display_backup_rule_what(array $params) : ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
-            return false;
+            return null;
         }
 
         $rules_model = $this->_rules_model;
@@ -434,7 +404,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
         // return $targets_str_arr;
     }
 
-    public function display_actions($params) : ?string
+    public function display_actions(array $params) : ?string
     {
         if (empty($params['record']) || !is_array($params['record'])
          || !($result_arr = $this->_paginator_model->data_to_array($params['record']))) {
@@ -457,11 +427,11 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
         return ob_get_clean() ?: null;
     }
 
-    public function after_table_callback($params)
+    public function after_table_callback(array $params) : string
     {
         static $js_functionality = false;
 
-        if (!empty($js_functionality)) {
+        if ($js_functionality) {
             return '';
         }
 
@@ -472,45 +442,48 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
         <script type="text/javascript">
         function phs_backup_results_list_delete( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to DELETE this backup result?', '"'); ?>" + "\n" +
-                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
-            {
-                <?php
-                $url_params = [];
+            if( !confirm( "<?php echo self::_e('Are you sure you want to DELETE this backup result?', '"'); ?>" + "\n" +
+                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
+                return;
+            }
+
+            <?php
+            $url_params = [];
         $url_params['action'] = [
             'action'        => 'do_delete',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
 
         function phs_backup_results_list_get_checked_ids_count()
         {
-            var checkboxes_list = phs_paginator_get_checkboxes_checked( 'id' );
-            if( !checkboxes_list || !checkboxes_list.length )
+            const checkboxes_list = phs_paginator_get_checkboxes_checked('id');
+            if( !checkboxes_list || !checkboxes_list.length ) {
                 return 0;
+            }
 
             return checkboxes_list.length;
         }
 
         function phs_backup_results_list_bulk_delete()
         {
-            var total_checked = phs_backup_results_list_get_checked_ids_count();
+            const total_checked = phs_backup_results_list_get_checked_ids_count();
 
-            if( !total_checked )
-            {
+            if( !total_checked ) {
                 alert( "<?php echo self::_e('Please select backup results you want to delete first.', '"'); ?>" );
                 return false;
             }
 
             if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to DELETE %s backup results?', '"'), '" + total_checked + "'); ?>" + "\n" +
-                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
+                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
                 return false;
+            }
 
-            var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
+            const form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
+            if( form_obj ) {
                 form_obj.submit();
+            }
         }
         function phs_backup_results_list_view_files( id )
         {
@@ -530,6 +503,20 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
         </script>
         <?php
 
-        return ob_get_clean();
+            return ob_get_clean() ?: '';
+    }
+
+    protected function _load_dependencies() : bool
+    {
+        if ((!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Results::get_instance()))
+            || (!$this->_backup_plugin && !($this->_backup_plugin = PHS_Plugin_Backup::get_instance()))
+            || (!$this->_rules_model && !($this->_rules_model = PHS_Model_Rules::get_instance()))
+        ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return false;
+        }
+
+        return true;
     }
 }

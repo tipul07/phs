@@ -24,22 +24,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     private array $_tenants_list_arr = [];
 
-    public function load_depencies() : bool
-    {
-        if ((!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Accounts::get_instance()))
-         || (!$this->_account_tenants_model && !($this->_account_tenants_model = PHS_Model_Accounts_tenants::get_instance()))
-         || (!$this->_tenants_model && !($this->_tenants_model = PHS_Model_Tenants::get_instance()))
-         || (!$this->_admin_plugin && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-         || (!$this->_accounts_plugin && !($this->_accounts_plugin = PHS_Plugin_Accounts::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
     /**
      * @inheritdoc
      */
@@ -407,10 +391,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function manage_action($action) : bool | array
+    public function manage_action(array $action) : null | bool | array
     {
         $this->reset_error();
 
@@ -1049,20 +1030,16 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $cell_str;
     }
 
-    public function display_actions($params)
+    public function display_actions(array $params) : ?string
     {
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            return false;
-        }
-
         if (!($current_user = PHS::user_logged_in())
-         || empty($params) || !is_array($params)
          || empty($params['record']) || !is_array($params['record'])
          || !($account_arr = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
 
-        if (!$this->_admin_plugin->can_admin_manage_accounts()) {
+        if (!$this->_paginator->is_cell_rendering_for_html($params)
+            || !$this->_admin_plugin->can_admin_manage_accounts()) {
             return '-';
         }
 
@@ -1131,14 +1108,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
             <?php
         }
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 
-    public function after_table_callback($params)
+    public function after_table_callback(array $params) : string
     {
         static $js_functionality = false;
 
-        if (!empty($js_functionality)) {
+        if ($js_functionality) {
             return '';
         }
 
@@ -1149,76 +1126,88 @@ class PHS_Action_List extends PHS_Action_Generic_list
         <script type="text/javascript">
         function phs_users_list_sublogin_account( id )
         {
-            if( confirm( "<?php echo $this->_pte('Are you sure you want to change login as this account?', '"'); ?>" ) ) {
-                <?php
-                $url_params = [];
+            if( !confirm( "<?php echo $this->_pte('Are you sure you want to change login as this account?', '"'); ?>" ) ) {
+                return;
+            }
+
+            <?php
+            $url_params = [];
         $url_params['action'] = [
             'action'        => 'sublogin_account',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
         function phs_users_list_reset_account_locking( id )
         {
-            if( confirm( "<?php echo $this->_pte('Are you sure you want to reset account locking for this account?', '"'); ?>" ) ) {
-                <?php
+            if( !confirm( "<?php echo $this->_pte('Are you sure you want to reset account locking for this account?', '"'); ?>" ) ) {
+                return;
+            }
+
+            <?php
         $url_params = [];
         $url_params['action'] = [
             'action'        => 'reset_account_locking',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
         function phs_users_list_resend_registration_email( id )
         {
-            if( confirm( "<?php echo $this->_pte('Are you sure you want to re-send registration email for this account?', '"'); ?>" ) ) {
-                <?php
+            if( !confirm( "<?php echo $this->_pte('Are you sure you want to re-send registration email for this account?', '"'); ?>" ) ) {
+                return;
+            }
+
+            <?php
         $url_params = [];
         $url_params['action'] = [
             'action'        => 'resend_registration_email',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
         function phs_users_list_activate_account( id )
         {
-            if( confirm( "<?php echo $this->_pte('Are you sure you want to activate this account?', '"'); ?>" ) ) {
-                <?php
+            if( !confirm( "<?php echo $this->_pte('Are you sure you want to activate this account?', '"'); ?>" ) ) {
+                return;
+            }
+
+            <?php
         $url_params = [];
         $url_params['action'] = [
             'action'        => 'activate_account',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
         function phs_users_list_inactivate_account( id )
         {
-            if( confirm( "<?php echo $this->_pte('Are you sure you want to inactivate this account?', '"'); ?>" ) ) {
-                <?php
+            if( !confirm( "<?php echo $this->_pte('Are you sure you want to inactivate this account?', '"'); ?>" ) ) {
+                return;
+            }
+
+            <?php
         $url_params = [];
         $url_params['action'] = [
             'action'        => 'inactivate_account',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
         function phs_users_list_delete_account( id )
         {
-            if( confirm( "<?php echo $this->_pte('Are you sure you want to DELETE this account?', '"'); ?>" + "\n" +
+            if( !confirm( "<?php echo $this->_pte('Are you sure you want to DELETE this account?', '"'); ?>" + "\n" +
                          "<?php echo $this->_pte('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
-                <?php
+                return;
+            }
+
+            <?php
         $url_params = [];
         $url_params['action'] = [
             'action'        => 'delete_account',
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-            }
         }
 
         function phs_users_list_bulk_activate()
@@ -1324,6 +1313,22 @@ class PHS_Action_List extends PHS_Action_Generic_list
         </script>
         <?php
 
-        return ob_get_clean();
+            return ob_get_clean();
+    }
+
+    protected function _load_dependencies() : bool
+    {
+        if ((!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Accounts::get_instance()))
+         || (!$this->_account_tenants_model && !($this->_account_tenants_model = PHS_Model_Accounts_tenants::get_instance()))
+         || (!$this->_tenants_model && !($this->_tenants_model = PHS_Model_Tenants::get_instance()))
+         || (!$this->_admin_plugin && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
+         || (!$this->_accounts_plugin && !($this->_accounts_plugin = PHS_Plugin_Accounts::get_instance()))
+        ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return false;
+        }
+
+        return true;
     }
 }

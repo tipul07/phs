@@ -17,26 +17,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     private ?PHS_Model_Accounts $_accounts_model = null;
 
-    public function load_depencies() : bool
-    {
-        if ((empty($this->_admin_plugin)
-             && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-         || (empty($this->_accounts_model)
-             && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
-         || (empty($this->_paginator_model)
-             && !($this->_paginator_model = PHS_Model_Migrations::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function should_stop_execution() : ?array
     {
         if (!PHS::user_logged_in()) {
@@ -54,9 +34,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return null;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function load_paginator_params() : ?array
     {
         PHS::page_settings('page_title', $this->_pt('Migrations List'));
@@ -253,18 +230,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function manage_action($action) : null | bool | array
+    public function manage_action(array $action) : null | bool | array
     {
-        $this->reset_error();
-
-        if (empty($this->_paginator_model)
-            && !$this->load_depencies()) {
-            return false;
-        }
-
         $action_result_params = $this->_paginator->default_action_params();
 
         if (empty($action['action'])) {
@@ -295,10 +262,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
                 if (empty($action['action_params'])
                  || !($migration_arr = $this->_paginator_model->get_details($action['action_params']))) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Migration script details not found in database.'));
@@ -319,7 +282,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_progress($params) : ?string
+    public function display_progress(array $params) : ?string
     {
         if (empty($params['record']['id'])) {
             return null;
@@ -327,14 +290,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         $migration_arr = $params['record'];
 
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $this->_paginator::CELL_RENDER_JSON:
-                case $this->_paginator::CELL_RENDER_TEXT:
-                case $this->_paginator::CELL_RENDER_CSV:
-                case $this->_paginator::CELL_RENDER_EXCEL:
-                    return $migration_arr['current_count'].'/'.$migration_arr['total_count'];
-            }
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
+            return $migration_arr['current_count'].'/'.$migration_arr['total_count'];
         }
 
         $progress_perc = min(100, (!(float)$migration_arr['total_count'] ? 0 : ceil(($migration_arr['current_count'] * 100) / $migration_arr['total_count'])));
@@ -347,12 +304,13 @@ class PHS_Action_List extends PHS_Action_Generic_list
         </div>
         <?php
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 
-    public function display_actions($params) : ?string
+    public function display_actions(array $params) : ?string
     {
-        if (!$this->_admin_plugin->can_admin_manage_roles()) {
+        if (!$this->_paginator->is_cell_rendering_for_html($params)
+            || !$this->_admin_plugin->can_admin_manage_roles()) {
             return '-';
         }
 
@@ -376,11 +334,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function after_table_callback($params) : string
+    public function after_table_callback(array $params) : string
     {
         static $js_functionality = false;
 
-        if (!empty($js_functionality)) {
+        if ($js_functionality) {
             return '';
         }
 
@@ -405,6 +363,25 @@ class PHS_Action_List extends PHS_Action_Generic_list
         </script>
         <?php
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
+    }
+
+    protected function _load_dependencies() : bool
+    {
+        $this->reset_error();
+
+        if ((empty($this->_admin_plugin)
+             && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
+         || (empty($this->_accounts_model)
+             && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
+         || (empty($this->_paginator_model)
+             && !($this->_paginator_model = PHS_Model_Migrations::get_instance()))
+        ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return false;
+        }
+
+        return true;
     }
 }

@@ -760,7 +760,7 @@ class PHS_Paginator extends PHS_Registry
             // In case we have an array of key-values and key is found in field of current record
             'display_key_value' => false,
             // in case we want a special display for this cell
-            'display_callback' => false,
+            'display_callback' => null,
             // Extra parameters to be sent to display callback (if display_callback is present)
             'extra_callback_params' => false,
             // in case field is a date what format should the date be displayed in?
@@ -1824,6 +1824,31 @@ class PHS_Paginator extends PHS_Registry
         }
 
         return $cell_content;
+    }
+
+    public function is_cell_rendering_for_html(array $render_params) : bool
+    {
+        return (int)($render_params['request_render_type'] ?? 0) === self::CELL_RENDER_HTML;
+    }
+
+    public function is_cell_rendering_for_text(array $render_params) : bool
+    {
+        return (int)($render_params['request_render_type'] ?? 0) === self::CELL_RENDER_TEXT;
+    }
+
+    public function is_cell_rendering_for_json(array $render_params) : bool
+    {
+        return (int)($render_params['request_render_type'] ?? 0) === self::CELL_RENDER_JSON;
+    }
+
+    public function is_cell_rendering_for_csv(array $render_params) : bool
+    {
+        return (int)($render_params['request_render_type'] ?? 0) === self::CELL_RENDER_CSV;
+    }
+
+    public function is_cell_rendering_for_excel(array $render_params) : bool
+    {
+        return (int)($render_params['request_render_type'] ?? 0) === self::CELL_RENDER_EXCEL;
     }
 
     public function get_filters_result() : string | array

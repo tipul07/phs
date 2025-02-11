@@ -25,22 +25,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     private array $_tenants_list_arr = [];
 
-    public function load_depencies() : bool
-    {
-        if ((!$this->_admin_plugin && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-            || (!$this->_accounts_model && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
-            || (!$this->_account_tenants_model && !($this->_account_tenants_model = PHS_Model_Accounts_tenants::get_instance()))
-            || (!$this->_tenants_model && !($this->_tenants_model = PHS_Model_Tenants::get_instance()))
-            || (!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Api_keys::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
     /**
      * @inheritdoc
      */
@@ -301,17 +285,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function manage_action($action) : null | bool | array
+    public function manage_action(array $action) : null | bool | array
     {
         $this->reset_error();
-
-        if (empty($this->_paginator_model)
-            && !$this->load_depencies()) {
-            return false;
-        }
 
         $action_result_params = $this->_paginator->default_action_params();
 
@@ -520,10 +496,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
                 if (empty($action['action_params'])
                  || !($apikey_arr = $this->_paginator_model->get_details($action['action_params']))) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Cannot activate API key. API key not found.'));
@@ -553,10 +525,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
-                }
-
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
                 }
 
                 if (empty($action['action_params'])
@@ -590,10 +558,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
                 if (empty($action['action_params'])
                  || !($apikey_arr = $this->_paginator_model->get_details($action['action_params']))) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Cannot delete API key. API key not found.'));
@@ -612,20 +576,14 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_apikey($params)
+    public function display_apikey(array $params) : ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
-            return false;
+            return null;
         }
 
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $this->_paginator::CELL_RENDER_JSON:
-                case $this->_paginator::CELL_RENDER_TEXT:
-                case $this->_paginator::CELL_RENDER_CSV:
-                case $this->_paginator::CELL_RENDER_EXCEL:
-                    return $params['record']['api_key'].' / '.$params['record']['api_secret'];
-            }
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
+            return $params['record']['api_key'].' / '.$params['record']['api_secret'];
         }
 
         ob_start();
@@ -645,35 +603,29 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function display_apikey_account($params)
+    public function display_apikey_account(array $params) : ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
-            return false;
+            return null;
         }
 
         if (empty($params['record']['uid'])) {
             return '-';
         }
 
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $this->_paginator::CELL_RENDER_JSON:
-                case $this->_paginator::CELL_RENDER_TEXT:
-                case $this->_paginator::CELL_RENDER_CSV:
-                case $this->_paginator::CELL_RENDER_EXCEL:
-                    return $params['record']['uid'].' / '.$params['record']['account_nick'].' / '.$params['record']['account_email'];
-            }
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
+            return $params['record']['uid'].' / '.$params['record']['account_nick'].' / '.$params['record']['account_email'];
         }
 
         return $params['record']['account_nick'].' (#'.$params['record']['uid'].')<br/>'
                .$params['record']['account_email'];
     }
 
-    public function display_tenant($params)
+    public function display_tenant(array $params) : ?string
     {
         if (empty($params)
             || empty($params['record']['id'])) {
-            return false;
+            return null;
         }
 
         if (empty($params['record']['tenant_id'])) {
@@ -687,13 +639,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $this->_tenants_list_arr[$params['record']['tenant_id']];
     }
 
-    public function display_actions($params) : ?string
+    public function display_actions(array $params) : ?string
     {
-        if (empty($this->_paginator_model) && !$this->load_depencies()) {
-            return null;
-        }
-
-        if (!$this->_admin_plugin->can_admin_manage_api_keys()) {
+        if (!$this->_paginator->is_cell_rendering_for_html($params)
+            || !$this->_admin_plugin->can_admin_manage_api_keys()) {
             return '-';
         }
 
@@ -736,7 +685,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean() ?: '';
     }
 
-    public function after_filters_callback($params)
+    public function after_filters_callback(array $params) : string
     {
         if (!$this->_admin_plugin->can_admin_manage_api_keys()) {
             return '';
@@ -754,11 +703,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function after_table_callback($params)
+    public function after_table_callback(array $params) : string
     {
         static $js_functionality = false;
 
-        if (!empty($js_functionality)) {
+        if ($js_functionality) {
             return '';
         }
 
@@ -881,5 +830,21 @@ class PHS_Action_List extends PHS_Action_Generic_list
         <?php
 
         return ob_get_clean();
+    }
+
+    protected function _load_dependencies() : bool
+    {
+        if ((!$this->_admin_plugin && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
+            || (!$this->_accounts_model && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
+            || (!$this->_account_tenants_model && !($this->_account_tenants_model = PHS_Model_Accounts_tenants::get_instance()))
+            || (!$this->_tenants_model && !($this->_tenants_model = PHS_Model_Tenants::get_instance()))
+            || (!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Api_keys::get_instance()))
+        ) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return false;
+        }
+
+        return true;
     }
 }

@@ -19,7 +19,7 @@ use phs\system\core\libraries\PHS_Requests_queue_manager;
 
 function phs_version() : string
 {
-    return '1.2.5.0';
+    return '1.2.5.1';
 }
 
 // region Helper functions
@@ -69,7 +69,7 @@ function action_redirect(array | string $path = '', ?array $args = null, ?array 
 /**
  * @param string|array $role_units
  * @param null|array $roles_params
- * @param null|array|int $account_structure
+ * @param null|int|array|\phs\libraries\PHS_Record_data $account_structure
  *
  * @return bool
  */
