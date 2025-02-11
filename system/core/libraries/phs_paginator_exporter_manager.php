@@ -343,7 +343,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         @header('Pragma: public');
         @header('Content-Type: '.$this->_get_export_file_mime_type($export_status['export_format'] ?? 'csv').'; charset=UTF-8');
 
-        echo @readfile($this->_get_export_path().$export_status['actual_file']);
+        @readfile($this->_get_export_path().$export_status['actual_file']);
         exit;
     }
 
