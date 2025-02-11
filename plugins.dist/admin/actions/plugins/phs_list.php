@@ -738,15 +738,16 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }, $params['record']['tenants']))));
     }
 
-    public function display_actions(array $params)
+    public function display_actions(array $params): ?string
     {
-        if (empty($params['record']) || !is_array($params['record'])
-         || empty($params['record']['id'])) {
-            return false;
+        if(!$this->_paginator->is_cell_rendering_for_html($params)
+           || !$this->_admin_plugin->can_admin_manage_plugins()) {
+            return '-';
         }
 
-        if(!$this->_admin_plugin->can_admin_manage_plugins()) {
-            return '-';
+        if (empty($params['record']) || !is_array($params['record'])
+            || empty($params['record']['id'])) {
+            return null;
         }
 
         ob_start();
@@ -804,7 +805,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             <?php
         }
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 
     public function after_table_callback(array $params): string

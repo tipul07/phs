@@ -511,14 +511,22 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
 
     public function display_actions(array $params) : ?string
     {
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
+            return '-';
+        }
+
         if (empty($params['record']) || !is_array($params['record'])) {
             return null;
         }
 
         ob_start();
         ?>
-        <a href="<?php echo PHS::url(['p' => 'messages', 'a' => 'view_message'], ['muid' => $params['record']['mu_id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"><i class="fa fa-envelope action-icons" title="<?php echo $this->_pt('View thread'); ?>"></i></a>
-        <a href="javascript:void(0)" onclick="phs_messages_list_delete( '<?php echo $params['record']['mu_id']; ?>' )"><i class="fa fa-times action-icons" title="<?php echo $this->_pt('Delete message thread'); ?>"></i></a>
+        <a href="<?php echo PHS::url(
+            ['p' => 'messages', 'a' => 'view_message'],
+            ['muid' => $params['record']['mu_id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
+        ><i class="fa fa-envelope action-icons" title="<?php echo $this->_pt('View thread'); ?>"></i></a>
+        <a href="javascript:void(0)" onclick="phs_messages_list_delete( '<?php echo $params['record']['mu_id']; ?>' )"
+        ><i class="fa fa-times action-icons" title="<?php echo $this->_pt('Delete message thread'); ?>"></i></a>
         <?php
 
         return ob_get_clean() ?: '';

@@ -406,13 +406,14 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
 
     public function display_actions(array $params) : ?string
     {
+        if (!$this->_paginator->is_cell_rendering_for_html($params)
+            || !can($this->_backup_plugin::ROLEU_DELETE_BACKUPS)) {
+            return '-';
+        }
+
         if (empty($params['record']) || !is_array($params['record'])
          || !($result_arr = $this->_paginator_model->data_to_array($params['record']))) {
             return null;
-        }
-
-        if (!can($this->_backup_plugin::ROLEU_DELETE_BACKUPS)) {
-            return '-';
         }
 
         ob_start();
