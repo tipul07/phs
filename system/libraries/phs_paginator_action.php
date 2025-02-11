@@ -63,7 +63,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     /**
      * @return null|array Should return false if execution should continue or an array with an action result which should be returned by execute() method
      */
-    public function should_stop_execution()// : ?array
+    public function should_stop_execution() : ?array
     {
         return null;
     }

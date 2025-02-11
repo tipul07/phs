@@ -299,7 +299,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    public function manage_action(array $action): null|bool|array
+    public function manage_action(array $action): null | bool | array
     {
         $this->reset_error();
         $action_result_params = $this->_paginator->default_action_params();
