@@ -1144,7 +1144,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         if ($details['instance_type'] === self::INSTANCE_TYPE_PLUGIN) {
             $obj = PHS::$loader_method($details['plugin_name']);
         } elseif ($details['instance_type'] === self::INSTANCE_TYPE_VIEW) {
-            $obj = self::$loader_method($instance_details['instance_name'], $details['plugin_name'], $as_singleton);
+            $obj = PHS::$loader_method($instance_details['instance_name'], $details['plugin_name'], $as_singleton);
         } elseif (!empty($instance_details['instance_type_accepts_subdirs'])) {
             $obj = PHS::$loader_method($instance_details['instance_name'], $details['plugin_name'],
                 str_replace('/', '_', $details['instance_subdir']));

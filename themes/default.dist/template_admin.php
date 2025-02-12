@@ -287,8 +287,13 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
             foreach ($defined_languages as $lang => $lang_details) {
                 $language_flag = '';
                 if (!empty($lang_details['flag_file'])) {
-                    $language_flag
-                        = '<span style="margin: 0 5px;"><img src="'.$lang_details['www'].$lang_details['flag_file'].'" /></span> ';
+                    if(str_starts_with($lang_details['flag_file'], 'http')) {
+                        $lang_file_url = $lang_details['flag_file'];
+                    } else {
+                        $lang_file_url = $lang_details['www'].$lang_details['flag_file'];
+                    }
+
+                    $language_flag = '<span style="margin: 0 5px;"><img src="'.$lang_file_url.'" /></span> ';
                 }
 
                 $language_link = 'javascript:PHS_JSEN.change_language( \''.$lang.'\' )';
