@@ -287,7 +287,7 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
             foreach ($defined_languages as $lang => $lang_details) {
                 $language_flag = '';
                 if (!empty($lang_details['flag_file'])) {
-                    if(str_starts_with($lang_details['flag_file'], 'http')) {
+                    if (str_starts_with($lang_details['flag_file'], 'http')) {
                         $lang_file_url = $lang_details['flag_file'];
                     } else {
                         $lang_file_url = $lang_details['www'].$lang_details['flag_file'];

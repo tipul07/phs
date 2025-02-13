@@ -373,7 +373,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
                         PHS_Notifications::add_success_notice($this->_pt('Export run with success.'));
                     }
                 } elseif ($action['action'] === self::ACTION_RESET_EXPORT) {
-                    PHS_Notifications::add_success_notice($this->_pt('Export was resetted with success.'));
+                    PHS_Notifications::add_success_notice($this->_pt('Export reset with success.'));
                 } elseif ($action['action'] === self::ACTION_CANCEL_EXPORT) {
                     PHS_Notifications::add_success_notice($this->_pt('Export was cancelled with success.'));
                 }

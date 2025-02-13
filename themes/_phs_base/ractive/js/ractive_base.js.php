@@ -35,6 +35,8 @@ if (!($empty_img_url = $view_obj->get_resource_url('images/empty.png'))) {
 ?>
 PHS_JSEN.max_simultaneous_requests( 1 );
 
+Ractive.DEBUG = <?php echo PHS::st_debugging_mode() ? 'true' : 'false'; ?>;
+
 var PHS_RActive = PHS_RActive || Ractive.extend({
 
     debugging_mode: <?php echo PHS::st_debugging_mode() ? 'true' : 'false'; ?>,
