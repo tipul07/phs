@@ -27,6 +27,7 @@ $listing_form_name = $paginator_obj->get_listing_form_name() ?: $flow_params_arr
 $bulk_select_name = $paginator_obj->get_bulk_action_select_name() ?: '';
 
 $bulk_actions = $paginator_obj->get_bulk_actions() ?: [];
+$action_parameters_arr = $paginator_obj->get_action_parameter_names() ?: [];
 $filters_arr = $paginator_obj->get_filters() ?: [];
 $columns_arr = $paginator_obj->get_columns_for_scope() ?: [];
 $records_arr = $paginator_obj->get_records() ?: [];
@@ -64,10 +65,34 @@ if ($is_api_scope) {
     $api_listing_arr['filters']['sort'] = $paginator_obj->pagination_params('sort');
     $api_listing_arr['filters']['sort_by'] = $paginator_obj->pagination_params('sort_by');
 }
-//
-//
-//
 ?>
+<script type="text/javascript">
+function phs_paginator_refresh_without_action()
+{
+    let form_obj = $("#<?php echo $listing_form_name; ?>");
+    if(!form_obj) {
+        return;
+    }
+
+    let bulk_select_obj = $('#<?php echo $bulk_select_name; ?>top');
+    if( bulk_select_obj && bulk_select_obj.length ) {
+        bulk_select_obj.val('');
+        bulk_select_obj.trigger( "chosen:updated" );
+    }
+
+    bulk_select_obj = $('#<?php echo $bulk_select_name; ?>bottom');
+    if( bulk_select_obj && bulk_select_obj.length ) {
+        bulk_select_obj.val('');
+        bulk_select_obj.trigger( "chosen:updated" );
+    }
+
+    form_obj[0].action = PHS_JSEN.removeURLParameter(form_obj[0].action, "<?php echo $action_parameters_arr['action']; ?>");
+
+    show_submit_protection("<?php echo $this::_e('Please wait...'); ?>");
+
+    form_obj.submit();
+}
+</script>
 <div class="list_container">
     <form method="post" id="<?php echo $listing_form_name; ?>"
           name="<?php echo $listing_form_name; ?>" action="<?php echo form_str($full_filters_url); ?>">
@@ -76,7 +101,7 @@ if ($is_api_scope) {
 
 	<?php
 
-    $json_actions = [];
+$json_actions = [];
 $bulk_top_actions_arr = [];
 $bulk_bottom_actions_arr = [];
 
@@ -169,7 +194,8 @@ if (!empty($flow_params_arr['display_top_bulk_actions'])
             }
         ?>
             </select>
-            <input type="submit" class="btn btn-primary btn-small ignore_hidden_required" onclick="this.blur();return submit_bulk_action( 'top' );" value="<?php echo form_str($this::_t('Apply')); ?>" />
+            <input type="submit" class="btn btn-primary btn-small ignore_hidden_required"
+                   onclick="this.blur();return submit_bulk_action( 'top' );" value="<?php echo form_str($this::_t('Apply')); ?>" />
             </div>
             <?php
     }
@@ -180,7 +206,7 @@ $per_page_var_name = $flow_params_arr['form_prefix'].$pagination_arr['per_page_v
 ?><div style="margin-bottom:5px;float:right;">
 	<?php echo $this::_t('%s per page', ucfirst($flow_params_arr['term_plural'])); ?>
 	<select name="<?php echo $per_page_var_name; ?>top" id="<?php echo $per_page_var_name.'top'; ?>"
-            onchange="$('#foobar_submit').click()" class="chosen-select-nosearch" style="width:80px;">
+            onchange="phs_paginator_refresh_without_action()" class="chosen-select-nosearch" style="width:80px;">
 	<?php
     foreach ($per_page_options_arr as $per_page_option) {
         $selected_option = '';

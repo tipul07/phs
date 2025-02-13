@@ -592,7 +592,8 @@ class PHS_Action_Rules_list extends PHS_Action_Generic_list
 
     public function display_actions(array $params) : ?string
     {
-        if (!can($this->_backup_plugin::ROLEU_MANAGE_RULES)) {
+        if (!$this->_paginator->is_cell_rendering_for_html($params)
+            || !can($this->_backup_plugin::ROLEU_MANAGE_RULES)) {
             return '-';
         }
 

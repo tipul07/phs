@@ -1032,15 +1032,15 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     public function display_actions(array $params) : ?string
     {
-        if (!($current_user = PHS::user_logged_in())
-         || empty($params['record']) || !is_array($params['record'])
-         || !($account_arr = $this->_paginator_model->data_to_array($params['record']))) {
-            return null;
-        }
-
         if (!$this->_paginator->is_cell_rendering_for_html($params)
             || !$this->_admin_plugin->can_admin_manage_accounts()) {
             return '-';
+        }
+
+        if (!($current_user = PHS::user_logged_in())
+            || empty($params['record']) || !is_array($params['record'])
+            || !($account_arr = $this->_paginator_model->data_to_array($params['record']))) {
+            return null;
         }
 
         $is_inactive = $this->_paginator_model->is_inactive($account_arr);

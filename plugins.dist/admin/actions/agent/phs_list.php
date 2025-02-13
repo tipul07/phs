@@ -739,7 +739,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     public function display_actions(array $params) : ?string
     {
-        if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+        if (!$this->_paginator->is_cell_rendering_for_html($params)
+            || !can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
             return '-';
         }
 

@@ -489,15 +489,16 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                .(!empty($params['record']['description']) ? '<br/><small>'.$params['record']['description'].'</small>' : '');
     }
 
-    public function display_actions(array $params) : string
+    public function display_actions(array $params) : ?string
     {
-        if (!$this->_admin_plugin->can_admin_manage_roles()) {
+        if (!$this->_paginator->is_cell_rendering_for_html($params)
+            || !$this->_admin_plugin->can_admin_manage_roles()) {
             return '-';
         }
 
         if (empty($params['record']) || !is_array($params['record'])
          || !($role_arr = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
 
         $is_inactive = $this->_paginator_model->is_inactive($role_arr);
@@ -532,7 +533,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
             <?php
         }
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 
     public function after_table_callback(array $params) : string
