@@ -291,7 +291,7 @@ class PHS_Bg_jobs extends PHS_Registry
             if (!$extra['return_buffer']) {
                 $cmd .= ' >&- >/dev/null';
             }
-            if (!$extra['async_task']) {
+            if ($extra['async_task']) {
                 $cmd .= ' &';
             }
         }
