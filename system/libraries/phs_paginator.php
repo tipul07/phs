@@ -1200,7 +1200,7 @@ class PHS_Paginator extends PHS_Registry
 
             if (($callback = $params['callbacks']['export_ended'] ?? null)
                && @is_callable($callback)) {
-                $callback($max_records, 0);
+                $callback($max_records, 0, false);
             }
 
             return $return_arr;
