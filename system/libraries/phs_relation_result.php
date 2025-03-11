@@ -62,15 +62,15 @@ class PHS_Relation_result implements Countable, Iterator
             $this->_read_dynamic(...$args);
         } else {
             $indexes = 0;
-            if (null !== $args['offset'] ?? $args[0] ?? null) {
+            if (null !== ($args['offset'] ?? $args[0] ?? null)) {
                 $offset = $args['offset'] ?? $args[0] ?? -1;
                 $indexes++;
             }
-            if (null !== $args['limit'] ?? $args[1] ?? null) {
+            if (null !== ($args['limit'] ?? $args[1] ?? null)) {
                 $limit = $args['limit'] ?? $args[1] ?? 0;
                 $indexes++;
             }
-            if (null !== $args['reload'] ?? $args[2] ?? null) {
+            if (null !== ($args['reload'] ?? $args[2] ?? null)) {
                 $reload = $args['reload'] ?? $args[2] ?? false;
                 $indexes++;
             }
