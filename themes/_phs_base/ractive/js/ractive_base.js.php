@@ -396,7 +396,7 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
         if(full_url && full_url.length > 0) {
             final_url = full_url;
         } else {
-            final_url = "<?php echo PHS_Ajax::url(null, null, ['raw_route' => '" + route + "']); ?>";
+            final_url = "<?php echo PHS_Ajax::url(null, null, ['raw_route' => '" + raw_route + "']); ?>";
         }
 
         return PHS_JSEN.do_ajax( final_url, ajax_params );
