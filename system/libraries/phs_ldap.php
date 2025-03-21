@@ -269,6 +269,7 @@ class PHS_Ldap extends PHS_Registry
 
         $params['overwrite'] = !empty($params['overwrite']);
         $params['move_source'] = !empty($params['move_source']);
+        $params['skip_extension_check'] = !empty($params['skip_extension_check']);
         $params['extra_meta'] ??= [];
 
         if (empty($params['ldap_data'])) {
@@ -294,7 +295,8 @@ class PHS_Ldap extends PHS_Registry
             return null;
         }
 
-        if (!empty($settings['allowed_extentions']) && is_array($settings['allowed_extentions'])
+        if (!$params['skip_extension_check']
+            && !empty($settings['allowed_extentions']) && is_array($settings['allowed_extentions'])
             && !in_array($ldap_details['ldap_meta_arr']['file_extension'], $settings['allowed_extentions'], true)) {
             $this->set_error(self::ERR_SOURCE,
                 self::_t('Extension [%s] not allowed. [Only: %s]', $ldap_details['ldap_meta_arr']['file_extension'], implode(', ', $settings['allowed_extentions'])));
@@ -302,7 +304,8 @@ class PHS_Ldap extends PHS_Registry
             return null;
         }
 
-        if (!empty($settings['denied_extentions']) && is_array($settings['denied_extentions'])
+        if (!$params['skip_extension_check']
+            && !empty($settings['denied_extentions']) && is_array($settings['denied_extentions'])
             && in_array($ldap_details['ldap_meta_arr']['file_extension'], $settings['denied_extentions'], true)) {
             $this->set_error(self::ERR_SOURCE,
                 self::_t('Extension [%s] not allowed. [Denied: %s]', $ldap_details['ldap_meta_arr']['file_extension'], implode(', ', $settings['denied_extentions'])));
