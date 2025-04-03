@@ -96,13 +96,13 @@ class PHS_Registry extends PHS_Language
      * This is useful when defining statuses, types, etc. arrays inside models which contains texts which normally should be translated.
      * Check $STATUSES_ARR found in built-in models to understand.
      *
-     * @param  array  $strings_arr  Array to be walked
-     * @param  array  $keys_arr  Keys to be translated
-     * @param  bool|string|null  $lang  Language in which we want array translated
+     * @param array $strings_arr Array to be walked
+     * @param array $keys_arr Keys to be translated
+     * @param null|bool|string $lang Language in which we want array translated
      *
      * @return array Translated array
      */
-    public function translate_array_keys(array $strings_arr, array $keys_arr, null|bool|string $lang = null) : array
+    public function translate_array_keys(array $strings_arr, array $keys_arr, null | bool | string $lang = null) : array
     {
         if (!$strings_arr) {
             return [];

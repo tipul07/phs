@@ -7,11 +7,9 @@ use phs\libraries\PHS_Contract;
 class PHS_Contract_Autocomplete extends PHS_Contract
 {
     /**
-     * Returns an array with data nodes definition
-     * @return array
-     * @see \phs\libraries\PHS_Contract::_get_contract_node_definition()
+     * @inheritdoc
      */
-    public function get_contract_data_definition()
+    public function get_contract_data_definition() : ?array
     {
         return [
             'items' => [

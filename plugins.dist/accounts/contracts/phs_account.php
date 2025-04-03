@@ -1,23 +1,23 @@
 <?php
 namespace phs\plugins\accounts\contracts;
 
-use phs\PHS;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Contract;
+use phs\libraries\PHS_Model_Core_base;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Contract_Account extends PHS_Contract
 {
-    /** @var null|\phs\plugins\accounts\models\PHS_Model_Accounts */
-    private $_accounts_model;
+    private ?PHS_Model_Accounts $_accounts_model = null;
 
     /**
      * @inheritdoc
      */
-    public function get_parsing_data_model()
+    public function get_parsing_data_model() : ?PHS_Model
     {
         if (!$this->_load_dependencies()) {
-            return false;
+            return null;
         }
 
         return $this->_accounts_model;
@@ -26,21 +26,19 @@ class PHS_Contract_Account extends PHS_Contract
     /**
      * @inheritdoc
      */
-    public function get_parsing_data_model_flow()
+    public function get_parsing_data_model_flow() : ?array
     {
         if (!$this->_load_dependencies()) {
-            return false;
+            return null;
         }
 
         return $this->_accounts_model->fetch_default_flow_params(['table_name' => 'users']);
     }
 
     /**
-     * Returns an array with data nodes definition
-     * @return array|bool
-     * @see \phs\libraries\PHS_Contract::_get_contract_node_definition()
+     * @inheritdoc
      */
-    public function get_contract_data_definition()
+    public function get_contract_data_definition() : ?array
     {
         return [
             'id' => [
@@ -108,7 +106,7 @@ class PHS_Contract_Account extends PHS_Contract
             'status_date' => [
                 'title'      => 'Account status change date',
                 'type'       => PHS_Params::T_DATE,
-                'type_extra' => ['format' => PHS_Model::DATETIME_DB],
+                'type_extra' => ['format' => PHS_Model_Core_base::DATETIME_DB],
                 'default'    => null,
                 'key_type'   => self::FROM_INSIDE,
             ],
@@ -121,21 +119,21 @@ class PHS_Contract_Account extends PHS_Contract
             'deleted' => [
                 'title'      => 'Account deletion date',
                 'type'       => PHS_Params::T_DATE,
-                'type_extra' => ['format' => PHS_Model::DATETIME_DB],
+                'type_extra' => ['format' => PHS_Model_Core_base::DATETIME_DB],
                 'default'    => null,
                 'key_type'   => self::FROM_INSIDE,
             ],
             'last_pass_change' => [
                 'title'      => 'Date of last account update',
                 'type'       => PHS_Params::T_DATE,
-                'type_extra' => ['format' => PHS_Model::DATETIME_DB],
+                'type_extra' => ['format' => PHS_Model_Core_base::DATETIME_DB],
                 'default'    => null,
                 'key_type'   => self::FROM_INSIDE,
             ],
             'lastlog' => [
                 'title'      => 'Date of last login',
                 'type'       => PHS_Params::T_DATE,
-                'type_extra' => ['format' => PHS_Model::DATETIME_DB],
+                'type_extra' => ['format' => PHS_Model_Core_base::DATETIME_DB],
                 'default'    => null,
                 'key_type'   => self::FROM_INSIDE,
             ],
@@ -148,7 +146,7 @@ class PHS_Contract_Account extends PHS_Contract
             'cdate' => [
                 'title'      => 'Date of account creation',
                 'type'       => PHS_Params::T_DATE,
-                'type_extra' => ['format' => PHS_Model::DATETIME_DB],
+                'type_extra' => ['format' => PHS_Model_Core_base::DATETIME_DB],
                 'default'    => null,
                 'key_type'   => self::FROM_INSIDE,
             ],
@@ -175,11 +173,13 @@ class PHS_Contract_Account extends PHS_Contract
         ];
     }
 
-    private function _load_dependencies()
+    private function _load_dependencies() : bool
     {
+        $this->reset_error();
+
         if (!$this->_accounts_model
-         && !($this->_accounts_model = PHS::load_model('accounts', 'accounts'))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources for accounts contract.'));
+         && !($this->_accounts_model = PHS_Model_Accounts::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
         }

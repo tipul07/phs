@@ -22,7 +22,7 @@ class PHS_Action_Logout extends PHS_Api_action
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {
@@ -38,9 +38,6 @@ class PHS_Action_Logout extends PHS_Api_action
             return $this->send_api_success(['account' => null, 'account_logged_out' => true]);
         }
 
-        /** @var PHS_Plugin_Accounts $accounts_plugin */
-        /** @var PHS_Model_Accounts $accounts_model */
-        /** @var PHS_Contract_Account_basic $account_contract */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
          || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($account_contract = PHS_Contract_Account_basic::get_instance())) {
@@ -61,7 +58,7 @@ class PHS_Action_Logout extends PHS_Api_action
         }
 
         if (!($user_payload_arr = $accounts_model->populate_account_data_for_account_contract($current_user))
-         || !($user_payload_arr = $account_contract->parse_data_from_inside_source($user_payload_arr))) {
+            || !($user_payload_arr = $account_contract->parse_data_from_inside_source($user_payload_arr))) {
             $user_payload_arr = null;
         }
 

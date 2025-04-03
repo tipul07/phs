@@ -24,7 +24,7 @@ class PHS_Action_Login extends PHS_Api_action
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {
@@ -43,9 +43,6 @@ class PHS_Action_Login extends PHS_Api_action
         $pass = $this->request_var('pass', PHS_Params::T_ASIS, null, false, 'bp');
         $do_remember = $this->request_var('do_remember', PHS_Params::T_INT, null, false, 'bp');
 
-        /** @var PHS_Plugin_Accounts $accounts_plugin */
-        /** @var PHS_Model_Accounts $accounts_model */
-        /** @var PHS_Contract_Account_basic $account_contract */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
          || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($account_contract = PHS_Contract_Account_basic::get_instance())) {
@@ -58,16 +55,14 @@ class PHS_Action_Login extends PHS_Api_action
             PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this);
 
             if (!($account_arr = $accounts_model->populate_account_data_for_account_contract($current_user))
-             || !($account_data = $account_contract->parse_data_from_inside_source($account_arr))) {
+                || !($account_data = $account_contract->parse_data_from_inside_source($account_arr))) {
                 $account_data = null;
             }
 
             return $this->send_api_success($account_data);
         }
 
-        if (!($plugin_settings = $this->get_plugin_settings())) {
-            $plugin_settings = [];
-        }
+        $plugin_settings = $this->get_plugin_settings();
 
         if (empty($plugin_settings['session_expire_minutes_remember'])) {
             $plugin_settings['session_expire_minutes_remember'] = 43200;
@@ -77,7 +72,7 @@ class PHS_Action_Login extends PHS_Api_action
         } // till browser closes
 
         if (!($account_arr = $accounts_model->get_details_fields(['nick' => $nick]))
-         || !$accounts_model->is_active($account_arr)) {
+            || !$accounts_model->is_active($account_arr)) {
             return $this->send_api_error(PHS_Api_base::H_CODE_NOT_FOUND, $accounts_model::ERR_LOGIN,
                 $this->_pt('Bad user or password.'));
         }
@@ -123,13 +118,11 @@ class PHS_Action_Login extends PHS_Api_action
         }
 
         if (!$accounts_plugin->do_login($account_arr, $login_params)) {
-            if ($accounts_plugin->has_error()) {
-                $error_msg = $accounts_plugin->get_error_message();
-            } else {
-                $error_msg = $this->_pt('Error logging in. Please try again.');
-            }
-
-            return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, $accounts_model::ERR_LOGIN, $error_msg);
+            return $this->send_api_error(
+                PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR,
+                $accounts_model::ERR_LOGIN,
+                $accounts_plugin->get_simple_error_message($this->_pt('Error logging in. Please try again.'))
+            );
         }
 
         if (($account_language = $accounts_model->get_account_language($account_arr))) {
@@ -150,7 +143,7 @@ class PHS_Action_Login extends PHS_Api_action
         }
 
         if (!($user_payload_arr = $accounts_model->populate_account_data_for_account_contract($account_arr))
-         || !($user_payload_arr = $account_contract->parse_data_from_inside_source($user_payload_arr))) {
+            || !($user_payload_arr = $account_contract->parse_data_from_inside_source($user_payload_arr))) {
             $user_payload_arr = [];
         }
 

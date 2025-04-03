@@ -1,7 +1,6 @@
 <?php
 namespace phs\plugins\accounts\contracts;
 
-use phs\PHS;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Contract;
@@ -9,7 +8,6 @@ use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Contract_Account_basic extends PHS_Contract
 {
-    /** @var null|PHS_Model_Accounts */
     private ?PHS_Model_Accounts $_accounts_model = null;
 
     /**
@@ -27,21 +25,19 @@ class PHS_Contract_Account_basic extends PHS_Contract
     /**
      * @inheritdoc
      */
-    public function get_parsing_data_model_flow()
+    public function get_parsing_data_model_flow() : ?array
     {
         if (!$this->_load_dependencies()) {
-            return false;
+            return null;
         }
 
         return $this->_accounts_model->fetch_default_flow_params(['table_name' => 'users']);
     }
 
     /**
-     * Returns an array with data nodes definition
-     * @return array|bool
-     * @see \phs\libraries\PHS_Contract::_get_contract_node_definition()
+     * @inheritdoc
      */
-    public function get_contract_data_definition()
+    public function get_contract_data_definition() : ?array
     {
         return [
             'id' => [
@@ -112,9 +108,11 @@ class PHS_Contract_Account_basic extends PHS_Contract
 
     private function _load_dependencies() : bool
     {
+        $this->reset_error();
+
         if (!$this->_accounts_model
-         && !($this->_accounts_model = PHS_Model_Accounts::get_instance())) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources for accounts contract.'));
+            && !($this->_accounts_model = PHS_Model_Accounts::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
         }
