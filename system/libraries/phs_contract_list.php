@@ -4,32 +4,30 @@ namespace phs\libraries;
 // When we are asked to display a listing of items to an external party,
 // we can "chain" a normal contract with PHS_Contract_list to export lists
 // in same format. All we have to provide is structure of each item in the list
-// by returning item contract (eg. PHS_Contract_item::get_contract_data_definition) in
+// by returning item contract (e.g. PHS_Contract_item::get_contract_data_definition) in
 // PHS_Contract_list::get_contract_data_list_definition call
 abstract class PHS_Contract_list extends PHS_Contract
 {
     /**
      * Returns an array containing item node definition in the list
-     * @return array|bool
+     * @return null|array
      * @see \phs\libraries\PHS_Contract::_get_contract_node_definition()
      */
-    abstract public function get_contract_data_list_definition();
+    abstract public function get_contract_data_list_definition() : ?array;
 
     /**
      * If nodes in list are defined in a contract, return contract instance here
      * @return null|PHS_Contract
      */
-    public function get_list_node_contract()
+    public function get_list_node_contract() : ?PHS_Contract
     {
         return null;
     }
 
     /**
-     * Returns an array with data nodes definition
-     * @return array|bool
-     * @see \phs\libraries\PHS_Contract::_get_contract_node_definition()
+     * @inheritdoc
      */
-    public function get_contract_data_definition()
+    public function get_contract_data_definition() : ?array
     {
         return [
             'total_count' => [

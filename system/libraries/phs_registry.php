@@ -98,21 +98,21 @@ class PHS_Registry extends PHS_Language
      *
      * @param array $strings_arr Array to be walked
      * @param array $keys_arr Keys to be translated
-     * @param null|string $lang Language in which we want array translated
+     * @param null|bool|string $lang Language in which we want array translated
      *
      * @return array Translated array
      */
-    public function translate_array_keys(array $strings_arr, array $keys_arr, ?string $lang = null) : array
+    public function translate_array_keys(array $strings_arr, array $keys_arr, null | bool | string $lang = null) : array
     {
-        if (empty($strings_arr)) {
+        if (!$strings_arr) {
             return [];
         }
 
-        if (empty($keys_arr)) {
+        if (!$keys_arr) {
             return $strings_arr;
         }
 
-        if (empty($lang)) {
+        if (!$lang) {
             $lang = self::get_current_language();
         }
 
