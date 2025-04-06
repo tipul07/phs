@@ -23,12 +23,9 @@ function phs_version() : string
 }
 
 // region Helper functions
-/**
- * @return array
- */
-function action_request_login() : array
+function action_request_login(array $action_result = []) : array
 {
-    $action_result = PHS_Action::default_action_result();
+    $action_result = $action_result ?: PHS_Action::default_action_result();
     $action_result['request_login'] = true;
 
     return $action_result;
@@ -44,13 +41,6 @@ function action_should_redirect(array $action_result) : bool
     return !empty($action_result['redirect_to_url']);
 }
 
-/**
- * @param string|array $path
- * @param null|array $args
- * @param null|array $extra
- *
- * @return array
- */
 function action_redirect(array | string $path = '', ?array $args = null, ?array $extra = null) : array
 {
     $action_result = PHS_Action::default_action_result();
@@ -61,6 +51,31 @@ function action_redirect(array | string $path = '', ?array $args = null, ?array 
         $action_result['redirect_to_url'] = $path;
     } elseif (is_array($path)) {
         $action_result['redirect_to_url'] = PHS::url($path, $args, $extra);
+    }
+
+    return $action_result;
+}
+
+function action_ajax_response(
+    ?array $ajax_arr = null,
+    ?string $ajax_buffer = null,
+    ?array $custom_headers = null,
+    ?bool $request_login = null,
+    array $action_result = []
+) : array {
+    $action_result = $action_result ?: PHS_Action::default_action_result();
+
+    if ($ajax_arr !== null) {
+        $action_result['ajax_result'] = $ajax_arr;
+    }
+    if ($ajax_buffer !== null) {
+        $action_result['buffer'] = $ajax_buffer;
+    }
+    if ($custom_headers !== null) {
+        $action_result['custom_headers'] = $custom_headers;
+    }
+    if ($request_login !== null) {
+        $action_result['request_login'] = $request_login;
     }
 
     return $action_result;
