@@ -29,17 +29,34 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
      * Transforms record array sent from PHS_Paginator to a string which will be outputed using record_to_output method
      *
      * @param array $record_data Record data sent from PHS_Paginator to be transformed in string
-     * @param array|false $params Parameters (if any)
+     * @param null|array $params Parameters (if any)
      *
-     * @return mixed
+     * @return string
      */
     abstract public function record_to_buffer(array $record_data, ?array $params = null) : string;
+
+    public function is_export_to_file() : bool
+    {
+        return $this->export_registry('export_to') === self::EXPORT_TO_FILE;
+    }
+
+    public function is_export_to_output() : bool
+    {
+        return $this->export_registry('export_to') === self::EXPORT_TO_OUTPUT;
+    }
+
+    public function is_export_to_browser() : bool
+    {
+        return $this->export_registry('export_to') === self::EXPORT_TO_BROWSER;
+    }
 
     /**
      *  This method is called when starting export flow.
      *  Make sure export can be done, prepare files to export to, set headers if exporting to browser, etc.
      *  You can override this method in child class in case you want to export to other sources,
      *  or if you want to change the way this exports to output...
+     *
+     * @return bool
      */
     public function start_output() : bool
     {
@@ -141,8 +158,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
      */
     public function record_to_output(array $record_data) : bool
     {
-        if (empty($record_data)
-         || !isset($record_data['record_buffer'])) {
+        if (!isset($record_data['record_buffer'])) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Bad record data to export.'));
             $this->record_error($record_data, $this->get_simple_error_message());
 
@@ -189,7 +205,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
      *  Flush file handler and close it, put closing tags for XML, enclose all records as an object for JSON, etc
      *  You can override this method in child class in case you want to export to other sources or you want to change way this exports to output...
      */
-    public function finish_output()
+    public function finish_output() : bool
     {
         if (!($export_registry = $this->export_registry())
             || empty($export_registry['export_to'])
@@ -199,7 +215,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
 
         /**
          * if ($export_registry['export_original_encoding']
-         * && @function_exists('mb_internal_encoding')) {
+         *     && @function_exists('mb_internal_encoding')) {
          *     @mb_internal_encoding($export_registry['export_original_encoding']);
          * }
          */
@@ -258,7 +274,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
     {
         return [
             // To what encoding should we export (if false it will not do any encodings)
-            'export_encoding' => false,
+            'export_encoding' => '',
             'force_bom_bytes' => false, // Use Byte Order Mark at the beginning of the file
             // Where to export the data
             'export_to'        => self::EXPORT_TO_BROWSER,
@@ -267,16 +283,16 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
             'export_mime_type' => '',
 
             // Save what encoding was originally used in script before export
-            'export_original_encoding' => false,
+            'export_original_encoding' => null,
             // File descriptor
             'export_fd' => false,
             // Full file path
             'export_full_file_path' => '',
 
-            'start_output_params'     => false,
-            'finish_output_params'    => false,
-            'record_to_output_params' => false,
-            'record_to_buffer_params' => false,
+            'start_output_params'     => null,
+            'finish_output_params'    => null,
+            'record_to_output_params' => null,
+            'record_to_buffer_params' => null,
         ];
     }
 

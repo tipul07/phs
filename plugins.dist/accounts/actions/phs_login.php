@@ -63,16 +63,14 @@ class PHS_Action_Login extends PHS_Action
             PHS_Notifications::add_warning_notice($this->_pt('Your session expired. Please login again into your account.'));
         }
 
-        /** @var PHS_Plugin_Accounts $accounts_plugin */
-        /** @var PHS_Model_Accounts_tfa $tfa_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
             || !($tfa_model = PHS_Model_Accounts_tfa::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
         }
 
-        if (!empty($accounts_plugin)
-         && !empty($reason)
-         && ($reason_success_text = $accounts_plugin->valid_confirmation_reason($reason))) {
+        if ($accounts_plugin
+            && $reason
+            && ($reason_success_text = $accounts_plugin->valid_confirmation_reason($reason))) {
             PHS_Notifications::add_success_notice($reason_success_text);
         }
 
@@ -86,9 +84,9 @@ class PHS_Action_Login extends PHS_Action
             PHS_Notifications::add_success_notice($this->_pt('An email with your password was sent to email provided in your account details.'));
         }
 
-        if (empty($foobar)
-         && PHS::user_logged_in()
-         && !PHS_Notifications::have_notifications_errors()) {
+        if (!$foobar
+            && PHS::user_logged_in()
+            && !PHS_Notifications::have_notifications_errors()) {
             if (($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this))
                 && !empty($event_result['action_result']) && is_array($event_result['action_result'])) {
                 $this->set_action_result($event_result['action_result']);
@@ -108,8 +106,7 @@ class PHS_Action_Login extends PHS_Action
         // till browser closes
         $plugin_settings['session_expire_minutes_normal'] = (int)($plugin_settings['session_expire_minutes_normal'] ?? 0);
 
-        /** @var PHS_Model_Accounts $accounts_model */
-        if (!empty($do_submit)
+        if ($do_submit
             && !PHS_Notifications::have_notifications_errors()) {
             if (empty($nick) || empty($pass)) {
                 PHS_Notifications::add_error_notice($this->_pt('Please provide complete mandatory fields.'));

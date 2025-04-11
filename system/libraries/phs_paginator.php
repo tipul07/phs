@@ -195,6 +195,14 @@ class PHS_Paginator extends PHS_Registry
         ];
     }
 
+    public function generate_action_result(array $action) : array
+    {
+        $action_result = $this->default_action_params();
+        $action_result['action'] = $action['action'] ?? '';
+
+        return $action_result;
+    }
+
     public function pagination_params(null | string | array $key = null, mixed $val = null) : mixed
     {
         if ($key === null && $val === null) {
@@ -443,29 +451,21 @@ class PHS_Paginator extends PHS_Registry
 
         $params['request_render_type'] = (int)($params['request_render_type'] ?? 0);
 
-        if ($params['request_render_type']
-            && ($params['request_render_type'] === self::CELL_RENDER_JSON
-                || $params['request_render_type'] === self::CELL_RENDER_TEXT
-                || $params['request_render_type'] === self::CELL_RENDER_CSV
-                || $params['request_render_type'] === self::CELL_RENDER_EXCEL)) {
+        if (!$this->is_cell_rendering_for_html($params)) {
             return $params['preset_content'] ?: $params['record'][$params['column']['checkbox_record_index_key']['key']] ?: '';
         }
 
-        $scope_arr = $this->get_scope() ?: [];
+        $scope_arr = $this->get_scope();
 
         $checkbox_value = $params['record'][$params['column']['checkbox_record_index_key']['key']];
         $checkbox_name_all = $checkbox_name.self::CHECKBOXES_COLUMN_ALL_SUFIX;
 
-        $checkbox_checked = false;
-        if ($scope_arr
-            && (!empty($scope_arr[$checkbox_name_all])
-                || (!empty($scope_arr[$checkbox_name])
-                    && is_array($scope_arr[$checkbox_name])
-                    && in_array($checkbox_value, $scope_arr[$checkbox_name])
-                ))
-        ) {
-            $checkbox_checked = true;
-        }
+        $checkbox_checked = $scope_arr
+                            && (!empty($scope_arr[$checkbox_name_all])
+                                || (!empty($scope_arr[$checkbox_name])
+                                    && is_array($scope_arr[$checkbox_name])
+                                    && in_array($checkbox_value, $scope_arr[$checkbox_name])
+                                ));
 
         ob_start();
         ?>
@@ -978,9 +978,25 @@ class PHS_Paginator extends PHS_Registry
         return $this->_bulk_actions;
     }
 
+    public function get_bulk_action_details(array $action) : ?array
+    {
+        if (empty($action['action'])
+         || !($actions_arr = $this->get_bulk_actions())) {
+            return null;
+        }
+
+        foreach ($actions_arr as $action_arr) {
+            if ($action_arr['action'] === $action['action']) {
+                return $action_arr;
+            }
+        }
+
+        return null;
+    }
+
     public function get_scope() : array
     {
-        if (empty($this->_originals)) {
+        if (!$this->_originals) {
             $this->extract_filters_scope();
         }
 
@@ -2338,6 +2354,8 @@ class PHS_Paginator extends PHS_Registry
             'js_callback'       => '',
             // name of column which holds the checkboxes that matter for this bulk action ('record_field'/'record_db_field' key in columns array)
             'checkbox_column' => '',
+            // Should the action be treated in a background job
+            'launch_in_background' => false,
         ];
     }
 }

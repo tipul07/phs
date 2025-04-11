@@ -3,6 +3,8 @@ namespace phs\libraries;
 
 use phs\PHS;
 use phs\PHS_Scope;
+use phs\PHS_Bg_jobs;
+use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\libraries\PHS_Paginator_exporter_manager;
 
 abstract class PHS_Action_Generic_list extends PHS_Action
@@ -46,6 +48,18 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     {
         return [self::ACTION_EXPORT_SELECTED, self::ACTION_EXPORT_ALL, self::ACTION_DOWNLOAD_EXPORT,
             self::ACTION_RESET_EXPORT, self::ACTION_CANCEL_EXPORT];
+    }
+
+    public function is_internal_bulk_action(array $action) : bool
+    {
+        return !empty($action['action'])
+               && in_array($action['action'], $this->get_internal_actions(), true);
+    }
+
+    public function should_launch_bulk_action_in_background(array $action) : bool
+    {
+        return ($action_arr = $this->_paginator->get_bulk_action_details($action))
+               && !empty($action_arr['launch_in_background']);
     }
 
     // Do any actions required immediately after paginator was instantiated
@@ -276,7 +290,6 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         }
 
         if (!($paginator_params = $this->load_paginator_params())
-            || !is_array($paginator_params)
             || !($paginator_params = self::validate_array_recursive($paginator_params, $this->default_paginator_params()))
             // Complain about base_url not set only if we are not forced to return an action result already
             || (empty($paginator_params['base_url']) && empty($paginator_params['force_action_result']))) {
@@ -331,10 +344,10 @@ abstract class PHS_Action_Generic_list extends PHS_Action
                 && !$this->_paginator->set_filters($paginator_params['filters_arr']))
             || (!empty($this->_paginator_model)
                 && !$this->_paginator->set_model($this->_paginator_model))
-            || (((!empty($paginator_params['bulk_actions'])
-                  && is_array($paginator_params['bulk_actions']))
+            || (((!empty($paginator_params['bulk_actions']) && is_array($paginator_params['bulk_actions']))
                  || $paginator_params['export_actions'])
-                && null === $this->_paginator->set_bulk_actions($paginator_params['bulk_actions'], $paginator_params['export_actions'] ?: []))
+                && null === $this->_paginator->set_bulk_actions($paginator_params['bulk_actions'], $paginator_params['export_actions'] ?: [])
+            )
         ) {
             $init_went_ok = false;
         } elseif (!$this->we_initialized_paginator()) {
@@ -354,8 +367,16 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             return $this->_paginator->default_action_params();
         }
 
-        if (!$this->_paginator->has_export_bulk_actions()
-            || !in_array($action['action'], $this->get_internal_actions(), true)) {
+        if (!$this->is_internal_bulk_action($action)
+           || !$this->_paginator->has_export_bulk_actions()) {
+            if ($this->should_launch_bulk_action_in_background($action)) {
+                if (!PHS::are_we_in_a_background_thread()) {
+                    return $this->_launch_bulk_action_in_background($action);
+                }
+
+                return $this->_paginator->default_action_params();
+            }
+
             return $this->manage_action($action);
         }
 
@@ -394,9 +415,6 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             return true;
         }
 
-        $action_result_params = $this->_paginator->default_action_params();
-        $action_result_params['action'] = $action['action'];
-
         $export_params = [];
         if ($start_export_action) {
             $in_bg = PHS_Params::_gp('in_bg', PHS_Params::T_INT) ?: 0;
@@ -409,54 +427,63 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         }
 
         return match ($action['action']) {
-            self::ACTION_EXPORT_ALL      => $this->_manage_action_export_all($action_result_params, $export_params),
-            self::ACTION_EXPORT_SELECTED => $this->_export_selected_action($action_result_params, $export_params),
-            self::ACTION_DOWNLOAD_EXPORT => $this->_download_export_action($action_result_params),
-            self::ACTION_RESET_EXPORT    => $this->_reset_export_action($action_result_params),
-            self::ACTION_CANCEL_EXPORT   => $this->_cancel_export_action($action_result_params),
+            self::ACTION_EXPORT_ALL      => $this->_manage_action_export_all($action, $export_params),
+            self::ACTION_EXPORT_SELECTED => $this->_export_selected_action($action, $export_params),
+            self::ACTION_DOWNLOAD_EXPORT => $this->_download_export_action($action),
+            self::ACTION_RESET_EXPORT    => $this->_reset_export_action($action),
+            self::ACTION_CANCEL_EXPORT   => $this->_cancel_export_action($action),
         };
     }
 
-    protected function _download_export_action(array $action_result_params) : bool | array
+    protected function _download_export_action(array $action) : bool | array
     {
+        $action_result = $this->_paginator->generate_action_result($action);
+
         if (!($export_manager = PHS_Paginator_exporter_manager::get_instance())
            || !$export_manager->download_export_file($this, PHS::current_user() ?: null)) {
-            $action_result_params['action_result'] = 'failed';
+            $action_result['action_result'] = 'failed';
         } else {
-            $action_result_params['action_result'] = 'success';
+            $action_result['action_result'] = 'success';
         }
 
-        return $action_result_params;
+        return $action_result;
     }
 
-    protected function _reset_export_action(array $action_result_params) : bool | array
+    protected function _reset_export_action(array $action) : bool | array
     {
+        $action_result = $this->_paginator->generate_action_result($action);
+
         if (!($export_manager = PHS_Paginator_exporter_manager::get_instance())
            || !$export_manager->reset_export($this, PHS::current_user() ?: null)) {
-            $action_result_params['action_result'] = 'failed';
+            $action_result['action_result'] = 'failed';
         } else {
-            $action_result_params['action_result'] = 'success';
+            $action_result['action_result'] = 'success';
         }
 
-        return $action_result_params;
+        return $action_result;
     }
 
-    protected function _cancel_export_action(array $action_result_params) : bool | array
+    protected function _cancel_export_action(array $action) : bool | array
     {
+        $action_result = $this->_paginator->generate_action_result($action);
+
         if (!($export_manager = PHS_Paginator_exporter_manager::get_instance())
            || !$export_manager->cancel_export($this, PHS::current_user() ?: null)) {
-            $action_result_params['action_result'] = 'failed';
+            $action_result['action_result'] = 'failed';
         } else {
-            $action_result_params['action_result'] = 'success';
+            $action_result['action_result'] = 'success';
         }
 
-        return $action_result_params;
+        return $action_result;
     }
 
-    protected function _manage_action_export_all(array $action_result_params, array $export_params) : bool | array
+    protected function _manage_action_export_all(array $action, array $export_params) : bool | array
     {
+        $action = $action ?: [];
+        $action['action'] = self::ACTION_EXPORT_ALL;
+
         if (!empty($export_params['in_bg'])) {
-            return $this->_launch_bulk_action_in_background(self::ACTION_EXPORT_ALL, $action_result_params, $export_params);
+            return $this->_launch_bulk_export_action_in_background($action, $export_params);
         }
 
         $exporter_params = [];
@@ -476,23 +503,28 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             ],
         ];
 
+        $action_result = $this->_paginator->generate_action_result($action);
+
         if (($export_result = $this->_paginator->do_export_records($exporter_params))) {
             if (empty($export_result['exports_failed'])) {
-                $action_result_params['action_result'] = 'success';
+                $action_result['action_result'] = 'success';
             } else {
-                $action_result_params['action_result'] = 'failed_some';
+                $action_result['action_result'] = 'failed_some';
             }
         } else {
-            $action_result_params['action_result'] = 'failed';
+            $action_result['action_result'] = 'failed';
         }
 
-        return $action_result_params;
+        return $action_result;
     }
 
-    protected function _export_selected_action(array $action_result_params, array $export_params) : bool | array
+    protected function _export_selected_action(array $action, array $export_params) : bool | array
     {
+        $action = $action ?: [];
+        $action['action'] = self::ACTION_EXPORT_SELECTED;
+
         if (!empty($export_params['in_bg'])) {
-            return $this->_launch_bulk_action_in_background(self::ACTION_EXPORT_SELECTED, $action_result_params, $export_params);
+            return $this->_launch_bulk_export_action_in_background($action, $export_params);
         }
 
         if (!($export_action = $this->_paginator->get_export_selection_bulk_action())
@@ -543,32 +575,74 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             'id' => $scope_arr[$scope_key],
         ];
 
+        $action_result = $this->_paginator->generate_action_result($action);
+
         if (($export_result = $this->_paginator->do_export_records($exporter_params))) {
             if (empty($export_result['exports_failed'])) {
-                $action_result_params['action_result'] = 'success';
+                $action_result['action_result'] = 'success';
             } else {
-                $action_result_params['action_result'] = 'failed_some';
+                $action_result['action_result'] = 'failed_some';
             }
         } else {
-            $action_result_params['action_result'] = 'failed';
+            $action_result['action_result'] = 'failed';
         }
 
-        $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
+        $action_result['action_redirect_url_params'] = ['force_scope' => $scope_arr];
 
-        return $action_result_params;
+        return $action_result;
     }
 
-    protected function _launch_bulk_action_in_background(string $action, array $action_result_params, array $export_params) : bool | array
+    protected function _launch_bulk_export_action_in_background(array $action, array $export_params) : bool | array
     {
-        $action_result_params['action_result'] = 'success';
-        $action_result_params['action_redirect_url_params']['extra_params'] = ['in_bg' => 1];
+        $action_result = $this->_paginator->generate_action_result($action);
+        $action_result['action_result'] = 'success';
+        $action_result['action_redirect_url_params']['extra_params'] = ['in_bg' => 1];
 
         if (!($export_manager = PHS_Paginator_exporter_manager::get_instance())
-           || !$export_manager->launch_export_action_in_background($this, $action, $export_params, PHS::current_user() ?: null)) {
-            $action_result_params['action_result'] = 'failed';
+           || !$export_manager->launch_export_action_in_background($this, $action['action'], $export_params, PHS::current_user() ?: null)) {
+            $action_result['action_result'] = 'failed';
         }
 
-        return $action_result_params;
+        return $action_result;
+    }
+
+    protected function _launch_bulk_action_in_background(array $action) : bool | array
+    {
+        if (!empty($action['action_result'])) {
+            if ($action['action_result'] === 'success') {
+                PHS_Notifications::add_success_notice($this->_pt('Action launched in background with success.'));
+            } elseif ($action['action_result'] === 'failed') {
+                PHS_Notifications::add_error_notice($this->_pt('Failed launching action in background.'));
+            }
+
+            return true;
+        }
+
+        $action_result = $this->_paginator->generate_action_result($action);
+        $action_result['action_result'] = 'success';
+
+        if (!PHS_Bg_jobs::run(
+            ['a' => 'paginator_bulk_action_bg', 'ad' => 'paginator', 'c' => 'index_bg'],
+            ['context' => [
+                'action_class'      => $this::class,
+                'bulk_action'       => $action,
+                'scope'             => $this->_paginator->get_scope(),
+                'pagination_params' => $this->_paginator->pagination_params(),
+            ],
+            ],
+            ['with_foreground_user' => true])
+        ) {
+            $action_result['action_result'] = 'failed';
+
+            if (($admin_plugin = PHS_Plugin_Admin::get_instance())) {
+                PHS_Logger::error($this->_pt('Failed launching action in background: %s',
+                    self::st_get_simple_error_message('Unknown error.')),
+                    $admin_plugin::LOG_PAGINATOR
+                );
+            }
+        }
+
+        return $action_result;
     }
 
     protected function default_paginator_params() : array

@@ -2890,8 +2890,8 @@ final class PHS extends PHS_Registry
             }
 
             foreach ($hooks_array as $hook_callback) {
-                if (empty($hook_callback) || !is_array($hook_callback)
-                 || empty($hook_callback['callback'])
+                $instance_obj = null;
+                if (empty($hook_callback['callback'])
                  || (is_array($hook_callback['callback'])
                      && ($instance_obj = $hook_callback['callback'][0] ?? null)
                      && $instance_obj instanceof PHS_Instantiable
@@ -2903,8 +2903,8 @@ final class PHS extends PHS_Registry
 
                 if (!@is_callable($hook_callback['callback'])) {
                     if (self::st_debugging_mode()) {
-                        PHS_Logger::critical('Hook ['.$hook_name.'] not all callable ('
-                            .@print_r($hook_callback['callback'], true).')', PHS_Logger::TYPE_DEBUG);
+                        PHS_Logger::critical('Hook ['.$hook_name.'] not callable'
+                            .(($instance_obj ?? null) ? ' for '.@get_class($instance_obj) : ''), PHS_Logger::TYPE_DEBUG);
                     }
                     continue;
                 }

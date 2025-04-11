@@ -631,7 +631,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         $this->reset_error();
 
         if (!($export_dir = $this->_get_export_path(false))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error obtaining temporary upload directory path.'));
+            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error obtaining temporary directory path.'));
 
             return false;
         }
@@ -642,7 +642,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
             if (!@is_dir($export_dir)
                 || !@is_writable($export_dir)) {
                 $this->set_error(self::ERR_RIGHTS,
-                    self::_t('QR code directory is not a directory or is not writeable.'));
+                    self::_t('Export directory is not a directory or is not writeable.'));
 
                 return false;
             }
@@ -651,9 +651,8 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         }
 
         if (!@mkdir($export_dir, 0775)
-            && !@is_dir($export_dir)
-        ) {
-            $this->set_error(self::ERR_RIGHTS, self::_t('Error creating QR code directory.'));
+            && !@is_dir($export_dir)) {
+            $this->set_error(self::ERR_RIGHTS, self::_t('Error creating export directory.'));
 
             return false;
         }

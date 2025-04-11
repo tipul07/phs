@@ -26,7 +26,7 @@ class PHS_Paginator_exporter_csv extends PHS_Paginator_exporter_library
         }
 
         if (!($csv_format = $this->export_registry('csv_format'))) {
-            $csv_format = empty($params)
+            $csv_format = !$params
                 ? $this->default_csv_params()
                 : self::validate_array($params, $this->default_csv_params());
 
