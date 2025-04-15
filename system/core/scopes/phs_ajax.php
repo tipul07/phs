@@ -64,7 +64,6 @@ class PHS_Scope_Ajax extends PHS_Scope
 
             $result_headers['X-Powered-By'] = 'PHS-'.PHS_VERSION;
 
-            /** @var PHS_Plugin_Phs_security $security_plugin */
             if (($security_plugin = PHS_Plugin_Phs_security::get_instance())
                && $security_plugin->security_headers_are_enabled()
                && ($headers_lib = Phs_security_headers::get_instance())

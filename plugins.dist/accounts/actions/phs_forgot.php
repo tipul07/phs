@@ -43,7 +43,6 @@ class PHS_Action_Forgot extends PHS_Action
 
         PHS::page_settings('page_title', $this->_pt('Forgot Password'));
 
-        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
@@ -65,8 +64,7 @@ class PHS_Action_Forgot extends PHS_Action
             PHS_Notifications::add_success_notice($this->_pt('Email with instructions sent to provided email address.'));
         }
 
-        if (!empty($do_submit)) {
-            /** @var PHS_Plugin_Captcha $captcha_plugin */
+        if ($do_submit) {
             if (!($captcha_plugin = PHS_Plugin_Captcha::get_instance())) {
                 PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
             } elseif (($hook_result = PHS_Hooks::trigger_captcha_check($vcode)) !== null
@@ -82,13 +80,10 @@ class PHS_Action_Forgot extends PHS_Action
                 PHS_Notifications::add_error_notice($this->_pt('Account locked temporarily because of too many login attempts.'));
             } else {
                 if (!PHS_Bg_jobs::run(['p' => 'accounts', 'a' => 'forgot_password_bg', 'c' => 'index_bg'], ['uid' => $account_arr['id']])) {
-                    if (self::st_has_error()) {
-                        $error_msg = self::st_get_error_message();
-                    } else {
-                        $error_msg = $this->_pt('Error sending forgot password email. Please try again.');
-                    }
-
-                    PHS_Notifications::add_error_notice($error_msg);
+                    PHS_Notifications::add_error_notice(
+                        self::st_get_simple_error_message(
+                            $this->_pt('Error sending forgot password email. Please try again.'))
+                    );
                 }
 
                 PHS_Hooks::trigger_captcha_regeneration();
