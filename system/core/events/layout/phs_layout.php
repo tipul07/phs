@@ -1,7 +1,10 @@
 <?php
 namespace phs\system\core\events\layout;
 
+use Closure;
 use phs\libraries\PHS_Hooks;
+use phs\system\core\views\PHS_View;
+use phs\system\core\events\accounts\PHS_Event_Accounts_info_template;
 
 class PHS_Event_Layout extends PHS_Event_Layout_buffer
 {
@@ -76,15 +79,44 @@ class PHS_Event_Layout extends PHS_Event_Layout_buffer
 
     public static function get_buffer(string $area = '', array $input_arr = [], array $params = []) : string
     {
-        if (!empty(self::OLD_HOOKS[$area])) {
-            $params['old_hooks'] = self::OLD_HOOKS[$area];
+        if (!empty(static::OLD_HOOKS[$area])) {
+            $params['old_hooks'] = static::OLD_HOOKS[$area];
         }
 
-        if (!($event_obj = self::trigger($input_arr, $area, $params))
+        if (!($event_obj = static::trigger($input_arr, $area, $params))
             || !($buffer = $event_obj->get_output('buffer'))) {
             return '';
         }
 
         return $buffer;
+    }
+
+    // !! This should be use only with a child class
+    public static function listen_for_buffer(callable | array | string | Closure $callback, array $options = []) : ?self
+    {
+        if (static::class === self::class) {
+            self::st_set_error(self::ERR_LISTEN, self::_t('Cannot listen for buffer in base class %s.', self::class));
+
+            return null;
+        }
+
+        return static::listen($callback, static::class, $options);
+    }
+
+    // !! This should be use only with a child class
+    public static function buffer(PHS_View $view_obj, array $template_data = [], array $params = []) : string
+    {
+        if (static::class === self::class) {
+            return self::_t('Cannot ask for buffer in base class %s.', self::class);
+        }
+
+        return static::get_buffer(
+            static::class,
+            [
+                'view_obj'    => $view_obj,
+                'buffer_data' => $template_data,
+            ],
+            $params
+        );
     }
 }

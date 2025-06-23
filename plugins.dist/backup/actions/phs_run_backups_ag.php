@@ -1,7 +1,6 @@
 <?php
 namespace phs\plugins\backup\actions;
 
-use phs\PHS;
 use phs\PHS_Scope;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
@@ -16,23 +15,19 @@ class PHS_Action_Run_backups_ag extends PHS_Action
 
     public function execute()
     {
-        /** @var PHS_Plugin_Backup $backup_plugin */
         if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
             PHS_Logger::error('!!! Error: Couldn\'t load backup plugin.', $backup_plugin::LOG_CHANNEL);
 
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Couldn\'t load backup plugin.'));
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
         }
 
         if (!($check_result = $backup_plugin->run_backups_bg())) {
-            if ($backup_plugin->has_error()) {
-                $this->copy_error($backup_plugin);
-            } else {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Checking backup rules failed.'));
-            }
+            $this->copy_or_set_error($backup_plugin,
+                self::ERR_FUNCTIONALITY, $this->_pt('Checking backup rules failed.'));
 
-            PHS_Logger::error('!!! Error running backup rules: '.$this->get_error_message(), $backup_plugin::LOG_CHANNEL);
+            PHS_Logger::error('!!! Error running backup rules: '.$this->get_simple_error_message(), $backup_plugin::LOG_CHANNEL);
         } else {
             if (empty($check_result['backup_rules'])) {
                 $check_result['backup_rules'] = 0;
@@ -47,13 +42,10 @@ class PHS_Action_Run_backups_ag extends PHS_Action
         }
 
         if (!($copy_result = $backup_plugin->copy_backup_files_bg())) {
-            if ($backup_plugin->has_error()) {
-                $this->copy_error($backup_plugin);
-            } else {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Copying backup result files failed.'));
-            }
+            $this->copy_or_set_error($backup_plugin,
+                self::ERR_FUNCTIONALITY, $this->_pt('Copying backup result files failed.'));
 
-            PHS_Logger::error('!!! Error copying result files: '.$this->get_error_message(), $backup_plugin::LOG_CHANNEL);
+            PHS_Logger::error('!!! Error copying result files: '.$this->get_simple_error_message(), $backup_plugin::LOG_CHANNEL);
         } else {
             if (empty($copy_result['results_copied'])) {
                 $copy_result['results_copied'] = 0;
@@ -68,11 +60,8 @@ class PHS_Action_Run_backups_ag extends PHS_Action
         }
 
         if (!($delete_result = $backup_plugin->delete_old_backups_bg())) {
-            if ($backup_plugin->has_error()) {
-                $this->copy_error($backup_plugin);
-            } else {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Deleting old backup results failed.'));
-            }
+            $this->copy_or_set_error($backup_plugin,
+                self::ERR_FUNCTIONALITY, $this->_pt('Deleting old backup results failed.'));
 
             PHS_Logger::error('!!! Error deleting old results: '.$this->get_error_message(), $backup_plugin::LOG_CHANNEL);
         } else {

@@ -233,6 +233,32 @@ class PHS_Utils extends PHS_Language
         return $return_arr;
     }
 
+    public static function pretty_date_html(?string $date, array $params = []) : string
+    {
+        $params['date_format'] ??= null;
+
+        if (!$date
+            || !($date_time = is_db_date($date))) {
+            return '';
+        }
+
+        $date_str = $params['date_format']
+            ? @date($params['date_format'], parse_db_date($date_time))
+            : $date;
+
+        // force indexes for language xgettext parser
+        self::_t('in %s');
+        self::_t('%s ago');
+
+        if (($seconds_ago = seconds_passed($date_time)) < 0) {
+            $lang_index = 'in %s';
+        } else {
+            $lang_index = '%s ago';
+        }
+
+        return '<span title="'.self::_t($lang_index, self::parse_period($seconds_ago, ['only_big_part' => true])).'">'.$date_str.'</span>';
+    }
+
     public static function parse_period(int $seconds_span, array $params = []) : string
     {
         $params['only_big_part'] = !empty($params['only_big_part']);

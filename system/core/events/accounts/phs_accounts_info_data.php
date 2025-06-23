@@ -3,7 +3,7 @@ namespace phs\system\core\events\accounts;
 
 use phs\libraries\PHS_Event;
 
-class PHS_Event_Accounts_generate_password extends PHS_Event
+class PHS_Event_Accounts_info_data extends PHS_Event
 {
     /**
      * @inheritdoc
@@ -16,14 +16,15 @@ class PHS_Event_Accounts_generate_password extends PHS_Event
     protected function _input_parameters() : array
     {
         return [
-            'length' => 0,
+            'account_data'         => null,
+            'account_details_data' => null,
         ];
     }
 
     protected function _output_parameters() : array
     {
         return [
-            'generated_password' => '',
+            'template_data' => [],
         ];
     }
 }
