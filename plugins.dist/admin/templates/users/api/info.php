@@ -1,10 +1,13 @@
 <?php
-/** @var phs\system\core\views\PHS_View $this */
 
+use phs\PHS;
 use phs\libraries\PHS_Utils;
+use phs\system\core\views\PHS_View;
 use phs\system\core\events\accounts\PHS_Event_Accounts_info_template;
 
-/** @var phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+/** @var PHS_View $this */
+
+/** @var PHS\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
 if (!($accounts_model = $this->view_var('accounts_model'))) {
     return $this->_pt('Error loading required resources.');
 }
@@ -12,6 +15,8 @@ if (!($accounts_model = $this->view_var('accounts_model'))) {
 $account_arr = $this->view_var('account_data') ?: [];
 $account_levels = $this->view_var('account_levels') ?: [];
 $account_statuses = $this->view_var('account_statuses') ?: [];
+$all_tenants_arr = $this->view_var('all_tenants_arr') ?: [];
+$db_account_tenants = $this->view_var('db_account_tenants') ?: [];
 ?>
 <div class="">
 
@@ -115,6 +120,43 @@ echo ($account_statuses[$account_arr['status']] ?? 'N/A')
             : $this->_pt('No')
         ).(!empty($account_arr['locked_date']) ? ' - '.PHS_Utils::pretty_date_html($account_arr['locked_date']) : ''))
           .' ('.$this->_pt('%s failures', $account_arr['failed_logins'] ?? 0).')'; ?></div>
+    </div>
+
+    <section class="heading-bordered">
+        <h3><?php echo $this->_pt('Multi-tenancy'); ?></h3>
+    </section>
+
+    <div class="form-group row">
+        <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Multi-tenancy enabled'); ?></label>
+        <div class="col-sm-9"><?php
+            echo PHS::is_multi_tenant() ? $this->_pt('Yes') : $this->_pt('No');
+?></div>
+    </div>
+
+    <div class="form-group row">
+        <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Multi-tenant account'); ?></label>
+        <div class="col-sm-9"><?php
+echo !empty($account_arr['is_multitenant']) ? $this->_pt('Yes') : $this->_pt('No');
+?></div>
+    </div>
+
+    <div class="form-group row">
+        <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Account tenants'); ?></label>
+        <div class="col-sm-9"><?php
+if (!empty($account_arr['is_multitenant'])) {
+    echo $this->_pt('ALL');
+} else {
+    $user_tenants = array_map(function($tenant_id) use ($all_tenants_arr) {
+        return ($all_tenants_arr[$tenant_id]['name'] ?? $this->_pt('Unknown tenant')).' (ID: '.$tenant_id.')';
+    }, $db_account_tenants) ?: [];
+
+    if (!$user_tenants) {
+        echo $this->_pt('N/A');
+    } else {
+        echo implode(', ', $user_tenants);
+    }
+}
+?></div>
     </div>
 
 <?php

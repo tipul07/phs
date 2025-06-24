@@ -63,5 +63,7 @@ if (($messages_plugin = PHS_Plugin_Messages::get_instance())) {
     PHS_Event_Layout::listen([$messages_plugin, 'listen_after_main_menu_admin'],
         PHS_Event_Layout::ADMIN_TEMPLATE_AFTER_MAIN_MENU);
 
-    PHS_Event_Accounts_info_template::listen_for_buffer([$messages_plugin, 'listen_account_info_template']);
+    PHS_Event_Accounts_info_template::listen_for_buffer(
+        [$messages_plugin, 'listen_account_info_template'], ['priority' => -1]
+    );
 }
