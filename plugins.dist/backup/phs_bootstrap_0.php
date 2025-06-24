@@ -4,17 +4,13 @@ use phs\PHS;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
 use phs\plugins\backup\PHS_Plugin_Backup;
+use phs\system\core\events\layout\PHS_Event_Layout;
 
-/** @var PHS_Plugin_Backup $backup_plugin */
 if (($backup_plugin = PHS_Plugin_Backup::get_instance())) {
     PHS_Logger::define_channel($backup_plugin::LOG_CHANNEL);
 
-    PHS::register_hook(
-        PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_LEFT_MENU,
-        [$backup_plugin, 'trigger_after_left_menu_admin'],
-        PHS_Hooks::default_buffer_hook_args(),
-        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 2000, ]
-    );
+    PHS_Event_Layout::listen([$backup_plugin, 'listen_after_left_menu_admin'],
+        PHS_Event_Layout::ADMIN_TEMPLATE_AFTER_LEFT_MENU);
 
     PHS::register_hook(
         PHS_Hooks::H_USER_REGISTRATION_ROLES,

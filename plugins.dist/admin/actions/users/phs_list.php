@@ -2,6 +2,7 @@
 namespace phs\plugins\admin\actions\users;
 
 use phs\PHS;
+use phs\PHS_Ajax;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
@@ -1103,6 +1104,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
             ?>
             <br/>
             <a href="javascript:void(0)"
+               onclick="phs_users_list_view_info( '<?php echo $account_arr['id']; ?>' )"
+            ><i class="fa fa-info action-icons" title="<?php echo $this->_pt('Account details'); ?>"></i></a>
+            <a href="javascript:void(0)"
                onclick="phs_users_list_delete_account( '<?php echo $account_arr['id']; ?>' )"
             ><i class="fa fa-times-circle-o action-icons" style="color:red;" title="<?php echo $this->_pt('Delete account'); ?>"></i></a>
             <?php
@@ -1208,6 +1212,32 @@ class PHS_Action_List extends PHS_Action_Generic_list
             'action_params' => '" + id + "',
         ];
         ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
+        }
+
+        function phs_users_list_view_info( id )
+        {
+            PHS_JSEN.js_messages_hide_all();
+            show_submit_protection("<?php echo $this->_pte('Reading account details...'); ?>");
+
+            PHS_JSEN.createAjaxDialog({
+                width: 800,
+                height: 800,
+                suffix: "phs_user_details",
+                resizable: true,
+                close_outside_click: false,
+
+                title: "<?php echo self::_e($this->_pt('Account details')); ?>",
+                method: "GET",
+                url: "<?php echo PHS_Ajax::url(['p' => 'admin', 'a' => 'info', 'ad' => 'users/api']); ?>",
+                url_data: { account_id: id },
+                onsuccess: () => {
+                    hide_submit_protection();
+                },
+                onfailed: () => {
+                    PHS_JSEN.js_message_error("<?php echo $this->_pte('Error reading account details. Please try again.'); ?>")
+                    hide_submit_protection();
+                },
+            });
         }
 
         function phs_users_list_bulk_activate()

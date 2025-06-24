@@ -11,7 +11,9 @@ use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Model_Mysqli;
 use phs\system\core\views\PHS_View;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\system\core\events\layout\PHS_Event_Layout;
 use phs\plugins\accounts\models\PHS_Model_Accounts_details;
+use phs\system\core\events\accounts\PHS_Event_Accounts_info_template;
 
 class PHS_Plugin_Messages extends PHS_Plugin
 {
@@ -277,20 +279,20 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return $hook_args;
     }
 
-    /**
-     * @param bool|array $hook_args
-     *
-     * @return array
-     */
-    public function trigger_after_main_menu_admin($hook_args = false)
+    public function listen_after_main_menu_admin(PHS_Event_Layout $event_obj) : bool
     {
-        $hook_args = self::validate_array($hook_args, PHS_Hooks::default_buffer_hook_args());
+        $event_obj->append_to_buffer($this->quick_render_template_for_buffer('main_menu_admin') ?? '');
 
-        $data = [];
+        return true;
+    }
 
-        $hook_args['buffer'] = $this->quick_render_template_for_buffer('main_menu_admin', $data);
+    public function listen_account_info_template(PHS_Event_Accounts_info_template $event_obj) : bool
+    {
+        $event_obj->append_to_buffer(
+            $this->quick_render_template_for_buffer('account_info', $event_obj->get_buffer_data_input()) ?? ''
+        );
 
-        return $hook_args;
+        return true;
     }
 
     /**

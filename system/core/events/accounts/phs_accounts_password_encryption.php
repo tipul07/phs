@@ -1,7 +1,6 @@
 <?php
 namespace phs\system\core\events\accounts;
 
-use Closure;
 use phs\libraries\PHS_Event;
 
 class PHS_Event_Accounts_password_encryption extends PHS_Event
