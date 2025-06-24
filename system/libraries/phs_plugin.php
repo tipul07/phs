@@ -871,25 +871,39 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return can(array_keys($role_units_arr), ['logical_operation' => 'or']);
     }
 
-    final public function install_agent_jobs() : bool
+    final public function install_agent_jobs(bool $on_update = false) : bool
     {
         $this->reset_error();
 
-        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())) {
-            return true;
-        }
+        $plugin_name = $this->instance_plugin_name();
 
-        PHS_Maintenance::output('['.$this->instance_plugin_name().'] Installing agent jobs...');
-
-        /** @var PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
-            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t load agent jobs model.'));
+        if (null === ($db_jobs_arr = PHS_Agent::get_db_agent_jobs($plugin_name))) {
+            $this->set_error(self::ERR_INSTALL, self::_t('Error loading agent jobs from database.'));
 
             return false;
         }
 
+        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())) {
+            if ($db_jobs_arr && $on_update) {
+                PHS_Maintenance::output('['.$plugin_name.'] Uninstalling '.count($db_jobs_arr).' old agent jobs');
+                $this->remove_agent_jobs();
+            }
+
+            return true;
+        }
+
+        PHS_Maintenance::output('['.$plugin_name.'] Installing agent jobs...');
+
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
+
+            return false;
+        }
+
+        $existing_handlers = [];
         $agent_job_structure = self::agent_job_structure();
         foreach ($agent_jobs_definition as $handle => $agent_job_arr) {
+            $existing_handlers[$handle] = true;
             $agent_job_arr = self::validate_array($agent_job_arr, $agent_job_structure);
 
             $agent_job_arr['title'] = trim($agent_job_arr['title'] ?? '');
@@ -911,7 +925,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
              || !is_array($agent_job_arr['route'])) {
                 $this->set_error(self::ERR_INSTALL, self::_t('Couldn\'t install agent job [%s] for plugin [%s]', $handle, $this->instance_id()));
 
-                PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Agent job has invalid or no route ['.$handle.']');
+                PHS_Maintenance::output('['.$plugin_name.'] !!! Agent job has invalid or no route ['.$handle.']');
 
                 return false;
             }
@@ -920,20 +934,44 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             $job_extra_arr['title'] = $agent_job_arr['title'];
             $job_extra_arr['run_async'] = $agent_job_arr['run_async'];
             $job_extra_arr['status'] = ($this->plugin_active() ? $agent_jobs_model::STATUS_ACTIVE : $agent_jobs_model::STATUS_SUSPENDED);
-            $job_extra_arr['plugin'] = $this->instance_plugin_name();
+            $job_extra_arr['plugin'] = $plugin_name;
             $job_extra_arr['stalling_minutes'] = $agent_job_arr['stalling_minutes'];
 
             if (!PHS_Agent::add_job($handle, $agent_job_arr['route'], $agent_job_arr['timed_seconds'], $agent_job_arr['params'], $job_extra_arr)) {
                 $this->copy_or_set_static_error(self::ERR_INSTALL,
                     self::_t('Couldn\'t install agent job [%s] for [%s]', $handle, $this->instance_id()));
 
-                PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error when registering agent job ['.$handle.']: '.$this->get_simple_error_message());
+                PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error while registering agent job ['.$handle.']: '.$this->get_simple_error_message());
 
                 return false;
             }
         }
 
-        PHS_Maintenance::output('['.$this->instance_plugin_name().'] Agent jobs installed');
+        PHS_Maintenance::output('['.$plugin_name.'] Agent jobs installed');
+
+        $delete_handlers = [];
+        foreach ($db_jobs_arr as $job_handler => $job_arr) {
+            if (!empty($existing_handlers[$job_handler])) {
+                continue;
+            }
+
+            $delete_handlers[] = $job_handler;
+        }
+
+        if ($delete_handlers) {
+            PHS_Maintenance::output('['.$plugin_name.'] Uninstalling '.count($delete_handlers).' old agent jobs');
+
+            if (!PHS_Agent::remove_job_handler_array($delete_handlers)) {
+                $this->copy_or_set_static_error(self::ERR_INSTALL,
+                    self::_t('Couldn\'t uninstall old agent jobs for [%s]', $this->instance_id()));
+
+                PHS_Maintenance::output('['.$plugin_name.'] !!! Error while uninstalling old agent jobs: '.$this->get_simple_error_message());
+
+                return false;
+            }
+
+            PHS_Maintenance::output('['.$plugin_name.'] Finished uninstalling old agent jobs');
+        }
 
         return true;
     }
@@ -969,7 +1007,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     {
         $this->reset_error();
 
-        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())) {
+        if (!$this->get_agent_jobs_definition()) {
             return true;
         }
 
@@ -991,7 +1029,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     {
         $this->reset_error();
 
-        if (!($agent_jobs_definition = $this->get_agent_jobs_definition())) {
+        if (!$this->get_agent_jobs_definition()) {
             return true;
         }
 
@@ -1005,6 +1043,20 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         PHS_Maintenance::output('['.$this->instance_plugin_name().'] Agent jobs re-activated');
+
+        return true;
+    }
+
+    final public function remove_agent_jobs() : bool
+    {
+        $this->reset_error();
+
+        if (!PHS_Agent::remove_agent_jobs($this->instance_plugin_name())) {
+            PHS_Maintenance::output('['.$this->instance_plugin_name().'] FAILED removing agent jobs');
+            $this->copy_static_error();
+
+            return false;
+        }
 
         return true;
     }
@@ -1433,7 +1485,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         $is_dry_update = PHS_Db::dry_update();
 
-        /** @var null|PHS_Event_Migration_plugins $event_obj */
         if (!($event_obj = PHS_Event_Migration_plugins::trigger_start(
             plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
         ))
@@ -1457,7 +1508,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        /** @var null|PHS_Event_Migration_plugins $event_obj */
         if (!($event_obj = PHS_Event_Migration_plugins::trigger_after_roles(
             plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
         ))
@@ -1473,14 +1523,13 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         if (!$is_dry_update
-           && !$this->install_agent_jobs()) {
+           && !$this->install_agent_jobs(true)) {
             PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error installing plugin agent jobs: '
                                     .$this->get_simple_error_message('Unknown error.'));
 
             return false;
         }
 
-        /** @var null|PHS_Event_Migration_plugins $event_obj */
         if (!($event_obj = PHS_Event_Migration_plugins::trigger_after_jobs(
             plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
         ))

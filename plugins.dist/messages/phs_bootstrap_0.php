@@ -5,10 +5,10 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Model;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\messages\PHS_Plugin_Messages;
+use phs\system\core\events\layout\PHS_Event_Layout;
+use phs\system\core\events\accounts\PHS_Event_Accounts_info_template;
 
-/** @var PHS_Plugin_Messages $messages_plugin */
 if (($messages_plugin = PHS_Plugin_Messages::get_instance())) {
-    /** @var PHS_Plugin_Accounts $accounts_plugin */
     if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
         PHS::register_hook(
             PHS_Model::HOOK_TABLE_FIELDS.'_'.$accounts_plugin->instance_id(),
@@ -60,10 +60,10 @@ if (($messages_plugin = PHS_Plugin_Messages::get_instance())) {
         ['chained_hook' => true, 'stop_chain' => false, 'priority' => 10, ]
     );
 
-    PHS::register_hook(
-        PHS_Hooks::H_ADMIN_TEMPLATE_AFTER_MAIN_MENU,
-        [$messages_plugin, 'trigger_after_main_menu_admin'],
-        PHS_Hooks::default_buffer_hook_args(),
-        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 10, ]
+    PHS_Event_Layout::listen([$messages_plugin, 'listen_after_main_menu_admin'],
+        PHS_Event_Layout::ADMIN_TEMPLATE_AFTER_MAIN_MENU);
+
+    PHS_Event_Accounts_info_template::listen_for_buffer(
+        [$messages_plugin, 'listen_account_info_template'], ['priority' => -1]
     );
 }

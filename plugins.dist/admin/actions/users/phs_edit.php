@@ -34,16 +34,9 @@ class PHS_Action_Edit extends PHS_Action
         $is_multi_tenant = PHS::is_multi_tenant();
 
         $tenants_model = $accounts_tenants_model = null;
-        /** @var PHS_Plugin_Accounts $accounts_plugin */
-        /** @var PHS_Plugin_Admin $admin_plugin */
-        /** @var PHS_Model_Accounts $accounts_model */
-        /** @var PHS_Model_Roles $roles_model */
-        /** @var PHS_Model_Plugins $plugins_model */
-        /** @var PHS_Model_Tenants $tenants_model */
-        /** @var PHS_Model_Accounts_tenants $accounts_tenants_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
          || !($admin_plugin = PHS_Plugin_Admin::get_instance())
-         || !($accounts_plugin_settings = $accounts_plugin->get_plugin_settings())
+         || !($accounts_plugin_settings = PHS_Plugin_Accounts::get_instance())
          || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($roles_model = PHS_Model_Roles::get_instance())
          || !($plugins_model = PHS_Model_Plugins::get_instance())
@@ -65,61 +58,39 @@ class PHS_Action_Edit extends PHS_Action
         $uid = PHS_Params::_gp('uid', PHS_Params::T_INT);
         $back_page = PHS_Params::_gp('back_page', PHS_Params::T_ASIS);
 
-        if (empty($uid)
-         || !($account_arr = $accounts_model->get_details($uid))
-         || $accounts_model->is_deleted($account_arr)) {
+        if (!$uid
+            || !($account_arr = $accounts_model->get_details($uid))
+            || $accounts_model->is_deleted($account_arr)) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid account...'));
 
-            $args = ['unknown_account' => 1];
+            $back_page = !$back_page
+                ? PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'users'])
+                : from_safe_url($back_page);
 
-            if (empty($back_page)) {
-                $back_page = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'users']);
-            } else {
-                $back_page = from_safe_url($back_page);
-            }
-
-            $back_page = add_url_params($back_page, $args);
-
-            return action_redirect($back_page);
+            return action_redirect(add_url_params($back_page, ['unknown_account' => 1]));
         }
 
         if (!$accounts_model->can_manage_account($current_user, $account_arr)) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid account...'));
 
-            $args = ['cannot_edit_account' => 1];
+            $back_page = !$back_page
+                ? PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'users'])
+                : from_safe_url($back_page);
 
-            if (empty($back_page)) {
-                $back_page = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'users']);
-            } else {
-                $back_page = from_safe_url($back_page);
-            }
-
-            $back_page = add_url_params($back_page, $args);
-
-            return action_redirect($back_page);
+            return action_redirect(add_url_params($back_page, ['cannot_edit_account' => 1]));
         }
 
-        if (!($roles_by_slug = $roles_model->get_all_roles_by_slug())) {
-            $roles_by_slug = [];
-        }
-        if (!($account_roles = $roles_model->get_user_roles_slugs($account_arr))) {
-            $account_roles = [];
-        }
+        $roles_by_slug = $roles_model->get_all_roles_by_slug() ?: [];
+        $account_roles = $roles_model->get_user_roles_slugs($account_arr) ?: [];
 
         $all_tenants_arr = [];
         $db_account_tenants = [];
         if ($is_multi_tenant) {
-            if (!($all_tenants_arr = $tenants_model->get_all_tenants())) {
-                $all_tenants_arr = [];
-            }
-            if (!($db_account_tenants = $accounts_tenants_model->get_account_tenants_as_ids_array($account_arr['id']))) {
-                $db_account_tenants = [];
-            }
+            $all_tenants_arr = $tenants_model->get_all_tenants() ?: [];
+            $db_account_tenants = $accounts_tenants_model->get_account_tenants_as_ids_array($account_arr['id']) ?: [];
         }
 
-        if (!($account_details_arr = $accounts_model->get_account_details($account_arr, ['populate_with_empty_data' => true]))) {
-            $account_details_arr = [];
-        }
+        $account_details_arr = $accounts_model->get_account_details($account_arr, ['populate_with_empty_data' => true]) ?: [];
 
         if (PHS_Params::_g('changes_saved', PHS_Params::T_INT)) {
             PHS_Notifications::add_success_notice($this->_pt('Account details saved in database.'));
@@ -137,13 +108,11 @@ class PHS_Action_Edit extends PHS_Action
         $phone = PHS_Params::_p('phone', PHS_Params::T_NOHTML);
         $company = PHS_Params::_p('company', PHS_Params::T_NOHTML);
         $account_roles_slugs = PHS_Params::_p('account_roles_slugs', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML]);
-        if (!($account_tenants = PHS_Params::_p('account_tenants', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_INT]))) {
-            $account_tenants = [];
-        }
+        $account_tenants = PHS_Params::_p('account_tenants', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_INT]) ?: [];
 
         $do_submit = PHS_Params::_p('do_submit');
 
-        if (empty($foobar)) {
+        if (!$foobar) {
             $nick = $account_arr['nick'];
             $email = $account_arr['email'];
             $level = $account_arr['level'];
@@ -155,14 +124,14 @@ class PHS_Action_Edit extends PHS_Action
             $company = $account_details_arr['company'];
         }
 
-        if (!empty($do_submit)) {
-            if ((!empty($pass) || !empty($pass2))
-             && $pass !== $pass2) {
+        if ($do_submit) {
+            if (($pass || $pass2)
+                && $pass !== $pass2) {
                 PHS_Notifications::add_error_notice($this->_pt('Password fields don\'t match.'));
             } else {
                 $edit_arr = [];
                 $edit_arr['nick'] = $nick;
-                if (!empty($pass)) {
+                if ($pass) {
                     $edit_arr['pass'] = $pass;
                 }
                 $edit_arr['email'] = $email;
@@ -196,11 +165,10 @@ class PHS_Action_Edit extends PHS_Action
                     return action_redirect(['p' => 'admin', 'a' => 'edit', 'ad' => 'users'], $args);
                 }
 
-                if ($accounts_model->has_error()) {
-                    PHS_Notifications::add_error_notice($accounts_model->get_error_message());
-                } else {
-                    PHS_Notifications::add_error_notice($this->_pt('Error saving details to database. Please try again.'));
-                }
+                PHS_Notifications::add_error_notice(
+                    $accounts_model->get_simple_error_message(
+                        $this->_pt('Error saving details to database. Please try again.'))
+                );
             }
         }
 

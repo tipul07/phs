@@ -4,6 +4,7 @@ namespace phs\system\core\models;
 use phs\PHS;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Roles;
+use phs\libraries\PHS_Record_data;
 use phs\traits\PHS_Model_Trait_statuses;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
@@ -36,39 +37,40 @@ class PHS_Model_Tenants extends PHS_Model
         return 'phs_tenants';
     }
 
-    public function is_active($record_data) : bool
+    public function is_active(int | array | PHS_Record_data $record_data) : bool
     {
-        return !empty($record_data)
+        return $record_data
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_ACTIVE;
     }
 
-    public function is_inactive($record_data) : bool
+    public function is_inactive(int | array | PHS_Record_data $record_data) : bool
     {
-        return !empty($record_data)
+        return $record_data
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_INACTIVE;
     }
 
-    public function is_deleted($record_data) : bool
+    public function is_deleted(int | array | PHS_Record_data $record_data) : bool
     {
-        return !empty($record_data)
+        return $record_data
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_DELETED;
     }
 
-    public function is_default_tenant($record_data) : bool
+    public function is_default_tenant(int | array | PHS_Record_data $record_data) : bool
     {
-        return !empty($record_data)
+        return $record_data
                && ($record_arr = $this->data_to_array($record_data))
                && !empty($record_arr['is_default']);
     }
 
-    public function act_activate($record_data) : ?array
+    public function act_activate(int | array | PHS_Record_data $record_data) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
-        if (empty($record_data) || !($record_arr = $this->data_to_array($record_data))) {
+        if (!$record_data
+            || !($record_arr = $this->data_to_array($record_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Tenant details not found in database.'));
 
             return null;
@@ -78,51 +80,45 @@ class PHS_Model_Tenants extends PHS_Model
             return $record_arr;
         }
 
-        $edit_arr = [];
-        $edit_arr['status'] = self::STATUS_ACTIVE;
+        if (!($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_ACTIVE]]))) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error saving tenant details.'));
 
-        $edit_params = [];
-        $edit_params['fields'] = $edit_arr;
-
-        if (!($new_record = $this->edit($record_arr, $edit_params))) {
             return null;
         }
 
         return $new_record;
     }
 
-    public function act_inactivate($record_data) : ?array
+    public function act_inactivate(int | array | PHS_Record_data $record_data) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
-        if (empty($record_data) || !($record_arr = $this->data_to_array($record_data))) {
+        if (!$record_data
+            || !($record_arr = $this->data_to_array($record_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Tenant details not found in database.'));
 
             return null;
         }
 
-        if ($this->is_active($record_arr)) {
+        if ($this->is_inactive($record_arr)) {
             return $record_arr;
         }
 
-        $edit_arr = [];
-        $edit_arr['status'] = self::STATUS_INACTIVE;
+        if (!($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_INACTIVE]]))) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error saving tenant details.'));
 
-        $edit_params = [];
-        $edit_params['fields'] = $edit_arr;
-
-        if (!($new_record = $this->edit($record_arr, $edit_params))) {
             return null;
         }
 
         return $new_record;
     }
 
-    public function act_delete($record_data) : ?array
+    public function act_delete(int | array | PHS_Record_data $record_data) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
-        if (empty($record_data) || !($record_arr = $this->data_to_array($record_data))) {
+        if (!$record_data
+            || !($record_arr = $this->data_to_array($record_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Tenant details not found in database.'));
 
             return null;
@@ -133,29 +129,26 @@ class PHS_Model_Tenants extends PHS_Model
         }
 
         if ($this->is_default_tenant($record_arr)) {
-            $this->set_error(self::ERR_DELETE, $this->_pt('Cannot delete default tenant.'));
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Cannot delete default tenant.'));
 
             return null;
         }
 
-        $edit_arr = [];
-        $edit_arr['status'] = self::STATUS_DELETED;
+        if (!($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_DELETED]]))) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error saving tenant details.'));
 
-        $edit_params = [];
-        $edit_params['fields'] = $edit_arr;
-
-        if (!($new_record = $this->edit($record_arr, $edit_params))) {
             return null;
         }
 
         return $new_record;
     }
 
-    public function act_set_default($record_data) : ?array
+    public function act_set_default(int | array | PHS_Record_data $record_data) : ?array
     {
         $this->reset_error();
 
-        if (empty($record_data) || !($record_arr = $this->data_to_array($record_data))) {
+        if (!$record_data
+            || !($record_arr = $this->data_to_array($record_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Tenant details not found in database.'));
 
             return null;
@@ -171,10 +164,9 @@ class PHS_Model_Tenants extends PHS_Model
             $edit_arr['status'] = self::STATUS_ACTIVE;
         }
 
-        $edit_params = [];
-        $edit_params['fields'] = $edit_arr;
+        if (!($new_record = $this->edit($record_arr, ['fields' => $edit_arr]))) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error saving tenant details.'));
 
-        if (!($new_record = $this->edit($record_arr, $edit_params))) {
             return null;
         }
 
@@ -203,15 +195,14 @@ class PHS_Model_Tenants extends PHS_Model
 
     public function get_tenants_by_domain_and_directory(string $domain, ?string $directory = null) : ?array
     {
-        if (empty($domain)
+        if (!$domain
             || !PHS::is_multi_tenant()
             || !($dd_identifier = self::prepare_tenant_domain_and_directory($domain, $directory))
-            || !($all_tenants_arr = $this->_get_cached_tenants_by_domain_and_directory())
-            || empty($all_tenants_arr[$dd_identifier])) {
+            || !($all_tenants_arr = $this->_get_cached_tenants_by_domain_and_directory())) {
             return null;
         }
 
-        return $all_tenants_arr[$dd_identifier];
+        return $all_tenants_arr[$dd_identifier] ?? null;
     }
 
     public function get_tenants_as_key_val() : array
@@ -229,9 +220,9 @@ class PHS_Model_Tenants extends PHS_Model
         return $return_arr;
     }
 
-    public function get_all_tenants() : array
+    public function get_all_tenants(bool $force = false) : array
     {
-        if (!PHS::is_multi_tenant()
+        if ((!$force && !PHS::is_multi_tenant())
             || !($all_tenants_arr = $this->_get_cached_tenants())) {
             return [];
         }
@@ -239,10 +230,9 @@ class PHS_Model_Tenants extends PHS_Model
         return $all_tenants_arr;
     }
 
-    public function can_user_edit($record_data, $account_data) : ?array
+    public function can_user_edit(int | array | PHS_Record_data $record_data, int | array | PHS_Record_data $account_data) : ?array
     {
-        /** @var PHS_Model_Accounts $accounts_model */
-        if (empty($record_data) || empty($account_data)
+        if (!$record_data || !$account_data
          || !PHS::is_multi_tenant()
          || !($tenant_arr = $this->data_to_array($record_data))
          || $this->is_deleted($tenant_arr)
@@ -259,7 +249,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $return_arr;
     }
 
-    public function get_tenant_details_for_display($tenant_data) : ?string
+    public function get_tenant_details_for_display(int | array | PHS_Record_data $tenant_data) : ?string
     {
         if (!PHS::is_multi_tenant()) {
             return '';
@@ -508,8 +498,7 @@ class PHS_Model_Tenants extends PHS_Model
             $params['fields']['is_default'] = (!empty($params['fields']['is_default']) ? 1 : 0);
         }
 
-        if (empty($params['fields']['last_edit'])
-         || empty_db_date($params['fields']['last_edit'])) {
+        if (empty($params['fields']['last_edit'])) {
             $params['fields']['last_edit'] = $now_date;
         }
 
@@ -554,41 +543,27 @@ class PHS_Model_Tenants extends PHS_Model
         ];
     }
 
-    /**
-     * @param null|array|string $settings
-     *
-     * @return null|string
-     */
-    private function _encode_settings_field($settings) : ?string
+    private function _encode_settings_field(null | array | string $settings) : ?string
     {
         if ($settings === null) {
             return null;
         }
 
         if (is_array($settings)) {
-            if (!($settings = @json_encode($settings))) {
-                $settings = null;
-            }
+            $settings = @json_encode($settings) ?: null;
         } elseif (is_string($settings)) {
             if (!($settings = @json_decode($settings, true))
-                || !($settings = @json_encode($settings))) {
+                || !($settings = @json_encode($settings) ?: null)) {
                 $settings = null;
             }
-        } else {
-            return null;
         }
 
         return $settings;
     }
 
-    /**
-     * @param null|array|string $settings
-     *
-     * @return array
-     */
-    private function _decode_settings_field($settings) : array
+    private function _decode_settings_field(null | array | string $settings) : array
     {
-        if (empty($settings)) {
+        if (!$settings) {
             return [];
         }
 
@@ -597,11 +572,7 @@ class PHS_Model_Tenants extends PHS_Model
         }
 
         if (is_string($settings)) {
-            if (!($settings = @json_decode($settings, true))) {
-                $settings = [];
-            }
-        } else {
-            return [];
+            $settings = @json_decode($settings, true) ?: [];
         }
 
         return $settings;
@@ -710,8 +681,11 @@ class PHS_Model_Tenants extends PHS_Model
         return $directory.($slash_ended ? '/' : '');
     }
 
-    public static function prepare_tenant_domain_and_directory(?string $domain, ?string $directory, bool $slash_ended = true) : string
-    {
+    public static function prepare_tenant_domain_and_directory(
+        ?string $domain,
+        ?string $directory,
+        bool $slash_ended = true
+    ) : string {
         return self::prepare_tenant_domain($domain).self::prepare_tenant_directory($directory, $slash_ended);
     }
 }

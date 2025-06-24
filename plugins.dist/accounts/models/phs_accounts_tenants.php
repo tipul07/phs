@@ -45,17 +45,14 @@ class PHS_Model_Accounts_tenants extends PHS_Model
 
     /**
      * Returning an empty array means that account belongs to all tenants
-     *
      * @param int $account_id
-     *
-     * @return array[int]
      */
     public function get_account_tenants_as_ids_array(int $account_id) : array
     {
-        if (empty($account_id)
-         || !($flow_arr = $this->fetch_default_flow_params(['table_name' => 'users_tenants']))
-         || !($table_name = $this->get_flow_table_name($flow_arr['table_name']))
-         || !($qid = db_query('SELECT tenant_id FROM `'.$table_name.'` WHERE account_id = \''.$account_id.'\'', $flow_arr['db_connection']))) {
+        if (!$account_id
+            || !($flow_arr = $this->fetch_default_flow_params(['table_name' => 'users_tenants']))
+            || !($table_name = $this->get_flow_table_name($flow_arr['table_name']))
+            || !($qid = db_query('SELECT tenant_id FROM `'.$table_name.'` WHERE account_id = \''.$account_id.'\'', $flow_arr['db_connection']))) {
             return [];
         }
 
@@ -67,17 +64,11 @@ class PHS_Model_Accounts_tenants extends PHS_Model
         return $return_arr;
     }
 
-    /**
-     * Links tenants with an account.
-     *
-     * @param int|array|PHS_Record_data $account_data Account id or account array
-     * @param array $tenants_arr Tenants passed as id array
-     * @param array $params Functionality parameters
-     *
-     * @return bool
-     */
-    public function link_tenants_to_account(int | array | PHS_Record_data $account_data, array $tenants_arr, array $params = []) : bool
-    {
+    public function link_tenants_to_account(
+        int | array | PHS_Record_data $account_data,
+        array $tenants_arr,
+        array $params = []
+    ) : bool {
         $this->reset_error();
 
         $params['append_tenants'] = !isset($params['append_tenants']) || !empty($params['append_tenants']);
@@ -86,7 +77,7 @@ class PHS_Model_Accounts_tenants extends PHS_Model
             return false;
         }
 
-        if (empty($account_data)
+        if (!$account_data
             || !($account_arr = self::$_accounts_model->data_to_array($account_data))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Account not found in database.'));
 
@@ -104,7 +95,7 @@ class PHS_Model_Accounts_tenants extends PHS_Model
 
         $db_connection = $this->get_db_connection($flow_params);
 
-        if (empty($tenants_arr)) {
+        if (!$tenants_arr) {
             if (!empty($params['append_tenants'])) {
                 return true;
             }
@@ -120,9 +111,7 @@ class PHS_Model_Accounts_tenants extends PHS_Model
             return true;
         }
 
-        if (!($existing_ids = $this->get_account_tenants_as_ids_array($account_arr['id']))) {
-            $existing_ids = [];
-        }
+        $existing_ids = $this->get_account_tenants_as_ids_array($account_arr['id']) ?: [];
 
         $insert_ids = [];
         $delete_ids = [];
@@ -251,9 +240,9 @@ class PHS_Model_Accounts_tenants extends PHS_Model
 
     private function _load_dependencies() : bool
     {
-        if (empty(self::$_accounts_model)
+        if (!self::$_accounts_model
             && !(self::$_accounts_model = PHS_Model_Accounts::get_instance())) {
-            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
+            $this->set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
             return false;
         }

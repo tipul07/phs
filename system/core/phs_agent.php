@@ -21,70 +21,46 @@ class PHS_Agent extends PHS_Registry
 
     public const DATA_AGENT_KEY = 'bg_agent_data';
 
-    /**
-     * @param int|array $job_data
-     * @param false|array $extra
-     *
-     * @return array|bool
-     */
-    public function run_job($job_data, $extra = false)
+    private ?PHS_Model_Agent_jobs $_jobs_model = null;
+
+    public function run_job(int | array | PHS_Record_data $job_data, array $extra = []) : bool | array
     {
-        $this->reset_error();
-
-        /** @var PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
-            $this->set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
-
+        if (!$this->_load_dependencies()) {
             return false;
         }
 
-        /** @var PHS_Plugin_Admin $admin_plugin */
-        /** @var PHS_Model_Agent_jobs_monitor $jobs_monitor_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
             || !$admin_plugin->monitor_agent_jobs()
             || !($jobs_monitor_model = PHS_Model_Agent_jobs_monitor::get_instance())) {
             $jobs_monitor_model = null;
         }
 
-        if (empty($job_data)
-         || !($job_arr = $agent_jobs_model->data_to_array($job_data))) {
+        if (!$job_data
+            || !($job_arr = $this->_jobs_model->data_to_array($job_data))) {
             $this->set_error(self::ERR_RUN_JOB, self::_t('Couldn\'t load agent jobs details from database.'));
 
             return false;
         }
 
-        if (empty($extra) || !is_array($extra)) {
-            $extra = [];
-        }
-
-        if (empty($extra['return_command'])) {
-            $extra['return_command'] = false;
-        }
-        if (empty($extra['force_run'])) {
-            $extra['force_run'] = false;
-        } else {
-            $extra['force_run'] = true;
-        }
+        $extra['return_command'] = !empty($extra['return_command']);
+        $extra['force_run'] = !empty($extra['force_run']);
 
         if (!$extra['force_run']
-         && !$agent_jobs_model->job_is_active($job_arr)) {
+            && !$this->_jobs_model->job_is_active($job_arr)) {
             $this->set_error(self::ERR_RUN_JOB, self::_t('Agent job not active.'));
 
             return false;
         }
 
         if (!$extra['force_run']
-            && $agent_jobs_model->job_is_running($job_arr)
-            && !$agent_jobs_model->job_is_stalling($job_arr)) {
+            && $this->_jobs_model->job_is_running($job_arr)
+            && !$this->_jobs_model->job_is_stalling($job_arr)) {
             $this->set_error(self::ERR_RUN_JOB, self::_t('Agent job is still running.'));
 
             return false;
         }
 
-        $run_async = false;
-        if ($agent_jobs_model->job_runs_async($job_arr)) {
-            $run_async = true;
-        }
+        $run_async = $this->_jobs_model->job_runs_async($job_arr);
 
         // Make sure we are not launching job from front-end...
         if (!PHS::are_we_in_a_background_thread()) {
@@ -93,14 +69,11 @@ class PHS_Agent extends PHS_Registry
 
         $cmd_extra = [];
         $cmd_extra['async_task'] = $run_async;
-        $cmd_extra['agent_jobs_model'] = $agent_jobs_model;
         $cmd_extra['force_run'] = $extra['force_run'];
 
         if (!($cmd_parts = $this->_get_job_command($job_arr, $cmd_extra))
-         || empty($cmd_parts['cmd'])) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_COMMAND, self::_t('Couldn\'t get agent job command.'));
-            }
+            || empty($cmd_parts['cmd'])) {
+            $this->set_error_if_not_set(self::ERR_COMMAND, self::_t('Couldn\'t get agent job command.'));
 
             return false;
         }
@@ -126,17 +99,12 @@ class PHS_Agent extends PHS_Registry
 
     /**
      * Any agent jobs that are not following stalling policy will be stopped
-     * @return array|false
+     * @return null|array
      */
-    public function check_stalling_agent_jobs()
+    public function check_stalling_agent_jobs() : ?array
     {
-        $this->reset_error();
-
-        /** @var PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
-            $this->set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
-
-            return false;
+        if (!$this->_load_dependencies()) {
+            return null;
         }
 
         $return_arr = [];
@@ -145,25 +113,24 @@ class PHS_Agent extends PHS_Registry
         $return_arr['jobs_stopped'] = 0;
         $return_arr['jobs_stopped_error'] = 0;
 
-        $list_arr = $agent_jobs_model->fetch_default_flow_params();
+        $list_arr = $this->_jobs_model->fetch_default_flow_params();
         $list_arr['fields']['is_running'] = ['check' => 'IS', 'raw_value' => 'NOT NULL'];
         $list_arr['fields']['pid'] = ['check' => '!=', 'value' => '0'];
-        $list_arr['fields']['status'] = $agent_jobs_model::STATUS_ACTIVE;
+        $list_arr['fields']['status'] = $this->_jobs_model::STATUS_ACTIVE;
 
-        if (!($jobs_list = $agent_jobs_model->get_list($list_arr))
-         || !is_array($jobs_list)) {
+        if (!($jobs_list = $this->_jobs_model->get_list($list_arr))) {
             return $return_arr;
         }
 
         $return_arr['jobs_running'] = count($jobs_list);
 
         foreach ($jobs_list as $job_arr) {
-            if (!$agent_jobs_model->is_job_dead_as_per_stalling_policy($job_arr)) {
+            if (!$this->_jobs_model->is_job_dead_as_per_stalling_policy($job_arr)) {
                 $return_arr['jobs_not_dead']++;
                 continue;
             }
 
-            if (!$agent_jobs_model->stop_job($job_arr, ['last_error' => 'Job considered dead.'])) {
+            if (!$this->_jobs_model->stop_job($job_arr, ['last_error' => 'Job considered dead.'])) {
                 $return_arr['jobs_stopped_error']++;
             } else {
                 $return_arr['jobs_stopped']++;
@@ -173,15 +140,10 @@ class PHS_Agent extends PHS_Registry
         return $return_arr;
     }
 
-    public function check_agent_jobs()
+    public function check_agent_jobs() : ?array
     {
-        $this->reset_error();
-
-        /** @var PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
-            $this->set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
-
-            return false;
+        if (!$this->_load_dependencies()) {
+            return null;
         }
 
         $return_arr = [];
@@ -189,14 +151,13 @@ class PHS_Agent extends PHS_Registry
         $return_arr['jobs_errors'] = 0;
         $return_arr['jobs_success'] = 0;
 
-        $list_arr = $agent_jobs_model->fetch_default_flow_params();
+        $list_arr = $this->_jobs_model->fetch_default_flow_params();
         $list_arr['fields']['is_running'] = ['check' => 'IS', 'raw_value' => 'NULL'];
-        $list_arr['fields']['timed_action'] = ['check' => '<=', 'value' => date($agent_jobs_model::DATETIME_DB)];
-        $list_arr['fields']['status'] = $agent_jobs_model::STATUS_ACTIVE;
+        $list_arr['fields']['timed_action'] = ['check' => '<=', 'value' => date($this->_jobs_model::DATETIME_DB)];
+        $list_arr['fields']['status'] = $this->_jobs_model::STATUS_ACTIVE;
         $list_arr['order_by'] = 'run_async DESC';
 
-        if (!($jobs_list = $agent_jobs_model->get_list($list_arr))
-         || !is_array($jobs_list)) {
+        if (!($jobs_list = $this->_jobs_model->get_list($list_arr))) {
             return $return_arr;
         }
 
@@ -208,71 +169,47 @@ class PHS_Agent extends PHS_Registry
             } else {
                 $return_arr['jobs_errors']++;
 
-                if ($this->has_error()) {
-                    $error_msg = $this->get_error_message();
-                } else {
-                    $error_msg = 'Error launching agent job: [#'.$job_arr['id'].']['.$job_arr['route'].']';
-                }
-
-                PHS_Logger::error($error_msg, PHS_Logger::TYPE_AGENT);
+                PHS_Logger::error(
+                    $this->get_simple_error_message('Error launching agent job: [#'.$job_arr['id'].']['.$job_arr['route'].']'),
+                    PHS_Logger::TYPE_AGENT
+                );
             }
         }
 
         return $return_arr;
     }
 
-    /**
-     * @param int|array $job_data
-     * @param false|array $extra
-     *
-     * @return array|false
-     */
-    private function _get_job_command($job_data, $extra = false)
+    private function _get_job_command(int | array | PHS_Record_data $job_data, array $extra = []) : ?array
     {
-        $this->reset_error();
-
-        if (empty($extra) || !is_array($extra)) {
-            $extra = [];
+        if (!$this->_load_dependencies()) {
+            return null;
         }
 
         $extra['force_run'] = !empty($extra['force_run']);
 
-        /** @var PHS_Model_Agent_jobs $agent_jobs_model */
-        if (!empty($extra['agent_jobs_model'])) {
-            $agent_jobs_model = $extra['agent_jobs_model'];
-        } else {
-            $agent_jobs_model = PHS_Model_Agent_jobs::get_instance();
+        if (!$job_data
+            || !($job_arr = $this->_jobs_model->data_to_array($job_data))) {
+            $this->copy_or_set_error($this->_jobs_model,
+                self::ERR_COMMAND, self::_t('Couldn\'t get background jobs details.'));
+
+            return null;
         }
 
-        if (empty($job_data)
-         || empty($agent_jobs_model)
-         || !($job_arr = $agent_jobs_model->data_to_array($job_data))) {
-            if ($agent_jobs_model->has_error()) {
-                $this->copy_error($agent_jobs_model, self::ERR_COMMAND);
-            } else {
-                $this->set_error(self::ERR_COMMAND, self::_t('Couldn\'t get background jobs details.'));
-            }
-
-            return false;
-        }
-
-        if (!isset($extra['async_task'])) {
-            $extra['async_task'] = (!empty($job_arr['run_async']));
-        } else {
-            $extra['async_task'] = (!empty($extra['async_task']));
-        }
+        $extra['async_task'] = !isset($extra['async_task'])
+            ? !empty($job_arr['run_async'])
+            : !empty($extra['async_task']);
 
         $pub_key = microtime(true);
 
         if (false === ($ecrypted_params = PHS_Crypt::quick_encode($job_arr['id'].'::'.(!empty($extra['force_run']) ? '1' : '0').'::'.md5($job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'])))) {
             $this->set_error(self::ERR_COMMAND, self::_t('Error obtaining background job command arguments.'));
 
-            return false;
+            return null;
         }
 
         $clean_cmd = PHP_EXEC.' '.PHS::get_agent_path().' '.$ecrypted_params.'::'.$pub_key;
 
-        if (stripos(PHP_OS, 'win') === 0) {
+        if (str_starts_with(strtolower(PHP_OS), 'win')) {
             // launching background task under windows
             $cmd = 'start '.(!empty($extra['async_task']) ? ' /B ' : '').$clean_cmd;
         } else {
@@ -288,20 +225,30 @@ class PHS_Agent extends PHS_Registry
         ];
     }
 
-    public static function get_agent_routes()
+    private function _load_dependencies() : bool
     {
-        self::st_reset_error();
+        $this->reset_error();
 
-        /** @var PHS_Model_Plugins $plugins_model */
-        if (!($plugins_model = PHS_Model_Plugins::get_instance())) {
-            self::st_set_error(self::ERR_AVAILABLE_ACTIONS, self::_t('Couldn\'t load plugins model.'));
+        if (!$this->_jobs_model && !($this->_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
             return false;
         }
 
-        if (!($plugins_list = $plugins_model->cache_all_dir_details())) {
-            $plugins_list = [];
+        return true;
+    }
+
+    public static function get_agent_routes() : ?array
+    {
+        self::st_reset_error();
+
+        if (!($plugins_model = PHS_Model_Plugins::get_instance())) {
+            self::st_set_error(self::ERR_AVAILABLE_ACTIONS, self::_t('Couldn\'t load plugins model.'));
+
+            return null;
         }
+
+        $plugins_list = $plugins_model->cache_all_dir_details() ?: [];
 
         $available_plugins_arr = [];
 
@@ -339,8 +286,7 @@ class PHS_Agent extends PHS_Registry
             $plugin = null;
         }
 
-        if (!($controller_names = PHS::get_plugin_scripts_from_dir($plugin, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER))
-         || !is_array($controller_names)) {
+        if (!($controller_names = PHS::get_plugin_scripts_from_dir($plugin, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER))) {
             return [];
         }
 
@@ -359,7 +305,7 @@ class PHS_Agent extends PHS_Registry
         return $available_controllers;
     }
 
-    public static function get_agent_available_actions(?string $plugin = null)
+    public static function get_agent_available_actions(?string $plugin = null) : array
     {
         self::st_reset_error();
 
@@ -402,12 +348,11 @@ class PHS_Agent extends PHS_Registry
     public static function get_current_job_parameters() : array
     {
         if (!($job_arr = self::current_job_data())
-            || empty($job_arr['params'])
-            || !($job_params_arr = @json_decode($job_arr['params'], true))) {
+            || empty($job_arr['params'])) {
             return [];
         }
 
-        return $job_params_arr;
+        return @json_decode($job_arr['params'], true) ?: [];
     }
 
     public static function current_job_is_forced() : bool
@@ -420,7 +365,6 @@ class PHS_Agent extends PHS_Registry
     {
         self::st_reset_error();
 
-        /** @var PHS_Model_Agent_jobs $agent_jobs_model */
         if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             self::st_set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
@@ -440,18 +384,92 @@ class PHS_Agent extends PHS_Registry
         return (bool)self::remove_job($existing_job);
     }
 
+    public static function remove_job_handler_array(array $handlers_arr) : bool
+    {
+        self::st_reset_error();
+
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
+            self::st_set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
+
+            return false;
+        }
+
+        $is_success = true;
+        $error_arr = null;
+        foreach (self::extract_strings_from_array($handlers_arr) as $handler) {
+            if (!($existing_job = $agent_jobs_model->get_details_fields(['handler' => $handler]))) {
+                continue;
+            }
+
+            if (!self::remove_job($existing_job)) {
+                $is_success = false;
+
+                $error_arr = self::st_get_error();
+            }
+        }
+
+        if (!$is_success) {
+            self::st_copy_error_from_array(self::arr_set_error_if_not_set($error_arr,
+                self::ERR_JOB_DB,
+                self::_t('Couldn\'t delete all agent jobs from database.'))
+            );
+        }
+
+        return $is_success;
+    }
+
+    public static function get_db_agent_jobs(string $plugin) : ?array
+    {
+        self::st_reset_error();
+
+        if (!($plugin_name = PHS_Instantiable::safe_escape_plugin_name($plugin))) {
+            self::st_set_error(self::ERR_PARAMETERS, self::_t('Invalid plugin name.'));
+
+            return null;
+        }
+
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
+            self::st_set_error(self::ERR_DEPENDENCIES, self::_t('Couldn\'t load agent jobs model.'));
+
+            return null;
+        }
+
+        if (!($flow_params = $agent_jobs_model->fetch_default_flow_params())) {
+            self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t obtain agent jobs flow parameters.'));
+
+            return null;
+        }
+
+        if (!($qid = db_query('SELECT * FROM `'.$agent_jobs_model->get_flow_table_name($flow_params).'`'
+                              .' WHERE plugin = \''.prepare_data($plugin_name).'\'', $flow_params['db_connection']))) {
+            self::st_set_error(self::ERR_JOB_DB, self::_t('Error running query to obtain agent jobs for provided plugin.'));
+
+            return null;
+        }
+
+        $jobs_arr = [];
+        while (($job_arr = db_fetch_assoc($qid, $flow_params['db_connection']))) {
+            if (empty($job_arr['handler'])) {
+                continue;
+            }
+
+            $jobs_arr[$job_arr['handler']] = $job_arr;
+        }
+
+        return $jobs_arr;
+    }
+
     public static function remove_job(int | array | PHS_Record_data $job_data) : null | array | PHS_Record_data
     {
         self::st_reset_error();
 
-        /** @var PHS_Model_Agent_jobs $agent_jobs_model */
         if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             self::st_set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
             return null;
         }
 
-        if (empty($job_data)
+        if (!$job_data
          || !($job_arr = $agent_jobs_model->data_to_array($job_data))) {
             self::st_set_error(self::ERR_JOB_DB, self::_t('Couldn\'t load agent job details from database.'));
 
@@ -468,13 +486,17 @@ class PHS_Agent extends PHS_Registry
         return $job_arr;
     }
 
-    public static function add_job(string $handler, string | array $route, int $once_every_seconds, array $params = [], array $extra = []) : ?array
-    {
+    public static function add_job(
+        string $handler,
+        string | array $route,
+        int $once_every_seconds,
+        array $params = [],
+        array $extra = []
+    ) : ?array {
         // We don't use here PHS::route_exists() because route_exists() will instantiate plugin, controller and action and if they have errors
         // launching script will die...
         self::st_reset_error();
 
-        /** @var PHS_Model_Agent_jobs $agent_jobs_model */
         if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             self::st_set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
@@ -496,7 +518,7 @@ class PHS_Agent extends PHS_Registry
 
         $extra['stalling_minutes'] = (int)($extra['stalling_minutes'] ?? 0);
 
-        if (empty($handler)) {
+        if (!$handler) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Please provide a handler for this agent job.'));
 
             return null;
@@ -586,7 +608,6 @@ class PHS_Agent extends PHS_Registry
             return false;
         }
 
-        /** @var PHS_Model_Agent_jobs $agent_jobs_model */
         if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             self::st_set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
@@ -621,7 +642,6 @@ class PHS_Agent extends PHS_Registry
             return false;
         }
 
-        /** @var PHS_Model_Agent_jobs $agent_jobs_model */
         if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t load agent jobs model.'));
 
@@ -639,6 +659,38 @@ class PHS_Agent extends PHS_Registry
                        .' WHERE '
                        .' plugin = \''.prepare_data($plugin_name).'\' AND status = \''.$agent_jobs_model::STATUS_SUSPENDED.'\'', $flow_params['db_connection'])) {
             self::st_set_error(self::ERR_JOB_DB, self::_t('Error running query to re-activate agent jobs for provided plugin.'));
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public static function remove_agent_jobs(string $plugin) : bool
+    {
+        self::st_reset_error();
+
+        if (!($plugin_name = PHS_Instantiable::safe_escape_plugin_name($plugin))) {
+            self::st_set_error(self::ERR_PARAMETERS, self::_t('Invalid plugin name.'));
+
+            return false;
+        }
+
+        if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())) {
+            self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t load agent jobs model.'));
+
+            return false;
+        }
+
+        if (!($flow_params = $agent_jobs_model->fetch_default_flow_params())) {
+            self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t obtain agent jobs flow parameters.'));
+
+            return false;
+        }
+
+        if (!db_query('DELETE FROM `'.$agent_jobs_model->get_flow_table_name($flow_params).'`'
+                       .' WHERE plugin = \''.prepare_data($plugin_name).'\'', $flow_params['db_connection'])) {
+            self::st_set_error(self::ERR_JOB_DB, self::_t('Error running query to remove agent jobs for provided plugin.'));
 
             return false;
         }
@@ -688,7 +740,6 @@ class PHS_Agent extends PHS_Registry
             return $stalling_minutes;
         }
 
-        /** @var PHS_Model_Agent_jobs $agent_jobs_model */
         if (!($agent_jobs_model = PHS_Model_Agent_jobs::get_instance())
             || !($stalling_minutes = $agent_jobs_model->get_stalling_minutes())) {
             $stalling_minutes = 0;

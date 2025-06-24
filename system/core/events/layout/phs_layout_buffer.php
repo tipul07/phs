@@ -13,6 +13,29 @@ class PHS_Event_Layout_buffer extends PHS_Event
         return false;
     }
 
+    public function append_to_buffer(?string $buffer) : void
+    {
+        if ($buffer === null || $buffer === '') {
+            return;
+        }
+
+        $this->set_output('buffer', $this->get_output('buffer').$buffer);
+    }
+
+    public function prepend_to_buffer(?string $buffer) : void
+    {
+        if ($buffer === null || $buffer === '') {
+            return;
+        }
+
+        $this->set_output('buffer', $buffer.$this->get_output('buffer'));
+    }
+
+    public function get_buffer_data_input() : array
+    {
+        return $this->get_input('buffer_data') ?: [];
+    }
+
     protected function _input_parameters() : array
     {
         return [

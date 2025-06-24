@@ -1708,16 +1708,13 @@ final class PHS extends PHS_Registry
 
         $final_url = $stock_url;
 
-        if (empty($extra['skip_formatters'])) {
-            // Let plugins change API provided route in actual plugin, controller, action route (if required)
-            /** @var PHS_Event_Url_rewrite $event_obj */
-            if (($event_obj = PHS_Event_Url_rewrite::trigger([
-                'route'      => $route_arr, 'args' => $args, 'raw_args' => $extra['raw_args'],
-                'stock_args' => $new_args, 'stock_query_string' => $query_string, 'stock_url' => $stock_url,
-            ]))
-             && ($new_url = $event_obj->get_output('url'))) {
-                $final_url = $new_url;
-            }
+        // Let plugins change API provided route in actual plugin, controller, action route (if required)
+        if (empty($extra['skip_formatters'])
+            && ($event_obj = PHS_Event_Url_rewrite::trigger([
+                'route'              => $route_arr, 'args' => $args, 'raw_args' => $extra['raw_args'], 'stock_args' => $new_args,
+                'stock_query_string' => $query_string, 'stock_url' => $stock_url, ]))
+            && ($new_url = $event_obj->get_output('url'))) {
+            $final_url = $new_url;
         }
 
         return $final_url;

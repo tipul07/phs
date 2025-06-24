@@ -3,7 +3,6 @@
 
 use phs\PHS;
 use phs\PHS_Tenants;
-use phs\libraries\PHS_Utils;
 
 /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
 /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
@@ -16,37 +15,21 @@ if (!($roles_model = $this->view_var('roles_model'))
 }
 
 /** @var null|\phs\system\core\models\PHS_Model_Tenants $tenants_model */
-if (!($tenants_model = $this->view_var('tenants_model'))) {
-    $tenants_model = null;
-}
+$tenants_model = $this->view_var('tenants_model') ?: null;
 
 $is_multi_tenant = PHS::is_multi_tenant();
 
-if (!($accounts_plugin_settings = $this->view_var('accounts_plugin_settings'))) {
-    $accounts_plugin_settings = [];
-}
+$accounts_plugin_settings = $this->view_var('accounts_plugin_settings') ?: [];
 
-if (!($back_page = $this->view_var('back_page'))) {
-    $back_page = '';
-}
+$back_page = $this->view_var('back_page') ?: '';
 
-if (!($user_levels = $this->view_var('user_levels'))) {
-    $user_levels = [];
-}
+$user_levels = $this->view_var('user_levels') ?: [];
 
-if (!($account_roles = $this->view_var('account_roles'))) {
-    $account_roles = [];
-}
-if (!($roles_by_slug = $this->view_var('roles_by_slug'))) {
-    $roles_by_slug = [];
-}
+$account_roles = $this->view_var('account_roles') ?: [];
+$roles_by_slug = $this->view_var('roles_by_slug') ?: [];
 
-if (!($db_account_tenants = $this->view_var('db_account_tenants'))) {
-    $db_account_tenants = [];
-}
-if (!($all_tenants_arr = $this->view_var('all_tenants_arr'))) {
-    $all_tenants_arr = [];
-}
+$db_account_tenants = $this->view_var('db_account_tenants') ?: [];
+$all_tenants_arr = $this->view_var('all_tenants_arr') ?: [];
 
 $current_user = PHS::user_logged_in();
 ?>

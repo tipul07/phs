@@ -7,6 +7,9 @@ use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
+use phs\plugins\backup\models\PHS_Model_Rules;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\system\core\events\layout\PHS_Event_Layout;
 
 class PHS_Plugin_Backup extends PHS_Plugin
 {
@@ -354,7 +357,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var models\PHS_Model_Rules $rules_model */
+        /** @var PHS_Model_Rules $rules_model */
         /** @var models\PHS_Model_Results $results_model */
         if (!($rules_model = PHS::load_model('rules', 'backup'))
          || !($results_model = PHS::load_model('results', 'backup'))
@@ -623,7 +626,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var models\PHS_Model_Rules $rules_model */
+        /** @var PHS_Model_Rules $rules_model */
         /** @var models\PHS_Model_Results $results_model */
         if (!($rules_model = PHS::load_model('rules', 'backup'))
          || !($results_model = PHS::load_model('results', 'backup'))
@@ -693,13 +696,12 @@ class PHS_Plugin_Backup extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var models\PHS_Model_Rules $rules_model */
-        if (!($rules_model = PHS::load_model('rules', 'backup'))
-         || !($r_flow_params = $rules_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
-         || !($r_table_name = $rules_model->get_flow_table_name($r_flow_params))
-         || !($rd_flow_params = $rules_model->fetch_default_flow_params(['table_name' => 'backup_rules_days']))
-         || !($rd_table_name = $rules_model->get_flow_table_name($rd_flow_params))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load backup rules model.'));
+        if (!($rules_model = PHS_Model_Rules::get_instance())
+            || !($r_flow_params = $rules_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
+            || !($r_table_name = $rules_model->get_flow_table_name($r_flow_params))
+            || !($rd_flow_params = $rules_model->fetch_default_flow_params(['table_name' => 'backup_rules_days']))
+            || !($rd_table_name = $rules_model->get_flow_table_name($rd_flow_params))) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
         }
@@ -730,7 +732,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
         while (($rule_arr = db_fetch_assoc($qid, $r_flow_params['db_connection']))) {
             $return_arr['backup_rules']++;
-            if (!($run_result = $rules_model->run_backup_rule_bg($rule_arr))) {
+            if (!$rules_model->run_backup_rule_bg($rule_arr)) {
                 $return_arr['failed_rules_ids'][] = $rule_arr['id'];
             }
         }
@@ -738,18 +740,11 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $return_arr;
     }
 
-    /**
-     * @param false|array $hook_args
-     *
-     * @return array
-     */
-    public function trigger_after_left_menu_admin($hook_args = false)
+    public function listen_after_left_menu_admin(PHS_Event_Layout $event_obj) : bool
     {
-        $hook_args = self::validate_array($hook_args, PHS_Hooks::default_buffer_hook_args());
+        $event_obj->append_to_buffer($this->quick_render_template_for_buffer('left_menu_admin') ?? '');
 
-        $hook_args['buffer'] = $this->quick_render_template_for_buffer('left_menu_admin');
-
-        return $hook_args;
+        return true;
     }
 
     /**
@@ -761,9 +756,8 @@ class PHS_Plugin_Backup extends PHS_Plugin
     {
         $hook_args = self::validate_array($hook_args, PHS_Hooks::default_user_registration_roles_hook_args());
 
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
         if (empty($hook_args['account_data'])
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))
+         || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($account_arr = $accounts_model->data_to_array($hook_args['account_data']))) {
             return $hook_args;
         }
@@ -784,10 +778,9 @@ class PHS_Plugin_Backup extends PHS_Plugin
     protected function custom_after_install()
     {
         // Even if we get an error when adding predefined backup rules don't break the install...
-        /** @var models\PHS_Model_Rules $backup_rules_model */
-        if (!($backup_rules_model = PHS::load_model('rules', 'backup'))
-         || !($flow_params = $backup_rules_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
-         || !($rules_days = $backup_rules_model->get_rule_days())) {
+        if (!($backup_rules_model = PHS_Model_Rules::get_instance())
+            || !($flow_params = $backup_rules_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
+            || !($rules_days = $backup_rules_model->get_rule_days())) {
             return true;
         }
 
@@ -824,19 +817,15 @@ class PHS_Plugin_Backup extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var models\PHS_Model_Rules $backup_rules_model */
-        if (!($backup_rules_model = PHS::load_model('rules', 'backup'))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load backup rules model.'));
+        if (!($backup_rules_model = PHS_Model_Rules::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
         }
 
         if (!$backup_rules_model->act_unsuspend_all_rules()) {
-            if ($backup_rules_model->has_error()) {
-                $this->copy_error($backup_rules_model);
-            } else {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t un-suspend all backup rules.'));
-            }
+            $this->copy_or_set_error($backup_rules_model,
+                self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t un-suspend all backup rules.'));
 
             return false;
         }
@@ -848,19 +837,15 @@ class PHS_Plugin_Backup extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var models\PHS_Model_Rules $backup_rules_model */
-        if (!($backup_rules_model = PHS::load_model('rules', 'backup'))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load backup rules model.'));
+        if (!($backup_rules_model = PHS_Model_Rules::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
         }
 
         if (!$backup_rules_model->act_suspend_all_rules()) {
-            if ($backup_rules_model->has_error()) {
-                $this->copy_error($backup_rules_model);
-            } else {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t suspend all backup rules.'));
-            }
+            $this->copy_or_set_error($backup_rules_model,
+                self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t suspend all backup rules.'));
 
             return false;
         }
