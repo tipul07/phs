@@ -36,7 +36,7 @@ class PHS_Action_Edit extends PHS_Action
         $tenants_model = $accounts_tenants_model = null;
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
          || !($admin_plugin = PHS_Plugin_Admin::get_instance())
-         || !($accounts_plugin_settings = PHS_Plugin_Accounts::get_instance())
+         || !($accounts_plugin_settings = $accounts_plugin->get_plugin_settings())
          || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($roles_model = PHS_Model_Roles::get_instance())
          || !($plugins_model = PHS_Model_Plugins::get_instance())

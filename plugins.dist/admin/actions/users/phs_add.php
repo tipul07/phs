@@ -3,7 +3,6 @@ namespace phs\plugins\admin\actions\users;
 
 use phs\PHS;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
@@ -13,7 +12,6 @@ use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\models\PHS_Model_Tenants;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
-use phs\plugins\accounts\models\PHS_Model_Accounts_tenants;
 
 class PHS_Action_Add extends PHS_Action
 {
@@ -35,12 +33,6 @@ class PHS_Action_Add extends PHS_Action
         $is_multi_tenant = PHS::is_multi_tenant();
 
         $tenants_model = null;
-        /** @var PHS_Plugin_Accounts $accounts_plugin */
-        /** @var PHS_Plugin_Admin $admin_plugin */
-        /** @var PHS_Model_Accounts $accounts_model */
-        /** @var PHS_Model_Roles $roles_model */
-        /** @var PHS_Model_Plugins $plugins_model */
-        /** @var PHS_Model_Tenants $tenants_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
          || !($admin_plugin = PHS_Plugin_Admin::get_instance())
          || !($accounts_plugin_settings = $accounts_plugin->get_plugin_settings())
@@ -80,20 +72,16 @@ class PHS_Action_Add extends PHS_Action
         $lname = PHS_Params::_p('lname', PHS_Params::T_NOHTML);
         $phone = PHS_Params::_p('phone', PHS_Params::T_NOHTML);
         $company = PHS_Params::_p('company', PHS_Params::T_NOHTML);
-        if (!($account_roles_slugs = PHS_Params::_p('account_roles_slugs', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML]))) {
-            $account_roles_slugs = [];
-        }
-        if (!($account_tenants = PHS_Params::_p('account_tenants', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_INT]))) {
-            $account_tenants = [];
-        }
+        $account_roles_slugs = PHS_Params::_p('account_roles_slugs', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML]) ?: [];
+        $account_tenants = PHS_Params::_p('account_tenants', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_INT]) ?: [];
 
         $do_submit = PHS_Params::_p('do_submit');
 
-        if (empty($foobar)) {
+        if (!$foobar) {
             $level = $accounts_model::LVL_MEMBER;
         }
 
-        if (!empty($do_submit)) {
+        if ($do_submit) {
             $insert_arr = [];
             $insert_arr['nick'] = $nick;
             $insert_arr['pass'] = $pass;
@@ -122,11 +110,10 @@ class PHS_Action_Add extends PHS_Action
                 return action_redirect(['p' => 'admin', 'a' => 'list', 'ad' => 'users'], ['account_created' => 1]);
             }
 
-            if ($accounts_model->has_error()) {
-                PHS_Notifications::add_error_notice($accounts_model->get_error_message());
-            } else {
-                PHS_Notifications::add_error_notice($this->_pt('Error saving details to database. Please try again.'));
-            }
+            PHS_Notifications::add_error_notice(
+                $accounts_model->get_simple_error_message(
+                    $this->_pt('Error saving details to database. Please try again.'))
+            );
         }
 
         $data = [
