@@ -320,9 +320,8 @@ class PHS_Requests_queue_manager extends PHS_Library
 
     private function _do_api_call(array | PHS_Record_data $request_arr, array $params = []) : array
     {
-        if (!($settings_arr = $this->_requests_model->get_request_full_settings($request_arr))) {
-            $settings_arr = $this->_requests_model->empty_request_settings_arr();
-        }
+        $settings_arr = $this->_requests_model->get_request_full_settings($request_arr)
+            ?: $this->_requests_model->empty_request_settings_arr();
 
         if (empty($settings_arr['success_codes']) || !is_array($settings_arr['success_codes'])) {
             $settings_arr['success_codes'] = [200];
@@ -332,6 +331,7 @@ class PHS_Requests_queue_manager extends PHS_Library
         $params['timeout'] = $settings_arr['timeout'] ?? 30;
         $params['log_file'] = $settings_arr['log_file'] ?? null;
         $params['expect_json'] = $settings_arr['expect_json_response'] ?? false;
+        $params['skip_api_monitoring'] = $settings_arr['skip_api_monitoring'] ?? false;
 
         if (!empty($settings_arr['headers']) && is_array($settings_arr['headers'])) {
             $params['headers'] = $settings_arr['headers'];

@@ -27,7 +27,7 @@ class PHS_Model_Request_queue extends PHS_Model
 
     public function get_model_version() : string
     {
-        return '1.0.6';
+        return '1.0.7';
     }
 
     public function get_table_names() : array
@@ -339,6 +339,7 @@ class PHS_Model_Request_queue extends PHS_Model
             'timeout'              => 30,
             'log_file'             => null,
             'delete_on_completion' => true,
+            'skip_api_monitoring'  => false,
             'expect_json_response' => false,
             'success_codes'        => [],
             'curl_params'          => [],
@@ -659,8 +660,7 @@ class PHS_Model_Request_queue extends PHS_Model
                         'auto_increment' => true,
                     ],
                     'url' => [
-                        'type'   => self::FTYPE_VARCHAR,
-                        'length' => 255,
+                        'type'   => self::FTYPE_TEXT,
                     ],
                     'payload' => [
                         'type' => self::FTYPE_TEXT,
