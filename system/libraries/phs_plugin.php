@@ -539,15 +539,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        $check_arr = [];
-        $check_arr['instance_id'] = $this_instance_id;
-
-        $check_params = [];
-        $check_params['result_type'] = 'single';
-        $check_params['details'] = '*';
-
-        if (!($plugin_arr = $this->_plugins_instance->get_details_fields($check_arr, $check_params))
-         || (string)$plugin_arr['type'] !== self::INSTANCE_TYPE_PLUGIN) {
+        if (!($plugin_arr = $this->_plugins_instance->get_details_fields(['instance_id' => $this_instance_id]))
+            || (string)$plugin_arr['type'] !== self::INSTANCE_TYPE_PLUGIN) {
             PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Plugin not found in database.');
 
             $this->set_error(self::ERR_CHANGES, self::_t('Plugin not found in database.'));
@@ -571,7 +564,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $list_arr['fields']['plugin'] = $plugin_arr['plugin'];
 
         if (($plugins_modules_arr = $this->_plugins_instance->get_list($list_arr))
-         && is_array($plugins_modules_arr)) {
+            && is_array($plugins_modules_arr)) {
             $edit_params_arr = [];
             $edit_params_arr['fields'] = [
                 'status' => PHS_Model_Plugins::STATUS_ACTIVE,
@@ -583,11 +576,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                 }
 
                 if (!$this->_plugins_instance->edit($module_arr, $edit_params_arr)) {
-                    if ($this->_plugins_instance->has_error()) {
-                        $this->copy_error($this->_plugins_instance, self::ERR_CHANGES);
-                    } else {
-                        $this->set_error(self::ERR_CHANGES, self::_t('Error activating %s %s.', $module_arr['type'], $module_arr['instance_id']));
-                    }
+                    $this->copy_or_set_error($this->_plugins_instance,
+                        self::ERR_CHANGES, self::_t('Error activating %s %s.', $module_arr['type'], $module_arr['instance_id'])
+                    );
 
                     PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error activating database record ['.$module_arr['instance_id'].']');
 
@@ -597,12 +588,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         if (!($db_details = $this->_plugins_instance->act_activate($this_instance_id))
-         || empty($db_details['new_data'])) {
-            if ($this->_plugins_instance->has_error()) {
-                $this->copy_error($this->_plugins_instance);
-            } else {
-                $this->set_error(self::ERR_CHANGES, self::_t('Error activating plugin.'));
-            }
+            || empty($db_details['new_data'])) {
+            $this->copy_or_set_error($this->_plugins_instance,
+                self::ERR_CHANGES, self::_t('Error activating plugin.'));
 
             PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error activating database record ['.$this_instance_id.']');
 
@@ -611,17 +599,14 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         $plugin_arr = $db_details['new_data'];
 
-        if (!$this->custom_activate($plugin_arr)) {
-            if (!$this->has_warnings('plugin_activation_'.$plugin_arr['plugin'])) {
-                if ($this->has_error()) {
-                    $warning_msg = $this->get_error_message();
-                } else {
-                    $warning_msg = self::_t('Plugin custom activation functionality failed.');
-                }
+        $this->get_merged_db_details(force: true);
 
-                $this->add_warning($warning_msg, 'plugin_activation_'.$plugin_arr['plugin']);
-                PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error in plugin custom activate functionality: '.$warning_msg);
-            }
+        if (!$this->custom_activate($plugin_arr)
+            && !$this->has_warnings('plugin_activation_'.$plugin_arr['plugin'])) {
+            $warning_msg = $this->get_simple_error_message(self::_t('Plugin custom activation functionality failed.'));
+
+            $this->add_warning($warning_msg, 'plugin_activation_'.$plugin_arr['plugin']);
+            PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error in plugin custom activate functionality: '.$warning_msg);
         }
 
         PHS_Maintenance::output('['.$this->instance_plugin_name().'] Plugin activated.');
@@ -657,11 +642,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         if (!($db_details = $this->_plugins_instance->act_activate_on_tenant($this_instance_id, $tenant_id))
             || empty($db_details['new_data'])) {
-            if ($this->_plugins_instance->has_error()) {
-                $this->copy_error($this->_plugins_instance);
-            } else {
-                $this->set_error(self::ERR_CHANGES, self::_t('Error activating plugin.'));
-            }
+            $this->copy_or_set_error($this->_plugins_instance,
+                self::ERR_CHANGES, self::_t('Error activating plugin.'));
 
             PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error activating database record ['.$this_instance_id.'] on tenant '.$tenant_id.'.');
 
@@ -698,15 +680,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        $check_arr = [];
-        $check_arr['instance_id'] = $this_instance_id;
-
-        $check_params = [];
-        $check_params['result_type'] = 'single';
-        $check_params['details'] = '*';
-
-        if (!($plugin_arr = $this->_plugins_instance->get_details_fields($check_arr, $check_params))
-         || (string)$plugin_arr['type'] !== self::INSTANCE_TYPE_PLUGIN) {
+        if (!($plugin_arr = $this->_plugins_instance->get_details_fields(['instance_id' => $this_instance_id]))
+            || (string)$plugin_arr['type'] !== self::INSTANCE_TYPE_PLUGIN) {
             PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Plugin not found in database.');
 
             $this->set_error(self::ERR_CHANGES, self::_t('Plugin not found in database.'));
@@ -725,6 +700,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
             return false;
         }
+
+        $this->get_merged_db_details(force: true);
 
         if (!$this->custom_inactivate($plugin_arr)) {
             if (!$this->has_warnings('plugin_inactivation_'.$plugin_arr['plugin'])) {
@@ -1191,7 +1168,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $is_dry_update = PHS_Db::dry_update();
         $plugin_version = $this->get_plugin_version();
 
-        /** @var null|PHS_Event_Migration_plugins $event_obj */
         if (!($event_obj = PHS_Event_Migration_plugins::trigger_install(
             plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
         ))
@@ -1206,7 +1182,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        /** @var null|PHS_Event_Migration_plugins $event_obj */
         if (!($event_obj = PHS_Event_Migration_plugins::trigger_start(
             plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
         ))
@@ -1228,7 +1203,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        /** @var null|PHS_Event_Migration_plugins $event_obj */
         if (!($event_obj = PHS_Event_Migration_plugins::trigger_after_roles(
             plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
         ))
@@ -1250,7 +1224,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        /** @var null|PHS_Event_Migration_plugins $event_obj */
         if (!($event_obj = PHS_Event_Migration_plugins::trigger_after_jobs(
             plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
         ))
@@ -1265,10 +1238,10 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
+        $this->get_merged_db_details(force: true);
+
         if (!$this->custom_install()) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_INSTALL, self::_t('Plugin custom install functionality failed.'));
-            }
+            $this->set_error_if_not_set(self::ERR_INSTALL, self::_t('Plugin custom install functionality failed.'));
 
             PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error in plugin custom install functionality: '.$this->get_error_message());
 
@@ -1314,7 +1287,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         if (($models_arr = $this->get_models())) {
             foreach ($models_arr as $model_name) {
-                /** @var PHS_Model $model_obj */
                 if (!($model_obj = PHS::load_model($model_name, $this->instance_plugin_name()))) {
                     $this->copy_or_set_static_error(self::ERR_INSTALL,
                         self::_t('Error loading model %s.', $model_name));
@@ -1344,7 +1316,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return false;
         }
 
-        /** @var null|PHS_Event_Migration_plugins $event_obj */
         if (!($event_obj = PHS_Event_Migration_plugins::trigger_finish(
             plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
         ))
@@ -1384,15 +1355,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return null;
         }
 
-        $check_arr = [];
-        $check_arr['instance_id'] = $this_instance_id;
-
         db_supress_errors($this->_plugins_instance->get_db_connection());
-        if (!($db_details = $this->_plugins_instance->get_details_fields($check_arr))
-         || empty($db_details['type'])
-         || $db_details['type'] !== self::INSTANCE_TYPE_PLUGIN) {
+        if (!($db_details = $this->_plugins_instance->get_details_fields(['instance_id' => $this_instance_id]))
+            || empty($db_details['type'])
+            || $db_details['type'] !== self::INSTANCE_TYPE_PLUGIN) {
             // Set it to false so models will also get uninstall signal
-            $db_details = false;
+            $db_details = null;
 
             PHS_Maintenance::output('['.$this->instance_plugin_name().'] Plugin doesn\'t seem to be installed.');
         }
@@ -1407,6 +1375,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
             return null;
         }
+
+        $this->get_merged_db_details(force: true);
 
         if (!$this->custom_uninstall()) {
             $this->set_error_if_not_set(self::ERR_INSTALL,
@@ -1545,6 +1515,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         PHS_Maintenance::lock_db_structure_read();
+
+        $this->get_merged_db_details(force: true);
 
         // If it is a dry update, don't trigger custom updates
         if (!$is_dry_update

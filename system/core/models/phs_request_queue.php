@@ -660,7 +660,7 @@ class PHS_Model_Request_queue extends PHS_Model
                         'auto_increment' => true,
                     ],
                     'url' => [
-                        'type'   => self::FTYPE_TEXT,
+                        'type' => self::FTYPE_TEXT,
                     ],
                     'payload' => [
                         'type' => self::FTYPE_TEXT,

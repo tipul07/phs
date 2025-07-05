@@ -2297,12 +2297,6 @@ final class PHS extends PHS_Registry
         return $instance_obj;
     }
 
-    /**
-     * @param string $controller
-     * @param null|string $plugin
-     *
-     * @return null|PHS_Controller Returns false on error or an instance of loaded controller
-     */
     public static function load_controller(string $controller, ?string $plugin = null) : ?PHS_Controller
     {
         self::st_reset_error();
@@ -2333,13 +2327,6 @@ final class PHS extends PHS_Registry
         return $instance_obj;
     }
 
-    /**
-     * @param string $action
-     * @param string|bool $plugin
-     * @param string $action_dir
-     *
-     * @return null|PHS_Action Returns false on error or an instance of loaded action
-     */
     public static function load_action(string $action, $plugin = false, string $action_dir = '') : ?PHS_Action
     {
         self::st_reset_error();
@@ -2399,13 +2386,6 @@ final class PHS extends PHS_Registry
         return $instance_obj;
     }
 
-    /**
-     * @param string $contract
-     * @param string|bool $plugin
-     * @param string $contract_dir
-     *
-     * @return null|PHS_Contract Returns false on error || an instance of loaded contract
-     */
     public static function load_contract(string $contract, $plugin = false, string $contract_dir = '') : ?PHS_Contract
     {
         self::st_reset_error();
@@ -2446,7 +2426,7 @@ final class PHS extends PHS_Registry
             $contract_dir = str_replace('_', '/', $contract_dir);
         }
 
-        /** @var PHS_Action $instance_obj */
+        /** @var PHS_Contract $instance_obj */
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTRACT, true, $contract_dir))) {
             self::st_set_error_if_not_set(self::ERR_LOAD_CONTRACT,
                 self::_t('Couldn\'t obtain instance for contract %s from plugin %s.',
@@ -2459,13 +2439,6 @@ final class PHS extends PHS_Registry
         return $instance_obj;
     }
 
-    /**
-     * @param string $event
-     * @param string|bool $plugin
-     * @param string $event_dir
-     *
-     * @return null|PHS_Event Returns false on error or an instance of loaded event
-     */
     public static function load_event(string $event, $plugin = false, string $event_dir = '') : ?PHS_Event
     {
         self::st_reset_error();
@@ -2520,13 +2493,6 @@ final class PHS extends PHS_Registry
         return $instance_obj;
     }
 
-    /**
-     * @param string $graphql_type
-     * @param null|string $plugin
-     * @param string $type_dir
-     *
-     * @return null|PHS_Graphql_Type Returns null on error or an instance of loaded GraphQL type
-     */
     public static function load_graphql_type(string $graphql_type, ?string $plugin = null, string $type_dir = '') : ?PHS_Graphql_Type
     {
         self::st_reset_error();
@@ -2577,12 +2543,6 @@ final class PHS extends PHS_Registry
         return $instance_obj;
     }
 
-    /**
-     * @param string $scope
-     * @param null|string $plugin
-     *
-     * @return null|PHS_Scope Returns false on error or an instance of loaded scope
-     */
     public static function load_scope(string $scope, ?string $plugin = null) : ?PHS_Scope
     {
         self::st_reset_error();
@@ -2611,11 +2571,6 @@ final class PHS extends PHS_Registry
         return $instance_obj;
     }
 
-    /**
-     * @param string $plugin_name Plugin name to be loaded
-     *
-     * @return null|PHS_Plugin Returns false on error || an instance of loaded plugin
-     */
     public static function load_plugin(string $plugin_name) : ?PHS_Plugin
     {
         self::st_reset_error();

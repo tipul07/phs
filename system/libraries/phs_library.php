@@ -90,7 +90,7 @@ abstract class PHS_Library extends PHS_Registry
         ];
     }
 
-    public static function get_instance(array $init_params = [], ?bool $as_singleton = null) : ?static
+    public static function get_instance(array $init_params = [], ?bool $as_singleton = null, bool $force = false) : ?static
     {
         if (!($library_details = self::extract_details_from_full_namespace_name(static::class))) {
             return null;
@@ -107,7 +107,7 @@ abstract class PHS_Library extends PHS_Registry
         }
 
         if (!($plugin_obj = PHS::load_plugin($library_details['plugin']))
-           || !$plugin_obj->plugin_active()
+           || (!$force && !$plugin_obj->plugin_active())
         ) {
             self::st_set_error_if_not_set(
                 self::ERR_FUNCTIONALITY,
