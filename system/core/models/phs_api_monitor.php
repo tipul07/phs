@@ -38,7 +38,7 @@ class PHS_Model_Api_monitor extends PHS_Model
 
     public function get_model_version() : string
     {
-        return '1.0.4';
+        return '1.0.5';
     }
 
     public function get_table_names() : array
@@ -138,8 +138,7 @@ class PHS_Model_Api_monitor extends PHS_Model
                         'default' => null,
                     ],
                     'external_route' => [
-                        'type'    => self::FTYPE_VARCHAR,
-                        'length'  => 255,
+                        'type'    => self::FTYPE_TEXT,
                         'default' => null,
                     ],
                     'plugin' => [
@@ -251,7 +250,7 @@ class PHS_Model_Api_monitor extends PHS_Model
         $params['fields']['response_body'] ??= null;
         $params['fields']['error_message'] ??= null;
 
-        $str_fields = ['method' => 50, 'internal_route' => 255, 'external_route' => 255, 'plugin' => 255];
+        $str_fields = ['method' => 50, 'internal_route' => 255, 'plugin' => 255];
         foreach ($str_fields as $field => $max_len) {
             if (empty($params['fields'][$field])) {
                 $params['fields'][$field] = null;
@@ -284,7 +283,7 @@ class PHS_Model_Api_monitor extends PHS_Model
             return false;
         }
 
-        $str_fields = ['method' => 50, 'internal_route' => 255, 'external_route' => 255, 'plugin' => 255];
+        $str_fields = ['method' => 50, 'internal_route' => 255, 'plugin' => 255];
         foreach ($str_fields as $field => $max_len) {
             if (!array_key_exists($field, $params['fields'])) {
                 continue;
