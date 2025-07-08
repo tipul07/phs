@@ -31,7 +31,7 @@ if (!($author_handle = $this->view_var('author_handle'))) {
     $author_handle = $this->_pt('N/A');
 }
 
-$current_user = PHS::current_user();
+$current_user = PHS::user_logged_in();
 
 $can_reply_messages = false;
 $can_followup_messages = false;
@@ -59,7 +59,7 @@ if (!empty($message_arr['message_user'])
 
 if (!empty($message_arr['message_user'])
 && !empty($message_arr['message_user']['user_id'])
-&& $message_arr['message_user']['user_id'] == $current_user['id']
+&& (int)$message_arr['message_user']['user_id'] === (int)($current_user['id'] ?? 0)
 && empty($message_arr['message_user']['is_author'])) {
     $destination_str = $this->_pt('You (%s)', $destination_str);
 }

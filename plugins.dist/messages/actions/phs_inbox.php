@@ -422,7 +422,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
             return null;
         }
 
-        if (($current_user = PHS::current_user())
+        if (($current_user = PHS::user_logged_in())
         && (int)$current_user['id'] === (int)$params['record']['from_uid']) {
             return $this->_pt('You (%s)', $params['record']['from_handle']);
         }
@@ -436,7 +436,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
             return null;
         }
 
-        $current_user = PHS::current_user();
+        $current_user = PHS::user_logged_in();
         $messages_model = $this->_paginator_model;
         $accounts_model = $this->_accounts_model;
         $roles_model = $this->_roles_model;
@@ -488,9 +488,9 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
                 break;
         }
 
-        if (!empty($current_user)
+        if ($current_user
         && !empty($params['record']['user_id'])
-        && $params['record']['user_id'] == $current_user['id']
+        && (int)$params['record']['user_id'] === (int)($current_user['id'] ?? 0)
         && empty($params['record']['is_author'])) {
             $destination_str = $this->_pt('You (%s)', $destination_str);
         }

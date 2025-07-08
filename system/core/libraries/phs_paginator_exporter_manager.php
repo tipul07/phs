@@ -109,7 +109,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
 
         $this->_set_export_context($export_context);
 
-        if (!($current_user = PHS::current_user())
+        if (!($current_user = PHS::user_logged_in())
             || !($account_arr = $this->_set_account_data($current_user))) {
             PHS_Logger::warning('[EXPORT] No user logged in.', $this->_admin_plugin::LOG_PAGINATOR);
 

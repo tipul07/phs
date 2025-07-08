@@ -3,57 +3,31 @@
 
 use phs\PHS;
 use phs\libraries\PHS_Hooks;
-use phs\libraries\PHS_Roles;
 
-if (!($dest_types = $this->view_var('dest_types'))) {
-    $dest_types = [];
-}
-if (!($user_levels = $this->view_var('user_levels'))) {
-    $user_levels = [];
-}
-if (!($roles_arr = $this->view_var('roles_arr'))) {
-    $roles_arr = [];
-}
-if (!($roles_units_arr = $this->view_var('roles_units_arr'))) {
-    $roles_units_arr = [];
-}
+$dest_types = $this->view_var('dest_types') ?: [];
+$user_levels = $this->view_var('user_levels') ?: [];
+$roles_arr = $this->view_var('roles_arr') ?: [];
+$roles_units_arr = $this->view_var('roles_units_arr') ?: [];
 
 /** @var \phs\plugins\messages\models\PHS_Model_Messages $messages_model */
-if (!($messages_model = $this->view_var('messages_model'))) {
-    $messages_model = false;
-}
+$messages_model = $this->view_var('messages_model') ?: null;
+
 /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-if (!($accounts_model = $this->view_var('accounts_model'))) {
-    $accounts_model = false;
-}
+$accounts_model = $this->view_var('accounts_model') ?: null;
+
 /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
-if (!($roles_model = $this->view_var('roles_model'))) {
-    $roles_model = false;
-}
+$roles_model = $this->view_var('roles_model') ?: null;
+
 /** @var \phs\plugins\messages\PHS_Plugin_Messages $messages_plugin */
-if (!($messages_plugin = $this->view_var('messages_plugin'))) {
-    $messages_plugin = false;
-}
+$messages_plugin = $this->view_var('messages_plugin') ?: null;
 
-if (!($reply_message = $this->view_var('reply_message'))) {
-    $reply_message = false;
-}
-if (!($reply_to = $this->view_var('reply_to'))) {
-    $reply_to = 0;
-}
-if (!($reply_to_muid = $this->view_var('reply_to_muid'))) {
-    $reply_to_muid = 0;
-}
+$reply_message = $this->view_var('reply_message') ?: null;
+$reply_to = $this->view_var('reply_to') ?: 0;
+$reply_to_muid = $this->view_var('reply_to_muid') ?: 0;
 
-if (!($followup_message = $this->view_var('followup_message'))) {
-    $followup_message = false;
-}
-if (!($follow_up = $this->view_var('follow_up'))) {
-    $follow_up = 0;
-}
-if (!($follow_up_muid = $this->view_var('follow_up_muid'))) {
-    $follow_up_muid = 0;
-}
+$followup_message = $this->view_var('followup_message') ?: null;
+$follow_up = $this->view_var('follow_up') ?: 0;
+$follow_up_muid = $this->view_var('follow_up_muid') ?: 0;
 
 $url_args_arr = [];
 if (!empty($reply_to)) {
@@ -68,8 +42,6 @@ if (!empty($follow_up)) {
 if (!empty($follow_up_muid)) {
     $url_args_arr['follow_up_muid'] = $follow_up_muid;
 }
-
-$current_user = PHS::current_user();
 
 if ($this->is_admin_controller()) {
     $compose_path = ['p' => 'messages', 'c' => 'admin', 'a' => 'compose'];
