@@ -24,8 +24,6 @@ if (!($messages_list = $this->view_var('messages_list'))) {
     $messages_list = [];
 }
 
-$current_user = PHS::current_user();
-
 $can_reply_messages = false;
 $compose_url = false;
 $compose_route_arr = ['p' => 'messages', 'a' => 'compose'];
@@ -95,7 +93,7 @@ if (!empty($messages_list) && is_array($messages_list)) {
                 <div class="pop_msg_actions">
                 <?php
         if ($can_reply_messages
-        && $messages_model->can_reply($full_message_arr, ['account_data' => $current_user])) {
+        && $messages_model->can_reply($full_message_arr, ['account_data' => PHS::user_logged_in()])) {
             ?> <a href="<?php echo PHS::url($compose_route_arr, ['reply_to_muid' => $full_message_arr['message_user']['id']]); ?>"><i class="fa fa-reply action-icons" title="<?php echo $this->_pt('Reply'); ?>"></i></a> <?php
         }
         ?>

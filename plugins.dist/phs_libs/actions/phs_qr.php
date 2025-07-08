@@ -32,7 +32,7 @@ class PHS_Action_Qr extends PHS_Action
         }
 
         if (!empty($details_arr['for_account_id'])
-            && (!($current_user = PHS::current_user())
+            && (!($current_user = PHS::user_logged_in())
                 || (int)$current_user['id'] !== $details_arr['for_account_id'])
         ) {
             echo 'Invalid QR code details.';

@@ -386,7 +386,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         }
 
         // If user is not logged in yet, do not cache the result
-        if (!($account_arr = PHS::current_user())
+        if (!($account_arr = PHS::user_logged_in())
             || null === ($tfa_data = $this->get_tfa_data_for_account($account_arr))) {
             return [];
         }
