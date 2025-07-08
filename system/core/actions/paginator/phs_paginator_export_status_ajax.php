@@ -20,7 +20,7 @@ class PHS_Action_Paginator_export_status_ajax extends PHS_Action
 
     public function execute()
     {
-        if (!($current_user = PHS::current_user())) {
+        if (!($current_user = PHS::user_logged_in())) {
             PHS_Notifications::add_warning_notice(self::_t('You should login first.'));
 
             return action_request_login();
