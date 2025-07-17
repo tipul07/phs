@@ -244,7 +244,7 @@ abstract class PHS_Action extends PHS_Instantiable
         // if (!$this->instance_is_core()
         //  && (!($plugin_instance = $this->get_plugin_instance())
         //         || !$plugin_instance->plugin_active())) {
-        //     $this->set_error(self::ERR_RUN_ACTION, self::_t('Unknown or not active action.'));
+        //     $this->set_error(self::ERR_RUN_ROUTE_NOT_ALLOWED, self::_t('Unknown or not active action.'));
         //
         //     return null;
         // }
@@ -252,10 +252,10 @@ abstract class PHS_Action extends PHS_Instantiable
         $this->set_action_defaults();
 
         if (($current_scope = PHS_Scope::current_scope())
-         && !$this->scope_is_allowed($current_scope)) {
+            && !$this->scope_is_allowed($current_scope)) {
             if (!($emulated_scope = PHS_Scope::emulated_scope())
                 || !$this->scope_is_allowed($emulated_scope)) {
-                $this->set_error(self::ERR_RUN_ACTION, self::_t('Action not allowed to run in current scope.'));
+                $this->set_error(self::ERR_RUN_ROUTE_NOT_ALLOWED, self::_t('Action not allowed to run in current scope.'));
 
                 return null;
             }
@@ -265,15 +265,14 @@ abstract class PHS_Action extends PHS_Instantiable
         $hook_args['action_obj'] = $this;
         $hook_args['action_result'] = self::default_action_result();
 
-        if (($hook_result = PHS::trigger_hooks(PHS_Hooks::H_BEFORE_ACTION_EXECUTE, $hook_args))) {
-            if (!empty($hook_result['stop_execution'])
-             && !empty($hook_result['action_result'])) {
-                $action_result = self::validate_action_result($hook_result['action_result']);
+        if (($hook_result = PHS::trigger_hooks(PHS_Hooks::H_BEFORE_ACTION_EXECUTE, $hook_args))
+            && !empty($hook_result['stop_execution'])
+            && !empty($hook_result['action_result'])) {
+            $action_result = self::validate_action_result($hook_result['action_result']);
 
-                $this->set_action_result($action_result);
+            $this->set_action_result($action_result);
 
-                return $action_result;
-            }
+            return $action_result;
         }
 
         self::st_reset_error();
@@ -281,11 +280,10 @@ abstract class PHS_Action extends PHS_Instantiable
 
         if (!($action_result = $this->execute())) {
             // if execute() fails, it means it's a logic error, not an action flow error, so we return an action result with an error
-            $error_arr = $this->has_error()
-                ? $this->get_error()
-                : self::arr_set_error(self::ERR_RUN_ACTION, self::_t('Error in action execution.'));
-
-            return self::set_action_result_errors([], $error_arr);
+            return self::set_action_result_errors(
+                [],
+                self::arr_copy_or_set_error($this, self::ERR_RUN_ROUTE_ERROR, self::_t('Error in action execution.'))
+            );
         }
 
         $action_result = self::validate_action_result($action_result);
@@ -309,8 +307,7 @@ abstract class PHS_Action extends PHS_Instantiable
         $hook_args['action_result'] = $action_result;
 
         if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_AFTER_ACTION_EXECUTE, $hook_args))
-         && is_array($hook_args)
-         && !empty($hook_args['action_result']) && is_array($hook_args['action_result'])) {
+            && !empty($hook_args['action_result']) && is_array($hook_args['action_result'])) {
             $action_result = $hook_args['action_result'];
         }
 

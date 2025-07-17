@@ -113,9 +113,9 @@ abstract class PHS_Controller extends PHS_Instantiable
         }
 
         if (($current_scope = PHS_Scope::current_scope())
-        && !$this->scope_is_allowed($current_scope)) {
+            && !$this->scope_is_allowed($current_scope)) {
             if (!($emulated_scope = PHS_Scope::emulated_scope())
-             || !$this->scope_is_allowed($emulated_scope)) {
+                || !$this->scope_is_allowed($emulated_scope)) {
                 $this->set_error(self::ERR_RUN_ACTION, self::_t('Controller not allowed to run in current scope.'));
 
                 return false;
@@ -145,7 +145,7 @@ abstract class PHS_Controller extends PHS_Instantiable
                 || (!$plugin_instance->plugin_active()
                     && !in_array($plugin_instance->instance_plugin_name(), PHS::get_always_active_plugins(), true)))
         ) {
-            $this->set_error(self::ERR_RUN_ACTION, self::_t('Unknown or not active controller.'));
+            $this->set_error(self::ERR_RUN_ROUTE_NOT_ALLOWED, self::_t('Unknown or not active controller.'));
 
             return false;
         }
@@ -154,7 +154,7 @@ abstract class PHS_Controller extends PHS_Instantiable
             && !$this->scope_is_allowed($current_scope)) {
             if (!($emulated_scope = PHS_Scope::emulated_scope())
              || !$this->scope_is_allowed($emulated_scope)) {
-                $this->set_error(self::ERR_RUN_ACTION, self::_t('Controller not allowed to run in current scope.'));
+                $this->set_error(self::ERR_RUN_ROUTE_NOT_ALLOWED, self::_t('Controller not allowed to run in current scope.'));
 
                 return false;
             }
@@ -181,20 +181,15 @@ abstract class PHS_Controller extends PHS_Instantiable
                 || (!$plugin_instance->plugin_active()
                     && !in_array($plugin_instance->instance_plugin_name(), PHS::get_always_active_plugins(), true)))
         ) {
-            $this->set_error(self::ERR_RUN_ACTION, self::_t('Unknown or not active controller.'));
+            $this->set_error(self::ERR_RUN_ROUTE_NOT_ALLOWED, self::_t('Unknown or not active controller.'));
 
             return null;
         }
 
         self::st_reset_error();
 
-        /** @var PHS_Action_Foobar $foobar_action_obj */
         if (!($foobar_action_obj = PHS_Action_Foobar::get_instance())) {
-            if (self::st_has_error()) {
-                $this->copy_static_error();
-            } else {
-                $this->set_error(self::ERR_RUN_ACTION, self::_t('Couldn\'t load foobar action.'));
-            }
+            $this->copy_or_set_static_error(self::ERR_RUN_ROUTE_ERROR, self::_t('Couldn\'t load foobar action.'));
 
             return null;
         }
@@ -228,7 +223,6 @@ abstract class PHS_Controller extends PHS_Instantiable
         }
 
         if ($this->should_user_have_any_of_defined_role_units()) {
-            /** @var PHS_Plugin $plugin_obj */
             if (!($plugin_obj = $this->get_plugin_instance())) {
                 PHS_Notifications::add_warning_notice($this->_pt('Couldn\'t obtain plugin instance.'));
 
@@ -246,10 +240,9 @@ abstract class PHS_Controller extends PHS_Instantiable
             $action_dir = '';
         }
 
-        /** @var PHS_Action $action_obj */
         if (!($action_obj = PHS::load_action($action, $plugin, $action_dir))) {
             $this->copy_or_set_static_error(
-                self::ERR_RUN_ACTION,
+                self::ERR_RUN_ROUTE_ERROR,
                 self::_t('Couldn\'t load action [%s].', ($action_dir !== '' ? $action_dir.'/' : '').$action)
             );
 
@@ -260,7 +253,7 @@ abstract class PHS_Controller extends PHS_Instantiable
 
         if (!($action_result = $action_obj->run_action())) {
             $this->copy_or_set_error($action_obj,
-                self::ERR_RUN_ACTION, self::_t('Error executing action [%s].', ($action_dir !== '' ? $action_dir.'/' : '').$action));
+                self::ERR_RUN_ROUTE_ERROR, self::_t('Error executing action [%s].', ($action_dir !== '' ? $action_dir.'/' : '').$action));
 
             return false;
         }

@@ -1852,15 +1852,12 @@ final class PHS extends PHS_Registry
 
         if (!($route_details = self::get_route_details())
             || empty($route_details[self::ROUTE_CONTROLLER])) {
-            self::st_set_error(self::ERR_EXECUTE_ROUTE, self::_t('Couldn\'t obtain route details.'));
-        }
-
-        /** @var PHS_Controller $controller_obj */
-        elseif (!($controller_obj = self::load_controller($route_details[self::ROUTE_CONTROLLER], $route_details[self::ROUTE_PLUGIN]))) {
-            self::st_set_error(self::ERR_EXECUTE_ROUTE, self::_t('Couldn\'t obtain controller instance for %s.', $route_details[self::ROUTE_CONTROLLER]));
+            self::st_set_error(self::ERR_RUN_ROUTE_NOT_FOUND, self::_t('Couldn\'t obtain route details.'));
+        } elseif (!($controller_obj = self::load_controller($route_details[self::ROUTE_CONTROLLER], $route_details[self::ROUTE_PLUGIN]))) {
+            self::st_set_error(self::ERR_RUN_ROUTE_NOT_FOUND, self::_t('Couldn\'t obtain controller instance for %s.', $route_details[self::ROUTE_CONTROLLER]));
         } elseif (!($action_result = $controller_obj->run_action($route_details[self::ROUTE_ACTION], null, $route_details[self::ROUTE_ACTION_DIR]))) {
             self::st_copy_or_set_error($controller_obj,
-                self::ERR_EXECUTE_ROUTE, self::_t('Error executing action [%s].', $route_details[self::ROUTE_ACTION]));
+                self::ERR_RUN_ROUTE_ERROR, self::_t('Error executing action [%s].', $route_details[self::ROUTE_ACTION]));
         }
 
         if (self::st_has_error()) {
@@ -1876,7 +1873,7 @@ final class PHS extends PHS_Registry
         self::st_reset_error();
 
         if (!($scope_obj = PHS_Scope::get_scope_instance())) {
-            self::st_set_error_if_not_set(self::ERR_EXECUTE_ROUTE, self::_t('Error spawning scope instance.'));
+            self::st_set_error_if_not_set(self::ERR_RUN_ROUTE_ERROR, self::_t('Error spawning scope instance.'));
 
             if (!empty($params['die_on_error'])) {
                 $error_msg = self::st_get_full_error_message();
@@ -1894,7 +1891,7 @@ final class PHS extends PHS_Registry
         if (!self::st_debugging_mode()
             && self::arr_has_error($controller_error_arr)) {
             $controller_error_arr = self::arr_change_error_code_and_message($controller_error_arr,
-                self::ERR_EXECUTE_ROUTE, self::_t('Error serving request.'));
+                self::ERR_RUN_ROUTE_ERROR, self::_t('Error serving request.'));
         }
 
         if ($action_result
