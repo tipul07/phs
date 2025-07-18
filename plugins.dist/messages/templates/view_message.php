@@ -3,7 +3,6 @@
 
 use phs\PHS;
 use phs\PHS_Ajax;
-use phs\libraries\PHS_Roles;
 
 /** @var \phs\plugins\messages\models\PHS_Model_Messages $messages_model */
 /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
@@ -21,21 +20,11 @@ if (!($messages_model = $this->view_var('messages_model'))
     return $this->_pt('Couldn\'t initialize required parameters for current view.');
 }
 
-if (!($thread_messages_arr = $this->view_var('thread_messages_arr'))) {
-    $thread_messages_arr = [];
-}
-if (!($dest_types = $this->view_var('dest_types'))) {
-    $dest_types = [];
-}
-if (!($user_levels = $this->view_var('user_levels'))) {
-    $user_levels = [];
-}
-if (!($roles_arr = $this->view_var('roles_arr'))) {
-    $roles_arr = [];
-}
-if (!($roles_units_arr = $this->view_var('roles_units_arr'))) {
-    $roles_units_arr = [];
-}
+$thread_messages_arr = $this->view_var('thread_messages_arr') ?: [];
+$dest_types = $this->view_var('dest_types') ?: [];
+$user_levels = $this->view_var('user_levels') ?: [];
+$roles_arr = $this->view_var('roles_arr') ?: [];
+$roles_units_arr = $this->view_var('roles_units_arr') ?: [];
 
 if (!empty($message_arr['message_user']['id'])) {
     $muid = $message_arr['message_user']['id'];
@@ -50,21 +39,21 @@ $messages_after_new = 0;
 if (!empty($thread_messages_arr) && is_array($thread_messages_arr)) {
     $we_are_before = true;
     foreach ($thread_messages_arr as $um_id => $um_arr) {
-        if ($message_arr['message']['id'] == $um_arr['message_id']) {
+        if ((int)($message_arr['message']['id'] ?? 0) === (int)($um_arr['message_id'] ?? 0)) {
             $we_are_before = false;
             continue;
         }
 
         if ($we_are_before) {
             $messages_before++;
-            if ($current_user['id'] == $um_arr['user_id']
-            && !empty($um_arr['is_new'])) {
+            if ((int)$current_user['id'] === (int)($um_arr['user_id'] ?? 0)
+                && !empty($um_arr['is_new'])) {
                 $messages_before_new++;
             }
         } else {
             $messages_after++;
-            if (!empty($um_arr['is_new'])
-            && !empty($um_arr['is_new'])) {
+            if ((int)$current_user['id'] === (int)($um_arr['user_id'] ?? 0)
+                && !empty($um_arr['is_new'])) {
                 $messages_after_new++;
             }
         }
@@ -87,7 +76,8 @@ if (!empty($thread_messages_arr) && is_array($thread_messages_arr)) {
             ?>
             <div id="messages_before">
             <fieldset class="form-group more_messages_before">
-                <a href="javascript:void(0);" title="<?php echo $this->_pt('Load previous messages'); ?>" onclick="load_previous_messages()"> ... <?php
+                <a href="javascript:void(0);" title="<?php echo $this->_pt('Load previous messages'); ?>"
+                   onclick="load_previous_messages()"> ... <?php
                     if ($messages_before > 1) {
                         echo $this->_pt('%s messages', $messages_before);
                     } else {
@@ -96,7 +86,7 @@ if (!empty($thread_messages_arr) && is_array($thread_messages_arr)) {
 
             echo ', ';
 
-            if ($messages_before_new != 1) {
+            if ($messages_before_new !== 1) {
                 echo $this->_pt('%s new messages', $messages_before_new);
             } else {
                 echo $this->_pt('1 new message');
@@ -113,7 +103,8 @@ if (!empty($messages_after)) {
     ?>
             <div id="messages_after">
             <fieldset class="form-group more_messages_after">
-                <a href="javascript:void(0);" title="<?php echo $this->_pt('Load next messages'); ?>" onclick="load_next_messages()"> ... <?php
+                <a href="javascript:void(0);" title="<?php echo $this->_pt('Load next messages'); ?>"
+                   onclick="load_next_messages()"> ... <?php
             if ($messages_after > 1) {
                 echo $this->_pt('%s messages', $messages_after);
             } else {
@@ -122,7 +113,7 @@ if (!empty($messages_after)) {
 
     echo ', ';
 
-    if ($messages_after_new != 1) {
+    if ($messages_after_new !== 1) {
         echo $this->_pt('%s new messages', $messages_after_new);
     } else {
         echo $this->_pt('1 new message');
@@ -137,11 +128,12 @@ if (!empty($messages_after)) {
     </div>
 </form>
 <script type="text/javascript">
-var before_offset = 0;
-var after_offset = 0;
-function load_previous_messages()
+let before_offset = 0;
+let after_offset = 0;
+
+    function load_previous_messages()
 {
-    var html_obj = $("#messages_before");
+    const html_obj = $("#messages_before");
     if( !html_obj )
         return;
 
@@ -151,7 +143,7 @@ function load_previous_messages()
 }
 function load_next_messages()
 {
-    var html_obj = $("#messages_after");
+    const html_obj = $("#messages_after");
     if( !html_obj )
         return;
 
@@ -161,35 +153,35 @@ function load_next_messages()
 }
 function _load_messages( html_container, location, offset )
 {
-    var max_messages = 5;
-    var ajax_params = {
+    const max_messages = 5;
+    const ajax_params = {
         cache_response: false,
         method: 'post',
-        url_data: { muid: '<?php echo $muid; ?>', location: location, max_messages: max_messages, offset: offset },
+        url_data: {muid: '<?php echo $muid; ?>', location: location, max_messages: max_messages, offset: offset},
         data_type: 'json',
 
-        onsuccess: function( response, status, ajax_obj ) {
+        onsuccess: function (response, status, ajax_obj) {
             hide_submit_protection();
 
-            if( response )
-            {
-                if( location == "before" )
+            if (response) {
+                if (location === "before") {
                     before_offset += max_messages;
-                else if( location == "after" )
+                } else if (location === "after") {
                     after_offset += max_messages;
+                }
 
-                html_container.html( response );
+                html_container.html(response);
                 phs_refresh_input_skins();
             }
         },
 
-        onfailed: function( ajax_obj, status, error_exception ) {
+        onfailed: function (ajax_obj, status, error_exception) {
             hide_submit_protection();
 
-            PHS_JSEN.js_messages( [ "<?php echo $this->_pt('Error loading messages. Please retry.'); ?>" ], "error" );
+            PHS_JSEN.js_message_error(["<?php echo $this->_pt('Error loading messages. Please retry.'); ?>"]);
         }
     };
 
-    var ajax_obj = PHS_JSEN.do_ajax( "<?php echo PHS_Ajax::url(['p' => 'messages', 'a' => 'append_messages']); ?>", ajax_params );
+    const ajax_obj = PHS_JSEN.do_ajax("<?php echo PHS_Ajax::url(['p' => 'messages', 'a' => 'append_messages', ]); ?>", ajax_params);
 }
 </script>

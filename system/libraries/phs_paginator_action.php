@@ -440,7 +440,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         $action_result = $this->_paginator->generate_action_result($action);
 
         if (!($export_manager = PHS_Paginator_exporter_manager::get_instance())
-           || !$export_manager->download_export_file($this, PHS::current_user() ?: null)) {
+           || !$export_manager->download_export_file($this, PHS::user_logged_in() ?: null)) {
             $action_result['action_result'] = 'failed';
         } else {
             $action_result['action_result'] = 'success';
@@ -454,7 +454,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         $action_result = $this->_paginator->generate_action_result($action);
 
         if (!($export_manager = PHS_Paginator_exporter_manager::get_instance())
-           || !$export_manager->reset_export($this, PHS::current_user() ?: null)) {
+           || !$export_manager->reset_export($this, PHS::user_logged_in() ?: null)) {
             $action_result['action_result'] = 'failed';
         } else {
             $action_result['action_result'] = 'success';
@@ -468,7 +468,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         $action_result = $this->_paginator->generate_action_result($action);
 
         if (!($export_manager = PHS_Paginator_exporter_manager::get_instance())
-           || !$export_manager->cancel_export($this, PHS::current_user() ?: null)) {
+           || !$export_manager->cancel_export($this, PHS::user_logged_in() ?: null)) {
             $action_result['action_result'] = 'failed';
         } else {
             $action_result['action_result'] = 'success';
@@ -599,7 +599,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         $action_result['action_redirect_url_params']['extra_params'] = ['in_bg' => 1];
 
         if (!($export_manager = PHS_Paginator_exporter_manager::get_instance())
-           || !$export_manager->launch_export_action_in_background($this, $action['action'], $export_params, PHS::current_user() ?: null)) {
+           || !$export_manager->launch_export_action_in_background($this, $action['action'], $export_params, PHS::user_logged_in() ?: null)) {
             $action_result['action_result'] = 'failed';
         }
 

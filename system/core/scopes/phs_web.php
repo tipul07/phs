@@ -273,7 +273,7 @@ class PHS_Scope_Web extends PHS_Scope
     {
         /** @var PHS_Model_Accounts_tfa $tfa_model */
         return ($tfa_model = PHS_Model_Accounts_tfa::get_instance())
-               && PHS::current_user()
+               && PHS::user_logged_in()
                && ($session_data = PHS::current_user_session())
                && empty($session_data['auid'])
                && (!($tfa_arr = $tfa_model->get_tfa_for_current_account())

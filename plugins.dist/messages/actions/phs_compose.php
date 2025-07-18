@@ -29,10 +29,6 @@ class PHS_Action_Compose extends PHS_Action
             return action_request_login();
         }
 
-        /** @var PHS_Plugin_Messages $messages_plugin */
-        /** @var PHS_Model_Messages $messages_model */
-        /** @var PHS_Model_Accounts $accounts_model */
-        /** @var PHS_Model_Roles $roles_model */
         if (!($messages_plugin = PHS_Plugin_Messages::get_instance())
             || !($messages_model = PHS_Model_Messages::get_instance())
             || !($mu_flow_params = $messages_model->fetch_default_flow_params(['table_name' => 'messages_users']))
@@ -283,11 +279,10 @@ class PHS_Action_Compose extends PHS_Action
                 return action_redirect($redirect_path, ['mid' => $new_message['message']['id'], 'message_queued' => 1]);
             }
 
-            if ($messages_model->has_error()) {
-                PHS_Notifications::add_error_notice($messages_model->get_error_message());
-            } else {
-                PHS_Notifications::add_error_notice($this->_pt('Error sending message. Please try again.'));
-            }
+            PHS_Notifications::add_error_notice(
+                $messages_model->get_simple_error_message(
+                    $this->_pt('Error sending message. Please try again.'))
+            );
         }
 
         $data = [

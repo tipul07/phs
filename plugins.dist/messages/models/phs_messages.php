@@ -8,6 +8,7 @@ use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Line_params;
+use phs\libraries\PHS_Record_data;
 use phs\system\core\models\PHS_Model_Roles;
 use phs\plugins\messages\PHS_Plugin_Messages;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
@@ -66,9 +67,9 @@ class PHS_Model_Messages extends PHS_Model
         return 'messages_users';
     }
 
-    public function get_relative_account_message_handler($account_data, $current_user = false)
+    public function get_relative_account_message_handler(bool | null | int | array | PHS_Record_data $account_data, $current_user = false)
     {
-        if (empty($account_data)) {
+        if (!$account_data) {
             return $this->_pt('System');
         }
 
@@ -77,7 +78,7 @@ class PHS_Model_Messages extends PHS_Model
         }
 
         if (empty($current_user)
-         || !($current_user_arr = self::$_accounts_model->data_to_array($current_user))) {
+            || !($current_user_arr = self::$_accounts_model->data_to_array($current_user))) {
             return $this->get_account_message_handler($account_data);
         }
 
@@ -98,15 +99,13 @@ class PHS_Model_Messages extends PHS_Model
             return false;
         }
 
-        $messages_plugin = self::$_messages_plugin;
-
         if (empty($account_data)
          || !($account_details_arr = self::$_accounts_model->get_account_details($account_data))
-         || empty($account_details_arr[$messages_plugin::UD_COLUMN_MSG_HANDLER])) {
+         || empty($account_details_arr[self::$_messages_plugin::UD_COLUMN_MSG_HANDLER])) {
             return false;
         }
 
-        return $account_details_arr[$messages_plugin::UD_COLUMN_MSG_HANDLER];
+        return $account_details_arr[self::$_messages_plugin::UD_COLUMN_MSG_HANDLER];
     }
 
     public function get_new_messages_count($account_data) : int
@@ -193,10 +192,8 @@ class PHS_Model_Messages extends PHS_Model
 
         $hook_args = self::validate_array_recursive($hook_args, PHS_Hooks::default_messages_summary_hook_args());
 
-        $messages_plugin = self::$_messages_plugin;
-
         if (!($account_arr = self::$_accounts_model->data_to_array($account_data))
-         || !can($messages_plugin::ROLEU_READ_MESSAGE, null, $account_arr)
+         || !can(self::$_messages_plugin::ROLEU_READ_MESSAGE, null, $account_arr)
          || !($mu_table_name = $this->get_flow_table_name($mu_flow_params))
          || !($m_table_name = $this->get_flow_table_name($m_flow_params))) {
             return [];
@@ -328,38 +325,30 @@ class PHS_Model_Messages extends PHS_Model
         return $return_arr;
     }
 
-    public function populate_message_custom_settings($message_data)
+    public function populate_message_custom_settings(int | array | PHS_Record_data $message_data) : null | array | PHS_Record_data
     {
         if (!($msg_flow = $this->fetch_default_flow_params(['table_name' => 'messages']))
          || !($message_arr = $this->data_to_array($message_data, $msg_flow))) {
-            return false;
+            return null;
         }
 
         if (!isset($message_arr[self::CUSTOM_SETTINGS_KEY])) {
-            if (empty($message_arr['custom_settings'])) {
-                $custom_settings_arr = [];
-            } else {
-                $custom_settings_arr = PHS_Line_params::parse_string($message_arr['custom_settings']);
-            }
-
-            $message_arr[self::CUSTOM_SETTINGS_KEY] = $custom_settings_arr;
+            $message_arr[self::CUSTOM_SETTINGS_KEY] = empty($message_arr['custom_settings'])
+                ? []
+                : PHS_Line_params::parse_string($message_arr['custom_settings']);
         }
 
         return $message_arr;
     }
 
-    public function get_message_custom_settings($message_data, $key = false)
+    public function get_message_custom_settings(int | array | PHS_Record_data $message_data, ?string $key = null) : mixed
     {
         if (!($message_arr = $this->populate_message_custom_settings($message_data))) {
             return null;
         }
 
-        if ($key !== false) {
-            if (!isset($message_arr[self::CUSTOM_SETTINGS_KEY][$key])) {
-                return null;
-            }
-
-            return $message_arr[self::CUSTOM_SETTINGS_KEY][$key];
+        if ($key !== null) {
+            return $message_arr[self::CUSTOM_SETTINGS_KEY][$key] ?? null;
         }
 
         return $message_arr[self::CUSTOM_SETTINGS_KEY];
@@ -368,18 +357,14 @@ class PHS_Model_Messages extends PHS_Model
     /**
      * @param int|array $full_message_data
      * @param false|int|array $account_data
-     * @param false|array $params
+     * @param array $params
      *
      * @return false|array
      */
-    public function full_data_to_array($full_message_data, $account_data = false, $params = false)
+    public function full_data_to_array($full_message_data, $account_data = false, array $params = [])
     {
         if (!$this->load_dependencies()) {
             return false;
-        }
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
         }
 
         $params['ignore_user_message'] = !empty($params['ignore_user_message']);
@@ -423,15 +408,11 @@ class PHS_Model_Messages extends PHS_Model
 
         $return_arr['account_data'] = $account_arr;
 
-        if (empty($message_body)) {
-            $check_arr = [];
-            $check_arr['message_id'] = $message_arr['id'];
+        if (empty($message_body)
+            && !($message_body = $this->get_details_fields(['message_id' => $message_arr['id']], $msg_body_flow))) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t retrieve message body.'));
 
-            if (!($message_body = $this->get_details_fields($check_arr, $msg_body_flow))) {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t retrieve message body.'));
-
-                return false;
-            }
+            return false;
         }
 
         $return_arr['message_body'] = $message_body;
@@ -478,7 +459,7 @@ class PHS_Model_Messages extends PHS_Model
         }
 
         if (empty($full_message_arr['message_user'])
-         || !empty($full_message_arr['message_user']['is_author'])) {
+            || !empty($full_message_arr['message_user']['is_author'])) {
             return false;
         }
 
@@ -498,7 +479,7 @@ class PHS_Model_Messages extends PHS_Model
         $this->reset_error();
 
         if (empty($record_data)
-         || !($full_message_arr = $this->full_data_to_array($record_data, $account_data))) {
+            || !($full_message_arr = $this->full_data_to_array($record_data, $account_data))) {
             $this->reset_error();
 
             return false;
@@ -511,13 +492,7 @@ class PHS_Model_Messages extends PHS_Model
         return $full_message_arr;
     }
 
-    /**
-     * @param int|array $record_data
-     * @param bool|array $params
-     *
-     * @return false|array
-     */
-    public function can_reply($record_data, array $params = []) : bool
+    public function can_reply(null|int|array $record_data, array $params = []) : bool
     {
         if (!$this->load_dependencies()) {
             return false;
@@ -525,20 +500,18 @@ class PHS_Model_Messages extends PHS_Model
 
         $params['account_data'] ??= null;
 
-        $messages_plugin = self::$_messages_plugin;
-
         $account_arr = null;
         if (!empty($params['account_data'])
             && (!($account_arr = self::$_accounts_model->data_to_array($params['account_data']))
-                || !can($messages_plugin::ROLEU_REPLY_MESSAGE, null, $account_arr)
+                || !can(self::$_messages_plugin::ROLEU_REPLY_MESSAGE, null, $account_arr)
             )) {
             return false;
         }
 
         if (!($full_message_arr = $this->full_data_to_array($record_data, $account_arr))) {
             if (empty($account_arr)
-             || !can($messages_plugin::ROLEU_CAN_REPLY_TO_ALL, null, $account_arr)
-             || !($full_message_arr = $this->full_data_to_array($record_data, $account_arr, ['ignore_user_message' => true]))) {
+                || !can(self::$_messages_plugin::ROLEU_CAN_REPLY_TO_ALL, null, $account_arr)
+                || !($full_message_arr = $this->full_data_to_array($record_data, $account_arr, ['ignore_user_message' => true]))) {
                 $this->reset_error();
 
                 return false;
@@ -546,16 +519,17 @@ class PHS_Model_Messages extends PHS_Model
         }
 
         if (empty($full_message_arr)
-         || empty($full_message_arr['message']['from_uid'])
-         || empty($full_message_arr['message']['can_reply'])) {
+            || empty($full_message_arr['message']['from_uid'])
+            || empty($full_message_arr['message']['can_reply'])
+            || (!empty($account_arr) && (int)$full_message_arr['message']['from_uid'] === (int)$account_arr['id'])) {
             $this->reset_error();
 
             return false;
         }
 
         if (!empty($account_arr)
-         && !can($messages_plugin::ROLEU_CAN_REPLY_TO_ALL, null, $account_arr)
-         && !$this->account_is_destination($full_message_arr, $account_arr)) {
+            && !can(self::$_messages_plugin::ROLEU_CAN_REPLY_TO_ALL, null, $account_arr)
+            && !$this->account_is_destination($full_message_arr, $account_arr)) {
             $this->reset_error();
 
             return false;
@@ -583,14 +557,14 @@ class PHS_Model_Messages extends PHS_Model
         $account_arr = null;
         if (!empty($params['account_data'])
          && (!($account_arr = self::$_accounts_model->data_to_array($params['account_data']))
-                || !can($messages_plugin::ROLEU_FOLLOWUP_MESSAGE, null, $account_arr)
+                || !can(self::$_messages_plugin::ROLEU_FOLLOWUP_MESSAGE, null, $account_arr)
          )) {
             return false;
         }
 
         if (!($full_message_arr = $this->full_data_to_array($record_data, $account_arr))) {
             if (empty($account_arr)
-             || !can($messages_plugin::ROLEU_CAN_REPLY_TO_ALL, null, $account_arr)
+             || !can(self::$_messages_plugin::ROLEU_CAN_REPLY_TO_ALL, null, $account_arr)
              || !($full_message_arr = $this->full_data_to_array($record_data, $account_arr, ['ignore_user_message' => true]))) {
                 $this->reset_error();
 
@@ -606,7 +580,7 @@ class PHS_Model_Messages extends PHS_Model
         }
 
         if (!empty($account_arr)
-         && !can($messages_plugin::ROLEU_CAN_REPLY_TO_ALL, null, $account_arr)
+         && !can(self::$_messages_plugin::ROLEU_CAN_REPLY_TO_ALL, null, $account_arr)
          && !$this->account_is_author($full_message_arr, $account_arr)) {
             $this->reset_error();
 
@@ -1090,7 +1064,7 @@ class PHS_Model_Messages extends PHS_Model
         }
 
         $list_fields_arr = [];
-        $list_fields_arr[$messages_plugin::UD_COLUMN_MSG_HANDLER] = ['check' => 'IN', 'value' => '(\''.implode('\',\'', $sql_handlers_arr).'\')'];
+        $list_fields_arr[self::$_messages_plugin::UD_COLUMN_MSG_HANDLER] = ['check' => 'IN', 'value' => '(\''.implode('\',\'', $sql_handlers_arr).'\')'];
 
         $list_arr = [];
         $list_arr['fields'] = $list_fields_arr;
@@ -1106,12 +1080,12 @@ class PHS_Model_Messages extends PHS_Model
         $invalid_handlers_arr = $clean_handlers_arr;
         foreach ($ud_list_arr as $ud_id => $ud_arr) {
             if (empty($ud_arr['uid'])
-             || empty($ud_arr[$messages_plugin::UD_COLUMN_MSG_HANDLER])) {
+             || empty($ud_arr[self::$_messages_plugin::UD_COLUMN_MSG_HANDLER])) {
                 continue;
             }
 
-            $ids_arr[$ud_arr[$messages_plugin::UD_COLUMN_MSG_HANDLER]] = $ud_arr['uid'];
-            $ids_to_handler_arr[$ud_arr['uid']] = $ud_arr[$messages_plugin::UD_COLUMN_MSG_HANDLER];
+            $ids_arr[$ud_arr[self::$_messages_plugin::UD_COLUMN_MSG_HANDLER]] = $ud_arr['uid'];
+            $ids_to_handler_arr[$ud_arr['uid']] = $ud_arr[self::$_messages_plugin::UD_COLUMN_MSG_HANDLER];
         }
 
         $list_fields_arr = [];
@@ -1200,66 +1174,49 @@ class PHS_Model_Messages extends PHS_Model
         return PHS_Line_params::to_string($settings_arr);
     }
 
-    public function write_message($params)
+    public function write_message(array $params) : ?array
     {
         if (!$this->load_dependencies()) {
-            return false;
+            return null;
         }
 
-        $accounts_model = self::$_accounts_model;
-        $messages_plugin = self::$_messages_plugin;
         $roles_model = self::$_roles_model;
 
         if (!($m_flow_params = $this->fetch_default_flow_params(['table_name' => 'messages']))
          || !($mu_flow_params = $this->fetch_default_flow_params(['table_name' => 'messages_users']))
          || !($mb_flow_params = $this->fetch_default_flow_params(['table_name' => 'messages_body']))
-         || !($user_details_model = PHS::load_model('accounts_details', 'accounts'))
+         || !($user_details_model = PHS_Model_Accounts_details::get_instance())
          || !($users_details_flow_params = $user_details_model->fetch_default_flow_params(['table_name' => 'users_details']))
-         || !($users_flow_params = $accounts_model->fetch_default_flow_params(['table_name' => 'users']))) {
+         || !($users_flow_params = self::$_accounts_model->fetch_default_flow_params(['table_name' => 'users']))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error initiating parameters for message.'));
 
-            return false;
+            return null;
         }
 
-        if (empty($params) || !is_array($params)) {
+        if (!$params) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid parameters when saving message in database.'));
 
-            return false;
+            return null;
         }
 
         if (empty($params['subject'])) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Please provide a subject for this message.'));
 
-            return false;
+            return null;
         }
 
         if (empty($params['custom_settings']) || !is_array($params['custom_settings'])) {
             $params['custom_settings'] = [];
         }
 
-        if (empty($params['reply_message'])) {
-            $params['reply_message'] = false;
-        }
-        if (empty($params['followup_message'])) {
-            $params['followup_message'] = false;
-        }
+        $params['reply_message'] ??= null;
+        $params['followup_message'] ??= null;
+        $params['account_data'] ??= null;
+        $params['exclude_author'] = !isset($params['exclude_author']) || !empty($params['exclude_author']);
 
-        if (empty($params['account_data'])) {
-            $params['account_data'] = false;
-        }
-        if (!isset($params['exclude_author'])) {
-            $params['exclude_author'] = true;
-        }
-
-        if (empty($params['body'])) {
-            $params['body'] = '';
-        }
-        if (empty($params['type'])) {
-            $params['type'] = self::TYPE_NORMAL;
-        }
-        if (empty($params['type_id'])) {
-            $params['type_id'] = 0;
-        }
+        $params['body'] = ($params['body'] ?? '') ?: '';
+        $params['type'] = ($params['type'] ?? self::TYPE_NORMAL) ?: self::TYPE_NORMAL;
+        $params['type_id'] = (int)($params['type_id'] ?? 0);
 
         if (empty($params['bg_job_params']) || !is_array($params['bg_job_params'])) {
             $params['bg_job_params'] = [];
@@ -1267,7 +1224,7 @@ class PHS_Model_Messages extends PHS_Model
 
         if (empty($params['reply_message'])
          || !($reply_message = $this->full_data_to_array($params['reply_message']))) {
-            $reply_message = false;
+            $reply_message = null;
         }
 
         if (empty($params['followup_message'])
@@ -1275,52 +1232,52 @@ class PHS_Model_Messages extends PHS_Model
             $followup_message = false;
         }
 
-        $account_arr = false;
-        if (!empty($params['account_data'])
-         && !($account_arr = $accounts_model->data_to_array($params['account_data']))) {
+        $account_arr = null;
+        if ($params['account_data']
+         && !($account_arr = self::$_accounts_model->data_to_array($params['account_data']))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid account for message sender.'));
 
-            return false;
+            return null;
         }
 
         if (!empty($reply_message)
-         && ((!empty($account_arr) && !can($messages_plugin::ROLEU_REPLY_MESSAGE, null, $account_arr))
+         && (($account_arr && !can(self::$_messages_plugin::ROLEU_REPLY_MESSAGE, null, $account_arr))
                 || !$this->can_reply($reply_message, ['account_data' => $account_arr])
          )) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Unknown message or you don\'t have rights to reply to this messages.'));
 
-            return false;
+            return null;
         }
 
         if (!empty($followup_message)
-         && ((!empty($account_arr) && !can($messages_plugin::ROLEU_FOLLOWUP_MESSAGE, null, $account_arr))
+         && (($account_arr && !can(self::$_messages_plugin::ROLEU_FOLLOWUP_MESSAGE, null, $account_arr))
                 || !$this->can_followup($followup_message, ['account_data' => $account_arr])
          )) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Unknown message or you don\'t have rights to follow up this messages.'));
 
-            return false;
+            return null;
         }
 
         if (empty($reply_message)
          && empty($followup_message)
-         && !empty($account_arr)
-         && !can($messages_plugin::ROLEU_WRITE_MESSAGE, null, $account_arr)) {
+         && $account_arr
+         && !can(self::$_messages_plugin::ROLEU_WRITE_MESSAGE, null, $account_arr)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('You don\'t have rights to access this section.'));
 
-            return false;
+            return null;
         }
 
         if (empty($params['dest_type'])
             || !$this->valid_dest_type($params['dest_type'])) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid destination type.'));
 
-            return false;
+            return null;
         }
 
         if (!$this->valid_type($params['type'])) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid message type.'));
 
-            return false;
+            return null;
         }
 
         if (!($author_handle = $this->get_relative_account_message_handler($account_arr))) {
@@ -1331,61 +1288,40 @@ class PHS_Model_Messages extends PHS_Model
 
         $message_fields['subject'] = trim($params['subject']);
 
-        if (!empty($reply_message)) {
-            $message_fields['reply_id'] = $reply_message['message']['id'];
-        } else {
-            $message_fields['reply_id'] = 0;
-        }
-
-        if (!empty($followup_message)) {
-            $message_fields['followup_id'] = $followup_message['message']['id'];
-        } else {
-            $message_fields['followup_id'] = 0;
-        }
+        $message_fields['reply_id'] = (int)($reply_message['message']['id'] ?? 0);
+        $message_fields['followup_id'] = (int)($followup_message['message']['id'] ?? 0);
 
         $message_fields['thread_id'] = 0;  // will be updated with own id or reply thread id...
 
         $message_fields['dest_type'] = $params['dest_type'];
-        $message_fields['from_uid'] = (!empty($account_arr) ? $account_arr['id'] : 0);
+        $message_fields['from_uid'] = (int)($account_arr['id'] ?? 0);
         $message_fields['from_handle'] = $author_handle;
         $message_fields['type'] = $params['type'];
         $message_fields['type_id'] = $params['type_id'];
 
-        if (empty($params['sticky'])) {
-            $message_fields['sticky'] = 0;
-        } else {
-            $message_fields['sticky'] = (!empty($params['sticky']) ? 1 : 0);
-        }
-
-        if (empty($params['can_reply'])) {
-            $message_fields['can_reply'] = 0;
-        } else {
-            $message_fields['can_reply'] = (!empty($params['can_reply']) ? 1 : 0);
-        }
-
-        $accounts_count = 0;
+        $message_fields['sticky'] = (!empty($params['sticky']) ? 1 : 0);
+        $message_fields['can_reply'] = (!empty($params['can_reply']) ? 1 : 0);
 
         switch ($params['dest_type']) {
             case self::DEST_TYPE_USERS_IDS:
                 if (empty($params['dest_type_users_ids'])
-                 || !($users_parts = self::extract_integers_from_comma_separated($params['dest_type_users_ids']))) {
+                    || !($users_parts = self::extract_integers_from_comma_separated($params['dest_type_users_ids']))) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('Users ids list not provided for message destination.'));
 
-                    return false;
+                    return null;
                 }
 
                 $list_arr = $users_flow_params;
                 $list_arr['fields']['id'] = ['check' => 'IN', 'value' => '('.implode(',', $users_parts).')'];
-                $list_arr['fields']['status'] = ['check' => '!=', 'value' => $accounts_model::STATUS_DELETED];
-                if (!empty($account_arr)
-                 && !empty($params['exclude_author'])) {
+                $list_arr['fields']['status'] = ['check' => '=', 'value' => self::$_accounts_model::STATUS_ACTIVE];
+                if ($account_arr && $params['exclude_author']) {
                     $list_arr['fields']['id'] = ['check' => '!=', 'value' => $account_arr['id']];
                 }
 
-                if (!$accounts_model->get_count($list_arr)) {
+                if (!self::$_accounts_model->get_count($list_arr)) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('No users match destination you provided.'));
 
-                    return false;
+                    return null;
                 }
 
                 $message_fields['dest_str'] = implode(', ', $users_parts);
@@ -1393,10 +1329,10 @@ class PHS_Model_Messages extends PHS_Model
 
             case self::DEST_TYPE_USERS:
                 if (empty($params['dest_type_users'])
-                 || !($users_parts = self::extract_strings_from_comma_separated($params['dest_type_users']))) {
+                    || !($users_parts = self::extract_strings_from_comma_separated($params['dest_type_users']))) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('User list not provided for message destination.'));
 
-                    return false;
+                    return null;
                 }
 
                 $safe_strings_arr = [];
@@ -1406,16 +1342,15 @@ class PHS_Model_Messages extends PHS_Model
 
                 $list_arr = $users_flow_params;
                 $list_arr['fields']['nick'] = ['check' => 'IN', 'value' => '(\''.implode('\',\'', $safe_strings_arr).'\')'];
-                $list_arr['fields']['status'] = ['check' => '!=', 'value' => $accounts_model::STATUS_DELETED];
-                if (!empty($account_arr)
-                 && !empty($params['exclude_author'])) {
+                $list_arr['fields']['status'] = ['check' => '=', 'value' => self::$_accounts_model::STATUS_ACTIVE];
+                if ($account_arr && $params['exclude_author']) {
                     $list_arr['fields']['id'] = ['check' => '!=', 'value' => $account_arr['id']];
                 }
 
-                if (!($accounts_count = $accounts_model->get_count($list_arr))) {
+                if (!self::$_accounts_model->get_count($list_arr)) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('No users match destination you provided.'));
 
-                    return false;
+                    return null;
                 }
 
                 $message_fields['dest_str'] = implode(', ', $users_parts);
@@ -1423,10 +1358,10 @@ class PHS_Model_Messages extends PHS_Model
 
             case self::DEST_TYPE_HANDLERS:
                 if (empty($params['dest_type_handlers'])
-                 || !($handlers_parts = self::extract_strings_from_comma_separated($params['dest_type_handlers']))) {
+                    || !($handlers_parts = self::extract_strings_from_comma_separated($params['dest_type_handlers']))) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('User list not provided for message destination.'));
 
-                    return false;
+                    return null;
                 }
 
                 $safe_strings_arr = [];
@@ -1434,22 +1369,21 @@ class PHS_Model_Messages extends PHS_Model
                     $safe_strings_arr[] = prepare_data($user_handle);
                 }
 
-                $users_table = $accounts_model->get_flow_table_name($users_flow_params);
+                $users_table = self::$_accounts_model->get_flow_table_name($users_flow_params);
                 $users_details_table = $user_details_model->get_flow_table_name($users_details_flow_params);
 
                 $list_arr = $users_flow_params;
                 $list_arr['join_sql'] = ' LEFT JOIN `'.$users_details_table.'` ON `'.$users_table.'`.details_id = `'.$users_details_table.'`.id ';
-                $list_arr['fields']['`'.$users_table.'`.status'] = ['check' => '!=', 'value' => $accounts_model::STATUS_DELETED];
-                $list_arr['fields']['`'.$users_details_table.'`.'.$messages_plugin::UD_COLUMN_MSG_HANDLER] = ['check' => 'IN', 'value' => '(\''.implode('\',\'', $safe_strings_arr).'\')'];
-                if (!empty($account_arr)
-                 && !empty($params['exclude_author'])) {
+                $list_arr['fields']['`'.$users_table.'`.status'] = ['check' => '=', 'value' => self::$_accounts_model::STATUS_ACTIVE];
+                $list_arr['fields']['`'.$users_details_table.'`.'.self::$_messages_plugin::UD_COLUMN_MSG_HANDLER] = ['check' => 'IN', 'value' => '(\''.implode('\',\'', $safe_strings_arr).'\')'];
+                if ($account_arr && $params['exclude_author']) {
                     $list_arr['fields']['`'.$users_table.'`.id'] = ['check' => '!=', 'value' => $account_arr['id']];
                 }
 
-                if (!($accounts_count = $accounts_model->get_count($list_arr))) {
+                if (!self::$_accounts_model->get_count($list_arr)) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('No message handlers match destination you provided.'));
 
-                    return false;
+                    return null;
                 }
 
                 $message_fields['dest_str'] = implode(', ', $handlers_parts);
@@ -1457,24 +1391,24 @@ class PHS_Model_Messages extends PHS_Model
 
             case self::DEST_TYPE_LEVEL:
                 if (empty($params['dest_type_level'])
-                 || !$accounts_model->valid_level($params['dest_type_level'])) {
+                    || !self::$_accounts_model->valid_level($params['dest_type_level'])) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('User level not provided for message destination.'));
 
-                    return false;
+                    return null;
                 }
 
                 $list_arr = $users_flow_params;
                 $list_arr['fields']['level'] = $params['dest_type_level'];
-                $list_arr['fields']['status'] = ['check' => '!=', 'value' => $accounts_model::STATUS_DELETED];
+                $list_arr['fields']['status'] = ['check' => '=', 'value' => self::$_accounts_model::STATUS_ACTIVE];
                 if (!empty($account_arr)
                  && !empty($params['exclude_author'])) {
                     $list_arr['fields']['id'] = ['check' => '!=', 'value' => $account_arr['id']];
                 }
 
-                if (!($accounts_count = $accounts_model->get_count($list_arr))) {
+                if (!self::$_accounts_model->get_count($list_arr)) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('No users match destination you provided.'));
 
-                    return false;
+                    return null;
                 }
 
                 $message_fields['dest_id'] = $params['dest_type_level'];
@@ -1484,42 +1418,39 @@ class PHS_Model_Messages extends PHS_Model
                 if (empty($params['dest_type_role'])) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('Role not provided for message destination.'));
 
-                    return false;
+                    return null;
                 }
 
                 $roles_users_flow_params = $roles_model->fetch_default_flow_params(['table_name' => 'roles_users']);
                 $roles_flow_params = $roles_model->fetch_default_flow_params(['table_name' => 'roles']);
                 $roles_users_table = $roles_model->get_flow_table_name($roles_users_flow_params);
-                $users_table = $accounts_model->get_flow_table_name($users_flow_params);
+                $users_table = self::$_accounts_model->get_flow_table_name($users_flow_params);
 
-                $role_arr = false;
                 if (!is_numeric($params['dest_type_role'])
-                 || !($role_id = (int)$params['dest_type_role'])
-                 || !($role_arr = $roles_model->get_details($role_id, $roles_flow_params))) {
-                    $roles_fields_arr = [];
-                    $roles_fields_arr['slug'] = $params['dest_type_role'];
-                    $roles_fields_arr['status'] = $roles_model::STATUS_ACTIVE;
+                    || !($role_id = (int)$params['dest_type_role'])
+                    || !($role_arr = $roles_model->get_details($role_id, $roles_flow_params))) {
+                    $role_arr = $roles_model->get_role_by_slug($params['dest_type_role']);
+                }
 
-                    if (!($role_arr = $roles_model->get_details_fields($roles_fields_arr, $roles_flow_params))) {
-                        $this->set_error(self::ERR_PARAMETERS, $this->_pt('Role not found in database for message destination.'));
+                if (!$role_arr
+                    || !$roles_model->is_active($role_arr)) {
+                    $this->set_error(self::ERR_PARAMETERS, $this->_pt('Role not found in database for message destination.'));
 
-                        return false;
-                    }
+                    return null;
                 }
 
                 $list_arr = $users_flow_params;
                 $list_arr['join_sql'] = ' INNER JOIN `'.$roles_users_table.'` ON `'.$roles_users_table.'`.user_id = `'.$users_table.'`.id ';
                 $list_arr['fields']['`'.$roles_users_table.'`.role_id'] = $role_arr['id'];
-                $list_arr['fields']['`'.$users_table.'`.status'] = ['check' => '!=', 'value' => $accounts_model::STATUS_DELETED];
-                if (!empty($account_arr)
-                 && !empty($params['exclude_author'])) {
+                $list_arr['fields']['`'.$users_table.'`.status'] = ['check' => '=', 'value' => self::$_accounts_model::STATUS_ACTIVE];
+                if ($account_arr && $params['exclude_author']) {
                     $list_arr['fields']['`'.$users_table.'`.id'] = ['check' => '!=', 'value' => $account_arr['id']];
                 }
 
-                if (!($accounts_count = $accounts_model->get_count($list_arr))) {
+                if (!self::$_accounts_model->get_count($list_arr)) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('No users match destination you provided.'));
 
-                    return false;
+                    return null;
                 }
 
                 $message_fields['dest_id'] = $role_arr['id'];
@@ -1529,7 +1460,7 @@ class PHS_Model_Messages extends PHS_Model
                 if (empty($params['dest_type_role_unit'])) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('Role unit not provided for message destination.'));
 
-                    return false;
+                    return null;
                 }
 
                 $roles_users_flow_params = $roles_model->fetch_default_flow_params(['table_name' => 'roles_users']);
@@ -1537,37 +1468,39 @@ class PHS_Model_Messages extends PHS_Model
                 $roles_users_table = $roles_model->get_flow_table_name($roles_users_flow_params);
                 $roles_units_links_flow_params = $roles_model->fetch_default_flow_params(['table_name' => 'roles_units_links']);
                 $roles_units_links_table = $roles_model->get_flow_table_name($roles_units_links_flow_params);
-                $users_table = $accounts_model->get_flow_table_name($users_flow_params);
+                $users_table = self::$_accounts_model->get_flow_table_name($users_flow_params);
 
-                $role_unit_arr = false;
                 if (!is_numeric($params['dest_type_role_unit'])
                  || !($role_unit_id = (int)$params['dest_type_role_unit'])
                  || !($role_unit_arr = $roles_model->get_details($role_unit_id, $roles_units_flow_params))) {
-                    $roles_units_fields_arr = [];
-                    $roles_units_fields_arr['slug'] = $params['dest_type_role_unit'];
-                    $roles_units_fields_arr['status'] = $roles_model::STATUS_ACTIVE;
-
-                    if (!($role_unit_arr = $roles_model->get_details_fields($roles_units_fields_arr, $roles_units_flow_params))) {
+                    if (!($role_unit_arr = $roles_model->get_role_unit_by_slug($params['dest_type_role_unit']))) {
                         $this->set_error(self::ERR_PARAMETERS, $this->_pt('Role unit not found in database for message destination.'));
 
-                        return false;
+                        return null;
                     }
+                }
+
+                if (!$role_unit_arr
+                    || !$roles_model->is_active($role_unit_arr)) {
+                    $this->set_error(self::ERR_PARAMETERS, $this->_pt('Role unit not found in database for message destination.'));
+
+                    return null;
                 }
 
                 $list_arr = $users_flow_params;
                 $list_arr['join_sql'] = ' INNER JOIN `'.$roles_users_table.'` ON `'.$roles_users_table.'`.user_id = `'.$users_table.'`.id ';
                 $list_arr['fields']['`'.$roles_users_table.'`.role_id'] = ['check' => 'IN', 'value' => '(SELECT role_id FROM `'.$roles_units_links_table.'` WHERE `'.$roles_units_links_table.'`.role_unit_id = \''.$role_unit_arr['id'].'\')',
                 ];
-                $list_arr['fields']['`'.$users_table.'`.status'] = ['check' => '!=', 'value' => $accounts_model::STATUS_DELETED];
+                $list_arr['fields']['`'.$users_table.'`.status'] = ['check' => '=', 'value' => self::$_accounts_model::STATUS_ACTIVE];
                 if (!empty($account_arr)
                  && !empty($params['exclude_author'])) {
                     $list_arr['fields']['`'.$users_table.'`.id'] = ['check' => '!=', 'value' => $account_arr['id']];
                 }
 
-                if (!($accounts_count = $accounts_model->get_count($list_arr))) {
+                if (!self::$_accounts_model->get_count($list_arr)) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('No users match destination you provided.'));
 
-                    return false;
+                    return null;
                 }
 
                 $message_fields['dest_id'] = $role_unit_arr['id'];
@@ -1598,7 +1531,7 @@ class PHS_Model_Messages extends PHS_Model
         if (!($message_arr = $this->insert($m_insert))) {
             $this->set_error(self::ERR_INSERT, $this->_pt('Error saving message details to database.'));
 
-            return false;
+            return null;
         }
 
         $message_body_fields = [];
@@ -1613,7 +1546,7 @@ class PHS_Model_Messages extends PHS_Model
 
             $this->set_error(self::ERR_INSERT, $this->_pt('Error saving message body details to database.'));
 
-            return false;
+            return null;
         }
 
         if (!db_query('UPDATE `'.$this->get_flow_table_name($m_flow_params).'` '
@@ -1624,7 +1557,7 @@ class PHS_Model_Messages extends PHS_Model
 
             $this->set_error(self::ERR_INSERT, $this->_pt('Error updating message details to database.'));
 
-            return false;
+            return null;
         }
 
         $message_arr['body_id'] = $message_body_arr['id'];
@@ -1638,15 +1571,9 @@ class PHS_Model_Messages extends PHS_Model
             $this->hard_delete($message_arr, $m_flow_params);
             $this->hard_delete($message_body_arr, $mb_flow_params);
 
-            if (self::st_has_error()) {
-                $error_msg = self::st_get_error_message();
-            } else {
-                $error_msg = $this->_pt('Error completing message flow. Please try again.');
-            }
+            $this->copy_or_set_static_error(self::ERR_FUNCTIONALITY, $this->_pt('Error completing message flow. Please try again.'));
 
-            $this->set_error(self::ERR_FUNCTIONALITY, $error_msg);
-
-            return false;
+            return null;
         }
 
         return [
@@ -1671,8 +1598,6 @@ class PHS_Model_Messages extends PHS_Model
         $params['email_author'] = !isset($params['email_author']) || !empty($params['email_author']);
         $params['email_destination'] = !isset($params['email_destination']) || !empty($params['email_destination']);
 
-        $accounts_model = self::$_accounts_model;
-        $messages_plugin = self::$_messages_plugin;
         $roles_model = self::$_roles_model;
 
         if (!($settings_arr = $this->get_plugin_settings())) {
@@ -1691,7 +1616,7 @@ class PHS_Model_Messages extends PHS_Model
          || !($mb_flow_params = $this->fetch_default_flow_params(['table_name' => 'messages_body']))
          || !($user_details_model = PHS::load_model('accounts_details', 'accounts'))
          || !($users_details_flow_params = $user_details_model->fetch_default_flow_params(['table_name' => 'users_details']))
-         || !($users_flow_params = $accounts_model->fetch_default_flow_params(['table_name' => 'users']))) {
+         || !($users_flow_params = self::$_accounts_model->fetch_default_flow_params(['table_name' => 'users']))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error initiating parameters for message.'));
 
             return false;
@@ -1707,13 +1632,13 @@ class PHS_Model_Messages extends PHS_Model
 
         $author_arr = false;
         if (!empty($message_arr['from_uid'])
-         && !($author_arr = $accounts_model->get_details($message_arr['from_uid']))) {
+         && !($author_arr = self::$_accounts_model->get_details($message_arr['from_uid']))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Sender account details not found.'));
 
             return false;
         }
 
-        if (!($author_details_arr = $accounts_model->get_account_details($author_arr))) {
+        if (!($author_details_arr = self::$_accounts_model->get_account_details($author_arr))) {
             $author_details_arr = false;
         }
 
@@ -1734,7 +1659,7 @@ class PHS_Model_Messages extends PHS_Model
             return false;
         }
 
-        $reply_message = false;
+        $reply_message = null;
         if (!empty($message_arr['reply_id'])) {
             if (!($reply_message = $this->get_details($message_arr['reply_id'], $m_flow_params))) {
                 $this->hard_delete($message_arr, $m_flow_params);
@@ -1805,12 +1730,12 @@ class PHS_Model_Messages extends PHS_Model
                 $list_arr = $users_flow_params;
                 $list_arr['flags'] = ['include_account_details'];
                 $list_arr['fields']['id'] = ['check' => 'IN', 'value' => '('.implode(',', $users_parts).')'];
-                $list_arr['fields']['status'] = ['check' => '=', 'value' => $accounts_model::STATUS_ACTIVE];
+                $list_arr['fields']['status'] = ['check' => '=', 'value' => self::$_accounts_model::STATUS_ACTIVE];
                 if (!empty($author_arr)) {
                     $list_arr['fields']['id'] = ['check' => '!=', 'value' => $author_arr['id']];
                 }
 
-                if (!($accounts_list = $accounts_model->get_list($list_arr))) {
+                if (!($accounts_list = self::$_accounts_model->get_list($list_arr))) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('No users match destination you provided.'));
 
                     return false;
@@ -1833,12 +1758,12 @@ class PHS_Model_Messages extends PHS_Model
                 $list_arr = $users_flow_params;
                 $list_arr['flags'] = ['include_account_details'];
                 $list_arr['fields']['nick'] = ['check' => 'IN', 'value' => '(\''.implode('\',\'', $safe_strings_arr).'\')'];
-                $list_arr['fields']['status'] = ['check' => '=', 'value' => $accounts_model::STATUS_ACTIVE];
+                $list_arr['fields']['status'] = ['check' => '=', 'value' => self::$_accounts_model::STATUS_ACTIVE];
                 if (!empty($author_arr)) {
                     $list_arr['fields']['id'] = ['check' => '!=', 'value' => $author_arr['id']];
                 }
 
-                if (!($accounts_list = $accounts_model->get_list($list_arr))) {
+                if (!($accounts_list = self::$_accounts_model->get_list($list_arr))) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('No users match destination you provided.'));
 
                     return false;
@@ -1858,19 +1783,19 @@ class PHS_Model_Messages extends PHS_Model
                     $safe_strings_arr[] = prepare_data($user_handle);
                 }
 
-                $users_table = $accounts_model->get_flow_table_name($users_flow_params);
+                $users_table = self::$_accounts_model->get_flow_table_name($users_flow_params);
                 $users_details_table = $user_details_model->get_flow_table_name($users_details_flow_params);
 
                 $list_arr = $users_flow_params;
                 $list_arr['db_fields'] = '`'.$users_table.'`.*, `'.$users_details_table.'`.limit_emails AS users_details_limit_emails';
                 $list_arr['join_sql'] = ' LEFT JOIN `'.$users_details_table.'` ON `'.$users_table.'`.details_id = `'.$users_details_table.'`.id ';
-                $list_arr['fields']['`'.$users_table.'`.status'] = ['check' => '=', 'value' => $accounts_model::STATUS_ACTIVE];
-                $list_arr['fields']['`'.$users_details_table.'`.'.$messages_plugin::UD_COLUMN_MSG_HANDLER] = ['check' => 'IN', 'value' => '(\''.implode('\',\'', $safe_strings_arr).'\')'];
+                $list_arr['fields']['`'.$users_table.'`.status'] = ['check' => '=', 'value' => self::$_accounts_model::STATUS_ACTIVE];
+                $list_arr['fields']['`'.$users_details_table.'`.'.self::$_messages_plugin::UD_COLUMN_MSG_HANDLER] = ['check' => 'IN', 'value' => '(\''.implode('\',\'', $safe_strings_arr).'\')'];
                 if (!empty($author_arr)) {
                     $list_arr['fields']['`'.$users_table.'`.id'] = ['check' => '!=', 'value' => $author_arr['id']];
                 }
 
-                if (!($accounts_list = $accounts_model->get_list($list_arr))) {
+                if (!($accounts_list = self::$_accounts_model->get_list($list_arr))) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('No message handlers match destination you provided.'));
 
                     return false;
@@ -1879,7 +1804,7 @@ class PHS_Model_Messages extends PHS_Model
 
             case self::DEST_TYPE_LEVEL:
                 if (empty($message_arr['dest_id'])
-                 || !$accounts_model->valid_level($message_arr['dest_id'])) {
+                 || !self::$_accounts_model->valid_level($message_arr['dest_id'])) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('User level not provided for message destination.'));
 
                     return false;
@@ -1888,12 +1813,12 @@ class PHS_Model_Messages extends PHS_Model
                 $list_arr = $users_flow_params;
                 $list_arr['flags'] = ['include_account_details'];
                 $list_arr['fields']['level'] = $message_arr['dest_id'];
-                $list_arr['fields']['status'] = ['check' => '=', 'value' => $accounts_model::STATUS_ACTIVE];
+                $list_arr['fields']['status'] = ['check' => '=', 'value' => self::$_accounts_model::STATUS_ACTIVE];
                 if (!empty($author_arr)) {
                     $list_arr['fields']['id'] = ['check' => '!=', 'value' => $author_arr['id']];
                 }
 
-                if (!($accounts_list = $accounts_model->get_list($list_arr))) {
+                if (!($accounts_list = self::$_accounts_model->get_list($list_arr))) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('No users match destination you provided.'));
 
                     return false;
@@ -1909,18 +1834,18 @@ class PHS_Model_Messages extends PHS_Model
 
                 $roles_users_flow_params = $roles_model->fetch_default_flow_params(['table_name' => 'roles_users']);
                 $roles_users_table = $roles_model->get_flow_table_name($roles_users_flow_params);
-                $users_table = $accounts_model->get_flow_table_name($users_flow_params);
+                $users_table = self::$_accounts_model->get_flow_table_name($users_flow_params);
 
                 $list_arr = $users_flow_params;
                 $list_arr['flags'] = ['include_account_details'];
                 $list_arr['join_sql'] = ' INNER JOIN `'.$roles_users_table.'` ON `'.$roles_users_table.'`.user_id = `'.$users_table.'`.id ';
                 $list_arr['fields']['`'.$roles_users_table.'`.role_id'] = $message_arr['dest_id'];
-                $list_arr['fields']['`'.$users_table.'`.status'] = ['check' => '=', 'value' => $accounts_model::STATUS_ACTIVE];
+                $list_arr['fields']['`'.$users_table.'`.status'] = ['check' => '=', 'value' => self::$_accounts_model::STATUS_ACTIVE];
                 if (!empty($author_arr)) {
                     $list_arr['fields']['`'.$users_table.'`.id'] = ['check' => '!=', 'value' => $author_arr['id']];
                 }
 
-                if (!($accounts_list = $accounts_model->get_list($list_arr))) {
+                if (!($accounts_list = self::$_accounts_model->get_list($list_arr))) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('No users match destination you provided.'));
 
                     return false;
@@ -1938,19 +1863,19 @@ class PHS_Model_Messages extends PHS_Model
                 $roles_users_table = $roles_model->get_flow_table_name($roles_users_flow_params);
                 $roles_units_links_flow_params = $roles_model->fetch_default_flow_params(['table_name' => 'roles_units_links']);
                 $roles_units_links_table = $roles_model->get_flow_table_name($roles_units_links_flow_params);
-                $users_table = $accounts_model->get_flow_table_name($users_flow_params);
+                $users_table = self::$_accounts_model->get_flow_table_name($users_flow_params);
 
                 $list_arr = $users_flow_params;
                 $list_arr['flags'] = ['include_account_details'];
                 $list_arr['join_sql'] = ' INNER JOIN `'.$roles_users_table.'` ON `'.$roles_users_table.'`.user_id = `'.$users_table.'`.id ';
                 $list_arr['fields']['`'.$roles_users_table.'`.role_id'] = ['check' => 'IN', 'value' => '(SELECT role_id FROM `'.$roles_units_links_table.'` WHERE `'.$roles_units_links_table.'`.role_unit_id = \''.$message_arr['dest_id'].'\')',
                 ];
-                $list_arr['fields']['`'.$users_table.'`.status'] = ['check' => '=', 'value' => $accounts_model::STATUS_ACTIVE];
+                $list_arr['fields']['`'.$users_table.'`.status'] = ['check' => '=', 'value' => self::$_accounts_model::STATUS_ACTIVE];
                 if (!empty($author_arr)) {
                     $list_arr['fields']['`'.$users_table.'`.id'] = ['check' => '!=', 'value' => $author_arr['id']];
                 }
 
-                if (!($accounts_list = $accounts_model->get_list($list_arr))) {
+                if (!($accounts_list = self::$_accounts_model->get_list($list_arr))) {
                     $this->set_error(self::ERR_PARAMETERS, $this->_pt('No users match destination you provided.'));
 
                     return false;
@@ -1990,7 +1915,7 @@ class PHS_Model_Messages extends PHS_Model
                  && (empty($author_details_arr) || empty($author_details_arr['limit_emails']))) {
                     // send confirmation email...
                     $hook_args = [];
-                    $hook_args['template'] = $messages_plugin->email_template_resource_from_file('message_author');
+                    $hook_args['template'] = self::$_messages_plugin->email_template_resource_from_file('message_author');
                     $hook_args['to'] = $author_arr['email'];
                     $hook_args['to_name'] = $author_arr['nick'];
                     $hook_args['subject'] = $this->_pt('Internal message sent').': '.$message_arr['subject'];
@@ -2057,7 +1982,7 @@ class PHS_Model_Messages extends PHS_Model
                  && empty($account_arr['users_details_limit_emails'])) {
                     // send confirmation email...
                     $hook_args = [];
-                    $hook_args['template'] = $messages_plugin->email_template_resource_from_file('message_destination');
+                    $hook_args['template'] = self::$_messages_plugin->email_template_resource_from_file('message_destination');
                     $hook_args['to'] = $account_arr['email'];
                     $hook_args['to_name'] = $account_arr['nick'];
                     $hook_args['subject'] = $this->_pt('New internal message').': '.$message_arr['subject'];

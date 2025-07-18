@@ -3,10 +3,13 @@ namespace phs\plugins\messages\actions;
 
 use phs\PHS;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\system\core\models\PHS_Model_Roles;
+use phs\plugins\messages\PHS_Plugin_Messages;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\messages\models\PHS_Model_Messages;
 
 class PHS_Action_Append_messages extends PHS_Action
 {
@@ -23,9 +26,13 @@ class PHS_Action_Append_messages extends PHS_Action
             return action_request_login();
         }
 
-        /** @var \phs\plugins\messages\PHS_Plugin_Messages $messages_plugin */
-        if (!($messages_plugin = $this->get_plugin_instance())) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load messages plugin.'));
+        if (!($messages_plugin = PHS_Plugin_Messages::get_instance())
+            || !($messages_model = PHS_Model_Messages::get_instance())
+            || !($mu_flow_params = $messages_model->fetch_default_flow_params(['table_name' => 'messages_users']))
+            || !($accounts_model = PHS_Model_Accounts::get_instance())
+            || !($roles_model = PHS_Model_Roles::get_instance())
+        ) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
@@ -36,56 +43,33 @@ class PHS_Action_Append_messages extends PHS_Action
             return self::default_action_result();
         }
 
-        /** @var \phs\plugins\messages\models\PHS_Model_Messages $messages_model */
-        if (!($messages_model = PHS::load_model('messages', 'messages'))
-         || !($mu_flow_params = $messages_model->fetch_default_flow_params(['table_name' => 'messages_users']))) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load messages model.'));
-
-            return self::default_action_result();
-        }
-
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        if (!($accounts_model = PHS::load_model('accounts', 'accounts'))) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts model.'));
-
-            return self::default_action_result();
-        }
-
-        /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
-        if (!($roles_model = PHS::load_model('roles'))) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load roles model.'));
-
-            return self::default_action_result();
-        }
-
         $muid = PHS_Params::_p('muid', PHS_Params::T_INT);
         $max_messages = PHS_Params::_p('max_messages', PHS_Params::T_INT);
         $offset = PHS_Params::_p('offset', PHS_Params::T_INT);
-        $location = PHS_Params::_p('location', PHS_Params::T_NOHTML);
+        $location = PHS_Params::_p('location', PHS_Params::T_NOHTML) ?: '';
 
-        if (empty($location)
-         || !in_array($location, ['before', 'after',  ])) {
+        if (!$location
+            || !in_array($location, ['before', 'after'], true)) {
             $location = 'after';
         }
 
         if (empty($max_messages)) {
             $max_messages = 5;
-        } elseif ($max_messages == -1) {
+        } elseif ($max_messages === -1) {
             $max_messages = 99999999;
         }
 
-        if (empty($muid)
-         || !($user_message = $messages_model->get_details($muid, $mu_flow_params))
-         || empty($user_message['message_id'])) {
+        if (!$muid
+            || !($user_message = $messages_model->get_details($muid, $mu_flow_params))
+            || empty($user_message['message_id'])) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load message details.'));
 
-            // return action_redirect( [ 'p' => 'messages', 'a' => 'inbox' ], ['unknown_message' => 1] );
             return self::default_action_result();
         }
 
         if (!($message_arr = $messages_model->full_data_to_array($user_message['message_id'], $current_user))) {
             if (!can($messages_plugin::ROLEU_VIEW_ALL_MESSAGES)
-             || !($message_arr = $messages_model->full_data_to_array($user_message['message_id'], $current_user, ['ignore_user_message' => true]))) {
+                || !($message_arr = $messages_model->full_data_to_array($user_message['message_id'], $current_user, ['ignore_user_message' => true]))) {
                 PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load message details.'));
 
                 return action_redirect(['p' => 'messages', 'a' => 'inbox'], ['unknown_message' => 1]);
@@ -97,7 +81,7 @@ class PHS_Action_Append_messages extends PHS_Action
         }
 
         if (empty($message_arr['message']['thread_id'])
-         || !($thread_messages_arr = $messages_model->get_thread_messages_flow($message_arr['message']['thread_id'], $current_user['id']))) {
+            || !($thread_messages_arr = $messages_model->get_thread_messages_flow($message_arr['message']['thread_id'], $current_user['id']))) {
             $thread_messages_arr = [];
         }
 
@@ -107,19 +91,17 @@ class PHS_Action_Append_messages extends PHS_Action
         if (!empty($thread_messages_arr) && is_array($thread_messages_arr)) {
             $we_are_before = true;
             foreach ($thread_messages_arr as $um_id => $um_arr) {
-                if ($message_arr['message']['id'] == $um_arr['message_id']) {
+                if ((int)($message_arr['message']['id'] ?? 0) === (int)($um_arr['message_id'] ?? 0)) {
                     $we_are_before = false;
                     continue;
                 }
 
                 if ($we_are_before) {
-                    if ($location == 'before') {
+                    if ($location === 'before') {
                         $ids_to_render[] = $um_arr['message_id'];
                     }
-                } else {
-                    if ($location == 'after') {
-                        $ids_to_render[] = $um_arr['message_id'];
-                    }
+                } elseif ($location === 'after') {
+                    $ids_to_render[] = $um_arr['message_id'];
                 }
             }
         }
@@ -127,15 +109,9 @@ class PHS_Action_Append_messages extends PHS_Action
         if (empty($ids_to_render) || !is_array($ids_to_render)) {
             $buffer = $this->_pt('No more messages...');
         } else {
-            if (!($user_levels = $accounts_model->get_levels_as_key_val())) {
-                $user_levels = [];
-            }
-            if (!($roles_arr = $roles_model->get_all_roles())) {
-                $roles_arr = [];
-            }
-            if (!($roles_units_arr = $roles_model->get_all_role_units())) {
-                $roles_units_arr = [];
-            }
+            $user_levels = $accounts_model->get_levels_as_key_val() ?: [];
+            $roles_arr = $roles_model->get_all_roles() ?: [];
+            $roles_units_arr = $roles_model->get_all_role_units() ?: [];
 
             $buffer = '';
             foreach ($ids_to_render as $render_message_id) {
@@ -143,14 +119,9 @@ class PHS_Action_Append_messages extends PHS_Action
                     continue;
                 }
 
-                if (!($author_handle = $messages_model->get_relative_account_message_handler($message_arr['message']['from_uid'], $current_user))) {
-                    $author_handle = '['.$this->_pt('Unknown author').']';
-                }
-
                 $data = [
-                    'muid'          => $muid,
-                    'message_arr'   => $message_arr,
-                    'author_handle' => $author_handle,
+                    'muid'        => $muid,
+                    'message_arr' => $message_arr,
 
                     'thread_messages_arr' => $thread_messages_arr,
 
@@ -165,7 +136,7 @@ class PHS_Action_Append_messages extends PHS_Action
                 ];
 
                 if (!($action_result = $this->quick_render_template('view_single_message', $data))
-                 || empty($action_result['buffer'])) {
+                    || empty($action_result['buffer'])) {
                     PHS_Notifications::add_error_notice($this->_pt('Error rendering messages. Please retry.'));
 
                     return self::default_action_result();

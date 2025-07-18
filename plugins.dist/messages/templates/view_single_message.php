@@ -18,29 +18,14 @@ if (!($messages_model = $this->view_var('messages_model'))
     return $this->_pt('Couldn\'t initialize required parameters for current view.');
 }
 
-if (!($user_levels = $this->view_var('user_levels'))) {
-    $user_levels = [];
-}
-if (!($roles_arr = $this->view_var('roles_arr'))) {
-    $roles_arr = [];
-}
-if (!($roles_units_arr = $this->view_var('roles_units_arr'))) {
-    $roles_units_arr = [];
-}
-if (!($author_handle = $this->view_var('author_handle'))) {
-    $author_handle = $this->_pt('N/A');
-}
+$user_levels = $this->view_var('user_levels') ?: [];
+$roles_arr = $this->view_var('roles_arr') ?: [];
+$roles_units_arr = $this->view_var('roles_units_arr') ?: [];
 
 $current_user = PHS::user_logged_in();
 
-$can_reply_messages = false;
-$can_followup_messages = false;
-if (can($messages_plugin::ROLEU_REPLY_MESSAGE)) {
-    $can_reply_messages = true;
-}
-if (can($messages_plugin::ROLEU_FOLLOWUP_MESSAGE)) {
-    $can_followup_messages = true;
-}
+$can_reply_messages = can($messages_plugin::ROLEU_REPLY_MESSAGE);
+$can_followup_messages = can($messages_plugin::ROLEU_FOLLOWUP_MESSAGE);
 
 if (!empty($message_arr['message_user'])
 && !empty($message_arr['message_user']['is_new'])
@@ -57,8 +42,11 @@ if (!empty($message_arr['message_user'])
         $destination_str = '['.$this->_pt('Unknown destination').']';
     }
 
-if (!empty($message_arr['message_user'])
-&& !empty($message_arr['message_user']['user_id'])
+if (!($author_handle = $messages_model->get_relative_account_message_handler($message_arr['message']['from_uid'], $current_user))) {
+    $author_handle = '['.$this->_pt('Unknown author').']';
+}
+
+if (!empty($message_arr['message_user']['user_id'])
 && (int)$message_arr['message_user']['user_id'] === (int)($current_user['id'] ?? 0)
 && empty($message_arr['message_user']['is_author'])) {
     $destination_str = $this->_pt('You (%s)', $destination_str);
@@ -79,15 +67,8 @@ if (!empty($message_arr['message_user'])
 		<?php
     $msg_actions_arr = [];
 
-// $msg_actions_arr['{ACTION_KEY}'] = array(
-//     'extra_classes' => 'any classes to be added to a tag',
-//     'action_link' => '',
-//     'action_icon' => '',
-//     'action_label' => '',
-// );
-
 if ($can_reply_messages
-&& $messages_model->can_reply($message_arr, ['account_data' => $current_user])) {
+    && $messages_model->can_reply($message_arr, ['account_data' => $current_user])) {
     $msg_actions_arr['msg_reply'] = [
         'extra_classes' => '',
         'action_link'   => PHS::url(['p' => 'messages', 'a' => 'compose'], ['reply_to_muid' => $message_arr['message_user']['id'], 'reply_to_all' => 0]),
@@ -103,7 +84,7 @@ if ($can_reply_messages
 }
 
 if ($can_followup_messages
-&& $messages_model->can_followup($message_arr, ['account_data' => $current_user])) {
+    && $messages_model->can_followup($message_arr, ['account_data' => $current_user])) {
     $msg_actions_arr['msg_followup'] = [
         'extra_classes' => '',
         'action_link'   => PHS::url(['p' => 'messages', 'a' => 'compose'], ['follow_up_muid' => $message_arr['message_user']['id']]),
