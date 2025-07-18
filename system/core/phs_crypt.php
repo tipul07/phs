@@ -54,63 +54,20 @@ class PHS_Crypt extends PHS_Language
         return true;
     }
 
-    /**
-     * @param string $str
-     * @param false|array $params
-     *
-     * @return false|string
-     */
-    public static function quick_encode($str, $params = false)
+    public static function quick_encode($str, array $params = []) : ?string
     {
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if (!isset($params['use_base64'])) {
-            $params['use_base64'] = true;
-        }
-        if (empty($params['crypting_key']) || !is_string($params['crypting_key'])) {
-            $params['crypting_key'] = self::crypting_key();
-        }
-        if (empty($params['internal_keys']) || !is_array($params['internal_keys'])) {
-            $params['internal_keys'] = self::get_internal_keys();
-        }
-
-        $enc_dec = new PHS_Encdec($params['crypting_key'], !empty($params['use_base64']), $params['internal_keys']);
-
-        if ($enc_dec->has_error()) {
-            return false;
+        if (!($enc_dec = self::_create_encdec_instance($params))) {
+            return null;
         }
 
         return $enc_dec->encrypt($str);
     }
 
-    /**
-     * @param string $str
-     * @param false|array $params
-     *
-     * @return false|string
-     */
-    public static function quick_decode($str, $params = false)
+    public static function quick_decode($str, array $params = []) : ?string
     {
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if (!isset($params['use_base64'])) {
-            $params['use_base64'] = true;
-        }
-        if (empty($params['crypting_key']) || !is_string($params['crypting_key'])) {
-            $params['crypting_key'] = self::crypting_key();
-        }
-        if (empty($params['internal_keys']) || !is_array($params['internal_keys'])) {
-            $params['internal_keys'] = self::get_internal_keys();
-        }
-
-        $enc_dec = new PHS_Encdec($params['crypting_key'], !empty($params['use_base64']), $params['internal_keys']);
-
-        if ($enc_dec->has_error()) {
-            return false;
+        if (!is_string($str)
+           || !($enc_dec = self::_create_encdec_instance($params))) {
+            return null;
         }
 
         return $enc_dec->decrypt($str);
@@ -224,12 +181,6 @@ class PHS_Crypt extends PHS_Language
         return $return_arr;
     }
 
-    /**
-     * @param int $len
-     * @param null|array $params
-     *
-     * @return string
-     */
     public static function generate_random_string(int $len = 128, ?array $params = null) : string
     {
         if (empty($params)) {
@@ -326,5 +277,25 @@ class PHS_Crypt extends PHS_Language
         }
 
         return $ret;
+    }
+
+    private static function _create_encdec_instance(array $params = []) : ?PHS_Encdec
+    {
+        $params['use_base64'] = !isset($params['use_base64']) || !empty($params['use_base64']);
+
+        if (empty($params['crypting_key']) || !is_string($params['crypting_key'])) {
+            $params['crypting_key'] = self::crypting_key();
+        }
+        if (empty($params['internal_keys']) || !is_array($params['internal_keys'])) {
+            $params['internal_keys'] = self::get_internal_keys();
+        }
+
+        $enc_dec = new PHS_Encdec($params['crypting_key'], !empty($params['use_base64']), $params['internal_keys']);
+
+        if ($enc_dec->has_error()) {
+            return null;
+        }
+
+        return $enc_dec;
     }
 }

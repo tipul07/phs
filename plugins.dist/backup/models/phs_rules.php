@@ -1254,7 +1254,7 @@ class PHS_Model_Rules extends PHS_Model
             }
 
             if (!empty($rule_arr['{ftp_settings}']['pass'])
-             && false === ($rule_arr['{ftp_settings}']['pass'] = PHS_Crypt::quick_decode($rule_arr['{ftp_settings}']['pass']))) {
+             && !($rule_arr['{ftp_settings}']['pass'] = PHS_Crypt::quick_decode($rule_arr['{ftp_settings}']['pass']))) {
                 $this->set_error(self::ERR_PARAMETERS, self::_t('Error obtaining FTP credentials.'));
 
                 return false;
@@ -1731,7 +1731,7 @@ class PHS_Model_Rules extends PHS_Model
                         $params['fields']['ftp_settings']['pass'] = '';
                     }
 
-                    if (false === ($encoded_pass = PHS_Crypt::quick_encode($params['fields']['ftp_settings']['pass']))) {
+                    if (null === ($encoded_pass = PHS_Crypt::quick_encode($params['fields']['ftp_settings']['pass']))) {
                         $this->set_error(self::ERR_INSERT, $this->_pt('Error encoding FTP credentials. Please try again.'));
 
                         return false;
@@ -1923,7 +1923,7 @@ class PHS_Model_Rules extends PHS_Model
                             $params['fields']['ftp_settings']['pass'] = '';
                         }
 
-                        if (false === ($encoded_pass = PHS_Crypt::quick_encode($params['fields']['ftp_settings']['pass']))) {
+                        if (null === ($encoded_pass = PHS_Crypt::quick_encode($params['fields']['ftp_settings']['pass']))) {
                             $this->set_error(self::ERR_EDIT, $this->_pt('Error encoding FTP credentials. Please try again.'));
 
                             return false;

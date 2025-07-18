@@ -33,7 +33,7 @@ trait PHS_Model_Trait_statuses
     {
         static $statuses_key_val_arr = null;
 
-        if (empty($lang)
+        if (!$lang
             && $statuses_key_val_arr !== null) {
             return $statuses_key_val_arr;
         }
@@ -49,7 +49,7 @@ trait PHS_Model_Trait_statuses
             }
         }
 
-        if (empty($lang)) {
+        if (!$lang) {
             $statuses_key_val_arr = $key_val_arr;
         }
 

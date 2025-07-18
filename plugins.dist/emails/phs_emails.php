@@ -138,7 +138,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
                 }
             }
 
-            if (false === ($encoded_pass = PHS_Crypt::quick_encode($route_arr['smtp_pass']))) {
+            if (null === ($encoded_pass = PHS_Crypt::quick_encode($route_arr['smtp_pass']))) {
                 return null;
             }
 
@@ -562,7 +562,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $predefined_headers['X-Script-Time'] = time();
 
         if (empty($params['skip_mail_authentication'])
-            && false !== ($mail_id = PHS_Crypt::quick_encode(self::mail_auth_key().':'.time()))) {
+            && null !== ($mail_id = PHS_Crypt::quick_encode(self::mail_auth_key().':'.time()))) {
             // for single emails it's ok, but when sending multiple emails it might take too much time
             $predefined_headers['X-Mail-ID'] = $mail_id;
         } else {
@@ -698,7 +698,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         }
 
         if (!empty($smtp_settings['smtp_pass'])
-            && false === ($smtp_settings['smtp_pass'] = PHS_Crypt::quick_decode($smtp_settings['smtp_pass']))) {
+            && !($smtp_settings['smtp_pass'] = PHS_Crypt::quick_decode($smtp_settings['smtp_pass']))) {
             $this->set_error(self::ERR_SEND, $this->_pt('Error obtaining SMTP credentials.'));
 
             $hook_args['hook_errors'] = $this->get_error();

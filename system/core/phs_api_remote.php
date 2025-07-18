@@ -285,8 +285,8 @@ class PHS_Api_remote extends PHS_Api_base
         }
 
         if (!($message_str = self::$_domains_model->quick_decode($domain_arr, $root_json_arr['msg']))
-         || !($message_arr = @json_decode($message_str, true))
-         || !($message_arr = self::$_domains_model->validate_communication_message($message_arr))) {
+            || !($message_arr = @json_decode($message_str, true))
+            || !($message_arr = self::$_domains_model->validate_communication_message($message_arr))) {
             PHS_Logger::error('Error decoding message (#'.$domain_arr['id'].').'
                               .(self::$_domains_model->has_error() ? ' Error: '.self::$_domains_model->get_simple_error_message() : ''), PHS_Logger::TYPE_REMOTE);
 

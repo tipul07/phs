@@ -8,6 +8,7 @@ use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
+use phs\libraries\PHS_Record_data;
 use phs\traits\PHS_Model_Trait_statuses;
 use phs\plugins\remote_phs\PHS_Plugin_Remote_phs;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
@@ -681,21 +682,22 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         ];
     }
 
-    public function validate_communication_message($msg)
+    public function validate_communication_message(array $msg) : ?array
     {
         $this->reset_error();
 
-        if (empty($msg) || !is_array($msg)) {
+        if (!$msg) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid communication message.'));
 
-            return false;
+            return null;
         }
 
         if (!($msg = self::validate_array($msg, $this->get_default_communication_message_arr()))
-         || empty($msg['route']) || !is_array($msg['route'])) {
+            || empty($msg['route'])
+            || !is_array($msg['route'])) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('No action provided in communication message.'));
 
-            return false;
+            return null;
         }
 
         return $msg;
@@ -728,15 +730,15 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         return PHS_Crypt::quick_encode(@json_encode($settings_arr));
     }
 
-    public function decode_connection_settings($domain_data)
+    public function decode_connection_settings(int | array | PHS_Record_data $domain_data) : ?array
     {
         $this->reset_error();
 
-        if (empty($domain_data)
-         || !($domain_arr = $this->data_to_array($domain_data, ['table_name' => 'phs_remote_domains']))) {
+        if (!$domain_data
+            || !($domain_arr = $this->data_to_array($domain_data, ['table_name' => 'phs_remote_domains']))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Remote domain details not found in database.'));
 
-            return false;
+            return null;
         }
 
         $defaults_arr = $this->get_default_connection_settings_arr();
@@ -746,11 +748,11 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         }
 
         if (!($settings_str = PHS_Crypt::quick_decode($domain_arr['connection_settings']))
-         || null === ($settings_arr = @json_decode($settings_str, true))
-         || !is_array($settings_arr)) {
+            || null === ($settings_arr = @json_decode($settings_str, true))
+            || !is_array($settings_arr)) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error decoding remote domain settings.'));
 
-            return false;
+            return null;
         }
 
         $new_settings_arr = [];
@@ -765,13 +767,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         return $new_settings_arr;
     }
 
-    /**
-     * @param int|array $domain_data
-     * @param string $str
-     *
-     * @return false|string
-     */
-    public function quick_encode($domain_data, $str)
+    public function quick_encode(int | array | PHS_Record_data $domain_data, string $str)
     {
         $this->reset_error();
 
@@ -796,7 +792,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         $crypt_params['crypting_key'] = $settings_arr['crypt_key'];
         $crypt_params['internal_keys'] = $settings_arr['crypt_internal_keys'];
 
-        if (false === ($encoded_data = PHS_Crypt::quick_encode($str, $crypt_params))) {
+        if (null === ($encoded_data = PHS_Crypt::quick_encode($str, $crypt_params))) {
             $this->set_error(self::ERR_RESOURCES, $this->_pt('Error encoding remote domain data.'));
 
             return false;
@@ -805,30 +801,24 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         return $encoded_data;
     }
 
-    /**
-     * @param int|array $domain_data
-     * @param string $str
-     *
-     * @return false|string
-     */
-    public function quick_decode($domain_data, $str)
+    public function quick_decode(int | array | PHS_Record_data $domain_data, string $str) : ?string
     {
         $this->reset_error();
 
-        if (empty($domain_data)
-         || !($domain_arr = $this->data_to_array($domain_data, ['table_name' => 'phs_remote_domains']))) {
+        if (!$domain_data
+            || !($domain_arr = $this->data_to_array($domain_data, ['table_name' => 'phs_remote_domains']))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Remote domain details not found in database.'));
 
-            return false;
+            return null;
         }
 
         if (!($settings_arr = $this->decode_connection_settings($domain_arr))
-         || !is_array($settings_arr)
-         || empty($settings_arr['crypt_key'])
-         || empty($settings_arr['crypt_internal_keys']) || !is_array($settings_arr['crypt_internal_keys'])) {
+            || empty($settings_arr['crypt_key'])
+            || empty($settings_arr['crypt_internal_keys'])
+            || !is_array($settings_arr['crypt_internal_keys'])) {
             $this->set_error(self::ERR_RESOURCES, $this->_pt('Invalid remote domain connection settings.'));
 
-            return false;
+            return null;
         }
 
         $crypt_params = [];
@@ -836,76 +826,59 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         $crypt_params['crypting_key'] = $settings_arr['crypt_key'];
         $crypt_params['internal_keys'] = $settings_arr['crypt_internal_keys'];
 
-        if (false === ($decoded_data = PHS_Crypt::quick_decode($str, $crypt_params))) {
+        if (null === ($decoded_data = PHS_Crypt::quick_decode($str, $crypt_params))) {
             $this->set_error(self::ERR_RESOURCES, $this->_pt('Error decoding remote domain data.'));
 
-            return false;
+            return null;
         }
 
         return $decoded_data;
     }
 
-    /**
-     * @param string $domain_handler
-     *
-     * @return array|false
-     */
-    public function get_domain_by_handler($domain_handler)
+    public function get_domain_by_handler(string $domain_handler) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
-        if (empty($domain_handler)
-         || !($domain_arr = $this->get_details_fields(['handle' => $domain_handler], ['table_name' => 'phs_remote_domains']))) {
-            return false;
+        if (!$domain_handler
+            || !($domain_arr = $this->get_details_fields(['handle' => $domain_handler], ['table_name' => 'phs_remote_domains']))) {
+            return null;
         }
 
         return $domain_arr;
     }
 
-    /**
-     * @param string $domain_handler
-     * @param array $message_arr
-     *
-     * @return array|false
-     */
-    public function send_request_to_domain_handler($domain_handler, $message_arr)
+    public function send_request_to_domain_handler(string $domain_handler, array $message_arr) : ?array
     {
         $this->reset_error();
 
-        if (empty($domain_handler)
-         || !($domain_arr = $this->get_domain_by_handler($domain_handler))) {
+        if (!$domain_handler
+            || !($domain_arr = $this->get_domain_by_handler($domain_handler))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Remote domain details not found in database.'));
 
-            return false;
+            return null;
         }
 
         return $this->send_request_to_domain($domain_arr, $message_arr);
     }
 
-    /**
-     * @param int|array $domain_data
-     * @param array $message_arr
-     *
-     * @return array|false
-     */
-    public function send_request_to_domain($domain_data, $message_arr)
+    public function send_request_to_domain(int | array | PHS_Record_data $domain_data, array $raw_message_arr) : ?array
     {
         $this->reset_error();
 
-        if (empty($domain_data)
-         || !($domain_arr = $this->data_to_array($domain_data, ['table_name' => 'phs_remote_domains']))) {
+        if (!$domain_data
+            || !($domain_arr = $this->data_to_array($domain_data, ['table_name' => 'phs_remote_domains']))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Remote domain details not found in database.'));
 
-            return false;
+            return null;
         }
 
         if (!$this->is_connected($domain_arr)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Remote domain details is not connected yet.'));
 
-            return false;
+            return null;
         }
 
-        if (!($message_arr = $this->validate_communication_message($message_arr))) {
+        if (!($message_arr = $this->validate_communication_message($raw_message_arr))) {
             PHS_Logger::error('Error validating message to (#'.$domain_arr['id'].').'
                               .($this->has_error() ? ' Error: '.$this->get_simple_error_message() : ''), PHS_Logger::TYPE_REMOTE);
 
@@ -913,7 +886,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
                 $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error validating message.'));
             }
 
-            return false;
+            return null;
         }
 
         if (empty($message_arr['timezone'])) {
@@ -921,7 +894,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         }
 
         if (!($message_json = @json_encode($message_arr))
-         || !($message_str = $this->quick_encode($domain_arr, $message_json))) {
+            || !($message_str = $this->quick_encode($domain_arr, $message_json))) {
             PHS_Logger::error('Error encoding message to (#'.$domain_arr['id'].').'
                               .($this->has_error() ? ' Error: '.$this->get_simple_error_message() : ''), PHS_Logger::TYPE_REMOTE);
 
@@ -929,7 +902,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
                 $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error encoding message.'));
             }
 
-            return false;
+            return null;
         }
 
         // Update last_incoming for the domain...
@@ -981,7 +954,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
                 $this->restore_errors($error_stack);
             }
 
-            return false;
+            return null;
         }
 
         $error_code = 0;

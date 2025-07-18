@@ -26,8 +26,6 @@ class PHS_Action_Info_ajax extends PHS_Action
             return action_request_login();
         }
 
-        /** @var PHS_Plugin_Remote_phs $remote_plugin */
-        /** @var PHS_Model_Phs_remote_domains $domains_model */
         if (!($remote_plugin = PHS_Plugin_Remote_phs::get_instance())
             || !($domains_model = PHS_Model_Phs_remote_domains::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load required resources.'));
@@ -52,7 +50,7 @@ class PHS_Action_Info_ajax extends PHS_Action
             return self::default_action_result();
         }
 
-        $ping_result = false;
+        $ping_result = null;
         if (!empty($do_ping)) {
             if (!$remote_plugin->can_admin_ping_domains($current_user)) {
                 PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
@@ -71,21 +69,15 @@ class PHS_Action_Info_ajax extends PHS_Action
                 'route' => ['p' => 'remote_phs', 'c' => 'remote', 'a' => 'ping', 'ad' => 'remote'],
             ];
 
-            if (!($response_arr = $domains_model->send_request_to_domain($domain_arr, $msg))
-             || !is_array($response_arr)) {
+            if (!($response_arr = $domains_model->send_request_to_domain($domain_arr, $msg))) {
                 // Communication error...
-                $error_msg = $this->_pt('Error sending ping request to remote domain.').' ';
-                if (!$domains_model->has_error()) {
-                    $error_msg .= $this->_pt('Unknown error.');
-                } else {
-                    $error_msg .= $domains_model->get_simple_error_message();
-                }
-
                 $ping_result['has_error'] = true;
-                $ping_result['error_msg'] = $error_msg;
+                $ping_result['error_msg'] = $this->_pt('Error sending ping request to remote domain.')
+                                            .' '
+                                            .$domains_model->get_simple_error_message($this->_pt('Unknown error.'));
             } else {
                 // Logical error in remote action
-                $ping_result['has_error'] = (!empty($response_arr['has_error']));
+                $ping_result['has_error'] = !empty($response_arr['has_error']);
 
                 if (!empty($response_arr['has_error'])) {
                     $ping_result['error_msg'] = $this->_pt('Error received from remote action: %s',

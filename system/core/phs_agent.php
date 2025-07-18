@@ -201,7 +201,7 @@ class PHS_Agent extends PHS_Registry
 
         $pub_key = microtime(true);
 
-        if (false === ($ecrypted_params = PHS_Crypt::quick_encode($job_arr['id'].'::'.(!empty($extra['force_run']) ? '1' : '0').'::'.md5($job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'])))) {
+        if (null === ($ecrypted_params = PHS_Crypt::quick_encode($job_arr['id'].'::'.(!empty($extra['force_run']) ? '1' : '0').'::'.md5($job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'])))) {
             $this->set_error(self::ERR_COMMAND, self::_t('Error obtaining background job command arguments.'));
 
             return null;
@@ -711,7 +711,6 @@ class PHS_Agent extends PHS_Registry
 
         [$crypted_data, $pub_key] = $parts_arr;
 
-        /** @var PHS_Model_Agent_jobs $agent_jobs_model */
         if (!($decrypted_data = PHS_Crypt::quick_decode($crypted_data))
          || !($decrypted_parts = explode('::', $decrypted_data, 3))
          || empty($decrypted_parts[0]) || !isset($decrypted_parts[1]) || empty($decrypted_parts[2])

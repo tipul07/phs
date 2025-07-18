@@ -1756,7 +1756,7 @@ class PHS_Model_Accounts extends PHS_Model
             $encoded_clear = null;
             if (($accounts_plugin->is_password_decryption_enabled()
                  || ($params['fields']['pass_generated'] && !empty($params['{send_confirmation_email}'])))
-                && false === ($encoded_clear = PHS_Crypt::quick_encode($params['fields']['pass']))) {
+                && null === ($encoded_clear = PHS_Crypt::quick_encode($params['fields']['pass']))) {
                 $this->set_error(self::ERR_INSERT, $this->_pt('Error encrypting account password. Please retry.'));
 
                 return false;
@@ -1974,7 +1974,7 @@ class PHS_Model_Accounts extends PHS_Model
 
             $encoded_clear = null;
             if ($accounts_plugin->is_password_decryption_enabled()
-                && false === ($encoded_clear = PHS_Crypt::quick_encode($params['fields']['pass']))) {
+                && null === ($encoded_clear = PHS_Crypt::quick_encode($params['fields']['pass']))) {
                 $this->set_error(self::ERR_INSERT, $this->_pt('Error encrypting account password. Please retry.'));
 
                 return false;

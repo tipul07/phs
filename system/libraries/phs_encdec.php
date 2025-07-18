@@ -115,15 +115,10 @@ class PHS_Encdec extends PHS_Language
         return $this->_check_internal_keys();
     }
 
-    /**
-     * @param string $str
-     *
-     * @return string
-     */
-    public function encrypt($str)
+    public function encrypt($str) : string
     {
         if (!is_scalar($str)
-         || $this->has_error()) {
+            || $this->has_error()) {
             return '';
         }
 
@@ -132,7 +127,7 @@ class PHS_Encdec extends PHS_Language
         }
 
         if ($this->use_base64_encode !== false
-         && $str !== '') {
+            && $str !== '') {
             $str = @base64_encode($str);
         }
 
@@ -186,7 +181,7 @@ class PHS_Encdec extends PHS_Language
         for ($i = 0; $i < $len; $i++) {
             $pos_ch = (ord($str[$i]) - 32) + $i;
             if ($pos_ch > 94) {
-                $pos_ch = $pos_ch % 95;
+                $pos_ch %= 95;
             }
 
             $encrypted_str .= $translation_arr[$pos_ch];
@@ -195,14 +190,10 @@ class PHS_Encdec extends PHS_Language
         return strtoupper($encrypted_str);
     }
 
-    /**
-     * @param string $decstr
-     *
-     * @return string
-     */
-    public function decrypt($decstr)
+    public function decrypt(string $decstr) : ?string
     {
-        if ($this->has_error()) {
+        if (!$decstr
+            || $this->has_error()) {
             return $decstr;
         }
 
@@ -282,14 +273,13 @@ class PHS_Encdec extends PHS_Language
         return $decoded_txt;
     }
 
-    /**
-     * @return bool
-     */
-    private function _check_internal_keys()
+    private function _check_internal_keys() : bool
     {
         $this->reset_error();
 
-        if (empty($this->internal_keys) || !is_array($this->internal_keys) || !isset($this->internal_keys[0])) {
+        if (empty($this->internal_keys)
+            || !is_array($this->internal_keys)
+            || !isset($this->internal_keys[0])) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Internal keys array is invalid!'));
 
             return false;
@@ -298,8 +288,9 @@ class PHS_Encdec extends PHS_Language
         $this->internal_keys_count = count($this->internal_keys);
         $this->internal_keys_len = strlen($this->internal_keys[0]);
 
-        if (!$this->internal_keys_count || !$this->internal_keys_len
-         || $this->internal_keys_count > 35) {
+        if (!$this->internal_keys_count
+            || !$this->internal_keys_len
+            || $this->internal_keys_count > 35) {
             $this->set_error(self::ERR_PARAMETERS, 'Internal keys array is invalid! Internal keys array must have max 35 elements and all elements must have same length.');
 
             return false;

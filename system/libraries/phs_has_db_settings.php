@@ -567,7 +567,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             foreach ($obfuscating_keys as $ob_key) {
                 if (array_key_exists($ob_key, $settings_arr)
                     && is_scalar($settings_arr[$ob_key])) {
-                    if (false === ($encrypted_data = PHS_Crypt::quick_encode($settings_arr[$ob_key]))) {
+                    if (null === ($encrypted_data = PHS_Crypt::quick_encode($settings_arr[$ob_key]))) {
                         $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error obfuscating plugin settings.'));
 
                         return null;
@@ -593,7 +593,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
                     && is_string($settings_arr[$ob_key])) {
                     // In case we are in install mode and errors will get thrown
                     try {
-                        if (false === ($settings_arr[$ob_key] = PHS_Crypt::quick_decode($settings_arr[$ob_key]))) {
+                        if (null === ($settings_arr[$ob_key] = PHS_Crypt::quick_decode($settings_arr[$ob_key]))) {
                             PHS_Logger::error('[CONFIG ERROR] Error decoding old config value for ['.$this->instance_id().'] '
                                               .'settings key ['.$ob_key.']', PHS_Logger::TYPE_DEBUG);
                             $settings_arr[$ob_key] = '';

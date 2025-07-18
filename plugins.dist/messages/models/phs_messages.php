@@ -492,7 +492,7 @@ class PHS_Model_Messages extends PHS_Model
         return $full_message_arr;
     }
 
-    public function can_reply(null|int|array $record_data, array $params = []) : bool
+    public function can_reply(null | int | array $record_data, array $params = []) : bool
     {
         if (!$this->load_dependencies()) {
             return false;
