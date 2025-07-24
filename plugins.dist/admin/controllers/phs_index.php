@@ -9,11 +9,7 @@ use phs\plugins\accounts\models\PHS_Model_Accounts;
 class PHS_Controller_Index extends PHS_Controller_Admin
 {
     /**
-     * @param string $action Action to be loaded and executed
-     * @param bool|string $plugin false means core plugin, string is name of plugin
-     * @param string $action_dir Directory (relative from actions dir) where action class is found
-     *
-     * @return bool|array Returns false on error or an action array on success
+     * @inheritdoc
      */
     protected function _execute_action($action, $plugin = null, $action_dir = '')
     {
@@ -25,9 +21,8 @@ class PHS_Controller_Index extends PHS_Controller_Admin
             return action_request_login();
         }
 
-        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
-            $this->set_error(self::ERR_RUN_ACTION, $this->_pt('Error loading required resources.'));
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
         }

@@ -19,8 +19,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         INPUT_TYPE_ONE_OR_MORE_MULTISELECT = 'one_or_more_multiselect', INPUT_TYPE_KEY_VAL_ARRAY = 'key_val_array',
         INPUT_TYPE_TEXTAREA = 'textarea';
 
-    /** @var bool|PHS_Model_Plugins */
-    protected $_plugins_instance = false;
+    protected ?PHS_Model_Plugins $_plugins_instance = null;
 
     // Validated settings fields structure array
     private array $_settings_structure = [];
@@ -62,10 +61,6 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return [];
     }
 
-    /**
-     * Gathers all keys which should be obfuscated for this instance
-     * @return array
-     */
     final public function get_all_settings_keys_to_obfuscate() : array
     {
         if ($this->_obfuscating_keys !== null) {
@@ -75,7 +70,6 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         $obfuscating_keys = $this->get_settings_keys_to_obfuscate();
 
         // Low level hook for plugin settings keys that should be obfuscated (allows only keys that are not present in plugin settings)
-        /** @var PHS_Event_Plugin_settings_obfuscated_keys $event_obj */
         if (($event_obj = PHS_Event_Plugin_settings_obfuscated_keys::trigger([
             'instance_id'       => $this->instance_id(),
             'obfucate_keys_arr' => $obfuscating_keys,
@@ -95,10 +89,6 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return self::st_default_custom_save_params();
     }
 
-    /**
-     * Validate settings of this instance
-     * @return array
-     */
     public function validate_settings_structure() : array
     {
         if (!empty($this->_settings_structure)) {
@@ -120,9 +110,6 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $this->_settings_structure;
     }
 
-    /**
-     * @return array
-     */
     final public function get_default_settings() : array
     {
         if (!empty($this->_default_settings)) {
@@ -138,20 +125,15 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $this->_default_settings;
     }
 
-    /**
-     * @param bool $force Forces reading details from database (ignoring cached value)
-     *
-     * @return null|array
-     */
     public function get_db_main_details(bool $force = false) : ?array
     {
-        if (empty($force)
-         && !empty($this->_db_details)) {
+        if (!$force
+            && !empty($this->_db_details)) {
             return $this->_db_details;
         }
 
         if (!$this->_load_plugins_instance()
-         || !($db_details = $this->_plugins_instance->get_plugins_db_main_details($this->instance_id(), $force))) {
+            || !($db_details = $this->_plugins_instance->get_plugins_db_main_details($this->instance_id(), $force))) {
             return null;
         }
 
@@ -160,11 +142,6 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $this->_db_details;
     }
 
-    /**
-     * @param bool $force Forces reading details from database (ignoring cached value)
-     *
-     * @return string
-     */
     public function get_db_version(bool $force = false) : string
     {
         if (!($db_details = $this->get_db_main_details($force))
@@ -175,31 +152,24 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $db_details['version'];
     }
 
-    /**
-     * @param null|int $tenant_id
-     * @param bool $force Forces reading details from database (ignoring cached value)
-     *
-     * @return null|array
-     */
     public function get_db_tenant_details(?int $tenant_id = null, bool $force = false) : ?array
     {
         if (!PHS::is_multi_tenant()) {
             return null;
         }
 
-        if (!PHS::is_multi_tenant()
-         || ($tenant_id === null
-             && !($tenant_id = PHS_Tenants::get_current_tenant_id()))) {
+        if ($tenant_id === null
+            && !($tenant_id = PHS_Tenants::get_current_tenant_id())) {
             $tenant_id = 0;
         }
 
-        if (empty($force)
-         && !empty($this->_db_tenant_details[$tenant_id])) {
+        if (!$force
+            && !empty($this->_db_tenant_details[$tenant_id])) {
             return $this->_db_tenant_details[$tenant_id];
         }
 
         if (!$this->_load_plugins_instance()
-         || !($db_details = $this->_plugins_instance->get_plugins_db_tenant_details($this->instance_id(), $tenant_id, $force))) {
+            || !($db_details = $this->_plugins_instance->get_plugins_db_tenant_details($this->instance_id(), $tenant_id, $force))) {
             return null;
         }
 
@@ -208,12 +178,6 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $this->_db_tenant_details[$tenant_id];
     }
 
-    /**
-     * @param null|int $tenant_id
-     * @param bool $force Forces reading details from database (ignoring cached value)
-     *
-     * @return null|array
-     */
     public function get_merged_db_details(?int $tenant_id = null, bool $force = false) : ?array
     {
         $this->reset_error();
@@ -233,7 +197,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         }
 
         // We don't force this call (if $force is true) as cache was already rebuild when calling get_db_main_details()
-        if (empty($tenant_id)
+        if (!$tenant_id
             || !($db_tenant_details = $this->get_db_tenant_details($tenant_id))) {
             return $db_main_details;
         }
@@ -361,12 +325,6 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $this->_db_tenant_settings[$tenant_id];
     }
 
-    /**
-     * @param array $settings_arr Settings to be saved
-     * @param null|int $tenant_id For which tenant are we saving the settings (if any)
-     *
-     * @return null|array
-     */
     public function save_db_settings(array $settings_arr, ?int $tenant_id = null) : ?array
     {
         $this->reset_error();
@@ -381,8 +339,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         $old_settings = $this->get_db_settings($tenant_id);
 
         if (!$this->_load_plugins_instance()
-         || null === ($obfuscated_settings_arr = $this->_obfuscate_settings_array($settings_arr))
-         || null === ($db_settings = $this->_plugins_instance->save_plugins_db_settings($instance_id, $obfuscated_settings_arr, $tenant_id))
+            || null === ($obfuscated_settings_arr = $this->_obfuscate_settings_array($settings_arr))
+            || null === ($db_settings = $this->_plugins_instance->save_plugins_db_settings($instance_id, $obfuscated_settings_arr, $tenant_id))
         ) {
             if (!$this->has_error()
                 && $this->_plugins_instance->has_error()) {
@@ -414,16 +372,12 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
     public function db_record_active() : bool
     {
-        /** @var PHS_Model_Plugins $plugin_obj */
         return $this->_load_plugins_instance()
                 && ($db_details = $this->get_merged_db_details())
                 && isset($db_details['status'])
                 && $this->_plugins_instance->active_status($db_details['status']);
     }
 
-    /**
-     * @return bool true on success, false on failure
-     */
     protected function _load_plugins_instance() : bool
     {
         $this->reset_error();
@@ -613,7 +567,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             foreach ($obfuscating_keys as $ob_key) {
                 if (array_key_exists($ob_key, $settings_arr)
                     && is_scalar($settings_arr[$ob_key])) {
-                    if (false === ($encrypted_data = PHS_Crypt::quick_encode($settings_arr[$ob_key]))) {
+                    if (null === ($encrypted_data = PHS_Crypt::quick_encode($settings_arr[$ob_key]))) {
                         $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error obfuscating plugin settings.'));
 
                         return null;
@@ -639,7 +593,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
                     && is_string($settings_arr[$ob_key])) {
                     // In case we are in install mode and errors will get thrown
                     try {
-                        if (false === ($settings_arr[$ob_key] = PHS_Crypt::quick_decode($settings_arr[$ob_key]))) {
+                        if (null === ($settings_arr[$ob_key] = PHS_Crypt::quick_decode($settings_arr[$ob_key]))) {
                             PHS_Logger::error('[CONFIG ERROR] Error decoding old config value for ['.$this->instance_id().'] '
                                               .'settings key ['.$ob_key.']', PHS_Logger::TYPE_DEBUG);
                             $settings_arr[$ob_key] = '';

@@ -1852,15 +1852,12 @@ final class PHS extends PHS_Registry
 
         if (!($route_details = self::get_route_details())
             || empty($route_details[self::ROUTE_CONTROLLER])) {
-            self::st_set_error(self::ERR_EXECUTE_ROUTE, self::_t('Couldn\'t obtain route details.'));
-        }
-
-        /** @var PHS_Controller $controller_obj */
-        elseif (!($controller_obj = self::load_controller($route_details[self::ROUTE_CONTROLLER], $route_details[self::ROUTE_PLUGIN]))) {
-            self::st_set_error(self::ERR_EXECUTE_ROUTE, self::_t('Couldn\'t obtain controller instance for %s.', $route_details[self::ROUTE_CONTROLLER]));
+            self::st_set_error(self::ERR_RUN_ROUTE_NOT_FOUND, self::_t('Couldn\'t obtain route details.'));
+        } elseif (!($controller_obj = self::load_controller($route_details[self::ROUTE_CONTROLLER], $route_details[self::ROUTE_PLUGIN]))) {
+            self::st_set_error(self::ERR_RUN_ROUTE_NOT_FOUND, self::_t('Couldn\'t obtain controller instance for %s.', $route_details[self::ROUTE_CONTROLLER]));
         } elseif (!($action_result = $controller_obj->run_action($route_details[self::ROUTE_ACTION], null, $route_details[self::ROUTE_ACTION_DIR]))) {
             self::st_copy_or_set_error($controller_obj,
-                self::ERR_EXECUTE_ROUTE, self::_t('Error executing action [%s].', $route_details[self::ROUTE_ACTION]));
+                self::ERR_RUN_ROUTE_ERROR, self::_t('Error executing action [%s].', $route_details[self::ROUTE_ACTION]));
         }
 
         if (self::st_has_error()) {
@@ -1876,7 +1873,7 @@ final class PHS extends PHS_Registry
         self::st_reset_error();
 
         if (!($scope_obj = PHS_Scope::get_scope_instance())) {
-            self::st_set_error_if_not_set(self::ERR_EXECUTE_ROUTE, self::_t('Error spawning scope instance.'));
+            self::st_set_error_if_not_set(self::ERR_RUN_ROUTE_ERROR, self::_t('Error spawning scope instance.'));
 
             if (!empty($params['die_on_error'])) {
                 $error_msg = self::st_get_full_error_message();
@@ -1894,7 +1891,7 @@ final class PHS extends PHS_Registry
         if (!self::st_debugging_mode()
             && self::arr_has_error($controller_error_arr)) {
             $controller_error_arr = self::arr_change_error_code_and_message($controller_error_arr,
-                self::ERR_EXECUTE_ROUTE, self::_t('Error serving request.'));
+                self::ERR_RUN_ROUTE_ERROR, self::_t('Error serving request.'));
         }
 
         if ($action_result
@@ -2297,12 +2294,6 @@ final class PHS extends PHS_Registry
         return $instance_obj;
     }
 
-    /**
-     * @param string $controller
-     * @param null|string $plugin
-     *
-     * @return null|PHS_Controller Returns false on error or an instance of loaded controller
-     */
     public static function load_controller(string $controller, ?string $plugin = null) : ?PHS_Controller
     {
         self::st_reset_error();
@@ -2333,13 +2324,6 @@ final class PHS extends PHS_Registry
         return $instance_obj;
     }
 
-    /**
-     * @param string $action
-     * @param string|bool $plugin
-     * @param string $action_dir
-     *
-     * @return null|PHS_Action Returns false on error or an instance of loaded action
-     */
     public static function load_action(string $action, $plugin = false, string $action_dir = '') : ?PHS_Action
     {
         self::st_reset_error();
@@ -2399,13 +2383,6 @@ final class PHS extends PHS_Registry
         return $instance_obj;
     }
 
-    /**
-     * @param string $contract
-     * @param string|bool $plugin
-     * @param string $contract_dir
-     *
-     * @return null|PHS_Contract Returns false on error || an instance of loaded contract
-     */
     public static function load_contract(string $contract, $plugin = false, string $contract_dir = '') : ?PHS_Contract
     {
         self::st_reset_error();
@@ -2446,7 +2423,7 @@ final class PHS extends PHS_Registry
             $contract_dir = str_replace('_', '/', $contract_dir);
         }
 
-        /** @var PHS_Action $instance_obj */
+        /** @var PHS_Contract $instance_obj */
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_CONTRACT, true, $contract_dir))) {
             self::st_set_error_if_not_set(self::ERR_LOAD_CONTRACT,
                 self::_t('Couldn\'t obtain instance for contract %s from plugin %s.',
@@ -2459,13 +2436,6 @@ final class PHS extends PHS_Registry
         return $instance_obj;
     }
 
-    /**
-     * @param string $event
-     * @param string|bool $plugin
-     * @param string $event_dir
-     *
-     * @return null|PHS_Event Returns false on error or an instance of loaded event
-     */
     public static function load_event(string $event, $plugin = false, string $event_dir = '') : ?PHS_Event
     {
         self::st_reset_error();
@@ -2520,13 +2490,6 @@ final class PHS extends PHS_Registry
         return $instance_obj;
     }
 
-    /**
-     * @param string $graphql_type
-     * @param null|string $plugin
-     * @param string $type_dir
-     *
-     * @return null|PHS_Graphql_Type Returns null on error or an instance of loaded GraphQL type
-     */
     public static function load_graphql_type(string $graphql_type, ?string $plugin = null, string $type_dir = '') : ?PHS_Graphql_Type
     {
         self::st_reset_error();
@@ -2577,12 +2540,6 @@ final class PHS extends PHS_Registry
         return $instance_obj;
     }
 
-    /**
-     * @param string $scope
-     * @param null|string $plugin
-     *
-     * @return null|PHS_Scope Returns false on error or an instance of loaded scope
-     */
     public static function load_scope(string $scope, ?string $plugin = null) : ?PHS_Scope
     {
         self::st_reset_error();
@@ -2611,11 +2568,6 @@ final class PHS extends PHS_Registry
         return $instance_obj;
     }
 
-    /**
-     * @param string $plugin_name Plugin name to be loaded
-     *
-     * @return null|PHS_Plugin Returns false on error || an instance of loaded plugin
-     */
     public static function load_plugin(string $plugin_name) : ?PHS_Plugin
     {
         self::st_reset_error();

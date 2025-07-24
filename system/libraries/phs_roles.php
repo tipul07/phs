@@ -223,7 +223,7 @@ class PHS_Roles extends PHS_Registry
             return null;
         }
 
-        $role_units_arr = false;
+        $role_units_arr = null;
         if (!empty($params['{role_units}']) && is_array($params['{role_units}'])) {
             $role_units_arr = $params['{role_units}'];
         }

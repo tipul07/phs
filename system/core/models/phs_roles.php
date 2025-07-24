@@ -235,7 +235,6 @@ class PHS_Model_Roles extends PHS_Model
         }
 
         $all_role_units = [];
-
         if (!($role_units_by_id = $this->get_all_role_units($force))) {
             return $all_role_units;
         }
@@ -247,20 +246,14 @@ class PHS_Model_Roles extends PHS_Model
         return $all_role_units;
     }
 
-    public function get_role_unit_by_slug($slug, $force = false)
+    public function get_role_unit_by_slug(string $slug, bool $force = false) : ?array
     {
-        if (empty($slug) || !is_string($slug)
-         || !($role_units_arr = $this->get_all_role_units_by_slug($force))
-         || empty($role_units_arr[$slug])) {
-            return false;
-        }
-
-        return $role_units_arr[$slug];
+        return $this->get_all_role_units_by_slug($force)[$slug] ?? null;
     }
 
-    public function get_all_role_units_by_slug_list(array $slug_arr, bool $force = false)
+    public function get_all_role_units_by_slug_list(array $slug_arr, bool $force = false) : array
     {
-        if (empty($slug_arr)
+        if (!$slug_arr
             || !($role_units_arr = $this->get_all_role_units_by_slug($force))) {
             return [];
         }
@@ -271,7 +264,7 @@ class PHS_Model_Roles extends PHS_Model
                 continue;
             }
 
-            $return_arr[$role_units_arr[$slug]['id']] = $role_units_arr[$slug];
+            $return_arr[(int)($role_units_arr[$slug]['id'] ?? 0)] = $role_units_arr[$slug];
         }
 
         return $return_arr;
@@ -301,7 +294,7 @@ class PHS_Model_Roles extends PHS_Model
         return $all_roles;
     }
 
-    public function get_all_roles_by_slug(bool $force = false)
+    public function get_all_roles_by_slug(bool $force = false) : array
     {
         static $all_roles = null;
 
@@ -311,7 +304,6 @@ class PHS_Model_Roles extends PHS_Model
         }
 
         $all_roles = [];
-
         if (!($roles_by_id = $this->get_all_roles($force))) {
             return $all_roles;
         }
@@ -323,15 +315,9 @@ class PHS_Model_Roles extends PHS_Model
         return $all_roles;
     }
 
-    public function get_role_by_slug($slug, $force = false)
+    public function get_role_by_slug($slug, $force = false) : ?array
     {
-        if (empty($slug) || !is_string($slug)
-         || !($roles_arr = $this->get_all_roles_by_slug($force))
-         || empty($roles_arr[$slug])) {
-            return false;
-        }
-
-        return $roles_arr[$slug];
+        return $this->get_all_roles_by_slug($force)[$slug] ?? null;
     }
 
     public function get_all_roles_by_slug_list(array $slug_arr, bool $force = false) : array
@@ -418,16 +404,15 @@ class PHS_Model_Roles extends PHS_Model
         return $return_arr;
     }
 
-    public function get_role_unit_ids_for_role($role_id) : array
+    public function get_role_unit_ids_for_role(int $role_id) : array
     {
         $this->reset_error();
 
-        $role_id = (int)$role_id;
-        if (empty($role_id)
-         || !($flow_params = $this->fetch_default_flow_params(['table_name' => 'roles_units_links']))
-         || !($qid = db_query('SELECT * FROM `'.$this->get_flow_table_name($flow_params).'` '
-                               .' WHERE role_id = \''.$role_id.'\'', $flow_params['db_connection']))
-         || !db_num_rows($qid, $flow_params['db_connection'])) {
+        if (!$role_id
+            || !($flow_params = $this->fetch_default_flow_params(['table_name' => 'roles_units_links']))
+            || !($qid = db_query('SELECT * FROM `'.$this->get_flow_table_name($flow_params).'` '
+                                 .' WHERE role_id = \''.$role_id.'\'', $flow_params['db_connection']))
+            || !db_num_rows($qid, $flow_params['db_connection'])) {
             return [];
         }
 
@@ -519,7 +504,7 @@ class PHS_Model_Roles extends PHS_Model
         if (!empty($unit_slugs_arr)
             && ($found_role_units = $this->get_all_role_units_by_slug_list($unit_slugs_arr, $fresh_role_units))) {
             foreach ($found_role_units as $role_unit_id => $role_unit_arr) {
-                $unit_ids_arr[(int)$role_unit_id] = true;
+                $unit_ids_arr[$role_unit_id] = true;
             }
         }
 
@@ -591,19 +576,11 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return bool
      */
-    public function link_role_units_to_role(int | array | PHS_Record_data $role_data, $role_units_arr, ?array $params = null) : bool
+    public function link_role_units_to_role(int | array | PHS_Record_data $role_data, array $role_units_arr, ?array $params = null) : bool
     {
         $this->reset_error();
 
-        if (empty($params)) {
-            $params = [];
-        }
-
-        if (!is_array($role_units_arr)) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('No role units provided to link to role.'));
-
-            return false;
-        }
+        $params ??= [];
 
         if (!($role_arr = $this->data_to_array($role_data))) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Role not found in database.'));
@@ -617,14 +594,12 @@ class PHS_Model_Roles extends PHS_Model
             return false;
         }
 
-        if (!isset($params['append_role_units'])) {
-            $params['append_role_units'] = true;
-        }
+        $params['append_role_units'] = !isset($params['append_role_units']) || !empty($params['append_role_units']);
 
         $db_connection = $this->get_db_connection($flow_params);
 
-        if (empty($role_units_arr)) {
-            if (!empty($params['append_role_units'])) {
+        if (!$role_units_arr) {
+            if ($params['append_role_units']) {
                 return true;
             }
 
@@ -635,19 +610,14 @@ class PHS_Model_Roles extends PHS_Model
                 return false;
             }
         } else {
-            if (!($existing_unit_ids = $this->get_role_unit_ids_for_role($role_arr['id']))) {
-                $existing_unit_ids = [];
-            }
+            $existing_unit_ids = $this->get_role_unit_ids_for_role($role_arr['id']) ?: [];
 
             // Role unit ids we have to set
-            if (!($unit_ids_arr = $this->role_units_list_to_ids($role_units_arr, true))) {
-                $unit_ids_arr = [];
-            }
+            $unit_ids_arr = $this->role_units_list_to_ids($role_units_arr, true) ?: [];
 
             $insert_ids = [];
-            $delete_ids = [];
             foreach ($unit_ids_arr as $role_unit_id) {
-                if (!in_array($role_unit_id, $existing_unit_ids)) {
+                if (!in_array($role_unit_id, $existing_unit_ids, true)) {
                     $insert_ids[] = $role_unit_id;
                 }
             }
@@ -660,15 +630,16 @@ class PHS_Model_Roles extends PHS_Model
                 }
             }
 
-            if (empty($params['append_role_units'])) {
+            if (!$params['append_role_units']) {
+                $delete_ids = [];
                 foreach ($existing_unit_ids as $role_unit_id) {
-                    if (!in_array($role_unit_id, $unit_ids_arr)) {
+                    if (!in_array($role_unit_id, $unit_ids_arr, true)) {
                         $delete_ids[] = $role_unit_id;
                     }
                 }
 
-                if (!empty($delete_ids)
-                && !db_query('DELETE FROM `'.$this->get_flow_table_name($flow_params).'` WHERE role_id = \''.$role_arr['id'].'\' AND role_unit_id IN ('.implode(',', $delete_ids).')', $db_connection)) {
+                if ($delete_ids
+                    && !db_query('DELETE FROM `'.$this->get_flow_table_name($flow_params).'` WHERE role_id = \''.$role_arr['id'].'\' AND role_unit_id IN ('.implode(',', $delete_ids).')', $db_connection)) {
                     $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error un-linking old role units from role.'));
 
                     return false;
@@ -1281,8 +1252,7 @@ class PHS_Model_Roles extends PHS_Model
                         'index'  => true,
                     ],
                     'status_date' => [
-                        'type'  => self::FTYPE_DATETIME,
-                        'index' => false,
+                        'type' => self::FTYPE_DATETIME,
                     ],
                     'predefined' => [
                         'type'   => self::FTYPE_TINYINT,
@@ -1334,8 +1304,7 @@ class PHS_Model_Roles extends PHS_Model
                         'index'  => true,
                     ],
                     'status_date' => [
-                        'type'  => self::FTYPE_DATETIME,
-                        'index' => false,
+                        'type' => self::FTYPE_DATETIME,
                     ],
                     'cdate' => [
                         'type' => self::FTYPE_DATETIME,
@@ -1418,15 +1387,7 @@ class PHS_Model_Roles extends PHS_Model
         // Make sure we have a valid slug...
         $params['fields']['slug'] = $this->transform_string_to_slug($params['fields']['slug']);
 
-        $constrain_arr = [];
-        $constrain_arr['slug'] = $params['fields']['slug'];
-
-        $check_params = [];
-        $check_params['table_name'] = 'roles';
-        $check_params['result_type'] = 'single';
-        $check_params['details'] = '*';
-
-        if ($this->get_details_fields($constrain_arr, $check_params)) {
+        if ($this->get_details_fields(['slug' => $params['fields']['slug']], ['table_name' => 'roles'])) {
             $this->set_error(self::ERR_INSERT, self::_t('There is already a role registered with this slug.'));
 
             return false;
@@ -1444,8 +1405,7 @@ class PHS_Model_Roles extends PHS_Model
             return false;
         }
 
-        if (empty($params['fields']['status_date'])
-         || empty_db_date($params['fields']['status_date'])) {
+        if (empty($params['fields']['status_date'])) {
             $params['fields']['status_date'] = $params['fields']['cdate'];
         }
 
@@ -1521,7 +1481,7 @@ class PHS_Model_Roles extends PHS_Model
         }
 
         if (!isset($params['{role_units}']) || !is_array($params['{role_units}'])) {
-            $params['{role_units}'] = false;
+            $params['{role_units}'] = null;
         }
 
         return $params;
@@ -1563,15 +1523,7 @@ class PHS_Model_Roles extends PHS_Model
         // Make sure we have a valid slug...
         $params['fields']['slug'] = $this->transform_string_to_slug($params['fields']['slug']);
 
-        $constrain_arr = [];
-        $constrain_arr['slug'] = $params['fields']['slug'];
-
-        $check_params = [];
-        $check_params['table_name'] = 'roles_units';
-        $check_params['result_type'] = 'single';
-        $check_params['details'] = '*';
-
-        if ($this->get_details_fields($constrain_arr, $check_params)) {
+        if ($this->get_details_fields(['slug' => $params['fields']['slug']], ['table_name' => 'roles_units'])) {
             $this->set_error(self::ERR_INSERT, self::_t('There is already a role unit registered with this slug.'));
 
             return false;
@@ -1589,8 +1541,7 @@ class PHS_Model_Roles extends PHS_Model
             return false;
         }
 
-        if (empty($params['fields']['status_date'])
-         || empty_db_date($params['fields']['status_date'])) {
+        if (empty($params['fields']['status_date'])) {
             $params['fields']['status_date'] = $params['fields']['cdate'];
         }
 
@@ -1610,8 +1561,9 @@ class PHS_Model_Roles extends PHS_Model
                 return false;
             }
 
-            $cdate = date(self::DATETIME_DB);
-            $params['fields']['status_date'] = $cdate;
+            if ((int)$params['fields']['status'] !== (int)($existing_data['status'] ?? 0)) {
+                $params['fields']['status_date'] = date(self::DATETIME_DB);
+            }
         }
 
         if (isset($params['fields']['slug'])) {
@@ -1628,12 +1580,7 @@ class PHS_Model_Roles extends PHS_Model
             $constrain_arr['slug'] = $params['fields']['slug'];
             $constrain_arr['id'] = ['check' => '!=', 'value' => $existing_data['id']];
 
-            $check_params = [];
-            $check_params['table_name'] = 'roles_units';
-            $check_params['result_type'] = 'single';
-            $check_params['details'] = 'id';
-
-            if ($this->get_details_fields($constrain_arr, $check_params)) {
+            if ($this->get_details_fields($constrain_arr, ['table_name' => 'roles_units'])) {
                 $this->set_error(self::ERR_EDIT, self::_t('There is already a role unit registered with this slug.'));
 
                 return false;
@@ -1649,20 +1596,16 @@ class PHS_Model_Roles extends PHS_Model
             return false;
         }
 
-        if (!empty($params['fields']['role_id'])) {
-            $params['fields']['role_id'] = (int)$params['fields']['role_id'];
-        }
-        if (!empty($params['fields']['role_unit_id'])) {
-            $params['fields']['role_unit_id'] = (int)$params['fields']['role_unit_id'];
-        }
+        $params['fields']['role_id'] = (int)($params['fields']['role_id'] ?? 0);
+        $params['fields']['role_unit_id'] = (int)($params['fields']['role_unit_id'] ?? 0);
 
-        if (empty($params['fields']['role_id'])) {
+        if (!$params['fields']['role_id']) {
             $this->set_error(self::ERR_INSERT, self::_t('Please provide a role id.'));
 
             return false;
         }
 
-        if (empty($params['fields']['role_unit_id'])) {
+        if (!$params['fields']['role_unit_id']) {
             $this->set_error(self::ERR_INSERT, self::_t('Please provide a role unit id.'));
 
             return false;
@@ -1705,12 +1648,8 @@ class PHS_Model_Roles extends PHS_Model
             return false;
         }
 
-        if (!empty($params['fields']['role_id'])) {
-            $params['fields']['role_id'] = (int)$params['fields']['role_id'];
-        }
-        if (!empty($params['fields']['user_id'])) {
-            $params['fields']['user_id'] = (int)$params['fields']['user_id'];
-        }
+        $params['fields']['role_id'] = (int)($params['fields']['role_id'] ?? 0);
+        $params['fields']['user_id'] = (int)($params['fields']['user_id'] ?? 0);
 
         if (empty($params['fields']['role_id'])) {
             $this->set_error(self::ERR_INSERT, self::_t('Please provide a role id.'));
@@ -1759,9 +1698,9 @@ class PHS_Model_Roles extends PHS_Model
     {
         $this->reset_error();
 
-        if (empty(self::$_accounts_model)
-         && !(self::$_accounts_model = PHS_Model_Accounts::get_instance())) {
-            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
+        if (!self::$_accounts_model
+            && !(self::$_accounts_model = PHS_Model_Accounts::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
             return false;
         }

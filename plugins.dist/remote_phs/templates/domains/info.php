@@ -10,16 +10,12 @@ $current_user = PHS::user_logged_in();
 
 /** @var \phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains $domains_model */
 if (!($domain_arr = $this->view_var('domain_arr'))
- || !($domains_model = $this->view_var('domains_model'))) {
+    || !($domains_model = $this->view_var('domains_model'))) {
     return $this->_pt('Could\'t loaded required resources for this view.');
 }
 
-if (!($do_ping = $this->view_var('do_ping'))) {
-    $do_ping = false;
-}
-if (!($ping_result = $this->view_var('ping_result'))) {
-    $ping_result = false;
-}
+$do_ping = $this->view_var('do_ping') ?: false;
+$ping_result = $this->view_var('ping_result');
 
 $current_scope = PHS_Scope::current_scope();
 ?>
@@ -79,8 +75,8 @@ if ($domains_model->is_connected($domain_arr)) {
         <?php
 }
 
-if (!empty($do_ping)
- && !empty($ping_result) && is_array($ping_result)) {
+if ($do_ping
+    && $ping_result && is_array($ping_result)) {
     ?>
         <fieldset class="form-group">
             <label><?php echo $this->_pt('Ping Result'); ?></label>
@@ -101,7 +97,6 @@ if (!empty($do_ping)
         <?php
 }
 ?>
-
 </div>
 
 <script type="text/javascript">

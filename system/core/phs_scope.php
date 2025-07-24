@@ -16,7 +16,6 @@ abstract class PHS_Scope extends PHS_Instantiable
     public const SCOPE_WEB = 1, SCOPE_BACKGROUND = 2, SCOPE_AJAX = 3, SCOPE_API = 4,
         SCOPE_AGENT = 5, SCOPE_TESTS = 6, SCOPE_CLI = 7, SCOPE_REMOTE = 8, SCOPE_GRAPHQL = 9;
 
-    /** @var array */
     private static array $SCOPES_ARR = [
         self::SCOPE_WEB => [
             'title'      => 'Web',
@@ -96,9 +95,6 @@ abstract class PHS_Scope extends PHS_Instantiable
      */
     abstract public function process_action_result($action_result, $static_error_arr = false);
 
-    /**
-     * @return string
-     */
     final public function instance_type() : string
     {
         return self::INSTANCE_TYPE_SCOPE;
@@ -115,8 +111,7 @@ abstract class PHS_Scope extends PHS_Instantiable
     {
         $this->reset_error();
 
-        if (empty($action_result)) {
-            /** @var PHS_Action $action_obj */
+        if (!$action_result) {
             if (!($action_obj = PHS::running_action())) {
                 $action_result = PHS_Action::default_action_result();
                 $action_result['buffer'] = self::_t('Unknown running action.');
@@ -140,7 +135,7 @@ abstract class PHS_Scope extends PHS_Instantiable
 
         $action_result = PHS_Action::validate_action_result($action_result);
 
-        if (!empty($end_user_error_arr) || !empty($technical_error_arr)) {
+        if ($end_user_error_arr || $technical_error_arr) {
             $action_result
                 = PHS_Action::set_action_result_errors($action_result, $end_user_error_arr, $technical_error_arr);
         }
@@ -150,9 +145,6 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $action_result;
     }
 
-    /**
-     * @return array
-     */
     public static function get_scopes() : array
     {
         return self::$SCOPES_ARR;
@@ -283,6 +275,16 @@ abstract class PHS_Scope extends PHS_Instantiable
         self::set_data(self::SCOPE_EMULATION_FLOW_KEY, $scope);
 
         return $scope;
+    }
+
+    public static function framework_error_code_to_http_code(int $error_code) : int
+    {
+        return match ($error_code) {
+            self::ERR_OK => PHS_Api_base::H_CODE_OK,
+            PHS::ERR_ROUTE, self::ERR_RUN_ROUTE_NOT_ALLOWED, self::ERR_RUN_ROUTE_NOT_FOUND, self::ERR_RUN_ROUTE_ERROR => PHS_Api_base::H_CODE_NOT_FOUND,
+            self::ERR_PARAMETERS => PHS_Api_base::H_CODE_BAD_REQUEST,
+            default              => PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR,
+        };
     }
 
     public static function spawn_scope_instance(?int $scope = null) : ?self

@@ -20,15 +20,16 @@ class PHS_Scope_Api extends PHS_Scope
         // We have already an error from flow before initiating scope class
         if (!empty($static_error_arr)
             && self::arr_has_error($static_error_arr)) {
+            $http_code = self::framework_error_code_to_http_code(
+                self::arr_get_error_code($static_error_arr, self::ERR_FRAMEWORK));
+
             PHS_Model_Api_monitor::api_incoming_request_error(
-                PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR,
+                $http_code,
                 'Error in API action result: '.self::arr_get_simple_error_message($static_error_arr)
             );
 
-            PHS_Api::http_header_response(
-                PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR,
-                self::arr_get_simple_error_message($static_error_arr)
-            );
+            PHS_Api::http_header_response($http_code, self::arr_get_simple_error_message($static_error_arr));
+
             exit;
         }
 

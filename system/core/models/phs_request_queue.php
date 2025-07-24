@@ -197,6 +197,15 @@ class PHS_Model_Request_queue extends PHS_Model
             return null;
         }
 
+        if ($payload
+           && (empty($settings_arr['headers']) || !is_array($settings_arr['headers'])
+               || !self::array_key_exists_insensitive($settings_arr['headers'], 'Content-Type'))
+           && (is_array($payload) || (is_string($payload) && @json_decode($payload, true) !== null))
+        ) {
+            $settings ??= [];
+            $settings['headers']['Content-Type'] = 'application/json';
+        }
+
         $request_params = $flow_arr;
         $request_params['fields'] = [];
         $request_params['fields']['url'] = $url;
@@ -660,7 +669,7 @@ class PHS_Model_Request_queue extends PHS_Model
                         'auto_increment' => true,
                     ],
                     'url' => [
-                        'type'   => self::FTYPE_TEXT,
+                        'type' => self::FTYPE_TEXT,
                     ],
                     'payload' => [
                         'type' => self::FTYPE_TEXT,
