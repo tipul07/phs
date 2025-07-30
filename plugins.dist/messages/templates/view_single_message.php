@@ -71,13 +71,13 @@ if ($can_reply_messages
     && $messages_model->can_reply($message_arr, ['account_data' => $current_user])) {
     $msg_actions_arr['msg_reply'] = [
         'extra_classes' => '',
-        'action_link'   => PHS::url(['p' => 'messages', 'a' => 'compose'], ['reply_to_muid' => $message_arr['message_user']['id'], 'reply_to_all' => 0]),
+        'action_link'   => PHS::url(['p' => 'messages', 'a' => 'compose'], ['reply_to_muid' => $message_arr['message_user']['id'] ?? 0, 'reply_to_all' => 0]),
         'action_icon'   => 'fa-reply',
         'action_label'  => $this->_pt('Reply'),
     ];
     $msg_actions_arr['msg_reply_to_all'] = [
         'extra_classes' => '',
-        'action_link'   => PHS::url(['p' => 'messages', 'a' => 'compose'], ['reply_to_muid' => $message_arr['message_user']['id'], 'reply_to_all' => 1]),
+        'action_link'   => PHS::url(['p' => 'messages', 'a' => 'compose'], ['reply_to_muid' => $message_arr['message_user']['id'] ?? 0, 'reply_to_all' => 1]),
         'action_icon'   => 'fa-reply-all',
         'action_label'  => $this->_pt('Reply to all'),
     ];
@@ -87,7 +87,7 @@ if ($can_followup_messages
     && $messages_model->can_followup($message_arr, ['account_data' => $current_user])) {
     $msg_actions_arr['msg_followup'] = [
         'extra_classes' => '',
-        'action_link'   => PHS::url(['p' => 'messages', 'a' => 'compose'], ['follow_up_muid' => $message_arr['message_user']['id']]),
+        'action_link'   => PHS::url(['p' => 'messages', 'a' => 'compose'], ['follow_up_muid' => $message_arr['message_user']['id'] ?? 0]),
         'action_icon'   => 'fa-flag',
         'action_label'  => $this->_pt('Follow Up'),
     ];
