@@ -10,6 +10,7 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
+use phs\libraries\PHS_Record_data;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\system\core\events\layout\PHS_Event_Layout;
 
@@ -28,45 +29,39 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
     //
     // region is_* and can_* functions
     //
-    public function is_operator(int | array $user_data) : bool
+    public function is_operator(bool | null | int | array | PHS_Record_data $user_data = null) : bool
     {
-        return !empty($user_data)
-               && $this->_load_dependencies()
-               && ($user_arr = $this->_accounts_model->data_to_array($user_data))
-               && PHS_Roles::user_has_role($user_arr, self::ROLE_OPERATOR);
+        return has_role(self::ROLE_OPERATOR, $user_data);
     }
 
-    public function is_manager(int | array $user_data) : bool
+    public function is_manager(bool | null | int | array | PHS_Record_data $user_data = null) : bool
     {
-        return !empty($user_data)
-               && $this->_load_dependencies()
-               && ($user_arr = $this->_accounts_model->data_to_array($user_data))
-               && PHS_Roles::user_has_role($user_arr, self::ROLE_MANAGER);
+        return has_role(self::ROLE_MANAGER, $user_data);
     }
 
-    public function can_admin_list_domains(bool | null | int | array $user_data = null) : bool
+    public function can_admin_list_domains(bool | null | int | array | PHS_Record_data $user_data = null) : bool
     {
-        return can(self::ROLEU_ADM_LIST_DOMAINS, null, $user_data);
+        return can(self::ROLEU_ADM_LIST_DOMAINS, account_structure: $user_data);
     }
 
-    public function can_admin_manage_domains(bool | null | int | array $user_data = null) : bool
+    public function can_admin_manage_domains(bool | null | int | array | PHS_Record_data $user_data = null) : bool
     {
-        return can(self::ROLEU_ADM_MANAGE_DOMAINS, null, $user_data);
+        return can(self::ROLEU_ADM_MANAGE_DOMAINS, account_structure: $user_data);
     }
 
-    public function can_admin_ping_domains(bool | null | int | array $user_data = null) : bool
+    public function can_admin_ping_domains(bool | null | int | array | PHS_Record_data $user_data = null) : bool
     {
-        return can(self::ROLEU_ADM_PING_DOMAIN, null, $user_data);
+        return can(self::ROLEU_ADM_PING_DOMAIN, account_structure: $user_data);
     }
 
-    public function can_admin_list_logs(bool | null | int | array $user_data = null) : bool
+    public function can_admin_list_logs(bool | null | int | array | PHS_Record_data $user_data = null) : bool
     {
-        return can(self::ROLEU_ADM_LIST_LOGS, null, $user_data);
+        return can(self::ROLEU_ADM_LIST_LOGS, account_structure: $user_data);
     }
 
-    public function can_admin_manage_logs(bool | null | int | array $user_data = null) : bool
+    public function can_admin_manage_logs(bool | null | int | array | PHS_Record_data $user_data = null) : bool
     {
-        return can(self::ROLEU_ADM_MANAGE_LOGS, null, $user_data);
+        return can(self::ROLEU_ADM_MANAGE_LOGS, account_structure: $user_data);
     }
     //
     // endregion is_* and can_* functions

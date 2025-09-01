@@ -351,7 +351,7 @@ final class PHS extends PHS_Registry
         return $session_id;
     }
 
-    public static function account_structure(int | array | PHS_Record_data $account_data) : null | array | PHS_Record_data
+    public static function account_structure(null | bool | int | array | PHS_Record_data $account_data) : null | array | PHS_Record_data
     {
         $hook_args = PHS_Hooks::default_account_structure_hook_args();
         $hook_args['account_data'] = $account_data;
