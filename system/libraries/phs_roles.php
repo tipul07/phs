@@ -43,10 +43,11 @@ class PHS_Roles extends PHS_Registry
         return self::$_role_model->transform_string_to_slug($str);
     }
 
-    public static function user_has_role(int | array $account_data, string | array $role_list, array $params = []) : ?array
-    {
-        self::st_reset_error();
-
+    public static function user_has_role(
+        null | bool | int | array | PHS_Record_data $account_data,
+        string | array $role_list,
+        array $params = []
+    ) : ?array {
         if (!self::load_dependencies()) {
             return null;
         }
@@ -65,10 +66,8 @@ class PHS_Roles extends PHS_Registry
     public static function user_has_role_units(
         null | bool | int | array | PHS_Record_data $account_data,
         string | array $role_units_list,
-        ?array $params = null
+        ?array $params = []
     ) : ?array {
-        self::st_reset_error();
-
         if (!self::load_dependencies()) {
             return null;
         }

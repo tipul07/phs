@@ -13,13 +13,14 @@ use phs\libraries\PHS_Error;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Action;
+use phs\libraries\PHS_Record_data;
 use phs\libraries\PHS_Model_Core_base;
 use phs\system\core\libraries\PHS_Migrations_manager;
 use phs\system\core\libraries\PHS_Requests_queue_manager;
 
 function phs_version() : string
 {
-    return '1.2.5.6';
+    return '1.2.5.7';
 }
 
 // region Helper functions
@@ -84,11 +85,21 @@ function action_ajax_response(
 /**
  * @param string|array $role_units
  * @param null|array $roles_params
- * @param null|int|array|\phs\libraries\PHS_Record_data $account_structure
+ * @param null|bool|int|array|PHS_Record_data $account_structure
  *
  * @return bool
  */
 function can($role_units, ?array $roles_params = null, $account_structure = null) : bool
+{
+    return (bool)PHS_Roles::user_has_role_units(get_account_structure($account_structure), $role_units, $roles_params);
+}
+
+function has_role(string | array $roles, null | bool | int | array | PHS_Record_data $account_structure = null, array $roles_params = []) : bool
+{
+    return (bool)PHS_Roles::user_has_role(get_account_structure($account_structure), $roles, $roles_params);
+}
+
+function get_account_structure(null | bool | int | array | PHS_Record_data $account_structure = null) : null | array | PHS_Record_data
 {
     static $current_structure = null;
 
@@ -102,7 +113,7 @@ function can($role_units, ?array $roles_params = null, $account_structure = null
         $account_structure = PHS::account_structure($account_structure);
     }
 
-    return (bool)PHS_Roles::user_has_role_units($account_structure, $role_units, $roles_params);
+    return $account_structure;
 }
 
 function migrations_manager() : ?PHS_Migrations_manager

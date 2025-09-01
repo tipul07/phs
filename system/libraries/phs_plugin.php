@@ -820,7 +820,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         // Do slug check even if user is not logged in
         // but if we couldn't generate an empty user structure, assume no slugs are assigned
-        if (!($cuser_arr = PHS::account_structure(PHS::user_logged_in()))) {
+        if (!PHS::account_structure(PHS::user_logged_in())) {
             return false;
         }
 
