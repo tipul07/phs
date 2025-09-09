@@ -43,11 +43,9 @@ class PHS_Scope_Web extends PHS_Scope
                  || !$action_obj->action_role_is([$action_obj::ACT_ROLE_TFA_SETUP, $action_obj::ACT_ROLE_TFA_VERIFY, ]))
         ) {
             $args = [];
-            if (!empty($action_result['redirect_to_url'])) {
-                $args['back_page'] = $action_result['redirect_to_url'];
-            } else {
-                $args['back_page'] = PHS::current_url();
-            }
+            $args['back_page'] = !empty($action_result['redirect_to_url'])
+                ? $action_result['redirect_to_url']
+                : PHS::current_url();
 
             if ($this->_should_setup_tfa_for_account()) {
                 $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'setup', 'ad' => 'tfa'], $args);
@@ -56,14 +54,9 @@ class PHS_Scope_Web extends PHS_Scope
             }
         } elseif (!$should_be_in_tfa_flow
                   && ($expiration_arr = $this->_password_expired_for_current_account())) {
-            if (!empty($action_obj)
-                && $action_obj->action_role_is([$action_obj::ACT_ROLE_CHANGE_PASSWORD, $action_obj::ACT_ROLE_LOGIN,
-                    $action_obj::ACT_ROLE_LOGOUT, $action_obj::ACT_ROLE_PASSWORD_EXPIRED, ])
-            ) {
-                $in_special_page = true;
-            } else {
-                $in_special_page = false;
-            }
+            $in_special_page = !empty($action_obj)
+                               && $action_obj->action_role_is([$action_obj::ACT_ROLE_CHANGE_PASSWORD, $action_obj::ACT_ROLE_LOGIN,
+                                   $action_obj::ACT_ROLE_LOGOUT, $action_obj::ACT_ROLE_PASSWORD_EXPIRED, ]);
 
             if (!$in_special_page) {
                 PHS_Notifications::add_warning_notice(
@@ -76,22 +69,15 @@ class PHS_Scope_Web extends PHS_Scope
             if (empty($expiration_arr['show_only_warning'])
                 && !empty($action_obj)
                 && !$in_special_page) {
-                $args = [];
-                $args['password_expired'] = 1;
-
-                $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'change_password'], $args);
+                $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'change_password'], ['password_expired' => 1]);
             }
         }
 
         if (!empty($action_result['request_login'])) {
-            $args = [];
-            if (!empty($action_result['redirect_to_url'])) {
-                $args['back_page'] = $action_result['redirect_to_url'];
-            } else {
-                $args['back_page'] = PHS::current_url();
-            }
-
-            $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'login'], $args);
+            $action_result['redirect_to_url'] = PHS::url(
+                ['p' => 'accounts', 'a' => 'login'],
+                ['back_page' => !empty($action_result['redirect_to_url']) ? $action_result['redirect_to_url'] : PHS::current_url()]
+            );
         }
 
         if (!empty($action_result['redirect_to_url'])
@@ -136,7 +122,6 @@ class PHS_Scope_Web extends PHS_Scope
 
             $result_headers['X-Powered-By'] = 'PHS-'.PHS_VERSION;
 
-            /** @var PHS_Plugin_Phs_security $security_plugin */
             if (($security_plugin = PHS_Plugin_Phs_security::get_instance())
                && $security_plugin->security_headers_are_enabled()
                && ($headers_lib = Phs_security_headers::get_instance())
@@ -216,8 +201,6 @@ class PHS_Scope_Web extends PHS_Scope
 
     private function _update_tfa_device_cookie_if_required() : void
     {
-        /** @var PHS_Plugin_Accounts $accounts_plugin */
-        /** @var PHS_Model_Accounts_tfa $tfa_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
             || $accounts_plugin->tfa_policy_is_off()
             || !$accounts_plugin->tfa_remember_device_length()
@@ -235,8 +218,6 @@ class PHS_Scope_Web extends PHS_Scope
 
     private function _should_redirect_to_tfa_flow() : bool
     {
-        /** @var PHS_Plugin_Accounts $accounts_plugin */
-        /** @var PHS_Model_Accounts_tfa $tfa_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
             || !($tfa_model = PHS_Model_Accounts_tfa::get_instance())
             || $accounts_plugin->tfa_policy_is_off()
@@ -246,13 +227,14 @@ class PHS_Scope_Web extends PHS_Scope
             || $tfa_model->is_device_tfa_valid()
             || $tfa_model->is_session_tfa_valid()
             || !($settings_arr = $accounts_plugin->get_plugin_settings())
-            // TFA exceptions
             || (!empty($settings_arr['2fa_policy_account_exceptions'])
              && (
                  (($ints_arr = self::extract_integers_from_comma_separated($settings_arr['2fa_policy_account_exceptions']))
                   && in_array((int)$current_user['id'], $ints_arr, true))
-                 || (($strings_arr = self::extract_strings_from_comma_separated($settings_arr['2fa_policy_account_exceptions']))
-                  && in_array($current_user['nick'], $strings_arr, true))
+                 || (($strings_arr = self::extract_strings_from_comma_separated(
+                     $settings_arr['2fa_policy_account_exceptions'], ['to_lowercase' => true])
+                 )
+                  && in_array(strtolower($current_user['nick']), $strings_arr, true))
              ))
         ) {
             return false;

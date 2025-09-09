@@ -4,7 +4,6 @@ namespace phs\plugins\accounts\actions;
 use phs\PHS;
 use phs\PHS_Scope;
 use phs\PHS_Session;
-use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
@@ -25,9 +24,7 @@ class PHS_Action_Login extends PHS_Action
     }
 
     /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
+     * @inheritdoc
      */
     public function allowed_scopes() : array
     {
@@ -35,7 +32,7 @@ class PHS_Action_Login extends PHS_Action
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {
@@ -64,12 +61,14 @@ class PHS_Action_Login extends PHS_Action
         }
 
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
-            || !($tfa_model = PHS_Model_Accounts_tfa::get_instance())) {
+            || !($tfa_model = PHS_Model_Accounts_tfa::get_instance())
+            || !($accounts_model = PHS_Model_Accounts::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
+
+            return self::default_action_result();
         }
 
-        if ($accounts_plugin
-            && $reason
+        if ($reason
             && ($reason_success_text = $accounts_plugin->valid_confirmation_reason($reason))) {
             PHS_Notifications::add_success_notice($reason_success_text);
         }
@@ -108,12 +107,10 @@ class PHS_Action_Login extends PHS_Action
 
         if ($do_submit
             && !PHS_Notifications::have_notifications_errors()) {
-            if (empty($nick) || empty($pass)) {
+            if (!$nick || !$pass) {
                 PHS_Notifications::add_error_notice($this->_pt('Please provide complete mandatory fields.'));
-            } elseif (!($accounts_model = PHS_Model_Accounts::get_instance())) {
-                PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load accounts model.'));
             } elseif (!($account_arr = $accounts_model->get_details_fields(['nick' => $nick]))
-                 || !$accounts_model->is_active($account_arr)) {
+                      || !$accounts_model->is_active($account_arr)) {
                 PHS_Notifications::add_error_notice($this->_pt('Bad username or password.'));
             } elseif (!$accounts_model->is_locked($account_arr)
                       && !$accounts_model->check_pass($account_arr, $pass)) {
@@ -124,12 +121,14 @@ class PHS_Action_Login extends PHS_Action
                 PHS_Notifications::add_error_notice($this->_pt('Bad username or password.'));
             } elseif (!$accounts_model->is_locked($account_arr)) {
                 $login_params = [];
-                $login_params['expire_mins'] = (!empty($do_remember) ? $plugin_settings['session_expire_minutes_remember'] : $plugin_settings['session_expire_minutes_normal']);
+                $login_params['expire_mins'] = !empty($do_remember)
+                    ? $plugin_settings['session_expire_minutes_remember']
+                    : $plugin_settings['session_expire_minutes_normal'];
 
                 if ($accounts_plugin->do_login($account_arr, $login_params)) {
                     if (($account_language = $accounts_model->get_account_language($account_arr))) {
                         if (!($current_language = self::get_current_language())
-                         || $current_language !== $account_language) {
+                            || $current_language !== $account_language) {
                             self::set_current_language($account_language);
                             PHS_Session::_s(self::LANG_SESSION_KEY, $account_language);
                         }
@@ -140,12 +139,10 @@ class PHS_Action_Login extends PHS_Action
                             || empty($tfa_data['tfa_data'])
                             || !$tfa_model->is_setup_completed($tfa_data['tfa_data']))
                     ) {
-                        $url_params = [];
-                        if (!empty($back_page)) {
-                            $url_params['back_page'] = $back_page;
-                        }
-
-                        return action_redirect(['p' => 'accounts', 'ad' => 'tfa', 'a' => 'setup'], $url_params);
+                        return action_redirect(
+                            ['p' => 'accounts', 'ad' => 'tfa', 'a' => 'setup'],
+                            empty($back_page) ? [] : ['back_page' => $back_page]
+                        );
                     }
 
                     if (($event_result = PHS_Event_Action_after::action(PHS_Event_Action_after::LOGIN, $this))
@@ -160,11 +157,10 @@ class PHS_Action_Login extends PHS_Action
                     return action_redirect(!empty($back_page) ? from_safe_url($back_page) : PHS::url());
                 }
 
-                if ($accounts_plugin->has_error()) {
-                    PHS_Notifications::add_error_notice($accounts_plugin->get_simple_error_message());
-                } else {
-                    PHS_Notifications::add_error_notice($this->_pt('Error logging in... Please try again.'));
-                }
+                PHS_Notifications::add_error_notice(
+                    $accounts_plugin->get_simple_error_message(
+                        $this->_pt('Error logging in... Please try again.'))
+                );
             }
 
             if (!empty($account_arr)
@@ -173,7 +169,7 @@ class PHS_Action_Login extends PHS_Action
             }
         }
 
-        $data = [
+        return $this->quick_render_template('login', [
             'back_page'                   => $back_page,
             'nick'                        => $nick,
             'pass'                        => $pass,
@@ -181,8 +177,6 @@ class PHS_Action_Login extends PHS_Action
             'normal_session_minutes'      => $plugin_settings['session_expire_minutes_normal'],
             'no_nickname_only_email'      => $plugin_settings['no_nickname_only_email'],
             'do_remember'                 => (!empty($do_remember) ? 'checked="checked"' : ''),
-        ];
-
-        return $this->quick_render_template('login', $data);
+        ]);
     }
 }
