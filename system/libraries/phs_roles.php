@@ -1,7 +1,6 @@
 <?php
 namespace phs\libraries;
 
-use phs\PHS;
 use phs\system\core\models\PHS_Model_Roles;
 
 // ! Main wrapper for roles (roles are defined by plugins/functionalities and are pushed to this class)

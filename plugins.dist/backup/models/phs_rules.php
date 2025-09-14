@@ -10,6 +10,7 @@ use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Db_class;
 use phs\libraries\PHS_Line_params;
+use phs\libraries\PHS_Record_data;
 use phs\traits\PHS_Model_Trait_statuses;
 use phs\plugins\backup\PHS_Plugin_Backup;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
@@ -59,20 +60,16 @@ class PHS_Model_Rules extends PHS_Model
         return 'backup_rules';
     }
 
-    /**
-     * @return int
-     */
     public function get_all_targets() : int
     {
         return (1 << self::BACKUP_TARGET_DATABASE) | (1 << self::BACKUP_TARGET_UPLOADS);
     }
 
-    final public function get_copy_results($lang = false) : array
+    final public function get_copy_results(null|bool|string $lang = null) : array
     {
         static $copy_results_arr = [];
 
-        if ($lang === false
-         && !empty($copy_results_arr)) {
+        if (!$lang && $copy_results_arr) {
             return $copy_results_arr;
         }
 
@@ -81,19 +78,18 @@ class PHS_Model_Rules extends PHS_Model
 
         $result_arr = $this->translate_array_keys(self::$COPY_RESULTS_ARR, ['title'], $lang);
 
-        if ($lang === false) {
+        if (!$lang) {
             $copy_results_arr = $result_arr;
         }
 
         return $result_arr;
     }
 
-    final public function get_copy_results_as_key_val($lang = false) : ?array
+    final public function get_copy_results_as_key_val(null|bool|string $lang = null) : ?array
     {
         static $copy_results_key_val_arr = null;
 
-        if ($lang === false
-         && $copy_results_key_val_arr !== null) {
+        if (!$lang && $copy_results_key_val_arr !== null) {
             return $copy_results_key_val_arr;
         }
 
@@ -108,48 +104,40 @@ class PHS_Model_Rules extends PHS_Model
             }
         }
 
-        if ($lang === false) {
+        if (!$lang) {
             $copy_results_key_val_arr = $key_val_arr;
         }
 
         return $key_val_arr;
     }
 
-    public function valid_copy_results($copy_result, $lang = false) : ?array
+    public function valid_copy_results(int $copy_result, null|bool|string $lang = null) : ?array
     {
-        $all_copy_results = $this->get_copy_results($lang);
-        if (empty($copy_result)
-         || !isset($all_copy_results[$copy_result])) {
-            return null;
-        }
-
-        return $all_copy_results[$copy_result];
+        return $this->get_copy_results($lang)[$copy_result] ?? null;
     }
 
-    final public function get_targets($lang = false) : array
+    final public function get_targets(null|bool|string $lang = null) : array
     {
         static $targets_arr = [];
 
-        if ($lang === false
-         && !empty($targets_arr)) {
+        if (!$lang && $targets_arr) {
             return $targets_arr;
         }
 
         $result_arr = $this->translate_array_keys(self::$BACKUP_TARGETS_ARR, ['title'], $lang);
 
-        if ($lang === false) {
+        if (!$lang) {
             $targets_arr = $result_arr;
         }
 
         return $result_arr;
     }
 
-    final public function get_targets_as_key_val($lang = false) : ?array
+    final public function get_targets_as_key_val(null|bool|string $lang = null) : ?array
     {
         static $targets_key_val_arr = null;
 
-        if ($lang === false
-         && $targets_key_val_arr !== null) {
+        if (!$lang && $targets_key_val_arr !== null) {
             return $targets_key_val_arr;
         }
 
@@ -164,19 +152,18 @@ class PHS_Model_Rules extends PHS_Model
             }
         }
 
-        if ($lang === false) {
+        if (!$lang) {
             $targets_key_val_arr = $key_val_arr;
         }
 
         return $key_val_arr;
     }
 
-    public function get_rule_days($lang = false) : ?array
+    public function get_rule_days(null|bool|string $lang = null) : ?array
     {
         static $days_arr = null;
 
-        if ($lang === false
-        && !empty($days_arr)) {
+        if (!$lang && $days_arr) {
             return $days_arr;
         }
 
@@ -191,178 +178,135 @@ class PHS_Model_Rules extends PHS_Model
             self::DAY_SUNDAY    => $this->_pt('Sunday', $lang),
         ];
 
-        if ($lang === false) {
+        if (!$lang) {
             $days_arr = $return_arr;
         }
 
         return $return_arr;
     }
 
-    public function valid_target($target, $lang = false) : ?array
+    public function valid_target(int $target, null|bool|string $lang = null) : ?array
     {
-        $all_targets = $this->get_targets($lang);
-        if (empty($target)
-         || !isset($all_targets[$target])) {
-            return null;
-        }
-
-        return $all_targets[$target];
+        return $this->get_targets($lang)[$target] ?? null;
     }
 
-    public function is_active($record_data) : ?array
+    public function is_active(int|array|PHS_Record_data $record_data) : bool
     {
-        if (!($record_arr = $this->data_to_array($record_data))
-         || (int)$record_arr['status'] !== self::STATUS_ACTIVE) {
-            return null;
-        }
-
-        return $record_arr;
+        return ($record_arr = $this->data_to_array($record_data))
+               && (int)$record_arr['status'] === self::STATUS_ACTIVE;
     }
 
-    public function is_inactive($record_data) : ?array
+    public function is_inactive(int|array|PHS_Record_data $record_data) : bool
     {
-        if (!($record_arr = $this->data_to_array($record_data))
-         || (int)$record_arr['status'] !== self::STATUS_INACTIVE) {
-            return null;
-        }
-
-        return $record_arr;
+        return ($record_arr = $this->data_to_array($record_data))
+               && (int)$record_arr['status'] === self::STATUS_INACTIVE;
     }
 
-    public function is_deleted($record_data) : ?array
+    public function is_deleted(int|array|PHS_Record_data $record_data) : bool
     {
-        if (!($record_arr = $this->data_to_array($record_data))
-         || (int)$record_arr['status'] !== self::STATUS_DELETED) {
-            return null;
-        }
-
-        return $record_arr;
+        return ($record_arr = $this->data_to_array($record_data))
+               && (int)$record_arr['status'] === self::STATUS_DELETED;
     }
 
-    public function is_suspended($record_data) : ?array
+    public function is_suspended(int|array|PHS_Record_data $record_data) : bool
     {
-        if (!($record_arr = $this->data_to_array($record_data))
-         || (int)$record_arr['status'] !== self::STATUS_SUSPENDED) {
-            return null;
-        }
-
-        return $record_arr;
+        return ($record_arr = $this->data_to_array($record_data))
+               && (int)$record_arr['status'] === self::STATUS_SUSPENDED;
     }
 
-    /**
-     * @param int|array $record_data
-     * @param false|array $params
-     *
-     * @return array|false
-     */
-    public function act_activate($record_data, $params = false)
+    public function act_activate(int|array|PHS_Record_data $record_data): null|array|PHS_Record_data
     {
         $this->reset_error();
 
         if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
-            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Couldn\'t load backup plugin.'));
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
-            return false;
+            return null;
         }
 
-        if (empty($record_data)
-         || !($record_arr = $this->data_to_array($record_data))) {
+        if (!$record_data
+            || !($record_arr = $this->data_to_array($record_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Backup rule details not found in database.'));
 
-            return false;
+            return null;
         }
 
         if (!$backup_plugin->plugin_active()
-         && $this->is_suspended($record_arr)) {
+            && $this->is_suspended($record_arr)) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('You will have to activate backup plugin before activating backup rule.'));
 
-            return false;
+            return null;
         }
 
         if ($this->is_active($record_arr)) {
             return $record_arr;
         }
 
-        $edit_arr = [];
-        $edit_arr['status'] = self::STATUS_ACTIVE;
+        if(!($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_ACTIVE]]))) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error saving backup rule details to database.'));
+            return null;
+        }
 
-        $edit_params = [];
-        $edit_params['fields'] = $edit_arr;
-
-        return $this->edit($record_arr, $edit_params);
+        return $new_record;
     }
 
-    /**
-     * @param int|array $record_data
-     * @param false|array $params
-     *
-     * @return array|false
-     */
-    public function act_inactivate($record_data, $params = false)
+    public function act_inactivate(int|array|PHS_Record_data $record_data): null|array|PHS_Record_data
     {
         $this->reset_error();
 
         if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
-            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Couldn\'t load backup plugin.'));
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
-            return false;
+            return null;
         }
 
-        if (empty($record_data)
-         || !($record_arr = $this->data_to_array($record_data))) {
+        if (!$record_data
+            || !($record_arr = $this->data_to_array($record_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Backup rule details not found in database.'));
 
-            return false;
+            return null;
         }
 
         if (!$backup_plugin->plugin_active()
-         && $this->is_suspended($record_arr)) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('You will have to activate backup plugin before inactivating backup rule.'));
+            && $this->is_suspended($record_arr)) {
+            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('You will have to activate backup plugin before activating backup rule.'));
 
-            return false;
+            return null;
         }
 
         if ($this->is_inactive($record_arr)) {
             return $record_arr;
         }
 
-        $edit_arr = [];
-        $edit_arr['status'] = self::STATUS_INACTIVE;
+        if(!($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_INACTIVE]]))) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error saving backup rule details to database.'));
+            return null;
+        }
 
-        $edit_params = [];
-        $edit_params['fields'] = $edit_arr;
-
-        return $this->edit($record_arr, $edit_params);
+        return $new_record;
     }
 
-    /**
-     * @param int|array $record_data
-     * @param false|array $params
-     *
-     * @return array|false
-     */
-    public function act_delete($record_data, $params = false)
+    public function act_delete(int|array|PHS_Record_data $record_data): null|array|PHS_Record_data
     {
         $this->reset_error();
 
-        if (empty($record_data)
-         || !($record_arr = $this->data_to_array($record_data))) {
-            $this->set_error(self::ERR_DELETE, $this->_pt('Backup rule details not found in database.'));
+        if (!$record_data
+            || !($record_arr = $this->data_to_array($record_data))) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Backup rule details not found in database.'));
 
-            return false;
+            return null;
         }
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
+        if ($this->is_deleted($record_arr)) {
+            return $record_arr;
         }
 
-        $edit_arr = [];
-        $edit_arr['status'] = self::STATUS_DELETED;
+        if(!($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_DELETED]]))) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error saving backup rule details to database.'));
+            return null;
+        }
 
-        $edit_params_arr = [];
-        $edit_params_arr['fields'] = $edit_arr;
-
-        return $this->edit($record_arr, $edit_params_arr);
+        return $new_record;
     }
 
     public function act_suspend_all_rules() : bool
@@ -370,7 +314,7 @@ class PHS_Model_Rules extends PHS_Model
         $this->reset_error();
 
         if (!($flow_params = $this->fetch_default_flow_params(['table_name' => 'backup_rules']))
-         || !($table_name = $this->get_flow_table_name($flow_params))) {
+            || !($table_name = $this->get_flow_table_name($flow_params))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t obtain all required resources.'));
 
             return false;
@@ -390,7 +334,7 @@ class PHS_Model_Rules extends PHS_Model
         $this->reset_error();
 
         if (!($flow_params = $this->fetch_default_flow_params(['table_name' => 'backup_rules']))
-         || !($table_name = $this->get_flow_table_name($flow_params))) {
+            || !($table_name = $this->get_flow_table_name($flow_params))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t obtain all required resources.'));
 
             return false;
@@ -405,16 +349,8 @@ class PHS_Model_Rules extends PHS_Model
         return true;
     }
 
-    /**
-     * @param int|array $record_data
-     * @param int|array $account_data
-     *
-     * @return array|false
-     */
-    public function can_user_edit($record_data, $account_data)
+    public function can_user_edit(int|array|PHS_Record_data $record_data, int|array|PHS_Record_data $account_data): ?array
     {
-        /** @var PHS_Model_Accounts $accounts_model */
-        /** @var PHS_Plugin_Backup $plugin_obj */
         if (empty($record_data) || empty($account_data)
          || !($rule_arr = $this->data_to_array($record_data))
          || $this->is_deleted($rule_arr)
@@ -422,7 +358,7 @@ class PHS_Model_Rules extends PHS_Model
          || !($accounts_model = PHS_Model_Accounts::get_instance())
          || !($account_arr = $accounts_model->data_to_array($account_data))
          || !can($plugin_obj::ROLEU_MANAGE_RULES, null, $account_arr)) {
-            return false;
+            return null;
         }
 
         $return_arr = [];
@@ -432,93 +368,67 @@ class PHS_Model_Rules extends PHS_Model
         return $return_arr;
     }
 
-    /**
-     * @param int|array $rule_data
-     * @param false|array $params
-     *
-     * @return array|false
-     */
-    public function get_location_for_rule($rule_data, $params = false)
+    public function get_location_for_rule(int|array|PHS_Record_data $rule_data, array $params = []): ?array
     {
         $this->reset_error();
 
-        if (empty($rule_data)
-         || !($flow_params = $this->fetch_default_flow_params(['table_name' => 'backup_rules']))
-         || !($rule_arr = $this->data_to_array($rule_data, $flow_params))) {
+        if (!$rule_data
+            || !($flow_params = $this->fetch_default_flow_params(['table_name' => 'backup_rules']))
+            || !($rule_arr = $this->data_to_array($rule_data, $flow_params))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Backup rule not found in database.'));
 
-            return false;
+            return null;
         }
 
-        /** @var PHS_Plugin_Backup $backup_plugin */
         if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load backup plugin.'));
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
-            return false;
+            return null;
         }
 
-        if (!($result_details = $backup_plugin->get_location_for_path($rule_arr['location'], $params))) {
-            if ($backup_plugin->has_error()) {
-                $this->copy_error($backup_plugin);
-            } else {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t obtain rule location path details.'));
-            }
+        if (empty($rule_arr['location'])
+            || !($result_details = $backup_plugin->get_location_for_path($rule_arr['location'], $params))) {
+            $this->copy_or_set_error($backup_plugin,
+                self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t obtain rule location path details.'));
 
-            return false;
+            return null;
         }
 
         return $result_details;
     }
 
-    /**
-     * @param int|array $rule_data
-     * @param false|array $params
-     *
-     * @return array|false
-     */
-    public function get_location_stats_for_rule($rule_data, $params = false)
+    public function get_location_stats_for_rule(int|array|PHS_Record_data $rule_data, array $params = []): ?array
     {
         $this->reset_error();
 
-        /** @var PHS_Plugin_Backup $backup_plugin */
         if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Couldn\'t load backup plugin.'));
 
-            return false;
+            return null;
         }
 
-        if (empty($rule_data)
-         || !($flow_params = $this->fetch_default_flow_params(['table_name' => 'backup_rules']))
-         || !($rule_arr = $this->data_to_array($rule_data, $flow_params))) {
+        if (!$rule_data
+            || !($flow_params = $this->fetch_default_flow_params(['table_name' => 'backup_rules']))
+            || !($rule_arr = $this->data_to_array($rule_data, $flow_params))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Backup rule not found in database.'));
 
-            return false;
+            return null;
         }
 
         if (!($location_arr = $this->get_location_for_rule($rule_arr, $params))
          || empty($location_arr['full_path'])) {
-            return false;
+            return null;
         }
 
         return $backup_plugin->get_directory_stats($location_arr['full_path']);
     }
 
-    /**
-     * @param string $output_dir
-     * @param bool|array $params
-     *
-     * @return array|bool
-     */
-    public function get_database_backup_script_commands($output_dir, $params = false)
+    public function get_database_backup_script_commands(string $output_dir, array $params = []): null|bool|array
     {
         $this->reset_error();
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
         // Zip database dump
-        $params['zip_dump'] = (!isset($params['zip_dump']) || !empty($params['zip_dump']));
+        $params['zip_dump'] = !isset($params['zip_dump']) || !empty($params['zip_dump']);
 
         // Option to force mysqldump or zip location. If not provided, will use plugin settings or mysqldump (if in executables path)
         if (empty($params['zip_bin'])) {
@@ -528,55 +438,34 @@ class PHS_Model_Rules extends PHS_Model
             $params['mysqldump_bin'] = '';
         }
 
-        if (empty($output_dir)
-         || !@is_dir($output_dir)
-         || !@is_writable($output_dir)) {
-            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Please provide an output directory for database dump commands.'));
+        if (!$output_dir
+            || !@is_dir($output_dir)
+            || !@is_writable($output_dir)) {
+            $this->set_error(self::ERR_PARAMETERS,
+                $this->_pt('Please provide an output directory for database dump commands.'));
 
-            return false;
+            return null;
         }
 
-        /** @var PHS_Plugin_Backup $backup_plugin */
-        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
-            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Couldn\'t load backup plugin.'));
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())
+            || !($results_model = PHS_Model_Results::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
-            return false;
-        }
-
-        /** @var PHS_Model_Results $results_model */
-        if (!($results_model = PHS_Model_Results::get_instance())) {
-            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Couldn\'t load backup results model.'));
-
-            return false;
+            return null;
         }
 
         // If no database connection is defined, return true, so we don't trigger errors
         if (!($db_connections = PHS_Db::get_db_connection())
-         || !is_array($db_connections)) {
+            || !is_array($db_connections)) {
             PHS_Logger::notice('No database connections defined.', $backup_plugin::LOG_CHANNEL);
 
             return true;
         }
 
-        if (!($settings_arr = $backup_plugin->get_plugin_settings())) {
-            $settings_arr = [];
-        }
+        $settings_arr = $backup_plugin->get_plugin_settings();
 
-        if (!empty($params['mysqldump_bin'])) {
-            $mysqldump_bin = $params['mysqldump_bin'];
-        } elseif (!empty($settings_arr['mysqldump_bin'])) {
-            $mysqldump_bin = $settings_arr['mysqldump_bin'];
-        } else {
-            $mysqldump_bin = 'mysqldump';
-        }
-
-        if (!empty($params['zip_bin'])) {
-            $zip_bin = $params['zip_bin'];
-        } elseif (!empty($settings_arr['zip_bin'])) {
-            $zip_bin = $settings_arr['zip_bin'];
-        } else {
-            $zip_bin = 'zip';
-        }
+        $mysqldump_bin = $params['mysqldump_bin'] ?: ($settings_arr['mysqldump_bin'] ?? '') ?: 'mysqldump';
+        $zip_bin = $params['zip_bin'] ?: ($settings_arr['zip_bin'] ?? '') ?: 'zip';
 
         $dump_params = PHS_Db_class::default_dump_parameters();
         $dump_params['zip_dump'] = $params['zip_dump'];
@@ -650,19 +539,9 @@ class PHS_Model_Rules extends PHS_Model
         return $dump_details_arr;
     }
 
-    /**
-     * @param string $output_dir
-     * @param false|array $params
-     *
-     * @return array|false
-     */
-    public function get_uploaded_files_backup_script_commands($output_dir, $params = false)
+    public function get_uploaded_files_backup_script_commands(string $output_dir, array $params = []): ?array
     {
         $this->reset_error();
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
 
         // Option to force mysqldump or zip location. If not provided, will use plugin settings or mysqldump (if in executables path)
         $params['zip_bin'] ??= '';
@@ -671,33 +550,24 @@ class PHS_Model_Rules extends PHS_Model
         $params['backup_path'] ??= '';
 
         if (empty($output_dir)
-         || !@is_dir($output_dir)
-         || !@is_writable($output_dir)) {
-            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Please provide an output directory for uploaded files dump commands.'));
+            || !@is_dir($output_dir)
+            || !@is_writable($output_dir)) {
+            $this->set_error(self::ERR_PARAMETERS,
+                $this->_pt('Please provide an output directory for uploaded files dump commands.'));
 
-            return false;
+            return null;
         }
 
-        /** @var PHS_Plugin_Backup $backup_plugin */
-        /** @var PHS_Model_Results $results_model */
         if (!($backup_plugin = PHS_Plugin_Backup::get_instance())
             || !($results_model = PHS_Model_Results::get_instance())) {
-            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error loading required resources.'));
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
-            return false;
+            return null;
         }
 
-        if (!($settings_arr = $backup_plugin->get_plugin_settings())) {
-            $settings_arr = [];
-        }
+        $settings_arr = $backup_plugin->get_plugin_settings();
 
-        if (!empty($params['zip_bin'])) {
-            $zip_bin = $params['zip_bin'];
-        } elseif (!empty($settings_arr['zip_bin'])) {
-            $zip_bin = $settings_arr['zip_bin'];
-        } else {
-            $zip_bin = 'zip';
-        }
+        $zip_bin = $params['zip_bin'] ?: ($settings_arr['zip_bin'] ?? '') ?: 'zip';
 
         $zip_file = $output_dir.'/_uploads.zip';
         $log_file = $output_dir.'/_uploads.log';
@@ -735,19 +605,9 @@ class PHS_Model_Rules extends PHS_Model
         return $dump_details_arr;
     }
 
-    /**
-     * @param int|array $rule_data
-     * @param false|array $params
-     *
-     * @return array|false
-     */
-    public function run_backup_rule_bg($rule_data, $params = false)
+    public function run_backup_rule_bg(int|array|PHS_Record_data $rule_data, array $params = []): ?array
     {
         $this->reset_error();
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
 
         // Run backup script now?
         $params['launch_shell_script'] = (!isset($params['launch_shell_script']) || !empty($params['launch_shell_script']));
@@ -755,63 +615,51 @@ class PHS_Model_Rules extends PHS_Model
         $params['zip_dump'] = (!isset($params['zip_dump']) || !empty($params['zip_dump']));
 
         // Option to force mysqldump or zip location. If not provided, will use plugin settings or mysqldump (if in executables path)
-        if (empty($params['mysqldump_bin'])) {
-            $params['mysqldump_bin'] = '';
-        }
-        if (empty($params['zip_bin'])) {
-            $params['zip_bin'] = '';
-        }
+        $params['mysqldump_bin'] = $params['mysqldump_bin'] ?? '';
+        $params['zip_bin'] = $params['zip_bin'] ?? '';
 
-        /** @var PHS_Model_Rules $rules_model */
-        /** @var PHS_Model_Results $results_model */
-        /** @var PHS_Plugin_Backup $backup_plugin */
         if (!($backup_plugin = PHS_Plugin_Backup::get_instance())
-            || !($rules_model = self::get_instance())
-            || !($r_flow_params = $rules_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
             || !($results_model = PHS_Model_Results::get_instance())
+            || !($r_flow_params = $this->fetch_default_flow_params(['table_name' => 'backup_rules']))
             || !($res_flow_params = $results_model->fetch_default_flow_params(['table_name' => 'backup_results']))
         ) {
-            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error loading required resources.'));
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
-            return false;
+            return null;
         }
 
-        if (empty($rule_data)
-         || !($rule_arr = $rules_model->data_to_array($rule_data, $r_flow_params))
-         || $rules_model->is_deleted($rule_arr)) {
+        if (!$rule_data
+            || !($rule_arr = $this->data_to_array($rule_data, $r_flow_params))
+            || $this->is_deleted($rule_arr)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Backup rule not found in database.'));
 
-            return false;
+            return null;
         }
 
         if (!($rule_location = $this->get_backup_directory($rule_arr))
-         || empty($rule_location['rule_path'])) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error obtaining backup rule location details.'));
-            }
+            || empty($rule_location['rule_path'])) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error obtaining backup rule location details.'));
 
             PHS_Logger::error('Error (R#'.$rule_arr['id'].'): '.$this->get_error_message(), $backup_plugin::LOG_CHANNEL);
 
-            return false;
+            return null;
         }
 
         $run_time = time();
         $run_time_str = date('YmdHis', $run_time);
         $run_path = $rule_location['rule_path'].'/'.$run_time_str;
         if (!@file_exists($run_path)
-         || !@is_dir($run_path)) {
+            || !@is_dir($run_path)) {
             if (!mkdir($run_path, 0750) && !is_dir($run_path)) {
                 $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error creating backup running directory in rule location directory.'));
 
                 PHS_Logger::error('Error (R#'.$rule_arr['id'].'): Error creating backup running directory in rule location directory ('.$run_path.').', $backup_plugin::LOG_CHANNEL);
 
-                return false;
+                return null;
             }
         }
 
-        if (!($settings_arr = $backup_plugin->get_plugin_settings())) {
-            $settings_arr = [];
-        }
+        $settings_arr = $backup_plugin->get_plugin_settings();
 
         if (!empty($params['mysqldump_bin'])) {
             $mysqldump_bin = $params['mysqldump_bin'];
@@ -845,15 +693,13 @@ class PHS_Model_Rules extends PHS_Model
         $bg_script_commands[] = 'cd "'.$run_path.'"';
 
         if ($rule_arr['target'] & (1 << self::BACKUP_TARGET_DATABASE)) {
-            if (($database_dump = $this->get_database_backup_script_commands($run_path, $dump_params)) === false) {
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_FUNCTIONALITY,
-                        $this->_pt('Error obtaining batabase backup script commands.'));
-                }
+            if (null === ($database_dump = $this->get_database_backup_script_commands($run_path, $dump_params))) {
+                $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
+                    $this->_pt('Error obtaining batabase backup script commands.'));
 
                 PHS_Logger::error('Error (R#'.$rule_arr['id'].'): '.$this->get_error_message(), $backup_plugin::LOG_CHANNEL);
 
-                return false;
+                return null;
             }
 
             // if no database connections defined, get_database_backup_script_commands() will return true
@@ -887,7 +733,7 @@ class PHS_Model_Rules extends PHS_Model
         }
 
         if ($rule_arr['target'] & (1 << self::BACKUP_TARGET_UPLOADS)) {
-            if (($uploaded_files_dump = $this->get_uploaded_files_backup_script_commands($run_path, $dump_params)) === false) {
+            if (null === ($uploaded_files_dump = $this->get_uploaded_files_backup_script_commands($run_path, $dump_params))) {
                 if (!empty($generated_files)) {
                     foreach ($generated_files as $file) {
                         if (@file_exists($file)) {
@@ -896,14 +742,12 @@ class PHS_Model_Rules extends PHS_Model
                     }
                 }
 
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_FUNCTIONALITY,
-                        $this->_pt('Error obtaining uploaded files backup script commands.'));
-                }
+                $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
+                    $this->_pt('Error obtaining uploaded files backup script commands.'));
 
                 PHS_Logger::error('Error (R#'.$rule_arr['id'].'): '.$this->get_error_message(), $backup_plugin::LOG_CHANNEL);
 
-                return false;
+                return null;
             }
 
             // if no database connections $this->defined get_database_backup_script_buffer() will return true
@@ -943,7 +787,7 @@ class PHS_Model_Rules extends PHS_Model
 
             PHS_Logger::error('Error (R#'.$rule_arr['id'].'): '.$this->get_error_message(), $backup_plugin::LOG_CHANNEL);
 
-            return false;
+            return null;
         }
 
         $insert_arr = $res_flow_params;
@@ -958,34 +802,27 @@ class PHS_Model_Rules extends PHS_Model
         if (!($result_arr = $results_model->insert($insert_arr))) {
             PHS_Utils::rmdir_tree($run_path, ['recursive' => true]);
 
-            if ($results_model->has_error()) {
-                $this->copy_error($results_model);
-            } else {
-                $this->set_error(self::ERR_FUNCTIONALITY,
-                    $this->_pt('Couldn\'t save backup results details in database.'));
-            }
+            $this->copy_or_set_error($results_model,
+                self::ERR_FUNCTIONALITY,
+                $this->_pt('Couldn\'t save backup results details in database.')
+            );
 
-            return false;
+            return null;
         }
 
-        $bg_job_params = [];
-        $bg_job_params['result_id'] = $result_arr['id'];
-
-        if (!($bg_job = PHS_Bg_jobs::run(['plugin' => 'backup', 'controller' => 'index_bg', 'action' => 'finish_backup_script_bg'],
-            $bg_job_params,
-            ['return_command' => true]))
+        if (!($bg_job = PHS_Bg_jobs::run(
+            ['plugin' => 'backup', 'controller' => 'index_bg', 'action' => 'finish_backup_script_bg'],
+            ['result_id' => $result_arr['id']],
+            ['return_command' => true]
+            ))
          || empty($bg_job['cmd'])) {
             PHS_Utils::rmdir_tree($run_path, ['recursive' => true]);
 
-            if (self::st_has_error()) {
-                $error_msg = self::st_get_error_message();
-            } else {
-                $error_msg = $this->_pt('Error obtaining run rule finish background command.');
-            }
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                self::st_get_simple_error_message($this->_pt('Error obtaining run rule finish background command.'))
+            );
 
-            $this->set_error(self::ERR_FUNCTIONALITY, $error_msg);
-
-            return false;
+            return null;
         }
 
         $bg_script_commands[] = '';
@@ -998,11 +835,9 @@ class PHS_Model_Rules extends PHS_Model
             PHS_Utils::rmdir_tree($run_path, ['recursive' => true]);
             $results_model->act_delete($result_arr);
 
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error creating backup shell script.'));
-            }
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error creating backup shell script.'));
 
-            return false;
+            return null;
         }
 
         $generated_files[] = $shell_file;
@@ -1014,11 +849,9 @@ class PHS_Model_Rules extends PHS_Model
 
         if (!empty($params['launch_shell_script'])) {
             if (!($run_result = $this->launch_backup_rule_bg($result_arr, ['rule_data' => $rule_arr]))) {
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error creating backup shell script.'));
-                }
+                $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error creating backup shell script.'));
 
-                return false;
+                return null;
             }
 
             $return_arr['run_result'] = $run_result;
@@ -1027,43 +860,25 @@ class PHS_Model_Rules extends PHS_Model
         return $return_arr;
     }
 
-    /**
-     * @param int|array $result_data
-     * @param bool|array $params
-     *
-     * @return array|bool
-     */
-    public function launch_backup_rule_bg($result_data, $params = false)
+    public function launch_backup_rule_bg(int|array|PHS_Record_data $result_data, array $params = []): ?array
     {
         $this->reset_error();
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
         $params['force'] = !empty($params['force']);
 
-        if (!($r_flow_params = $this->fetch_default_flow_params(['table_name' => 'backup_rules']))) {
+        if (!($results_model = PHS_Model_Results::get_instance())
+            || !($r_flow_params = $this->fetch_default_flow_params(['table_name' => 'backup_rules']))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t obtain required resources.'));
 
-            return false;
-        }
-
-        /** @var PHS_Model_Results $results_model */
-        if (!($results_model = PHS::load_model('results', 'backup'))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load backup results model.'));
-
-            return false;
+            return null;
         }
 
         if (!($launch_result = $results_model->launch_result_shell_script_bg($result_data, $params))) {
-            if ($results_model->has_error()) {
-                $this->copy_error($results_model);
-            } else {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error launching backup result shell script.'));
-            }
+            $this->copy_or_set_error($results_model,
+                self::ERR_FUNCTIONALITY, $this->_pt('Error launching backup result shell script.')
+            );
 
-            return false;
+            return null;
         }
 
         $rule_data = false;
@@ -1074,8 +889,8 @@ class PHS_Model_Rules extends PHS_Model
         }
 
         $rule_arr = false;
-        if (!empty($rule_data)
-         && ($rule_arr = $this->data_to_array($rule_data, $r_flow_params))) {
+        if ($rule_data
+            && ($rule_arr = $this->data_to_array($rule_data, $r_flow_params))) {
             $edit_arr = $r_flow_params;
             $edit_arr['fields'] = [
                 'last_run' => date(self::DATETIME_DB),
@@ -1091,37 +906,24 @@ class PHS_Model_Rules extends PHS_Model
         return $launch_result;
     }
 
-    /**
-     * @param int|array $result_data
-     * @param bool|array $params
-     *
-     * @return array|bool
-     */
-    public function finish_backup_rule_bg($result_data, $params = false)
+    public function finish_backup_rule_bg(int|array|PHS_Record_data $result_data, array $params = []): ?array
     {
         $this->reset_error();
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
         $params['force'] = !empty($params['force']);
 
-        /** @var PHS_Model_Results $results_model */
-        if (!($results_model = PHS::load_model('results', 'backup'))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load backup results model.'));
+        if (!($results_model = PHS_Model_Results::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
-            return false;
+            return null;
         }
 
         if (!($finish_result = $results_model->launch_result_shell_script_bg($result_data, $params))) {
-            if ($results_model->has_error()) {
-                $this->copy_error($results_model);
-            } else {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error launching backup result shell script.'));
-            }
+            $this->copy_or_set_error($results_model,
+                self::ERR_FUNCTIONALITY, $this->_pt('Error launching backup result shell script.')
+            );
 
-            return false;
+            return null;
         }
 
         return $finish_result;

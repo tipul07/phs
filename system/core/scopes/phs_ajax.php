@@ -23,16 +23,10 @@ class PHS_Scope_Ajax extends PHS_Scope
      */
     public function process_action_result($action_result, $static_error_arr = false)
     {
-        $action_result = PHS_Action::validate_action_result($action_result);
-
         $full_buffer = PHS_Params::_gp(PHS_Ajax::PARAM_FB_KEY, PHS_Params::T_INT);
 
-        if (!isset($action_result['buffer'])) {
-            $action_result['buffer'] = '';
-        }
-        if (!isset($action_result['ajax_result'])) {
-            $action_result['ajax_result'] = false;
-        }
+        $action_result['buffer'] ??= '';
+        $action_result['ajax_result'] ??= false;
 
         if (!empty($action_result['request_login'])) {
             $args = [];

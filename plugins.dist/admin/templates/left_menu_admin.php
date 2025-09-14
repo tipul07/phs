@@ -259,5 +259,11 @@ if (($accounts_model = PHS_Model_Accounts::get_instance())
                 ><?php echo $this::_t('Update PHS Structure'); ?></a></li>
         </ul>
     </li>
+    <li><?php echo $this::_t('Translations'); ?>
+        <ul>
+            <li><a href="<?php echo PHS::url(['a' => 'ui_translations', 'ad' => 'translations', 'p' => 'admin']); ?>"
+                ><?php echo $this::_t('UI Translations'); ?></a></li>
+        </ul>
+    </li>
     <?php
 }

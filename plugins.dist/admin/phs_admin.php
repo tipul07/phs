@@ -3,7 +3,6 @@ namespace phs\plugins\admin;
 
 use phs\PHS;
 use phs\PHS_Api;
-use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
@@ -14,7 +13,9 @@ class PHS_Plugin_Admin extends PHS_Plugin
 {
     public const H_ADMIN_LEFT_MENU_ADMIN_AFTER_USERS = 'phs_admin_left_menu_admin_after_users';
 
-    public const LOG_API_MONITOR = 'api_monitor.log', LOG_DATA_RETENTION = 'phs_data_retention.log', LOG_PAGINATOR = 'phs_paginator.log';
+    public const LOG_API_MONITOR = 'api_monitor.log', LOG_DATA_RETENTION = 'phs_data_retention.log',
+        LOG_PAGINATOR = 'phs_paginator.log', LOG_AI_TRANSLATIONS = 'phs_ai_translations.log',
+        LOG_UI_TRANSLATIONS = 'phs_ui_translations.log';
 
     public const LOG_ROTATE_DAILY = 1, LOG_ROTATE_WEEKELY = 2, LOG_ROTATE_MONTHLY = 3, LOG_ROTATE_YEARLY = 4;
 
@@ -24,6 +25,14 @@ class PHS_Plugin_Admin extends PHS_Plugin
         self::LOG_ROTATE_MONTHLY => 'Monthly',
         self::LOG_ROTATE_YEARLY  => 'Yearly',
     ];
+
+    /**
+     * @inheritdoc
+     */
+    public function get_settings_keys_to_obfuscate() : array
+    {
+        return ['ai_openai_token'];
+    }
 
     /**
      * @inheritdoc
@@ -224,6 +233,36 @@ class PHS_Plugin_Admin extends PHS_Plugin
                     ],
                 ],
             ],
+            'ai_translation_group' => [
+                'display_name' => $this->_pt('AI Translations Settings'),
+                'display_hint' => $this->_pt('Settings related to AI translation functionality'),
+                'group_fields' => [
+                    'ai_openai_url' => [
+                        'display_name' => 'OpenAI URL',
+                        'display_hint' => 'Where should OpenAI API requests be sent to? (eg. https://api.openai.com/v1/responses)',
+                        'type'         => PHS_Params::T_NOHTML,
+                        'default'      => '',
+                    ],
+                    'ai_openai_token' => [
+                        'display_name' => 'OpenAI bearer token',
+                        'display_hint' => 'Bearer token used to authenticate for OpenAI API requests. You can obtain it from your OpenAI account.',
+                        'type'         => PHS_Params::T_NOHTML,
+                        'default'      => '',
+                    ],
+                    'ai_openai_model' => [
+                        'display_name' => 'OpenAI model',
+                        'display_hint' => 'What model should be used for OpenAI API requests? (eg. gpt-3.5-turbo)',
+                        'type'         => PHS_Params::T_NOHTML,
+                        'default'      => '',
+                    ],
+                    'ai_openai_temperature' => [
+                        'display_name' => 'OpenAI temperature',
+                        'display_hint' => 'The lower the temperature, the more deterministic the output will be. The higher the temperature, the more creative the output will be. (default: 0.01)',
+                        'type'         => PHS_Params::T_FLOAT,
+                        'default'      => 0.01,
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -300,6 +339,53 @@ class PHS_Plugin_Admin extends PHS_Plugin
     public function log_rotation_policy() : int
     {
         return (int)($this->get_plugin_settings()['log_rotate_policy'] ?? 0);
+    }
+
+    public function get_ai_openai_url() : ?string
+    {
+        return $this->get_plugin_settings()['ai_openai_url'] ?? null;
+    }
+
+    public function get_ai_openai_token() : ?string
+    {
+        return $this->get_plugin_settings()['ai_openai_token'] ?? null;
+    }
+
+    public function get_ai_openai_model() : string
+    {
+        return $this->get_plugin_settings()['ai_openai_model'] ?? 'gpt-3.5-turbo';
+    }
+
+    public function get_ai_openai_temperature() : float
+    {
+        return (float)($this->get_plugin_settings()['ai_openai_temperature'] ?? 0.01);
+    }
+
+    protected function _db_registry_fields_settings(): array
+    {
+        return [
+            'ui_translation_excluding_paths' => [
+                'readonly' => true,
+                'can_be_deleted' => false,
+            ]
+        ];
+    }
+
+    public function get_ui_translation_excluding_paths(): array
+    {
+        if(!($registry_paths = $this->get_db_registry()['ui_translation_excluding_paths'] ?? null)
+           || !is_array($registry_paths)) {
+            return [];
+        }
+
+        return $registry_paths;
+    }
+
+    public function save_ui_translation_excluding_paths(array $paths): array
+    {
+        return $this->update_db_registry([
+            'ui_translation_excluding_paths' => self::extract_strings_from_array($paths) ?: []
+        ]);
     }
 
     /**

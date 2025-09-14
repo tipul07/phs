@@ -1,16 +1,18 @@
 <?php
 
-if ((!defined('PHS_SETUP_FLOW') || !constant('PHS_SETUP_FLOW'))
-&& !defined('PHS_VERSION')) {
+if (!defined('PHS_VERSION')
+    && (!defined('PHS_SETUP_FLOW') || !constant('PHS_SETUP_FLOW'))) {
     exit;
 }
 
 use phs\libraries\PHS_Language;
 
+const LANG_PO_DIR = PHS_LANGUAGES_DIR.'__/';
+
 // Define any platform used languages here...
-define('LANG_EN', 'en');
-define('LANG_EN_DIR', PHS_LANGUAGES_DIR.'en/');
-define('LANG_EN_WWW', PHS_LANGUAGES_WWW.'en/');
+const LANG_EN = 'en';
+const LANG_EN_DIR = PHS_LANGUAGES_DIR.'en/';
+const LANG_EN_WWW = PHS_LANGUAGES_WWW.'en/';
 
 // We define only English as built-in language
 // Languages' definition should be done in a plugin which will add more languages as requested by current build (triggered in languages_start.php)

@@ -16,7 +16,6 @@ class PHS_Action_Run_request_bg extends PHS_Action
 
     public function execute() : ?array
     {
-        /** @var PHS_Model_Request_queue $requests_model */
         if (!($params = PHS_Bg_jobs::get_current_job_parameters())
             || empty($params['request_id'])
             || !($requests_model = PHS_Model_Request_queue::get_instance())

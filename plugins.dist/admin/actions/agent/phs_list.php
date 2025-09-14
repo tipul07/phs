@@ -223,8 +223,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     public function manage_action(array $action) : null | bool | array
     {
-        $this->reset_error();
-
         $action_result_params = $this->_paginator->default_action_params();
 
         if (empty($action['action'])) {
@@ -251,7 +249,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+                if (!$this->_admin_plugin->can_admin_manage_agent_jobs()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -310,7 +308,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+                if (!$this->_admin_plugin->can_admin_manage_agent_jobs()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -369,7 +367,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+                if (!$this->_admin_plugin->can_admin_manage_agent_jobs()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -426,7 +424,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+                if (!$this->_admin_plugin->can_admin_manage_agent_jobs()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -461,7 +459,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+                if (!$this->_admin_plugin->can_admin_manage_agent_jobs()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -496,7 +494,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+                if (!$this->_admin_plugin->can_admin_manage_agent_jobs()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -513,7 +511,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return false;
                 }
 
-                /** @var PHS_Agent $agent_obj */
                 if (!($agent_obj = new PHS_Agent())) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('Cannot instantiate agent class.'));
 
@@ -544,7 +541,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+                if (!$this->_admin_plugin->can_admin_manage_agent_jobs()) {
                     $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
 
                     return false;
@@ -588,36 +585,27 @@ class PHS_Action_List extends PHS_Action_Generic_list
             $params['preset_content'] = '';
         }
 
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $this->_paginator::CELL_RENDER_JSON:
-                case $this->_paginator::CELL_RENDER_TEXT:
-                case $this->_paginator::CELL_RENDER_CSV:
-                case $this->_paginator::CELL_RENDER_EXCEL:
-                    $params['preset_content'] .= (!empty($params['preset_content']) ? ' - ' : '').$params['record']['handler'];
-                    break;
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
+            return $params['preset_content'] . (!empty($params['preset_content']) ? ' - ' : '').$params['record']['handler'];
+        }
 
-                case $this->_paginator::CELL_RENDER_HTML:
-                    $last_error = '';
-                    if (!empty($agent_job['last_error'])) {
-                        ob_start();
-                        ?>
-                        <a href="javascript:void(0)" onclick="phs_open_agent_job_last_error( '<?php echo $agent_job['id']; ?>' )"
-                           onfocus="this.blur()"><i class="fa fa-exclamation action-icons"></i></a>
-                        <div id="phs_agent_jobs_agent_last_error_<?php echo $agent_job['id']; ?>" style="display:none;">
-                            <?php echo str_replace('  ', ' &nbsp;', nl2br($agent_job['last_error'])); ?>
-                        </div>
-                        <?php
-                        $last_error = ob_get_clean();
-                    }
+        $last_error = '';
+        if (!empty($agent_job['last_error'])) {
+            ob_start();
+            ?>
+            <a href="javascript:void(0)" onclick="phs_open_agent_job_last_error( '<?php echo $agent_job['id']; ?>' )"
+               onfocus="this.blur()"><i class="fa fa-exclamation action-icons"></i></a>
+            <div id="phs_agent_jobs_agent_last_error_<?php echo $agent_job['id']; ?>" style="display:none;">
+                <?php echo str_replace('  ', ' &nbsp;', nl2br($agent_job['last_error'])); ?>
+            </div>
+            <?php
+            $last_error = ob_get_clean();
+        }
 
-                    if (!empty($params['preset_content'])) {
-                        $params['preset_content'] .= $last_error.'<br/><small>'.$params['record']['handler'].'</small>';
-                    } else {
-                        $params['preset_content'] = $params['record']['handler'].$last_error;
-                    }
-                    break;
-            }
+        if (!empty($params['preset_content'])) {
+            $params['preset_content'] .= $last_error.'<br/><small>'.$params['record']['handler'].'</small>';
+        } else {
+            $params['preset_content'] = $params['record']['handler'].$last_error;
         }
 
         return $params['preset_content'];
@@ -634,32 +622,20 @@ class PHS_Action_List extends PHS_Action_Generic_list
             $agent_job['route'] = $this->_pt('N/A');
         }
 
-        $cell_str = '';
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $this->_paginator::CELL_RENDER_JSON:
-                case $this->_paginator::CELL_RENDER_TEXT:
-                case $this->_paginator::CELL_RENDER_CSV:
-                case $this->_paginator::CELL_RENDER_EXCEL:
-                    $cell_str = $agent_job['route'];
-                    break;
-
-                case $this->_paginator::CELL_RENDER_HTML:
-
-                    if ($this->_paginator_model->job_is_running($agent_job)) {
-                        $cell_str .= '<strong>'.$this->_pt('Running').'</strong>';
-                    }
-
-                    if ($this->_paginator_model->job_is_stalling($agent_job)) {
-                        $cell_str .= ' - <span style="color:red;">'.$this->_pt('Stalling').'</span>';
-                    }
-
-                    $cell_str = $agent_job['route'].($cell_str !== '' ? '<br/>' : '').$cell_str;
-                    break;
-            }
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
+            return $agent_job['route'];
         }
 
-        return $cell_str;
+        $cell_str = '';
+        if ($this->_paginator_model->job_is_running($agent_job)) {
+            $cell_str .= '<strong>'.$this->_pt('Running').'</strong>';
+        }
+
+        if ($this->_paginator_model->job_is_stalling($agent_job)) {
+            $cell_str .= ' - <span style="color:red;">'.$this->_pt('Stalling').'</span>';
+        }
+
+        return $agent_job['route'].($cell_str !== '' ? '<br/>' : '').$cell_str;
     }
 
     public function display_timed_seconds(array $params) : ?string
@@ -681,22 +657,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         $runs_every_x_str = $this->_pt('Runs every %s', PHS_Utils::parse_period($params['record']['timed_seconds']));
 
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $this->_paginator::CELL_RENDER_JSON:
-                case $this->_paginator::CELL_RENDER_TEXT:
-                case $this->_paginator::CELL_RENDER_CSV:
-                case $this->_paginator::CELL_RENDER_EXCEL:
-                    $cell_str .= ', '.$params['record']['timed_seconds'].'s - '.$runs_every_x_str;
-                    break;
-
-                case $this->_paginator::CELL_RENDER_HTML:
-                    $cell_str .= '<br/><span title="'.self::_e($runs_every_x_str).'">'.$params['record']['timed_seconds'].'s</span>';
-                    break;
-            }
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
+            return $cell_str . ', '.$params['record']['timed_seconds'].'s - '.$runs_every_x_str;
         }
 
-        return $cell_str;
+        return $cell_str . '<br/><span title="'.self::_e($runs_every_x_str).'">'.$params['record']['timed_seconds'].'s</span>';
     }
 
     public function display_last_action(array $params) : ?string
@@ -716,31 +681,19 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $stalling_seconds = $stalling_minutes * 60;
         $stalling_minutes_str = PHS_Utils::parse_period($stalling_seconds);
 
-        $cell_str = '-';
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $this->_paginator::CELL_RENDER_JSON:
-                case $this->_paginator::CELL_RENDER_TEXT:
-                case $this->_paginator::CELL_RENDER_CSV:
-                case $this->_paginator::CELL_RENDER_EXCEL:
-                    $cell_str = (!empty($agent_job['last_action']) ? date('Y-m-d H:i:s', parse_db_date($agent_job['last_action'])) : $this->_pt('N/A'))
-                                .' - '.$stalling_minutes;
-                    break;
-
-                case $this->_paginator::CELL_RENDER_HTML:
-                    $cell_str = (!empty($agent_job['last_action']) ? $this->_paginator->pretty_date_independent($agent_job['last_action'], $pretty_params) : $this->_pt('N/A'))
-                                .'<br/><span title="'.self::_e($this->_pt('Stalling %s', $stalling_minutes_str)).'">'.PHS_Utils::parse_period($stalling_seconds, ['show_period' => PHS_Utils::PERIOD_MINUTES]).'</span>';
-                    break;
-            }
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
+            return (!empty($agent_job['last_action']) ? date('Y-m-d H:i:s', parse_db_date($agent_job['last_action'])) : $this->_pt('N/A'))
+                        .' - '.$stalling_minutes;
         }
 
-        return $cell_str;
+        return (!empty($agent_job['last_action']) ? $this->_paginator->pretty_date_independent($agent_job['last_action'], $pretty_params) : $this->_pt('N/A'))
+               .'<br/><span title="'.self::_e($this->_pt('Stalling %s', $stalling_minutes_str)).'">'.PHS_Utils::parse_period($stalling_seconds, ['show_period' => PHS_Utils::PERIOD_MINUTES]).'</span>';
     }
 
     public function display_actions(array $params) : ?string
     {
         if (!$this->_paginator->is_cell_rendering_for_html($params)
-            || !can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS)) {
+            || !$this->_admin_plugin->can_admin_manage_agent_jobs()) {
             return '-';
         }
 
@@ -759,28 +712,35 @@ class PHS_Action_List extends PHS_Action_Generic_list
         ob_start();
         if (!$job_is_suspended) {
             ?>
-            <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'edit', 'ad' => 'agent'], ['aid' => $agent_job['id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"><i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt('Edit agent job'); ?>"></i></a>
+            <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'edit', 'ad' => 'agent'],
+                ['aid' => $agent_job['id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
+            ><i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt('Edit agent job'); ?>"></i></a>
             <?php
         }
         if ($job_is_inactive) {
             ?>
-            <a href="javascript:void(0)" onclick="phs_agent_jobs_list_activate( '<?php echo $agent_job['id']; ?>' )"><i class="fa fa-play-circle-o action-icons" title="<?php echo $this->_pt('Activate agent job'); ?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_agent_jobs_list_activate( '<?php echo $agent_job['id']; ?>' )"
+            ><i class="fa fa-play-circle-o action-icons" title="<?php echo $this->_pt('Activate agent job'); ?>"></i></a>
             <?php
         }
         if ($job_is_active) {
             ?>
-            <a href="javascript:void(0)" onclick="phs_agent_jobs_list_inactivate( '<?php echo $agent_job['id']; ?>' )"><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt('Inactivate agent job'); ?>"></i></a>
+            <a href="javascript:void(0)" onclick="phs_agent_jobs_list_inactivate( '<?php echo $agent_job['id']; ?>' )"
+            ><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt('Inactivate agent job'); ?>"></i></a>
             <?php
         }
-        if (!$job_is_running
-         || $job_is_stalling) {
+        if (!$job_is_running || $job_is_stalling) {
             ?>
-            <a href="javascript:void(0)" onclick="phs_agent_jobs_list_manually_run( '<?php echo $agent_job['id']; ?>', <?php echo $job_is_running ? 'true' : 'false'; ?> )"><i class="fa fa-fast-forward action-icons" <?php echo $job_is_stalling ? 'style="color:red !important;"' : ''; ?> title="<?php echo $this->_pt('Manually run agent job'); ?>"></i></a>
+            <a href="javascript:void(0)"
+               onclick="phs_agent_jobs_list_manually_run( '<?php echo $agent_job['id']; ?>', <?php echo $job_is_running ? 'true' : 'false'; ?> )"
+            ><i class="fa fa-fast-forward action-icons" <?php echo $job_is_stalling ? 'style="color:red !important;"' : ''; ?> title="<?php echo $this->_pt('Manually run agent job'); ?>"></i></a>
             <?php
         }
 
         ?>
-        <a href="javascript:void(0)" onclick="phs_agent_jobs_list_delete( '<?php echo $agent_job['id']; ?>', <?php echo !empty($agent_job['plugin']) ? 1 : 0; ?> )"><i class="fa fa-times action-icons" title="<?php echo $this->_pt('Delete agent job'); ?>"></i></a>
+        <a href="javascript:void(0)"
+           onclick="phs_agent_jobs_list_delete( '<?php echo $agent_job['id']; ?>', <?php echo !empty($agent_job['plugin']) ? 1 : 0; ?> )"
+        ><i class="fa fa-times action-icons" title="<?php echo $this->_pt('Delete agent job'); ?>"></i></a>
         <?php
 
         return ob_get_clean() ?: '';
@@ -791,7 +751,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
         ob_start();
         ?>
         <div style="width:97%;min-width:97%;margin: 15px auto 0;">
-          <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'add', 'ad' => 'agent']); ?>" class="btn btn-small btn-success" style="color:white;"><i class="fa fa-plus"></i> <?php echo $this->_pt('Add Agent Job'); ?></a>
+          <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'add', 'ad' => 'agent']); ?>" class="btn btn-small btn-success"
+             style="color:white;"><i class="fa fa-plus"></i> <?php echo $this->_pt('Add Agent Job'); ?></a>
         </div>
         <div class="clearfix"></div>
         <?php
@@ -829,7 +790,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
         function phs_agent_jobs_list_activate( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to activate this agent job?', '"'); ?>" ) )
+            if( confirm( "<?php echo self::_te('Are you sure you want to activate this agent job?', '"'); ?>" ) )
             {
                 <?php
                 $url_params = [];
@@ -842,7 +803,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
         function phs_agent_jobs_list_inactivate( id )
         {
-            if( confirm( "<?php echo self::_e('Are you sure you want to inactivate this agent job?', '"'); ?>" ) )
+            if( confirm( "<?php echo self::_pte('Are you sure you want to inactivate this agent job?'); ?>" ) )
             {
                 <?php
         $url_params = [];
@@ -857,12 +818,12 @@ class PHS_Action_List extends PHS_Action_Generic_list
         {
             var plugin_confirm = true;
             if( from_plugin )
-                plugin_confirm = confirm( "<?php echo self::_e('NOTE: This agent job is part of a plugin. If you delete it plugin might not function normally.'); ?>" + "\n"
-                                        + "<?php echo self::_e('Are you sure you want to continue?'); ?>" );
+                plugin_confirm = confirm( "<?php echo $this->_pte('NOTE: This agent job is part of a plugin. If you delete it plugin might not function normally.'); ?>" + "\n"
+                                        + "<?php echo $this->_pte('Are you sure you want to continue?'); ?>" );
 
             if( plugin_confirm
-             && confirm( "<?php echo self::_e('Are you sure you want to DELETE this agent job?', '"'); ?>" + "\n" +
-                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
+             && confirm( "<?php echo $this->_pte('Are you sure you want to DELETE this agent job?'); ?>" + "\n" +
+                         "<?php echo $this->_pte('NOTE: You cannot undo this action!'); ?>" ) )
             {
                 <?php
         $url_params = [];
@@ -877,9 +838,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
         {
             var note_str = '';
             if( is_running )
-                note_str = "\n<?php echo self::_e('NOTE: Job is still running! You should run this job only if you know what you\'r doing!!!', '"'); ?>";
+                note_str = "\n<?php echo $this->_pte('NOTE: Job is still running! You should run this job only if you know what you\'r doing!!!'); ?>";
 
-            if( confirm( "<?php echo self::_e('Are you sure you want to manually run this agent job?', '"'); ?>" + note_str ) )
+            if( confirm( "<?php echo $this->_pte('Are you sure you want to manually run this agent job?'); ?>" + note_str ) )
             {
                 <?php
         $url_params = [];
@@ -906,11 +867,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e('Please select agent jobs you want to activate first.', '"'); ?>" );
+                alert( "<?php echo $this->_pte('Please select agent jobs you want to activate first.'); ?>" );
                 return false;
             }
 
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to activate %s agent jobs?', '"'), '" + total_checked + "'); ?>" ) )
+            if( !confirm( "<?php echo sprintf(self::_e($this->_pt('Are you sure you want to activate %s agent jobs?')), '" + total_checked + "'); ?>" ) )
                 return false;
 
             var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
@@ -924,11 +885,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e('Please select agent jobs you want to inactivate first.', '"'); ?>" );
+                alert( "<?php echo $this->_pte('Please select agent jobs you want to inactivate first.'); ?>" );
                 return false;
             }
 
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to inactivate %s agent jobs?', '"'), '" + total_checked + "'); ?>" ) )
+            if( !confirm( "<?php echo sprintf(self::_e($this->_pt('Are you sure you want to inactivate %s agent jobs?')), '" + total_checked + "'); ?>" ) )
                 return false;
 
             var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
@@ -942,12 +903,12 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
             if( !total_checked )
             {
-                alert( "<?php echo self::_e('Please select agent jobs you want to delete first.', '"'); ?>" );
+                alert( "<?php echo $this->_pte('Please select agent jobs you want to delete first.'); ?>" );
                 return false;
             }
 
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to DELETE %s agent jobs?', '"'), '" + total_checked + "'); ?>" + "\n" +
-                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) )
+            if( !confirm( "<?php echo sprintf(self::_e($this->_pt('Are you sure you want to DELETE %s agent jobs?')), '" + total_checked + "'); ?>" + "\n" +
+                         "<?php echo $this->_pte('NOTE: You cannot undo this action!'); ?>" ) )
                 return false;
 
             var form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
@@ -963,7 +924,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
     protected function _load_dependencies() : bool
     {
         if (!($this->_admin_plugin = PHS_Plugin_Admin::get_instance())
-         || !($this->_paginator_model = PHS_Model_Agent_jobs::get_instance())) {
+            || !($this->_paginator_model = PHS_Model_Agent_jobs::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;

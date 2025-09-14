@@ -5,6 +5,7 @@ use phs\PHS;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
+use phs\libraries\PHS_Record_data;
 use phs\traits\PHS_Model_Trait_statuses;
 use phs\plugins\backup\PHS_Plugin_Backup;
 
@@ -173,48 +174,37 @@ class PHS_Model_Results extends PHS_Model
         return $this->hard_delete($record_arr);
     }
 
-    /**
-     * @param int|array $result_data
-     * @param bool|array $params
-     *
-     * @return array|bool
-     */
-    public function launch_result_shell_script_bg($result_data, $params = false)
+    public function launch_result_shell_script_bg(int|array|PHS_Record_data $result_data, array $params = []): ?array
     {
         $this->reset_error();
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
         $params['force'] = !empty($params['force']);
 
-        /** @var PHS_Plugin_Backup $backup_plugin */
         if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load backup plugin.'));
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
-            return false;
+            return null;
         }
 
-        if (empty($result_data)
-         || !($br_flow_params = $this->fetch_default_flow_params(['table_name' => 'backup_results']))
-         || !($result_arr = $this->data_to_array($result_data, $br_flow_params))) {
+        if (!$result_data
+            || !($br_flow_params = $this->fetch_default_flow_params(['table_name' => 'backup_results']))
+            || !($result_arr = $this->data_to_array($result_data, $br_flow_params))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Backup rule details not found in database.'));
 
-            return false;
+            return null;
         }
 
         if (empty($result_arr['run_dir'])) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Backup result run directory not set.'));
 
-            return false;
+            return null;
         }
 
-        if (empty($params['force'])
-        && !$this->is_pending($result_arr)) {
+        if (!$params['force']
+            && !$this->is_pending($result_arr)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Backup result is not pending execution.'));
 
-            return false;
+            return null;
         }
 
         $edit_arr = $br_flow_params;

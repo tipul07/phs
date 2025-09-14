@@ -732,6 +732,11 @@ final class PHS extends PHS_Registry
         return null;
     }
 
+    public static function running_on_windows(): bool
+    {
+        return str_starts_with(strtolower(PHP_OS), 'win');
+    }
+
     public static function are_we_in_a_background_thread() : bool
     {
         return ($cscope = PHS_Scope::current_scope()) === PHS_Scope::SCOPE_BACKGROUND

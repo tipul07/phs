@@ -1088,9 +1088,6 @@ abstract class PHS_Api_base extends PHS_Registry
         return (($settings = self::_get_framework_api_settings()) && isset($settings['cors_max_age'])) ? (int)$settings['cors_max_age'] : -1;
     }
 
-    /**
-     * @return array
-     */
     public static function get_request_body_as_json_array() : array
     {
         static $json_arr = null;
@@ -1107,9 +1104,6 @@ abstract class PHS_Api_base extends PHS_Registry
         return $json_arr;
     }
 
-    /**
-     * @return false|string
-     */
     public static function get_php_input() : ?string
     {
         static $input = null;
@@ -1125,23 +1119,11 @@ abstract class PHS_Api_base extends PHS_Registry
         return $input;
     }
 
-    /**
-     * @param null|string $msg
-     *
-     * @return bool
-     */
     public static function generic_error(?string $msg = null) : bool
     {
         return self::http_header_response(self::GENERIC_ERROR_CODE, $msg);
     }
 
-    /**
-     * @param int $code
-     * @param null|string $msg
-     * @param null|string $protocol
-     *
-     * @return bool
-     */
     public static function http_header_response(int $code, ?string $msg = null, ?string $protocol = null) : bool
     {
         if (@headers_sent()) {
@@ -1166,11 +1148,17 @@ abstract class PHS_Api_base extends PHS_Registry
         return true;
     }
 
-    /**
-     * @param int $code
-     *
-     * @return null|string
-     */
+
+    public static function framework_error_code_to_http_code(int $error_code) : int
+    {
+        return match ($error_code) {
+            self::ERR_OK => self::H_CODE_OK,
+            PHS::ERR_ROUTE, self::ERR_RUN_ROUTE_NOT_ALLOWED, self::ERR_RUN_ROUTE_NOT_FOUND, self::ERR_RUN_ROUTE_ERROR => self::H_CODE_NOT_FOUND,
+            self::ERR_PARAMETERS => self::H_CODE_BAD_REQUEST,
+            default              => self::H_CODE_INTERNAL_SERVER_ERROR,
+        };
+    }
+
     public static function valid_http_code(int $code) : ?string
     {
         if (!($all_codes = self::http_response_codes())

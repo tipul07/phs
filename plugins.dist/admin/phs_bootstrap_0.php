@@ -9,6 +9,8 @@ if (($admin_plugin = PHS_Plugin_Admin::get_instance())) {
     PHS_Logger::define_channel($admin_plugin::LOG_API_MONITOR);
     PHS_Logger::define_channel($admin_plugin::LOG_DATA_RETENTION);
     PHS_Logger::define_channel($admin_plugin::LOG_PAGINATOR);
+    PHS_Logger::define_channel($admin_plugin::LOG_AI_TRANSLATIONS);
+    PHS_Logger::define_channel($admin_plugin::LOG_UI_TRANSLATIONS);
 
     PHS_Event_Layout::listen([$admin_plugin, 'listen_after_left_menu_admin'],
         PHS_Event_Layout::ADMIN_TEMPLATE_AFTER_LEFT_MENU, ['priority' => 1000]);

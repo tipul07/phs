@@ -283,7 +283,7 @@ class PHS_Bg_jobs extends PHS_Registry
 
         $clean_cmd = PHP_EXEC.' '.PHS::get_background_path().' '.$crypted_parms.'::'.$pub_key;
 
-        if (stripos(PHP_OS, 'win') === 0) {
+        if (PHS::running_on_windows()) {
             // launching background task under windows
             $cmd = 'start '.($extra['async_task'] ? ' /B ' : '').$clean_cmd;
         } else {

@@ -23,23 +23,16 @@ class PHS_Scope_Web extends PHS_Scope
 
     public function process_action_result($action_result, $static_error_arr = false)
     {
-        /** @var PHS_Action $action_obj */
-        if (!($action_obj = PHS::running_action())) {
-            $action_obj = false;
-        }
-        /** @var \phs\libraries\PHS_Controller $controller_obj */
-        if (!($controller_obj = PHS::running_controller())) {
-            $controller_obj = false;
-        }
+        $action_obj = PHS::running_action() ?: null;
+        $controller_obj = PHS::running_controller() ?: null;
 
         $action_result = PHS_Action::validate_action_result($action_result);
 
         $should_be_in_tfa_flow = $this->_should_redirect_to_tfa_flow();
 
         // TFA preceeds password expiration...
-        /** @var PHS_Plugin_Accounts $accounts_plugin */
         if ($should_be_in_tfa_flow
-             && (empty($action_obj)
+             && (!$action_obj
                  || !$action_obj->action_role_is([$action_obj::ACT_ROLE_TFA_SETUP, $action_obj::ACT_ROLE_TFA_VERIFY, ]))
         ) {
             $args = [];
@@ -54,7 +47,7 @@ class PHS_Scope_Web extends PHS_Scope
             }
         } elseif (!$should_be_in_tfa_flow
                   && ($expiration_arr = $this->_password_expired_for_current_account())) {
-            $in_special_page = !empty($action_obj)
+            $in_special_page = $action_obj
                                && $action_obj->action_role_is([$action_obj::ACT_ROLE_CHANGE_PASSWORD, $action_obj::ACT_ROLE_LOGIN,
                                    $action_obj::ACT_ROLE_LOGOUT, $action_obj::ACT_ROLE_PASSWORD_EXPIRED, ]);
 
@@ -67,7 +60,7 @@ class PHS_Scope_Web extends PHS_Scope
             }
 
             if (empty($expiration_arr['show_only_warning'])
-                && !empty($action_obj)
+                && $action_obj
                 && !$in_special_page) {
                 $action_result['redirect_to_url'] = PHS::url(['p' => 'accounts', 'a' => 'change_password'], ['password_expired' => 1]);
             }
@@ -97,7 +90,7 @@ class PHS_Scope_Web extends PHS_Scope
             }
         }
 
-        if (empty($action_obj)
+        if (!$action_obj
             && empty($action_result['page_template'])) {
             echo 'No running action to render page template.';
             exit;
@@ -142,9 +135,9 @@ class PHS_Scope_Web extends PHS_Scope
 
         if (self::arr_has_error($static_error_arr)) {
             echo self::arr_get_simple_error_message($static_error_arr);
-        } elseif (empty($action_obj)
+        } elseif (!$action_obj
                   || empty($action_result['page_template'])) {
-            echo $action_result['buffer'];
+            echo $action_result['buffer'] ?? '';
         } else {
             $view_params = [];
             $view_params['action_obj'] = $action_obj;
@@ -160,7 +153,8 @@ class PHS_Scope_Web extends PHS_Scope
             }
 
             $action_result['page_settings']['page_title'] ??= '';
-            $action_result['page_settings']['page_title'] .= ($action_result['page_settings']['page_title'] !== '' ? ' - ' : '').PHS_SITE_NAME;
+            $action_result['page_settings']['page_title'] .=
+                ($action_result['page_settings']['page_title'] !== '' ? ' - ' : '').PHS_SITE_NAME;
 
             if (($result_buffer = $view_obj->render()) === null) {
                 if ($view_obj->has_error()) {
@@ -253,7 +247,6 @@ class PHS_Scope_Web extends PHS_Scope
 
     private function _should_setup_tfa_for_account() : bool
     {
-        /** @var PHS_Model_Accounts_tfa $tfa_model */
         return ($tfa_model = PHS_Model_Accounts_tfa::get_instance())
                && PHS::user_logged_in()
                && ($session_data = PHS::current_user_session())

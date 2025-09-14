@@ -6,12 +6,6 @@ use phs\PHS_Tenants;
 
 abstract class PHS_Has_db_registry extends PHS_Has_db_settings
 {
-    /**
-     * @param null|int $tenant_id
-     * @param bool $force Forces reading details from database (ignoring cached value)
-     *
-     * @return null|array
-     */
     public function get_db_registry_details(?int $tenant_id = null, bool $force = false) : ?array
     {
         if (!$this->_load_plugins_instance()) {
@@ -28,12 +22,6 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         return $this->_plugins_instance->get_db_registry($this->instance_id(), $tenant_id, $force);
     }
 
-    /**
-     * @param bool $force Forces reading details from database (ignoring cached value)
-     * @param ?int $tenant_id
-     *
-     * @return null|array Registry saved in database for current instance
-     */
     public function get_db_registry(?int $tenant_id = null, bool $force = false) : ?array
     {
         if (!$this->_load_plugins_instance()) {
@@ -94,11 +82,8 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         }
 
         if (!$this->_plugins_instance->delete_db_registry($this->instance_id(), $tenant_id)) {
-            if ($this->_plugins_instance->has_error()) {
-                $this->copy_error($this->_plugins_instance);
-            } else {
-                $this->set_error(self::ERR_PLUGINS_MODEL, self::_t('Couldn\'t delete registry database record.'));
-            }
+            $this->copy_or_set_error($this->_plugins_instance,
+                self::ERR_PLUGINS_MODEL, self::_t('Couldn\'t delete registry database record.'));
 
             return false;
         }
@@ -110,15 +95,46 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
     {
         if (!$this->_load_plugins_instance()
             || !$this->_plugins_instance->delete_all_db_registry($this->instance_id())) {
-            if ($this->_plugins_instance->has_error()) {
-                $this->copy_error($this->_plugins_instance);
-            } else {
-                $this->set_error(self::ERR_PLUGINS_MODEL, self::_t('Couldn\'t delete all registry database record.'));
-            }
+            $this->copy_or_set_error($this->_plugins_instance,
+                self::ERR_PLUGINS_MODEL, self::_t('Couldn\'t delete all registry database record.'));
 
             return false;
         }
 
         return true;
+    }
+
+    public function get_db_registry_fields_settings(): array
+    {
+        if(!($registry_fields = $this->_db_registry_fields_settings())) {
+            return [];
+        }
+
+        $return_arr = [];
+        $registry_fields_keys = self::_default_db_registry_fields_settings();
+        foreach($registry_fields as $field_key => $field_settings) {
+            $return_arr[$field_key] = self::validate_array($field_settings, $registry_fields_keys);
+        }
+
+        return $return_arr;
+    }
+
+    /**
+     * Overwrite this method if you want specific registry fields settings.
+     * This will be applied only to the interface in admin plugin!
+     *
+     * @return array
+     */
+    protected function _db_registry_fields_settings(): array
+    {
+        return [];
+    }
+
+    private static function _default_db_registry_fields_settings(): array
+    {
+        return [
+            'readonly' => false,
+            'can_be_deleted' => true,
+        ];
     }
 }

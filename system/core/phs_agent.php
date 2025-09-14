@@ -209,7 +209,7 @@ class PHS_Agent extends PHS_Registry
 
         $clean_cmd = PHP_EXEC.' '.PHS::get_agent_path().' '.$ecrypted_params.'::'.$pub_key;
 
-        if (str_starts_with(strtolower(PHP_OS), 'win')) {
+        if (PHS::running_on_windows()) {
             // launching background task under windows
             $cmd = 'start '.(!empty($extra['async_task']) ? ' /B ' : '').$clean_cmd;
         } else {
