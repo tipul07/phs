@@ -28,7 +28,7 @@ class PHS_Action_Ui_translation_bg extends PHS_Action
 
         $params['force_run'] = !empty($params['force_run']);
 
-        if(empty($params['lang']) || !self::valid_language($params['lang'])) {
+        if (empty($params['lang']) || !self::valid_language($params['lang'])) {
             PHS_Logger::info('Invalid UI language ['.($params['lang'] ?? 'N/A').']'
                              .($params['force_run'] ? ' (forced)' : '').'.', $admin_plugin::LOG_UI_TRANSLATIONS);
         }

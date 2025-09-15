@@ -121,6 +121,7 @@ class PHS_Action_Login extends PHS_Action
                 PHS_Notifications::add_error_notice($this->_pt('Bad username or password.'));
             } elseif (!$accounts_model->is_locked($account_arr)) {
                 $login_params = [];
+                $login_params['login_source'] = $accounts_model::LOGIN_SOURCE_NORMAL;
                 $login_params['expire_mins'] = !empty($do_remember)
                     ? $plugin_settings['session_expire_minutes_remember']
                     : $plugin_settings['session_expire_minutes_normal'];

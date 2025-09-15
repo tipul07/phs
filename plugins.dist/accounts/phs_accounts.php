@@ -438,6 +438,25 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return true;
     }
 
+    public function define_login_source(string $key, array $details) : ?bool
+    {
+        $this->reset_error();
+
+        if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return null;
+        }
+
+        if (!$accounts_model->define_login_source($key, $details)) {
+            $this->copy_or_set_static_error(self::ERR_FUNCTIONALITY, $this->_pt('Error defining login source.'));
+
+            return null;
+        }
+
+        return true;
+    }
+
     public function do_logout_subaccount() : bool
     {
         if (!$this->_load_dependencies()) {
@@ -474,7 +493,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return $this->do_logout_subaccount();
         }
 
-        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
@@ -558,21 +576,19 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         $this->reset_error();
 
         $params['expire_mins'] = (int)($params['expire_mins'] ?? 0);
+        $params['login_source'] ??= '';
+        $params['force_session_id'] ??= '';
+        $params['force_session_id'] = !is_string($params['force_session_id'])
+            ? ''
+            : trim($params['force_session_id']);
 
-        if (empty($params['force_session_id']) || !is_string($params['force_session_id'])) {
-            $params['force_session_id'] = '';
-        } else {
-            $params['force_session_id'] = trim($params['force_session_id']);
-        }
-
-        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
-            $this->set_error(self::ERR_LOGIN, $this->_pt('Couldn\'t load accounts model.'));
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return null;
         }
 
-        if (empty($account_data)
+        if (!$account_data
             || !($account_arr = $accounts_model->data_to_array($account_data))
             || !$accounts_model->is_active($account_arr)) {
             $this->set_error(self::ERR_LOGIN, $this->_pt('Unknown or inactive account.'));
@@ -583,9 +599,10 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         $login_params = [];
         $login_params['expire_mins'] = $params['expire_mins'];
         $login_params['force_session_id'] = $params['force_session_id'];
+        $login_params['login_source'] = $params['login_source'];
 
         if (!($onuser_arr = $accounts_model->login($account_arr, $login_params))
-            || empty($onuser_arr['wid'])) {
+            || !($onuser_arr['wid'] ?? null)) {
             $this->copy_or_set_error($accounts_model,
                 self::ERR_LOGIN, $this->_pt('Login failed. Please try again.'));
 

@@ -65,7 +65,7 @@ class PHS_Model_Rules extends PHS_Model
         return (1 << self::BACKUP_TARGET_DATABASE) | (1 << self::BACKUP_TARGET_UPLOADS);
     }
 
-    final public function get_copy_results(null|bool|string $lang = null) : array
+    final public function get_copy_results(null | bool | string $lang = null) : array
     {
         static $copy_results_arr = [];
 
@@ -85,7 +85,7 @@ class PHS_Model_Rules extends PHS_Model
         return $result_arr;
     }
 
-    final public function get_copy_results_as_key_val(null|bool|string $lang = null) : ?array
+    final public function get_copy_results_as_key_val(null | bool | string $lang = null) : ?array
     {
         static $copy_results_key_val_arr = null;
 
@@ -111,12 +111,12 @@ class PHS_Model_Rules extends PHS_Model
         return $key_val_arr;
     }
 
-    public function valid_copy_results(int $copy_result, null|bool|string $lang = null) : ?array
+    public function valid_copy_results(int $copy_result, null | bool | string $lang = null) : ?array
     {
         return $this->get_copy_results($lang)[$copy_result] ?? null;
     }
 
-    final public function get_targets(null|bool|string $lang = null) : array
+    final public function get_targets(null | bool | string $lang = null) : array
     {
         static $targets_arr = [];
 
@@ -133,7 +133,7 @@ class PHS_Model_Rules extends PHS_Model
         return $result_arr;
     }
 
-    final public function get_targets_as_key_val(null|bool|string $lang = null) : ?array
+    final public function get_targets_as_key_val(null | bool | string $lang = null) : ?array
     {
         static $targets_key_val_arr = null;
 
@@ -159,7 +159,7 @@ class PHS_Model_Rules extends PHS_Model
         return $key_val_arr;
     }
 
-    public function get_rule_days(null|bool|string $lang = null) : ?array
+    public function get_rule_days(null | bool | string $lang = null) : ?array
     {
         static $days_arr = null;
 
@@ -185,36 +185,36 @@ class PHS_Model_Rules extends PHS_Model
         return $return_arr;
     }
 
-    public function valid_target(int $target, null|bool|string $lang = null) : ?array
+    public function valid_target(int $target, null | bool | string $lang = null) : ?array
     {
         return $this->get_targets($lang)[$target] ?? null;
     }
 
-    public function is_active(int|array|PHS_Record_data $record_data) : bool
+    public function is_active(int | array | PHS_Record_data $record_data) : bool
     {
         return ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_ACTIVE;
     }
 
-    public function is_inactive(int|array|PHS_Record_data $record_data) : bool
+    public function is_inactive(int | array | PHS_Record_data $record_data) : bool
     {
         return ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_INACTIVE;
     }
 
-    public function is_deleted(int|array|PHS_Record_data $record_data) : bool
+    public function is_deleted(int | array | PHS_Record_data $record_data) : bool
     {
         return ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_DELETED;
     }
 
-    public function is_suspended(int|array|PHS_Record_data $record_data) : bool
+    public function is_suspended(int | array | PHS_Record_data $record_data) : bool
     {
         return ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_SUSPENDED;
     }
 
-    public function act_activate(int|array|PHS_Record_data $record_data): null|array|PHS_Record_data
+    public function act_activate(int | array | PHS_Record_data $record_data) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -242,15 +242,16 @@ class PHS_Model_Rules extends PHS_Model
             return $record_arr;
         }
 
-        if(!($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_ACTIVE]]))) {
+        if (!($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_ACTIVE]]))) {
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error saving backup rule details to database.'));
+
             return null;
         }
 
         return $new_record;
     }
 
-    public function act_inactivate(int|array|PHS_Record_data $record_data): null|array|PHS_Record_data
+    public function act_inactivate(int | array | PHS_Record_data $record_data) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -278,15 +279,16 @@ class PHS_Model_Rules extends PHS_Model
             return $record_arr;
         }
 
-        if(!($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_INACTIVE]]))) {
+        if (!($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_INACTIVE]]))) {
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error saving backup rule details to database.'));
+
             return null;
         }
 
         return $new_record;
     }
 
-    public function act_delete(int|array|PHS_Record_data $record_data): null|array|PHS_Record_data
+    public function act_delete(int | array | PHS_Record_data $record_data) : null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -301,8 +303,9 @@ class PHS_Model_Rules extends PHS_Model
             return $record_arr;
         }
 
-        if(!($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_DELETED]]))) {
+        if (!($new_record = $this->edit($record_arr, ['fields' => ['status' => self::STATUS_DELETED]]))) {
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error saving backup rule details to database.'));
+
             return null;
         }
 
@@ -349,7 +352,7 @@ class PHS_Model_Rules extends PHS_Model
         return true;
     }
 
-    public function can_user_edit(int|array|PHS_Record_data $record_data, int|array|PHS_Record_data $account_data): ?array
+    public function can_user_edit(int | array | PHS_Record_data $record_data, int | array | PHS_Record_data $account_data) : ?array
     {
         if (empty($record_data) || empty($account_data)
          || !($rule_arr = $this->data_to_array($record_data))
@@ -368,7 +371,7 @@ class PHS_Model_Rules extends PHS_Model
         return $return_arr;
     }
 
-    public function get_location_for_rule(int|array|PHS_Record_data $rule_data, array $params = []): ?array
+    public function get_location_for_rule(int | array | PHS_Record_data $rule_data, array $params = []) : ?array
     {
         $this->reset_error();
 
@@ -397,7 +400,7 @@ class PHS_Model_Rules extends PHS_Model
         return $result_details;
     }
 
-    public function get_location_stats_for_rule(int|array|PHS_Record_data $rule_data, array $params = []): ?array
+    public function get_location_stats_for_rule(int | array | PHS_Record_data $rule_data, array $params = []) : ?array
     {
         $this->reset_error();
 
@@ -423,7 +426,7 @@ class PHS_Model_Rules extends PHS_Model
         return $backup_plugin->get_directory_stats($location_arr['full_path']);
     }
 
-    public function get_database_backup_script_commands(string $output_dir, array $params = []): null|bool|array
+    public function get_database_backup_script_commands(string $output_dir, array $params = []) : null | bool | array
     {
         $this->reset_error();
 
@@ -539,7 +542,7 @@ class PHS_Model_Rules extends PHS_Model
         return $dump_details_arr;
     }
 
-    public function get_uploaded_files_backup_script_commands(string $output_dir, array $params = []): ?array
+    public function get_uploaded_files_backup_script_commands(string $output_dir, array $params = []) : ?array
     {
         $this->reset_error();
 
@@ -605,7 +608,7 @@ class PHS_Model_Rules extends PHS_Model
         return $dump_details_arr;
     }
 
-    public function run_backup_rule_bg(int|array|PHS_Record_data $rule_data, array $params = []): ?array
+    public function run_backup_rule_bg(int | array | PHS_Record_data $rule_data, array $params = []) : ?array
     {
         $this->reset_error();
 
@@ -615,8 +618,8 @@ class PHS_Model_Rules extends PHS_Model
         $params['zip_dump'] = (!isset($params['zip_dump']) || !empty($params['zip_dump']));
 
         // Option to force mysqldump or zip location. If not provided, will use plugin settings or mysqldump (if in executables path)
-        $params['mysqldump_bin'] = $params['mysqldump_bin'] ?? '';
-        $params['zip_bin'] = $params['zip_bin'] ?? '';
+        $params['mysqldump_bin'] ??= '';
+        $params['zip_bin'] ??= '';
 
         if (!($backup_plugin = PHS_Plugin_Backup::get_instance())
             || !($results_model = PHS_Model_Results::get_instance())
@@ -812,9 +815,9 @@ class PHS_Model_Rules extends PHS_Model
 
         if (!($bg_job = PHS_Bg_jobs::run(
             ['plugin' => 'backup', 'controller' => 'index_bg', 'action' => 'finish_backup_script_bg'],
-            ['result_id' => $result_arr['id']],
+            ['result_id'      => $result_arr['id']],
             ['return_command' => true]
-            ))
+        ))
          || empty($bg_job['cmd'])) {
             PHS_Utils::rmdir_tree($run_path, ['recursive' => true]);
 
@@ -860,7 +863,7 @@ class PHS_Model_Rules extends PHS_Model
         return $return_arr;
     }
 
-    public function launch_backup_rule_bg(int|array|PHS_Record_data $result_data, array $params = []): ?array
+    public function launch_backup_rule_bg(int | array | PHS_Record_data $result_data, array $params = []) : ?array
     {
         $this->reset_error();
 
@@ -906,7 +909,7 @@ class PHS_Model_Rules extends PHS_Model
         return $launch_result;
     }
 
-    public function finish_backup_rule_bg(int|array|PHS_Record_data $result_data, array $params = []): ?array
+    public function finish_backup_rule_bg(int | array | PHS_Record_data $result_data, array $params = []) : ?array
     {
         $this->reset_error();
 

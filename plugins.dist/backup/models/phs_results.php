@@ -174,7 +174,7 @@ class PHS_Model_Results extends PHS_Model
         return $this->hard_delete($record_arr);
     }
 
-    public function launch_result_shell_script_bg(int|array|PHS_Record_data $result_data, array $params = []): ?array
+    public function launch_result_shell_script_bg(int | array | PHS_Record_data $result_data, array $params = []) : ?array
     {
         $this->reset_error();
 

@@ -105,7 +105,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         ];
     }
 
-    public function plugin_settings_render_location(array $params): string
+    public function plugin_settings_render_location(array $params) : string
     {
         $params = self::validate_array($params, self::default_custom_renderer_params());
 
@@ -197,7 +197,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $new_value;
     }
 
-    public function resolve_directory_location(?string $location_path): array
+    public function resolve_directory_location(?string $location_path) : array
     {
         if ($location_path === null || $location_path === '') {
             $location_path = self::DIRNAME_IN_UPLOADS;
@@ -238,7 +238,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $return_arr;
     }
 
-    public function get_location_for_path(?string $path, array $params = []): ?array
+    public function get_location_for_path(?string $path, array $params = []) : ?array
     {
         $this->reset_error();
 
@@ -300,7 +300,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $location_details;
     }
 
-    public function get_directory_stats(string $dir): ?array
+    public function get_directory_stats(string $dir) : ?array
     {
         $this->reset_error();
 
@@ -316,7 +316,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         ];
     }
 
-    public function copy_backup_files_bg(): ?array
+    public function copy_backup_files_bg() : ?array
     {
         $this->reset_error();
 
@@ -578,7 +578,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $return_arr;
     }
 
-    public function delete_old_backups_bg(): ?array
+    public function delete_old_backups_bg() : ?array
     {
         $this->reset_error();
 
@@ -646,7 +646,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $return_arr;
     }
 
-    public function run_backups_bg(): ?array
+    public function run_backups_bg() : ?array
     {
         $this->reset_error();
 

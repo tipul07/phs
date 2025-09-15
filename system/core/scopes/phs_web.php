@@ -9,6 +9,7 @@ use phs\libraries\PHS_Logger;
 use phs\system\core\views\PHS_View;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\phs_security\PHS_Plugin_Phs_security;
 use phs\system\core\events\layout\PHS_Event_Template;
 use phs\plugins\accounts\models\PHS_Model_Accounts_tfa;
@@ -153,8 +154,8 @@ class PHS_Scope_Web extends PHS_Scope
             }
 
             $action_result['page_settings']['page_title'] ??= '';
-            $action_result['page_settings']['page_title'] .=
-                ($action_result['page_settings']['page_title'] !== '' ? ' - ' : '').PHS_SITE_NAME;
+            $action_result['page_settings']['page_title']
+                .= ($action_result['page_settings']['page_title'] !== '' ? ' - ' : '').PHS_SITE_NAME;
 
             if (($result_buffer = $view_obj->render()) === null) {
                 if ($view_obj->has_error()) {
@@ -186,7 +187,10 @@ class PHS_Scope_Web extends PHS_Scope
     private function _password_expired_for_current_account() : ?array
     {
         if (!($expiration_arr = PHS::current_user_password_expiration())
-            || empty($expiration_arr['is_expired'])) {
+            || empty($expiration_arr['is_expired'])
+            || !($accounts_model = PHS_Model_Accounts::get_instance())
+            || !($session_data = PHS::current_user_session())
+            || !$accounts_model->is_normal_login_source_for_session($session_data)) {
             return null;
         }
 
@@ -213,11 +217,13 @@ class PHS_Scope_Web extends PHS_Scope
     private function _should_redirect_to_tfa_flow() : bool
     {
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+            || !($accounts_model = PHS_Model_Accounts::get_instance())
             || !($tfa_model = PHS_Model_Accounts_tfa::get_instance())
             || $accounts_plugin->tfa_policy_is_off()
             || !($current_user = PHS::user_logged_in())
             || !($session_data = PHS::current_user_session())
             || !empty($session_data['auid'])
+            || !$accounts_model->login_source_bypasses_internal_tfa_for_session($session_data)
             || $tfa_model->is_device_tfa_valid()
             || $tfa_model->is_session_tfa_valid()
             || !($settings_arr = $accounts_plugin->get_plugin_settings())

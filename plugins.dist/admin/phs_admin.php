@@ -361,19 +361,9 @@ class PHS_Plugin_Admin extends PHS_Plugin
         return (float)($this->get_plugin_settings()['ai_openai_temperature'] ?? 0.01);
     }
 
-    protected function _db_registry_fields_settings(): array
+    public function get_ui_translation_excluding_paths() : array
     {
-        return [
-            'ui_translation_excluding_paths' => [
-                'readonly' => true,
-                'can_be_deleted' => false,
-            ]
-        ];
-    }
-
-    public function get_ui_translation_excluding_paths(): array
-    {
-        if(!($registry_paths = $this->get_db_registry()['ui_translation_excluding_paths'] ?? null)
+        if (!($registry_paths = $this->get_db_registry()['ui_translation_excluding_paths'] ?? null)
            || !is_array($registry_paths)) {
             return [];
         }
@@ -381,10 +371,10 @@ class PHS_Plugin_Admin extends PHS_Plugin
         return $registry_paths;
     }
 
-    public function save_ui_translation_excluding_paths(array $paths): array
+    public function save_ui_translation_excluding_paths(array $paths) : array
     {
         return $this->update_db_registry([
-            'ui_translation_excluding_paths' => self::extract_strings_from_array($paths) ?: []
+            'ui_translation_excluding_paths' => self::extract_strings_from_array($paths) ?: [],
         ]);
     }
 
@@ -759,5 +749,15 @@ class PHS_Plugin_Admin extends PHS_Plugin
         }
 
         return true;
+    }
+
+    protected function _db_registry_fields_settings() : array
+    {
+        return [
+            'ui_translation_excluding_paths' => [
+                'readonly'       => true,
+                'can_be_deleted' => false,
+            ],
+        ];
     }
 }

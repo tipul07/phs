@@ -3,6 +3,6 @@
     "vendor_name": "PHS",
     "name": "Accounts 3rd Party Management",
     "description": "Login or register with 3rd party services (Google, Apple, Facebook, etc)",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "models": [ "accounts_services" ]
 }

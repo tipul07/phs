@@ -99,6 +99,7 @@ class PHS_Action_Login extends PHS_Api_action
         $bearer_token = null;
 
         $login_params = [];
+        $login_params['login_source'] = $accounts_model::LOGIN_SOURCE_API;
         $login_params['expire_mins']
             = (!empty($do_remember)
                 ? $plugin_settings['session_expire_minutes_remember']

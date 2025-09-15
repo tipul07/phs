@@ -174,7 +174,6 @@ class PHS_Action_Rule_edit extends PHS_Action
 
         $plugin_location = $backup_plugin->get_location_for_path($plocation) ?: [];
 
-
         if (!empty($do_submit)
          && !PHS_Notifications::have_errors_or_warnings_notifications()) {
             $rule_details_saved = false;

@@ -586,7 +586,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
 
         if (!$this->_paginator->is_cell_rendering_for_html($params)) {
-            return $params['preset_content'] . (!empty($params['preset_content']) ? ' - ' : '').$params['record']['handler'];
+            return $params['preset_content'].(!empty($params['preset_content']) ? ' - ' : '').$params['record']['handler'];
         }
 
         $last_error = '';
@@ -658,10 +658,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $runs_every_x_str = $this->_pt('Runs every %s', PHS_Utils::parse_period($params['record']['timed_seconds']));
 
         if (!$this->_paginator->is_cell_rendering_for_html($params)) {
-            return $cell_str . ', '.$params['record']['timed_seconds'].'s - '.$runs_every_x_str;
+            return $cell_str.', '.$params['record']['timed_seconds'].'s - '.$runs_every_x_str;
         }
 
-        return $cell_str . '<br/><span title="'.self::_e($runs_every_x_str).'">'.$params['record']['timed_seconds'].'s</span>';
+        return $cell_str.'<br/><span title="'.self::_e($runs_every_x_str).'">'.$params['record']['timed_seconds'].'s</span>';
     }
 
     public function display_last_action(array $params) : ?string

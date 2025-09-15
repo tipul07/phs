@@ -1148,7 +1148,6 @@ abstract class PHS_Api_base extends PHS_Registry
         return true;
     }
 
-
     public static function framework_error_code_to_http_code(int $error_code) : int
     {
         return match ($error_code) {

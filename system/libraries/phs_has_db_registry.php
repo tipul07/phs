@@ -104,15 +104,15 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         return true;
     }
 
-    public function get_db_registry_fields_settings(): array
+    public function get_db_registry_fields_settings() : array
     {
-        if(!($registry_fields = $this->_db_registry_fields_settings())) {
+        if (!($registry_fields = $this->_db_registry_fields_settings())) {
             return [];
         }
 
         $return_arr = [];
         $registry_fields_keys = self::_default_db_registry_fields_settings();
-        foreach($registry_fields as $field_key => $field_settings) {
+        foreach ($registry_fields as $field_key => $field_settings) {
             $return_arr[$field_key] = self::validate_array($field_settings, $registry_fields_keys);
         }
 
@@ -125,15 +125,15 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
      *
      * @return array
      */
-    protected function _db_registry_fields_settings(): array
+    protected function _db_registry_fields_settings() : array
     {
         return [];
     }
 
-    private static function _default_db_registry_fields_settings(): array
+    private static function _default_db_registry_fields_settings() : array
     {
         return [
-            'readonly' => false,
+            'readonly'       => false,
             'can_be_deleted' => true,
         ];
     }

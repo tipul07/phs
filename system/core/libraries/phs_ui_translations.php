@@ -20,6 +20,10 @@ class PHS_Ui_translations extends PHS_Library
 
     public const STATUS_STARTING = 1, STATUS_RUNNING = 2, STATUS_ERROR = 3, STATUS_FINISHED = 4, STATUS_FORCE_STOPPED = 5;
 
+    private ?PHS_Plugin_Admin $_admin_plugin = null;
+
+    private ?PHS_Ai_translations $_ai_lib = null;
+
     public static array $STATUSES_ARR = [
         self::STATUS_STARTING      => ['title' => 'Starting'],
         self::STATUS_RUNNING       => ['title' => 'Running'],
@@ -28,13 +32,9 @@ class PHS_Ui_translations extends PHS_Library
         self::STATUS_FORCE_STOPPED => ['title' => 'Force stopped'],
     ];
 
-    private ?PHS_Plugin_Admin $_admin_plugin = null;
-
-    private ?PHS_Ai_translations $_ai_lib = null;
-
-    public function get_po_instance() : ?PHS_po_format
+    public function get_po_instance() : ?PHS_Po_format
     {
-        if(!class_exists(PHS_Po_format::class, false)){
+        if (!class_exists(PHS_Po_format::class, false)) {
             include_once PHS_LIBRARIES_DIR.'phs_po_format.php';
 
             if (!@class_exists(PHS_Po_format::class)) {
@@ -44,16 +44,16 @@ class PHS_Ui_translations extends PHS_Library
             }
         }
 
-        return new PHS_po_format();
+        return new PHS_Po_format();
     }
 
-    public function start_ui_translations(string $lang, bool $force = false): ?array
+    public function start_ui_translations(string $lang, bool $force = false) : ?array
     {
-        if(!$this->_load_dependencies()) {
+        if (!$this->_load_dependencies()) {
             return null;
         }
 
-        if(!$lang || !self::valid_language($lang)) {
+        if (!$lang || !self::valid_language($lang)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid language provided.'));
 
             return null;
@@ -62,6 +62,7 @@ class PHS_Ui_translations extends PHS_Library
         if (!($status_arr = $this->get_status($lang))) {
             $this->set_error(self::ERR_FUNCTIONALITY,
                 self::_t('Error obtaining trnaslation status for provided language.'));
+
             return null;
         }
 
@@ -92,10 +93,11 @@ class PHS_Ui_translations extends PHS_Library
             }
         }
 
-        if(!($po_obj = $this->get_po_instance())
+        if (!($po_obj = $this->get_po_instance())
            || !$po_obj->parse_details_from_po_file_by_language($lang)) {
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
                 self::_t('Error obtaining parsing PO file for language %s.', $lang));
+
             return null;
         }
 
@@ -137,16 +139,16 @@ class PHS_Ui_translations extends PHS_Library
         return $status_arr;
     }
 
-    public function start_ui_translations_bg(string $lang, bool $force = false, array $params = []): ?array
+    public function start_ui_translations_bg(string $lang, bool $force = false, array $params = []) : ?array
     {
-        if(!$this->_load_dependencies()
+        if (!$this->_load_dependencies()
             || !($resources = $this->_get_status_resources_details($lang))) {
             return null;
         }
 
-        $params['translate_all'] = $params['translate_all'] ?? false;
+        $params['translate_all'] ??= false;
 
-        if(!$lang || !self::valid_language($lang)) {
+        if (!$lang || !self::valid_language($lang)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid language provided.'));
 
             return null;
@@ -173,23 +175,26 @@ class PHS_Ui_translations extends PHS_Library
             'log'    => self::_t('Translations running...'),
         ]);
 
-        if(!($po_obj = $this->get_po_instance())) {
+        if (!($po_obj = $this->get_po_instance())) {
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
                 self::_t('Error obtaining PO format instance.'));
+
             return null;
         }
 
         $po_obj::add_to_ignored_directories_for_pot_list($this->_admin_plugin->get_ui_translation_excluding_paths());
 
-        if(!$po_obj->refresh_po_file_from_pot($lang)) {
+        if (!$po_obj->refresh_po_file_from_pot($lang)) {
             $this->copy_or_set_error($po_obj,
                 self::ERR_FUNCTIONALITY, self::_t('Error generating PO file.'));
+
             return null;
         }
 
-        if(!$po_obj->parse_details_from_po_file_by_language($lang)) {
+        if (!$po_obj->parse_details_from_po_file_by_language($lang)) {
             $this->copy_or_set_error($po_obj,
                 self::ERR_FUNCTIONALITY, self::_t('Error reading details from PO file.'));
+
             return null;
         }
 
@@ -201,14 +206,14 @@ class PHS_Ui_translations extends PHS_Library
         $status_final_update = true;
 
         $result = $po_obj->get_po_units();
-        foreach($result as $knti => $po_unit) {
+        foreach ($result as $knti => $po_unit) {
             $current_records++;
 
             if (!($current_records % $update_status_count)) {
                 if (($status_arr = $this->get_status($lang))
                     && $this->status_is_force_stopped($status_arr)) {
                     $this->_update_status($lang, [
-                        'log'             => self::_t('Force stopped by user.'),
+                        'log' => self::_t('Force stopped by user.'),
                     ]);
 
                     $status_final_update = false;
@@ -224,21 +229,21 @@ class PHS_Ui_translations extends PHS_Library
                 ]);
             }
 
-            if(!($current_records % $update_po_translation_file_count)
+            if (!($current_records % $update_po_translation_file_count)
                 && !$po_obj->write_po_units_to_file($resources['translation_filename'], true)) {
                 PHS_Logger::error('Error updating translation PO file '.$resources['full_translation_file'].': '
                     .$po_obj->get_simple_error_message(self::_t('Unknown error.')),
                     $this->_admin_plugin::LOG_UI_TRANSLATIONS);
             }
 
-            if(!($po_unit['index'] ?? null)) {
+            if (!($po_unit['index'] ?? null)) {
                 $records_errors++;
                 PHS_Logger::error('Error translating PO unit #'.$knti.': No index defined.',
                     $this->_admin_plugin::LOG_UI_TRANSLATIONS);
                 continue;
             }
-            
-            if(!($po_unit['translation'] ?? null) && !$params['translate_all']) {
+
+            if (!($po_unit['translation'] ?? null) && !$params['translate_all']) {
                 PHS_Logger::debug('PO unit #'.$knti.': Already translated.',
                     $this->_admin_plugin::LOG_UI_TRANSLATIONS);
                 continue;
@@ -258,7 +263,7 @@ class PHS_Ui_translations extends PHS_Library
             PHS_Logger::debug('Got translation for PO unit #'.$knti.' "'.$po_unit['index'].'" - "'.$translation.'"',
                 $this->_admin_plugin::LOG_UI_TRANSLATIONS);
 
-                if(!$po_obj->add_translation_for_po_unit($knti, $translation)) {
+            if (!$po_obj->add_translation_for_po_unit($knti, $translation)) {
                 $records_errors++;
                 PHS_Logger::error('Error adding translation for PO unit #'.$knti.': '
                                 .$this->get_simple_error_message('Unknown error.'),
@@ -317,33 +322,6 @@ class PHS_Ui_translations extends PHS_Library
         return $new_status;
     }
 
-    private function _translate_po_unit(array $po_unit, string $lang) : ?string
-    {
-        if(!$this->_load_dependencies()) {
-            return null;
-        }
-
-        if(!($po_unit['index'] ?? null)) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid PO unit for translation.'));
-
-            return null;
-        }
-
-        $payload = ['text' => $po_unit['index']];
-        if (!($result_payload = $this->_ai_lib->translate($payload, LANG_EN, $lang))) {
-            PHS_Logger::error('Error translating PO unit: '
-                              .' Source payload: '.print_r($payload, true),
-                $this->_admin_plugin::LOG_UI_TRANSLATIONS);
-
-            $this->set_error(self::ERR_FUNCTIONALITY,
-                $this->_ai_lib->get_simple_error_message(self::_t('Unknown error.')));
-
-            return null;
-        }
-
-        return $result_payload['text'] ?? null;
-    }
-
     public function get_status(string $lang) : ?array
     {
         $this->reset_error();
@@ -374,33 +352,6 @@ class PHS_Ui_translations extends PHS_Library
         }
 
         return self::validate_array($status_arr, $status_structure);
-    }
-
-    private function _get_status_resources_details(string $lang) : ?array
-    {
-        $this->reset_error();
-
-        if (!$lang
-            || !self::valid_language($lang)) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid language.'));
-
-            return null;
-        }
-
-        $return_arr = [
-            'dir_path'   => LANG_PO_DIR,
-            'translation_filename' => $lang.'_translation',
-            'translation_file' => $lang.'_translation.po',
-            'stats_file' => $lang.'_translation.json',
-            'log_file'   => $lang.'_translation.log',
-        ];
-
-        $return_arr['full_stats_file'] = $return_arr['dir_path'].'/'.$return_arr['stats_file'];
-        $return_arr['full_log_file'] = $return_arr['dir_path'].'/'.$return_arr['log_file'];
-        $return_arr['translation_file'] = $return_arr['translation_filename'].'.po';
-        $return_arr['full_translation_file'] = $return_arr['dir_path'].'/'.$return_arr['translation_file'];
-
-        return $return_arr;
     }
 
     public function get_status_structure() : array
@@ -461,6 +412,60 @@ class PHS_Ui_translations extends PHS_Library
         $status_arr = self::validate_array($status_arr, $this->get_status_structure());
 
         return $status_arr['status'] === self::STATUS_FORCE_STOPPED;
+    }
+
+    private function _translate_po_unit(array $po_unit, string $lang) : ?string
+    {
+        if (!$this->_load_dependencies()) {
+            return null;
+        }
+
+        if (!($po_unit['index'] ?? null)) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid PO unit for translation.'));
+
+            return null;
+        }
+
+        $payload = ['text' => $po_unit['index']];
+        if (!($result_payload = $this->_ai_lib->translate($payload, LANG_EN, $lang))) {
+            PHS_Logger::error('Error translating PO unit: '
+                              .' Source payload: '.print_r($payload, true),
+                $this->_admin_plugin::LOG_UI_TRANSLATIONS);
+
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                $this->_ai_lib->get_simple_error_message(self::_t('Unknown error.')));
+
+            return null;
+        }
+
+        return $result_payload['text'] ?? null;
+    }
+
+    private function _get_status_resources_details(string $lang) : ?array
+    {
+        $this->reset_error();
+
+        if (!$lang
+            || !self::valid_language($lang)) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid language.'));
+
+            return null;
+        }
+
+        $return_arr = [
+            'dir_path'             => LANG_PO_DIR,
+            'translation_filename' => $lang.'_translation',
+            'translation_file'     => $lang.'_translation.po',
+            'stats_file'           => $lang.'_translation.json',
+            'log_file'             => $lang.'_translation.log',
+        ];
+
+        $return_arr['full_stats_file'] = $return_arr['dir_path'].'/'.$return_arr['stats_file'];
+        $return_arr['full_log_file'] = $return_arr['dir_path'].'/'.$return_arr['log_file'];
+        $return_arr['translation_file'] = $return_arr['translation_filename'].'.po';
+        $return_arr['full_translation_file'] = $return_arr['dir_path'].'/'.$return_arr['translation_file'];
+
+        return $return_arr;
     }
 
     private function _update_status(string $lang, array $payload_arr) : ?array

@@ -38,7 +38,7 @@ class PHS_Po_format extends PHS_Registry
     private static array $pot_ignore_list = [
         'vendor', 'tests/behat', 'tests/phpunit', 'themes/default.dist', 'system/logs',
         'plugins/accounts_3rd/libraries/google', 'plugins/phs_libs/libraries/qrcode',
-        'plugins/sendgrid/libraries/sendgrid'
+        'plugins/sendgrid/libraries/sendgrid',
     ];
 
     public function set_filename(string $f) : bool
@@ -74,69 +74,50 @@ class PHS_Po_format extends PHS_Registry
     public function get_parsed_indexes() : array
     {
         return [
-            'count'          => $this->indexes_count,
+            'count'              => $this->indexes_count,
             'translations_count' => $this->translations_count,
-            'language'       => $this->parsed_language,
-            'language_files' => $this->parsed_indexes ? array_keys($this->parsed_indexes) : [],
-            'indexes'        => $this->parsed_indexes,
+            'language'           => $this->parsed_language,
+            'language_files'     => $this->parsed_indexes ? array_keys($this->parsed_indexes) : [],
+            'indexes'            => $this->parsed_indexes,
         ];
     }
 
-    public function get_po_units(): array
+    public function get_po_units() : array
     {
         return $this->po_units;
     }
 
-    public static function get_default_pot_file(): string
-    {
-        return LANG_PO_DIR.'project.pot';
-    }
-
-    public static function get_filename_with_files_list_for_pot_file(): string
-    {
-        return LANG_PO_DIR.'potfiles.txt';
-    }
-
-    public static function get_po_filepath_by_language(string $lang, string $prefix = ''): ?string
-    {
-        if(!($lang = self::valid_language($lang))) {
-            return null;
-        }
-
-        return LANG_PO_DIR.$prefix.$lang.'.po';
-    }
-
-    public function get_translation_existing_files(): array
+    public function get_translation_existing_files() : array
     {
         $files_arr = [];
 
         @clearstatcache();
         $file = self::get_default_pot_file();
         $files_arr['pot_file'] = [
-            'file' => $file,
+            'file'     => $file,
             'modified' => @filemtime($file) ?: 0,
-            'size' => @filesize($file) ?: 0,
+            'size'     => @filesize($file) ?: 0,
         ];
 
         $file = self::get_filename_with_files_list_for_pot_file();
         $files_arr['pot_list'] = [
-            'file' => $file,
+            'file'     => $file,
             'modified' => @filemtime($file) ?: 0,
-            'size' => @filesize($file) ?: 0,
+            'size'     => @filesize($file) ?: 0,
         ];
 
         $files_arr['languages'] = [];
-        if(($languages_arr = self::get_defined_languages())) {
-            foreach($languages_arr as $lang => $lang_arr) {
-                if(!($po_file = self::get_po_filepath_by_language($lang))) {
+        if (($languages_arr = self::get_defined_languages())) {
+            foreach ($languages_arr as $lang => $lang_arr) {
+                if (!($po_file = self::get_po_filepath_by_language($lang))) {
                     continue;
                 }
 
                 $files_arr['languages'][] = [
-                    'lang' => $lang,
-                    'file' => $po_file,
+                    'lang'     => $lang,
+                    'file'     => $po_file,
                     'modified' => @filemtime($po_file) ?: 0,
-                    'size' => @filesize($po_file) ?: 0,
+                    'size'     => @filesize($po_file) ?: 0,
                 ];
             }
         }
@@ -144,12 +125,12 @@ class PHS_Po_format extends PHS_Registry
         return $files_arr;
     }
 
-    public function validate_filename(string $filename): ?string
+    public function validate_filename(string $filename) : ?string
     {
         return str_replace(['/', '\\', '.'], '', $filename);
     }
 
-    public function generate_pot_file(string $pot_file = '', array $params = []): bool
+    public function generate_pot_file(string $pot_file = '', array $params = []) : bool
     {
         $this->reset_error();
 
@@ -162,7 +143,7 @@ class PHS_Po_format extends PHS_Registry
             : LANG_PO_DIR.$this->validate_filename($pot_file).'.pot';
 
         $pot_exists = @file_exists($pot_file);
-        if($pot_exists && (!$params['overwrite_pot_file'] || !@is_writable($pot_file))) {
+        if ($pot_exists && (!$params['overwrite_pot_file'] || !@is_writable($pot_file))) {
             $this->set_error(self::ERR_PARAMETERS,
                 'POT file already exists or is not writable: '.$pot_file.'.');
 
@@ -170,17 +151,18 @@ class PHS_Po_format extends PHS_Registry
         }
 
         $pot_files_list = self::get_filename_with_files_list_for_pot_file();
-        if($params['regenerate_pot_files_list']
+        if ($params['regenerate_pot_files_list']
            || !@file_exists($pot_files_list)) {
-            if(!self::_generate_files_list_for_pot_file($pot_files_list)) {
+            if (!self::_generate_files_list_for_pot_file($pot_files_list)) {
                 $this->copy_or_set_static_error(self::ERR_FUNCTIONALITY, 'Error generating files list for POT file.');
+
                 return false;
             }
         }
 
         @clearstatcache();
         $command_str = self::_get_xgettext_command($pot_file, $params['xgettext_bin']);
-        if(false === @system($command_str)
+        if (false === @system($command_str)
            || !@file_exists($pot_file)) {
             $this->set_error(self::ERR_FUNCTIONALITY,
                 'Error generating POT file with xgettext command: '.$command_str.'.');
@@ -191,21 +173,22 @@ class PHS_Po_format extends PHS_Registry
         return true;
     }
 
-    public function refresh_po_file_from_pot(string $lang, string $pot_file = '', array $params = []): bool
+    public function refresh_po_file_from_pot(string $lang, string $pot_file = '', array $params = []) : bool
     {
         $this->reset_error();
 
         $params['msgmerge_bin'] ??= '';
 
-        if(!self::valid_language($lang)) {
+        if (!self::valid_language($lang)) {
             $this->set_error(self::ERR_PARAMETERS, 'Language is invalid.');
 
             return false;
         }
 
-        if(!$this->generate_pot_file($pot_file, $params)) {
+        if (!$this->generate_pot_file($pot_file, $params)) {
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
                 'Error generating POT file.');
+
             return false;
         }
 
@@ -215,7 +198,7 @@ class PHS_Po_format extends PHS_Registry
 
         $old_po_file = self::get_po_filepath_by_language($lang);
         $new_po_file = self::get_po_filepath_by_language($lang, 'new');
-        if(!@file_exists($old_po_file)
+        if (!@file_exists($old_po_file)
            && (!($empty_po = $this->generate_empty_po_file($lang))
                || !@file_exists($empty_po['po_file']))) {
             $this->set_error(self::ERR_FUNCTIONALITY,
@@ -225,7 +208,7 @@ class PHS_Po_format extends PHS_Registry
         }
 
         $command_str = self::_get_mergemsg_command($lang, $old_po_file, $new_po_file, $pot_file, $params['msgmerge_bin']);
-        if(false === @system($command_str)
+        if (false === @system($command_str)
            || !@file_exists($new_po_file)) {
             $this->set_error(self::ERR_FUNCTIONALITY,
                 'Error generating PO file with mergemsg command: '.$command_str.'.');
@@ -239,116 +222,14 @@ class PHS_Po_format extends PHS_Registry
         return true;
     }
 
-    private static function _generate_files_list_for_pot_file(string $filename): bool
-    {
-        self::st_reset_error();
-
-        $pot_files_list = $filename ?: self::get_filename_with_files_list_for_pot_file();
-        if(!($fil = @fopen($pot_files_list, 'wb'))) {
-            self::st_set_error(self::ERR_PARAMETERS,
-                'Cannot open POT files list for writing: '.$pot_files_list.'.');
-            return false;
-        }
-
-        if(null === ($files_arr = self::_get_php_files_from_dir(PHS_PATH, false))) {
-            @fclose($fil);
-            return false;
-        }
-
-        if($files_arr) {
-            @fwrite($fil, implode("\n", $files_arr)."\n");
-            @fflush($fil);
-        }
-
-        foreach(self::_get_root_directories_for_pot_list() as $dir) {
-            if(null === ($files_arr = self::_get_php_files_from_dir(PHS_PATH.$dir))) {
-                @fclose($fil);
-                return false;
-            }
-
-            @fwrite($fil, implode("\n", $files_arr)."\n");
-            @fflush($fil);
-        }
-
-        @fclose($fil);
-
-        return true;
-    }
-
-    private static function _get_php_files_from_dir(string $dir, bool $recursive = true): ?array
-    {
-        if (!@is_dir($dir)) {
-            self::st_set_error(self::ERR_PARAMETERS, 'Directory not found: '.$dir.'.');
-            return null;
-        }
-
-        $files_arr = [];
-        if (!($dir_handle = @opendir($dir))) {
-            self::st_set_error(self::ERR_PARAMETERS, 'Cannot open directory: '.$dir.'.');
-            return null;
-        }
-
-        while (($file = @readdir($dir_handle)) !== false) {
-            if ($file === '.' || $file === '..') {
-                continue;
-            }
-
-            $full_path = rtrim($dir, '/\\').'/'.$file;
-            if (@is_file($full_path) && @is_readable($full_path)
-                && str_ends_with($file, '.php')) {
-                $files_arr[] = PHS::relative_path($full_path);
-            } elseif ($recursive
-                      && @is_dir($full_path)
-                      && !self::_should_ignore_directory($full_path)
-                      && ($sub_files_arr = self::_get_php_files_from_dir($full_path))) {
-                $files_arr = array_merge($files_arr, $sub_files_arr);
-            }
-        }
-
-        @closedir($dir_handle);
-
-        return $files_arr;
-    }
-
-    private static function _get_root_directories_for_pot_list(): array
-    {
-        return ['_setup', 'bin', 'config', 'graphql', 'plugins', 'system', 'tests', 'themes'];
-    }
-
-    private static function _should_ignore_directory(string $dir): bool
-    {
-        if(PHS::running_on_windows()) {
-            $dir = str_replace('\\', '/', $dir);
-        }
-
-        $ignored_dirs = self::_get_ignored_directories_for_pot_list();
-        foreach ($ignored_dirs as $ignored_dir) {
-            if (str_contains($dir, $ignored_dir)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static function _get_ignored_directories_for_pot_list(): array
-    {
-        return self::$pot_ignore_list;
-    }
-
-    public static function add_to_ignored_directories_for_pot_list(array $ignore_dirs): void
-    {
-        self::$pot_ignore_list = array_merge(self::$pot_ignore_list, $ignore_dirs);
-    }
-
-    public function generate_po_file_from_pot_file(string $lang, string $pot_file = '', array $params = []): ?array
+    public function generate_po_file_from_pot_file(string $lang, string $pot_file = '', array $params = []) : ?array
     {
         $this->reset_error();
 
         $params['overwrite_po_file'] = !empty($params['overwrite_po_file']);
 
         $pot_file = $pot_file ?: self::get_default_pot_file();
-        if(!@file_exists($pot_file)
+        if (!@file_exists($pot_file)
             || !@is_readable($pot_file)) {
             $this->set_error(self::ERR_PARAMETERS,
                 'Translations POT file doesn\'t exist or is not readable: '.$pot_file.'.');
@@ -358,7 +239,7 @@ class PHS_Po_format extends PHS_Registry
 
         $po_file = self::get_po_filepath_by_language($lang);
         $po_dir = dirname($po_file);
-        if(!@is_dir($po_dir)
+        if (!@is_dir($po_dir)
             || !@is_writable($po_dir)) {
             $this->set_error(self::ERR_PARAMETERS,
                 'Translations PO files directory is not writable: '.$po_file.'.');
@@ -367,20 +248,20 @@ class PHS_Po_format extends PHS_Registry
         }
 
         $po_exists = @file_exists($po_file);
-        if($po_exists && (!$params['overwrite_po_file'] || !@is_writable($po_file))) {
+        if ($po_exists && (!$params['overwrite_po_file'] || !@is_writable($po_file))) {
             $this->set_error(self::ERR_PARAMETERS,
                 'PO file already exists or is not writable: '.$po_file.'.');
 
             return null;
         }
 
-        if(!($fil = @fopen($po_file, 'wb'))) {
+        if (!($fil = @fopen($po_file, 'wb'))) {
             $this->set_error(self::ERR_PARAMETERS, 'Cannot open PO file for write '.$po_file.'.');
 
             return null;
         }
 
-        if(!@fwrite($fil, self::_generate_po_headers_as_po_string($lang))) {
+        if (!@fwrite($fil, self::_generate_po_headers_as_po_string($lang))) {
             $this->set_error(self::ERR_PARAMETERS, 'Cannot write PO file headers to '.$po_file.'.');
 
             @fclose($fil);
@@ -392,18 +273,18 @@ class PHS_Po_format extends PHS_Registry
         @fclose($fil);
 
         return [
-            'ok' => true
+            'ok' => true,
         ];
     }
 
-    public function generate_empty_po_file(string $lang, string $pot_file = '', array $params = []): ?array
+    public function generate_empty_po_file(string $lang, string $pot_file = '', array $params = []) : ?array
     {
         $this->reset_error();
 
         $params['overwrite_po_file'] = !empty($params['overwrite_po_file']);
 
         $pot_file = $pot_file ?: self::get_default_pot_file();
-        if(!@file_exists($pot_file)
+        if (!@file_exists($pot_file)
            || !@is_readable($pot_file)) {
             $this->set_error(self::ERR_PARAMETERS,
                 'Translations POT file doesn\'t exist or is not readable: '.$pot_file.'.');
@@ -413,7 +294,7 @@ class PHS_Po_format extends PHS_Registry
 
         $po_file = self::get_po_filepath_by_language($lang);
         $po_dir = dirname($po_file);
-        if(!@is_dir($po_dir)
+        if (!@is_dir($po_dir)
            || !@is_writable($po_dir)) {
             $this->set_error(self::ERR_PARAMETERS,
                 'Translations PO files directory is not writable: '.$po_file.'.');
@@ -422,20 +303,20 @@ class PHS_Po_format extends PHS_Registry
         }
 
         $po_exists = @file_exists($po_file);
-        if($po_exists && (!$params['overwrite_po_file'] || !@is_writable($po_file))) {
+        if ($po_exists && (!$params['overwrite_po_file'] || !@is_writable($po_file))) {
             $this->set_error(self::ERR_PARAMETERS,
                 'PO file already exists or is not writable: '.$po_file.'.');
 
             return null;
         }
 
-        if(!($fil = @fopen($po_file, 'wb'))) {
+        if (!($fil = @fopen($po_file, 'wb'))) {
             $this->set_error(self::ERR_PARAMETERS, 'Cannot open PO file for write '.$po_file.'.');
 
             return null;
         }
 
-        if(!@fwrite($fil, self::_generate_po_headers_as_po_string($lang))) {
+        if (!@fwrite($fil, self::_generate_po_headers_as_po_string($lang))) {
             $this->set_error(self::ERR_PARAMETERS, 'Cannot write PO file headers to '.$po_file.'.');
 
             @fclose($fil);
@@ -447,122 +328,9 @@ class PHS_Po_format extends PHS_Registry
         @fclose($fil);
 
         return [
-            'po_file' => $po_file,
+            'po_file'  => $po_file,
             'pot_file' => $pot_file,
         ];
-    }
-
-    private static function _generate_po_headers_as_po_string(string $language = ''): string
-    {
-        $result_str = 'msgid ""'."\n".
-                      'msgstr ""'."\n";
-
-        $headers_arr = self::_generate_po_headers_as_array($language);
-        foreach($headers_arr as $key => $val) {
-            $result_str .= self::_get_po_formatted_string($key.': '.$val)."\n";
-        }
-
-        $result_str .= "\n";
-
-        return $result_str;
-    }
-
-    private static function _get_po_formatted_string(string $str, string $prefix = '', bool $prefix_multiline = false): string
-    {
-        if($prefix !== '') {
-            $prefix .= ' ';
-        }
-
-        if(!$str || mb_strlen($str) <= self::WRAP_LINE_CHARS) {
-            return $prefix.'"'.$str.'"';
-        }
-
-        $result_str = '';
-        $line_str = '';
-        $words_arr = explode(' ', $str);
-        foreach($words_arr as $word) {
-            if(mb_strlen($line_str.' '.$word) > self::WRAP_LINE_CHARS) {
-                $result_str .= ($result_str!==''?"\n":'').'"'.$line_str.'"';
-                $line_str = '';
-            }
-
-            $line_str .= $word.' ';
-        }
-
-        $result_str .= ($result_str!==''?"\n":'').'"'.rtrim($line_str).'"';
-
-        return $prefix.($prefix_multiline?'""'."\n":'').$result_str;
-    }
-
-    private static function _generate_po_headers_as_array(string $language = ''): array
-    {
-        // lines end with \n as string, not as EOL
-        $headers_arr = [];
-        $headers_arr['Project-Id-Version'] = PHS_SITE_NAME.' '.PHS_SITEBUILD_VERSION.'\n';
-        $headers_arr['Report-Msgid-Bugs-To'] = PHS_CONTACT_EMAIL.'\n';
-        $headers_arr['POT-Creation-Date'] = date('Y-m-d H:iO').'\n';
-        $headers_arr['PO-Revision-Date'] = date('Y-m-d H:iO').'\n';
-        $headers_arr['Last-Translator'] = PHS_SITE_NAME.' Team <'.PHS_CONTACT_EMAIL.'>\n';
-        $headers_arr['Language-Team'] = PHS_SITE_NAME.' Team <'.PHS_CONTACT_EMAIL.'>\n';
-        $headers_arr['Language'] = $language.'\n';
-        $headers_arr['MIME-Version'] = '1.0\n';
-        $headers_arr['Content-Type'] = 'text/plain; charset=UTF-8\n';
-        $headers_arr['Content-Transfer-Encoding'] = '8bit\n';
-        $headers_arr['X-PHS-Version'] = PHS_KNOWN_VERSION.'\n';
-        $headers_arr['X-Generator'] = 'PHS '.PHS_KNOWN_VERSION.'\n';
-        $headers_arr['X-Poedit-SourceCharset'] = 'UTF-8\n';
-        $headers_arr['X-Poedit-KeywordsList'] = implode(';', self::_language_translation_methods()).'\n';
-        $headers_arr['X-Poedit-Basepath'] = '.\n';
-        $headers_arr['X-Poedit-SearchPath-0'] = '.\n';
-
-        return $headers_arr;
-    }
-
-    private static function _language_translation_methods(): array
-    {
-        return ['_pt', '_t', '_pte', 'st_pt', '_te', '_tl'];
-    }
-
-    private static function _get_xgettext_command(string $pot_filename, string $xgettext_bin = ''): string
-    {
-        $xgettext_bin = self::_get_xgettext_bin($xgettext_bin);
-
-        $k_str = '';
-        foreach(self::_language_translation_methods() as $method) {
-            $k_str .= ' -k'.$method;
-        }
-
-        return $xgettext_bin.' -o '.$pot_filename.' -L PHP --from-code=UTF-8 --force-po'
-               .' --package-name="'.PHS_SITE_NAME.'" --package-version="'.PHS_SITEBUILD_VERSION.'"'
-               .' -D "'.PHS_PATH.'"'
-               .$k_str
-               .' -f "'.self::get_filename_with_files_list_for_pot_file().'"';
-    }
-
-    private static function _get_mergemsg_command(string $lang, string $old_po_file, string $new_po_file, string $pot_filename, string $mergemsg_bin = ''): string
-    {
-        return self::_get_msgmerge_bin($mergemsg_bin).' -o '.$new_po_file
-               .' -D "'.PHS_PATH.'" --lang='.$lang.' --previous --no-fuzzy-matching --force-po --quiet'
-               .' "'.$old_po_file.'" "'.$pot_filename.'"';
-    }
-
-    private static function _get_xgettext_bin(string $bin = ''): string
-    {
-        return self::_get_generic_bin_path('xgettext', $bin);
-    }
-
-    private static function _get_msgmerge_bin(string $bin = ''): string
-    {
-        return self::_get_generic_bin_path('msgmerge', $bin);
-    }
-
-    private static function _get_generic_bin_path(string $bin_name, string $provided_bin = ''): string
-    {
-        @ob_start();
-        $provided_bin = $provided_bin ?: @system('which '.$bin_name) ?: $bin_name;
-        @ob_get_clean();
-
-        return $provided_bin;
     }
 
     public function export_csv_from_po(string $po_file, array $params = []) : bool
@@ -576,7 +344,7 @@ class PHS_Po_format extends PHS_Registry
         $params['language'] ??= null;
         $params['csv_line_delimiter'] = ($params['csv_line_delimiter'] ?? null) ?: "\n";
         $params['csv_column_delimiter'] = ($params['csv_column_delimiter'] ?? null) ?: ',';
-        $params['csv_column_enclosure'] = ($params['csv_column_enclosure'] ?? null) ?:'"';
+        $params['csv_column_enclosure'] = ($params['csv_column_enclosure'] ?? null) ?: '"';
         $params['csv_column_escape'] = ($params['csv_column_escape'] ?? null) ?: '"';
         $params['export_to_output'] = !isset($params['export_to_output']) || !empty($params['export_to_output']);
         $params['export_to_filename'] ??= null;
@@ -630,7 +398,7 @@ class PHS_Po_format extends PHS_Registry
         return true;
     }
 
-    public function update_language_files(string $po_file, array $params = []): ?array
+    public function update_language_files(string $po_file, array $params = []) : ?array
     {
         if (empty($params['language'])) {
             $params['language'] = null;
@@ -741,9 +509,9 @@ class PHS_Po_format extends PHS_Registry
                 $line = 1;
                 foreach ($resulting_arr as $lang_key => $lang_val) {
                     if (!($csv_line = PHS_Utils::csv_line([$lang_key, $lang_val],
-                            $csv_settings['line_delimiter'], $csv_settings['columns_delimiter'],
-                            $csv_settings['columns_enclosure'], $csv_settings['enclosure_escape'])
-                        )
+                        $csv_settings['line_delimiter'], $csv_settings['columns_delimiter'],
+                        $csv_settings['columns_enclosure'], $csv_settings['enclosure_escape'])
+                    )
                      || !@fwrite($fp, $csv_line)) {
                         PHS_Logger::error('Error writing ['.$lang_key.'] language index at position ['.$line.']',
                             PHS_Logger::TYPE_MAINTENANCE);
@@ -771,15 +539,17 @@ class PHS_Po_format extends PHS_Registry
     {
         $this->reset_error();
 
-        if(!$lang
+        if (!$lang
            || !self::valid_language($lang)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid language.'));
+
             return false;
         }
 
         $po_file = LANG_PO_DIR.$lang.'.po';
-        if(!@file_exists($po_file)) {
+        if (!@file_exists($po_file)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('PO file doesn\'t exist.'));
+
             return false;
         }
 
@@ -839,13 +609,13 @@ class PHS_Po_format extends PHS_Registry
 
             $translation_arr['translation'] ??= '';
 
-            if(!$this->_add_po_unit_from_array($translation_arr)) {
+            if (!$this->_add_po_unit_from_array($translation_arr)) {
                 $this->set_error_if_not_set(self::ERR_PO_FILE, self::_t('Error adding PO unit from array.'));
 
                 return false;
             }
 
-            if($translation_arr['translation'] !== '') {
+            if ($translation_arr['translation'] !== '') {
                 $this->translations_count++;
             }
 
@@ -918,7 +688,7 @@ class PHS_Po_format extends PHS_Registry
         return $this->_extract_po_unit();
     }
 
-    public function get_po_header(?string $key = null) : null|string|array
+    public function get_po_header(?string $key = null) : null | string | array
     {
         static $lower_header_arr = null;
 
@@ -933,7 +703,7 @@ class PHS_Po_format extends PHS_Registry
             }
         }
 
-        if($key !== null) {
+        if ($key !== null) {
             if (isset($lower_header_arr[strtolower($key)])) {
                 return $lower_header_arr[$key];
             }
@@ -989,7 +759,7 @@ class PHS_Po_format extends PHS_Registry
         return true;
     }
 
-    public function write_po_units_to_file(string $file_name, bool $force = false): bool
+    public function write_po_units_to_file(string $file_name, bool $force = false) : bool
     {
         $this->reset_error();
 
@@ -1042,6 +812,7 @@ class PHS_Po_format extends PHS_Registry
             || !is_resource($file_handle)
             || !@fwrite($file_handle, $po_string)) {
             $this->set_error_if_not_set(self::ERR_PARAMETERS, 'Couldn\'t write PO unit to file handler.');
+
             return false;
         }
 
@@ -1056,6 +827,7 @@ class PHS_Po_format extends PHS_Registry
 
         if (!($po_unit['index'] ?? null)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('PO unit index is required.'));
+
             return null;
         }
 
@@ -1067,7 +839,7 @@ class PHS_Po_format extends PHS_Registry
         return $return_str;
     }
 
-    private function _get_po_comments_as_string(array $comments): string
+    private function _get_po_comments_as_string(array $comments) : string
     {
         $comment_str = '';
         foreach ($comments as $comment) {
@@ -1081,7 +853,7 @@ class PHS_Po_format extends PHS_Registry
         return $comment_str !== '' ? $comment_str."\n" : '';
     }
 
-    private function _get_po_files_as_string(array $files): string
+    private function _get_po_files_as_string(array $files) : string
     {
         $files_str = '';
         $line_str = '';
@@ -1093,9 +865,9 @@ class PHS_Po_format extends PHS_Registry
 
             $fstr = $file_arr['file'].':'.$file_arr['line'];
 
-            if($line_str === '') {
+            if ($line_str === '') {
                 $line_str = '#:';
-            } elseif(mb_strlen($line_str.' '.$fstr) > self::WRAP_LINE_CHARS) {
+            } elseif (mb_strlen($line_str.' '.$fstr) > self::WRAP_LINE_CHARS) {
                 $files_str .= $line_str."\n";
                 $line_str = '#:';
             }
@@ -1169,7 +941,7 @@ class PHS_Po_format extends PHS_Registry
         $this->po_units = [];
     }
 
-    private function _add_po_unit_from_array(array $po_unit): bool
+    private function _add_po_unit_from_array(array $po_unit) : bool
     {
         if (!$po_unit
         || empty($po_unit['index'])) {
@@ -1188,10 +960,10 @@ class PHS_Po_format extends PHS_Registry
     private function _get_empty_po_unit() : array
     {
         return [
-            'index' => '',
+            'index'       => '',
             'translation' => '',
-            'comments' => [],
-            'files' => [],
+            'comments'    => [],
+            'files'       => [],
         ];
     }
 
@@ -1240,7 +1012,7 @@ class PHS_Po_format extends PHS_Registry
 
     private function _parse_files_line(string $line_str) : ?array
     {
-        if(!str_starts_with($line_str, '#: ')) {
+        if (!str_starts_with($line_str, '#: ')) {
             return null;
         }
 
@@ -1281,7 +1053,7 @@ class PHS_Po_format extends PHS_Registry
 
     private function _parse_msgid_line(string $line_str) : ?string
     {
-        if(!str_starts_with($line_str, 'msgid ')) {
+        if (!str_starts_with($line_str, 'msgid ')) {
             return null;
         }
 
@@ -1300,7 +1072,7 @@ class PHS_Po_format extends PHS_Registry
 
     private function _parse_msgstr_line(string $line_str) : ?string
     {
-        if(!str_starts_with($line_str, 'msgstr ')) {
+        if (!str_starts_with($line_str, 'msgstr ')) {
             return null;
         }
 
@@ -1328,7 +1100,7 @@ class PHS_Po_format extends PHS_Registry
         $this->_reset_parsed_indexes();
     }
 
-    private function _get_lines(?string $buffer = null): bool|array
+    private function _get_lines(?string $buffer = null) : bool | array
     {
         if ($buffer === null) {
             return $this->lines_arr;
@@ -1349,7 +1121,7 @@ class PHS_Po_format extends PHS_Registry
             return false;
         }
 
-        foreach($this->lines_arr as $knti => $line) {
+        foreach ($this->lines_arr as $knti => $line) {
             $this->lines_arr[$knti] = trim($line);
         }
 
@@ -1366,7 +1138,7 @@ class PHS_Po_format extends PHS_Registry
         return $this->lines_arr[$index] ?? null;
     }
 
-    private function _validate_language_from_po(?string $provided_language = null): ?array
+    private function _validate_language_from_po(?string $provided_language = null) : ?array
     {
         if (!$provided_language
             && ($guessed_language = $this->guess_language_from_header())) {
@@ -1381,7 +1153,7 @@ class PHS_Po_format extends PHS_Registry
         return $language_details;
     }
 
-    private function _extract_headers(): void
+    private function _extract_headers() : void
     {
         $this->_li = 0;
         $this->header_lines = 0;
@@ -1428,5 +1200,244 @@ class PHS_Po_format extends PHS_Registry
         }
 
         $this->header_lines = $this->_li;
+    }
+
+    public static function get_default_pot_file() : string
+    {
+        return LANG_PO_DIR.'project.pot';
+    }
+
+    public static function get_filename_with_files_list_for_pot_file() : string
+    {
+        return LANG_PO_DIR.'potfiles.txt';
+    }
+
+    public static function get_po_filepath_by_language(string $lang, string $prefix = '') : ?string
+    {
+        if (!($lang = self::valid_language($lang))) {
+            return null;
+        }
+
+        return LANG_PO_DIR.$prefix.$lang.'.po';
+    }
+
+    public static function add_to_ignored_directories_for_pot_list(array $ignore_dirs) : void
+    {
+        self::$pot_ignore_list = array_merge(self::$pot_ignore_list, $ignore_dirs);
+    }
+
+    private static function _generate_files_list_for_pot_file(string $filename) : bool
+    {
+        self::st_reset_error();
+
+        $pot_files_list = $filename ?: self::get_filename_with_files_list_for_pot_file();
+        if (!($fil = @fopen($pot_files_list, 'wb'))) {
+            self::st_set_error(self::ERR_PARAMETERS,
+                'Cannot open POT files list for writing: '.$pot_files_list.'.');
+
+            return false;
+        }
+
+        if (null === ($files_arr = self::_get_php_files_from_dir(PHS_PATH, false))) {
+            @fclose($fil);
+
+            return false;
+        }
+
+        if ($files_arr) {
+            @fwrite($fil, implode("\n", $files_arr)."\n");
+            @fflush($fil);
+        }
+
+        foreach (self::_get_root_directories_for_pot_list() as $dir) {
+            if (null === ($files_arr = self::_get_php_files_from_dir(PHS_PATH.$dir))) {
+                @fclose($fil);
+
+                return false;
+            }
+
+            @fwrite($fil, implode("\n", $files_arr)."\n");
+            @fflush($fil);
+        }
+
+        @fclose($fil);
+
+        return true;
+    }
+
+    private static function _get_php_files_from_dir(string $dir, bool $recursive = true) : ?array
+    {
+        if (!@is_dir($dir)) {
+            self::st_set_error(self::ERR_PARAMETERS, 'Directory not found: '.$dir.'.');
+
+            return null;
+        }
+
+        $files_arr = [];
+        if (!($dir_handle = @opendir($dir))) {
+            self::st_set_error(self::ERR_PARAMETERS, 'Cannot open directory: '.$dir.'.');
+
+            return null;
+        }
+
+        while (($file = @readdir($dir_handle)) !== false) {
+            if ($file === '.' || $file === '..') {
+                continue;
+            }
+
+            $full_path = rtrim($dir, '/\\').'/'.$file;
+            if (@is_file($full_path) && @is_readable($full_path)
+                && str_ends_with($file, '.php')) {
+                $files_arr[] = PHS::relative_path($full_path);
+            } elseif ($recursive
+                      && @is_dir($full_path)
+                      && !self::_should_ignore_directory($full_path)
+                      && ($sub_files_arr = self::_get_php_files_from_dir($full_path))) {
+                $files_arr = array_merge($files_arr, $sub_files_arr);
+            }
+        }
+
+        @closedir($dir_handle);
+
+        return $files_arr;
+    }
+
+    private static function _get_root_directories_for_pot_list() : array
+    {
+        return ['_setup', 'bin', 'config', 'graphql', 'plugins', 'system', 'tests', 'themes'];
+    }
+
+    private static function _should_ignore_directory(string $dir) : bool
+    {
+        if (PHS::running_on_windows()) {
+            $dir = str_replace('\\', '/', $dir);
+        }
+
+        $ignored_dirs = self::_get_ignored_directories_for_pot_list();
+        foreach ($ignored_dirs as $ignored_dir) {
+            if (str_contains($dir, $ignored_dir)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static function _get_ignored_directories_for_pot_list() : array
+    {
+        return self::$pot_ignore_list;
+    }
+
+    private static function _generate_po_headers_as_po_string(string $language = '') : string
+    {
+        $result_str = 'msgid ""'."\n"
+                      .'msgstr ""'."\n";
+
+        $headers_arr = self::_generate_po_headers_as_array($language);
+        foreach ($headers_arr as $key => $val) {
+            $result_str .= self::_get_po_formatted_string($key.': '.$val)."\n";
+        }
+
+        $result_str .= "\n";
+
+        return $result_str;
+    }
+
+    private static function _get_po_formatted_string(string $str, string $prefix = '', bool $prefix_multiline = false) : string
+    {
+        if ($prefix !== '') {
+            $prefix .= ' ';
+        }
+
+        if (!$str || mb_strlen($str) <= self::WRAP_LINE_CHARS) {
+            return $prefix.'"'.$str.'"';
+        }
+
+        $result_str = '';
+        $line_str = '';
+        $words_arr = explode(' ', $str);
+        foreach ($words_arr as $word) {
+            if (mb_strlen($line_str.' '.$word) > self::WRAP_LINE_CHARS) {
+                $result_str .= ($result_str !== '' ? "\n" : '').'"'.$line_str.'"';
+                $line_str = '';
+            }
+
+            $line_str .= $word.' ';
+        }
+
+        $result_str .= ($result_str !== '' ? "\n" : '').'"'.rtrim($line_str).'"';
+
+        return $prefix.($prefix_multiline ? '""'."\n" : '').$result_str;
+    }
+
+    private static function _generate_po_headers_as_array(string $language = '') : array
+    {
+        // lines end with \n as string, not as EOL
+        $headers_arr = [];
+        $headers_arr['Project-Id-Version'] = PHS_SITE_NAME.' '.PHS_SITEBUILD_VERSION.'\n';
+        $headers_arr['Report-Msgid-Bugs-To'] = PHS_CONTACT_EMAIL.'\n';
+        $headers_arr['POT-Creation-Date'] = date('Y-m-d H:iO').'\n';
+        $headers_arr['PO-Revision-Date'] = date('Y-m-d H:iO').'\n';
+        $headers_arr['Last-Translator'] = PHS_SITE_NAME.' Team <'.PHS_CONTACT_EMAIL.'>\n';
+        $headers_arr['Language-Team'] = PHS_SITE_NAME.' Team <'.PHS_CONTACT_EMAIL.'>\n';
+        $headers_arr['Language'] = $language.'\n';
+        $headers_arr['MIME-Version'] = '1.0\n';
+        $headers_arr['Content-Type'] = 'text/plain; charset=UTF-8\n';
+        $headers_arr['Content-Transfer-Encoding'] = '8bit\n';
+        $headers_arr['X-PHS-Version'] = PHS_KNOWN_VERSION.'\n';
+        $headers_arr['X-Generator'] = 'PHS '.PHS_KNOWN_VERSION.'\n';
+        $headers_arr['X-Poedit-SourceCharset'] = 'UTF-8\n';
+        $headers_arr['X-Poedit-KeywordsList'] = implode(';', self::_language_translation_methods()).'\n';
+        $headers_arr['X-Poedit-Basepath'] = '.\n';
+        $headers_arr['X-Poedit-SearchPath-0'] = '.\n';
+
+        return $headers_arr;
+    }
+
+    private static function _language_translation_methods() : array
+    {
+        return ['_pt', '_t', '_pte', 'st_pt', '_te', '_tl'];
+    }
+
+    private static function _get_xgettext_command(string $pot_filename, string $xgettext_bin = '') : string
+    {
+        $xgettext_bin = self::_get_xgettext_bin($xgettext_bin);
+
+        $k_str = '';
+        foreach (self::_language_translation_methods() as $method) {
+            $k_str .= ' -k'.$method;
+        }
+
+        return $xgettext_bin.' -o '.$pot_filename.' -L PHP --from-code=UTF-8 --force-po'
+               .' --package-name="'.PHS_SITE_NAME.'" --package-version="'.PHS_SITEBUILD_VERSION.'"'
+               .' -D "'.PHS_PATH.'"'
+               .$k_str
+               .' -f "'.self::get_filename_with_files_list_for_pot_file().'"';
+    }
+
+    private static function _get_mergemsg_command(string $lang, string $old_po_file, string $new_po_file, string $pot_filename, string $mergemsg_bin = '') : string
+    {
+        return self::_get_msgmerge_bin($mergemsg_bin).' -o '.$new_po_file
+               .' -D "'.PHS_PATH.'" --lang='.$lang.' --previous --no-fuzzy-matching --force-po --quiet'
+               .' "'.$old_po_file.'" "'.$pot_filename.'"';
+    }
+
+    private static function _get_xgettext_bin(string $bin = '') : string
+    {
+        return self::_get_generic_bin_path('xgettext', $bin);
+    }
+
+    private static function _get_msgmerge_bin(string $bin = '') : string
+    {
+        return self::_get_generic_bin_path('msgmerge', $bin);
+    }
+
+    private static function _get_generic_bin_path(string $bin_name, string $provided_bin = '') : string
+    {
+        @ob_start();
+        $provided_bin = $provided_bin ?: @system('which '.$bin_name) ?: $bin_name;
+        @ob_get_clean();
+
+        return $provided_bin;
     }
 }

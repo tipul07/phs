@@ -89,7 +89,7 @@ class PHS_Ai_translations extends PHS_Library
     {
         $settings = !$settings ? [] : self::validate_array_to_new_array($settings, self::_get_settings_structure());
 
-        if(!$settings) {
+        if (!$settings) {
             $this->_extract_ai_settings();
 
             // Reset error if pluin settings are not set
@@ -98,7 +98,7 @@ class PHS_Ai_translations extends PHS_Library
             return true;
         }
 
-        if(!$this->_validate_settings($settings)) {
+        if (!$this->_validate_settings($settings)) {
             $this->set_error_if_not_set(self::ERR_SETTINGS,
                 $this->_pt('Error validating injected OpenAI settings.'));
 
@@ -110,16 +110,6 @@ class PHS_Ai_translations extends PHS_Library
         $this->_settings = [];
 
         return $this->_extract_ai_settings();
-    }
-
-    private static function _get_settings_structure() : array
-    {
-        return [
-            'openai_url'        => '',
-            'openai_token'      => '',
-            'openai_model'      => '',
-            'openai_temperature'=> 0.01,
-        ];
     }
 
     private function _get_ai_prompt(array $payload, string $from_lang_title, string $to_lang_title) : array
@@ -207,5 +197,15 @@ class PHS_Ai_translations extends PHS_Library
         }
 
         return true;
+    }
+
+    private static function _get_settings_structure() : array
+    {
+        return [
+            'openai_url'         => '',
+            'openai_token'       => '',
+            'openai_model'       => '',
+            'openai_temperature' => 0.01,
+        ];
     }
 }

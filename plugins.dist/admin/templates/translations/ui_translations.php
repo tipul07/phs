@@ -38,22 +38,22 @@ echo $this->sub_view('ractive/bootstrap');
 <script id="PHS_RActive_Ui_translations_template" type="text/html">
 
     <section class="heading-bordered">
-        <h3><?php echo $this->_pt('Language Files')?></h3>
+        <h3><?php echo $this->_pt('Language Files'); ?></h3>
     </section>
 
 <table class="table table-hover" style="width=100%;">
     <thead>
     <tr>
         <th class="text-center">&nbsp;</th>
-        <th class="text-center"><?php echo $this->_pt( 'File' )?></th>
-        <th class="text-center"><?php echo $this->_pt( 'Modified' )?></th>
-        <th class="text-center"><?php echo $this->_pt( 'Size' )?></th>
+        <th class="text-center"><?php echo $this->_pt('File'); ?></th>
+        <th class="text-center"><?php echo $this->_pt('Modified'); ?></th>
+        <th class="text-center"><?php echo $this->_pt('Size'); ?></th>
     </tr>
     </thead>
     <tbody>
     <tr>
         <td class="font-weight-bold">
-            <?php echo $this->_pt( 'POT File' )?>
+            <?php echo $this->_pt('POT File'); ?>
             {{#if pot_filesize > 0 }}
             <a href="javascript:void(0)"
                on-click="@this.po_file_info(pot_filename)"><i class="fa fa-info action-icons"></i></a>
@@ -63,19 +63,19 @@ echo $this->sub_view('ractive/bootstrap');
                on-click="@this.trigger_download(pot_filename, pot_filesize)">{{pot_filename}}</a>
         </td>
         <td class="text-right">{{@this.format_date_timestamp(pot_modified, "d-m-Y H:i")}}</td>
-        <td class="text-right"><span title="<?php echo $this::_e(sprintf('%s bytes', '{{pot_filesize}}'))?>">{{@this.format_file_size(pot_filesize)}}</span></td>
+        <td class="text-right"><span title="<?php echo $this::_e(sprintf('%s bytes', '{{pot_filesize}}')); ?>">{{@this.format_file_size(pot_filesize)}}</span></td>
     </tr>
     <tr>
-        <td class="font-weight-bold"><?php echo $this->_pt( 'POT Files List')?></td>
+        <td class="font-weight-bold"><?php echo $this->_pt('POT Files List'); ?></td>
         <td><a href="javascript:void(0)"
                on-click="@this.trigger_download(pot_list_filename, pot_list_filesize)">{{pot_list_filename}}</a></td>
         <td class="text-right">{{@this.format_date_timestamp(pot_list_modified, "d-m-Y H:i")}}</td>
-        <td class="text-right"><span title="<?php echo $this::_e(sprintf('%s bytes', '{{pot_list_filesize}}'))?>">{{@this.format_file_size(pot_list_filesize)}}</span></td>
+        <td class="text-right"><span title="<?php echo $this::_e(sprintf('%s bytes', '{{pot_list_filesize}}')); ?>">{{@this.format_file_size(pot_list_filesize)}}</span></td>
     </tr>
     {{#each language_files}}
     <tr>
         <td class="font-weight-bold">
-            <?php echo $this->_pt('Language')?>: {{.lang}}
+            <?php echo $this->_pt('Language'); ?>: {{.lang}}
             {{#if .size > 0 }}
             <a href="javascript:void(0)"
                on-click="@this.po_file_info(.file)"><i class="fa fa-info action-icons"></i></a>
@@ -86,14 +86,14 @@ echo $this->sub_view('ractive/bootstrap');
                on-click="@this.trigger_download(.file, .size)">{{.file}}</a>
         </td>
         <td class="text-right">{{@this.format_date_timestamp(.modified, "d-m-Y H:i")}}</td>
-        <td class="text-right"><span title="<?php echo $this::_e(sprintf('%s bytes', '{{.size}}'))?>">{{@this.format_file_size(.size)}}</span></td>
+        <td class="text-right"><span title="<?php echo $this::_e(sprintf('%s bytes', '{{.size}}')); ?>">{{@this.format_file_size(.size)}}</span></td>
     </tr>
     {{/each}}
     </tbody>
 </table>
 
     <section class="heading-bordered">
-        <h3><?php echo $this->_pt('Regenerate POT File')?></h3>
+        <h3><?php echo $this->_pt('Regenerate POT File'); ?></h3>
     </section>
 
 {{#if excluding_paths.length === 0 }}
@@ -103,7 +103,7 @@ echo $this->sub_view('ractive/bootstrap');
     <thead>
     <tr>
         <th style="width: 1%;">#</th>
-        <th class="text-center"><?php echo $this->_pt( 'Excluded directory' )?></th>
+        <th class="text-center"><?php echo $this->_pt('Excluded directory'); ?></th>
         <th>&nbsp;</th>
     </tr>
     </thead>
@@ -117,7 +117,7 @@ echo $this->sub_view('ractive/bootstrap');
         <td class="text-center">
             <a href="javascript:void(0)" onclick="this.blur()"
                on-click="@this.delete_excluding_path(@index)"><i class="fa fa-times-circle-o action-icons"
-                                                                 title="<?php echo $this->_pte('Delete excluding path')?>"></i></a>
+                                                                 title="<?php echo $this->_pte('Delete excluding path'); ?>"></i></a>
         </td>
     </tr>
     {{/each}}
@@ -128,7 +128,7 @@ echo $this->sub_view('ractive/bootstrap');
 <div class="form-group">
     <a href="javascript:void(0)" class="btn btn-primary"
        on-click="@this.add_directory_exception()">
-        <i class="fa fa-plus"></i> <?php echo $this->_pt('Add directory exception')?></a>
+        <i class="fa fa-plus"></i> <?php echo $this->_pt('Add directory exception'); ?></a>
 </div>
 
 <div class="form-group">
@@ -139,7 +139,7 @@ echo $this->sub_view('ractive/bootstrap');
 </div>
 
     <section class="heading-bordered">
-        <h3><?php echo $this->_pt('Regenerate PO File')?></h3>
+        <h3><?php echo $this->_pt('Regenerate PO File'); ?></h3>
     </section>
 
     <div class="form-group row">
@@ -162,7 +162,7 @@ echo $this->sub_view('ractive/bootstrap');
 </div>
 
     <section class="heading-bordered">
-        <h3><?php echo $this->_pt('Translate PO File')?></h3>
+        <h3><?php echo $this->_pt('Translate PO File'); ?></h3>
     </section>
 
     <div class="form-group row">
@@ -171,7 +171,7 @@ echo $this->sub_view('ractive/bootstrap');
             <select name="language_to_translate" id="language_to_translate" value="{{language_to_translate}}">
                 <option value=""> - <?php echo $this->_pt('Select language'); ?> - </option>
                 {{#each @this.get_languages_arr() }}
-                {{ #if .id !== '<?php echo LANG_EN?>' }}
+                {{ #if .id !== '<?php echo LANG_EN; ?>' }}
                 <option value="{{.id}}">{{.label}}</option>
                 {{/if}}
                 {{/each}}
@@ -214,11 +214,11 @@ echo $this->sub_view('ractive/bootstrap');
     </div>
 
     <section class="heading-bordered">
-        <h3><?php echo $this->_pt('AI Translation')?></h3>
+        <h3><?php echo $this->_pt('AI Translation'); ?></h3>
     </section>
 
     {{ #if !ui_translation_status }}
-    <p><?php echo $this->_pt('No status for UI translation using AI for this file.')?></p>
+    <p><?php echo $this->_pt('No status for UI translation using AI for this file.'); ?></p>
     {{ else }}
     <div class="form-group row">
         <label class="col-sm-4 col-form-label"><?php echo $this->_pt('Started'); ?></label>
@@ -284,9 +284,9 @@ echo $this->sub_view('ractive/bootstrap');
 }
 </style>
 <script type="text/javascript">
-var initial_translation_files = <?php echo @json_encode($translation_files);?>;
-var initial_excluding_paths = <?php echo @json_encode($excluding_paths);?>;
-var available_languages_arr = <?php echo @json_encode($available_languages_arr);?>;
+var initial_translation_files = <?php echo @json_encode($translation_files); ?>;
+var initial_excluding_paths = <?php echo @json_encode($excluding_paths); ?>;
+var available_languages_arr = <?php echo @json_encode($available_languages_arr); ?>;
 const show_reset_timeout_seconds = 30;
 let PHS_RActive_Ui_translations_app = null;
 $(document).ready(function() {
@@ -419,7 +419,7 @@ $(document).ready(function() {
             }
 
             if( (excluding_paths[index].length !== 0)
-                && !confirm("<?php echo $this->_pte('Are you sure you want to remove this excluding path?')?>" ) ) {
+                && !confirm("<?php echo $this->_pte('Are you sure you want to remove this excluding path?'); ?>" ) ) {
                 return;
             }
 
@@ -452,7 +452,7 @@ $(document).ready(function() {
                     self.set("ui_translation_status", response?.ui_translation_status);
                     self._display_po_file_info(base_file, response.po_info);
 
-                    self.phs_add_success_message( "<?php echo $this->_pte('Displaying PO file info...');?>" );
+                    self.phs_add_success_message( "<?php echo $this->_pte('Displaying PO file info...'); ?>" );
                 });
         },
 
@@ -602,7 +602,7 @@ $(document).ready(function() {
         },
 
         confirm_force_stop: function() {
-            if( !confirm("<?php echo $this->_pte('Are you sure you want to force stop the current translation task?')?>") ) {
+            if( !confirm("<?php echo $this->_pte('Are you sure you want to force stop the current translation task?'); ?>") ) {
                 return;
             }
 
