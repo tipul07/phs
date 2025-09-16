@@ -277,16 +277,6 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $scope;
     }
 
-    public static function framework_error_code_to_http_code(int $error_code) : int
-    {
-        return match ($error_code) {
-            self::ERR_OK => PHS_Api_base::H_CODE_OK,
-            PHS::ERR_ROUTE, self::ERR_RUN_ROUTE_NOT_ALLOWED, self::ERR_RUN_ROUTE_NOT_FOUND, self::ERR_RUN_ROUTE_ERROR => PHS_Api_base::H_CODE_NOT_FOUND,
-            self::ERR_PARAMETERS => PHS_Api_base::H_CODE_BAD_REQUEST,
-            default              => PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR,
-        };
-    }
-
     public static function spawn_scope_instance(?int $scope = null) : ?self
     {
         if ($scope === null) {

@@ -24,6 +24,8 @@ class PHS_Model_Accounts extends PHS_Model
 {
     use PHS_Model_Trait_statuses;
 
+    public const LOGIN_SOURCE_NORMAL = 'phs_login_source_normal', LOGIN_SOURCE_API = 'phs_login_source_api';
+
     public const ERR_LOGIN = 10001, ERR_EMAIL = 10002, ERR_ACCOUNT_ACTION = 10003, ERR_CHANGE_PASS = 10004, ERR_PASS_CHECK = 10005;
 
     public const PASSWORDS_ALGO = 'sha256';
@@ -55,9 +57,14 @@ class PHS_Model_Accounts extends PHS_Model
         self::LVL_DEVELOPER  => ['title' => 'Developer'],
     ];
 
+    protected static array $LOGIN_SOURCE_ARR = [
+        self::LOGIN_SOURCE_NORMAL => ['title' => 'Normal Login', 'bypass_internal_tfa' => false],
+        self::LOGIN_SOURCE_API    => ['title' => 'API Login', 'bypass_internal_tfa' => false],
+    ];
+
     public function get_model_version() : string
     {
-        return '1.3.9';
+        return '1.4.0';
     }
 
     public function get_table_names() : array
@@ -69,6 +76,39 @@ class PHS_Model_Accounts extends PHS_Model
     public function get_main_table_name() : string
     {
         return 'users';
+    }
+
+    public function define_login_source(string $key, array $details) : ?bool
+    {
+        $this->reset_error();
+
+        if (!$key
+            || empty($details['title'])) {
+            $this->set_error(self::ERR_PARAMETERS, 'Please provide valid parameters.');
+
+            return null;
+        }
+
+        $details['bypass_internal_tfa'] = !empty($details['bypass_internal_tfa']);
+
+        self::$LOGIN_SOURCE_ARR[$key] = $details;
+
+        return true;
+    }
+
+    public function valid_login_source(string $key) : ?array
+    {
+        return self::$LOGIN_SOURCE_ARR[$key] ?? null;
+    }
+
+    public function login_source_bypasses_internal_tfa(string $key) : bool
+    {
+        return self::$LOGIN_SOURCE_ARR[$key]['bypass_internal_tfa'] ?? false;
+    }
+
+    public function get_login_source_title(string $key) : ?string
+    {
+        return self::$LOGIN_SOURCE_ARR[$key]['title'] ?? null;
     }
 
     /**
@@ -206,7 +246,6 @@ class PHS_Model_Accounts extends PHS_Model
             $account_arr = $new_account;
         }
 
-        /** @var PHS_Plugin_Accounts $accounts_plugin */
         if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
             PHS_Logger::notice('PASSWORD Account #'.$account_arr['id'].': '.$account_arr['nick'].' ('.$this->get_account_level_as_title($account_arr).') wrong password.',
                 $accounts_plugin::LOG_SECURITY);
@@ -235,7 +274,6 @@ class PHS_Model_Accounts extends PHS_Model
         $structure_hook_args = PHS_Hooks::default_account_structure_hook_args();
         $structure_hook_args['account_data'] = $account_arr;
 
-        /** @var PHS_Plugin_Accounts $plugin_obj */
         if (($plugin_obj = PHS_Plugin_Accounts::get_instance())
             && ($account_structure = $plugin_obj->get_account_structure($structure_hook_args))
             && !empty($account_structure['account_structure'])) {
@@ -311,10 +349,25 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function needs_email_verification(int | array | PHS_Record_data $user_data) : bool
     {
-        return !empty($user_data)
+        return $user_data
                && ($user_arr = $this->data_to_array($user_data))
                && empty($user_arr['email_verified'])
                && !$this->is_deleted($user_arr);
+    }
+
+    public function is_normal_login_source_for_session(int | array | PHS_Record_data $online_data) : bool
+    {
+        return $online_data
+               && ($online_arr = $this->data_to_array($online_data, ['table_name' => 'online']))
+               && ($online_arr['login_source'] ?? '') === self::LOGIN_SOURCE_NORMAL;
+    }
+
+    public function login_source_bypasses_internal_tfa_for_session(int | array | PHS_Record_data $online_data) : bool
+    {
+        return $online_data
+               && ($online_arr = $this->data_to_array($online_data, ['table_name' => 'online']))
+               && !empty($online_arr['login_source'])
+               && $this->login_source_bypasses_internal_tfa($online_arr['login_source']);
     }
 
     public function can_manage_account(int | array | PHS_Record_data $user_data, int | array | PHS_Record_data $user_to_manage) : bool
@@ -643,15 +696,15 @@ class PHS_Model_Accounts extends PHS_Model
     {
         $this->reset_error();
 
-        if (empty($account_data)
-         || !($account_arr = $this->data_to_array($account_data, ['table_name' => 'users']))) {
+        if (!$account_data
+            || !($account_arr = $this->data_to_array($account_data, ['table_name' => 'users']))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
 
             return null;
         }
 
         if (empty($account_arr['language'])
-         || !($clean_lang = self::valid_language($account_arr['language']))) {
+            || !($clean_lang = self::valid_language($account_arr['language']))) {
             return null;
         }
 
@@ -701,9 +754,11 @@ class PHS_Model_Accounts extends PHS_Model
                         .' WHERE expire_date < \''.date(self::DATETIME_DB).'\'', $flow_params['db_connection']);
     }
 
-    public function update_current_session(int | array | PHS_Record_data $online_data, array $params = []) : null | array | PHS_Record_data
-    {
-        if (empty($online_data)
+    public function update_current_session(
+        int | array | PHS_Record_data $online_data,
+        array $params = [],
+    ) : null | array | PHS_Record_data {
+        if (!$online_data
             || !($online_arr = $this->data_to_array($online_data, ['table_name' => 'online']))) {
             return null;
         }
@@ -748,6 +803,11 @@ class PHS_Model_Accounts extends PHS_Model
         $edit_arr['idle'] = $cdate;
         $edit_arr['expire_date'] = date(self::DATETIME_DB, $now_time + $online_arr['expire_mins'] * 60);
         $edit_arr['location'] = $params['location'];
+        if (!empty($params['login_source'])) {
+            $edit_arr['login_source'] = $params['login_source'];
+        } elseif (empty($online_arr['login_source'])) {
+            $edit_arr['login_source'] = self::LOGIN_SOURCE_NORMAL;
+        }
 
         $edit_params = $this->fetch_default_flow_params(['table_name' => 'online']);
         $edit_params['fields'] = $edit_arr;
@@ -796,19 +856,34 @@ class PHS_Model_Accounts extends PHS_Model
         return $this->hard_delete($online_arr, $online_flow);
     }
 
-    /**
-     * @return string
-     */
     public function create_session_id() : string
     {
         return md5(uniqid(mt_rand(), true));
     }
 
-    public function login(int | array | PHS_Record_data $account_data, array $params = []) : null | array | PHS_Record_data
-    {
+    public function login(
+        int | array | PHS_Record_data $account_data,
+        array $params = [],
+    ) : null | array | PHS_Record_data {
         $this->reset_error();
 
-        if (empty($account_data)
+        $params['login_source'] ??= '';
+        $params['force_session_id'] ??= '';
+        $params['force_session_id'] = !is_string($params['force_session_id'])
+            ? ''
+            : trim($params['force_session_id']);
+
+        $params['expire_mins'] = (int)($params['expire_mins'] ?? 0);
+        $params['location'] = trim($params['location'] ?? PHS::relative_url(PHS::current_url()));
+
+        if ($params['login_source']
+           && !$this->valid_login_source($params['login_source'])) {
+            $this->set_error(self::ERR_LOGIN, $this->_pt('Invalid login source.'));
+
+            return null;
+        }
+
+        if (!$account_data
             || !($account_arr = $this->data_to_array($account_data))
             || empty($account_arr['id'])) {
             $this->set_error(self::ERR_LOGIN, $this->_pt('Unknown account.'));
@@ -816,19 +891,10 @@ class PHS_Model_Accounts extends PHS_Model
             return null;
         }
 
-        if (empty($params['force_session_id']) || !is_string($params['force_session_id'])) {
-            $params['force_session_id'] = '';
-        } else {
-            $params['force_session_id'] = trim($params['force_session_id']);
-        }
-
-        $params['expire_mins'] = (int)($params['expire_mins'] ?? 0);
-        $params['location'] = trim($params['location'] ?? PHS::relative_url(PHS::current_url()));
-
         $auid = 0;
         if (($current_user = PHS::user_logged_in())
             && ($current_session = PHS::current_user_session())
-            && !empty($current_session['id'])) {
+            && ($current_session['id'] ?? 0)) {
             if (!can(PHS_Roles::ROLEU_LOGIN_SUBACCOUNT)) {
                 $this->set_error(self::ERR_LOGIN, $this->_pt('Already logged in.'));
 
@@ -839,8 +905,12 @@ class PHS_Model_Accounts extends PHS_Model
             $new_session_params['uid'] = $account_arr['id'];
             $new_session_params['auid'] = $current_user['id'];
             $new_session_params['location'] = $params['location'];
-            if (!empty($params['force_session_id'])) {
+            $new_session_params['login_source'] = $params['login_source'];
+            if ($params['force_session_id']) {
                 $new_session_params['wid'] = $params['force_session_id'];
+            }
+            if ($params['login_source']) {
+                $new_session_params['login_source'] = $params['login_source'];
             }
 
             if (!($onuser_arr = $this->update_current_session($current_session, $new_session_params))) {
@@ -852,28 +922,24 @@ class PHS_Model_Accounts extends PHS_Model
             return $onuser_arr;
         }
 
-        if (!($host = request_ip())) {
-            $host = '127.0.0.1';
-        }
+        $host = request_ip() ?: '127.0.0.1';
 
         $now_time = time();
         $cdate = date(self::DATETIME_DB, $now_time);
 
         $insert_arr = [];
-        if (!empty($params['force_session_id'])) {
-            $insert_arr['wid'] = $params['force_session_id'];
-        } else {
-            $insert_arr['wid'] = $this->create_session_id();
-        }
+        $insert_arr['wid'] = $params['force_session_id'] ?: $this->create_session_id();
         $insert_arr['uid'] = $account_arr['id'];
         $insert_arr['auid'] = $auid;
         $insert_arr['host'] = $host;
         $insert_arr['idle'] = $cdate;
         $insert_arr['connected'] = $cdate;
-        $insert_arr['expire_date'] = (empty($params['expire_mins'])
-            ? null : date(self::DATETIME_DB, $now_time + (60 * $params['expire_mins'])));
+        $insert_arr['expire_date'] = !$params['expire_mins']
+            ? null
+            : date(self::DATETIME_DB, $now_time + (60 * $params['expire_mins']));
         $insert_arr['expire_mins'] = $params['expire_mins'];
         $insert_arr['location'] = $params['location'];
+        $insert_arr['login_source'] = $params['login_source'] ?: self::LOGIN_SOURCE_NORMAL;
 
         if (!($onuser_arr = $this->insert(['table_name' => 'online', 'fields' => $insert_arr]))) {
             $this->set_error_if_not_set(self::ERR_INSERT, $this->_pt('Error saving session details to database.'));
@@ -1549,6 +1615,12 @@ class PHS_Model_Accounts extends PHS_Model
                     ],
                     'auid' => [
                         'type' => self::FTYPE_INT,
+                    ],
+                    'login_source' => [
+                        'type'    => self::FTYPE_VARCHAR,
+                        'length'  => 255,
+                        'default' => null,
+                        'comment' => 'Normal or 3rd party login source',
                     ],
                     'host' => [
                         'type'     => self::FTYPE_VARCHAR,
@@ -2763,7 +2835,6 @@ class PHS_Model_Accounts extends PHS_Model
 
     public static function generate_password(int $len = 10, array $params = []) : string
     {
-        /** @var PHS_Event_Accounts_generate_password $event_obj */
         if (($event_obj = PHS_Event_Accounts_generate_password::trigger(['length' => $len]))
             && ($generated_password = $event_obj->get_output('generated_password'))) {
             return (string)$generated_password;
@@ -2863,7 +2934,6 @@ class PHS_Model_Accounts extends PHS_Model
 
     public static function encode_pass(string $pass, string $salt) : string
     {
-        /** @var PHS_Event_Accounts_password_encryption $event_obj */
         if (($event_obj = PHS_Event_Accounts_password_encryption::trigger(['pass' => $pass, 'salt' => $salt]))
             && ($encyped_password = $event_obj->get_output('encrypted_password'))) {
             return (string)$encyped_password;

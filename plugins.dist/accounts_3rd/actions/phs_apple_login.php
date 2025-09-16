@@ -5,7 +5,6 @@ use phs\PHS;
 use phs\PHS_Crypt;
 use phs\PHS_Scope;
 use phs\PHS_Session;
-use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
@@ -28,9 +27,7 @@ class PHS_Action_apple_login extends PHS_Action
     }
 
     /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
+     * @inheritdoc
      */
     public function allowed_scopes() : array
     {
@@ -44,10 +41,6 @@ class PHS_Action_apple_login extends PHS_Action
     {
         PHS::page_settings('page_title', $this->_pt('Login with Apple'));
 
-        /** @var PHS_Plugin_Accounts $accounts_plugin */
-        /** @var PHS_Model_Accounts $accounts_model */
-        /** @var PHS_Plugin_Accounts_3rd $accounts_trd_plugin */
-        /** @var PHS_Model_Accounts_services $services_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
             || !($accounts_trd_plugin = PHS_Plugin_Accounts_3rd::get_instance())
             || !($apple_lib = Apple::get_instance())
@@ -58,9 +51,7 @@ class PHS_Action_apple_login extends PHS_Action
             return self::default_action_result();
         }
 
-        if (!($settings_arr = $accounts_trd_plugin->get_plugin_settings())) {
-            $settings_arr = [];
-        }
+        $settings_arr = $accounts_trd_plugin->get_plugin_settings();
 
         $register_login_non_existing = (!empty($settings_arr['register_login_non_existing']));
         $register_login_forced = (!empty($settings_arr['register_login_forced']));
@@ -140,14 +131,10 @@ class PHS_Action_apple_login extends PHS_Action
             if (!($account_arr = $accounts_model->insert($insert_arr))) {
                 $account_arr = false;
                 $retry_action = true;
-                $error_msg = '';
-                if ($accounts_model->has_error()) {
-                    $error_msg = $accounts_model->get_simple_error_message().' ';
-                }
 
                 $display_error_msg = $this->_pt('Error registering account.')
-                                     .' '
-                                     .$error_msg.$this->_pt('Please try again.');
+                                     .' '.$accounts_model->get_simple_error_message()
+                                     .' '.$this->_pt('Please try again.');
             } else {
                 PHS_Logger::notice('[APPLE] Registered user #'.$account_arr['id'].' with details ['.print_r($account_info, true).'].', $accounts_trd_plugin::LOG_CHANNEL);
             }
@@ -168,16 +155,11 @@ class PHS_Action_apple_login extends PHS_Action
         }
 
         if (!empty($account_arr)) {
-            if (!($plugin_settings = $accounts_plugin->get_plugin_settings())) {
-                $plugin_settings = [];
-            }
-
-            if (empty($plugin_settings['session_expire_minutes_normal'])) {
-                $plugin_settings['session_expire_minutes_normal'] = 0;
-            } // till browser closes
+            $plugin_settings = $accounts_plugin->get_plugin_settings();
 
             $login_params = [];
-            $login_params['expire_mins'] = $plugin_settings['session_expire_minutes_normal'];
+            $login_params['login_source'] = $accounts_trd_plugin::LOGIN_SOURCE_APPLE;
+            $login_params['expire_mins'] = $plugin_settings['session_expire_minutes_normal'] ?? 0;
 
             if ($accounts_plugin->do_login($account_arr, $login_params)) {
                 if (($account_language = $accounts_model->get_account_language($account_arr))) {
@@ -200,15 +182,9 @@ class PHS_Action_apple_login extends PHS_Action
 
             $retry_action = true;
 
-            if ($accounts_plugin->has_error()) {
-                $error_msg = $accounts_plugin->get_simple_error_message();
-            } else {
-                $error_msg = $this->_pt('Please try again.');
-            }
-
             $display_error_msg = $this->_pt('Error logging in.')
                                  .' '
-                                 .$error_msg;
+                                 .$accounts_plugin->get_simple_error_message($this->_pt('Please try again.'));
         }
 
         $data_arr = [
@@ -233,7 +209,7 @@ class PHS_Action_apple_login extends PHS_Action
     public function decode_apple_account_data($result)
     {
         if (!($clean_str = PHS_Crypt::quick_decode($result))
-         || !($result_arr = @json_decode($clean_str, true))) {
+            || !($result_arr = @json_decode($clean_str, true))) {
             return false;
         }
 

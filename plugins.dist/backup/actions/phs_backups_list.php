@@ -443,8 +443,8 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
         <script type="text/javascript">
         function phs_backup_results_list_delete( id )
         {
-            if( !confirm( "<?php echo self::_e('Are you sure you want to DELETE this backup result?', '"'); ?>" + "\n" +
-                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
+            if( !confirm( "<?php echo $this->_pte('Are you sure you want to DELETE this backup result?'); ?>" + "\n" +
+                         "<?php echo $this->_pte('NOTE: You cannot undo this action!'); ?>" ) ) {
                 return;
             }
 
@@ -472,12 +472,12 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
             const total_checked = phs_backup_results_list_get_checked_ids_count();
 
             if( !total_checked ) {
-                alert( "<?php echo self::_e('Please select backup results you want to delete first.', '"'); ?>" );
+                alert( "<?php echo $this->_pte('Please select backup results you want to delete first.'); ?>" );
                 return false;
             }
 
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to DELETE %s backup results?', '"'), '" + total_checked + "'); ?>" + "\n" +
-                         "<?php echo self::_e('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
+            if( !confirm( "<?php echo sprintf(self::_e($this->_pt('Are you sure you want to DELETE %s backup results?')), '" + total_checked + "'); ?>" + "\n" +
+                         "<?php echo $this->_pte('NOTE: You cannot undo this action!'); ?>" ) ) {
                 return false;
             }
 

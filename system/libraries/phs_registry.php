@@ -708,7 +708,7 @@ class PHS_Registry extends PHS_Language
 
     /**
      * @param string $str
-     * @param bool|array $params
+     * @param array $params
      *
      * @return string[]
      */

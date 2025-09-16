@@ -19,6 +19,7 @@ $tenant_id = $this->view_var('tenant_id') ?: 0;
 $back_page = $this->view_var('back_page') ?: PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'plugins']);
 $tenants_arr = $this->view_var('tenants_arr') ?: [];
 $registry_arr = $this->view_var('registry_arr') ?: [];
+$registry_fields_settings = $this->view_var('registry_fields_settings') ?: [];
 
 $pname = $this->view_var('pname') ?? '';
 $is_multi_tenant = (bool)$this->view_var('is_multi_tenant');
@@ -160,19 +161,27 @@ echo $this->sub_view('ractive/bootstrap');
         <tr>
             <td>{{@index+1}}</td>
             <td>
-                {{#if .is_initial_data }}
+                {{#if .is_initial_data || @this.field_is_readonly(.key) }}
                 <code>{{.key}}</code>
                 {{ else }}
                 <input type="text" name="key[]" value="{{plugin_registry[@index].key}}" class="form-control" />
                 {{/if}}
             </td>
             <td>
+                {{#if @this.field_is_readonly(.key) }}
+                <code>{{ JSON.stringify(.value) }}</code>
+                {{ else }}
                 <input type="text" name="values[]" value="{{plugin_registry[@index].value}}" class="form-control" />
+                {{/if}}
             </td>
             <td class="text-center">
+                {{#if @this.field_can_be_deleted(.key) }}
                 <a href="javascript:void(0)" onclick="this.blur()"
                    on-click="@this.delete_registry_value(@index)"><i class="fa fa-times-circle-o action-icons"
                                                                      title="<?php echo $this->_pte('Delete record data')?>"></i></a>
+                {{ else }}
+                -
+                {{/if}}
             </td>
         </tr>
         {{/each}}
@@ -197,6 +206,7 @@ echo $this->sub_view('ractive/bootstrap');
 <script type="text/javascript">
     let PHS_RActive_Plugins_registry_app = null;
     let init_registry_data = <?php echo @json_encode($registry_arr ?: []); ?>;
+    let registry_fields_settings = <?php echo @json_encode($registry_fields_settings ?: []); ?>;
     $(document).ready(function() {
         PHS_RActive_Plugins_registry_app = PHS_RActive_Plugins_registry_app || new PHS_RActive({
 
@@ -233,6 +243,14 @@ echo $this->sub_view('ractive/bootstrap');
                 }
 
                 this.set("plugin_registry", new_registry_data);
+            },
+
+            field_is_readonly: function(key) {
+                return !!registry_fields_settings[key]?.readonly;
+            },
+
+            field_can_be_deleted: function(key) {
+                return !!registry_fields_settings[key]?.can_be_deleted;
             },
 
             add_registry_value: function() {

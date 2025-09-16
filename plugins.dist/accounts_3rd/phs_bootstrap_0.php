@@ -4,15 +4,28 @@ use phs\PHS;
 use phs\PHS_Api;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
+use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\mobileapi\PHS_Plugin_Mobileapi;
 use phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd;
 
-/** @var PHS_Plugin_Accounts_3rd $trd_party_plugin */
 if (($trd_party_plugin = PHS_Plugin_Accounts_3rd::get_instance())) {
     PHS_Logger::define_channel($trd_party_plugin::LOG_CHANNEL);
     PHS_Logger::define_channel($trd_party_plugin::LOG_ERR_CHANNEL);
 
-    /** @var PHS_Plugin_Mobileapi $mobile_plugin */
+    if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
+        PHS_Logger::error('Couldn\'t register Google and Apple login sources. Login will not work with these 3rd parties.',
+            PHS_Logger::TYPE_DEBUG);
+    } else {
+        $accounts_plugin->define_login_source(
+            $trd_party_plugin::LOGIN_SOURCE_APPLE,
+            ['title' => 'Apple Login', 'bypass_internal_tfa' => true]
+        );
+        $accounts_plugin->define_login_source(
+            $trd_party_plugin::LOGIN_SOURCE_GOOGLE,
+            ['title' => 'Google Login', 'bypass_internal_tfa' => true]
+        );
+    }
+
     if (($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())
         && $mobile_plugin->plugin_active()) {
         // POST /users/google/login Login an account from 3rd party mobile app using a Google account

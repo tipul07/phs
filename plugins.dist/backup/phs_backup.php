@@ -8,6 +8,7 @@ use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
 use phs\plugins\backup\models\PHS_Model_Rules;
+use phs\plugins\backup\models\PHS_Model_Results;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\system\core\events\layout\PHS_Event_Layout;
 
@@ -104,7 +105,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         ];
     }
 
-    public function plugin_settings_render_location($params)
+    public function plugin_settings_render_location(array $params) : string
     {
         $params = self::validate_array($params, self::default_custom_renderer_params());
 
@@ -145,10 +146,10 @@ class PHS_Plugin_Backup extends PHS_Plugin
             ?><small><strong><?php echo $stats_str; ?></strong></small><br/><?php
         }
 
-        return @ob_get_clean();
+        return @ob_get_clean() ?: '';
     }
 
-    public function plugin_settings_save_location($params)
+    public function plugin_settings_save_location(array $params)
     {
         $params = self::validate_array($params, self::st_default_custom_save_params());
 
@@ -196,17 +197,17 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $new_value;
     }
 
-    public function resolve_directory_location($location_path)
+    public function resolve_directory_location(?string $location_path) : array
     {
-        if (empty($location_path)) {
+        if ($location_path === null || $location_path === '') {
             $location_path = self::DIRNAME_IN_UPLOADS;
             $location_root = PHS_UPLOADS_DIR;
         } else {
             // Make sure we work only with /
             $location_path = str_replace('\\', '/', $location_path);
 
-            if (strpos($location_path, '/') === 0
-             || substr($location_path, 1, 2) === ':/') {
+            if (str_starts_with($location_path, '/')
+                || substr($location_path, 1, 2) === ':/') {
                 $location_root = '';
             } else {
                 $location_root = PHS_UPLOADS_DIR;
@@ -225,88 +226,54 @@ class PHS_Plugin_Backup extends PHS_Plugin
             'full_path'       => $full_path,
         ];
 
-        if (!empty($full_path)) {
-            if (@file_exists($full_path)) {
-                $return_arr['location_exists'] = true;
+        if ($full_path
+            && @file_exists($full_path)) {
+            $return_arr['location_exists'] = true;
 
-                if (@is_dir($full_path)) {
-                    $return_arr['location_is_dir'] = true;
-                }
+            if (@is_dir($full_path)) {
+                $return_arr['location_is_dir'] = true;
             }
         }
 
         return $return_arr;
     }
 
-    /**
-     * @param string $path
-     * @param bool|array $params
-     *
-     * @return array|bool
-     */
-    public function get_location_for_path($path, $params = false)
+    public function get_location_for_path(?string $path, array $params = []) : ?array
     {
         $this->reset_error();
 
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
+        $params['error_if_not_found'] = !isset($params['error_if_not_found']) || !empty($params['error_if_not_found']);
+        $params['create_location_if_not_found'] = !empty($params['create_location_if_not_found']);
 
-        if (!isset($params['error_if_not_found'])) {
-            $params['error_if_not_found'] = true;
-        } else {
-            $params['error_if_not_found'] = (!empty($params['error_if_not_found']));
-        }
-
-        if (empty($params['create_location_if_not_found'])) {
-            $params['create_location_if_not_found'] = false;
-        } else {
-            $params['create_location_if_not_found'] = true;
-        }
-
-        if (!empty($path)) {
+        if ($path) {
             if (!($location_details = $this->resolve_directory_location($path))) {
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t resolve location path.'));
-                }
+                $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t resolve location path.'));
 
-                return false;
+                return null;
             }
-        } else {
-            if (!($setting_arr = $this->get_plugin_settings())) {
-                $setting_arr = [];
-            }
+        } elseif (!($location_details = $this->resolve_directory_location($this->get_plugin_settings()['location'] ?? ''))) {
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t resolve backup location.'));
 
-            if (empty($setting_arr['location'])) {
-                $setting_arr['location'] = '';
-            }
-
-            if (!($location_details = $this->resolve_directory_location($setting_arr['location']))) {
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t resolve backup location.'));
-                }
-
-                return false;
-            }
+            return null;
         }
 
-        if (!empty($params['error_if_not_found'])
+        if ($params['error_if_not_found']
          && !empty($location_details['location_exists'])
          && empty($location_details['location_is_dir'])) {
             $this->set_error(self::ERR_LOCATION_NOT_DIR, $this->_pt('Backup location is not a directory.'));
 
-            return false;
+            return null;
         }
 
         if (empty($location_details['location_exists'])) {
-            if (empty($params['create_location_if_not_found'])) {
-                if (empty($params['error_if_not_found'])) {
+            if (!$params['create_location_if_not_found']) {
+                if (!$params['error_if_not_found']) {
                     return $location_details;
                 }
 
                 $this->set_error(self::ERR_LOCATION_DOESNT_EXIST, $this->_pt('Backup location doesn\'t exist or is not a directory.'));
 
-                return false;
+                return null;
             }
 
             $mkdir_params = [];
@@ -318,9 +285,12 @@ class PHS_Plugin_Backup extends PHS_Plugin
                 }
 
                 $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t create full directory structure for backup rule.'));
-                PHS_Logger::error('Couldn\'t create full directory structure for backup location ('.$location_details['location_root'].$location_details['location_path'].').', PHS_Logger::TYPE_MAINTENANCE);
+                PHS_Logger::error('Couldn\'t create full directory structure for backup location ('
+                                  .$location_details['location_root'].$location_details['location_path'].').',
+                    PHS_Logger::TYPE_MAINTENANCE
+                );
 
-                return false;
+                return null;
             }
 
             $location_details['location_exists'] = true;
@@ -330,51 +300,37 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $location_details;
     }
 
-    public function get_directory_stats($dir)
+    public function get_directory_stats(string $dir) : ?array
     {
         $this->reset_error();
 
         if (!@is_dir($dir)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid directory. Cannot obtain stats.'));
 
-            return false;
-        }
-
-        if (!($free_space = @disk_free_space($dir))) {
-            $free_space = 0;
-        }
-        if (!($total_space = @disk_total_space($dir))) {
-            $total_space = 0;
+            return null;
         }
 
         return [
-            'free_space'  => $free_space,
-            'total_space' => $total_space,
+            'free_space'  => @disk_free_space($dir) ?: 0,
+            'total_space' => @disk_total_space($dir) ?: 0,
         ];
     }
 
-    public function copy_backup_files_bg()
+    public function copy_backup_files_bg() : ?array
     {
         $this->reset_error();
 
-        /** @var PHS_Model_Rules $rules_model */
-        /** @var models\PHS_Model_Results $results_model */
-        if (!($rules_model = PHS::load_model('rules', 'backup'))
-         || !($results_model = PHS::load_model('results', 'backup'))
-         || !($r_flow_params = $rules_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
-         || !($r_table_name = $rules_model->get_flow_table_name($r_flow_params))
-         || !($br_flow_params = $results_model->fetch_default_flow_params(['table_name' => 'backup_results']))
-         || !($br_table_name = $results_model->get_flow_table_name($br_flow_params))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load backup rules model.'));
-
-            return false;
-        }
-
         /** @var \phs\system\core\libraries\PHS_Ftp $ftp_obj */
-        if (!($ftp_obj = PHS::get_core_library_instance('ftp'))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load FTP core library.'));
+        if (!($rules_model = PHS_Model_Rules::get_instance())
+            || !($results_model = PHS_Model_Results::get_instance())
+            || !($ftp_obj = PHS::get_core_library_instance('ftp'))
+            || !($r_flow_params = $rules_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
+            || !($r_table_name = $rules_model->get_flow_table_name($r_flow_params))
+            || !($br_flow_params = $results_model->fetch_default_flow_params(['table_name' => 'backup_results']))
+            || !($br_table_name = $results_model->get_flow_table_name($br_flow_params))) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
-            return false;
+            return null;
         }
 
         $return_arr = [];
@@ -622,21 +578,19 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $return_arr;
     }
 
-    public function delete_old_backups_bg()
+    public function delete_old_backups_bg() : ?array
     {
         $this->reset_error();
 
-        /** @var PHS_Model_Rules $rules_model */
-        /** @var models\PHS_Model_Results $results_model */
-        if (!($rules_model = PHS::load_model('rules', 'backup'))
-         || !($results_model = PHS::load_model('results', 'backup'))
-         || !($r_flow_params = $rules_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
-         || !($r_table_name = $rules_model->get_flow_table_name($r_flow_params))
-         || !($br_flow_params = $results_model->fetch_default_flow_params(['table_name' => 'backup_results']))
-         || !($br_table_name = $results_model->get_flow_table_name($br_flow_params))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t load backup rules model.'));
+        if (!($rules_model = PHS_Model_Rules::get_instance())
+            || !($results_model = PHS_Model_Results::get_instance())
+            || !($r_flow_params = $rules_model->fetch_default_flow_params(['table_name' => 'backup_rules']))
+            || !($r_table_name = $rules_model->get_flow_table_name($r_flow_params))
+            || !($br_flow_params = $results_model->fetch_default_flow_params(['table_name' => 'backup_results']))
+            || !($br_table_name = $results_model->get_flow_table_name($br_flow_params))) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
-            return false;
+            return null;
         }
 
         $return_arr = [];
@@ -692,7 +646,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $return_arr;
     }
 
-    public function run_backups_bg()
+    public function run_backups_bg() : ?array
     {
         $this->reset_error();
 
@@ -703,7 +657,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
             || !($rd_table_name = $rules_model->get_flow_table_name($rd_flow_params))) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
-            return false;
+            return null;
         }
 
         $return_arr = [];
@@ -711,11 +665,11 @@ class PHS_Plugin_Backup extends PHS_Plugin
         $return_arr['failed_rules_ids'] = [];
 
         $now_time = time();
-        $today_day = date('w', $now_time) + 1;
+        $today_day = (int)date('w', $now_time) + 1;
         // 24-hour format of an hour without leading zeros
         $now_hour = date('G', $now_time);
         // 0 to 365, mysql DAYOFYEAR is 1 to 366
-        $day_of_year = date('z', $now_time) + 1;
+        $day_of_year = (int)date('z', $now_time) + 1;
 
         // Select active rules for today and for current hour and that didn't run today
         if (!($qid = db_query('SELECT `'.$r_table_name.'`.* '

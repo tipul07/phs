@@ -5,7 +5,6 @@ use phs\PHS;
 use phs\PHS_Scope;
 use phs\PHS_Api_base;
 use phs\libraries\PHS_Params;
-use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Api_action;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
@@ -29,9 +28,6 @@ class PHS_Action_Registry extends PHS_Api_action
             return action_request_login();
         }
 
-        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-        /** @var \phs\system\core\models\PHS_Model_Tenants $tenants_model */
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
             || !($tenants_model = PHS_Model_Tenants::get_instance())
             || !($plugins_model = PHS_Model_Plugins::get_instance())) {
@@ -56,17 +52,14 @@ class PHS_Action_Registry extends PHS_Api_action
 
         $do_cancel = PHS_Params::_p('do_cancel');
 
-        if (empty($back_page)) {
-            $back_page = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'plugins']);
-        } else {
-            $back_page = from_safe_url($back_page);
-        }
+        $back_page = !$back_page
+            ? PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'plugins'])
+            : from_safe_url($back_page);
 
         if ($do_cancel) {
             return action_redirect($back_page);
         }
 
-        /** @var PHS_Plugin $plugin_obj */
         if( empty( $pname )
             || !($plugin_obj = PHS::load_plugin($pname)) ) {
             return action_redirect(['p' => 'admin', 'a' => 'list', 'ad' => 'plugins'], ['unknown_plugin' => 1]);
@@ -101,9 +94,7 @@ class PHS_Action_Registry extends PHS_Api_action
 
             if(!empty($do_save_registry_data)) {
 
-                if( !($save_registry_arr = PHS_Params::_p('save_registry_arr', PHS_Params::T_ARRAY)) ) {
-                    $save_registry_arr = [];
-                }
+                $save_registry_arr = PHS_Params::_p('save_registry_arr', PHS_Params::T_ARRAY) ?: [];
 
                 if( (!empty( $save_registry_arr ) && null !== $plugin_obj->save_db_registry($save_registry_arr, $tenant_id))
                     || (empty( $save_registry_arr ) && null !== $plugin_obj->clean_db_registry($tenant_id)) ) {
@@ -122,9 +113,8 @@ class PHS_Action_Registry extends PHS_Api_action
                 $this->_pt('Unknown action in request.'));
         }
 
-        if( !($registry_arr = $plugin_obj->get_db_registry($tenant_id)) ) {
-            $registry_arr = [];
-        }
+        $registry_arr = $plugin_obj->get_db_registry($tenant_id) ?: [];
+        $registry_fields_settings = $plugin_obj->get_db_registry_fields_settings($tenant_id) ?: [];
 
         $data = [
             'back_page' => $back_page,
@@ -134,6 +124,7 @@ class PHS_Action_Registry extends PHS_Api_action
             'pname' => $pname,
             'tenants_arr' => $tenants_arr,
             'registry_arr' => $registry_arr,
+            'registry_fields_settings' => $registry_fields_settings,
 
             'tenants_model' => $tenants_model,
             'plugins_model' => $plugins_model,

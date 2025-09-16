@@ -11,6 +11,8 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
 {
     public const ERR_REGISTER = 40000, ERR_LOGIN = 40001, ERR_CONFIRMATION = 40002;
 
+    public const LOGIN_SOURCE_APPLE = 'phs_login_source_apple', LOGIN_SOURCE_GOOGLE = 'phs_login_source_google';
+
     public const LOG_CHANNEL = 'phs_accounts_3rd_party.log', LOG_ERR_CHANNEL = 'phs_accounts_3rd_party_err.log';
 
     public const H_ACCOUNTS_3RD_REGISTER_BUFFER = 'phs_accounts_3rd_register_buffer',

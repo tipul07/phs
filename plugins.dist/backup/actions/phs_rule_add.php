@@ -3,8 +3,6 @@ namespace phs\plugins\backup\actions;
 
 use phs\PHS;
 use phs\PHS_Scope;
-use phs\PHS_Bg_jobs;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
@@ -28,29 +26,17 @@ class PHS_Action_Rule_add extends PHS_Action
             return action_request_login();
         }
 
-        /** @var PHS_Plugin_Backup $backup_plugin */
-        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load backup plugin.'));
+        /** @var \phs\system\core\libraries\PHS_Ftp $ftp_obj */
+        if (!($backup_plugin = PHS_Plugin_Backup::get_instance())
+            || !($ftp_obj = PHS::get_core_library_instance('ftp'))
+            || !($rules_model = PHS_Model_Rules::get_instance())) {
+            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
 
         if (!can($backup_plugin::ROLEU_MANAGE_RULES)) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
-
-            return self::default_action_result();
-        }
-
-        /** @var \phs\system\core\libraries\PHS_Ftp $ftp_obj */
-        if (!($ftp_obj = PHS::get_core_library_instance('ftp'))) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load FTP core library.'));
-
-            return self::default_action_result();
-        }
-
-        /** @var PHS_Model_Rules $rules_model */
-        if (!($rules_model = PHS_Model_Rules::get_instance())) {
-            PHS_Notifications::add_error_notice($this->_pt('Couldn\'t load backup rules model.'));
 
             return self::default_action_result();
         }
@@ -102,22 +88,11 @@ class PHS_Action_Rule_add extends PHS_Action
             }
         }
 
-        if (!($rule_days = $rules_model->get_rule_days())) {
-            $rule_days = [];
-        }
-        if (!($targets_arr = $rules_model->get_targets_as_key_val())) {
-            $targets_arr = [];
-        }
-        if (!($rule_location = $backup_plugin->get_location_for_path($location))) {
-            $rule_location = '';
-        }
-
-        if (!($copy_results_arr = $rules_model->get_copy_results_as_key_val())) {
-            $copy_results_arr = [];
-        }
-        if (!($ftp_connection_modes_arr = $ftp_obj->get_connection_types_as_key_val())) {
-            $ftp_connection_modes_arr = [];
-        }
+        $rule_days = $rules_model->get_rule_days() ?: [];
+        $targets_arr = $rules_model->get_targets_as_key_val() ?: [];
+        $rule_location = $backup_plugin->get_location_for_path($location) ?: [];
+        $copy_results_arr = $rules_model->get_copy_results_as_key_val() ?: [];
+        $ftp_connection_modes_arr = $ftp_obj->get_connection_types_as_key_val() ?: [];
 
         if (!empty($do_submit)
          && !PHS_Notifications::have_errors_or_warnings_notifications()) {
@@ -181,11 +156,10 @@ class PHS_Action_Rule_add extends PHS_Action
                     return action_redirect($redirect_url);
                 }
 
-                if ($rules_model->has_error()) {
-                    PHS_Notifications::add_error_notice($rules_model->get_error_message());
-                } else {
-                    PHS_Notifications::add_error_notice($this->_pt('Error saving details to database. Please try again.'));
-                }
+                PHS_Notifications::add_error_notice(
+                    $rules_model->get_simple_error_message(
+                        $this->_pt('Error saving details to database. Please try again.'))
+                );
             }
         }
 

@@ -164,32 +164,15 @@ class PHS_Action_Rule_edit extends PHS_Action
             }
         }
 
-        if (!($plugin_settings = $backup_plugin->get_plugin_settings())
-         || empty($plugin_settings['location'])) {
-            $plocation = '';
-        } else {
-            $plocation = $plugin_settings['location'];
-        }
+        $plocation = $backup_plugin->get_plugin_settings()['location'] ?? '';
 
-        if (!($rule_days = $rules_model->get_rule_days())) {
-            $rule_days = [];
-        }
-        if (!($targets_arr = $rules_model->get_targets_as_key_val())) {
-            $targets_arr = [];
-        }
-        if (!($rule_location = $backup_plugin->get_location_for_path($location))) {
-            $rule_location = '';
-        }
-        if (!($plugin_location = $backup_plugin->get_location_for_path($plocation))) {
-            $plugin_location = '';
-        }
+        $rule_days = $rules_model->get_rule_days() ?: [];
+        $targets_arr = $rules_model->get_targets_as_key_val() ?: [];
+        $rule_location = $backup_plugin->get_location_for_path($location) ?: [];
+        $copy_results_arr = $rules_model->get_copy_results_as_key_val() ?: [];
+        $ftp_connection_modes_arr = $ftp_obj->get_connection_types_as_key_val() ?: [];
 
-        if (!($copy_results_arr = $rules_model->get_copy_results_as_key_val())) {
-            $copy_results_arr = [];
-        }
-        if (!($ftp_connection_modes_arr = $ftp_obj->get_connection_types_as_key_val())) {
-            $ftp_connection_modes_arr = [];
-        }
+        $plugin_location = $backup_plugin->get_location_for_path($plocation) ?: [];
 
         if (!empty($do_submit)
          && !PHS_Notifications::have_errors_or_warnings_notifications()) {
@@ -239,10 +222,8 @@ class PHS_Action_Rule_edit extends PHS_Action
 
                 if ($rules_model->edit($rule_arr, $edit_params_arr)) {
                     $rule_details_saved = true;
-                } elseif ($rules_model->has_error()) {
-                    PHS_Notifications::add_error_notice($rules_model->get_error_message());
                 } else {
-                    PHS_Notifications::add_error_notice($this->_pt('Error saving details to database. Please try again.'));
+                    PHS_Notifications::add_error_notice($rules_model->get_simple_error_message($this->_pt('Error saving details to database. Please try again.')));
                 }
             }
 

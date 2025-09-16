@@ -30,7 +30,7 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
     var PHS_JSEN = {
         debugging_mode: <?php echo PHS::st_debugging_mode() ? 'true' : 'false'; ?>,
 
-        version: 1.5,
+        version: 2.0,
 
         // Base URL
         baseUrl : "<?php echo PHS::get_base_url(); ?>",
@@ -151,6 +151,115 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
             });
 
             return object;
+        },
+
+        intval: function( val ) {
+            if( isNaN( (val = parseInt( val )) ) ) {
+                return 0;
+            }
+            return val;
+        },
+        system_timezone_details: function() {
+            return {
+                seconds_offset: <?php echo date('Z'); ?>,
+                timezone_hours: "<?php echo date('P'); ?>",
+                timezone_description: "<?php echo PHS::_e(date('T')); ?>",
+                default_datetime_format: "d-m-Y H:i:s",
+                default_time_format: "H:i:s"
+            };
+        },
+        format_date_timestamp: function( timestamp, format = null ) {
+            if( typeof timestamp === "undefined"
+                || !timestamp ) {
+                return "";
+            }
+
+            return this.format_date_object( new Date( timestamp * 1000 ), format );
+        },
+        format_date_string: function( d_str, format = null ) {
+            if( typeof d_str === "undefined"
+                || !d_str ) {
+                return "";
+            }
+
+            return this.format_date_object( new Date( d_str ), format );
+        },
+        format_date_object: function( d, format = null ) {
+            if( typeof d === "undefined"
+                || !d ) {
+                return "";
+            }
+
+            if( format === null ) {
+                let system_time_details = this.system_timezone_details();
+                format = system_time_details.default_datetime_format;
+            }
+
+            let day = d.getDate(), month = d.getMonth()+1, year = d.getFullYear(), hour = d.getHours(), minute = d.getMinutes(), second = d.getSeconds();
+
+            return this.date_elements_to_string( { day: day, month: month, year: year, hour: hour, minute: minute, second: second }, format );
+        },
+        seconds_to_time: function( s, format = false ) {
+            if( format === false ) {
+                let system_time_details = this.system_timezone_details();
+                format = system_time_details.default_time_format;
+            }
+
+            s = parseInt( s );
+            var hours   = Math.floor( s / 3600 );
+            var minutes = Math.floor( (s - (hours * 3600)) / 60 );
+            var seconds = s - (hours * 3600) - (minutes * 60);
+
+            return this.date_elements_to_string( { hour: hours, minute: minutes, second: seconds }, format );
+        },
+        date_elements_to_string( date_obj, format ) {
+
+            let default_date_obj = { day: 1, month: 1, year: 1979, hour: 0, minute: 0, second: 0 };
+            let date_params = $.extend( {}, default_date_obj, date_obj );
+
+            date_params.day = parseInt( date_params.day );
+            date_params.month = parseInt( date_params.month );
+            date_params.year = parseInt( date_params.year );
+            date_params.hour = parseInt( date_params.hour );
+            date_params.minute = parseInt( date_params.minute );
+            date_params.second = parseInt( date_params.second );
+
+            let transform_table = {
+                "d": (date_params.day<=9?"0":"")+date_params.day,
+                "m": (date_params.month<=9?"0":"")+date_params.month,
+                "Y": date_params.year,
+                "y": date_params.year.toString().substring( 2, 4 ),
+                "H": (date_params.hour<=9?"0":"")+date_params.hour,
+                "i": (date_params.minute<=9?"0":"")+date_params.minute,
+                "s": (date_params.second<=9?"0":"")+date_params.second
+            };
+
+            let el = {};
+            let result_str = format;
+            for( el in transform_table ) {
+                if( !transform_table.hasOwnProperty( el ) ) {
+                    continue;
+                }
+
+                let reg = new RegExp( el, "g" );
+                result_str = result_str.replace( reg, transform_table[el] );
+            }
+
+            return result_str;
+        },
+
+        format_file_size: function(size) {
+            if (size < 1024) {
+                return size + ' bytes';
+            }
+            if (size < 1048576) {
+                return (size / 1024).toFixed(2) + ' Kb';
+            }
+            if (size < 1073741824) {
+                return (size / 1048576).toFixed(2) + ' Mb';
+            }
+
+            return (size / 1073741824).toFixed(2) + ' Gb';
         },
 
         load_storage: function( i_name ) {

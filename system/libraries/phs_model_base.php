@@ -864,9 +864,11 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
      *
      * @return null|array|PHS_Record_data Data array structure or false on failure
      */
-    public function data_to_array(null | int | array | string | PHS_Record_data $item_data, null | bool | array $flow_params = []) : null | array | PHS_Record_data
-    {
-        if (empty($item_data)
+    public function data_to_array(
+        null | int | array | string | PHS_Record_data $item_data,
+        null | bool | array $flow_params = [],
+    ) : null | array | PHS_Record_data {
+        if (!$item_data
             || !($flow_params = $this->fetch_default_flow_params($flow_params))) {
             return null;
         }

@@ -367,7 +367,7 @@ final class PHS extends PHS_Registry
     public static function current_user_password_expiration(bool $force = false) : array
     {
         if (!($hook_args = self::_current_user_trigger($force))
-         || empty($hook_args['password_expired_data']) || !is_array($hook_args['password_expired_data'])) {
+            || empty($hook_args['password_expired_data']) || !is_array($hook_args['password_expired_data'])) {
             return PHS_Hooks::default_password_expiration_data();
         }
 
@@ -730,6 +730,11 @@ final class PHS extends PHS_Registry
         }
 
         return null;
+    }
+
+    public static function running_on_windows() : bool
+    {
+        return str_starts_with(strtolower(PHP_OS), 'win');
     }
 
     public static function are_we_in_a_background_thread() : bool
