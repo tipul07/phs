@@ -223,7 +223,7 @@ class PHS_Scope_Web extends PHS_Scope
             || !($current_user = PHS::user_logged_in())
             || !($session_data = PHS::current_user_session())
             || !empty($session_data['auid'])
-            || !$accounts_model->login_source_bypasses_internal_tfa_for_session($session_data)
+            || $accounts_model->login_source_bypasses_internal_tfa_for_session($session_data)
             || $tfa_model->is_device_tfa_valid()
             || $tfa_model->is_session_tfa_valid()
             || !($settings_arr = $accounts_plugin->get_plugin_settings())
