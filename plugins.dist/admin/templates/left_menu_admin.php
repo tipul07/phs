@@ -250,8 +250,7 @@ if ($can_list_data_retention || $can_manage_data_retention) {
 }
 
 if (($accounts_model = PHS_Model_Accounts::get_instance())
-    && ($cuser_arr = PHS::user_logged_in())
-    && $accounts_model->acc_is_developer($cuser_arr)) {
+    && $accounts_model->acc_is_developer()) {
     ?>
     <li><?php echo $this::_t('Framework Updates'); ?>
         <ul>

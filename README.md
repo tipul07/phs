@@ -25,66 +25,71 @@ Please, read our documentation (work in progress): [Here](https://github.com/tip
 
 ### Built-in functionalities:
 
-1. Multi-tenant support
+1. **Multi-tenant support**
    - Framework supports serving multiple sites from the same codebase
    - Each site can have its own theme, plugins, plugin configuration, etc.
    - Accounts can be shared between sites or can be specific to a site
 
-2. Domain Driven Development using plugins
+2. **AI translations**
+    - Built-in AI translations library: Send an array with key-value texts to be translated using configurable AI model
+    - Built-in support for translating texts used in UI (from both framework and custom plugins)
+
+3. **Domain Driven Development using plugins**
     - Plugins are used to extend the framework's functionalities
 
-3. Support for front-application development
+4. **Support for front-application development**
     - Bearer token authentication
 
-4. GraphQL support
+5. **GraphQL support**
     - GraphQL type objects can be defined in each plugin
     - GraphQL types can export automatically full table fields from model definition or can be defined manually 
     - GraphQL authetication is done using the framework's API keys
 
-5. Mobile applications integration
+6. **Mobile applications integration**
     - Register/login accounts using mobile API plugin
     - Send push notifications (GCM and APN) to registered devices/accounts
 
-6. User management:
+7. **User management**
     - Predefined user levels: guest, member, operator, admin, super-admin and developer, however authorization is done using roles
     - TFA authentication available
     - Setup password validation rules such as force users to change passwords after x days, don't allow changing password to an already used passwords
     - Use nickname or email when authenticating users
     - Account activation (if required) and email validation
 
-7. Register and login 3rd party services
+8. **Register and login 3rd party services**
     - Register and Login using Apple
     - Register and Login using Google
 
-8. Roles system:
+9. **Roles system**
     - Role units give access to a user to specific functionalities
     - Role units are grouped in roles
     - Roles are assigned to users
     - An admin account can define custom roles which give users access to different sections of the site
 
-9. Email sending
-    - Send emails using SMTP
-    - Send emails using SendGrid
+10. **Email sending**
+     - Send emails using SMTP
+     - Send emails using SendGrid
 
-10. Built-in backup system
+11. **Built-in backup system**
      - Create backups for database and uploaded content based on rules (daily, weekly, once x days etc.)
      - Delete old backups (older than x days)
      - Upload backup archives to a sFTP server (if required)
 
-11. Built-in paginator for reports
+12. **Built-in paginator for reports**
      - Base model, columns, filters and actions definitions are required in order to present listings
      - Paginator handles CSV exports with no extra coding
+     - For big size exports, paginator support exporting records in a background job
      - Can use same action to generate JSON response when requesting action with an API call
 
-12. Background tasks management
+13. **Background tasks management**
     - Agent jobs: actions exectuted once x seconds (depending on crontab setup)
     - Event based background actions
 
-13. Internal messaging
+14. **Internal messaging**
     - Email like messaging system
     - Custom message types can be programmatically added
 
-14. Other built-in features
+15. **Other built-in features**
     - Custom Captcha
     - Cookie acceptance notification
     - Simple BB editor

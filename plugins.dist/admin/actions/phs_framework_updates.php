@@ -18,20 +18,19 @@ class PHS_Action_Framework_updates extends PHS_Action
     {
         PHS::page_settings('page_title', $this->_pt('Framework Updates'));
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
         }
 
-        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
 
-        if (!$accounts_model->acc_is_developer($current_user)) {
+        if (!$accounts_model->acc_is_developer()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have enough rights to access this section.'));
 
             return self::default_action_result();

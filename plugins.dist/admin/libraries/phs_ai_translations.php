@@ -123,6 +123,7 @@ class PHS_Ai_translations extends PHS_Library
 
         $system_content = 'You are a framework technical translator and will try to translate all terminology as technical as possible. '
                           .'The content is a JSON string with nodes '.implode(', ', $payload_keys).'. '
+                          .'Respond with a valid JSON with nodes '.implode(', ', $payload_keys).'. '
                           .'Translate them from '.$from_lang_title.' to '.$to_lang_title.'.';
 
         $prompt_arr = [];

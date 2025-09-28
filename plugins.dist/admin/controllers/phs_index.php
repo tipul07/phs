@@ -15,7 +15,7 @@ class PHS_Controller_Index extends PHS_Controller_Admin
     {
         $this->is_admin_controller(true);
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
@@ -27,7 +27,7 @@ class PHS_Controller_Index extends PHS_Controller_Admin
             return false;
         }
 
-        if (!$accounts_model->acc_is_operator($current_user)) {
+        if (!$accounts_model->acc_is_operator()) {
             PHS_Notifications::add_warning_notice($this->_pt('You don\'t have enough rights to access this section.'));
 
             return $this->execute_foobar_action();
