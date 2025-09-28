@@ -6,13 +6,6 @@ use phs\libraries\PHS_Roles;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\system\core\events\layout\PHS_Event_Layout;
 
-/** @var PHS_Model_Accounts $accounts_model */
-if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
-    $accounts_model = false;
-}
-
-$cuser_arr = PHS::user_logged_in();
-
 ?>
 <div id="menu-left-pane" class="menu-pane clearfix">
     <div class="main-menu-pane-close-button clearfix" style="float: right;"><a href="javascript:void(0)" onclick="close_menu_panes()" onfocus="this.blur();" class="fa fa-times"></a></div>
@@ -21,8 +14,7 @@ $cuser_arr = PHS::user_logged_in();
 
     echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::MAIN_TEMPLATE_BEFORE_LEFT_MENU);
 
-if (!empty($accounts_model)
-&& $accounts_model->acc_is_operator($cuser_arr)) {
+if (PHS_Model_Accounts::get_instance()?->acc_is_operator()) {
     ?><li><a href="<?php echo PHS::url(['p' => 'admin']); ?>"><?php echo $this::_t('Admin Menu'); ?></a></li><?php
 }
 ?>

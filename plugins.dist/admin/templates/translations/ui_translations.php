@@ -395,7 +395,6 @@ $(document).ready(function() {
         },
 
         populate_po_files_details: function(details) {
-            console.log("populating", details);
             this.set('pot_filename', details?.pot_file?.file ? details?.pot_file?.file : '');
             this.set('pot_modified', details?.pot_file?.modified ? details?.pot_file?.modified : 0);
             this.set('pot_filesize', details?.pot_file?.size ? details?.pot_file?.size : 0);
@@ -427,7 +426,7 @@ $(document).ready(function() {
             this.set("excluding_paths", excluding_paths);
         },
 
-        po_file_info: function(file) {
+        po_file_info: function(file, show_notifications = true) {
             if( !file || !this._basename(file) ) {
                 this.phs_add_error_message( "<?php echo $this->_pte('File does not exist.'); ?>", 10 );
                 return;
@@ -452,7 +451,14 @@ $(document).ready(function() {
                     self.set("ui_translation_status", response?.ui_translation_status);
                     self._display_po_file_info(base_file, response.po_info);
 
-                    self.phs_add_success_message( "<?php echo $this->_pte('Displaying PO file info...'); ?>" );
+                    if(show_notifications) {
+                        self.phs_add_success_message("<?php echo $this->_pte('Displaying PO file info...'); ?>");
+                    }
+
+                    if(response?.ui_translation_status !== null
+                        && self.status_is_running( response?.ui_translation_status?.status )) {
+                        setTimeout(() => self.po_file_info(file, false), 5000);
+                    }
                 });
         },
 

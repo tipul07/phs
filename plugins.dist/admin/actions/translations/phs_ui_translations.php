@@ -35,7 +35,7 @@ class PHS_Action_Ui_translations extends PHS_Api_action
     {
         PHS::page_settings('page_title', $this->_pt('UI Translations'));
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
@@ -47,7 +47,7 @@ class PHS_Action_Ui_translations extends PHS_Api_action
             return self::default_action_result();
         }
 
-        if (!$this->_accounts_model->acc_is_developer($current_user)) {
+        if (!$this->_accounts_model->acc_is_developer()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();

@@ -1322,11 +1322,11 @@ class PHS_Model_Plugins extends PHS_Model
 
         // Nothing to save...
         if (!$settings_arr
-            || !($settings_arr = $this->_decode_settings_field($settings_arr))) {
-            $settings_arr = null;
+            || !($new_settings_arr = $this->_decode_settings_field($settings_arr))) {
+            $new_settings_arr = null;
         }
 
-        if (!($db_details = $this->_update_db_tenant_details($instance_id, ['settings' => $settings_arr], $tenant_id))
+        if (!($db_details = $this->_update_db_tenant_details($instance_id, ['settings' => $new_settings_arr], $tenant_id))
             || empty($db_details['new_data'])) {
             $this->set_error_if_not_set(self::ERR_DB_DETAILS, self::_t('Error saving tenant settings in database.'));
 
