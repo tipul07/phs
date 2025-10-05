@@ -10,16 +10,12 @@ use phs\system\core\events\layout\PHS_Event_Layout;
 
 $cuser_arr = PHS::user_logged_in();
 
-/** @var PHS_Plugin_Accounts $accounts_plugin */
-/** @var PHS_Model_Accounts $accounts_model */
 if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
  || !($accounts_model = PHS_Model_Accounts::get_instance())) {
     $accounts_model = null;
     $accounts_plugin = null;
-} else {
-    if (!($accounts_plugin_settings = $accounts_plugin->get_plugin_settings())) {
-        $accounts_plugin_settings = [];
-    }
+} elseif (!($accounts_plugin_settings = $accounts_plugin->get_plugin_settings())) {
+    $accounts_plugin_settings = [];
 }
 
 ?>
@@ -31,20 +27,20 @@ if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
     <ul>
     <?php
 
-    if (!empty($cuser_arr)) {
+    if ($cuser_arr) {
         ?>
         <li class="welcome_msg"><?php echo $this::_t('Hello %s', $cuser_arr['nick']); ?></li>
         <?php
 
-        if (!empty($accounts_model)
-        && $accounts_model->acc_is_operator($cuser_arr)) {
+        if ($accounts_model !== null
+            && $accounts_model->acc_is_operator()) {
             ?><li><a href="<?php echo PHS::url(['p' => 'admin']); ?>"><?php echo $this::_t('Admin Menu'); ?></a></li><?php
         }
     }
 
 echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::MAIN_TEMPLATE_BEFORE_RIGHT_MENU);
 
-if (!empty($cuser_arr)) {
+if ($cuser_arr) {
     ?>
     <li><a href="<?php echo PHS::url([
         'p' => 'accounts',
@@ -142,13 +138,17 @@ if (($defined_languages = PHS_Language::get_defined_languages())
                     $lang_file_url = $lang_details['www'].$lang_details['flag_file'];
                 }
 
-                $language_flag = '<span style="margin: 0 5px;"><img src="'.$lang_file_url.'" /></span> ';
+                $language_flag = '<span style="display: inline-grid;margin: 0 5px;"><img src="'.$lang_file_url.'" /></span> ';
             }
 
             $language_link = 'javascript:PHS_JSEN.change_language( \''.$lang.'\' )';
 
             ?>
-                <li class="phs_language_<?php echo $lang; ?><?php echo $current_language === $lang ? ' phs_language_selected' : ''; ?>"><a href="<?php echo $language_link; ?>"><?php echo $language_flag.$lang_details['title']; ?></a></li>
+                <li class="phs_language_<?php echo $lang; ?><?php echo $current_language === $lang ? ' phs_language_selected' : ''; ?>"
+                ><a href="<?php echo $language_link; ?>"><?php
+                        echo $language_flag.$lang_details['title']
+                             .(!empty($lang_details['title_local']) ? ' ('.$lang_details['title_local'].')' : '');
+            ?></a></li>
                 <?php
         }
     ?>

@@ -1,0 +1,10 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Error rendering template [%s].,Nu am putut randa template-ul [%s].
+Couldn't load template from plugin settings.,Nu s-a putut încărca template-ul din setările pluginului.
+Failed validating notifications template file.,Nu s-a validat fișierul cu șablonul de notificări.
+"This site uses cookies which help us deliver a better user experience. By browsing the site, you agree to cookies usage.","Acest site folosește cookie-uri care ne ajută să oferim o experiență mai bună pentru utilizator. Prin navigarea pe site, sunteți de acord cu utilizarea cookie-urilor."
+More info,Mai mult
+I don't agree,Nu sunt de acord
+I AGREE,SUNT DE ACORD

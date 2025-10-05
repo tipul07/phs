@@ -2,20 +2,26 @@
 # Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
 # Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
 Error loading required resources.,Eroare la încărcarea resurselor necesare.
-Error extracting QR code token.,Eroare la generarea unui bearer token.
-Error rendering QR code.,Eroare la randarea paginii template-ului.
-Error obtaining PHS libraries directory paths.,Eroare la obţinerea căii către directorul de import export pentru produse.
-Error bootstraping QR codes functionality.,Eroare la incărcarea librariei de notificări.
-Invalid QR code image output type.,Tip de dispozitiv invalid.
-Error obtaining file name token.,Eroare la decodarea tokenului bearer.
-Error rendering QR code: %s.,Nu am putut randa template-ul [%s].
-QR Codes settings,Salvare setări
-Settings related to QR codes functionality.,Setări legate de înregistrarea unui cont.
+Error extracting QR code token.,Eroare la extragerea tokenului codului QR.
+Error rendering QR code.,Eroare la redarea codului QR.
+Error obtaining PHS libraries directory paths.,Eroare la obținerea căilor de director ale bibliotecilor PHS.
+Error bootstraping QR codes functionality.,Eroare la inițializarea funcționalității codurilor QR.
+Invalid QR code image output type.,Tip de ieșire de imagine cod QR invalid.
+Error obtaining file name token.,Eroare la obținerea tokenului numelui fișierului.
+Error rendering QR code: %s.,Eroare la redarea codului QR: %s.
+QR Codes settings,Setări coduri QR
+Settings related to QR codes functionality.,Setări legate de funcționalitatea codurilor QR.
 Error loading QR code library.,Eroare la incărcarea librariei de BB code.
-Error extracting QR code token details.,Eroare la citirea detaliilor comenzii.
-Invalid QR code token.,Token Google invalid.
-QR code token expired.,Nici o locaţie de cod.
-Error obtaining QR code image token.,Eroare la obţinerea credenţialelor de SMTP.
-Error creating QR code folder.,Eroare la crearea fişierului de credenţiale pentru export.
-Please provide an URL for QR code.,Vă rugăm să oferiți un brand sau un cod.
+Error extracting QR code token details.,Eroare la extragerea detaliilor tokenului codului QR.
+Invalid QR code token.,Tokenul codului QR este invalid.
+QR code token expired.,Tokenul codului QR a expirat.
+Error obtaining QR code image token.,Eroare la obținerea tokenului imaginii codului QR.
+Error creating QR code folder.,Eroare la crearea dosarului codului QR.
+Please provide an URL for QR code.,Vă rugăm să furnizați un URL pentru codul QR.
 Error creating QR code directory.,Eroare la incărcarea librariei de BB code.
+Error obtaining temporary upload directory path.,Eroare la obținerea căii directorului temporar de încărcare.
+Default theme in admin,Tema implicită în panoul de administrare
+Should framework use default theme in admin section?,Ar trebui ca framework-ul să folosească tema implicită în secțiunea de administrare?
+Current theme as default,Tema curentă ca implicită
+"If using default theme in admin section, should we set current theme as default (helps with loading resources from current theme if needed in admin interface)","Dacă se folosește tema implicită în secțiunea de administrare, ar trebui să setăm tema curentă ca implicită (ajută la încărcarea resurselor din tema curentă, dacă este nevoie, în interfața de administrare)"
+QR code directory is not a directory or is not writeable.,Directorul codului QR nu este un director sau nu poate fi scris.

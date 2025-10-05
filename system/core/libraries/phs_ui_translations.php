@@ -47,6 +47,31 @@ class PHS_Ui_translations extends PHS_Library
         return new PHS_Po_format();
     }
 
+    public function check_ui_translations_results() : ?array
+    {
+        $languages_arr = self::get_defined_languages();
+
+        @clearstatcache();
+        $results_arr = [];
+        foreach ($languages_arr as $l_id => $l_arr) {
+            if (!($resources = $this->_get_status_resources_details($l_id))
+               || empty($resources['translation_file'])
+               || empty($resources['full_translation_file'])
+               || !($file_size = @filesize($resources['full_translation_file']))) {
+                continue;
+            }
+
+            $results_arr[$l_id] = [
+                'id'            => $l_id,
+                'file'          => $resources['translation_file'],
+                'file_size'     => $file_size,
+                'last_modified' => @filemtime($resources['full_translation_file']),
+            ];
+        }
+
+        return $results_arr;
+    }
+
     public function start_ui_translations(string $lang, bool $force = false) : ?array
     {
         if (!$this->_load_dependencies()) {
@@ -203,6 +228,7 @@ class PHS_Ui_translations extends PHS_Library
         $current_records = 0;
         $records_errors = 0;
         $records_success = 0;
+        $records_translated_already = 0;
         $status_final_update = true;
 
         $result = $po_obj->get_po_units();
@@ -221,11 +247,12 @@ class PHS_Ui_translations extends PHS_Library
                 }
 
                 $this->_update_status($lang, [
-                    'status'          => self::STATUS_RUNNING,
-                    'current_records' => $current_records,
-                    'records_errors'  => $records_errors,
-                    'records_success' => $records_success,
-                    'log'             => self::_t('Translations running...'),
+                    'status'                     => self::STATUS_RUNNING,
+                    'current_records'            => $current_records,
+                    'records_errors'             => $records_errors,
+                    'records_success'            => $records_success,
+                    'records_translated_already' => $records_translated_already,
+                    'log'                        => self::_t('Translations running...'),
                 ]);
             }
 
@@ -243,7 +270,8 @@ class PHS_Ui_translations extends PHS_Library
                 continue;
             }
 
-            if (!($po_unit['translation'] ?? null) && !$params['translate_all']) {
+            if (($po_unit['translation'] ?? null) && !$params['translate_all']) {
+                $records_translated_already++;
                 PHS_Logger::debug('PO unit #'.$knti.': Already translated.',
                     $this->_admin_plugin::LOG_UI_TRANSLATIONS);
                 continue;
@@ -276,17 +304,70 @@ class PHS_Ui_translations extends PHS_Library
 
         if ($status_final_update) {
             $this->_update_status($lang, [
-                'ended'           => time(),
-                'status'          => self::STATUS_FINISHED,
-                'max_records'     => $current_records,
-                'current_records' => $current_records,
-                'records_errors'  => $records_errors,
-                'records_success' => $records_success,
-                'log'             => self::_t('Finished'),
+                'ended'                      => time(),
+                'status'                     => self::STATUS_FINISHED,
+                'max_records'                => $current_records,
+                'current_records'            => $current_records,
+                'records_errors'             => $records_errors,
+                'records_success'            => $records_success,
+                'records_translated_already' => $records_translated_already,
+                'log'                        => self::_t('Finished'),
             ]);
         }
 
         return $this->get_status($lang);
+    }
+
+    public function update_language_files_with_translation_result(string $lang, array $params = []) : ?array
+    {
+        if (!$this->_load_dependencies()
+            || !($po_obj = $this->get_po_instance())) {
+            return null;
+        }
+
+        $params['update_language_files'] = !isset($params['update_language_files']) || !empty($params['update_language_files']);
+        $params['backup_language_files'] = !isset($params['backup_language_files']) || !empty($params['backup_language_files']);
+        $params['merge_with_old_files'] = !isset($params['merge_with_old_files']) || !empty($params['merge_with_old_files']);
+        $params['language'] = $lang;
+
+        if (!$lang || !self::valid_language($lang)) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Please provide a valid language for translation.'));
+
+            return null;
+        }
+
+        if (!($resources_arr = $this->_get_status_resources_details($lang))
+            || empty($resources_arr['full_translation_file'])
+            || empty($resources_arr['full_lang_old_file'])) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Error obtaining required resources for translations status.'));
+
+            return null;
+        }
+
+        @clearstatcache();
+        if (!@file_exists($resources_arr['full_translation_file'])) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('There is no translation file for provided language.'));
+
+            return null;
+        }
+
+        if (@file_exists($resources_arr['full_lang_old_file'])) {
+            @unlink($resources_arr['full_lang_old_file']);
+        }
+
+        if (!@copy($resources_arr['full_lang_file'], $resources_arr['full_lang_old_file'])) {
+            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t create a backup of old language file.'));
+
+            return null;
+        }
+
+        if (!@rename($resources_arr['full_translation_file'], $resources_arr['full_lang_file'])) {
+            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Couldn\'t rename translation file as main language file.'));
+
+            return null;
+        }
+
+        return $po_obj->update_language_files($resources_arr['full_lang_file'], $params);
     }
 
     public function force_stop_ui_translation(string $lang) : ?array
@@ -357,17 +438,18 @@ class PHS_Ui_translations extends PHS_Library
     public function get_status_structure() : array
     {
         return [
-            'started'         => 0, // timestamp
-            'ended'           => 0, // timestamp
-            'status'          => 0,
-            'status_title'    => self::_t('N/A'),
-            'language'        => '',
-            'max_records'     => 0,
-            'current_records' => 0,
-            'records_errors'  => 0,
-            'records_success' => 0,
-            'last_update'     => 0, // timestamp
-            'log'             => '',
+            'started'                    => 0, // timestamp
+            'ended'                      => 0, // timestamp
+            'status'                     => 0,
+            'status_title'               => self::_t('N/A'),
+            'language'                   => '',
+            'max_records'                => 0,
+            'current_records'            => 0,
+            'records_errors'             => 0,
+            'records_success'            => 0,
+            'records_translated_already' => 0,
+            'last_update'                => 0, // timestamp
+            'log'                        => '',
         ];
     }
 
@@ -456,14 +538,19 @@ class PHS_Ui_translations extends PHS_Library
             'dir_path'             => LANG_PO_DIR,
             'translation_filename' => $lang.'_translation',
             'translation_file'     => $lang.'_translation.po',
+            'lang_filename'        => $lang,
+            'lang_file'            => $lang.'.po',
+            'lang_old_filename'    => $lang.'_old',
+            'lang_old_file'        => $lang.'_old.po',
             'stats_file'           => $lang.'_translation.json',
             'log_file'             => $lang.'_translation.log',
         ];
 
-        $return_arr['full_stats_file'] = $return_arr['dir_path'].'/'.$return_arr['stats_file'];
-        $return_arr['full_log_file'] = $return_arr['dir_path'].'/'.$return_arr['log_file'];
-        $return_arr['translation_file'] = $return_arr['translation_filename'].'.po';
-        $return_arr['full_translation_file'] = $return_arr['dir_path'].'/'.$return_arr['translation_file'];
+        $return_arr['full_stats_file'] = $return_arr['dir_path'].$return_arr['stats_file'];
+        $return_arr['full_log_file'] = $return_arr['dir_path'].$return_arr['log_file'];
+        $return_arr['full_translation_file'] = $return_arr['dir_path'].$return_arr['translation_file'];
+        $return_arr['full_lang_file'] = $return_arr['dir_path'].$return_arr['lang_file'];
+        $return_arr['full_lang_old_file'] = $return_arr['dir_path'].$return_arr['lang_old_file'];
 
         return $return_arr;
     }

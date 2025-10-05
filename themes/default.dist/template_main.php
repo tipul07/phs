@@ -9,13 +9,11 @@ use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\system\core\events\layout\PHS_Event_Layout;
 
 $accounts_plugin_settings = [];
-/** @var PHS_Model_Accounts $accounts_model */
 if (!($accounts_model = PHS_Model_Accounts::get_instance())) {
     PHS_Notifications::add_error_notice($this::_t('Couldn\'t load accounts model. Please contact support.'));
     $accounts_model = false;
 }
 
-$cuser_arr = PHS::user_logged_in();
 $action_result = $this->get_action_result();
 
 $summary_mail_hook_args = PHS_Hooks::default_messages_summary_hook_args();

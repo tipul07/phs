@@ -671,9 +671,9 @@ class PHS_Po_format extends PHS_Registry
 
                     $this->parsed_indexes[$lang_file][$translation_arr['index']] = $translation_arr['translation'];
                 }
-
-                $this->indexes_count++;
             }
+
+            $this->indexes_count++;
         }
 
         return true;

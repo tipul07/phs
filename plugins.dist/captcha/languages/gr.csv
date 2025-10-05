@@ -1,0 +1,11 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Error loading required resources.,Σφάλμα φόρτωσης απαιτούμενων πόρων.
+Error rendering template [%s].,Σφάλμα κατά την απεικόνιση του προτύπου [%s].
+Couldn't load template from plugin settings.,Αδυναμία φόρτωσης προτύπου από τις ρυθμίσεις του πρόσθετου.
+Error loading image captcha library.,Σφάλμα φόρτωσης βιβλιοθήκης captcha εικόνας.
+Failed validating captcha template file.,Αποτυχία επικύρωσης αρχείου προτύπου captcha.
+Function imagecreatetruecolor doesn't exist. Maybe gd library is not installed or doesn't support this function.,Η λειτουργία imagecreatetruecolor δεν υπάρχει. Ίσως η βιβλιοθήκη gd δεν είναι εγκατεστημένη ή δεν υποστηρίζει αυτήν τη λειτουργία.
+Font file not found.,Αρχείο γραμματοσειράς δεν βρέθηκε.
+Error refreshing public code. Please try again.,Σφάλμα κατά την ανανέωση του δημόσιου κώδικα. Παρακαλώ προσπαθήστε ξανά.

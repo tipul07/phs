@@ -1,0 +1,29 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Please provide a valid email address.,Vă rugăm să furnizați o adresă de email validă.
+Site test email,Email de test pentru site
+Error sending email to provided email address.,Eroare la trimiterea emailului la adresa de email furnizată.
+Couldn't load template from plugin settings.,Nu s-a putut încărca template-ul din setările pluginului.
+Failed validating main email template file.,Validarea eșuată a fișierului principal al șablonului de email.
+Failed validating email template file.,Validarea fișierului șablonului de email a eșuat.
+Rendering template %s resulted in empty buffer.,Renderea șablonului %s a rezultat într-un buffer gol.
+Rendering template resulted in empty buffer.,Renderea șablonului a rezultat într-un buffer gol.
+Rendering main template resulted in empty buffer.,Renderea șablonului principal a rezultat într-un buffer gol.
+Invalid parameters for attachment #%s.,Parametri invalizi pentru atașamentul #%s.
+Please provide a SendGrid API Key in plugin settings.,Vă rugăm să furnizați o cheie API SendGrid în setările modulului.
+Error loading SendGrid library.,Eroare la încărcarea librăriei SendGrid.
+Destination is not an email.,Destinaţia nu este o adresă de email.
+Email body is empty.,Corpul emailului este gol.
+Couldn't obtain attachment file content.,Nu s-a putut obține conținutul fișierului atașat.
+Error sending email with erro code %s.,Eroare la trimiterea emailului cu codul de eroare %s.
+Error sending email.,Eroare la trimiterea emailului.
+Error obtaining SendGrid library directory paths.,Eroare la obținerea căilor de director pentru biblioteca SendGrid.
+Couldn't load SendGrid plugin instance.,Nu am putut instanţia pluginul SendGrid.
+Autoload for SendGrid functionality not found.,Funcționalitatea de încărcare automată pentru SendGrid nu a fost găsită.
+SendGrid required classes not found.,Clasele necesare pentru SendGrid nu au fost găsite.
+Be sure to save settings before testing.,Salvați setările înainte de a testa.
+Successfully sent test email.,Am trimis emailul de test cu succes.
+To email,Către emailul
+To what email should we send test email,Către ce email să se trimită emailul de test
+Send test email,Trimite email de test

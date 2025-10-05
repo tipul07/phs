@@ -495,8 +495,8 @@ final class PHS extends PHS_Registry
             $new_themes[$theme] = true;
         }
 
-        if (empty($new_themes)
-         || !($themes_arr = @array_keys($new_themes))) {
+        if (!$new_themes
+            || !($themes_arr = @array_keys($new_themes))) {
             $themes_arr = [];
         }
 
@@ -512,7 +512,7 @@ final class PHS extends PHS_Registry
         }
 
         if (!($themes_arr = self::get_data(self::CASCADE_THEMES))
-         || !is_array($themes_arr)) {
+            || !is_array($themes_arr)) {
             $themes_arr = [];
         }
 
@@ -595,7 +595,7 @@ final class PHS extends PHS_Registry
     public static function get_cascading_themes() : array
     {
         if (!($themes = self::get_data(self::CASCADE_THEMES))
-         || !is_array($themes)) {
+            || !is_array($themes)) {
             $themes = [];
         }
 
@@ -605,12 +605,12 @@ final class PHS extends PHS_Registry
     public static function get_all_themes_stack(?string $theme = null) : array
     {
         $themes_stack = [];
-        if (empty($theme)
-         || !($theme = self::valid_theme($theme))) {
+        if (!$theme
+            || !($theme = self::valid_theme($theme))) {
             $theme = self::get_theme();
         }
 
-        if (!empty($theme)) {
+        if ($theme) {
             $themes_stack[$theme] = true;
         }
 

@@ -1,0 +1,86 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Error loading required resources.,Σφάλμα φόρτωσης απαιτούμενων πόρων.
+Undefined,Απροσδιόριστο
+Account not found in database.,Ο λογαριασμός δεν βρέθηκε στη βάση δεδομένων.
+You don't have enough rights to access this section.,Δεν έχετε αρκετά δικαιώματα για πρόσβαση σε αυτήν την ενότητα.
+Account details not found in database.,Λεπτομέρειες λογαριασμού δεν βρέθηκαν στη βάση δεδομένων.
+Error loading accounts model.,Σφάλμα φόρτωσης μοντέλου λογαριασμών.
+Please provide data and/or notification in payload.,Παρακαλώ παρέχετε δεδομένα και/ή ειδοποίηση στο φορτίο.
+Please provide a device token or an array of tokens.,Παρακαλώ παρέχετε ένα διακριτικό συσκευής ή έναν πίνακα διακριτικών.
+You can provide up to %s tokens for a notification.,Μπορείτε να παρέχετε μέχρι και %s τοκεν για μια ειδοποίηση.
+Please provide a device token or an array of device tokens.,Παρακαλώ παρέχετε ένα διακριτικό συσκευής ή έναν πίνακα διακριτικών συσκευών.
+Error sending notification using Firebase.,Σφάλμα κατά την αποστολή ειδοποίησης χρησιμοποιώντας το Firebase.
+Couldn't obtain Firebase API settings from plugin.,Δεν ήταν δυνατή η λήψη των ρυθμίσεων του Firebase API από το πρόσθετο.
+Invalid Firebase plugin settings.,Μη έγκυρες ρυθμίσεις προσθέτου Firebase.
+Error loading MobileAPI plugin.,Σφάλμα φόρτωσης προσθέτου MobileAPI.
+Please provide Firebase API parameters.,Παρακαλώ παρέχετε τις παραμέτρους του API του Firebase.
+Couldn't obtain JSON from payload.,Αδυναμία λήψης JSON από το φορτίο.
+Error sending request to Firebase server.,Σφάλμα κατά την αποστολή αιτήματος προς τον διακομιστή Firebase.
+Firebase server responded with an error.,Ο διακομιστής Firebase απάντησε με ένα σφάλμα.
+No session.,Χωρίς συνεδρία.
+Error deleting session from server.,Σφάλμα κατά τη διαγραφή της συνεδρίας από τον εξυπηρετητή.
+Please provide device details.,Παρακαλώ παράσχετε λεπτομέρειες συσκευής.
+Error generating session.,Σφάλμα κατά τη δημιουργία της συνεδρίας.
+Not authenticated.,Μη εξουσιοδοτημένο.
+Please provide account details you want to change.,Παρακαλώ δώστε τα στοιχεία λογαριασμού που θέλετε να αλλάξετε.
+Error saving account details.,Σφάλμα κατά την αποθήκευση των λεπτομερειών λογαριασμού.
+Please provide credentials.,Παρακαλώ παράσχετε διαπιστευτήρια.
+Authentication failed.,Αποτυχία πιστοποίησης.
+Account locked temporarily because of too many login attempts.,Ο λογαριασμός έχει κλειδωθεί προσωρινά λόγω υπερβολικών προσπαθειών σύνδεσης.
+Bad user or password.,Λανθασμένος χρήστης ή κωδικός πρόσβασης.
+Error updating session.,Σφάλμα κατά την ενημέρωση της συνεδρίας.
+Registration is closed for this site.,Η εγγραφή έχει κλείσει για αυτόν τον ιστότοπο.
+Please provide required fields.,Παρακαλώ παρέχετε τα απαιτούμενα πεδία.
+Couldn't register user. Please try again.,Αδυναμία εγγραφής χρήστη. Παρακαλώ προσπαθήστε ξανά.
+Device not found in database.,Συσκευή δεν βρέθηκε στη βάση δεδομένων.
+Error updating device.,Σφάλμα κατά την ενημέρωση της συσκευής.
+Error checking API sessions.,Έλεγχος σφαλμάτων συνεδριών API.
+Please provide OLD and NEW password.,Παρακαλώ δώστε τον ΠΑΛΙΟ και τον ΝΕΟ κωδικό πρόσβασης.
+Wrong current password.,Λάθος τρέχων κωδικός πρόσβασης.
+Error changing password.,Σφάλμα κατά την αλλαγή του κωδικού πρόσβασης.
+Invalid account.,Μη έγκυρος λογαριασμός.
+Error sending forgot password email. Please try again.,Σφάλμα κατά την αποστολή email ξεχασμένου κωδικού πρόσβασης. Παρακαλώ προσπαθήστε ξανά.
+Native (PHS),Εγγενής (PHS)
+Android,Ανδροειδές
+iOS,iOS
+Session not found in database.,Η συνεδρία δεν βρέθηκε στη βάση δεδομένων.
+Couldn't obtain session device.,Αδυναμία λήψης συσκευής συνεδρίας.
+Please provide session details.,Παρακαλώ παρέχετε λεπτομέρειες συνεδρίας.
+Couldn't initialize session parameters.,Αδυναμία αρχικοποίησης παραμέτρων συνεδρίας.
+Error saving session details in database.,Σφάλμα κατά την αποθήκευση λεπτομερειών συνεδρίας στη βάση δεδομένων.
+Session details not found in database.,Λεπτομέρειες συνεδρίας δεν βρέθηκαν στη βάση δεδομένων.
+Error saving device details in database.,Σφάλμα κατά την αποθήκευση των λεπτομερειών της συσκευής στη βάση δεδομένων.
+Invalid device type.,Μη έγκυρος τύπος συσκευής.
+Couldn't initiate device update details.,Αδυναμία εκκίνησης λεπτομερειών ενημέρωσης συσκευής.
+Device type and device token not provided for current session.,Ο τύπος συσκευής και το τεκμήριο συσκευής δεν παρέχονται για την τρέχουσα συνεδρία.
+Please provide a valid device source.,Παρακαλώ παρέχετε μια έγκυρη πηγή συσκευής.
+Error saving session device details to database.,Σφάλμα κατά την αποθήκευση των λεπτομερειών συσκευής συνεδρίας στη βάση δεδομένων.
+Couldn't initiate data to update avatar profile location details.,Αδυναμία εκκίνησης των δεδομένων για ενημέρωση των λεπτομερειύν τοποθεσίας προφίλ αβατάρ.
+Couldn't find session details in database.,Δεν ήταν δυνατό να βρεθούν λεπτομέρειες συνεδρίας στη βάση δεδομένων.
+Couldn't update session device.,Αδυναμία ενημέρωσης συσκευής συνεδρίας.
+Error linking device to session.,Σφάλμα σύνδεσης συσκευής στη συνεδρία.
+Couldn't initialize required resources to check mobile API sessions.,Αδυναμία αρχικοποίησης των απαιτούμενων πόρων για τον έλεγχο των συνεδριών του κινητού API.
+Error querying database for API mobile sessions.,Σφάλμα κατά τον ερώτημα της βάσης δεδομένων για τις συνεδρίες API κινητών συσκευών.
+Please provide a device token.,Παρακαλώ δώστε ένα τεκμήριο συσκευής.
+Please provide a valid device type.,Παρακαλώ δώστε ένα έγκυρο τύπο συσκευής.
+FireBase Settings,Ρυθμίσεις FireBase
+Settings related to FireBase server (used when sending Push Notification messages to devices),Ρυθμίσεις που σχετίζονται με τον διακομιστή FireBase (χρησιμοποιούνται κατά την αποστολή μηνυμάτων Push Notification στις συσκευές)
+Firebase Authentication Key,Κλειδί Ταυτοποίησης Firebase
+Key used for authentication when sending push notification using Firebase library.,Κλειδί που χρησιμοποιείται για ταυτοποίηση κατά την αποστολή ειδοποίησης push χρησιμοποιώντας τη βιβλιοθήκη Firebase.
+Firebase API Timeout,Χρονικό όριο API του Firebase
+After how many seconds should request to Firebase server timeout.,Μετά από πόσα δευτερόλεπτα πρέπει να λήξει η αίτηση προς τον διακομιστή Firebase λόγω χρονικού ορίου.
+API Sessions Settings,Ρυθμίσεις Συνεδριών API
+Defines how system should handle API/applications sessions,Ορίζει πώς το σύστημα πρέπει να χειρίζεται τις συνεδρίες API/εφαρμογών
+API Sessions Timeout,Χρονικό Λήξης Συνεδριών API
+After how many hours should API sessions expire. (0 will not expire),Μετά από πόσες ώρες πρέπει να λήξουν οι συνεδρίες του API. (0 δεν θα λήξουν)
+Error inserting account in database.,Σφάλμα κατά την εισαγωγή λογαριασμού στη βάση δεδομένων.
+Couldn't load required models.,Αδυναμία φόρτωσης των απαιτούμενων μοντέλων.
+Authentication parameters not provided.,Παράμετροι πιστοποίησης δεν παρέχονται.
+API object not provided to authentication method.,Το αντικείμενο API δεν παρέχεται στη μέθοδο πιστοποίησης.
+Not authorized.,Μη εξουσιοδοτημένο.
+Error sending notification to device.,Σφάλμα κατά την αποστολή της ειδοποίησης προς τη συσκευή.
+Device doesn't have a token set.,Η συσκευή δεν έχει ορισμένο τοκέν.
+Error loading Firebase library.,Σφάλμα φόρτωσης βιβλιοθήκης Firebase.
+Error sending push notification using Firebase library.,Σφάλμα κατά την αποστολή ειδοποίησης push χρησιμοποιώντας τη βιβλιοθήκη Firebase.

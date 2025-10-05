@@ -29,7 +29,8 @@ class PHS_Language_Container extends PHS_Error
 
     // ! Contains defined language which can be used by the system. These are not necessary loaded in memory in order to optimize memory
     // ! eg. $DEFINED_LANGUAGES['en'] = [
-    // 'title' => 'English (friendly name of language)',
+    // 'title' => 'English (english name of language)',
+    // 'title_local' => 'English (title of language in that specific language)',
     // 'dir' => '{server path to language directory}',
     // 'www' => '{URL to language directory}',
     // 'files' => [ 'path_to_csv_file1', 'path_to_csv_file2' ],
@@ -148,26 +149,23 @@ class PHS_Language_Container extends PHS_Error
         $this->reset_error();
 
         $lang = self::prepare_lang_index($lang);
-        if (empty($lang)
-         || empty($lang_params)
-         || empty($lang_params['title'])) {
+        if (!$lang
+            || !$lang_params
+            || empty($lang_params['title'])) {
             $this->set_error(self::ERR_LANGUAGE_DEFINITION, 'Please provide valid parameters for language definition.');
 
             return false;
         }
 
-        if (empty(self::$DEFINED_LANGUAGES[$lang])) {
-            self::$DEFINED_LANGUAGES[$lang] = [];
-        }
+        self::$DEFINED_LANGUAGES[$lang] ??= [];
 
         self::$DEFINED_LANGUAGES[$lang]['title'] = trim($lang_params['title']);
+        self::$DEFINED_LANGUAGES[$lang]['title_local'] = trim($lang_params['title_local'] ?? '');
 
-        if (empty(self::$DEFINED_LANGUAGES[$lang]['files'])) {
-            self::$DEFINED_LANGUAGES[$lang]['files'] = [];
-        }
+        self::$DEFINED_LANGUAGES[$lang]['files'] ??= [];
 
         if (!empty($lang_params['files'])
-         && !$this->add_language_files($lang, $lang_params['files'])) {
+            && !$this->add_language_files($lang, $lang_params['files'])) {
             return false;
         }
 
@@ -730,6 +728,7 @@ class PHS_Language_Container extends PHS_Error
     {
         return [
             'title'           => '',
+            'title_local'     => '',
             'dir'             => '',
             'www'             => '',
             'files'           => [],

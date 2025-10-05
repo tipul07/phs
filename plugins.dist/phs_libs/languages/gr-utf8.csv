@@ -1,0 +1,26 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Error loading required resources.,Σφάλμα φόρτωσης απαιτούμενων πόρων.
+Error obtaining temporary upload directory path.,Σφάλμα κατά τη λήψη της προσωρινής διαδρομής φακέλου μεταφόρτωσης.
+Error obtaining PHS libraries directory paths.,Σφάλμα κατά τη λήψη των διαδρομών καταλόγων βιβλιοθηκών PHS.
+Error bootstraping QR codes functionality.,Σφάλμα εκκίνησης λειτουργικότητας κωδικών QR.
+Invalid QR code image output type.,Μη έγκυρος τύπος εξόδου εικόνας QR κώδικα.
+Error obtaining file name token.,Σφάλμα κατά τη λήψη του τεκμηρίου ονόματος αρχείου.
+Error rendering QR code: %s.,Σφάλμα κατά την απεικόνιση του κωδικού QR: %s.
+QR Codes settings,Ρυθμίσεις κωδικών QR
+Settings related to QR codes functionality.,Ρυθμίσεις που σχετίζονται με τη λειτουργικότητα των κωδικών QR.
+Default theme in admin,Προεπιλεγμένο θέμα στον διαχειριστή
+Should framework use default theme in admin section?,Θα πρέπει το πλαίσιο εργασίας να χρησιμοποιεί το προεπιλεγμένο θέμα στη διαχειριστική ενότητα;
+Current theme as default,Τρέχον θέμα ως προεπιλογή
+"If using default theme in admin section, should we set current theme as default (helps with loading resources from current theme if needed in admin interface)","Εάν χρησιμοποιείτε το προεπιλεγμένο θέμα στην ενότητα διαχειριστή, πρέπει να ορίσουμε το τρέχον θέμα ως προεπιλεγμένο (βοηθά στη φόρτωση πόρων από το τρέχον θέμα εάν χρειαστεί στη διεπαφή διαχειριστή)"
+Error extracting QR code token details.,Σφάλμα κατά την εξαγωγή λεπτομερειών του τεκμηρίου QR code.
+Invalid QR code token.,Μη έγκυρο διακριτικό QR κώδικα.
+QR code token expired.,Το τεκμήριο QR κώδικα έχει λήξει.
+Error obtaining QR code image token.,Σφάλμα κατά τη λήψη του τεκμηρίου εικόνας QR code.
+Error creating QR code folder.,Σφάλμα δημιουργίας φακέλου QR κώδικα.
+Please provide an URL for QR code.,Παρακαλώ παρέχετε ένα URL για τον κώδικα QR.
+QR code directory is not a directory or is not writeable.,Ο κατάλογος των κωδικών QR δεν είναι κατάλογος ή δεν είναι εγγράψιμος.
+Error creating QR code directory.,Σφάλμα κατά τη δημιουργία του καταλόγου QR κώδικα.
+Error extracting QR code token.,Σφάλμα εξαγωγής του τεκμηρίου QR κώδικα.
+Error rendering QR code.,Σφάλμα κατά την απεικόνιση του κωδικού QR.

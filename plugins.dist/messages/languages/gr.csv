@@ -1,0 +1,147 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Error loading required resources.,Σφάλμα φόρτωσης απαιτούμενων πόρων.
+You should login first...,Πρέπει να συνδεθείτε πρώτα...
+You don't have rights to access this section.,Δεν έχετε δικαιώματα πρόσβασης σε αυτήν την ενότητα.
+ - Choose - , - Επιλέξτε - 
+Delete,Διαγραφή
+N/A,Μ/Α
+Invalid,Μη έγκυρο
+Actions,Ενέργειες
+Unknown action.,Άγνωστη ενέργεια.
+Couldn't get parent plugin object.,Αδυναμία λήψης του αντικειμένου γονικού προσθέτου.
+System,Σύστημα
+Compose Message,Σύνθεση Μηνύματος
+Message queued... Server will send it as soon as possible.,Μήνυμα στην ουρά... Ο διακομιστής θα το στείλει το συντομότερο δυνατό.
+Unknown message or you don't have rights to reply to this message.,Άγνωστο μήνυμα ή δεν έχετε δικαιώματα για να απαντήσετε σε αυτό το μήνυμα.
+Unknown message or you don't have rights to follow up this message.,Άγνωστο μήνυμα ή δεν έχετε δικαιώματα να ακολουθήσετε αυτό το μήνυμα.
+You cannot reply to this message. Author not reachable.,Δεν μπορείτε να απαντήσετε σε αυτό το μήνυμα. Ο συγγραφέας δεν είναι προσβάσιμος.
+Re: ,Αναφορά: 
+You cannot follow up this message.,Δεν μπορείτε να ακολουθήσετε αυτό το μήνυμα.
+Message details saved in database.,Λεπτομέρειες μηνύματος αποθηκεύτηκαν στη βάση δεδομένων.
+Error sending message. Please try again.,Σφάλμα κατά την αποστολή του μηνύματος. Παρακαλώ προσπαθήστε ξανά.
+View Message,Προβολή Μηνύματος
+Couldn't load messages plugin.,Αδυναμία φόρτωσης προσθέτου μηνυμάτων.
+Couldn't load message details.,Αδυναμία φόρτωσης λεπτομερειών μηνύματος.
+Couldn't load thread of message.,Αδυναμία φόρτωσης νήματος μηνύματος.
+Message doesn't require additional work.,Το μήνυμα δεν απαιτεί επιπλέον εργασία.
+Error finishing additional work required for message #%s.,Σφάλμα ολοκλήρωσης επιπλέον εργασιών που απαιτούνται για το μήνυμα #%s.
+No more messages...,Δεν υπάρχουν περισσότερα μηνύματα...
+Error rendering messages. Please retry.,Σφάλμα κατά την απεικόνιση των μηνυμάτων. Παρακαλώ προσπαθήστε ξανά.
+Inbox,Εισερχόμενα
+Couldn't load required functionality.,Αδυναμία φόρτωσης απαιτούμενης λειτουργικότητας.
+message,μήνυμα
+messages,μηνύματα
+Message details not found in database.,Λεπτομέρειες μηνύματος δεν βρέθηκαν στη βάση δεδομένων.
+Message thread details not found in database.,Λεπτομέρειες νήματος μηνυμάτων δεν βρέθηκαν στη βάση δεδομένων.
+Mark as read,Σημείωση ως διαβασμένο
+From,Από
+Author messaging handle contains this value,Το χειριστήριο μηνυμάτων του συγγραφέα περιέχει αυτήν την τιμή
+To,Για
+Destination messagin handle contains this value,Το χειριστήριο μηνυμάτων προορισμού περιέχει αυτήν την τιμή
+Subject,Θέμα
+Subject contains this value,Το θέμα περιέχει αυτήν την τιμή
+Last reply,Τελευταία απάντηση
+Required messages deleted with success.,Τα απαιτούμενα μηνύματα διαγράφηκαν με επιτυχία.
+Deleting selected messages failed. Please try again.,Η διαγραφή των επιλεγμένων μηνυμάτων απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed deleting all selected messages. Messages which failed deletion are still selected. Please try again.,Απέτυχε η διαγραφή όλων των επιλεγμένων μηνυμάτων. Τα μηνύματα που απέτυχαν τη διαγραφή παραμένουν επιλεγμένα. Παρακαλώ προσπαθήστε ξανά.
+Required messages marked as read with success.,Τα απαιτούμενα μηνύματα σημειώθηκαν ως διαβασμένα με επιτυχία.
+Marking selected messages as read failed. Please try again.,Αποτυχία επισήμανσης επιλεγμένων μηνυμάτων ως διαβασμένα. Παρακαλώ προσπαθήστε ξανά.
+Failed marking as read all selected messages. Failed messages are still selected. Please try again.,Αποτυχία επισήμανσης όλων των επιλεγμένων μηνυμάτων ως διαβασμένα. Τα αποτυχημένα μηνύματα παραμένουν επιλεγμένα. Παρακαλώ προσπαθήστε ξανά.
+Message deleted with success.,Το μήνυμα διαγράφηκε με επιτυχία.
+Deleting message failed. Please try again.,Αποτυχία διαγραφής μηνύματος. Παρακαλώ προσπαθήστε ξανά.
+Cannot delete address. Address not found in database.,Αδυναμία διαγραφής διεύθυνσης. Διεύθυνση δεν βρέθηκε στη βάση δεδομένων.
+You (%s),Εσείς (%s)
+Unknown destination,Άγνωστος προορισμός
+Unknown user level,Άγνωστο επίπεδο χρήστη
+Unknown role,Άγνωστος ρόλος
+Unknown role unit,Άγνωστη μονάδα ρόλου
+View thread,Προβολή νήματος
+Delete message thread,Διαγραφή νήματος μηνυμάτων
+Messages,Μηνύματα
+Compose,Σύνθεση
+Couldn't initialize required parameters for current view.,Αδυναμία αρχικοποίησης των απαιτούμενων παραμέτρων για την τρέχουσα προβολή.
+Unknown author,Άγνωστος συγγραφέας
+FROM: %s,ΑΠΟ: %s
+TO: %s,ΠΡΟΣ: %s
+Reply,Απάντηση
+Reply to all,Απάντηση σε όλους
+Follow Up,Ακολουθία
+Load previous messages,Φόρτωση προηγούμενων μηνυμάτων
+%s messages,%s μηνύματα
+1 message,1 μήνυμα
+%s new messages,%s νέα μηνύματα
+1 new message,1 νέο μήνυμα
+Load next messages,Φόρτωση επόμενων μηνυμάτων
+Loading previous messages...,Φόρτωση προηγούμενων μηνυμάτων...
+Loading next messages...,Φόρτωση επόμενων μηνυμάτων...
+Error loading messages. Please retry.,Σφάλμα φόρτωσης μηνυμάτων. Παρακαλώ προσπαθήστε ξανά.
+Compose message,Σύνθεση μηνύματος
+Destination,Προορισμός
+Comma separated user ids,Τα αναγνωριστικά χρηστών χωρίζονται με κόμμα
+Comma separated user nicknames or emails,Ονόματα χρηστών ή emails χωρισμένα με κόμμα
+Comma separated messaging handlers,Χειριστές μηνυμάτων με διαχωρισμένα με κόμμα
+Message subject...,Θέμα μηνύματος...
+Destination cannot reply,Ο προορισμός δεν μπορεί να απαντήσει
+Destination will not be able to reply to this message.,Ο προορισμός δεν θα μπορέσει να απαντήσει σε αυτό το μήνυμα.
+Body,Σώμα
+Message body...,Σώμα μηνύματος...
+Send Message,Αποστολή Μηνύματος
+Couldn't load dependencies.,Αδυναμία φόρτωσης εξαρτήσεων.
+Error deleting message. Please retry.,Σφάλμα κατά τη διαγραφή του μηνύματος. Παρακαλώ προσπαθήστε ξανά.
+Internal Messages,Εσωτερικά Μηνύματα
+Message handler,Χειριστής μηνυμάτων
+You,Εσείς
+Error initiating parameters for summary listing of messages.,Σφάλμα κατά την εκκίνηση παραμέτρων για τη σύνοψη λίστας μηνυμάτων.
+Error initiating parameters for message emulation.,Σφάλμα κατά την εκκίνηση παραμέτρων για την προσομοίωση μηνύματος.
+Couldn't find message details in database.,Δεν ήταν δυνατό να βρεθούν λεπτομέρειες μηνύματος στη βάση δεδομένων.
+Couldn't load message details from database.,Αδυναμία φόρτωσης λεπτομερειών μηνύματος από τη βάση δεδομένων.
+Couldn't load account details from database.,Αδυναμία φόρτωσης λεπτομερειών λογαριασμού από τη βάση δεδομένων.
+Message body not available yet...,Το σώμα του μηνύματος δεν είναι ακόμα διαθέσιμο...
+Couldn't retrieve message data.,Αδυναμία ανάκτησης δεδομένων μηνύματος.
+Couldn't load account data of the message.,Αδυναμία φόρτωσης δεδομένων λογαριασμού του μηνύματος.
+Couldn't retrieve message body.,Αδυναμία ανάκτησης σώματος μηνύματος.
+Couldn't retrieve user message details.,Αδυναμία ανάκτησης λεπτομερειών μηνύματος χρήστη.
+Destination type %s,Τύπος προορισμού %s
+Type %s,Τύπος %s
+Importance %s,Σημαντικότητα %s
+Error loading depedencies.,Σφάλμα φόρτωσης εξαρτήσεων.
+Error initiating parameters for message.,Σφάλμα κατά την εκκίνηση παραμέτρων για το μήνυμα.
+Invalid parameters when saving message in database.,Μη έγκυρες παράμετροι κατά την αποθήκευση του μηνύματος στη βάση δεδομένων.
+Please provide a subject for this message.,Παρακαλώ καθορίστε ένα θέμα για αυτό το μήνυμα.
+Invalid account for message sender.,Μη έγκυρος λογαριασμός για τον αποστολέα του μηνύματος.
+Unknown message or you don't have rights to reply to this messages.,Άγνωστο μήνυμα ή δεν έχετε δικαιώματα για να απαντήσετε σε αυτά τα μηνύματα.
+Unknown message or you don't have rights to follow up this messages.,Άγνωστο μήνυμα ή δεν έχετε δικαιώματα να ακολουθήσετε αυτά τα μηνύματα.
+Invalid destination type.,Μη έγκυρος τύπος προορισμού.
+Invalid message type.,Μη έγκυρος τύπος μηνύματος.
+Users ids list not provided for message destination.,Λίστα αναγνωριστικών χρηστών δεν παρέχεται για τον προορισμό του μηνύματος.
+No users match destination you provided.,Δεν υπάρχουν χρήστες που ταιριάζουν με τον προορισμό που δώσατε.
+User list not provided for message destination.,Ο κατάλογος χρηστών δεν παρέχεται για τον προορισμό του μηνύματος.
+No message handlers match destination you provided.,Δεν υπάρχουν χειριστές μηνυμάτων που ταιριάζουν με τον προορισμό που δώσατε.
+User level not provided for message destination.,Το επίπεδο χρήστη δεν παρέχεται για τον προορισμό του μηνύματος.
+Role not provided for message destination.,Ο ρόλος δεν παρέχεται για τον προορισμό του μηνύματος.
+Role not found in database for message destination.,Ο ρόλος δεν βρέθηκε στη βάση δεδομένων για τον προορισμό του μηνύματος.
+Role unit not provided for message destination.,Δεν παρέχεται μονάδα ρόλου για τον προορισμό του μηνύματος.
+Role unit not found in database for message destination.,Η μονάδα ρόλου δεν βρέθηκε στη βάση δεδομένων για τον προορισμό του μηνύματος.
+Error saving message details to database.,Σφάλμα κατά την αποθήκευση λεπτομερειών μηνύματος στη βάση δεδομένων.
+Error saving message body details to database.,Σφάλμα κατά την αποθήκευση λεπτομερειών σώματος μηνύματος στη βάση δεδομένων.
+Error updating message details to database.,Σφάλμα κατά την ενημέρωση των λεπτομερειών του μηνύματος στη βάση δεδομένων.
+Error completing message flow. Please try again.,Σφάλμα ολοκλήρωσης ροής μηνυμάτων. Παρακαλώ προσπαθήστε ξανά.
+Error obtaining message details from database.,Σφάλμα κατά τη λήψη λεπτομερειών μηνύματος από τη βάση δεδομένων.
+Sender account details not found.,Λεπτομέρειες λογαριασμού αποστολέα δεν βρέθηκαν.
+Couldn't find message body in database.,Δεν ήταν δυνατό να βρεθεί το σώμα του μηνύματος στη βάση δεδομένων.
+Couldn't find reply message in database.,Δεν ήταν δυνατό να βρεθεί το μήνυμα απάντησης στη βάση δεδομένων.
+Couldn't find follow up message in database.,Δεν ήταν δυνατό να βρεθεί το μήνυμα παρακολούθησης στη βάση δεδομένων.
+Internal message sent,Εσωτερικό μήνυμα απεστάλη
+New internal message,Νέο εσωτερικό μήνυμα
+Unknown user for this user message.,Άγνωστος χρήστης για αυτό το μήνυμα χρήστη.
+Unknown message details for this user message.,Άγνωστες λεπτομέρειες μηνύματος για αυτό το μήνυμα χρήστη.
+Unknown thread id for this user message.,Άγνωστο αναγνωριστικό νήματος για αυτό το μήνυμα χρήστη.
+Couldn't load summary template from plugin settings.,Αδυναμία φόρτωσης προτύπου περίληψης από τις ρυθμίσεις του προσθέτου.
+Failed validating messages summary template file.,Αποτυχία επικύρωσης αρχείου προτύπου σύνοψης μηνυμάτων.
+Failed loading messages model.,Αποτυχία φόρτωσης μοντέλου μηνυμάτων.
+Error obtaining summary list of messages.,Σφάλμα κατά τη λήψη της λίστας σύνοψης μηνυμάτων.
+Error rendering template [%s].,Σφάλμα κατά την απεικόνιση του προτύπου [%s].
+Error instantiating accounts details model.,Σφάλμα κατά την αρχικοποίηση του μοντέλου λεπτομερειών λογαριασμών.
+Error altering user_details table.,Σφάλμα κατά την τροποποίηση του πίνακα user_details.

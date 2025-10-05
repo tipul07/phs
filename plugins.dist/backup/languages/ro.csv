@@ -1,0 +1,263 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Test connection,Test conexiune
+Error loading required resources.,Eroare la încărcarea resurselor necesare.
+Active,Activ
+You should login first...,Trebuie mai întâi să vă logaţi...
+You don't have rights to access this section.,Nu aveți destule drepturi pentru accesarea acestei secțiuni.
+ - Choose - , - Alege - 
+Inactivate,Inactivează
+Activate,Activează
+Delete,Șterge
+Title,Titlu
+Status,Status
+N/A,N/A
+Undefined,Nedefinit
+Created,Creat
+Invalid,Invalid
+Actions,Acţiuni
+Unknown action.,Acțiune necunoscută.
+Error saving details to database. Please try again.,Eroare la salvarea detaliilor în baza de date. Încercați din nou.
+NOTE: You cannot undo this action!,NOTĂ: Nu puteți anula această acțiune!
+Back,Înapoi
+Started,Început
+You don't have enough rights to access this section.,Nu aveti destule drepturi pentru accesarea acestei secţiuni.
+Save changes,Salvează modificările
+Location,Locaţie
+Couldn't get parent plugin object.,Nu s-a putut obține obiectul pluginului părinte.
+Invalid flow parameters.,Parametrii fluxului sunt nevalizi.
+Inactive,Inactiv
+Deleted,Şters
+TOTAL,TOTAL
+Password,Parola
+Timeout,Timp expirare
+Default backups location,Locația implicită a backup-urilor
+"A writable directory where backup files will be generated. If path is not absolute, it will be relative to framework uploads dir (%s).","Un director inscriptibil unde vor fi generate fișierele de rezervă. În cazul în care calea nu este absolută, acesta va fi relativ la cadru încarcă dir (%s)."
+mysqldump binary location,Locația binarului mysqldump
+Full path (including binary/executable file) to mysqldump application. If only executable name is provided we assume it is included in environment path.,"Calea completă (inclusiv fișierul binar/executabil) către aplicația mysqldump. Dacă este furnizat doar numele executabilului, presupunem că este inclus în calea de mediu."
+zip binary location,locatia binara zip
+Full path (including binary/executable file) to zip application. If only executable name is provided we assume it is included in environment path.,"Calea completă (inclusiv fișierul binar/executabil) către aplicația zip. Dacă este furnizat doar numele executabilului, presupunem că este inclus în calea de mediu."
+Couldn't obtain current location details.,Nu s-au putut obține detaliile locației curente.
+At the moment directory doesn't exist. System will try creating it at first run.,În acest moment directorul nu există. Sistemul va încerca să-l creeze la prima rulare.
+Resolved directory is not writeable.,Directorul rezolvat nu poate fi scris.
+Couldn't obtain directory stats.,Nu s-au putut obține statisticile directorului.
+"Total space: %s, Free space: %s","Spațiu total: %s, Spațiu liber: %s"
+Couldn't resolve location path.,Nu s-a putut rezolva calea locației.
+Couldn't resolve backup location.,Nu s-a putut rezolva locația de backup.
+Backup location is not a directory.,Locația de backup nu este un director.
+Backup location doesn't exist or is not a directory.,Locația de backup nu există sau nu este un director.
+Couldn't create full directory structure for backup rule.,Nu s-a putut crea structura completă a directorului pentru regula de backup.
+Invalid directory. Cannot obtain stats.,Director invalid. Imposibil de obținut statisticile.
+Weekly Backup (%s),Backup săptămânal (%s)
+Daily Backup,Backup Zilnic
+Couldn't un-suspend all backup rules.,Nu s-au putut reactiva toate regulile de backup suspendate.
+Couldn't suspend all backup rules.,Nu s-au putut suspenda toate regulile de backup.
+Backup Results List,Listă rezultate backup
+backup result,rezultat backup
+backup results,rezultate backup
+Backup Results,Rezultate Backup
+Invalid backup result or backup result not found in database.,Rezultatul de backup invalid sau rezultatul de backup nu a fost găsit în baza de date.
+Results of rules containing this in title,Rezultatele regulilor care conțin aceasta în titlu
+Rule,Regulă
+Where,Unde
+What,Ce
+Required backup results deleted with success.,Rezultatele de backup necesare au fost șterse cu succes.
+Deleting selected backup results failed. Please try again.,Ștergerea rezultatelor de backup selectate a eșuat. Vă rugăm să încercați din nou.
+Failed deleting all selected backup results. Backup results which failed deletion are still selected. Please try again.,Ștergerea tuturor rezultatelor de backup selectate a eșuat. Rezultatele de backup care nu au putut fi șterse rămân selectate. Vă rugăm să încercați din nou.
+Backup result deleted with success.,Rezultatul backup-ului a fost șters cu succes.
+Deleting backup result failed. Please try again.,Ștergerea rezultatului de backup a eșuat. Vă rugăm să încercați din nou.
+Cannot delete backup result. Backup result not found in database.,Nu se poate șterge rezultatul de backup. Rezultatul de backup nu a fost găsit în baza de date.
+%s bytes,%s bytes
+"Total: %s, Free: %s","Total: %s, Liber: %s"
+View files,Vezi fişiere
+Delete backup result,Şterge rezultat backup
+Are you sure you want to DELETE this backup result?,Sunteți sigur că doriți să ștergeți acest rezultat de backup?
+Please select backup results you want to delete first.,Vă rugăm să selectați mai întâi rezultatele de backup pe care doriți să le ștergeți.
+Are you sure you want to DELETE %s backup results?,Sunteți sigur că doriți să ștergeți rezultatele de backup %s?
+Backup Result Files,Fișierele rezultatelor de backup
+Couldn't load backup plugin.,Plugin-ul de backup nu a putut fi încărcat.
+Couldn't load results model.,Modelul rezultatelor nu a putut fi încărcat.
+Backup result file not found in database.,Fișierul de rezultate de backup nu a fost găsit în baza de date.
+File not found in backup directory structure.,Fișierul nu a fost găsit în structura directorului de backup.
+Backup file deleted with success.,Fișierul de backup a fost șters cu succes.
+Invalid backup result...,Rezultatul backup-ului este invalid...
+Error deleting backup file. Please try again.,Eroare la ștergerea fișierului de backup. Vă rugăm să încercați din nou.
+Checking backup rules failed.,Verificarea regulilor de backup a eșuat.
+Copying backup result files failed.,Copierea fișierelor rezultatelor de backup a eșuat.
+Deleting old backup results failed.,Ștergerea rezultatelor vechi de backup a eșuat.
+Add Rule,Adaugă Regulă
+One week,O săptămână
+Two weeks,Două săptămâni
+30 days,30 zile
+60 days,60 zile
+Please choose an option for delete action.,Vă rugăm să alegeți o opțiune pentru acțiunea de ștergere.
+Backup rule details saved...,Detaliile regulii de backup au fost salvate...
+Backup Rules List,Listă de reguli de backup
+backup rule,regulă backup
+backup rules,reguli backup
+Backup Rules,Reguli Backup
+Invalid backup rule or backup rule not found in database.,Regulă de backup invalidă sau regulă de backup negăsită în baza de date.
+Backup rule details saved in database.,Detaliile regulii de backup salvate în baza de date.
+All records containing this value in title field,Toate înregistrările care conțin această valoare în câmpul titlu
+When,Când
+Required backup rules activated with success.,Regulile de backup obligatorii au fost activate cu succes.
+Activating selected backup rules failed. Please try again.,Activarea regulilor de backup selectate a eșuat. Vă rugăm să încercați din nou.
+Failed activating all selected backup rules. Backup rules which failed activation are still selected. Please try again.,Nu s-au putut activa toate regulile de backup selectate. Regulile de backup care nu au putut fi activate rămân selectate. Vă rugăm să încercați din nou.
+Required backup rules inactivated with success.,Regulile de backup obligatorii au fost dezactivate cu succes.
+Inactivating selected backup rules failed. Please try again.,Dezactivarea regulilor de backup selectate a eșuat. Vă rugăm să încercați din nou.
+Failed inactivating all selected backup rules. Backup rules which failed inactivation are still selected. Please try again.,Eșuare la dezactivarea tuturor regulilor de backup selectate. Regulile de backup care au eșuat la dezactivare sunt încă selectate. Vă rugăm să încercați din nou.
+Required backup rules deleted with success.,Regulile de backup necesare au fost șterse cu succes.
+Deleting selected backup rules failed. Please try again.,Ștergerea regulilor de backup selectate a eșuat. Vă rugăm să încercați din nou.
+Failed deleting all selected backup rules. Backup rules which failed deletion are still selected. Please try again.,Ștergerea tuturor regulilor de backup selectate a eșuat. Regulile de backup care nu au putut fi șterse rămân selectate. Vă rugăm să încercați din nou.
+Backup rule activated with success.,Regula de backup a fost activată cu succes.
+Activating backup rule failed. Please try again.,Activarea regulii de backup a eșuat. Vă rugăm să încercați din nou.
+Cannot activate backup rule. Backup rule not found in database.,Nu se poate activa regula de backup. Regula de backup nu a fost găsită în baza de date.
+Backup rule inactivated with success.,Regula de backup a fost inactivată cu succes.
+Inactivating backup rule failed. Please try again.,Eșuarea inactivării regulii de backup. Vă rugăm să încercați din nou.
+Cannot inactivate backup rule. Backup rule not found in database.,Nu se poate inactiva regula de backup. Regula de backup nu a fost găsită în baza de date.
+Backup rule deleted with success.,Regula de backup a fost ștearsă cu succes.
+Deleting backup rule failed. Please try again.,Ștergerea regulii de backup a eșuat. Vă rugăm să încercați din nou.
+Cannot delete backup rule. Backup rule not found in database.,Nu se poate șterge regula de backup. Regula de backup nu a fost găsită în baza de date.
+Delete after %s,Şterge după %s
+This location doesn't exist yet. System will try creating it at first run.,Această locație nu există încă. Sistemul va încerca să o creeze la prima rulare.
+This location is not a directory. Backups will not be saved here! Please fix this by editing the rule or fixing directory.,Această locație nu este un director. Copiile de siguranță nu vor fi salvate aici! Vă rugăm să remediați aceasta editând regula sau reparând directorul.
+Edit backup rule,Editați regula de backup
+Activate backup rule,Activare regulă de backup
+Inactivate backup rule,Dezactivați regula de backup
+Delete backup rule,Şterge regula de backup
+Edit Rule,Editează Regula
+Couldn't load FTP core library.,Nu s-a putut încărca biblioteca de bază FTP.
+Couldn't load backup rules model.,Nu s-a putut încărca modelul de reguli de backup.
+Invalid backup rule...,Regula de backup invalidă...
+Backup rule details saved.,Detaliile regulii de backup au fost salvate.
+Connected to FTP server with success.,Conectat la serverul FTP cu succes.
+Failed connecting to FTP server.,Conexiunea la serverul FTP a eșuat.
+Error sending FTP settings: %s.,Eroare la trimiterea setărilor FTP: %s.
+Couldn't setup a FTP instance with provided settings.,Nu s-a putut configura o instanță FTP cu setările furnizate.
+Error connecting to FTP server: %s,Eroare la conectarea la serverul FTP: %s
+Couldn't connect to FTP server.,Nu s-a putut realiza conexiunea la serverul FTP.
+Backup result not found in database.,Detaliile rezultatului de backup nu a fost găsit în baza de date.
+Error finishing backup rule for result #%s.,Eroare la finalizarea regulii de backup pentru rezultatul #%s.
+Leave blank to use location set in plugin settings%s.,Lăsaţi gol pentru utilizarea locației din plugin %s.
+Hour,Oră
+Current server time %s,Ora curentă a serverului %s
+Days,Zile
+Targets,Ţinte
+Delete backups,Şterge backupuri
+ - Don't delete results - , - Nu şterge rezultate - 
+ - Custom value - , - Valoare personalizată - 
+days,zile
+Delete resulting backup files of this rule after provided number of days.,Ștergeți fișierele de backup rezultate ale acestei reguli după numărul de zile furnizat.
+Copy results,Rezultatele copierii
+ - Don't copy - , - Nu copia - 
+"After creating backup files, copy them in a different location.","După ce ați creat fișierele de backup, copiați-le într-o locație diferită."
+FTP Settings,Setări FTP
+Connection type,Tip conexiune
+Host,Host
+Port,Port
+User,Utilizator
+seconds,secunde
+Passive mode,Mod pasiv
+Not applicable for all connection modes.,Nu se aplică pentru toate modurile de conectare.
+Remote directory,Director remote
+Web Server Note,Notă server web
+Add rule,Adaugă regulă
+"If path is not absolute, it will be relative to framework uploads dir (%s).","Dacă nu este o cale absolută, ea va fi relativă la directorul de încărcări al platformei (%s)."
+%s stats:,statistici %s:
+Could't loaded required resources for this view.,Eroare la încărcarea resurselor necesare pentru acest template.
+For rule,Pentru regula
+Total size,Dim. totală
+File,Fişier
+Size,Dimensiune
+It seems that backup result has no backup files...,Se pare că rezultatul backup-ului nu are fișiere de backup...
+Download result file,Ia fişierul rezultat
+Delete result file,Șterge fișierul de rezultate
+Are you sure you want to delete this backup file?,Sunteți sigur că doriți să ștergeți acest fișier de backup?
+Sending delete request... Please wait.,Trimitere cerere de ștergere... Vă rugăm să așteptați.
+Error sending request to delete backup file. Please retry.,Eroare la trimiterea cererii de ștergere a fișierului de backup. Vă rugăm să reîncercați.
+System Backups,Backupuri Sistem
+Add Backup Rule,Adaugă Regulă de Backup
+List Backup Rules,Listare Reguli Backup
+List Backups,Listă Backupuri
+Copy to FTP,Copiere prin FTP
+Each day,Fiecare zi
+Monday,Luni
+Tuesday,Marţi
+Wednesday,Miercuri
+Thursday,Joi
+Friday,Vineri
+Saturday,Sâmbătă
+Sunday,Duminică
+Backup rule details not found in database.,Detaliile regulii de backup nu au fost găsite în baza de date.
+You will have to activate backup plugin before activating backup rule.,Va trebui să activați modulul de backup înainte de a activa regula de backup.
+Error saving backup rule details to database.,Eroare la salvarea detaliilor regulii de backup în baza de date.
+Couldn't obtain all required resources.,Nu s-au putut obține toate resursele necesare.
+Error suspending all active backup rules.,Eroare la suspendarea tuturor regulilor active de backup.
+Error unsuspending all active backup rules.,Eroare la repornirea tuturor regulilor active de backup.
+Backup rule not found in database.,Regula de backup nu a fost găsită în baza de date.
+Couldn't obtain rule location path details.,Nu s-au putut obține detaliile căii de localizare a regulii.
+Please provide an output directory for database dump commands.,Vă rugăm să furnizați un director de ieșire pentru comenzile de export ale bazei de date.
+Please provide an output directory for uploaded files dump commands.,Vă rugăm să furnizați un director de ieșire pentru comenzile de descărcare a fișierelor încărcate.
+Error obtaining backup rule location details.,Eroare la obținerea detaliilor locației regulii de backup.
+Error creating backup running directory in rule location directory.,Eroare la crearea directorului de backup în directorul de locație a regulii.
+Error obtaining batabase backup script commands.,Eroare la obținerea comenzilor scriptului de backup al bazei de date.
+Error obtaining uploaded files backup script commands.,Eroare la obținerea comenzilor scriptului de backup pentru fișierele încărcate.
+No backup commands to pass to shell script.,Nu există comenzi de backup de transmis către scriptul shell.
+Couldn't save backup results details in database.,Nu s-au putut salva detaliile rezultatelor de backup în baza de date.
+Error obtaining run rule finish background command.,Eroare la obținerea comenzii de finalizare a regulii de rulare în fundal.
+Error creating backup shell script.,Eroare la crearea scriptului shell de backup.
+Couldn't obtain required resources.,Eroare la încărcarea resurselor necesare.
+Error launching backup result shell script.,Eroare la lansarea scriptului shell de rezultat al backup-ului.
+Couldn't unlink days for backup rule.,Nu s-au putut dezlega zilele pentru regulă de backup.
+Error obtaining FTP credentials.,Eroare la obținerea credențialelor FTP.
+No days provided to link to backup rule.,Nu au fost furnizate zile pentru a fi legate de regulă de backup.
+Error un-linking days for backup rule.,Eroare la dezlegarea zilelor pentru regulă de backup.
+Error linking days to backup rule.,Eroare la asocierea zilelor cu regula de backup.
+Couldn't create backup location for provided rule.,Nu s-a putut crea locația de backup pentru regula furnizată.
+Backup location directory is not writable.,Directorul de locație de backup nu este inscriptibil.
+Error creating rule directory in backup location directory.,Eroare la crearea directorului regulii în directorul locației de backup.
+Please provide a result ID.,Vă rugăm să furnizați un ID de rezultat.
+Please provide full script file name.,Vă rugăm să furnizați numele complet al fișierului script.
+Commands array provided is empty.,Matricea de comenzi furnizată este goală.
+Couldn't write to backup shell script.,Nu s-a putut scrie în scriptul shell de backup.
+Couldn't write commands to backup shell script.,Nu am putut scrie comenzile pentru scriptul shell de backup.
+Please provide a rule title.,Vă rugăm să furnizați un titlu de regulă.
+Please provide a copy result action.,Vă rugăm să furnizați o acțiune de copiere a rezultatului.
+Invalid FTP settings.,Setări FTP invalide.
+Error encoding FTP credentials. Please try again.,Eroare la codificarea datelor de autentificare FTP. Încercați din nou.
+Provided backup location is not a directory.,Locația de backup furnizată nu este un director.
+Provided backup location is not writable.,Locația de backup furnizată nu este inscriptibilă.
+Please provide a valid backup hour.,Vă rugăm să furnizați o oră de backup validă.
+Please provide a valid result delition interval.,Vă rugăm să furnizați un interval de ștergere a rezultatului valid.
+Please provide backup rule days.,Vă rugăm să furnizați zilele regulii de backup.
+Please provide backup targets.,Vă rugăm să furnizați țintele de backup.
+Please provide valid status for backup rule.,Vă rugăm să furnizați un status valid pentru regula de backup.
+Provided backup location couldn't be checked.,Locația de backup furnizată nu a putut fi verificată.
+Please provide a backup rule id.,Vă rugăm să furnizați un ID de regulă de backup.
+Please provide a valid day for backup rule.,Vă rugăm să furnizați o zi validă pentru regulă de backup.
+Suspended,Suspendat
+Log file,Fişierul de log
+Result file,Fişier rezultat
+Backup result details not found in database.,Detaliile rezultatului de backup nu au fost găsite în baza de date.
+Backup result run directory not set.,Directorul de rulare rezultat backup nu este setat.
+Backup result is not pending execution.,Rezultatul backup-ului nu este în așteptarea execuției.
+Backup result is not running.,Rezultatul backup-ului nu rulează.
+Error updating backup result files sizes.,Eroare la actualizarea dimensiunilor fișierelor rezultatelor de backup.
+Cannot obtain backup result files from database.,Nu se pot obține fișierele rezultatelor de backup din baza de date.
+Error updating backup result size.,Eroare la actualizarea dimensiunii rezultatului de backup.
+Error updating backup result files size.,Eroare la actualizarea dimensiunii fișierelor rezultatelor de backup.
+Couldn't unlink result files from result.,Nu s-au putut dezlipi fișierele de rezultat de rezultat.
+Error updating result details from database.,Eroare la actualizarea detaliilor rezultatului din baza de date.
+Error deleting result file.,Eroare la ștergerea fișierului de rezultate.
+No files provided to link to backup result.,Nu au fost furnizate fișiere pentru a fi legate de rezultatul de backup.
+Error un-linking result files from backup result.,Eroare la delink-uirea fișierelor de rezultat din rezultatul de backup.
+Error inserting result file in database.,Eroare la inserarea fișierului de rezultate în baza de date.
+Error editing result file in database.,Eroare la editarea fișierului de rezultate în baza de date.
+Please provide running backup rule directory.,Vă rugăm să furnizați directorul regulii de backup în execuție.
+Please provide backup result rule.,Vă rugăm să furnizați regula rezultatului de backup.
+Error linking result files to backup result.,Eroare la conectarea fișierelor de rezultate la rezultatul de backup.
+Please provide a backup result id for result file.,Vă rugăm să furnizați un ID de rezultat de backup pentru fișierul de rezultate.
+Please provide a backup result file.,Vă rugăm să furnizați un fișier de rezultat de backup.
+Please provide a backup result file target id.,Vă rugăm să furnizați un ID țintă pentru fișierul de rezultat de backup.
+Please provide a backup result file type.,Vă rugăm să furnizați un tip de fișier de rezultat de backup.

@@ -10,8 +10,6 @@ use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\system\core\events\layout\PHS_Event_Layout;
 
 $accounts_plugin_settings = [];
-/** @var PHS_Model_Accounts $accounts_model */
-/** @var PHS_Plugin_Accounts $accounts_plugin */
 if (!($accounts_model = PHS_Model_Accounts::get_instance())
     || !($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
     PHS_Notifications::add_error_notice($this::_t('Couldn\'t load accounts model. Please contact support.'));
@@ -211,7 +209,7 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
 
         echo PHS_Event_Layout::get_buffer(PHS_Event_Layout::ADMIN_TEMPLATE_BEFORE_RIGHT_MENU);
 
-    if (!empty($cuser_arr)) {
+    if ($cuser_arr) {
         ?>
                     <li><p><?php echo $this::_t('Hello %s', $cuser_arr['nick']); ?></p></li>
 
@@ -293,13 +291,16 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
                         $lang_file_url = $lang_details['www'].$lang_details['flag_file'];
                     }
 
-                    $language_flag = '<span style="margin: 0 5px;"><img src="'.$lang_file_url.'" /></span> ';
+                    $language_flag = '<span style="display: inline-grid;margin: 0 5px;"><img src="'.$lang_file_url.'" /></span> ';
                 }
 
                 $language_link = 'javascript:PHS_JSEN.change_language( \''.$lang.'\' )';
 
                 ?>
-                            <li><a href="<?php echo $language_link; ?>"><?php echo $language_flag.$lang_details['title']; ?></a></li>
+                            <li><a href="<?php echo $language_link; ?>"><?php
+                                        echo $language_flag.$lang_details['title']
+                                             .(!empty($lang_details['title_local']) ? ' ('.$lang_details['title_local'].')' : '');
+                ?></a></li>
                             <?php
             }
         ?>
@@ -339,7 +340,7 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
                         </li>
 
                         <?php
-    if (empty($cuser_arr)) {
+    if (!$cuser_arr) {
         ?>
                             <li><a href="<?php echo PHS::url(['p' => 'accounts', 'a' => 'register']); ?>"
                                    onfocus="this.blur();"><?php echo $this::_t('Register'); ?></a>
