@@ -297,7 +297,8 @@ if (empty($action_result['page_settings']['page_only_buffer'])) {
                 $language_link = 'javascript:PHS_JSEN.change_language( \''.$lang.'\' )';
 
                 ?>
-                            <li><a href="<?php echo $language_link; ?>"><?php
+                            <li class="phs_language_<?php echo $lang; ?><?php echo $current_language === $lang ? ' phs_language_selected' : ''; ?>"
+                            ><a href="<?php echo $language_link; ?>"><?php
                                         echo $language_flag.$lang_details['title']
                                              .(!empty($lang_details['title_local']) ? ' ('.$lang_details['title_local'].')' : '');
                 ?></a></li>
