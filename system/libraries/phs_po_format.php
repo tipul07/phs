@@ -1350,7 +1350,7 @@ class PHS_Po_format extends PHS_Registry
         }
 
         if (!$str || mb_strlen($str) <= self::WRAP_LINE_CHARS) {
-            return $prefix.'"'.$str.'"';
+            return $prefix.'"'.self::_escape_po_string($str).'"';
         }
 
         $result_str = '';
@@ -1358,16 +1358,21 @@ class PHS_Po_format extends PHS_Registry
         $words_arr = explode(' ', $str);
         foreach ($words_arr as $word) {
             if (mb_strlen($line_str.' '.$word) > self::WRAP_LINE_CHARS) {
-                $result_str .= ($result_str !== '' ? "\n" : '').'"'.$line_str.'"';
+                $result_str .= ($result_str !== '' ? "\n" : '').'"'.self::_escape_po_string($line_str).'"';
                 $line_str = '';
             }
 
             $line_str .= $word.' ';
         }
 
-        $result_str .= ($result_str !== '' ? "\n" : '').'"'.rtrim($line_str).'"';
+        $result_str .= ($result_str !== '' ? "\n" : '').'"'.self::_escape_po_string(rtrim($line_str)).'"';
 
         return $prefix.($prefix_multiline ? '""'."\n" : '').$result_str;
+    }
+
+    private static function _escape_po_string(string $str) : string
+    {
+        return str_replace('"', '\"', $str);
     }
 
     private static function _generate_po_headers_as_array(string $language = '') : array
