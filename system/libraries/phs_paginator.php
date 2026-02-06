@@ -2344,6 +2344,27 @@ class PHS_Paginator extends PHS_Registry
         ];
     }
 
+    public static function default_manage_action_node(): array
+    {
+        return [
+            'is_bulk_action' => false,
+            'title' => self::_t('Selected'),
+            'texts' => [
+                'action_result' => [
+                    'success' => '%s action run with success.',
+                    'failed' => '%s action failed running.',
+                    // Only for bulk actions
+                    'failed_some' => 'Failed running %s action for all selected records. Records for which action failed are still selected. Please try again.',
+                ],
+                'callback' => [
+                    'nothing_selected' => 'Please select the records first.',
+                    'bulk_confirmation' => 'Are you sure you want to run %s action on %s records?',
+                    'confirmation' => 'Are you sure you want to run %s action?',
+                ],
+            ],
+        ];
+    }
+
     public static function default_bulk_actions_fields() : array
     {
         return [
@@ -2357,5 +2378,14 @@ class PHS_Paginator extends PHS_Registry
             // Should the action be treated in a background job
             'launch_in_background' => false,
         ];
+    }
+
+    public static function _unused_only_for_translations(): void
+    {
+        self::_t('%s action run with success.');
+        self::_t('%s action failed running.');
+        self::_t('Failed running %s action for all selected records. Records for which action failed are still selected. Please try again.');
+        self::_t('Please select the records first.');
+        self::_t('Are you sure you want to run %s action on %s records?');
     }
 }

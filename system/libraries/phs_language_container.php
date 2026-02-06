@@ -515,10 +515,6 @@ class PHS_Language_Container extends PHS_Error
      */
     public function _t(string $index, array $args = []) : string
     {
-        if (empty($args) || !is_array($args)) {
-            $args = [];
-        }
-
         if (!isset($args[0])
             || !$this->valid_language($args[0])) {
             $t_lang = $this->get_current_language();
@@ -544,11 +540,7 @@ class PHS_Language_Container extends PHS_Error
     {
         $lang = self::st_valid_language($lang);
 
-        if (empty($args) || !is_array($args)) {
-            $args = [];
-        }
-
-        if (!empty($lang)
+        if ($lang
             && self::st_get_multi_language_enabled()
             && !$this->_loading_language()
             && (!self::language_loaded($lang)
@@ -557,7 +549,7 @@ class PHS_Language_Container extends PHS_Error
             return $this->get_simple_error_message('Error loading language ['.$lang.']');
         }
 
-        if (!empty($lang)
+        if ($lang
             && isset(self::$LANGUAGE_INDEXES[$lang][$index])
             && self::st_get_multi_language_enabled()) {
             $working_index = self::$LANGUAGE_INDEXES[$lang][$index];
@@ -565,13 +557,13 @@ class PHS_Language_Container extends PHS_Error
             $working_index = $index;
         }
 
-        if (!empty($args)
+        if ($args
             && isset($args[0])
             && $args[0] === false) {
             @array_shift($args);
         }
 
-        if (!empty($args)) {
+        if ($args) {
             // we should replace some %s...
             try {
                 if (($result = @vsprintf($working_index, $args))) {
