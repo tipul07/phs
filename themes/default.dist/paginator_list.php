@@ -152,13 +152,14 @@ if (!empty($bulk_actions)
 			}
 
             let action_func = null;
-			if( typeof phs_paginator_bulk_actions !== "undefined"
-			 && typeof phs_paginator_bulk_actions[bulk_action] !== "undefined"
-			 && typeof phs_paginator_bulk_actions[bulk_action]["js_callback"] !== "undefined" ) {
-                action_func = phs_paginator_bulk_actions[bulk_action]["js_callback"];
+            if (typeof phs_paginator_bulk_actions !== 'undefined'
+                && typeof phs_paginator_bulk_actions[bulk_action] !== 'undefined'
+                && typeof phs_paginator_bulk_actions[bulk_action]['js_callback'] !== 'undefined'
+                && phs_paginator_bulk_actions[bulk_action]['js_callback']) {
+                action_func = phs_paginator_bulk_actions[bulk_action]['js_callback'];
             }
 
-			if( action_func
+            if( action_func
                 && typeof window[action_func] === "function" ) {
                 return eval(action_func + "()");
             }
@@ -626,130 +627,145 @@ if (!function_exists('phs_paginator_display_js_functionality')) {
     function phs_paginator_display_js_functionality(PHS_View $this_object, PHS_Paginator $paginator_obj) : void
     {
         static $js_displayed = false;
-
-        if (empty($js_displayed)) {
-            $js_displayed = true;
-            ?>
-            <script type="text/javascript">
-            function phs_paginator_update_list_checkboxes( checkbox_name, checkbox_name_all )
-            {
-                const checkbox_all_obj = $("#" + checkbox_name_all);
-
-                if( !checkbox_all_obj )
-                    return;
-
-                const should_be_checked = checkbox_all_obj.is(":checked");
-
-                checkbox_all_obj.closest( "form" ).find( "input:checkbox" ).each( function()
-                {
-                    let my_name = $( this ).attr( "name" );
-
-                    if( my_name === checkbox_name + "[]" )
-                    {
-                        $( this ).prop( 'checked', should_be_checked );
-                    }
-                } );
-            }
-
-            function phs_paginator_update_list_all_checkbox( checkbox_id, checkbox_id_all )
-            {
-                const checkbox_all_obj = $("#" + checkbox_id_all);
-                const checkbox_obj = $("#" + checkbox_id);
-
-                if( !checkbox_all_obj || !checkbox_obj )
-                    return;
-
-                const should_be_unchecked = !checkbox_obj.is(":checked");
-
-                if( !should_be_unchecked )
-                    return;
-
-                checkbox_all_obj.prop( "checked", false );
-            }
-
-            function phs_paginator_default_bulk_action( action )
-            {
-                if( !action
-                 || !(action in phs_paginator_bulk_actions) )
-                {
-                    alert( "<?php echo $this_object::_e('Action not defined.', '"'); ?>" );
-                    return false;
-                }
-
-                let action_display_name = "[Not defined]";
-                if( typeof phs_paginator_bulk_actions !== "undefined"
-                 && typeof phs_paginator_bulk_actions[action] !== "undefined"
-                 && typeof phs_paginator_bulk_actions[action]["display_name"] !== "undefined" ) {
-                    action_display_name = phs_paginator_bulk_actions[action]['display_name'];
-                }
-
-                let selected_records = -1;
-                let checkboxes_list = [];
-                if( typeof phs_paginator_bulk_actions !== "undefined"
-                 && typeof phs_paginator_bulk_actions[action] !== "undefined"
-                 && typeof phs_paginator_bulk_actions[action]["checkbox_column"] !== "undefined"
-                 && (checkboxes_list = phs_paginator_get_checkboxes_checked( phs_paginator_bulk_actions[action]["checkbox_column"] )) ) {
-                    selected_records = checkboxes_list.length;
-                }
-
-                let confirm_text = "";
-                if( selected_records === -1 ) {
-                    confirm_text = "<?php echo sprintf($this_object::_e('Are you sure you want to run action %s?', '"'),
-                        '" + action_display_name + "'); ?>";
-                } else {
-                    if( selected_records <= 0 ) {
-                        alert( "<?php echo sprintf($this_object::_e('Please select records for which you want to run action %s first.', '"'),
-                            '" + action_display_name + "'); ?>" );
-                        return false;
-                    }
-
-                    confirm_text = "<?php echo sprintf($this_object::_e('Are you sure you want to run action %s on %s selected records?', '"'),
-                        '" + action_display_name + "', '" + selected_records + "'); ?>";
-                }
-
-                return confirm( confirm_text );
-            }
-
-            function phs_paginator_get_checkboxes( column )
-            {
-                const checkboxes_list = $("input[type='checkbox'][name='<?php echo @sprintf($paginator_obj->get_checkbox_name_format(), '" + column + "'); ?>[]']");
-                if( !checkboxes_list || !checkboxes_list.length ) {
-                    return [];
-                }
-
-                return checkboxes_list;
-            }
-
-            function phs_paginator_get_checkboxes_checked( column )
-            {
-                const checkboxes_list = phs_paginator_get_checkboxes(column);
-                if( !checkboxes_list || !checkboxes_list.length ) {
-                    return [];
-                }
-
-                const list_length = checkboxes_list.length;
-
-                const checkboxes_checked = [];
-                for( let i = 0; i < list_length; i++ ) {
-                    if( $( checkboxes_list[i] ).is( ":checked" ) )
-                        checkboxes_checked.push( checkboxes_list[i] );
-                }
-
-                return checkboxes_checked;
-            }
-
-            function phs_paginator_get_checkboxes_checked_count(column)
-            {
-                let checkboxes_list = phs_paginator_get_checkboxes_checked(column);
-                if( !checkboxes_list || !checkboxes_list.length ) {
-                    return 0;
-                }
-
-                return checkboxes_list.length;
-            }
-            </script>
-            <?php
+        if ($js_displayed) {
+            return;
         }
+
+        $js_displayed = true;
+        ?>
+        <script type="text/javascript">
+        function phs_paginator_update_list_checkboxes( checkbox_name, checkbox_name_all )
+        {
+            const checkbox_all_obj = $("#" + checkbox_name_all);
+
+            if( !checkbox_all_obj ) {
+                return;
+            }
+
+            const should_be_checked = checkbox_all_obj.is(":checked");
+
+            checkbox_all_obj.closest('form').find('input:checkbox').each(function () {
+                let my_name = $(this).attr('name');
+
+                if (my_name === checkbox_name + '[]') {
+                    $(this).prop('checked', should_be_checked);
+                }
+            });
+        }
+
+        function phs_paginator_update_list_all_checkbox( checkbox_id, checkbox_id_all )
+        {
+            const checkbox_all_obj = $("#" + checkbox_id_all);
+            const checkbox_obj = $("#" + checkbox_id);
+
+            if( !checkbox_all_obj || !checkbox_obj ) {
+                return;
+            }
+
+            const should_be_unchecked = !checkbox_obj.is(":checked");
+            if( !should_be_unchecked ) {
+                return;
+            }
+
+            checkbox_all_obj.prop( "checked", false );
+        }
+
+        function phs_paginator_extract_node_from_action(action, node)
+        {
+            let result = null;
+            if (typeof phs_paginator_bulk_actions !== 'undefined'
+                && typeof phs_paginator_bulk_actions[action] !== 'undefined'
+                && typeof phs_paginator_bulk_actions[action][node] !== 'undefined') {
+                result = phs_paginator_bulk_actions[action][node];
+            }
+
+            return result;
+        }
+
+        function phs_paginator_extract_text_from_action(action, text_node)
+        {
+            let result = null;
+            if (typeof phs_paginator_bulk_actions !== 'undefined'
+                && typeof phs_paginator_bulk_actions[action] !== 'undefined'
+                && typeof phs_paginator_bulk_actions[action]['texts'] !== 'undefined'
+                && typeof phs_paginator_bulk_actions[action]['texts'][text_node] !== 'undefined') {
+                result = phs_paginator_bulk_actions[action]['texts'][text_node];
+            }
+
+            return result;
+        }
+
+        function phs_paginator_default_bulk_action( action )
+        {
+            if( !action
+                || !(action in phs_paginator_bulk_actions) ) {
+                alert( "<?php echo $this_object::_e('Action not defined.', '"'); ?>" );
+                return false;
+            }
+
+            const checkbox_column = phs_paginator_extract_node_from_action(action, 'checkbox_column');
+
+            let selected_records = -1;
+            let checkboxes_list = [];
+            if (checkbox_column && (checkboxes_list = phs_paginator_get_checkboxes_checked(checkbox_column))) {
+                selected_records = checkboxes_list.length;
+            }
+
+            if (selected_records === 0) {
+                alert(phs_paginator_extract_text_from_action(action, 'nothing_selected')
+                          ?? "<?php echo $this_object::_e('Please select records for which you want to run the action first.'); ?>");
+                return false;
+            }
+
+            let confirm_text = phs_paginator_extract_text_from_action(action, 'bulk_confirmation')
+                    ?? "<?php echo $this_object::_e('Are you sure you want to run the action on %s selected records?'); ?>";
+
+            if(confirm_text.indexOf('%s') !== -1) {
+                confirm_text = confirm_text.replace('%s', selected_records.toString());
+            }
+
+            return confirm( confirm_text );
+        }
+
+        function phs_paginator_get_checkboxes( column )
+        {
+            const checkboxes_list = $("input[type='checkbox'][name='<?php echo @sprintf($paginator_obj->get_checkbox_name_format(), '" + column + "'); ?>[]']");
+            if( !checkboxes_list || !checkboxes_list.length ) {
+                return [];
+            }
+
+            return checkboxes_list;
+        }
+
+        function phs_paginator_get_checkboxes_checked( column )
+        {
+            const checkboxes_list = phs_paginator_get_checkboxes(column);
+            if( !checkboxes_list || !checkboxes_list.length ) {
+                return [];
+            }
+
+            const list_length = checkboxes_list.length;
+
+            const checkboxes_checked = [];
+            for( let i = 0; i < list_length; i++ ) {
+                if( $( checkboxes_list[i] ).is( ":checked" ) )
+                    checkboxes_checked.push( checkboxes_list[i] );
+            }
+
+            return checkboxes_checked;
+        }
+
+        function phs_paginator_get_checkboxes_checked_count(column)
+        {
+            let checkboxes_list = phs_paginator_get_checkboxes_checked(column);
+            if( !checkboxes_list || !checkboxes_list.length ) {
+                return 0;
+            }
+
+            return checkboxes_list.length;
+        }
+        </script>
+        <?php
     }
 }
 if (!$is_api_scope) {

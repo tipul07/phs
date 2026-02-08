@@ -18,7 +18,8 @@ class PHS_Paginator extends PHS_Registry
 
     public const CELL_RENDER_HTML = 1, CELL_RENDER_TEXT = 2, CELL_RENDER_JSON = 3, CELL_RENDER_CSV = 4, CELL_RENDER_EXCEL = 5;
 
-    // Bulk actions array
+    private array $_actions = [];
+
     private array $_bulk_actions = [];
 
     private array $_export_selection_bulk_action = [];
@@ -359,7 +360,7 @@ class PHS_Paginator extends PHS_Registry
 
     public function set_export_selection_bulk_action(array $action) : array
     {
-        $this->_export_selection_bulk_action = self::validate_array_to_new_array($action, self::default_bulk_actions_fields());
+        $this->_export_selection_bulk_action = self::validate_array_to_new_array($action, self::_default_bulk_actions_fields());
 
         return $this->_export_selection_bulk_action;
     }
@@ -376,7 +377,7 @@ class PHS_Paginator extends PHS_Registry
 
     public function set_export_all_bulk_action(array $action) : array
     {
-        $this->_export_all_bulk_action = self::validate_array_to_new_array($action, self::default_bulk_actions_fields());
+        $this->_export_all_bulk_action = self::validate_array_to_new_array($action, self::_default_bulk_actions_fields());
 
         return $this->_export_all_bulk_action;
     }
@@ -939,17 +940,21 @@ class PHS_Paginator extends PHS_Registry
         }
 
         $new_actions = [];
-        $default_actions_fields = self::default_bulk_actions_fields();
+        $default_actions_fields = self::_default_bulk_actions_fields();
         foreach ($actions_arr as $action) {
-            if (!($new_action = self::validate_array_to_new_array($action, $default_actions_fields))) {
+            if (!($new_action = self::validate_array($action, $default_actions_fields))) {
                 continue;
             }
 
-            if (empty($new_action['action']) || empty($new_action['js_callback'])) {
-                $this->set_error(self::ERR_FILTERS, self::_t('No action or js_callback provided for bulk action %s.', (!empty($new_action['display_name']) ? $new_action['display_name'] : '(???)')));
+            if (empty($new_action['action'])) {
+                $this->set_error(self::ERR_FILTERS,
+                    self::_t('No action or js_callback provided for bulk action %s.',
+                        $new_action['display_name'] ?? '(???)'));
 
                 return null;
             }
+
+            $new_action['checkbox_column'] = $new_action['checkbox_column'] ?: 'id';
 
             $new_actions[] = $new_action;
         }
@@ -957,6 +962,38 @@ class PHS_Paginator extends PHS_Registry
         $this->_bulk_actions = $new_actions;
 
         return $this->_bulk_actions;
+    }
+
+    public function set_actions(array $actions_arr) : bool
+    {
+        $this->_actions = [];
+
+        if (!$actions_arr) {
+            return true;
+        }
+
+        $new_actions = [];
+        $default_actions_fields = self::_default_action_fields();
+        foreach ($actions_arr as $action) {
+            if (!($new_action = self::validate_array_to_new_array($action, $default_actions_fields))) {
+                continue;
+            }
+
+            $new_action['checkbox_column'] = $new_action['checkbox_column'] ?: 'id';
+
+            if (empty($new_action['action'])) {
+                $this->set_error(self::ERR_FILTERS, self::_t('No action provided for action %s.',
+                    $new_action['display_name'] ?? '(???)'));
+
+                return false;
+            }
+
+            $new_actions[] = $new_action;
+        }
+
+        $this->_actions = $new_actions;
+
+        return true;
     }
 
     public function get_bulk_action_select_name() : string
@@ -1842,6 +1879,11 @@ class PHS_Paginator extends PHS_Registry
         return $cell_content;
     }
 
+    public function is_action_bulk_action(array $action_arr) : bool
+    {
+        return (bool)($action_arr['is_bulk'] ?? false);
+    }
+
     public function is_cell_rendering_for_html(array $render_params) : bool
     {
         return (int)($render_params['request_render_type'] ?? 0) === self::CELL_RENDER_HTML;
@@ -2344,28 +2386,51 @@ class PHS_Paginator extends PHS_Registry
         ];
     }
 
-    public static function default_manage_action_node(): array
+    public static function _unused_only_for_translations() : void
+    {
+        self::_t('Selected action run with success.');
+        self::_t('Selected action failed running.');
+        self::_t('Failed running selected action for all provided records. Records for which action failed are still selected. Please try again.');
+        self::_t('Please select the records first.');
+        self::_t('Are you sure you want to run selected action on %s records?');
+        self::_t('Are you sure you want to run selected action?');
+    }
+
+    private static function _default_action_fields() : array
     {
         return [
-            'is_bulk_action' => false,
-            'title' => self::_t('Selected'),
-            'texts' => [
-                'action_result' => [
-                    'success' => '%s action run with success.',
-                    'failed' => '%s action failed running.',
-                    // Only for bulk actions
-                    'failed_some' => 'Failed running %s action for all selected records. Records for which action failed are still selected. Please try again.',
-                ],
-                'callback' => [
-                    'nothing_selected' => 'Please select the records first.',
-                    'bulk_confirmation' => 'Are you sure you want to run %s action on %s records?',
-                    'confirmation' => 'Are you sure you want to run %s action?',
-                ],
+            'is_bulk'     => false,
+            'bulk_action' => [
+                'display_in_top'    => true,
+                'display_in_bottom' => true,
+            ],
+            'action'          => '',
+            'display_name'    => '',
+            'display_icon'    => '',
+            'display_tooltip' => '',
+            'checkbox_column' => '', // defaults to id
+            'js_callback'     => null,
+            // Action to be done on a single record
+            'action_callback' => null,
+            // URL or path where user should be redirected when clicking action icon
+            'action_redirect'         => null,
+            'should_display_callback' => null,
+            'can_run_callback'        => null,
+            // Should the action be treated in a background job
+            'launch_in_background' => false,
+            'texts'                => [
+                'action_success' => 'Selected action run with success.',
+                'action_failed'  => 'Selected action failed running.',
+                // Only for bulk actions
+                'action_failed_some' => 'Failed running selected action for all provided records. Records for which action failed are still selected. Please try again.',
+                'nothing_selected'   => 'Please select the records first.',
+                'bulk_confirmation'  => 'Are you sure you want to run selected action on %s records?',
+                'confirmation'       => 'Are you sure you want to run selected action?',
             ],
         ];
     }
 
-    public static function default_bulk_actions_fields() : array
+    private static function _default_bulk_actions_fields() : array
     {
         return [
             'display_in_top'    => true,
@@ -2378,14 +2443,5 @@ class PHS_Paginator extends PHS_Registry
             // Should the action be treated in a background job
             'launch_in_background' => false,
         ];
-    }
-
-    public static function _unused_only_for_translations(): void
-    {
-        self::_t('%s action run with success.');
-        self::_t('%s action failed running.');
-        self::_t('Failed running %s action for all selected records. Records for which action failed are still selected. Please try again.');
-        self::_t('Please select the records first.');
-        self::_t('Are you sure you want to run %s action on %s records?');
     }
 }

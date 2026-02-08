@@ -22,7 +22,8 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     protected ?PHS_Model $_paginator_model = null;
 
     /**
-     * @return null|array Returns an array with flow_parameters, bulk_actions, filters_arr and columns_arr keys containing arrays with definitions for paginator class
+     * @return null|array Returns an array with flow_parameters, bulk_actions, filters_arr and columns_arr keys
+     *                    containing arrays with definitions for paginator class
      */
     abstract public function load_paginator_params() : ?array;
 
@@ -176,13 +177,16 @@ abstract class PHS_Action_Generic_list extends PHS_Action
                 $errors_arr = array_merge($errors_arr, PHS_Notifications::notifications_warnings());
             }
 
-            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Errors in pagination bootstrap: ', implode('; ', $errors_arr) ?: 'N/A'));
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                self::_t('Errors in pagination bootstrap: ',
+                    implode('; ', $errors_arr) ?: 'N/A'));
 
             return null;
         }
 
         if ($this->_paginator === null) {
-            $this->set_error(self::ERR_FUNCTIONALITY, self::_t('No paginator instancee after bootstrap.'));
+            $this->set_error(self::ERR_FUNCTIONALITY,
+                self::_t('No paginator instancee after bootstrap.'));
 
             return null;
         }
@@ -290,7 +294,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         }
 
         if (!($paginator_params = $this->load_paginator_params())
-            || !($paginator_params = self::validate_array_recursive($paginator_params, $this->default_paginator_params()))
+            || !($paginator_params = $this->_validate_paginator_params($paginator_params))
             // Complain about base_url not set only if we are not forced to return an action result already
             || (empty($paginator_params['base_url']) && empty($paginator_params['force_action_result']))) {
             if ($this->has_error()) {
@@ -344,14 +348,19 @@ abstract class PHS_Action_Generic_list extends PHS_Action
                 && !$this->_paginator->set_filters($paginator_params['filters_arr']))
             || (!empty($this->_paginator_model)
                 && !$this->_paginator->set_model($this->_paginator_model))
+            || ((!empty($paginator_params['actions']) && is_array($paginator_params['actions'])
+                 && !$this->_paginator->set_actions($paginator_params['actions'])))
             || (((!empty($paginator_params['bulk_actions']) && is_array($paginator_params['bulk_actions']))
                  || $paginator_params['export_actions'])
-                && null === $this->_paginator->set_bulk_actions($paginator_params['bulk_actions'], $paginator_params['export_actions'] ?: [])
-            )
+                && null === $this->_paginator->set_bulk_actions($paginator_params['bulk_actions'], $paginator_params['export_actions'] ?: []))
         ) {
+            if ($this->_paginator->has_error()) {
+                PHS_Notifications::add_warning_notice($this->_paginator->get_simple_error_message(self::_t('Couldn\'t initialize paginator class.')));
+            }
+
             $init_went_ok = false;
         } elseif (!$this->we_initialized_paginator()) {
-            PHS_Notifications::add_error_notice($this->get_simple_error_message(self::_t('Couldn\'t initialize paginator class.')));
+            PHS_Notifications::add_error_notice($this->get_simple_error_message(self::_t('Couldn\'t setup paginator class.')));
 
             return self::default_action_result();
         }
@@ -651,6 +660,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             'base_url'        => '',
             'flow_parameters' => [],
             'bulk_actions'    => [],
+            'actions'         => [],
             'export_actions'  => [
                 'enabled'          => false,
                 'export_selection' => [
@@ -670,5 +680,31 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             // an action result array or null
             'force_action_result' => null,
         ];
+    }
+
+    private function _validate_paginator_params(array $paginator_params) : array
+    {
+        $paginator_params = self::validate_array_recursive($paginator_params, $this->default_paginator_params());
+
+        if (($actions_arr = $paginator_params['actions'] ?? [])
+           && is_array($actions_arr)) {
+            $new_bulk_actions = $paginator_params['bulk_actions'] ?? [];
+            $new_actions = [];
+            foreach ($actions_arr as $action_arr) {
+                $action_arr['checkbox_column'] = ($action_arr['checkbox_column'] ?? '') ?: 'id';
+
+                if ($action_arr['is_bulk'] ?? false) {
+                    $new_bulk_actions[] = $action_arr;
+                    continue;
+                }
+
+                $new_actions[] = $action_arr;
+            }
+
+            $paginator_params['actions'] = $new_actions;
+            $paginator_params['bulk_actions'] = $new_bulk_actions;
+        }
+
+        return $paginator_params;
     }
 }
