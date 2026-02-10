@@ -59,8 +59,11 @@ class PHS_Paginator extends PHS_Registry
 
     private readonly ?PHS_Action_Generic_list $_paginator_action;
 
-    public function __construct(?string $base_url = null, ?array $flow_params = null, ?PHS_Action_Generic_list $action_list = null)
-    {
+    public function __construct(
+        ?string $base_url = null,
+        ?array $flow_params = null,
+        ?PHS_Action_Generic_list $action_list = null
+    ) {
         parent::__construct();
 
         $this->reset_paginator();
@@ -115,13 +118,13 @@ class PHS_Paginator extends PHS_Registry
             'page_index'            => 0,
             'list_index'            => 0,
             'columns_count'         => 0,
-            'record'                => false,
-            'column'                => false,
-            'table_field'           => false,
+            'record'                => null,
+            'column'                => [],
+            'table_field'           => null,
             'preset_content'        => '',
             'model_obj'             => null,
             'paginator_obj'         => null,
-            'extra_callback_params' => false,
+            'extra_callback_params' => null,
             'for_scope'             => false,
         ];
     }
@@ -360,7 +363,7 @@ class PHS_Paginator extends PHS_Registry
 
     public function set_export_selection_bulk_action(array $action) : array
     {
-        $this->_export_selection_bulk_action = self::validate_array_to_new_array($action, self::_default_bulk_actions_fields());
+        $this->_export_selection_bulk_action = self::validate_array_to_new_array($action, self::_default_action_fields());
 
         return $this->_export_selection_bulk_action;
     }
@@ -377,7 +380,7 @@ class PHS_Paginator extends PHS_Registry
 
     public function set_export_all_bulk_action(array $action) : array
     {
-        $this->_export_all_bulk_action = self::validate_array_to_new_array($action, self::_default_bulk_actions_fields());
+        $this->_export_all_bulk_action = self::validate_array_to_new_array($action, self::_default_action_fields());
 
         return $this->_export_all_bulk_action;
     }
@@ -763,7 +766,7 @@ class PHS_Paginator extends PHS_Registry
             // in case we want a special display for this cell
             'display_callback' => null,
             // Extra parameters to be sent to display callback (if display_callback is present)
-            'extra_callback_params' => false,
+            'extra_callback_params' => null,
             // in case field is a date what format should the date be displayed in?
             'date_format' => '',
             // What should be displayed if value in column is not something valid
@@ -940,23 +943,35 @@ class PHS_Paginator extends PHS_Registry
         }
 
         $new_actions = [];
-        $default_actions_fields = self::_default_bulk_actions_fields();
-        foreach ($actions_arr as $action) {
-            if (!($new_action = self::validate_array($action, $default_actions_fields))) {
+        $default_fields = self::_default_action_fields();
+        foreach ($actions_arr as $action_name => $action) {
+
+            // Backwards compatibitity
+            if(isset($action['display_in_top'])) {
+                $action['bulk_action']['display_in_top'] = !empty($action['display_in_top']);
+                unset($action['display_in_top']);
+            }
+            if(isset($action['display_in_bottom'])) {
+                $action['bulk_action']['display_in_bottom'] = !empty($action['display_in_bottom']);
+                unset($action['display_in_bottom']);
+            }
+
+            $action['checkbox_column'] = $action['checkbox_column'] ?: 'id';
+            $action['action'] = $action['action'] ?? $action_name;
+
+            if (!($new_action = self::validate_array_recursive($action, $default_fields))) {
                 continue;
             }
 
             if (empty($new_action['action'])) {
                 $this->set_error(self::ERR_FILTERS,
-                    self::_t('No action or js_callback provided for bulk action %s.',
-                        $new_action['display_name'] ?? '(???)'));
+                    self::_t('No action provided for bulk action %s.', $new_action['display_name'] ?? '(???)')
+                );
 
                 return null;
             }
 
-            $new_action['checkbox_column'] = $new_action['checkbox_column'] ?: 'id';
-
-            $new_actions[] = $new_action;
+            $new_actions[$new_action['action']] = $new_action;
         }
 
         $this->_bulk_actions = $new_actions;
@@ -974,21 +989,22 @@ class PHS_Paginator extends PHS_Registry
 
         $new_actions = [];
         $default_actions_fields = self::_default_action_fields();
-        foreach ($actions_arr as $action) {
-            if (!($new_action = self::validate_array_to_new_array($action, $default_actions_fields))) {
+        foreach ($actions_arr as $action_name => $action) {
+            if (!($new_action = self::validate_array_to_new_array_recursive($action, $default_actions_fields))) {
                 continue;
             }
 
             $new_action['checkbox_column'] = $new_action['checkbox_column'] ?: 'id';
+            $new_action['action'] = $new_action['action'] ?? $action_name;
 
-            if (empty($new_action['action'])) {
+            if (!$new_action['action']) {
                 $this->set_error(self::ERR_FILTERS, self::_t('No action provided for action %s.',
                     $new_action['display_name'] ?? '(???)'));
 
                 return false;
             }
 
-            $new_actions[] = $new_action;
+            $new_actions[$new_action['action']] = $new_action;
         }
 
         $this->_actions = $new_actions;
@@ -1010,9 +1026,14 @@ class PHS_Paginator extends PHS_Registry
         $this->_bulk_actions = [];
     }
 
-    public function get_bulk_actions() : array
+    public function get_bulk_actions(string $action_name = null) : array
     {
-        return $this->_bulk_actions;
+        return $action_name === null ? $this->_bulk_actions : ($this->_bulk_actions[$action_name] ?? []);
+    }
+
+    public function get_actions(string $action_name = null) : array
+    {
+        return $action_name === null ? $this->_actions : ($this->_actions[$action_name] ?? []);
     }
 
     public function get_bulk_action_details(array $action) : ?array
@@ -1079,7 +1100,7 @@ class PHS_Paginator extends PHS_Registry
 
     public function get_current_action() : array
     {
-        if (empty($this->_action)) {
+        if (!$this->_action) {
             $this->extract_action_from_request();
         }
 
@@ -1279,9 +1300,9 @@ class PHS_Paginator extends PHS_Registry
         $cell_render_params['page_index'] = 0;
         $cell_render_params['list_index'] = 0;
         $cell_render_params['columns_count'] = count($columns_arr);
-        $cell_render_params['record'] = false;
-        $cell_render_params['column'] = false;
-        $cell_render_params['table_field'] = false;
+        $cell_render_params['record'] = null;
+        $cell_render_params['column'] = [];
+        $cell_render_params['table_field'] = null;
         $cell_render_params['preset_content'] = '';
         $cell_render_params['model_obj'] = $this->get_model();
         $cell_render_params['paginator_obj'] = $this;
@@ -1333,7 +1354,7 @@ class PHS_Paginator extends PHS_Registry
             $cell_render_params['page_index'] = $record_count;
             $cell_render_params['list_index'] = $record_count;
             $cell_render_params['record'] = $db_record_arr;
-            $cell_render_params['table_field'] = false;
+            $cell_render_params['table_field'] = null;
             $cell_render_params['preset_content'] = '';
 
             $record_arr = [];
@@ -1752,7 +1773,6 @@ class PHS_Paginator extends PHS_Registry
 
     public function render_column_for_record(array $render_params)
     {
-        $render_params ??= [];
         $render_params['for_scope'] = (int)($render_params['for_scope'] ?? 0);
 
         if (empty($render_params['request_render_type'])
@@ -1768,42 +1788,32 @@ class PHS_Paginator extends PHS_Registry
         $column_arr = $render_params['column'];
         $record_arr = $render_params['record'];
 
-        if (!($model_obj = $this->get_model())) {
-            $model_obj = null;
-        }
-
-        if (!($field_name = $this->get_column_name($column_arr, $render_params['for_scope']))) {
-            $field_name = false;
-        }
-
-        $field_exists_in_record = false;
-        if (!empty($field_name)
-        && array_key_exists($field_name, $record_arr)) {
-            $field_exists_in_record = true;
-        }
+        $model_obj = $this->get_model();
+        $field_name = $this->get_column_name($column_arr, $render_params['for_scope']);
+        $field_exists_in_record = $field_name && array_key_exists($field_name, $record_arr);
 
         $cell_content = null;
         if (empty($column_arr['record_field'])
-        && empty($column_arr['record_db_field'])
-        && empty($column_arr['record_api_field'])
-        && empty($column_arr['display_callback'])) {
+            && empty($column_arr['record_db_field'])
+            && empty($column_arr['record_api_field'])
+            && empty($column_arr['display_callback'])) {
             $cell_content = '!'.self::_t('Bad column setup').'!';
         } elseif ($render_params['for_scope'] !== PHS_Scope::SCOPE_API
-             || empty($field_exists_in_record)) {
+                  || !$field_exists_in_record) {
             if (!empty($column_arr['display_key_value'])
-            && is_array($column_arr['display_key_value'])
-            && !empty($field_name)
-            && isset($record_arr[$field_name])) {
+                && is_array($column_arr['display_key_value'])
+                && $field_name
+                && isset($record_arr[$field_name])) {
                 if (isset($column_arr['display_key_value'][$record_arr[$field_name]])) {
                     $cell_content = $column_arr['display_key_value'][$record_arr[$field_name]];
                 } elseif ($column_arr['invalid_value'] !== null) {
                     $cell_content = $column_arr['invalid_value'];
                 }
-            } elseif (!empty($model_obj)
-                && !empty($field_name)
-                && $field_exists_in_record
-                && ($field_details = $model_obj->table_field_details($field_name))
-                && is_array($field_details)) {
+            } elseif ($model_obj
+                      && $field_name
+                      && $field_exists_in_record
+                      && ($field_details = $model_obj->table_field_details($field_name))
+                      && is_array($field_details)) {
                 switch ($field_details['type']) {
                     case $model_obj::FTYPE_DATETIME:
                     case $model_obj::FTYPE_DATE:
@@ -1815,14 +1825,14 @@ class PHS_Paginator extends PHS_Registry
                         } elseif (!empty($column_arr['date_format'])) {
                             $cell_content = @date($column_arr['date_format'], parse_db_date($record_arr[$field_name]));
                         }
-                        break;
+                    break;
                 }
             }
         }
 
         if ($cell_content === null
-        && !empty($field_name)
-        && $field_exists_in_record) {
+            && $field_name
+            && $field_exists_in_record) {
             $cell_content = $record_arr[$field_name] ?? $column_arr['invalid_value'] ?? '';
         }
 
@@ -1831,17 +1841,17 @@ class PHS_Paginator extends PHS_Registry
             if (!@is_callable($column_arr['display_callback'])) {
                 $cell_content = '!'.self::_t('Cell callback failed.').'!';
             } else {
-                if (empty($field_name)
-                 || !$field_exists_in_record
-                 || !($field_details = $model_obj->table_field_details($field_name))
-                 || !is_array($field_details)) {
+                if (!$field_name
+                    || !$field_exists_in_record
+                    || !($field_details = $model_obj->table_field_details($field_name))
+                    || !is_array($field_details)) {
                     $field_details = false;
                 }
 
                 $cell_callback_params = $render_params;
                 $cell_callback_params['table_field'] = $field_details;
                 $cell_callback_params['preset_content'] = ($cell_content ?? '');
-                $cell_callback_params['extra_callback_params'] = (!empty($column_arr['extra_callback_params']) ? $column_arr['extra_callback_params'] : false);
+                $cell_callback_params['extra_callback_params'] = $column_arr['extra_callback_params'] ?? null;
 
                 if (($cell_content = @call_user_func($column_arr['display_callback'], $cell_callback_params)) === false
                     || $cell_content === null) {
@@ -1884,6 +1894,16 @@ class PHS_Paginator extends PHS_Registry
         return (bool)($action_arr['is_bulk'] ?? false);
     }
 
+    public function is_bulk_action_name(string $action_name) : bool
+    {
+        return isset($this->_bulk_actions[$action_name]);
+    }
+
+    public function should_launch_bulk_action_in_background(string $action_name) : bool
+    {
+        return (bool)($this->_bulk_actions[$action_name]['launch_in_background'] ?? false);
+    }
+
     public function is_cell_rendering_for_html(array $render_params) : bool
     {
         return (int)($render_params['request_render_type'] ?? 0) === self::CELL_RENDER_HTML;
@@ -1909,6 +1929,20 @@ class PHS_Paginator extends PHS_Registry
         return (int)($render_params['request_render_type'] ?? 0) === self::CELL_RENDER_EXCEL;
     }
 
+    public function display_action_icon(array $action, array $render_params) : string
+    {
+        if (!($buffer = $this->render_template('paginator_action_icon',
+            ['action' => $action, 'render_params' => $render_params]))
+        ) {
+            var_dump($this->get_error(), $buffer);
+            $buffer = PHS_Scope::current_scope() === PHS_Scope::SCOPE_API
+                ? ''
+                : self::_t('Error rendering action icon %s.', $action['action'] ?? 'N/A');
+        }
+
+        return $buffer;
+    }
+
     public function get_filters_result() : string | array
     {
         if (empty($this->_originals)) {
@@ -1916,11 +1950,9 @@ class PHS_Paginator extends PHS_Registry
         }
 
         if (!($filters_buffer = $this->render_template('paginator_filters'))) {
-            if (PHS_Scope::current_scope() === PHS_Scope::SCOPE_API) {
-                $filters_buffer = [];
-            } else {
-                $filters_buffer = self::_t('Error obtaining filters buffer.').' - '.$this->get_simple_error_message();
-            }
+            $filters_buffer = PHS_Scope::current_scope() === PHS_Scope::SCOPE_API
+                ? []
+                : self::_t('Error obtaining filters buffer.').' - '.$this->get_simple_error_message();
         }
 
         return $filters_buffer;
@@ -2386,16 +2418,6 @@ class PHS_Paginator extends PHS_Registry
         ];
     }
 
-    public static function _unused_only_for_translations() : void
-    {
-        self::_t('Selected action run with success.');
-        self::_t('Selected action failed running.');
-        self::_t('Failed running selected action for all provided records. Records for which action failed are still selected. Please try again.');
-        self::_t('Please select the records first.');
-        self::_t('Are you sure you want to run selected action on %s records?');
-        self::_t('Are you sure you want to run selected action?');
-    }
-
     private static function _default_action_fields() : array
     {
         return [
@@ -2410,12 +2432,17 @@ class PHS_Paginator extends PHS_Registry
             'display_tooltip' => '',
             'checkbox_column' => '', // defaults to id
             'js_callback'     => null,
-            // Action to be done on a single record
-            'action_callback' => null,
+            'callbacks' => [
+                'action' => null,
+                // For simple actions. Should action icon be displayed for current record
+                'should_display' => null,
+                // For simple actions. Should action run for current record
+                'can_run' => null,
+                // For simple actions. Return a string (URL) where user will be redirected
+                'redirect_url' => null,
+            ],
             // URL or path where user should be redirected when clicking action icon
             'action_redirect'         => null,
-            'should_display_callback' => null,
-            'can_run_callback'        => null,
             // Should the action be treated in a background job
             'launch_in_background' => false,
             'texts'                => [
@@ -2430,18 +2457,13 @@ class PHS_Paginator extends PHS_Registry
         ];
     }
 
-    private static function _default_bulk_actions_fields() : array
+    private static function _unused_only_for_translations() : void
     {
-        return [
-            'display_in_top'    => true,
-            'display_in_bottom' => true,
-            'display_name'      => '',
-            'action'            => '',
-            'js_callback'       => '',
-            // name of column which holds the checkboxes that matter for this bulk action ('record_field'/'record_db_field' key in columns array)
-            'checkbox_column' => '',
-            // Should the action be treated in a background job
-            'launch_in_background' => false,
-        ];
+        self::_t('Selected action run with success.');
+        self::_t('Selected action failed running.');
+        self::_t('Failed running selected action for all provided records. Records for which action failed are still selected. Please try again.');
+        self::_t('Please select the records first.');
+        self::_t('Are you sure you want to run selected action on %s records?');
+        self::_t('Are you sure you want to run selected action?');
     }
 }

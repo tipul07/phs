@@ -1,0 +1,62 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Please wait...,Aşteptaţi...
+Message,Mesaj
+Changing language... Please wait.,Schimbăm limba... Aşteptaţi.
+Error changing language. Please retry.,Eroare la schimbarea limbii. Încercaţi din nou.
+Error ontaining dialogue body. Please try again.,Eroare la obținerea conținutului dialogului. Încercați din nou.
+Clear filter,Curăţă filtrele
+Show filters,Arată filtre
+No %s found with specified filters.,Nu există %s in baza de date cu filtrele precizate.
+No %s found in database.,Nu există %s in baza de date.
+Next page,Pagina următoare
+Are you sure you want to run action %s?,Sunteţi sigur că doriţi rularea acţiunii %s?
+Are you sure you want to run action %s on %s selected records?,Sunteţi sigur că doriţi să rulaţi acțiunea %s pentru %s înregistrări?
+Couldn't load accounts model. Please contact support.,Nu am putut încărca modelul accounts. Vă rugăm să contactați asistența.
+Choose language,Alege limba
+Site Index,Index
+Login,Logare
+Logout,Ieşire
+No filters set.,Nu este setat nici un filtru.
+ - Bulk Actions - , - Acţiuni - 
+%s per page,%s pe pagină
+Action not defined.,Acțiunea nu este definită.
+Loading...,Se încarcă...
+Admin Menu,Meniu Admin
+Contact Us,Contactaţi-ne
+Send Message,Trimite Mesaj
+"Displaying %s / %s %s, page %s / %s, %s per page.","Afişare %s/%s %s, pagina %s/%s, %s pe pagină."
+Select language,Selectare limbă
+Username,Username
+Email,Email
+Validation code,Cod de validare
+Password,Parola
+Remember Me,Tine-mă minte
+Register,Înregistrare
+Filter,Filtrează
+Loading,Încărcare
+True,Adevărat
+False,Fals
+Hide Filters,Ascunde Filtre
+Current filters,Filtre curente
+Please choose an action first.,Alegeți o acţiune mai întâi.
+Apply,Aplică
+Previous page,Pagina anterioară
+Terms and Conditions,Termeni şi condiţii
+All rights reserved.,Toate drepturile rezervate.
+Home,Acasă
+Change language,Schimbă limba
+Page not found,Nu am găsit pagina
+Unknown value.,Valoare necunoscută.
+Render after filters call failed.,Randarea după apel de filtre a eşuat.
+Change Password,Schimbă parola
+Edit Profile,Editare Profil
+Forgot Password,Parola Uitată
+Keep filters opened,Ţine filtrele deschise
+Hello %s,Bună %s
+Error,Eroare
+Subject,Subiect
+Failed rendering cell,Eroare la randarea celulei
+Error obtaining dialogue body. Please try again.,Eroare la obținerea conținutului dialogului. Încercați din nou.
+TFA Settings,Setări TFA

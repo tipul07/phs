@@ -57,12 +57,6 @@ abstract class PHS_Action_Generic_list extends PHS_Action
                && in_array($action['action'], $this->get_internal_actions(), true);
     }
 
-    public function should_launch_bulk_action_in_background(array $action) : bool
-    {
-        return ($action_arr = $this->_paginator->get_bulk_action_details($action))
-               && !empty($action_arr['launch_in_background']);
-    }
-
     // Do any actions required immediately after paginator was instantiated
     public function we_have_paginator() : bool
     {
@@ -224,7 +218,9 @@ abstract class PHS_Action_Generic_list extends PHS_Action
                         PHS_Notifications::add_error_notice($this->get_simple_error_message());
                     }
                 } elseif (!empty($pagination_action_result['action'])) {
-                    $pagination_action_result = self::validate_array($pagination_action_result, $this->_paginator->default_action_params());
+                    $pagination_action_result = self::validate_array(
+                        $pagination_action_result, $this->_paginator->default_action_params()
+                    );
 
                     $url_params = [
                         'action' => $pagination_action_result,
@@ -232,8 +228,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
 
                     if (!empty($pagination_action_result['action_redirect_url_params'])
                         && is_array($pagination_action_result['action_redirect_url_params'])) {
-                        $url_params = self::merge_array_assoc($pagination_action_result['action_redirect_url_params'],
-                            $url_params);
+                        $url_params = self::merge_array_assoc($pagination_action_result['action_redirect_url_params'], $url_params);
                     }
 
                     return action_redirect($this->_paginator->get_full_url($url_params));
@@ -368,6 +363,11 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         return $init_went_ok;
     }
 
+    protected function _default_manage_action(array $action) : null | bool | array
+    {
+        return $this->manage_action($action);
+    }
+
     protected function _manage_paginator_action(array $action) : null | bool | array
     {
         $this->reset_error();
@@ -377,8 +377,8 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         }
 
         if (!$this->is_internal_bulk_action($action)
-           || !$this->_paginator->has_export_bulk_actions()) {
-            if ($this->should_launch_bulk_action_in_background($action)) {
+            || !$this->_paginator->has_export_bulk_actions()) {
+            if ($this->_paginator->should_launch_bulk_action_in_background($action['action'])) {
                 if (!PHS::are_we_in_a_background_thread()) {
                     return $this->_launch_bulk_action_in_background($action);
                 }
@@ -386,7 +386,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
                 return $this->_paginator->default_action_params();
             }
 
-            return $this->manage_action($action);
+            return $this->_default_manage_action($action);
         }
 
         $start_export_action = $action['action'] === self::ACTION_EXPORT_SELECTED
@@ -682,6 +682,21 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         ];
     }
 
+    public function _default_display_actions(array $render_params): ?string
+    {
+        if(!($actions_arr = $this->_paginator->get_actions())
+           || !$this->_paginator->is_cell_rendering_for_html($render_params)) {
+            return '';
+        }
+
+        $buffer = '';
+        foreach($actions_arr as $action_arr) {
+            $buffer .= $this->_paginator->display_action_icon($action_arr, $render_params);
+        }
+
+        return $buffer;
+    }
+
     private function _validate_paginator_params(array $paginator_params) : array
     {
         $paginator_params = self::validate_array_recursive($paginator_params, $this->default_paginator_params());
@@ -690,15 +705,16 @@ abstract class PHS_Action_Generic_list extends PHS_Action
            && is_array($actions_arr)) {
             $new_bulk_actions = $paginator_params['bulk_actions'] ?? [];
             $new_actions = [];
-            foreach ($actions_arr as $action_arr) {
+            foreach ($actions_arr as $action_name => $action_arr) {
                 $action_arr['checkbox_column'] = ($action_arr['checkbox_column'] ?? '') ?: 'id';
+                $action_arr['action'] = ($action_arr['action'] ?? $action_name) ?: $action_name;
 
                 if ($action_arr['is_bulk'] ?? false) {
-                    $new_bulk_actions[] = $action_arr;
+                    $new_bulk_actions[$action_name] = $action_arr;
                     continue;
                 }
 
-                $new_actions[] = $action_arr;
+                $new_actions[$action_name] = $action_arr;
             }
 
             $paginator_params['actions'] = $new_actions;
