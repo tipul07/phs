@@ -272,6 +272,78 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         return $this->quick_render_template('paginator_default_template', $data);
     }
 
+    public function default_manage_action(array $action) : null | bool | array
+    {
+        if (empty($action['action'])
+           || !($action_arr = $this->_paginator->get_actions($action['action']))) {
+            return $this->manage_action($action);
+        }
+
+        if (!empty($action['action_result'])) {
+            if ($action['action_result'] === 'success') {
+                PHS_Notifications::add_success_notice(
+                    $action_arr['texts']['action_success'] ?? self::_t('Selected action run with success.')
+                );
+            } elseif ($action['action_result'] === 'failed') {
+                PHS_Notifications::add_error_notice(
+                    $action_arr['texts']['action_failed'] ?? self::_t('Selected action failed running.')
+                );
+            } elseif ($action['action_result'] === 'failed_some') {
+                PHS_Notifications::add_error_notice(
+                    $action_arr['texts']['action_failed_some'] ?? self::_t('Failed running selected action for all provided records. Records for which action failed are still selected. Please try again.')
+                );
+            }
+
+            return true;
+        }
+
+        if (!($callback = $action_arr['callbacks']['action'] ?? null)) {
+            PHS_Notifications::add_error_notice(
+                self::_t('No callback function provided for action %s.', $action_arr['action'] ?? 'N/A')
+            );
+
+            return true;
+        }
+
+        $action_result_params = $this->_paginator->default_action_params();
+        $action_result_params['action'] = $action['action'];
+
+        if ($this->_paginator->is_action_bulk_action($action_arr)) {
+            if (null === ($action_result_params = $this->_manage_bulk_action($action_arr))) {
+                return true;
+            }
+        } elseif (empty($action['action_params'])
+                 || !$callback($action['action_params'])) {
+            $action_result_params['action_result'] = 'failed';
+        } else {
+            $action_result_params['action_result'] = 'success';
+        }
+
+        return $action_result_params;
+    }
+
+    public function _default_display_actions(array $render_params) : ?string
+    {
+        if (!($actions_arr = $this->_paginator->get_actions())
+           || !$this->_paginator->is_cell_rendering_for_html($render_params)) {
+            return '';
+        }
+
+        $record_arr = $render_params['record'] ?? null;
+
+        $buffer = '';
+        foreach ($actions_arr as $action_arr) {
+            if ((($callback = $action_arr['callbacks']['should_display'] ?? null) && !$callback($record_arr))
+               || (($callback = $action_arr['callbacks']['can_run'] ?? null) && !$callback($record_arr))) {
+                continue;
+            }
+
+            $buffer .= $this->_paginator->display_action_icon($action_arr, $render_params);
+        }
+
+        return $buffer;
+    }
+
     protected function _bootstrap_paginator() : bool | array
     {
         $this->reset_error();
@@ -363,11 +435,6 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         return $init_went_ok;
     }
 
-    protected function _default_manage_action(array $action) : null | bool | array
-    {
-        return $this->manage_action($action);
-    }
-
     protected function _manage_paginator_action(array $action) : null | bool | array
     {
         $this->reset_error();
@@ -386,7 +453,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
                 return $this->_paginator->default_action_params();
             }
 
-            return $this->_default_manage_action($action);
+            return $this->default_manage_action($action);
         }
 
         $start_export_action = $action['action'] === self::ACTION_EXPORT_SELECTED
@@ -682,19 +749,58 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         ];
     }
 
-    public function _default_display_actions(array $render_params): ?string
+    private function _manage_bulk_action(array $action_arr) : ?array
     {
-        if(!($actions_arr = $this->_paginator->get_actions())
-           || !$this->_paginator->is_cell_rendering_for_html($render_params)) {
-            return '';
+        $action_result_params = $this->_paginator->default_action_params();
+
+        if (!($scope_arr = $this->_paginator->get_scope())
+            || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
+            || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
+            || !($scope_key = @sprintf($ids_checkboxes_name, 'id'))
+            || !($scope_all_key = @sprintf($ids_all_checkbox_name, 'id'))
+            || empty($scope_arr[$scope_key])
+            || !is_array($scope_arr[$scope_key])) {
+            return null;
         }
 
-        $buffer = '';
-        foreach($actions_arr as $action_arr) {
-            $buffer .= $this->_paginator->display_action_icon($action_arr, $render_params);
+        $remaining_ids_arr = [];
+        if (!($callback = $action_arr['callbacks']['action'] ?? null)) {
+            PHS_Notifications::add_error_notice(
+                self::_t('No callback function provided for action %s.', $action_arr['action'] ?? 'N/A')
+            );
+
+            return null;
         }
 
-        return $buffer;
+        foreach ($scope_arr[$scope_key] as $record_id) {
+            if (!$callback($record_id)) {
+                $remaining_ids_arr[] = $record_id;
+            }
+        }
+
+        if (isset($scope_arr[$scope_all_key])) {
+            unset($scope_arr[$scope_all_key]);
+        }
+
+        if (!$remaining_ids_arr) {
+            $action_result_params['action_result'] = 'success';
+
+            unset($scope_arr[$scope_key]);
+
+            $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
+        } else {
+            if (count($remaining_ids_arr) !== count($scope_arr[$scope_key])) {
+                $action_result_params['action_result'] = 'failed_some';
+            } else {
+                $action_result_params['action_result'] = 'failed';
+            }
+
+            $scope_arr[$scope_key] = implode(',', $remaining_ids_arr);
+
+            $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
+        }
+
+        return $action_result_params;
     }
 
     private function _validate_paginator_params(array $paginator_params) : array

@@ -17,26 +17,28 @@ if (!$record_arr || !is_array($record_arr)) {
 }
 
 $redirect_url = null;
-if(($redirect_callback = $action['callbacks']['redirect_url'] ?? null)) {
+if (($redirect_callback = $action['callbacks']['redirect_url'] ?? null)) {
     $redirect_url = $redirect_callback($record_arr);
 }
 
 $tooltip = $action['display_tooltip'] ?? '';
 $icon = $action['display_icon'] ?? '';
 
-if($tooltip) {
+if ($tooltip) {
     $tooltip = ' title="'.$tooltip.'"';
 }
-?><a <?php
-if($redirect_url) {
-     ?>href="<?php echo $redirect_url?>" onclick="this.blur()"<?php
+?>
+<a <?php
+if ($redirect_url) {
+    ?>href="<?php echo $redirect_url; ?>" onclick="this.blur()"<?php
 } else {
-    ?>href="javascript:void(0)" onclick="this.blur();phs_numerge_inca( '<?php echo $record_arr['id'] ?? '';?>' )"<?php
+    ?>href="javascript:void(0)" onclick="this.blur();phs_paginator_default_action('<?php echo $action['action'] ?? ''; ?>', '<?php echo $record_arr['id'] ?? ''; ?>')"<?php
 }
 ?>><?php
-if($icon) {
-    ?><i class="fa <?php echo $icon;?> action-icons"<?php echo $tooltip?>></i><?php
+if ($icon) {
+    ?><i class="fa <?php echo $icon; ?> action-icons"<?php echo $tooltip; ?>></i><?php
 } else {
-    ?><span<?php echo $tooltip?>><?php echo $tooltip?></span><?php
+    ?><span<?php echo $tooltip; ?>><?php echo $tooltip; ?></span><?php
 }
 ?></a>
+<?php

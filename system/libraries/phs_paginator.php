@@ -106,8 +106,11 @@ class PHS_Paginator extends PHS_Registry
     public function default_others_render_call_params() : array
     {
         return [
-            'columns' => [],
-            'filters' => [],
+            'request_render_type' => (PHS_Scope::current_scope() !== PHS_Scope::SCOPE_API)
+                ? self::CELL_RENDER_HTML
+                : self::CELL_RENDER_JSON,
+            'columns' => $this->get_columns_for_scope() ?: [],
+            'filters' => $this->get_filters() ?: [],
         ];
     }
 
@@ -945,19 +948,18 @@ class PHS_Paginator extends PHS_Registry
         $new_actions = [];
         $default_fields = self::_default_action_fields();
         foreach ($actions_arr as $action_name => $action) {
-
             // Backwards compatibitity
-            if(isset($action['display_in_top'])) {
+            if (isset($action['display_in_top'])) {
                 $action['bulk_action']['display_in_top'] = !empty($action['display_in_top']);
                 unset($action['display_in_top']);
             }
-            if(isset($action['display_in_bottom'])) {
+            if (isset($action['display_in_bottom'])) {
                 $action['bulk_action']['display_in_bottom'] = !empty($action['display_in_bottom']);
                 unset($action['display_in_bottom']);
             }
 
             $action['checkbox_column'] = $action['checkbox_column'] ?: 'id';
-            $action['action'] = $action['action'] ?? $action_name;
+            $action['action'] ??= $action_name;
 
             if (!($new_action = self::validate_array_recursive($action, $default_fields))) {
                 continue;
@@ -995,7 +997,7 @@ class PHS_Paginator extends PHS_Registry
             }
 
             $new_action['checkbox_column'] = $new_action['checkbox_column'] ?: 'id';
-            $new_action['action'] = $new_action['action'] ?? $action_name;
+            $new_action['action'] ??= $action_name;
 
             if (!$new_action['action']) {
                 $this->set_error(self::ERR_FILTERS, self::_t('No action provided for action %s.',
@@ -1026,12 +1028,12 @@ class PHS_Paginator extends PHS_Registry
         $this->_bulk_actions = [];
     }
 
-    public function get_bulk_actions(string $action_name = null) : array
+    public function get_bulk_actions(?string $action_name = null) : array
     {
         return $action_name === null ? $this->_bulk_actions : ($this->_bulk_actions[$action_name] ?? []);
     }
 
-    public function get_actions(string $action_name = null) : array
+    public function get_actions(?string $action_name = null) : array
     {
         return $action_name === null ? $this->_actions : ($this->_actions[$action_name] ?? []);
     }
@@ -1825,7 +1827,7 @@ class PHS_Paginator extends PHS_Registry
                         } elseif (!empty($column_arr['date_format'])) {
                             $cell_content = @date($column_arr['date_format'], parse_db_date($record_arr[$field_name]));
                         }
-                    break;
+                        break;
                 }
             }
         }
@@ -1934,7 +1936,6 @@ class PHS_Paginator extends PHS_Registry
         if (!($buffer = $this->render_template('paginator_action_icon',
             ['action' => $action, 'render_params' => $render_params]))
         ) {
-            var_dump($this->get_error(), $buffer);
             $buffer = PHS_Scope::current_scope() === PHS_Scope::SCOPE_API
                 ? ''
                 : self::_t('Error rendering action icon %s.', $action['action'] ?? 'N/A');
@@ -2432,7 +2433,7 @@ class PHS_Paginator extends PHS_Registry
             'display_tooltip' => '',
             'checkbox_column' => '', // defaults to id
             'js_callback'     => null,
-            'callbacks' => [
+            'callbacks'       => [
                 'action' => null,
                 // For simple actions. Should action icon be displayed for current record
                 'should_display' => null,
@@ -2442,28 +2443,18 @@ class PHS_Paginator extends PHS_Registry
                 'redirect_url' => null,
             ],
             // URL or path where user should be redirected when clicking action icon
-            'action_redirect'         => null,
+            'action_redirect' => null,
             // Should the action be treated in a background job
             'launch_in_background' => false,
             'texts'                => [
-                'action_success' => 'Selected action run with success.',
-                'action_failed'  => 'Selected action failed running.',
+                'action_success' => self::_t('Selected action run with success.'),
+                'action_failed'  => self::_t('Selected action failed running.'),
                 // Only for bulk actions
-                'action_failed_some' => 'Failed running selected action for all provided records. Records for which action failed are still selected. Please try again.',
-                'nothing_selected'   => 'Please select the records first.',
-                'bulk_confirmation'  => 'Are you sure you want to run selected action on %s records?',
-                'confirmation'       => 'Are you sure you want to run selected action?',
+                'action_failed_some' => self::_t('Failed running selected action for all provided records. Records for which action failed are still selected. Please try again.'),
+                'nothing_selected'   => self::_t('Please select the records first.'),
+                'bulk_confirmation'  => self::_t('Are you sure you want to run selected action on %s records?'),
+                'confirmation'       => self::_t('Are you sure you want to run selected action?'),
             ],
         ];
-    }
-
-    private static function _unused_only_for_translations() : void
-    {
-        self::_t('Selected action run with success.');
-        self::_t('Selected action failed running.');
-        self::_t('Failed running selected action for all provided records. Records for which action failed are still selected. Please try again.');
-        self::_t('Please select the records first.');
-        self::_t('Are you sure you want to run selected action on %s records?');
-        self::_t('Are you sure you want to run selected action?');
     }
 }
