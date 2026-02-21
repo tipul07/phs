@@ -274,10 +274,14 @@ abstract class PHS_Action_Generic_list extends PHS_Action
 
     public function default_manage_action(array $action) : null | bool | array
     {
+        $bulk_action_arr = [];
         if (empty($action['action'])
-           || !($action_arr = $this->_paginator->get_actions($action['action']))) {
+           || (!($action_arr = $this->_paginator->get_actions($action['action']))
+               && !($bulk_action_arr = $this->_paginator->get_bulk_actions($action['action'])))) {
             return $this->manage_action($action);
         }
+
+        $action_arr = $action_arr ?: $bulk_action_arr;
 
         if (!empty($action['action_result'])) {
             if ($action['action_result'] === 'success') {
@@ -305,6 +309,12 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             return true;
         }
 
+        if (!empty($action['action_params'])
+           && ($can_run_callback = $action_arr['callbacks']['can_run'] ?? null)
+           && !$can_run_callback($action['action_params'])) {
+            return true;
+        }
+
         $action_result_params = $this->_paginator->default_action_params();
         $action_result_params['action'] = $action['action'];
 
@@ -312,6 +322,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             if (null === ($action_result_params = $this->_manage_bulk_action($action_arr))) {
                 return true;
             }
+            $action_result_params['action'] = $action['action'];
         } elseif (empty($action['action_params'])
                  || !$callback($action['action_params'])) {
             $action_result_params['action_result'] = 'failed';
@@ -763,7 +774,6 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             return null;
         }
 
-        $remaining_ids_arr = [];
         if (!($callback = $action_arr['callbacks']['action'] ?? null)) {
             PHS_Notifications::add_error_notice(
                 self::_t('No callback function provided for action %s.', $action_arr['action'] ?? 'N/A')
@@ -772,6 +782,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             return null;
         }
 
+        $remaining_ids_arr = [];
         foreach ($scope_arr[$scope_key] as $record_id) {
             if (!$callback($record_id)) {
                 $remaining_ids_arr[] = $record_id;

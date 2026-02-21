@@ -729,7 +729,13 @@ if (!function_exists('phs_paginator_display_js_functionality')) {
                 confirm_text = confirm_text.replace('%s', selected_records.toString());
             }
 
-            return confirm( confirm_text );
+            if(!confirm( confirm_text )) {
+                return false;
+            }
+
+            show_submit_protection("<?php echo $this_object::_e('Please wait...'); ?>");
+
+            return true;
         }
 
         function phs_paginator_get_checkboxes( column )
