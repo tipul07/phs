@@ -27,6 +27,7 @@ $listing_form_name = $paginator_obj->get_listing_form_name() ?: $flow_params_arr
 $bulk_select_name = $paginator_obj->get_bulk_action_select_name() ?: '';
 
 $bulk_actions = $paginator_obj->get_bulk_actions() ?: [];
+$actions = $paginator_obj->get_actions() ?: [];
 $action_parameters_arr = $paginator_obj->get_action_parameter_names() ?: [];
 $filters_arr = $paginator_obj->get_filters() ?: [];
 $columns_arr = $paginator_obj->get_columns_for_scope() ?: [];
@@ -48,6 +49,9 @@ if ($columns_arr) {
 }
 
 $is_api_scope = ($current_scope === PHS_Scope::SCOPE_API);
+$request_render_type = !$is_api_scope
+    ? $paginator_obj::CELL_RENDER_HTML
+    : $paginator_obj::CELL_RENDER_JSON;
 $api_listing_arr = [];
 
 //
@@ -66,112 +70,54 @@ if ($is_api_scope) {
     $api_listing_arr['filters']['sort_by'] = $paginator_obj->pagination_params('sort_by');
 }
 ?>
-<script type="text/javascript">
-function phs_paginator_refresh_without_action()
-{
-    let form_obj = $("#<?php echo $listing_form_name; ?>");
-    if(!form_obj) {
-        return;
-    }
-
-    let bulk_select_obj = $('#<?php echo $bulk_select_name; ?>top');
-    if( bulk_select_obj && bulk_select_obj.length ) {
-        bulk_select_obj.val('');
-        bulk_select_obj.trigger( "chosen:updated" );
-    }
-
-    bulk_select_obj = $('#<?php echo $bulk_select_name; ?>bottom');
-    if( bulk_select_obj && bulk_select_obj.length ) {
-        bulk_select_obj.val('');
-        bulk_select_obj.trigger( "chosen:updated" );
-    }
-
-    form_obj[0].action = PHS_JSEN.removeURLParameter(form_obj[0].action, "<?php echo $action_parameters_arr['action']; ?>");
-
-    show_submit_protection("<?php echo $this::_e('Please wait...'); ?>");
-
-    form_obj.submit();
-}
-</script>
 <div class="list_container">
     <form method="post" id="<?php echo $listing_form_name; ?>"
           name="<?php echo $listing_form_name; ?>" action="<?php echo form_str($full_filters_url); ?>">
     <input type="hidden" name="foobar" value="1" />
     <input type="submit" id="foobar_submit" name="foobar_submit" value="Just Submit" style="display:none;" />
-
-	<?php
+<?php
 
 $json_actions = [];
 $bulk_top_actions_arr = [];
 $bulk_bottom_actions_arr = [];
 
-if (!empty($bulk_actions)
- && !empty($bulk_select_name)
- && (!empty($flow_params_arr['display_top_bulk_actions'])
-        || !empty($flow_params_arr['display_bottom_bulk_actions']))) {
-    foreach ($bulk_actions as $action) {
-        if (empty($action) || !is_array($action)) {
-            continue;
-        }
-
-        if (!empty($action['display_in_top'])) {
-            $bulk_top_actions_arr[] = $action;
-        }
-        if (!empty($action['display_in_bottom'])) {
-            $bulk_bottom_actions_arr[] = $action;
-        }
-
-        $json_actions[$action['action']] = $action;
+foreach ([...$bulk_actions, ...$actions] as $action) {
+    if (empty($action) || !is_array($action)) {
+        continue;
     }
 
+    if (!empty($action['bulk_action']['display_in_top'])) {
+        $bulk_top_actions_arr[] = $action;
+    }
+    if (!empty($action['bulk_action']['display_in_bottom'])) {
+        $bulk_bottom_actions_arr[] = $action;
+    }
+
+    $json_actions[$action['action']] = $action;
+    if (isset($json_actions[$action['action']]['callbacks'])) {
+        unset($json_actions[$action['action']]['callbacks']);
+    }
+}
+?>
+<script type="text/javascript">
+let phs_paginator_actions = <?php echo @json_encode($json_actions); ?>;
+</script>
+<?php
+
+if ($bulk_actions
+    && $bulk_select_name
+    && (!empty($flow_params_arr['display_top_bulk_actions'])
+        || !empty($flow_params_arr['display_bottom_bulk_actions']))) {
     // display js functionality for bulk actions
     ?>
-		<script type="text/javascript">
-		let phs_paginator_bulk_actions = <?php echo @json_encode($json_actions); ?>;
-
-		function submit_bulk_action( area )
-		{
-			if( area !== 'top' && area !== 'bottom' ) {
-                return false;
-            }
-
-            let bulk_select_obj = $('#<?php echo $bulk_select_name; ?>' + area);
-			if( !bulk_select_obj ) {
-                return false;
-            }
-
-			return submit_bulk_action_with_name( bulk_select_obj.val() );
-		}
-
-		function submit_bulk_action_with_name( bulk_action )
-		{
-			if( !bulk_action
-                || !(bulk_action in phs_paginator_bulk_actions) ) {
-				alert( '<?php echo $this::_e('Please choose an action first.', '\''); ?>' );
-				return false;
-			}
-
-            let action_func = null;
-			if( typeof phs_paginator_bulk_actions !== "undefined"
-			 && typeof phs_paginator_bulk_actions[bulk_action] !== "undefined"
-			 && typeof phs_paginator_bulk_actions[bulk_action]["js_callback"] !== "undefined" ) {
-                action_func = phs_paginator_bulk_actions[bulk_action]["js_callback"];
-            }
-
-			if( action_func
-                && typeof window[action_func] === "function" ) {
-                return eval(action_func + "()");
-            }
-
-			return phs_paginator_default_bulk_action( bulk_action );
-		}
-		</script>
-		<?php
+    <script type="text/javascript">
+    </script>
+    <?php
 }
 
 if (!empty($flow_params_arr['display_top_bulk_actions'])
- && !empty($bulk_select_name)
- && !empty($bulk_actions)) {
+ && $bulk_select_name
+ && $bulk_actions) {
     $select_name = $bulk_select_name.'top';
     $select_with_action = (!empty($flow_params_arr['bulk_action_area']) && $flow_params_arr['bulk_action_area'] === 'top');
 
@@ -190,12 +136,16 @@ if (!empty($flow_params_arr['display_top_bulk_actions'])
                     $selected_option = 'selected="selected"';
                 }
 
-                ?><option value="<?php echo $action_arr['action']; ?>" <?php echo $selected_option; ?>><?php echo $action_arr['display_name']; ?></option><?php
+                ?><option value="<?php echo $action_arr['action']; ?>" <?php echo $selected_option; ?>><?php
+                if (!empty($action_arr['display_icon'])) {
+                    ?><i class="fa <?php echo $action_arr['display_icon']; ?>"></i> <?php
+                }
+                echo $action_arr['display_name']; ?></option><?php
             }
         ?>
             </select>
             <input type="submit" class="btn btn-primary btn-small ignore_hidden_required"
-                   onclick="this.blur();return submit_bulk_action( 'top' );" value="<?php echo form_str($this::_t('Apply')); ?>" />
+                   onclick="this.blur();return submit_bulk_action( 'top', '<?php echo $bulk_select_name; ?>' );" value="<?php echo form_str($this::_t('Apply')); ?>" />
             </div>
             <?php
     }
@@ -206,7 +156,8 @@ $per_page_var_name = $flow_params_arr['form_prefix'].$pagination_arr['per_page_v
 ?><div style="margin-bottom:5px;float:right;">
 	<?php echo $this::_t('%s per page', ucfirst($flow_params_arr['term_plural'])); ?>
 	<select name="<?php echo $per_page_var_name; ?>top" id="<?php echo $per_page_var_name.'top'; ?>"
-            onchange="phs_paginator_refresh_without_action()" class="chosen-select-nosearch" style="width:80px;">
+            onchange="phs_paginator_refresh_without_action('<?php echo $listing_form_name; ?>', '<?php echo $bulk_select_name; ?>', '<?php echo $action_parameters_arr['action']; ?>')"
+            class="chosen-select-nosearch" style="width:80px;">
 	<?php
     foreach ($per_page_options_arr as $per_page_option) {
         $selected_option = '';
@@ -223,14 +174,10 @@ $per_page_var_name = $flow_params_arr['form_prefix'].$pagination_arr['per_page_v
 	<div class="clearfix"></div>
 	<?php
 
-if (!empty($columns_count)
-    && !empty($flow_params_arr['before_table_callback'])
-    && is_callable($flow_params_arr['before_table_callback'])) {
-    $callback_params = $paginator_obj->default_others_render_call_params();
-    $callback_params['columns'] = $columns_arr;
-    $callback_params['filters'] = $filters_arr;
-
-    if (false === ($cell_content = @call_user_func($flow_params_arr['before_table_callback'], $callback_params))
+if ($columns_count
+    && ($callback = $flow_params_arr['before_table_callback'] ?? null)
+    && @is_callable($callback)) {
+    if (false === ($cell_content = @$callback($paginator_obj->default_others_render_call_params()))
         || $cell_content === null) {
         $cell_content = '['.$this::_t('Render before table call failed.').']';
     }
@@ -331,24 +278,18 @@ if (!$is_api_scope
 ?><tbody><?php
 
 if (!$is_api_scope
- && !empty($columns_count)
- && !empty($flow_params_arr['table_after_headers_callback'])
- && is_callable($flow_params_arr['table_after_headers_callback'])) {
+    && $columns_count
+    && ($callback = $flow_params_arr['table_after_headers_callback'] ?? null)
+    && @is_callable($callback)) {
     ?>
 		<tr>
 			<td colspan="<?php echo $columns_count; ?>"><?php
-
-    $callback_params = $paginator_obj->default_others_render_call_params();
-    $callback_params['columns'] = $columns_arr;
-    $callback_params['filters'] = $filters_arr;
-
-    if (false === ($cell_content = @call_user_func($flow_params_arr['table_after_headers_callback'], $callback_params))
+    if (false === ($cell_content = @$callback($paginator_obj->default_others_render_call_params()))
         || $cell_content === null) {
         $cell_content = '['.$this::_t('Render after headers call failed.').']';
     }
 
     echo $cell_content;
-
     ?></td>
 		</tr>
 		<?php
@@ -384,13 +325,13 @@ if (empty($records_arr) || !is_array($records_arr)) {
             }
 
             $cell_render_params = $paginator_obj->default_cell_render_call_params();
-            $cell_render_params['request_render_type'] = (!$is_api_scope ? $paginator_obj::CELL_RENDER_HTML : $paginator_obj::CELL_RENDER_JSON);
+            $cell_render_params['request_render_type'] = $request_render_type;
             $cell_render_params['page_index'] = $knti;
             $cell_render_params['list_index'] = $offset + $knti;
             $cell_render_params['columns_count'] = $columns_count;
             $cell_render_params['record'] = $record_arr;
             $cell_render_params['column'] = $column_arr;
-            $cell_render_params['table_field'] = false;
+            $cell_render_params['table_field'] = null;
             $cell_render_params['preset_content'] = '';
             $cell_render_params['model_obj'] = $model_obj;
             $cell_render_params['paginator_obj'] = $paginator_obj;
@@ -437,18 +378,18 @@ if (empty($records_arr) || !is_array($records_arr)) {
         ?></tr><?php
 
         if (!$is_api_scope
-        && !empty($flow_params_arr['after_record_callback'])
-        && is_callable($flow_params_arr['after_record_callback'])) {
+            && ($callback = $flow_params_arr['after_record_callback'] ?? null)
+            && is_callable($callback)) {
             $callback_params = $paginator_obj->default_cell_render_call_params();
-            $callback_params['request_render_type'] = $paginator_obj::CELL_RENDER_HTML;
+            $callback_params['request_render_type'] = $request_render_type;
             $callback_params['page_index'] = $knti;
             $callback_params['list_index'] = $offset + $knti;
             $callback_params['columns_count'] = $columns_count;
             $callback_params['record'] = $record_arr;
             $callback_params['for_scope'] = $current_scope;
 
-            if (false !== ($row_content = @call_user_func($flow_params_arr['after_record_callback'], $callback_params))
-             && $row_content !== null) {
+            if (false !== ($row_content = @$callback($callback_params))
+                && $row_content !== null) {
                 echo $row_content;
             }
         }
@@ -458,27 +399,19 @@ if (empty($records_arr) || !is_array($records_arr)) {
 }
 
 if (!$is_api_scope
- && !empty($columns_count)
- && !empty($flow_params_arr['table_before_footer_callback'])
- && is_callable($flow_params_arr['table_before_footer_callback'])) {
-    ?>
-		<tr>
-			<td colspan="<?php echo $columns_count; ?>"><?php
-
-        $callback_params = $paginator_obj->default_others_render_call_params();
-    $callback_params['columns'] = $columns_arr;
-    $callback_params['filters'] = $filters_arr;
-
-    if (false === ($cell_content = @call_user_func($flow_params_arr['table_before_footer_callback'], $callback_params))
+    && $columns_count
+    && ($callback = $flow_params_arr['table_before_footer_callback'] ?? null)
+    && @is_callable($callback)) {
+    ?><tr>
+    <td colspan="<?php echo $columns_count; ?>"><?php
+    if (false === ($cell_content = @$callback($paginator_obj->default_others_render_call_params()))
         || $cell_content === null) {
         $cell_content = '['.$this::_t('Render before footer call failed.').']';
     }
 
     echo $cell_content;
-
     ?></td>
-		</tr>
-		<?php
+    </tr><?php
 }
 
 if (!$is_api_scope
@@ -543,10 +476,8 @@ if (!$is_api_scope
 		</tr>
 		<?php
 } elseif (!$is_api_scope) {
-    ?>
-		<tr class="list_info_row">
-		<td colspan="<?php echo $columns_count; ?>">
-		<div class="list_info"><?php
+    ?><tr class="list_info_row">
+		<td colspan="<?php echo $columns_count; ?>"><div class="list_info"><?php
     echo $this::_t('Displaying %s / %s %s, page %s / %s, %s per page.',
         $pagination_arr['listing_records_count'],
         $pagination_arr['total_records'],
@@ -555,28 +486,22 @@ if (!$is_api_scope
         $pagination_arr['max_pages'],
         $pagination_arr['records_per_page']
     );
-    ?></div>
-		</td>
-		</tr>
-		<?php
+    ?></div></td>
+    </tr>
+    <?php
 }
 ?>
 	</tbody>
 	</table>
 	</div>
-
-	<?php
+<?php
 
 if (!$is_api_scope
- && !empty($columns_count)
- && !empty($flow_params_arr['after_table_callback'])
- && is_callable($flow_params_arr['after_table_callback'])) {
-    $callback_params = $paginator_obj->default_others_render_call_params();
-    $callback_params['columns'] = $columns_arr;
-    $callback_params['filters'] = $filters_arr;
-
-    if (false === ($cell_content = @call_user_func($flow_params_arr['after_table_callback'], $callback_params))
-     || $cell_content === null) {
+    && $columns_count
+    && ($callback = ($flow_params_arr['after_table_callback'] ?? null))
+    && @is_callable($callback)) {
+    if (false === ($cell_content = @$callback($paginator_obj->default_others_render_call_params()))
+        || $cell_content === null) {
         $cell_content = '['.$this::_t('Render after table call failed.').']';
     }
 
@@ -585,8 +510,8 @@ if (!$is_api_scope
 
 if (!$is_api_scope
  && !empty($flow_params_arr['display_bottom_bulk_actions'])
- && !empty($bulk_select_name)
- && !empty($bulk_actions)) {
+ && $bulk_select_name
+ && $bulk_actions) {
     $select_name = $bulk_select_name.'bottom';
     $select_with_action = (!empty($flow_params_arr['bulk_action_area']) && $flow_params_arr['bulk_action_area'] === 'bottom');
 
@@ -600,17 +525,21 @@ if (!$is_api_scope
                 foreach ($bulk_bottom_actions_arr as $action_arr) {
                     $selected_option = '';
                     if ($select_with_action
-                    && !empty($flow_params_arr['bulk_action'])
-                    && $action_arr['action'] == $flow_params_arr['bulk_action']) {
+                        && !empty($flow_params_arr['bulk_action'])
+                        && $action_arr['action'] === $flow_params_arr['bulk_action']) {
                         $selected_option = 'selected="selected"';
                     }
 
-                    ?><option value="<?php echo $action_arr['action']; ?>" <?php echo $selected_option; ?>><?php echo $action_arr['display_name']; ?></option><?php
+                    ?><option value="<?php echo $action_arr['action']; ?>" <?php echo $selected_option; ?>><?php
+                    if (!empty($action_arr['display_icon'])) {
+                        ?><i class="fa <?php echo $action_arr['display_icon']; ?>"></i> <?php
+                    }
+                    echo $action_arr['display_name']; ?></option><?php
                 }
         ?>
             </select>
             <input type="submit" class="btn btn-primary btn-small ignore_hidden_required"
-                   onclick="this.blur();return submit_bulk_action( 'bottom' );"
+                   onclick="this.blur();return submit_bulk_action( 'bottom', '<?php echo $bulk_select_name; ?>' );"
                    value="<?php echo form_str($this::_t('Apply')); ?>" />
             </div>
             <div class="clearfix"></div>
@@ -626,130 +555,228 @@ if (!function_exists('phs_paginator_display_js_functionality')) {
     function phs_paginator_display_js_functionality(PHS_View $this_object, PHS_Paginator $paginator_obj) : void
     {
         static $js_displayed = false;
-
-        if (empty($js_displayed)) {
-            $js_displayed = true;
-            ?>
-            <script type="text/javascript">
-            function phs_paginator_update_list_checkboxes( checkbox_name, checkbox_name_all )
-            {
-                const checkbox_all_obj = $("#" + checkbox_name_all);
-
-                if( !checkbox_all_obj )
-                    return;
-
-                const should_be_checked = checkbox_all_obj.is(":checked");
-
-                checkbox_all_obj.closest( "form" ).find( "input:checkbox" ).each( function()
-                {
-                    let my_name = $( this ).attr( "name" );
-
-                    if( my_name === checkbox_name + "[]" )
-                    {
-                        $( this ).prop( 'checked', should_be_checked );
-                    }
-                } );
-            }
-
-            function phs_paginator_update_list_all_checkbox( checkbox_id, checkbox_id_all )
-            {
-                const checkbox_all_obj = $("#" + checkbox_id_all);
-                const checkbox_obj = $("#" + checkbox_id);
-
-                if( !checkbox_all_obj || !checkbox_obj )
-                    return;
-
-                const should_be_unchecked = !checkbox_obj.is(":checked");
-
-                if( !should_be_unchecked )
-                    return;
-
-                checkbox_all_obj.prop( "checked", false );
-            }
-
-            function phs_paginator_default_bulk_action( action )
-            {
-                if( !action
-                 || !(action in phs_paginator_bulk_actions) )
-                {
-                    alert( "<?php echo $this_object::_e('Action not defined.', '"'); ?>" );
-                    return false;
-                }
-
-                let action_display_name = "[Not defined]";
-                if( typeof phs_paginator_bulk_actions !== "undefined"
-                 && typeof phs_paginator_bulk_actions[action] !== "undefined"
-                 && typeof phs_paginator_bulk_actions[action]["display_name"] !== "undefined" ) {
-                    action_display_name = phs_paginator_bulk_actions[action]['display_name'];
-                }
-
-                let selected_records = -1;
-                let checkboxes_list = [];
-                if( typeof phs_paginator_bulk_actions !== "undefined"
-                 && typeof phs_paginator_bulk_actions[action] !== "undefined"
-                 && typeof phs_paginator_bulk_actions[action]["checkbox_column"] !== "undefined"
-                 && (checkboxes_list = phs_paginator_get_checkboxes_checked( phs_paginator_bulk_actions[action]["checkbox_column"] )) ) {
-                    selected_records = checkboxes_list.length;
-                }
-
-                let confirm_text = "";
-                if( selected_records === -1 ) {
-                    confirm_text = "<?php echo sprintf($this_object::_e('Are you sure you want to run action %s?', '"'),
-                        '" + action_display_name + "'); ?>";
-                } else {
-                    if( selected_records <= 0 ) {
-                        alert( "<?php echo sprintf($this_object::_e('Please select records for which you want to run action %s first.', '"'),
-                            '" + action_display_name + "'); ?>" );
-                        return false;
-                    }
-
-                    confirm_text = "<?php echo sprintf($this_object::_e('Are you sure you want to run action %s on %s selected records?', '"'),
-                        '" + action_display_name + "', '" + selected_records + "'); ?>";
-                }
-
-                return confirm( confirm_text );
-            }
-
-            function phs_paginator_get_checkboxes( column )
-            {
-                const checkboxes_list = $("input[type='checkbox'][name='<?php echo @sprintf($paginator_obj->get_checkbox_name_format(), '" + column + "'); ?>[]']");
-                if( !checkboxes_list || !checkboxes_list.length ) {
-                    return [];
-                }
-
-                return checkboxes_list;
-            }
-
-            function phs_paginator_get_checkboxes_checked( column )
-            {
-                const checkboxes_list = phs_paginator_get_checkboxes(column);
-                if( !checkboxes_list || !checkboxes_list.length ) {
-                    return [];
-                }
-
-                const list_length = checkboxes_list.length;
-
-                const checkboxes_checked = [];
-                for( let i = 0; i < list_length; i++ ) {
-                    if( $( checkboxes_list[i] ).is( ":checked" ) )
-                        checkboxes_checked.push( checkboxes_list[i] );
-                }
-
-                return checkboxes_checked;
-            }
-
-            function phs_paginator_get_checkboxes_checked_count(column)
-            {
-                let checkboxes_list = phs_paginator_get_checkboxes_checked(column);
-                if( !checkboxes_list || !checkboxes_list.length ) {
-                    return 0;
-                }
-
-                return checkboxes_list.length;
-            }
-            </script>
-            <?php
+        if ($js_displayed) {
+            return;
         }
+
+        $js_displayed = true;
+        ?>
+        <script type="text/javascript">
+        function submit_bulk_action( area, bulk_select_name )
+        {
+            if( area !== 'top' && area !== 'bottom' ) {
+                return false;
+            }
+
+            const bulk_select_obj = $('#' + bulk_select_name + area);
+            if( !bulk_select_obj ) {
+                return false;
+            }
+
+            return submit_bulk_action_with_name( bulk_select_obj.val() );
+        }
+
+        function submit_bulk_action_with_name( bulk_action )
+        {
+            if( !bulk_action
+                || !(bulk_action in phs_paginator_actions) ) {
+                alert( '<?php echo $this_object::_e('Please choose an action first.', '\''); ?>' );
+                return false;
+            }
+
+            const action_func = phs_paginator_extract_node_from_action(bulk_action, 'js_callback');
+
+            if( action_func
+                && typeof window[action_func] === "function" ) {
+                return eval(action_func + "()");
+            }
+
+            return phs_paginator_default_bulk_action( bulk_action );
+        }
+        function phs_paginator_refresh_without_action(form_name, bulk_select_name, action_parameter)
+        {
+            let form_obj = $("#" + form_name);
+            if(!form_obj) {
+                return;
+            }
+
+            let bulk_select_obj = $('#' + bulk_select_name + 'top');
+            if( bulk_select_obj && bulk_select_obj.length ) {
+                bulk_select_obj.val('');
+                bulk_select_obj.trigger( "chosen:updated" );
+            }
+
+            bulk_select_obj = $('#' + bulk_select_name + 'bottom');
+            if( bulk_select_obj && bulk_select_obj.length ) {
+                bulk_select_obj.val('');
+                bulk_select_obj.trigger( "chosen:updated" );
+            }
+
+            form_obj[0].action = PHS_JSEN.removeURLParameter(form_obj[0].action, action_parameter);
+
+            show_submit_protection("<?php echo $this_object::_e('Please wait...'); ?>");
+
+            form_obj.submit();
+        }
+
+        function phs_paginator_update_list_checkboxes( checkbox_name, checkbox_name_all )
+        {
+            const checkbox_all_obj = $("#" + checkbox_name_all);
+
+            if( !checkbox_all_obj ) {
+                return;
+            }
+
+            const should_be_checked = checkbox_all_obj.is(":checked");
+
+            checkbox_all_obj.closest('form').find('input:checkbox').each(function () {
+                let my_name = $(this).attr('name');
+
+                if (my_name === checkbox_name + '[]') {
+                    $(this).prop('checked', should_be_checked);
+                }
+            });
+        }
+
+        function phs_paginator_update_list_all_checkbox( checkbox_id, checkbox_id_all )
+        {
+            const checkbox_all_obj = $("#" + checkbox_id_all);
+            const checkbox_obj = $("#" + checkbox_id);
+
+            if( !checkbox_all_obj || !checkbox_obj ) {
+                return;
+            }
+
+            const should_be_unchecked = !checkbox_obj.is(":checked");
+            if( !should_be_unchecked ) {
+                return;
+            }
+
+            checkbox_all_obj.prop( "checked", false );
+        }
+
+        function phs_paginator_extract_node_from_action(action, node)
+        {
+            let result = null;
+            if (typeof phs_paginator_actions !== 'undefined'
+                && typeof phs_paginator_actions[action] !== 'undefined'
+                && typeof phs_paginator_actions[action][node] !== 'undefined') {
+                result = phs_paginator_actions[action][node];
+            }
+
+            return result;
+        }
+
+        function phs_paginator_extract_text_from_action(action, text_node)
+        {
+            let result = null;
+            if (typeof phs_paginator_actions !== 'undefined'
+                && typeof phs_paginator_actions[action] !== 'undefined'
+                && typeof phs_paginator_actions[action]['texts'] !== 'undefined'
+                && typeof phs_paginator_actions[action]['texts'][text_node] !== 'undefined') {
+                result = phs_paginator_actions[action]['texts'][text_node];
+            }
+
+            return result;
+        }
+
+        function phs_paginator_default_action(action, id)
+        {
+            const confirmation_text = phs_paginator_extract_text_from_action(action, 'confirmation')
+                ?? "<?php echo $this_object::_e('Are you sure you want to run the action on the record?'); ?>";
+
+            if(!confirm(confirmation_text)) {
+                return;
+            }
+
+            show_submit_protection("<?php echo $this_object::_e('Please wait...'); ?>");
+
+            <?php
+            $url_params = [];
+        $url_params['action'] = [
+            'action'        => '" + action + "',
+            'action_params' => '" + id + "',
+        ];
+        ?>document.location = "<?php echo $paginator_obj->get_full_url($url_params); ?>";
+        }
+
+        function phs_paginator_default_bulk_action( action )
+        {
+            if( !action
+                || !(action in phs_paginator_actions) ) {
+                alert( "<?php echo $this_object::_e('Action not defined.', '"'); ?>" );
+                return false;
+            }
+
+            const checkbox_column = phs_paginator_extract_node_from_action(action, 'checkbox_column');
+
+            let selected_records = -1;
+            let checkboxes_list = [];
+            if (checkbox_column && (checkboxes_list = phs_paginator_get_checkboxes_checked(checkbox_column))) {
+                selected_records = checkboxes_list.length;
+            }
+
+            if (selected_records === 0) {
+                alert(phs_paginator_extract_text_from_action(action, 'nothing_selected')
+                          ?? "<?php echo $this_object::_e('Please select records for which you want to run the action first.'); ?>");
+                return false;
+            }
+
+            let confirm_text = phs_paginator_extract_text_from_action(action, 'bulk_confirmation')
+                    ?? "<?php echo $this_object::_e('Are you sure you want to run the action on %s selected records?'); ?>";
+
+            if(confirm_text.indexOf('%s') !== -1) {
+                confirm_text = confirm_text.replace('%s', selected_records.toString());
+            }
+
+            if(!confirm( confirm_text )) {
+                return false;
+            }
+
+            show_submit_protection("<?php echo $this_object::_e('Please wait...'); ?>");
+
+            return true;
+        }
+
+        function phs_paginator_get_checkboxes( column )
+        {
+            const checkboxes_list = $("input[type='checkbox'][name='<?php echo @sprintf($paginator_obj->get_checkbox_name_format(), '" + column + "'); ?>[]']");
+            if( !checkboxes_list || !checkboxes_list.length ) {
+                return [];
+            }
+
+            return checkboxes_list;
+        }
+
+        function phs_paginator_get_checkboxes_checked( column )
+        {
+            const checkboxes_list = phs_paginator_get_checkboxes(column);
+            if( !checkboxes_list || !checkboxes_list.length ) {
+                return [];
+            }
+
+            const list_length = checkboxes_list.length;
+
+            const checkboxes_checked = [];
+            for( let i = 0; i < list_length; i++ ) {
+                if( $( checkboxes_list[i] ).is( ":checked" ) )
+                    checkboxes_checked.push( checkboxes_list[i] );
+            }
+
+            return checkboxes_checked;
+        }
+
+        function phs_paginator_get_checkboxes_checked_count(column)
+        {
+            let checkboxes_list = phs_paginator_get_checkboxes_checked(column);
+            if( !checkboxes_list || !checkboxes_list.length ) {
+                return 0;
+            }
+
+            return checkboxes_list.length;
+        }
+        </script>
+        <?php
     }
 }
 if (!$is_api_scope) {
@@ -760,14 +787,10 @@ if (!$is_api_scope) {
         echo $this->sub_view('paginator_export');
     }
 
-    if (!empty($flow_params_arr['after_full_list_callback'])
-        && is_callable($flow_params_arr['after_full_list_callback'])) {
-        $callback_params = $paginator_obj->default_others_render_call_params();
-        $callback_params['columns'] = $columns_arr;
-        $callback_params['filters'] = $filters_arr;
-
-        if (($end_list_content = @call_user_func($flow_params_arr['after_full_list_callback'], $callback_params)) === false
-         || $end_list_content === null) {
+    if (($callback = $flow_params_arr['after_full_list_callback'] ?? null)
+        && @is_callable($callback)) {
+        if (false === ($end_list_content = @$callback($paginator_obj->default_others_render_call_params()))
+            || $end_list_content === null) {
             $end_list_content = '['.$this::_t('Render after full list call failed.').']';
         }
 

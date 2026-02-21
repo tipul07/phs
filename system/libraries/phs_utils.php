@@ -693,7 +693,7 @@ class PHS_Utils extends PHS_Language
         return $file_mime_type;
     }
 
-    public static function guess_mimetype_by_filename(string $file): ?string
+    public static function guess_mimetype_by_filename(string $file) : ?string
     {
         $file_ext = '';
         if (($file_dots_arr = explode('.', $file))
@@ -706,62 +706,63 @@ class PHS_Utils extends PHS_Language
             : null;
     }
 
-    public static function guess_mimetype_by_extension(string $extension): ?string
+    public static function guess_mimetype_by_extension(string $extension) : ?string
     {
         $file_mime_type = null;
+
         switch ($extension) {
             case 'js':
                 $file_mime_type = 'text/javascript';
-            break;
+                break;
 
             case 'md':
                 $file_mime_type = 'text/markdown';
-            break;
+                break;
 
             case 'json':
                 $file_mime_type = 'application/json';
-            break;
+                break;
 
             case 'jpg':
             case 'jpeg':
             case 'jpe':
                 $file_mime_type = 'image/jpeg';
-            break;
+                break;
 
             case 'png':
             case 'gif':
             case 'bmp':
                 $file_mime_type = 'image/'.$extension;
-            break;
+                break;
 
             case 'tif':
             case 'tiff':
                 $file_mime_type = 'image/tiff';
-            break;
+                break;
 
             case 'svg':
                 $file_mime_type = 'image/svg+xml';
-            break;
+                break;
 
             case 'css':
                 $file_mime_type = 'text/css';
-            break;
+                break;
 
             case 'xml':
                 $file_mime_type = 'application/xml';
-            break;
+                break;
 
             case 'odp':
                 $file_mime_type = 'application/vnd.oasis.opendocument.presentation';
-            break;
+                break;
 
             case 'doc':
                 $file_mime_type = 'application/msword';
-            break;
+                break;
 
             case 'docx':
                 $file_mime_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-            break;
+                break;
 
             case 'xls':
             case 'xlt':
@@ -772,116 +773,116 @@ class PHS_Utils extends PHS_Language
             case 'xlw':
             case 'xll':
                 $file_mime_type = 'application/vnd.ms-excel';
-            break;
+                break;
 
             case 'xlsx':
                 $file_mime_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-            break;
+                break;
 
             case 'ods':
                 $file_mime_type = 'application/vnd.oasis.opendocument.spreadsheet';
-            break;
+                break;
 
             case 'odt':
                 $file_mime_type = 'application/vnd.oasis.opendocument.text';
-            break;
+                break;
 
             case 'ppt':
             case 'pps':
                 $file_mime_type = 'application/vnd.ms-powerpoint';
-            break;
+                break;
 
             case 'pptx':
                 $file_mime_type = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
-            break;
+                break;
 
             case 'rtf':
                 $file_mime_type = 'application/rtf';
-            break;
+                break;
 
             case 'pdf':
                 $file_mime_type = 'application/pdf';
-            break;
+                break;
 
             case 'html':
             case 'htm':
                 $file_mime_type = 'text/html';
-            break;
+                break;
 
             case 'php':
                 $file_mime_type = 'application/x-httpd-php';
-            break;
+                break;
 
             case 'txt':
                 $file_mime_type = 'text/plain';
-            break;
+                break;
 
             case 'csv':
                 $file_mime_type = 'text/csv';
-            break;
+                break;
 
             case 'mpeg':
             case 'mpg':
             case 'mpe':
                 $file_mime_type = 'video/mpeg';
-            break;
+                break;
 
             case '3gp':
                 $file_mime_type = 'video/3gpp';
-            break;
+                break;
 
             case 'mp3':
                 $file_mime_type = 'audio/mpeg';
-            break;
+                break;
 
             case 'wav':
                 $file_mime_type = 'audio/wav';
-            break;
+                break;
 
             case 'aiff':
             case 'aif':
                 $file_mime_type = 'audio/aiff';
-            break;
+                break;
 
             case 'avi':
                 $file_mime_type = 'video/x-msvideo';
-            break;
+                break;
 
             case 'wmv':
                 $file_mime_type = 'video/x-ms-wmv';
-            break;
+                break;
 
             case 'mov':
                 $file_mime_type = 'video/quicktime';
-            break;
+                break;
 
             case 'mp4':
                 $file_mime_type = 'video/mp4';
-            break;
+                break;
 
             case 'weba':
                 $file_mime_type = 'audio/webm';
-            break;
+                break;
 
             case 'webm':
                 $file_mime_type = 'video/webm';
-            break;
+                break;
 
             case 'zip':
                 $file_mime_type = 'application/zip';
-            break;
+                break;
 
             case 'tar':
                 $file_mime_type = 'application/x-tar';
-            break;
+                break;
 
             case 'rar':
                 $file_mime_type = 'application/vnd.rar';
-            break;
+                break;
 
             case '7z':
                 $file_mime_type = 'application/x-7z-compressed';
-            break;
+                break;
         }
 
         return $file_mime_type;
