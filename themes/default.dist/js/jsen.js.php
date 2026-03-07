@@ -11,26 +11,23 @@ use phs\PHS_Ajax;
 use phs\libraries\PHS_Language;
 
 ?>
-if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
-{
-    if( typeof $ === "undefined" )
-    {
-        if( typeof jQuery !== "undefined" ) {
+if (typeof PHS_JSEN !== 'undefined' || !PHS_JSEN) {
+    if (typeof $ === 'undefined') {
+        if (typeof jQuery !== 'undefined') {
             $ = jQuery;
         }
     }
 
-    if( typeof $ === "undefined" )
-    {
-        if( console ) {
+    if (typeof $ === 'undefined') {
+        if (console) {
             console.log("Seems like we don't have jQuery...");
         }
     }
 
-    var PHS_JSEN = {
+    const PHS_JSEN = {
         debugging_mode: <?php echo PHS::st_debugging_mode() ? 'true' : 'false'; ?>,
 
-        version: 2.0,
+        version: 2.1,
 
         // Base URL
         baseUrl : "<?php echo PHS::get_base_url(); ?>",
@@ -51,15 +48,16 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
         max_simultaneous_requests_allowed: 3,
 
         max_simultaneous_requests: function( req_no ) {
-            if( typeof req_no === "undefined" )
+            if( typeof req_no === "undefined" ) {
                 return PHS_JSEN.max_simultaneous_requests_allowed;
+            }
 
             PHS_JSEN.max_simultaneous_requests_allowed = parseInt( req_no );
         },
 
         keys : function( o ) {
-            var keys = [];
-            for( var i in o ) {
+            const keys = [];
+            for(const i in o ) {
                 if( o.hasOwnProperty( i ) ) {
                     keys.push( i );
                 }
@@ -69,34 +67,36 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
         },
 
         objects_are_equal: function ( object1, object2 ) {
-            var obj1_empty = true, obj2_empty = true;
+            let obj1_empty = true, obj2_empty = true;
             if( (obj1_empty = (typeof object1 === "undefined" || object1 == null))
-             || (obj2_empty = (typeof object2 === "undefined" || object2 == null)) ) {
+                || (obj2_empty = (typeof object2 === "undefined" || object2 == null)) ) {
                 return (obj1_empty && obj2_empty);
             }
 
             const keys1 = Object.keys( object1 );
             const keys2 = Object.keys( object2 );
 
-            if( keys1.length !== keys2.length )
+            if( keys1.length !== keys2.length ) {
                 return false;
+            }
 
             for( const key in keys1 ) {
                 const val1 = object1[key];
                 const val2 = object2[key];
-                const areObjects = (val1 != null && typeof val1 === "object"
-                                 && val2 != null && typeof val2 === "object");
+                const areObjects = (val1 != null && typeof val1 === 'object'
+                    && val2 != null && typeof val2 === 'object');
 
                 if( (areObjects && !PHS_JSEN.objects_are_equal( val1, val2 ))
-                 || (!areObjects && val1 !== val2) )
+                    || (!areObjects && val1 !== val2) ) {
                     return false;
+                }
             }
 
             return true;
         },
 
         object_has_keys : function( o ) {
-            for( var i in o ) {
+            for(const i in o ) {
                 if( o.hasOwnProperty( i ) ) {
                     return true;
                 }
@@ -106,11 +106,12 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
         },
 
         object_length : function( o ) {
-            if( typeof o !== "object" )
+            if( typeof o !== "object" ) {
                 return 0;
+            }
 
-            var length = 0;
-            for( var i in o ) {
+            let length = 0;
+            for(const i in o ) {
                 if( o.hasOwnProperty( i ) ) {
                     length++;
                 }
@@ -120,10 +121,11 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
         },
 
         in_array : function( needle, haystack ) {
-            var length = haystack.length;
-            for( var i = 0; i < length; i++ ) {
-                if( haystack[i] == needle )
+            const length = haystack.length;
+            for(let i = 0; i < length; i++ ) {
+                if( haystack[i] == needle ) {
                     return true;
+                }
             }
 
             return false;
@@ -138,19 +140,57 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
 
             let form_data = new FormData(form_obj);
 
-            var object = {};
+            const object = {};
             form_data.forEach((value, key) => {
-                if(!object.hasOwnProperty(key)){
+                if(!object.hasOwnProperty(key)) {
                     object[key] = value;
                     return;
                 }
-                if(!Array.isArray(object[key])){
+                if(!Array.isArray(object[key])) {
                     object[key] = [object[key]];
                 }
                 object[key].push(value);
             });
 
             return object;
+        },
+
+        create_form_data_with_files: function (files, form_obj = null) {
+            form_obj = form_obj || new FormData();
+
+            const total_files = files.length;
+            for(let i = 0; i < total_files; i++) {
+                if(!(files[i]?.file ?? null)) {
+                    continue;
+                }
+
+                let var_name = "file[" + i + "]";
+                let file_name = files[i]?.file?.name ?? "file";
+                if(typeof files[i].var_name === "string") {
+                    var_name = files[i].var_name;
+                }
+                if(typeof files[i].file_name === "string") {
+                    file_name = files[i].file_name;
+                }
+
+                form_obj.append(var_name, files[i].file, file_name);
+            }
+
+            return form_obj;
+        },
+
+        create_form_data_from_object: function (obj, form_obj = null) {
+            form_obj = form_obj || new FormData();
+
+            for(const i in obj) {
+                if( !obj.hasOwnProperty( i ) ) {
+                    continue;
+                }
+
+                form_obj.append(i, obj[i]);
+            }
+
+            return form_obj;
         },
 
         intval: function( val ) {
@@ -205,10 +245,10 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
                 format = system_time_details.default_time_format;
             }
 
-            s = parseInt( s );
-            var hours   = Math.floor( s / 3600 );
-            var minutes = Math.floor( (s - (hours * 3600)) / 60 );
-            var seconds = s - (hours * 3600) - (minutes * 60);
+            s = this.intval( s );
+            const hours = Math.floor(s / 3600);
+            const minutes = Math.floor((s - (hours * 3600)) / 60);
+            const seconds = s - (hours * 3600) - (minutes * 60);
 
             return this.date_elements_to_string( { hour: hours, minute: minutes, second: seconds }, format );
         },
@@ -274,35 +314,39 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
         },
         // When setting cookies, keep data by default for one week
         save_storage: function( i_name, i_val, i_exp = 10080 ) {
-            if( localStorage )
-                localStorage.setItem( i_name, i_val );
-            else
-                this.set_cookie( i_name, i_val, i_exp );
+            if( localStorage ) {
+                localStorage.setItem(i_name, i_val);
+            } else {
+                this.set_cookie(i_name, i_val, i_exp);
+            }
         },
         reset_storage: function( i_name ) {
-            if( localStorage )
-                localStorage.removeItem( i_name );
+            if( localStorage ) {
+                localStorage.removeItem(i_name);
+            }
 
             this.delete_cookie( i_name );
         },
 
         set_cookie: function( cname, cvalue, exminutes ) {
-            var d = new Date();
+            const d = new Date();
             d.setTime( d.getTime() + (exminutes*60*1000) );
-            var expires = "expires="+ d.toUTCString();
+            const expires   = "expires=" + d.toUTCString();
             document.cookie = cname + "=" + cvalue + "; " + expires;
         },
         get_cookie: function( cname ) {
-            var name = cname + "=";
-            var ca = document.cookie.split(";");
+            const name = cname + "=";
+            const ca = document.cookie.split(";");
 
-            for( var i = 0; i < ca.length; i++ ) {
-                var c = ca[i];
-                while( c.charAt(0) === " " )
+            for(let i = 0; i < ca.length; i++ ) {
+                let c = ca[i];
+                while( c.charAt(0) === " " ) {
                     c = c.substring(1);
+                }
 
-                if( c.indexOf( name ) === 0 )
-                    return c.substring( name.length, c.length );
+                if( c.indexOf( name ) === 0 ) {
+                    return c.substring(name.length, c.length);
+                }
             }
 
             return "";
@@ -312,10 +356,10 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
         },
 
         random_string: function( length ) {
-            var result = '';
-            var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            var charactersLength = characters.length;
-            for ( var i = 0; i < length; i++ ) {
+            let result = '';
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            const charactersLength = characters.length;
+            for (let i = 0; i < length; i++ ) {
                 result += characters.charAt( Math.floor( Math.random() * charactersLength ) );
             }
 
@@ -323,12 +367,13 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
         },
 
         hash_string: function( str ) {
-            var hash = 0, str_len = str.length;
-            if( str_len === 0 )
+            let hash = 0, str_len = str.length;
+            if( str_len === 0 ) {
                 return hash;
+            }
 
-            for( var i = 0; i < str_len; i++ ) {
-                var char = str.charCodeAt( i );
+            for(let i = 0; i < str_len; i++ ) {
+                const char = str.charCodeAt(i);
                 hash = ((hash << 5) - hash) + char;
                 //hash = hash & hash; // Convert to 32bit integer
             }
@@ -337,10 +382,7 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
         },
 
         bool_value_to_numeric: function( val ) {
-            if( val )
-                return 1;
-
-            return 0;
+            return val ? 1 : 0;
         },
 
         js_message_success: function( message, message_box_container ) {
@@ -362,16 +404,16 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
         },
 
         js_messages_hide: function( type, message_box_container ) {
-            var message_box = false;
+            let message_box = false;
             if( typeof message_box_container === "undefined"
-             || message_box_container.length === 0 )
+                || message_box_container.length === 0 ) {
                 message_box = $("#phs_ajax_" + type + "_box");
-
-            else {
-                if( typeof message_box_container === "string" )
-                    message_box = $("#"+message_box_container + "_" + type + "_box");
-                else if( typeof message_box_container === "object" )
+            } else {
+                if( typeof message_box_container === "string" ) {
+                    message_box = $("#" + message_box_container + "_" + type + "_box");
+                } else if( typeof message_box_container === "object" ) {
                     message_box = message_box_container;
+                }
             }
 
             if( message_box && message_box.length ) {
@@ -388,62 +430,66 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
          */
         js_messages: function( messages_arr, type, message_box_container ) {
             if( typeof messages_arr === "undefined" || !messages_arr
-             || typeof messages_arr.length === "undefined" || !messages_arr.length )
+                || typeof messages_arr.length === "undefined" || !messages_arr.length ) {
                 return;
+            }
 
-            var message_box = false;
+            let message_box = false;
             if( typeof message_box_container === "undefined"
-             || message_box_container.length === 0 )
+                || message_box_container.length === 0 ) {
                 message_box = $("#phs_ajax_" + type + "_box");
-            else {
-                if( typeof message_box_container === "string" )
-                    message_box = $("#"+message_box_container + "_" + type + "_box");
-                else if( typeof message_box_container === "object" )
+            } else {
+                if( typeof message_box_container === "string" ) {
+                    message_box = $("#" + message_box_container + "_" + type + "_box");
+                } else if( typeof message_box_container === "object" ) {
                     message_box = message_box_container;
+                }
             }
 
             if( message_box && message_box.length ) {
-                var find_result = message_box.find( ".dismissible" );
-                for( var i = 0; i < messages_arr.length; i++ ) {
-                    if( find_result.length )
-                        find_result.append( "<p>" + messages_arr[i] + "</p>" );
-                    else
-                        message_box.append( "<p>" + messages_arr[i] + "</p>" );
+                const find_result = message_box.find(".dismissible");
+                for(let i = 0; i < messages_arr.length; i++ ) {
+                    if( find_result.length ) {
+                        find_result.append("<p>" + messages_arr[i] + "</p>");
+                    } else {
+                        message_box.append("<p>" + messages_arr[i] + "</p>");
+                    }
                 }
                 message_box.show();
             }
         },
 
         do_autocomplete: function( container, o ) {
-            var defaults = {
+            const defaults = {
                 show_loading_animation: true,
                 loading_animation_class: "phs_autocomplete_input_loading",
-                url : '',
-                autocomplete_obj : {
-                    delay: 300,
-                    minLength: 1,
-                    select: false
+                url: '',
+                autocomplete_obj: {
+                    delay: 300, minLength: 1, select: false
                 },
-                ajax_options : {}
+                ajax_options: {}
             };
 
-            var options = $.extend( {}, defaults, o );
+            const options = $.extend({}, defaults, o);
+            if( typeof o.autocomplete_obj !== "undefined" ) {
+                options.autocomplete_obj = $.extend({}, defaults.autocomplete_obj, o.autocomplete_obj);
+            }
+            if( typeof o.ajax_options !== "undefined" ) {
+                options.ajax_options = $.extend({}, defaults.ajax_options, o.ajax_options);
+            }
 
-            if( typeof o.autocomplete_obj != "undefined" )
-                options.autocomplete_obj = $.extend( {}, defaults.autocomplete_obj, o.autocomplete_obj );
-            if( typeof o.ajax_options != "undefined" )
-                options.ajax_options = $.extend( {}, defaults.ajax_options, o.ajax_options );
-
-            if( typeof options.autocomplete_obj.classes === "undefined" )
+            if( typeof options.autocomplete_obj.classes === "undefined" ) {
                 options.autocomplete_obj.classes = {};
+            }
 
             options.autocomplete_obj.classes["ui-autocomplete-loading"] = options.loading_animation_class;
 
-            var container_obj = false;
-            if( typeof container == "string" )
+            let container_obj = null;
+            if( typeof container === "string" ) {
                 container_obj = $(container);
-            else if( typeof container == "object" )
+            } else if( typeof container === "object" ) {
                 container_obj = container;
+            }
 
             if( !container_obj ) {
                 alert( "<?php echo PHS_Language::_te('Couldn\'t obtain jQuery object for autocomplete field.'); ?>" );
@@ -484,8 +530,9 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
         // Add this request in the queue
         // private
         remove_ajax_request_from_queue: function ( request_hash ) {
-            if( typeof PHS_JSEN.ajax_queue[request_hash] === "undefined" )
+            if( typeof PHS_JSEN.ajax_queue[request_hash] === "undefined" ) {
                 return;
+            }
 
             delete PHS_JSEN.ajax_queue[request_hash];
         },
@@ -493,13 +540,12 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
         // Add this request in the queue
         // private
         add_ajax_request_to_queue: function ( request_hash, onsuccess, onfailed, queue_options ) {
-            var defaults = {
-                cache: false,
-                cache_timeout: 10
+            const defaults = {
+                cache: false, cache_timeout: 10
             };
-            var options = $.extend( {}, defaults, queue_options );
+            const options  = $.extend({}, defaults, queue_options);
 
-            var queue_item = {};
+            let queue_item = {};
             if( typeof PHS_JSEN.ajax_queue[request_hash] !== "undefined" ) {
                 queue_item = PHS_JSEN.ajax_queue[request_hash];
             } else {
@@ -515,8 +561,9 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
                 };
             }
 
-            if( queue_item.remove_from_queue_handler )
-                clearTimeout( queue_item.remove_from_queue_handler );
+            if( queue_item.remove_from_queue_handler ) {
+                clearTimeout(queue_item.remove_from_queue_handler);
+            }
 
             queue_item.success_callbacks.push( onsuccess );
             queue_item.failed_callbacks.push( onfailed );
@@ -531,26 +578,26 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
         // return true if request is already queued, false if request is not yet queued
         // private
         check_ajax_queue_for_request: function ( request_hash, onsuccess, onfailed, queue_options ) {
-            if( typeof PHS_JSEN.ajax_queue[request_hash] === "undefined" )
+            if( typeof PHS_JSEN.ajax_queue[request_hash] === "undefined" ) {
                 return false;
+            }
 
-            var queue_item = PHS_JSEN.ajax_queue[request_hash];
-
+            const queue_item = PHS_JSEN.ajax_queue[request_hash];
             if( typeof queue_item.response_received !== "undefined"
-             && !queue_item.response_received ) {
+                && !queue_item.response_received ) {
                 PHS_JSEN.add_ajax_request_to_queue( request_hash, onsuccess, onfailed, queue_options );
                 return true;
             }
 
             // We already have a response...
-            var func_list = [];
+            let func_list = [];
             if( queue_item.response_success ) {
                 func_list = queue_item.success_callbacks;
             } else {
                 func_list = queue_item.failed_callbacks;
             }
 
-            var response = null, status = null, ajax_obj = null, data = null, error_exception = null;
+            let response = null, status = null, ajax_obj = null, data = null, error_exception = null;
             if( queue_item.response_success ) {
                 response = queue_item.response_data.result_response;
                 status = queue_item.response_data.status;
@@ -563,22 +610,23 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
             }
 
             if( typeof func_list !== "undefined"
-             && typeof func_list.length !== "undefined"
-             && func_list.length > 0 ) {
-                for( var func in func_list ) {
-                    if( !func_list.hasOwnProperty( func ) )
+                && typeof func_list.length !== "undefined"
+                && func_list.length > 0 ) {
+                for(const func in func_list ) {
+                    if( !func_list.hasOwnProperty( func ) ) {
                         continue;
+                    }
 
-                    var func_callback = func_list[func];
-
-                    if( $.isFunction( func_callback ) ) {
+                    const func_callback = func_list[func];
+                    if( typeof func_callback === "function" ) {
                         if( queue_item.response_success ) {
                             func_callback( response, status, ajax_obj, data );
                         } else {
                             func_callback( ajax_obj, status, error_exception );
                         }
-                    } else if( typeof func_callback === "string" )
-                        eval( func_callback );
+                    } else if( typeof func_callback === "string" ) {
+                        eval(func_callback);
+                    }
                 }
             }
 
@@ -587,33 +635,33 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
         // We received a success response for a queued request, iterate all callbacks and call them
         // private
         onsuccess_ajax_queue_for_request: function ( request_hash, response, status, ajax_obj, data ) {
-            if( typeof PHS_JSEN.ajax_queue[request_hash] === "undefined" )
+            if( typeof PHS_JSEN.ajax_queue[request_hash] === "undefined" ) {
                 return false;
+            }
 
-            var queue_item = PHS_JSEN.ajax_queue[request_hash];
-
-            var cached_response = { result_response: response, status: status, ajax_obj: ajax_obj, data: data };
+            const queue_item = PHS_JSEN.ajax_queue[request_hash];
+            const cached_response = {result_response: response, status: status, ajax_obj: ajax_obj, data: data};
 
             queue_item.response_received = true;
             queue_item.response_success = true;
             queue_item.response_data = cached_response;
 
-            var onsuccess_result = null;
+            let onsuccess_result = null;
             if( typeof queue_item.success_callbacks !== "undefined"
-             && typeof queue_item.success_callbacks.length !== "undefined"
-             && queue_item.success_callbacks.length > 0 )
-            {
-                for( var func in queue_item.success_callbacks )
-                {
-                    if( !queue_item.success_callbacks.hasOwnProperty( func ) )
+                && typeof queue_item.success_callbacks.length !== "undefined"
+                && queue_item.success_callbacks.length > 0 ) {
+                for(const func in queue_item.success_callbacks ) {
+                    if( !queue_item.success_callbacks.hasOwnProperty( func ) ) {
                         continue;
+                    }
 
-                    var func_callback = queue_item.success_callbacks[func];
+                    const func_callback = queue_item.success_callbacks[func];
 
-                    if( $.isFunction( func_callback ) )
-                        onsuccess_result = func_callback( response, status, ajax_obj, data );
-                    else if( typeof func_callback === "string" )
-                        onsuccess_result = eval( func_callback );
+                    if( typeof func_callback === "function" ) {
+                        onsuccess_result = func_callback(response, status, ajax_obj, data);
+                    } else if( typeof func_callback === "string" ) {
+                        onsuccess_result = eval(func_callback);
+                    }
                 }
             }
 
@@ -628,32 +676,31 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
         // We received a failed response for a queued request, iterate all callbacks and call them
         // private
         onfailed_ajax_queue_for_request: function ( request_hash, ajax_obj, status, error_exception ) {
-            if( typeof PHS_JSEN.ajax_queue[request_hash] === "undefined" )
+            if( typeof PHS_JSEN.ajax_queue[request_hash] === "undefined" ) {
                 return false;
+            }
 
-            var queue_item = PHS_JSEN.ajax_queue[request_hash];
-
-            var cached_response = { ajax_obj: ajax_obj, status: status, error_exception: error_exception };
+            const queue_item = PHS_JSEN.ajax_queue[request_hash];
+            const cached_response = {ajax_obj: ajax_obj, status: status, error_exception: error_exception};
 
             queue_item.response_received = true;
             queue_item.response_success = false;
             queue_item.response_data = cached_response;
 
             if( typeof queue_item.failed_callbacks !== "undefined"
-             && typeof queue_item.failed_callbacks.length !== "undefined"
-             && queue_item.failed_callbacks.length > 0 )
-            {
-                for( var func in queue_item.failed_callbacks )
-                {
-                    if( !queue_item.failed_callbacks.hasOwnProperty( func ) )
+                && typeof queue_item.failed_callbacks.length !== "undefined"
+                && queue_item.failed_callbacks.length > 0 ) {
+                for(const func in queue_item.failed_callbacks ) {
+                    if( !queue_item.failed_callbacks.hasOwnProperty( func ) ) {
                         continue;
+                    }
 
-                    var func_callback = queue_item.failed_callbacks[func];
-
-                    if( $.isFunction( func_callback ) )
-                        func_callback( ajax_obj, status, error_exception );
-                    else if( typeof func_callback === "string" )
-                        eval( func_callback );
+                    const func_callback = queue_item.failed_callbacks[func];
+                    if( typeof func_callback === "function" ) {
+                        func_callback(ajax_obj, status, error_exception);
+                    } else if( typeof func_callback === "string" ) {
+                        eval(func_callback);
+                    }
                 }
             }
 
@@ -667,20 +714,19 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
 
         // private
         check_ajax_requests_stack: function() {
-
             if( PHS_JSEN.requests_stack.length > 0 ) {
-                var stack_item = PHS_JSEN.requests_stack.shift();
+                const stack_item = PHS_JSEN.requests_stack.shift();
 
                 if( typeof stack_item === "undefined"
-                 || !stack_item )
-                {
-                    if( PHS_JSEN.requests_stack.length > 0 )
+                    || !stack_item ) {
+                    if( PHS_JSEN.requests_stack.length > 0 ) {
                         return PHS_JSEN.check_ajax_requests_stack();
+                    }
 
                     return false;
                 }
 
-                var request_hash = stack_item.request_hash, ajax_url = stack_item.ajax_url,
+                const request_hash = stack_item.request_hash, ajax_url = stack_item.ajax_url,
                     options = stack_item.options, ajax_parameters_obj = stack_item.ajax_parameters_obj;
 
                 return $.ajax( ajax_parameters_obj );
@@ -691,23 +737,20 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
 
         // private
         stack_ajax_request: function( request_hash, ajax_url, options, ajax_parameters_obj ) {
-            var stack_item = {
+            PHS_JSEN.requests_stack.push({
                 request_hash: request_hash,
                 ajax_url: ajax_url,
                 options: options,
                 ajax_parameters_obj: ajax_parameters_obj
-            };
-
-            PHS_JSEN.requests_stack.push( stack_item );
+            });
         },
 
         // public
         do_ajax: function( url, o ) {
-            var defaults = {
+            const defaults = {
                 // QUEUE SETTINGS
                 // Use custom queue?
-                queue_request: false,
-                // Queue response caching
+                queue_request: false, // Queue response caching
                 queue_response_cache: false,
                 queue_response_cache_timeout: 10,
 
@@ -728,14 +771,17 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
                 onsuccess: null
             };
 
-            var options = $.extend( {}, defaults, o );
+            const options = $.extend({}, defaults, o);
 
-            var ajax_url = PHS_JSEN.addURLParameter( url, "<?php echo PHS_Ajax::PARAM_FB_KEY; ?>", (options.full_buffer?1:0) );
+            const ajax_url = PHS_JSEN.addURLParameter(url, "<?php echo PHS_Ajax::PARAM_FB_KEY; ?>", (options.full_buffer ? 1 : 0));
 
-            var request_hash = PHS_JSEN.hash_string( ajax_url.toLowerCase() + ":" + options.method.toLowerCase() + ":" + JSON.stringify( options.url_data ).toLowerCase() );
+            const request_hash = PHS_JSEN.hash_string(ajax_url.toLowerCase() + ":" + options.method.toLowerCase() + ":" + JSON.stringify(options.url_data).toLowerCase());
 
             if( options.queue_request ) {
-                var queue_options = { cache: options.queue_response_cache, cache_timeout: options.queue_response_cache_timeout };
+                const queue_options = {
+                    cache: options.queue_response_cache,
+                    cache_timeout: options.queue_response_cache_timeout
+                };
 
                 // If we already have a similar request, just queue this one or call success or failed callback depending on response received (if any)
                 if( PHS_JSEN.check_ajax_queue_for_request( request_hash, options.onsuccess, options.onfailed, queue_options ) ) {
@@ -745,7 +791,7 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
                 PHS_JSEN.add_ajax_request_to_queue( request_hash, options.onsuccess, options.onfailed, queue_options );
             }
 
-            var ajax_parameters_obj = {
+            const ajax_parameters_obj = {
                 type: options.method,
                 url: ajax_url,
                 data: options.url_data,
@@ -753,16 +799,16 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
                 cache: options.cache_response,
                 async: options.async,
 
-                success: function( data, status, ajax_obj ) {
+                success: function (data, status, ajax_obj) {
 
                     // check next AJAX requests in the stack before managing current response
-                    if( options.stack_request ) {
+                    if (options.stack_request) {
                         PHS_JSEN.check_ajax_requests_stack();
                     }
 
-                    var result_response = null;
-                    if( !options.full_buffer ) {
-                        if( typeof data.response == 'undefined' || !data.response ) {
+                    let result_response = null;
+                    if (!options.full_buffer) {
+                        if (typeof data.response === "undefined" || !data.response) {
                             data.response = null;
                         }
 
@@ -771,54 +817,52 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
                         result_response = data;
                     }
 
-                    var onsuccess_result = null;
-                    if( options.queue_request ) {
-                        onsuccess_result = PHS_JSEN.onsuccess_ajax_queue_for_request( request_hash, result_response, status, ajax_obj, data );
-                    } else if( options.onsuccess ) {
-                        if( $.isFunction( options.onsuccess ) ) {
+                    let onsuccess_result = null;
+                    if (options.queue_request) {
+                        onsuccess_result = PHS_JSEN.onsuccess_ajax_queue_for_request(request_hash, result_response, status, ajax_obj, data);
+                    } else if (options.onsuccess) {
+                        if (typeof options.onsuccess === "function") {
                             onsuccess_result = options.onsuccess(result_response, status, ajax_obj, data);
-                        } else if( typeof options.onsuccess == "string" ) {
+                        } else if (typeof options.onsuccess === "string") {
                             onsuccess_result = eval(options.onsuccess);
                         }
                     }
 
-                    if( typeof onsuccess_result == "object"
-                        && onsuccess_result ) {
+                    if (typeof onsuccess_result === "object" && onsuccess_result) {
                         data = onsuccess_result;
                     }
 
-                    if( data && typeof data.redirect_to_url !== 'undefined' && data.redirect_to_url.length ) {
+                    if (data && typeof data.redirect_to_url !== 'undefined' && data.redirect_to_url.length) {
                         document.location = data.redirect_to_url;
                         return;
                     }
 
-                    if( options.extract_response_messages
-                        && data && typeof data.status !== 'undefined' && data.status ) {
-                        if( typeof data.status.success_messages !== 'undefined' && data.status.success_messages.length ) {
+                    if (options.extract_response_messages && data && typeof data.status !== 'undefined' && data.status) {
+                        if (typeof data.status.success_messages !== 'undefined' && data.status.success_messages.length) {
                             PHS_JSEN.js_messages(data.status.success_messages, "success", options.message_box_prefix);
                         }
-                        if( typeof data.status.warning_messages !== 'undefined' && data.status.warning_messages.length ) {
+                        if (typeof data.status.warning_messages !== 'undefined' && data.status.warning_messages.length) {
                             PHS_JSEN.js_messages(data.status.warning_messages, "warning", options.message_box_prefix);
                         }
-                        if( typeof data.status.error_messages !== 'undefined' && data.status.error_messages.length ) {
+                        if (typeof data.status.error_messages !== 'undefined' && data.status.error_messages.length) {
                             PHS_JSEN.js_messages(data.status.error_messages, "error", options.message_box_prefix);
                         }
                     }
                 },
 
-                error: function( ajax_obj, status, error_exception ) {
+                error: function (ajax_obj, status, error_exception) {
 
                     // check next AJAX requests in the stack before managing current response
-                    if( options.stack_request ) {
+                    if (options.stack_request) {
                         PHS_JSEN.check_ajax_requests_stack();
                     }
 
-                    if( options.queue_request ) {
-                        PHS_JSEN.onfailed_ajax_queue_for_request( request_hash, ajax_obj, status, error_exception );
-                    } else if( options.onfailed ) {
-                        if( $.isFunction( options.onfailed ) ) {
+                    if (options.queue_request) {
+                        PHS_JSEN.onfailed_ajax_queue_for_request(request_hash, ajax_obj, status, error_exception);
+                    } else if (options.onfailed) {
+                        if (typeof options.onfailed === "function") {
                             options.onfailed(ajax_obj, status, error_exception);
-                        } else if( typeof options.onfailed == "string" ) {
+                        } else if (typeof options.onfailed === "string") {
                             eval(options.onfailed);
                         }
                     }
@@ -827,11 +871,17 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
 
             if( options.stack_request )
             {
-                if( PHS_JSEN.simultaneous_requests_running >= PHS_JSEN.max_simultaneous_requests_allowed ){
+                if( PHS_JSEN.simultaneous_requests_running >= PHS_JSEN.max_simultaneous_requests_allowed ) {
                     return PHS_JSEN.stack_ajax_request( request_hash, ajax_url, options, ajax_parameters_obj );
                 }
 
                 PHS_JSEN.simultaneous_requests_running++;
+            }
+
+            if(ajax_parameters_obj.data
+                && ajax_parameters_obj.data instanceof FormData) {
+                ajax_parameters_obj.processData = false;
+                ajax_parameters_obj.contentType = false;
             }
 
             return $.ajax( ajax_parameters_obj );
@@ -943,7 +993,7 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
                     hide_submit_protection();
 
                     if( response
-                     && typeof response.language_changed !== "undefined" && response.language_changed )
+                        && typeof response.language_changed !== "undefined" && response.language_changed )
                         PHS_JSEN.refreshPage();
                 },
 
@@ -968,16 +1018,16 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
                 var appendto_obj = false;
 
                 if( typeof error_arr[i].highlight_classes === "undefined"
-                 || !error_arr[i].highlight_classes
-                 || typeof error_arr[i].highlight_classes != "object" )
+                    || !error_arr[i].highlight_classes
+                    || typeof error_arr[i].highlight_classes != "object" )
                     error_arr[i].highlight_classes = [];
 
                 var container_name_id = '';
                 var container_div_id = '';
                 if( !error_arr[i].container || !error_arr[i].container.length ) {
                     if( typeof error_arr[i].appendto === "undefined"
-                     || !error_arr[i].appendto
-                     || error_arr[i].appendto.length === 0 )
+                        || !error_arr[i].appendto
+                        || error_arr[i].appendto.length === 0 )
                         continue;
 
                     appendto_obj = $(error_arr[i].appendto);
@@ -1098,10 +1148,10 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
                 cssclass          : ["phs_jsenOverlay"]
             };
 
-            var options = $.extend( {}, defaults, o );
+            const options = $.extend({}, defaults, o);
 
-            var ajax_obj = false;
-            var dialog_obj = $("#" + PHS_JSEN.dialogs_prefix + options.suffix);
+            let ajax_obj     = false;
+            const dialog_obj = $("#" + PHS_JSEN.dialogs_prefix + options.suffix);
             if( typeof options.url !== "undefined" && options.url && dialog_obj ) {
                 if( options.title && options.title.length ) {
                     dialog_obj.dialog( "option", "title",  options.title );
@@ -1113,23 +1163,24 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
                     PHS_JSEN.dialogOptions( options.suffix, 'cssclass', options.cssclass );
                 }
 
-                var ajax_params = {
+                const ajax_params = {
                     cache_response: options.cache_response,
-                    method: options.method,
-                    url_data: options.url_data,
-                    full_buffer: true,
+                    method:         options.method,
+                    url_data:       options.url_data,
+                    full_buffer:    true,
 
-                    onsuccess: function( response, status, ajax_obj ) {
-                        dialog_obj.html( response );
+                    onsuccess: function (response, status, ajax_obj) {
+                        dialog_obj.html(response);
                     },
 
-                    onfailed: function( ajax_obj, status, error_exception ) {
-                        dialog_obj.html( "<?php echo PHS_Language::_te('Error'); ?>" );
+                    onfailed: function (ajax_obj, status, error_exception) {
+                        dialog_obj.html("<?php echo PHS_Language::_te('Error'); ?>");
                     }
                 };
 
-                if( typeof options.data_type === "string" )
+                if( typeof options.data_type === "string" ) {
                     ajax_params.data_type = options.data_type;
+                }
 
                 ajax_obj = PHS_JSEN.do_ajax( options.url, ajax_params );
             }
@@ -1139,43 +1190,41 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
 
         // Reload HTML content of an AJAX dialog
         reloadAjaxDialog : function( o ) {
-            var defaults = {
-                suffix            : "",
-                cache_response    : false,
-                url               : null,
-                method            : "GET",
-                url_data          : "",
+            const defaults = {
+                suffix: "",
+                cache_response: false,
+                url: null,
+                method: "GET",
+                url_data: "",
 
-                onfailed          : null,
-                onsuccess         : null
+                onfailed: null,
+                onsuccess: null
             };
 
-            var options = $.extend( {}, defaults, o );
+            const options = $.extend({}, defaults, o);
 
-            var dialog_obj = $('#'+ PHS_JSEN.dialogs_prefix + options.suffix);
-            if( !dialog_obj )
+            const dialog_obj = $('#' + PHS_JSEN.dialogs_prefix + options.suffix);
+            if( !dialog_obj ) {
                 return false;
+            }
 
             if( typeof options.url !== "undefined" && options.url ) {
-                var ajax_params = {
+                const ajax_params = {
                     cache_response: options.cache_response,
-                    method: options.method,
-                    url_data: options.url_data,
-                    full_buffer: true,
+                    method:         options.method,
+                    url_data:       options.url_data,
+                    full_buffer:    true,
 
-                    onsuccess: function( response, status, ajax_obj ) {
-                        dialog_obj.html( response );
+                    onsuccess: function (response, status, ajax_obj) {
+                        dialog_obj.html(response);
 
-                        if( options.onsuccess ) {
-                            if( $.isFunction( options.onsuccess ) )
-                                options.onsuccess();
-                            else if( typeof options.onsuccess == "string" )
-                                eval( options.onsuccess );
+                        if (options.onsuccess) {
+                            if ($.isFunction(options.onsuccess)) options.onsuccess(); else if (typeof options.onsuccess == "string") eval(options.onsuccess);
                         }
                     },
 
-                    onfailed: function( ajax_obj, status, error_exception ) {
-                        dialog_obj.html( "<?php echo PHS_Language::_te('Error'); ?>" );
+                    onfailed: function (ajax_obj, status, error_exception) {
+                        dialog_obj.html("<?php echo PHS_Language::_te('Error'); ?>");
                     }
                 };
 
@@ -1194,14 +1243,14 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
 
         // Alter an AJAX dialog
         modifyAjaxDialog : function( o ) {
-            var defaults = {
-                width             : 0,
-                height            : 0,
-                suffix            : '',
-                opacity           : 0.9,
-                title             : "",
-                draggable         : true,
-                resizable         : false
+            const defaults = {
+                width: 0,
+                height: 0,
+                suffix: '',
+                opacity: 0.9,
+                title: "",
+                draggable: true,
+                resizable: false
             };
 
             var options = [];
@@ -1210,7 +1259,7 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
             var key = false;
             for( key in o ) {
                 if( !o.hasOwnProperty( key )
-                 || !defaults.hasOwnProperty( key ) )
+                    || !defaults.hasOwnProperty( key ) )
                     continue;
 
                 options[key] = o[key];
@@ -1224,7 +1273,7 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
             if( options_to_change && dialog_obj ) {
                 for( key in options ) {
                     if( key === 'suffix'
-                     || !options.hasOwnProperty( key ) )
+                        || !options.hasOwnProperty( key ) )
                         continue;
 
                     dialog_obj.dialog( "option", key, options[key] );
@@ -1368,7 +1417,7 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
                     PHS_JSEN.do_ajax( options.url, ajax_params );
                 } else
 
-                // Check if we have an object to extract html() from
+                    // Check if we have an object to extract html() from
                 if( typeof( options.source_obj ) !== "undefined" && options.source_obj ) {
                     var source_container = null;
                     if( typeof( options.source_obj ) === "string" ) {
@@ -1508,23 +1557,23 @@ if( typeof PHS_JSEN !== "undefined" || !PHS_JSEN )
 
             if( loading_dialog_obj ) {
                 loading_dialog_obj.dialog( {
-                        width: options.width,
-                        height: options.height,
-                        draggable: options.draggable,
-                        dialogClass: options.cssclass,
-                        stack: options.stack,
-                        title: options.title,
-                        closeOnEscape: options.close_on_escape,
-                        appendTo: options.parent_tag,
+                    width: options.width,
+                    height: options.height,
+                    draggable: options.draggable,
+                    dialogClass: options.cssclass,
+                    stack: options.stack,
+                    title: options.title,
+                    closeOnEscape: options.close_on_escape,
+                    appendTo: options.parent_tag,
 
-                        modal: true,
-                        minHeight: 300,
-                        overlay: { opacity: 0.4, background: "#000" },
-                        show: "",
-                        autoOpen: false,
-                        position: { my: "center", at: "center", of: $(options.parent_tag) },
-                        resizable: false
-                       } );
+                    modal: true,
+                    minHeight: 300,
+                    overlay: { opacity: 0.4, background: "#000" },
+                    show: "",
+                    autoOpen: false,
+                    position: { my: "center", at: "center", of: $(options.parent_tag) },
+                    resizable: false
+                } );
 
                 loading_dialog_obj.html( options.message + '<div id="loading-animation-pb' + options.suffix + '"></div>' );
 

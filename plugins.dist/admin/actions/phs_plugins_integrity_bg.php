@@ -48,78 +48,42 @@ class PHS_Action_Plugins_integrity_bg extends PHS_Action
 
         if (empty($params['c']) && empty($params['m']) && empty($params['a']) && empty($params['co']) && empty($params['e'])) {
             if (!($plugin_obj = PHS::load_plugin($params['p']))) {
-                if (self::st_has_error()) {
-                    $error_msg = self::st_get_error_message();
-                } else {
-                    $error_msg = $this->_pt('Unknown error while instantiating plugin.');
-                }
-
-                $action_result['buffer'] = $error_msg;
+                $action_result['buffer'] = self::st_get_error_message($this->_pt('Unknown error while instantiating plugin.'));
                 $ajax_result['has_error'] = true;
             } elseif (($plugin_info = $plugin_obj->get_plugin_info())) {
                 $ajax_result['plugin_info'] = $plugin_info;
             }
         } elseif (!empty($params['c'])) {
             if (!($controller_obj = PHS::load_controller($params['c'], $params['p']))) {
-                if (self::st_has_error()) {
-                    $error_msg = self::st_get_error_message();
-                } else {
-                    $error_msg = $this->_pt('Unknown error while instantiating controller.');
-                }
-
-                $action_result['buffer'] = $error_msg;
+                $action_result['buffer'] = self::st_get_error_message($this->_pt('Unknown error while instantiating controller.'));
                 $ajax_result['has_error'] = true;
             } elseif (($instance_details = $controller_obj->instance_details())) {
                 $ajax_result['instance_details'] = $instance_details;
             }
         } elseif (!empty($params['a'])) {
             if (!($action_obj = PHS::load_action($params['a'], $params['p'], $params['dir']))) {
-                if (self::st_has_error()) {
-                    $error_msg = self::st_get_error_message();
-                } else {
-                    $error_msg = $this->_pt('Unknown error while instantiating action.');
-                }
-
-                $action_result['buffer'] = $error_msg;
+                $action_result['buffer'] = self::st_get_error_message($this->_pt('Unknown error while instantiating action.'));
                 $ajax_result['has_error'] = true;
             } elseif (($instance_details = $action_obj->instance_details())) {
                 $ajax_result['instance_details'] = $instance_details;
             }
         } elseif (!empty($params['co'])) {
             if (!($contract_obj = PHS::load_contract($params['co'], $params['p'], $params['dir']))) {
-                if (self::st_has_error()) {
-                    $error_msg = self::st_get_error_message();
-                } else {
-                    $error_msg = $this->_pt('Unknown error while instantiating contract.');
-                }
-
-                $action_result['buffer'] = $error_msg;
+                $action_result['buffer'] = self::st_get_error_message($this->_pt('Unknown error while instantiating contract.'));
                 $ajax_result['has_error'] = true;
             } elseif (($instance_details = $contract_obj->instance_details())) {
                 $ajax_result['instance_details'] = $instance_details;
             }
         } elseif (!empty($params['e'])) {
             if (!($event_obj = PHS::load_event($params['e'], $params['p'], $params['dir']))) {
-                if (self::st_has_error()) {
-                    $error_msg = self::st_get_error_message();
-                } else {
-                    $error_msg = $this->_pt('Unknown error while instantiating event.');
-                }
-
-                $action_result['buffer'] = $error_msg;
+                $action_result['buffer'] = self::st_get_error_message($this->_pt('Unknown error while instantiating event.'));
                 $ajax_result['has_error'] = true;
             } elseif (($instance_details = $event_obj->instance_details())) {
                 $ajax_result['instance_details'] = $instance_details;
             }
         } elseif (!empty($params['m'])) {
             if (!($model_obj = PHS::load_model($params['m'], $params['p']))) {
-                if (self::st_has_error()) {
-                    $error_msg = self::st_get_error_message();
-                } else {
-                    $error_msg = $this->_pt('Unknown error while instantiating model.');
-                }
-
-                $action_result['buffer'] = $error_msg;
+                $action_result['buffer'] = self::st_get_error_message($this->_pt('Unknown error while instantiating model.'));
                 $ajax_result['has_error'] = true;
             } elseif (($instance_details = $model_obj->instance_details())) {
                 $ajax_result['instance_details'] = $instance_details;

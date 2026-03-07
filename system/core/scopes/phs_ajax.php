@@ -4,10 +4,11 @@ namespace phs\system\core\scopes;
 use phs\PHS;
 use phs\PHS_Ajax;
 use phs\PHS_Scope;
+use phs\PHS_Api_base;
 use phs\libraries\PHS_Hooks;
-use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\system\core\models\PHS_Model_Api_monitor;
 use phs\plugins\phs_security\PHS_Plugin_Phs_security;
 use phs\plugins\phs_security\libraries\Phs_security_headers;
 
@@ -23,6 +24,22 @@ class PHS_Scope_Ajax extends PHS_Scope
      */
     public function process_action_result($action_result, $static_error_arr = false)
     {
+        // We have already an error from flow before initiating scope class
+        if ($static_error_arr
+            && self::arr_has_error($static_error_arr)) {
+            $http_code = PHS_Api_base::framework_error_code_to_http_code(
+                self::arr_get_error_code($static_error_arr, self::ERR_FRAMEWORK));
+
+            PHS_Model_Api_monitor::api_incoming_request_error(
+                $http_code,
+                'Error in API action result: '.self::arr_get_simple_error_message($static_error_arr)
+            );
+
+            PHS_Api_base::http_header_response($http_code, self::arr_get_simple_error_message($static_error_arr));
+
+            exit;
+        }
+
         $full_buffer = PHS_Params::_gp(PHS_Ajax::PARAM_FB_KEY, PHS_Params::T_INT);
 
         $action_result['buffer'] ??= '';
@@ -44,7 +61,7 @@ class PHS_Scope_Ajax extends PHS_Scope
             $result_headers = [];
             if (!empty($action_result['custom_headers']) && is_array($action_result['custom_headers'])) {
                 foreach ($action_result['custom_headers'] as $key => $val) {
-                    if (empty($key)) {
+                    if (!$key) {
                         continue;
                     }
 
@@ -90,14 +107,13 @@ class PHS_Scope_Ajax extends PHS_Scope
                     'error_messages'   => PHS_Notifications::notifications_errors(),
                 ];
 
-                if (!empty($full_buffer)
+                if ($full_buffer
                     && PHS_Notifications::have_any_notifications()) {
                     $hook_args = PHS_Hooks::default_notifications_hook_args();
                     $hook_args['output_ajax_placeholders'] = false;
 
                     if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_NOTIFICATIONS_DISPLAY, $hook_args))
-                     && is_array($hook_args)
-                     && !empty($hook_args['notifications_buffer'])) {
+                        && !empty($hook_args['notifications_buffer'])) {
                         $action_result['ajax_result'] = $hook_args['notifications_buffer'].$action_result['ajax_result'];
                     }
                 }
