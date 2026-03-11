@@ -11,7 +11,7 @@ use phs\PHS_Ajax;
 use phs\libraries\PHS_Language;
 
 ?>
-if (typeof PHS_JSEN !== 'undefined' || !PHS_JSEN) {
+if (typeof PHS_JSEN === 'undefined' || !PHS_JSEN) {
     if (typeof $ === 'undefined') {
         if (typeof jQuery !== 'undefined') {
             $ = jQuery;
@@ -24,7 +24,7 @@ if (typeof PHS_JSEN !== 'undefined' || !PHS_JSEN) {
         }
     }
 
-    const PHS_JSEN = {
+    var PHS_JSEN = {
         debugging_mode: <?php echo PHS::st_debugging_mode() ? 'true' : 'false'; ?>,
 
         version: 2.1,
