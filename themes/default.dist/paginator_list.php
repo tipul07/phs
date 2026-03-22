@@ -719,6 +719,11 @@ if (!function_exists('phs_paginator_display_js_functionality')) {
         ?>document.location = "<?php echo $paginator_obj->get_full_url($url_params); ?>";
         }
 
+        function phs_paginator_refresh_page()
+        {
+            document.location = "<?php echo $paginator_obj->get_full_url(); ?>";
+        }
+
         function phs_paginator_default_bulk_action( action )
         {
             if( !action
