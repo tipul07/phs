@@ -319,6 +319,21 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         ];
     }
 
+    public function account_requires_activation() : bool
+    {
+        return (bool)($this->get_plugin_settings()['account_requires_activation'] ?? false);
+    }
+
+    public function no_nickname_only_email() : bool
+    {
+        return (bool)($this->get_plugin_settings()['no_nickname_only_email'] ?? false);
+    }
+
+    public function replace_nick_with_email() : bool
+    {
+        return (bool)($this->get_plugin_settings()['replace_nick_with_email'] ?? false);
+    }
+
     public function tfa_policy_is_off() : bool
     {
         return (int)($this->get_plugin_settings()['2fa_policy'] ?? 0) === self::TFA_POLICY_OFF;

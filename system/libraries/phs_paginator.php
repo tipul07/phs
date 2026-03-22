@@ -158,7 +158,8 @@ class PHS_Paginator extends PHS_Registry
             'display_bottom_bulk_actions' => true,
 
             // Callbacks to alter display
-            'after_record_callback' => null,
+            'after_record_callback'   => null,
+            'extra_record_tr_classes' => null,
 
             'before_filters_callback'  => null,
             'after_filters_callback'   => null,
@@ -787,7 +788,7 @@ class PHS_Paginator extends PHS_Registry
             'column_colspan' => 1,
             // Record lines styling
             'extra_records_style'   => '',
-            'extra_records_classes' => '',
+            'extra_records_classes' => '', // classes assigned to td element (can be string or a callback)
             // Raw attributes to be added to record td
             'raw_records_attrs' => '',
         ];

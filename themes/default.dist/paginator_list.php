@@ -314,8 +314,31 @@ if (empty($records_arr) || !is_array($records_arr)) {
 } elseif ($columns_count) {
     $knti = 0;
     $offset = $paginator_obj->pagination_params('offset');
+
+    $cell_render_params = $paginator_obj->default_cell_render_call_params();
+    $cell_render_params['request_render_type'] = $request_render_type;
+    $cell_render_params['page_index'] = 0;
+    $cell_render_params['list_index'] = 0;
+    $cell_render_params['columns_count'] = $columns_count;
+    $cell_render_params['record'] = null;
+    $cell_render_params['column'] = null;
+    $cell_render_params['table_field'] = null;
+    $cell_render_params['preset_content'] = '';
+    $cell_render_params['model_obj'] = $model_obj;
+    $cell_render_params['paginator_obj'] = $paginator_obj;
+    $cell_render_params['for_scope'] = $current_scope;
+
     foreach ($records_arr as $record_arr) {
-        ?><tr><?php
+        $cell_render_params['page_index'] = $knti;
+        $cell_render_params['list_index'] = $offset + $knti;
+        $cell_render_params['record'] = $record_arr;
+
+        $element_classes = '';
+        if (is_callable($flow_params_arr['extra_record_tr_classes'])) {
+            $element_classes = $flow_params_arr['extra_record_tr_classes']($cell_render_params) ?: '';
+        }
+
+        ?><tr <?php echo $element_classes ? 'class="'.$element_classes.'"' : ''; ?>><?php
 
         $api_record = [];
 
@@ -324,18 +347,7 @@ if (empty($records_arr) || !is_array($records_arr)) {
                 continue;
             }
 
-            $cell_render_params = $paginator_obj->default_cell_render_call_params();
-            $cell_render_params['request_render_type'] = $request_render_type;
-            $cell_render_params['page_index'] = $knti;
-            $cell_render_params['list_index'] = $offset + $knti;
-            $cell_render_params['columns_count'] = $columns_count;
-            $cell_render_params['record'] = $record_arr;
             $cell_render_params['column'] = $column_arr;
-            $cell_render_params['table_field'] = null;
-            $cell_render_params['preset_content'] = '';
-            $cell_render_params['model_obj'] = $model_obj;
-            $cell_render_params['paginator_obj'] = $paginator_obj;
-            $cell_render_params['for_scope'] = $current_scope;
 
             $cell_content = $paginator_obj->render_column_for_record($cell_render_params);
 
@@ -360,14 +372,21 @@ if (empty($records_arr) || !is_array($records_arr)) {
                     $cell_content = '!'.$this::_t('Failed rendering cell').'!';
                 }
 
-                ?><td class="<?php echo $column_arr['extra_records_classes']; ?>"
-                        <?php if (!empty($column_arr['extra_records_style'])) {
-                            echo 'style="'.$column_arr['extra_records_style'].'"';
-                        }?>
-                        <?php if (!empty($column_arr['raw_records_attrs'])) {
-                            echo $column_arr['raw_records_attrs'];
-                        }?>
-                        ><?php echo $cell_content; ?></td><?php
+                $element_classes = '';
+                if (is_string($column_arr['extra_records_classes'])) {
+                    $element_classes = $column_arr['extra_records_classes'];
+                } elseif (is_callable($column_arr['extra_records_classes'])) {
+                    $element_classes = $column_arr['extra_records_classes']($cell_render_params);
+                }
+
+                ?><td class="<?php echo $element_classes; ?>"
+                <?php if (!empty($column_arr['extra_records_style'])) {
+                    echo 'style="'.$column_arr['extra_records_style'].'"';
+                }?>
+                <?php if (!empty($column_arr['raw_records_attrs'])) {
+                    echo $column_arr['raw_records_attrs'];
+                }?>
+                ><?php echo $cell_content; ?></td><?php
             }
         }
 

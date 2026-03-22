@@ -690,6 +690,10 @@ class PHS_Utils extends PHS_Language
             $file_mime_type = self::guess_mimetype_by_filename($file);
         }
 
+        if (str_contains($file_mime_type, ';')) {
+            $file_mime_type = explode(';', $file_mime_type)[0] ?? null;
+        }
+
         return $file_mime_type;
     }
 
