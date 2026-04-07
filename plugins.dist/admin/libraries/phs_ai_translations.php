@@ -4,9 +4,11 @@ namespace phs\plugins\admin\libraries;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Library;
 use phs\plugins\admin\PHS_Plugin_Admin;
+use phs\system\core\attributes\PHS_Dependency;
 
 class PHS_Ai_translations extends PHS_Library
 {
+    #[PHS_Dependency]
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
     private array $_settings = [];
@@ -149,10 +151,6 @@ class PHS_Ai_translations extends PHS_Library
             return true;
         }
 
-        if (!$this->_load_dependencies()) {
-            return false;
-        }
-
         $this->_settings['openai_url'] = self::$_injected_settings['openai_url'] ?? $this->_admin_plugin->get_ai_openai_url();
         $this->_settings['openai_token'] = self::$_injected_settings['openai_token'] ?? $this->_admin_plugin->get_ai_openai_token();
         $this->_settings['openai_model'] = self::$_injected_settings['openai_model'] ?? $this->_admin_plugin->get_ai_openai_model();
@@ -178,21 +176,6 @@ class PHS_Ai_translations extends PHS_Library
             || empty($settings['openai_token'])
             || empty($settings['openai_model'])) {
             $this->set_error(self::ERR_SETTINGS, $this->_pt('Please provide valid OpenAI settings.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
-    private function _load_dependencies() : bool
-    {
-        $this->reset_error();
-
-        if (
-            (!$this->_admin_plugin && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
         }

@@ -4,6 +4,7 @@ namespace phs\libraries;
 use phs\PHS;
 use Exception;
 use phs\PHS_Tenants;
+use ReflectionClass;
 
 abstract class PHS_Instantiable extends PHS_Registry
 {
@@ -26,8 +27,6 @@ abstract class PHS_Instantiable extends PHS_Registry
 
     /** @var null|PHS_Plugin */
     private ?PHS_Plugin $_parent_plugin = null;
-
-    protected static array $instances = [];
 
     protected static array $instances_details = [];
 
@@ -454,6 +453,8 @@ abstract class PHS_Instantiable extends PHS_Registry
     protected function _do_construct(array $instance_details = []) : void
     {
         $this->_set_instance_details($instance_details ?: self::empty_instance_details());
+
+        $this->_check_dependencies_properties();
     }
 
     private function _set_instance_details(array $details_arr) : void
@@ -1059,7 +1060,7 @@ abstract class PHS_Instantiable extends PHS_Registry
     {
         self::st_reset_error();
 
-        if (empty($class_with_namespace)
+        if (!$class_with_namespace
             || !($class_namespace_path = explode('\\', $class_with_namespace))) {
             self::st_set_error(self::ERR_CLASS_NAME, self::_t('Seems like class name doesn\'t contain namespace.'));
 
@@ -1152,9 +1153,12 @@ abstract class PHS_Instantiable extends PHS_Registry
             $obj = PHS::$loader_method($instance_details['instance_name'], $details['plugin_name']);
         }
 
-        if (!$obj || self::st_has_error()) {
+        if (!$obj || $obj->has_error() || self::st_has_error()) {
             if (self::st_debugging_mode()) {
                 $error_msg = 'Error loading class ['.$full_class_name.']';
+                if ($obj?->has_error()) {
+                    $error_msg .= ' ERROR: '.$obj->get_simple_error_message();
+                }
                 if (self::st_has_error()) {
                     $error_msg .= ' ERROR: '.self::st_get_simple_error_message();
                 }
@@ -1227,17 +1231,16 @@ abstract class PHS_Instantiable extends PHS_Registry
             }
         }
 
-        /** @var PHS_Model $instance_obj */
-        if (!empty($singleton)
-            && isset(self::$instances[$instance_details['instance_id']])) {
-            return self::$instances[$instance_details['instance_id']];
-        }
-
         $instance_class = $instance_details['instance_full_class'];
+
+        if ($singleton
+            && ($instance_obj = self::get_instance_for_full_class_with_namespace($instance_class))) {
+            return $instance_obj;
+        }
 
         try {
             // Check if class is abstract...
-            if (($is_abstract = new \ReflectionClass($instance_class))
+            if (($is_abstract = new ReflectionClass($instance_class))
                 && $is_abstract->isAbstract()) {
                 self::st_set_error(self::ERR_INSTANCE_CLASS,
                     self::_t('Error instantiating abstract class %s.',
@@ -1277,10 +1280,8 @@ abstract class PHS_Instantiable extends PHS_Registry
             return null;
         }
 
-        if (!empty($singleton)) {
-            self::$instances[$instance_details['instance_id']] = $instance_obj;
-
-            return self::$instances[$instance_details['instance_id']];
+        if ($singleton) {
+            self::set_instance_for_full_class_with_namespace($instance_class, $instance_obj);
         }
 
         return $instance_obj;

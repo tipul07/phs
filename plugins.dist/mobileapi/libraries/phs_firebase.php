@@ -19,15 +19,15 @@ class PHS_Firebase extends PHS_Library
 
     private $_api_params = [];
 
-    public function __construct($error_no = self::ERR_OK, $error_msg = '', $error_debug_msg = '', $static_instance = false)
+    public function __construct()
     {
-        parent::__construct($error_no, $error_msg, $error_debug_msg, $static_instance);
+        parent::__construct();
 
         $this->reset_api_settings();
         $this->reset_api_params();
     }
 
-    public function get_default_api_settings()
+    public function get_default_api_settings(): array
     {
         return [
             'fcm_base_url'    => 'https://fcm.googleapis.com',
@@ -36,7 +36,7 @@ class PHS_Firebase extends PHS_Library
         ];
     }
 
-    public function get_default_api_params()
+    public function get_default_api_params(): array
     {
         return [
             'rest_url' => '',
@@ -46,12 +46,12 @@ class PHS_Firebase extends PHS_Library
         ];
     }
 
-    public function reset_api_settings()
+    public function reset_api_settings(): void
     {
         $this->_api_settings = $this->get_default_api_settings();
     }
 
-    public function reset_api_params()
+    public function reset_api_params(): void
     {
         $this->_api_params = $this->get_default_api_params();
     }

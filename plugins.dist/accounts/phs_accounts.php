@@ -13,6 +13,8 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Record_data;
 use phs\system\core\models\PHS_Model_Roles;
+use phs\system\core\attributes\PHS_Dependency;
+use phs\system\core\libraries\PHS_Ui_translations;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts_details;
 use phs\system\core\events\plugins\PHS_Event_Plugin_settings_saved;
@@ -42,6 +44,9 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     public const PASS_POLICY_MANDATORY = 1, PASS_POLICY_GENERATE = 2, PASS_POLICY_SETUP = 3;
 
     private ?PHS_Model_Accounts $_accounts_model = null;
+
+    #[PHS_Dependency]
+    private ?PHS_Ui_translations $_ui_lib = null;
 
     private ?PHS_Model_Accounts_details $_accounts_details_model = null;
 

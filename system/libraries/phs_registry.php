@@ -1,8 +1,12 @@
 <?php
 namespace phs\libraries;
 
+use Exception;
+use ReflectionClass;
+use phs\system\core\attributes\PHS_Dependency;
+
 if ((!defined('PHS_SETUP_FLOW') || !constant('PHS_SETUP_FLOW'))
- && !defined('PHS_VERSION')) {
+    && !defined('PHS_VERSION')) {
     exit;
 }
 
@@ -12,6 +16,10 @@ class PHS_Registry extends PHS_Language
     protected array $_context = [];
 
     private static array $data = [];
+
+    protected static array $instances = [];
+
+    protected static array $lazy_instances = [];
 
     public function get_full_context() : array
     {
@@ -894,5 +902,177 @@ class PHS_Registry extends PHS_Language
         }
 
         return $return_arr;
+    }
+
+    protected function _check_dependencies_properties(): void
+    {
+        $this->reset_error();
+
+        try {
+            $all_dependencies = [];
+            $properties = (new ReflectionClass($this))->getProperties();
+            foreach ($properties as $property) {
+                if(!($attributes = $property->getAttributes(PHS_Dependency::class))) {
+                    continue;
+                }
+
+                foreach ($attributes as $attribute) {
+                    /** @var PHS_Instance_Dependency $instance */
+                    $instance = $attribute->newInstance();
+
+                    $all_dependencies[$instance->priority] ??= [];
+
+                    $all_dependencies[$instance->priority][] = [
+                        'prop_obj' => $property,
+                        'class' => $property->getType()?->getName(),
+                        'as_singleton' => $instance->as_singleton,
+                        'error_if_fails' => $instance->error_if_fails,
+                        'depends_on' => $instance->depends_on,
+                    ];
+                }
+            }
+
+            if(!$all_dependencies) {
+                return;
+            }
+
+            ksort($all_dependencies);
+
+            foreach($all_dependencies as $dependencies) {
+                if(!$dependencies) {
+                    continue;
+                }
+
+                foreach($dependencies as $dependency) {
+                    if(!($prop_obj = $dependency['prop_obj'])
+                       || !($phs_class = $dependency['class'])) {
+                        $this->set_error(
+                            self::ERR_DEPENDENCIES,
+                            self::_t('Error for field %s in class %s, dependency %s.',
+                                $prop_obj->getName(),
+                                $prop_obj->getDeclaringClass()?->getName() ?? 'N/A',
+                                $phs_class ?? 'N/A')
+                        );
+
+                        return;
+                    }
+
+                    /** @var string|\phs\libraries\PHS_Instantiable $phs_class */
+                    if(!($details = PHS_Instantiable::extract_details_from_full_namespace_name($phs_class))) {
+                        $this->set_error(
+                            self::ERR_DEPENDENCIES,
+                            self::_t('Do not use %s attribute on non-PHS instantiable classes.', PHS_Dependency::class)
+                        );
+
+                        return;
+                    }
+
+                    $is_library = empty($details['instance_type']);
+
+                    if(($lazy_obj = self::get_lazy_instance_for_full_class_with_namespace($phs_class))) {
+                        $prop_obj->setValue($this, $lazy_obj);
+                        continue;
+                    }
+
+                    if($dependency['as_singleton']
+                       && ($instance_obj = self::get_instance_for_full_class_with_namespace($phs_class))) {
+                        $prop_obj->setValue($this, $instance_obj);
+                        continue;
+                    }
+
+                    $lazy_instance = self::create_lazy_instance($phs_class);
+
+                    $args = ['as_singleton' => $dependency['as_singleton'] ?? true];
+                    if(!$is_library) {
+                        $args['full_class_name'] = $phs_class;
+                    }
+
+                    if(!($instance_obj = $phs_class::get_instance(...$args))
+                       && $dependency['error_if_fails']) {
+                        $this->set_error(self::ERR_DEPENDENCIES,
+                            self::_t('Error loading required resources: %s', $phs_class));
+
+                        return;
+                    }
+
+                    // if($instance_obj && $dependency['as_singleton']) {
+                    //     self::set_instance_for_full_class_with_namespace($phs_class, $instance_obj);
+                    // }
+
+                    $prop_obj->setValue($this, $instance_obj ?? $lazy_instance);
+                }
+            }
+        } catch(Exception $e) {
+            $this->set_error(
+                self::ERR_DEPENDENCIES,
+                self::_t('Exception when loading required resources: %s', $e->getMessage())
+            );
+        }
+    }
+
+    final public static function set_instance_for_full_class_with_namespace(
+        string $full_class_name,
+        null|PHS_Instantiable|PHS_Library $instance_obj
+    ): void
+    {
+        self::$instances[ltrim($full_class_name, '/')] = $instance_obj;
+    }
+
+    final public static function get_instance_for_full_class_with_namespace(
+        string $full_class_name
+    ): null|PHS_Instantiable|PHS_Library
+    {
+        return self::$instances[ltrim($full_class_name, '/')] ?? null;
+    }
+
+    final public static function &lazy_get_instance(
+        string $instance_class, bool $is_library
+    ): null|PHS_Instantiable|PHS_Library
+    {
+        $instance_class = ltrim($instance_class, '/');
+        if(array_key_exists($instance_class, self::$instances)) {
+            return self::$instances[$instance_class];
+        }
+
+        $foobarclass = $is_library
+            ? new $instance_class()
+            : new (new class extends PHS_Undefined_instantiable {})();
+
+        self::$instances[$instance_class] = $foobarclass;
+
+        return self::$instances[$instance_class];
+    }
+
+    final public static function get_lazy_instance_for_full_class_with_namespace(
+        string $full_class_name
+    ): null|PHS_Instantiable|PHS_Library
+    {
+        return self::$lazy_instances[ltrim($full_class_name, '/')] ?? null;
+    }
+
+    final public static function set_lazy_instance_for_full_class_with_namespace(
+        string $full_class_name,
+        null|PHS_Instantiable|PHS_Library $instance_obj
+    ): void
+    {
+        self::$lazy_instances[ltrim($full_class_name, '/')] = $instance_obj;
+    }
+
+    final public static function &create_lazy_instance(
+        string $instance_class
+    ): null|PHS_Instantiable|PHS_Library
+    {
+        $instance_class = ltrim($instance_class, '/');
+        if(array_key_exists($instance_class, self::$lazy_instances)) {
+            return self::$lazy_instances[$instance_class];
+        }
+
+        @eval('$newclass = new class extends '.$instance_class.' {'
+              .' public function __construct() {} '
+              .'};');
+
+        self::$lazy_instances[$instance_class] = new $newclass();
+
+        return self::$lazy_instances[$instance_class];
     }
 }

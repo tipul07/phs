@@ -2042,8 +2042,8 @@ final class PHS extends PHS_Registry
             || (
                 !($library_details = PHS_Library::extract_details_from_full_namespace_name($class_name))
                 && (!($instantiable_details = PHS_Instantiable::extract_details_from_full_namespace_name($class_name))
-                 || empty($instantiable_details['instance_type'])
-                 || $instantiable_details['instance_type'] === PHS_Instantiable::INSTANCE_TYPE_UNDEFINED
+                    || empty($instantiable_details['instance_type'])
+                    || $instantiable_details['instance_type'] === PHS_Instantiable::INSTANCE_TYPE_UNDEFINED
                 )
             )
         ) {
@@ -2061,10 +2061,11 @@ final class PHS extends PHS_Registry
             $load_result = self::load_core_library_file($library_details['library_file'], $library_details['path_in_lib_dir'] ?? '');
         }
 
-        if (!$load_result) {
+        if (!$load_result && !class_exists($class_name, false)) {
             // class/file cannot be loaded, so we create an undefined instatiable...
             $newclass = new class extends PHS_Undefined_instantiable {
             };
+
             class_alias(get_class($newclass), $class_name);
         }
     }
@@ -2577,11 +2578,11 @@ final class PHS extends PHS_Registry
     {
         self::st_reset_error();
 
-        if (empty($plugin_name)
+        if (!$plugin_name
             || $plugin_name === PHS_Instantiable::CORE_PLUGIN
             || !($plugin_safe_name = PHS_Instantiable::safe_escape_class_name($plugin_name))) {
             self::st_set_error(self::ERR_LOAD_PLUGIN, self::_t('Couldn\'t load plugin %s.',
-                (empty($plugin_name) ? PHS_Instantiable::CORE_PLUGIN : $plugin_name)));
+                (!$plugin_name ? PHS_Instantiable::CORE_PLUGIN : $plugin_name)));
 
             return null;
         }

@@ -10,6 +10,12 @@ abstract class PHS_Library extends PHS_Registry
 
     private array $_location_paths = [];
 
+    public function __construct()
+    {
+        parent::__construct();
+        $this->_check_dependencies_properties();
+    }
+
     public function set_library_location_paths(array $paths) : array
     {
         $this->_location_paths = self::validate_array($paths, self::get_library_default_location_paths());

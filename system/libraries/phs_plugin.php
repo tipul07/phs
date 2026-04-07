@@ -314,7 +314,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return null;
         }
 
-        if (!empty($params['as_singleton'])
+        if ($params['as_singleton']
             && !empty($this->_libraries_instances[$library_file])) {
             return $this->_libraries_instances[$library_file];
         }
@@ -346,6 +346,14 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             $this->set_error(self::ERR_LIBRARY,
                 self::_t('Library [%s] from plugin [%s] is not a PHS library.',
                     $library_file, $this->instance_plugin_name()));
+
+            return null;
+        }
+
+        if ($library_instance->has_error()) {
+            $this->set_error(self::ERR_LIBRARY,
+                self::_t('Library [%s] from plugin [%s] error while instantiating library: %s',
+                    $library_file, $this->instance_plugin_name(), $library_instance->get_simple_error_message()));
 
             return null;
         }

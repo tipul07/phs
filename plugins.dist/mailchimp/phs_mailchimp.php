@@ -1,8 +1,8 @@
 <?php
 namespace phs\plugins\mailchimp;
 
-use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Plugin;
+use phs\plugins\mailchimp\libraries\Mailchimp;
 
 class PHS_Plugin_Mailchimp extends PHS_Plugin
 {
@@ -11,9 +11,9 @@ class PHS_Plugin_Mailchimp extends PHS_Plugin
     /**
      * Returns an instance of Mailchimp class
      *
-     * @return bool|libraries\Mailchimp
+     * @return null|libraries\Mailchimp
      */
-    public function get_mailchimp_instance()
+    public function get_mailchimp_instance(): ?libraries\Mailchimp
     {
         static $mailchimp_library = null;
 
@@ -22,22 +22,20 @@ class PHS_Plugin_Mailchimp extends PHS_Plugin
         }
 
         $library_params = [];
-        $library_params['full_class_name'] = '\\phs\\plugins\\mailchimp\\libraries\\Mailchimp';
+        $library_params['full_class_name'] = Mailchimp::class;
         $library_params['as_singleton'] = true;
 
         /** @var libraries\Mailchimp $loaded_library */
         if (!($loaded_library = $this->load_library('phs_mailchimp', $library_params))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading MailChimp library.'));
-            }
+            $this->set_error_if_not_set(self::ERR_LIBRARY, $this->_pt('Error loading MailChimp library.'));
 
-            return false;
+            return null;
         }
 
         if ($loaded_library->has_error()) {
             $this->copy_error($loaded_library, self::ERR_LIBRARY);
 
-            return false;
+            return null;
         }
 
         $mailchimp_library = $loaded_library;

@@ -23,9 +23,9 @@ class PHS_Hubspot extends PHS_Library
 
     private $_contacts_update_queue = [];
 
-    public function __construct($error_no = self::ERR_OK, $error_msg = '', $error_debug_msg = '', $static_instance = false)
+    public function __construct()
     {
-        parent::__construct($error_no, $error_msg, $error_debug_msg, $static_instance);
+        parent::__construct();
 
         $this->reset_api_settings();
         $this->reset_api_params();
