@@ -2134,6 +2134,14 @@ final class PHS extends PHS_Registry
             return null;
         }
 
+        if ($library_instance->has_error()) {
+            self::st_set_error(self::ERR_LIBRARY,
+                self::_t('Core library [%s] error while instantiating library: %s',
+                    $library_file, $library_instance->get_simple_error_message()));
+
+            return null;
+        }
+
         $location_details = $library_instance::get_library_default_location_paths();
         $location_details['library_file'] = $file_path;
         $location_details['library_path'] = rtrim(PHS_CORE_LIBRARIES_DIR, '/\\');

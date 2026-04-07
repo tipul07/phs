@@ -3,6 +3,7 @@ namespace phs\libraries;
 
 use Exception;
 use ReflectionClass;
+use ReflectionProperty;
 use phs\system\core\attributes\PHS_Dependency;
 
 if ((!defined('PHS_SETUP_FLOW') || !constant('PHS_SETUP_FLOW'))
@@ -19,7 +20,7 @@ class PHS_Registry extends PHS_Language
 
     protected static array $instances = [];
 
-    protected static array $lazy_instances = [];
+    private static array $_lazy_load = [];
 
     public function get_full_context() : array
     {
@@ -969,18 +970,19 @@ class PHS_Registry extends PHS_Language
 
                     $is_library = empty($details['instance_type']);
 
-                    if(($lazy_obj = self::get_lazy_instance_for_full_class_with_namespace($phs_class))) {
-                        $prop_obj->setValue($this, $lazy_obj);
-                        continue;
-                    }
-
                     if($dependency['as_singleton']
-                       && ($instance_obj = self::get_instance_for_full_class_with_namespace($phs_class))) {
+                       && ($instance_obj = self::_get_instance_for_full_class_with_namespace($phs_class))) {
                         $prop_obj->setValue($this, $instance_obj);
                         continue;
                     }
 
-                    $lazy_instance = self::create_lazy_instance($phs_class);
+                    $in_queue = self::_lazy_loader_in_queue($phs_class, $this, $prop_obj);
+
+                    self::_add_lazy_loader_to_queue($phs_class, $this, $prop_obj);
+
+                    if($in_queue) {
+                        continue;
+                    }
 
                     $args = ['as_singleton' => $dependency['as_singleton'] ?? true];
                     if(!$is_library) {
@@ -995,11 +997,9 @@ class PHS_Registry extends PHS_Language
                         return;
                     }
 
-                    // if($instance_obj && $dependency['as_singleton']) {
-                    //     self::set_instance_for_full_class_with_namespace($phs_class, $instance_obj);
-                    // }
+                    self::_update_lazy_loaders($phs_class, $instance_obj);
 
-                    $prop_obj->setValue($this, $instance_obj ?? $lazy_instance);
+                    $prop_obj->setValue($this, $instance_obj);
                 }
             }
         } catch(Exception $e) {
@@ -1010,7 +1010,7 @@ class PHS_Registry extends PHS_Language
         }
     }
 
-    final public static function set_instance_for_full_class_with_namespace(
+    final protected static function _set_instance_for_full_class_with_namespace(
         string $full_class_name,
         null|PHS_Instantiable|PHS_Library $instance_obj
     ): void
@@ -1018,61 +1018,51 @@ class PHS_Registry extends PHS_Language
         self::$instances[ltrim($full_class_name, '/')] = $instance_obj;
     }
 
-    final public static function get_instance_for_full_class_with_namespace(
+    final protected static function _get_instance_for_full_class_with_namespace(
         string $full_class_name
     ): null|PHS_Instantiable|PHS_Library
     {
         return self::$instances[ltrim($full_class_name, '/')] ?? null;
     }
 
-    final public static function &lazy_get_instance(
-        string $instance_class, bool $is_library
-    ): null|PHS_Instantiable|PHS_Library
+    private static function _add_lazy_loader_to_queue(
+        string $class_to_load,
+        PHS_Instantiable|PHS_Library $request_class,
+        ReflectionProperty $property,
+    ): void
     {
-        $instance_class = ltrim($instance_class, '/');
-        if(array_key_exists($instance_class, self::$instances)) {
-            return self::$instances[$instance_class];
-        }
-
-        $foobarclass = $is_library
-            ? new $instance_class()
-            : new (new class extends PHS_Undefined_instantiable {})();
-
-        self::$instances[$instance_class] = $foobarclass;
-
-        return self::$instances[$instance_class];
+        self::$_lazy_load[$class_to_load][$request_class::class][$property->getName()] = [
+            'request_class' => $request_class,
+            'property' => $property,
+        ];
     }
 
-    final public static function get_lazy_instance_for_full_class_with_namespace(
-        string $full_class_name
-    ): null|PHS_Instantiable|PHS_Library
+    private static function _lazy_loader_in_queue(
+        string $class_to_load,
+        PHS_Instantiable|PHS_Library $request_class,
+        ReflectionProperty $property,
+    ): bool
     {
-        return self::$lazy_instances[ltrim($full_class_name, '/')] ?? null;
+        return !empty(self::$_lazy_load[$class_to_load][$request_class::class][$property->getName()]);
     }
 
-    final public static function set_lazy_instance_for_full_class_with_namespace(
+    private static function _update_lazy_loaders(
         string $full_class_name,
         null|PHS_Instantiable|PHS_Library $instance_obj
     ): void
     {
-        self::$lazy_instances[ltrim($full_class_name, '/')] = $instance_obj;
-    }
-
-    final public static function &create_lazy_instance(
-        string $instance_class
-    ): null|PHS_Instantiable|PHS_Library
-    {
-        $instance_class = ltrim($instance_class, '/');
-        if(array_key_exists($instance_class, self::$lazy_instances)) {
-            return self::$lazy_instances[$instance_class];
+        if(empty(self::$_lazy_load[$full_class_name])) {
+            return;
         }
 
-        @eval('$newclass = new class extends '.$instance_class.' {'
-              .' public function __construct() {} '
-              .'};');
+        foreach(self::$_lazy_load[$full_class_name] as $lazy_props) {
+            foreach ($lazy_props as $prop) {
+                if(empty($prop['property']) || empty($prop['request_class'])) {
+                    continue;
+                }
 
-        self::$lazy_instances[$instance_class] = new $newclass();
-
-        return self::$lazy_instances[$instance_class];
+                $prop['property']->setValue($prop['request_class'], $instance_obj);
+            }
+        }
     }
 }

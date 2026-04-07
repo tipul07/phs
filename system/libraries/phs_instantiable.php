@@ -1234,7 +1234,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         $instance_class = $instance_details['instance_full_class'];
 
         if ($singleton
-            && ($instance_obj = self::get_instance_for_full_class_with_namespace($instance_class))) {
+            && ($instance_obj = self::_get_instance_for_full_class_with_namespace($instance_class))) {
             return $instance_obj;
         }
 
@@ -1281,7 +1281,7 @@ abstract class PHS_Instantiable extends PHS_Registry
         }
 
         if ($singleton) {
-            self::set_instance_for_full_class_with_namespace($instance_class, $instance_obj);
+            self::_set_instance_for_full_class_with_namespace($instance_class, $instance_obj);
         }
 
         return $instance_obj;

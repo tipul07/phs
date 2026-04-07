@@ -130,6 +130,7 @@ abstract class PHS_Library extends PHS_Registry
                 'as_singleton'    => $as_singleton ?? static::instances_as_singletons(),
                 'path_in_lib_dir' => $library_details['path_in_lib_dir'],
             ]))
+            || $library_obj->has_error()
         ) {
             self::st_copy_or_set_error(
                 $plugin_obj,

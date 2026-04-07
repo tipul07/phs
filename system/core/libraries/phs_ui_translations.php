@@ -7,9 +7,7 @@ use phs\libraries\PHS_Library;
 use phs\libraries\PHS_Po_format;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\traits\PHS_Model_Trait_statuses;
-use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\system\core\attributes\PHS_Dependency;
-use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\admin\libraries\PHS_Ai_translations;
 
 class PHS_Ui_translations extends PHS_Library
@@ -23,20 +21,11 @@ class PHS_Ui_translations extends PHS_Library
 
     public const STATUS_STARTING = 1, STATUS_RUNNING = 2, STATUS_ERROR = 3, STATUS_FINISHED = 4, STATUS_FORCE_STOPPED = 5;
 
-    #[PHS_Dependency(error_if_fails: true, priority: 20)]
-    public ?PHS_Plugin_Accounts $_accounts_plugin = null;
-
-    #[PHS_Dependency(error_if_fails: false, priority: 20)]
-    public ?PHS_Plugin_Accounts $_accounts_plugin2 = null;
-
-    #[PHS_Dependency(error_if_fails: false, priority: 0)]
-    public ?PHS_Plugin_Admin $_admin_plugin = null;
+    #[PHS_Dependency]
+    private ?PHS_Plugin_Admin $_admin_plugin = null;
 
     #[PHS_Dependency]
-    public ?PHS_Ai_translations $_ai_lib = null;
-
-    #[PHS_Dependency]
-    public ?PHS_Model_Accounts $_accounts_model = null;
+    private ?PHS_Ai_translations $_ai_lib = null;
 
     public static array $STATUSES_ARR = [
         self::STATUS_STARTING      => ['title' => 'Starting'],
