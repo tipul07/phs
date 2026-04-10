@@ -959,7 +959,7 @@ class PHS_Paginator extends PHS_Registry
                 unset($action['display_in_bottom']);
             }
 
-            $action['checkbox_column'] = $action['checkbox_column'] ?: 'id';
+            $action['checkbox_column'] = ($action['checkbox_column'] ?? '') ?: 'id';
             $action['action'] ??= $action_name;
 
             if (!($new_action = self::validate_array_recursive($action, $default_fields))) {
@@ -997,7 +997,7 @@ class PHS_Paginator extends PHS_Registry
                 continue;
             }
 
-            $new_action['checkbox_column'] = $new_action['checkbox_column'] ?: 'id';
+            $new_action['checkbox_column'] = ($new_action['checkbox_column'] ?? '') ?: 'id';
             $new_action['action'] ??= $action_name;
 
             if (!$new_action['action']) {

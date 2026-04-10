@@ -314,7 +314,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             return null;
         }
 
-        if (!empty($params['as_singleton'])
+        if ($params['as_singleton']
             && !empty($this->_libraries_instances[$library_file])) {
             return $this->_libraries_instances[$library_file];
         }
@@ -346,6 +346,26 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             $this->set_error(self::ERR_LIBRARY,
                 self::_t('Library [%s] from plugin [%s] is not a PHS library.',
                     $library_file, $this->instance_plugin_name()));
+
+            return null;
+        }
+
+        $has_depency_error = $library_instance::has_dependency_errors();
+        if ($has_depency_error
+            || $library_instance->has_error()) {
+            $error_msg = self::_t('Error loading library %s from plugin %s.', $library_file, $this->instance_plugin_name());
+            if ($library_instance->has_error()) {
+                $error_msg .= ' '.self::_t('ERROR: %s', $library_instance->get_simple_error_message());
+            }
+            if ($has_depency_error) {
+                $error_msg .= ' '.self::_t('ERROR: %s', implode('; ', $library_instance::get_dependency_errors()));
+            }
+
+            if (self::st_debugging_mode()) {
+                PHS_Logger::error($error_msg, PHS_Logger::TYPE_DEBUG);
+            }
+
+            $this->set_error(self::ERR_LIBRARY, $error_msg);
 
             return null;
         }

@@ -5,10 +5,12 @@ use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Contract;
 use phs\libraries\PHS_Model_Core_base;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Contract_Account extends PHS_Contract
 {
+    #[PHS_Dependency]
     private ?PHS_Model_Accounts $_accounts_model = null;
 
     /**
@@ -16,10 +18,6 @@ class PHS_Contract_Account extends PHS_Contract
      */
     public function get_parsing_data_model() : ?PHS_Model
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
-
         return $this->_accounts_model;
     }
 
@@ -28,10 +26,6 @@ class PHS_Contract_Account extends PHS_Contract
      */
     public function get_parsing_data_model_flow() : ?array
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
-
         return $this->_accounts_model->fetch_default_flow_params(['table_name' => 'users']);
     }
 
@@ -171,19 +165,5 @@ class PHS_Contract_Account extends PHS_Contract
                 'type'                  => PHS_Params::T_NOHTML,
             ],
         ];
-    }
-
-    private function _load_dependencies() : bool
-    {
-        $this->reset_error();
-
-        if (!$this->_accounts_model
-         && !($this->_accounts_model = PHS_Model_Accounts::get_instance())) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
     }
 }

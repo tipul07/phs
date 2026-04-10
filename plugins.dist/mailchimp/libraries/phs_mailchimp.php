@@ -9,29 +9,26 @@ use phs\plugins\mailchimp\PHS_Plugin_Mailchimp;
 
 class Mailchimp extends PHS_Library
 {
-    public const ERR_BB_PARSE = 1;
-
-    /** @var PHS_Plugin_Mailchimp */
-    private $_mailchimp_plugin = false;
+    private ?PHS_Plugin_Mailchimp $_mailchimp_plugin = null;
 
     private $_api_settings = [];
 
     private $_api_params = [];
 
-    public function __construct($error_no = self::ERR_OK, $error_msg = '', $error_debug_msg = '', $static_instance = false)
+    public function __construct()
     {
-        parent::__construct($error_no, $error_msg, $error_debug_msg, $static_instance);
+        parent::__construct();
 
         $this->reset_api_settings();
         $this->reset_api_params();
     }
 
-    public function get_member_hash($email)
+    public function get_member_hash($email) : string
     {
         return md5(strtolower($email));
     }
 
-    public function get_default_api_settings()
+    public function get_default_api_settings() : array
     {
         return [
             'base_url'  => 'api.mailchimp.com/3.0/',
@@ -40,7 +37,7 @@ class Mailchimp extends PHS_Library
         ];
     }
 
-    public function get_default_api_params()
+    public function get_default_api_params() : array
     {
         return [
             'rest_url' => '',
@@ -50,12 +47,12 @@ class Mailchimp extends PHS_Library
         ];
     }
 
-    public function reset_api_settings()
+    public function reset_api_settings() : void
     {
         $this->_api_settings = $this->get_default_api_settings();
     }
 
-    public function reset_api_params()
+    public function reset_api_params() : void
     {
         $this->_api_params = $this->get_default_api_params();
     }
@@ -103,9 +100,9 @@ class Mailchimp extends PHS_Library
         return $this->_api_params;
     }
 
-    public function can_connect()
+    public function can_connect() : bool
     {
-        return !(empty($this->_api_settings['dc_server']) || empty($this->_api_settings['api_key']));
+        return !empty($this->_api_settings['dc_server']) && !empty($this->_api_settings['api_key']);
     }
 
     public function create_list($list_arr)
@@ -305,20 +302,6 @@ class Mailchimp extends PHS_Library
         return $api_response['json_response_arr'];
     }
 
-    private function _load_dependencies() : bool
-    {
-        $this->reset_error();
-
-        if (empty($this->_mailchimp_plugin)
-            && !($this->_mailchimp_plugin = PHS_Plugin_Mailchimp::get_instance())) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading MailChimp plugin.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
     private function _api_params($key = null, $val = null)
     {
         if ($key === null && $val === null) {
@@ -359,10 +342,6 @@ class Mailchimp extends PHS_Library
 
     private function _do_call($payload = false, $params = false)
     {
-        if (!$this->_load_dependencies()) {
-            return false;
-        }
-
         $this->reset_error();
 
         if (!$this->can_connect()) {
@@ -371,8 +350,6 @@ class Mailchimp extends PHS_Library
             return false;
         }
 
-        $mailchimp_plugin = $this->_mailchimp_plugin;
-
         $payload_str = '';
         if (!empty($payload)
          && !($payload_str = @json_encode($payload))) {
@@ -380,7 +357,7 @@ class Mailchimp extends PHS_Library
             var_dump($payload);
             $buf = ob_get_clean();
 
-            PHS_Logger::error('Couldn\'t obtain JSON from payload: ['.$buf.']', $mailchimp_plugin::LOG_CHANNEL);
+            PHS_Logger::error('Couldn\'t obtain JSON from payload: ['.$buf.']', $this->_mailchimp_plugin::LOG_CHANNEL);
 
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t obtain JSON from payload.'));
 
@@ -418,15 +395,15 @@ class Mailchimp extends PHS_Library
 
         if (!($response = PHS_Utils::quick_curl($api_url, $api_params))
          || empty($response['http_code'])) {
-            PHS_Logger::error('Error sending request to ['.$api_url.']', $mailchimp_plugin::LOG_CHANNEL);
+            PHS_Logger::error('Error sending request to ['.$api_url.']', $this->_mailchimp_plugin::LOG_CHANNEL);
 
             if (!empty($params['request_error_msg'])) {
                 PHS_Logger::error('cURL said: '.$params['request_error_msg'].' (#'.(!empty($params['request_error_no']) ? $params['request_error_no'] : '0').')',
-                    $mailchimp_plugin::LOG_CHANNEL);
+                    $this->_mailchimp_plugin::LOG_CHANNEL);
             }
 
             if (!empty($params['log_payload'])) {
-                PHS_Logger::error('Payload: '.$payload_str, $mailchimp_plugin::LOG_CHANNEL);
+                PHS_Logger::error('Payload: '.$payload_str, $this->_mailchimp_plugin::LOG_CHANNEL);
             }
 
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error sending request to MailChimp server.'));
@@ -435,11 +412,11 @@ class Mailchimp extends PHS_Library
         }
 
         if ($response['http_code'] != $params['ok_http_code']) {
-            PHS_Logger::error('Error in response from ['.$api_url.'], http code: '.$response['http_code'], $mailchimp_plugin::LOG_CHANNEL);
-            PHS_Logger::error('Response: '.(!empty($response['response']) ? $response['response'] : 'N/A'), $mailchimp_plugin::LOG_CHANNEL);
+            PHS_Logger::error('Error in response from ['.$api_url.'], http code: '.$response['http_code'], $this->_mailchimp_plugin::LOG_CHANNEL);
+            PHS_Logger::error('Response: '.(!empty($response['response']) ? $response['response'] : 'N/A'), $this->_mailchimp_plugin::LOG_CHANNEL);
 
             if (!empty($params['log_payload'])) {
-                PHS_Logger::error('Payload: '.$payload_str, $mailchimp_plugin::LOG_CHANNEL);
+                PHS_Logger::error('Payload: '.$payload_str, $this->_mailchimp_plugin::LOG_CHANNEL);
             }
 
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('MailChimp server responded with an error.'));

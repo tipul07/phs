@@ -10,12 +10,11 @@ use phs\libraries\PHS_Library;
 use phs\libraries\PHS_Instantiable;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\models\PHS_Model_Plugins;
+use phs\system\core\attributes\PHS_Dependency;
 
 class Phs_Plugin_settings extends PHS_Library
 {
     public const EXPORT_TO_FILE = 1, EXPORT_TO_OUTPUT = 2, EXPORT_TO_BROWSER = 3;
-
-    private ?PHS_Plugin_Admin $_admin_plugin = null;
 
     /**
      * @param bool $include_core
@@ -26,7 +25,6 @@ class Phs_Plugin_settings extends PHS_Library
     {
         $this->reset_error();
 
-        /** @var PHS_Model_Plugins $plugins_model */
         if (!($plugins_model = PHS_Model_Plugins::get_instance())) {
             $this->set_error(self::ERR_RESOURCES, $this->_pt('Error loading required resources.'));
 
@@ -494,21 +492,6 @@ class Phs_Plugin_settings extends PHS_Library
             'version'     => $model_instance->get_model_version(),
             'settings'    => $settings_arr,
         ];
-    }
-
-    private function _load_dependencies() : bool
-    {
-        $this->reset_error();
-
-        if (empty($this->_admin_plugin)
-            && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance())) {
-            $this->set_error(self::ERR_DEPENDENCIES,
-                $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
     }
     //
     // endregion Export plugin settings

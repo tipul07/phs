@@ -23,6 +23,8 @@ if (empty($PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR) || !is_array($PHS_DEFAULT_CRYPT_
 
 phs_init_before_bootstrap();
 
+include_once PHS_CORE_ATTRIBUTES_DIR.'phs_dependency.php';
+
 include_once PHS_LIBRARIES_DIR.'phs_event_interface.php';
 include_once PHS_LIBRARIES_DIR.'phs_error.php';
 include_once PHS_LIBRARIES_DIR.'phs_language_container.php';
@@ -30,6 +32,7 @@ include_once PHS_LIBRARIES_DIR.'phs_language.php';
 include_once PHS_LIBRARIES_DIR.'phs_registry.php';
 // Make sure we can use maintenance things anytime
 include_once PHS_CORE_DIR.'phs_maintenance.php';
+include_once PHS_LIBRARIES_DIR.'phs_has_dependencies.php';
 include_once PHS_LIBRARIES_DIR.'phs_library.php';
 include_once PHS_LIBRARIES_DIR.'phs_roles.php';
 include_once PHS_LIBRARIES_DIR.'phs_instantiable.php';

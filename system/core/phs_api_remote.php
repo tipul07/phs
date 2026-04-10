@@ -238,7 +238,7 @@ class PHS_Api_remote extends PHS_Api_base
     {
         $this->reset_error();
 
-        if (empty(self::$_domains_model)
+        if (!self::$_domains_model
             && !(self::$_domains_model = PHS_Model_Phs_remote_domains::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 

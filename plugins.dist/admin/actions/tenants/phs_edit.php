@@ -2,9 +2,7 @@
 namespace phs\plugins\admin\actions\tenants;
 
 use phs\PHS;
-use phs\PHS_Api;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
@@ -31,8 +29,6 @@ class PHS_Action_Edit extends PHS_Action
             return action_request_login();
         }
 
-        /** @var PHS_Plugin_Admin $admin_plugin */
-        /** @var PHS_Model_Tenants $tenants_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
             || !($tenants_model = PHS_Model_Tenants::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
@@ -49,8 +45,8 @@ class PHS_Action_Edit extends PHS_Action
         $tid = PHS_Params::_gp('tid', PHS_Params::T_INT);
         $back_page = PHS_Params::_gp('back_page', PHS_Params::T_ASIS);
 
-        if (empty($tid)
-         || !($tenant_arr = $tenants_model->get_details($tid))) {
+        if (!$tid
+            || !($tenant_arr = $tenants_model->get_details($tid))) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid tenant...'));
 
             $args = [
@@ -127,11 +123,10 @@ class PHS_Action_Edit extends PHS_Action
                 return action_redirect(['p' => 'admin', 'a' => 'edit', 'ad' => 'tenants'], $url_params);
             }
 
-            if ($tenants_model->has_error()) {
-                PHS_Notifications::add_error_notice($tenants_model->get_simple_error_message());
-            } else {
-                PHS_Notifications::add_error_notice($this->_pt('Error saving details to database. Please try again.'));
-            }
+            PHS_Notifications::add_error_notice(
+                $tenants_model->get_simple_error_message(
+                    $this->_pt('Error saving details to database. Please try again.'))
+            );
         }
 
         $data = [

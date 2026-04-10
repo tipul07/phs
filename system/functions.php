@@ -199,11 +199,11 @@ function phs_init_before_bootstrap() : bool
     static $did_definitions = null;
 
     if (!defined('PHS_PATH')
-     || !defined('PHS_DEFAULT_DOMAIN')
-     || !defined('PHS_DEFAULT_PORT')
-     || !defined('PHS_DEFAULT_SSL_DOMAIN')
-     || !defined('PHS_DEFAULT_SSL_PORT')
-     || !defined('PHS_DEFAULT_DOMAIN_PATH')) {
+        || !defined('PHS_DEFAULT_DOMAIN')
+        || !defined('PHS_DEFAULT_PORT')
+        || !defined('PHS_DEFAULT_SSL_DOMAIN')
+        || !defined('PHS_DEFAULT_SSL_PORT')
+        || !defined('PHS_DEFAULT_DOMAIN_PATH')) {
         return false;
     }
 
@@ -298,6 +298,9 @@ function phs_init_before_bootstrap() : bool
     }
     if (!defined('PHS_CORE_TRAITS_DIR')) {
         define('PHS_CORE_TRAITS_DIR', PHS_CORE_DIR.'traits/');
+    }
+    if (!defined('PHS_CORE_ATTRIBUTES_DIR')) {
+        define('PHS_CORE_ATTRIBUTES_DIR', PHS_CORE_DIR.'attributes/');
     }
 
     // These paths will need a www pair, but after bootstrap

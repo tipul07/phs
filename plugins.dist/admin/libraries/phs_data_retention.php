@@ -2,13 +2,13 @@
 namespace phs\plugins\admin\libraries;
 
 use phs\PHS;
-use phs\PHS_Agent;
 use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Library;
 use phs\plugins\admin\PHS_Plugin_Admin;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\models\PHS_Model_Data_retention;
 use phs\system\core\models\PHS_Model_Retention_mock;
 
@@ -16,10 +16,13 @@ class Phs_Data_retention extends PHS_Library
 {
     public const TABLES_SUFFIX = '__dr_data';
 
+    #[PHS_Dependency]
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
+    #[PHS_Dependency]
     private ?PHS_Model_Data_retention $_data_retention_model = null;
 
+    #[PHS_Dependency]
     private ?PHS_Model_Retention_mock $_retention_mock_model = null;
 
     public function get_data_retention_table_name_from_table(string $table_name) : string
@@ -29,9 +32,7 @@ class Phs_Data_retention extends PHS_Library
 
     public function run_data_retention(int | array $retention_data, array $job_extra = []) : bool
     {
-        if (!$this->_load_dependencies()) {
-            return false;
-        }
+        $this->reset_error();
 
         if (empty($retention_data)
             || !($retention_arr = $this->_data_retention_model->data_to_array($retention_data))
@@ -46,9 +47,7 @@ class Phs_Data_retention extends PHS_Library
 
     public function run_data_retention_for_list(array $retention_list, array $job_extra = []) : bool
     {
-        if (!$this->_load_dependencies()) {
-            return false;
-        }
+        $this->reset_error();
 
         $retention_ids = [];
         foreach ($retention_list as $retention_data) {
@@ -84,9 +83,7 @@ class Phs_Data_retention extends PHS_Library
 
     public function run_data_retention_for_list_bg(array $retention_list) : ?array
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
+        $this->reset_error();
 
         $retentions_arr = [];
         foreach ($retention_list as $retention_data) {
@@ -144,9 +141,7 @@ class Phs_Data_retention extends PHS_Library
 
     public function run_data_retention_bg(int | array $retention_data) : ?array
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
+        $this->reset_error();
 
         if (empty($retention_data)
             || !($retention_arr = $this->_data_retention_model->data_to_array($retention_data))
@@ -170,9 +165,7 @@ class Phs_Data_retention extends PHS_Library
 
     private function _check_retention_requirements(int | array $retention_data) : bool
     {
-        if (!$this->_load_dependencies()) {
-            return false;
-        }
+        $this->reset_error();
 
         if (empty($retention_data)
             || !($retention_arr = $this->_data_retention_model->data_to_array($retention_data))
@@ -258,9 +251,7 @@ class Phs_Data_retention extends PHS_Library
 
     private function _do_retention_migration(int | array $retention_data) : ?array
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
+        $this->reset_error();
 
         if (empty($retention_data)
              || !($retention_arr = $this->_data_retention_model->data_to_array($retention_data))
@@ -290,25 +281,5 @@ class Phs_Data_retention extends PHS_Library
         }
 
         return $retention_result;
-    }
-
-    private function _load_dependencies() : bool
-    {
-        $this->reset_error();
-
-        if ((empty($this->_admin_plugin)
-              && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-             || (empty($this->_data_retention_model)
-                 && !($this->_data_retention_model = PHS_Model_Data_retention::get_instance()))
-             || (empty($this->_retention_mock_model)
-                 && !($this->_retention_mock_model = PHS_Model_Retention_mock::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENDENCIES,
-                $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
     }
 }

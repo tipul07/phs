@@ -3,9 +3,11 @@ namespace phs\plugins\accounts\models;
 
 use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Record_data;
+use phs\system\core\attributes\PHS_Dependency;
 
 class PHS_Model_Accounts_tenants extends PHS_Model
 {
+    #[PHS_Dependency]
     private static ?PHS_Model_Accounts $_accounts_model = null;
 
     public function get_model_version() : string
@@ -72,10 +74,6 @@ class PHS_Model_Accounts_tenants extends PHS_Model
         $this->reset_error();
 
         $params['append_tenants'] = !isset($params['append_tenants']) || !empty($params['append_tenants']);
-
-        if (!$this->_load_dependencies()) {
-            return false;
-        }
 
         if (!$account_data
             || !($account_arr = self::$_accounts_model->data_to_array($account_data))) {
@@ -236,17 +234,5 @@ class PHS_Model_Accounts_tenants extends PHS_Model
         }
 
         return $params;
-    }
-
-    private function _load_dependencies() : bool
-    {
-        if (!self::$_accounts_model
-            && !(self::$_accounts_model = PHS_Model_Accounts::get_instance())) {
-            $this->set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
     }
 }

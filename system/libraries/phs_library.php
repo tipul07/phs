@@ -4,11 +4,17 @@ namespace phs\libraries;
 // ! All plugin libraries should extend this class
 use phs\PHS;
 
-abstract class PHS_Library extends PHS_Registry
+abstract class PHS_Library extends PHS_Has_dependencies
 {
     private ?PHS_Plugin $_parent_plugin = null;
 
     private array $_location_paths = [];
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->_check_dependencies_properties();
+    }
 
     public function set_library_location_paths(array $paths) : array
     {
@@ -124,6 +130,7 @@ abstract class PHS_Library extends PHS_Registry
                 'as_singleton'    => $as_singleton ?? static::instances_as_singletons(),
                 'path_in_lib_dir' => $library_details['path_in_lib_dir'],
             ]))
+            || $library_obj->has_error()
         ) {
             self::st_copy_or_set_error(
                 $plugin_obj,

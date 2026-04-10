@@ -8,18 +8,23 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\models\PHS_Model_Tenants;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts_tenants;
 use phs\system\core\events\accounts\PHS_Event_Accounts_info_data;
 
 class PHS_Action_Info extends PHS_Action
 {
+    #[PHS_Dependency]
     private ?PHS_Plugin_Admin $admin_plugin = null;
 
+    #[PHS_Dependency]
     private ?PHS_Model_Accounts $accounts_model = null;
 
+    #[PHS_Dependency]
     private ?PHS_Model_Tenants $tenants_model = null;
 
+    #[PHS_Dependency]
     private ?PHS_Model_Accounts_tenants $accounts_tenants_model = null;
 
     /**
@@ -37,14 +42,14 @@ class PHS_Action_Info extends PHS_Action
     {
         PHS::page_settings('page_title', $this->_pt('Account details'));
 
-        if (!($current_user = PHS::user_logged_in())) {
+        if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
         }
 
-        if (!$this->_load_dependencies()) {
-            PHS_Notifications::add_error_notice($this->get_simple_error_message());
+        if (!$this->admin_plugin->can_admin_list_accounts()) {
+            PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }
@@ -83,23 +88,5 @@ class PHS_Action_Info extends PHS_Action
         $data['accounts_model'] = $this->accounts_model;
 
         return $this->quick_render_template('users/api/info', $data);
-    }
-
-    private function _load_dependencies() : bool
-    {
-        $this->reset_error();
-
-        if (
-            (!$this->admin_plugin && !($this->admin_plugin = PHS_Plugin_Admin::get_instance()))
-            || (!$this->accounts_model && !($this->accounts_model = PHS_Model_Accounts::get_instance()))
-            || (!$this->tenants_model && !($this->tenants_model = PHS_Model_Tenants::get_instance()))
-            || (!$this->accounts_tenants_model && !($this->accounts_tenants_model = PHS_Model_Accounts_tenants::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
     }
 }

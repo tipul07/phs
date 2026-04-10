@@ -15,6 +15,7 @@ use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\traits\PHS_Model_Trait_statuses;
 use phs\system\core\models\PHS_Model_Roles;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\events\accounts\PHS_Event_Accounts_generate_password;
 use phs\system\core\events\accounts\PHS_Event_Accounts_password_encryption;
 
@@ -40,12 +41,16 @@ class PHS_Model_Accounts extends PHS_Model
     public const LVL_GUEST = 0, LVL_MEMBER = 1,
         LVL_OPERATOR = 10, LVL_ADMIN = 11, LVL_SUPERADMIN = 12, LVL_DEVELOPER = 13;
 
+    #[PHS_Dependency]
     private ?PHS_Plugin_Accounts $_accounts_plugin = null;
 
+    #[PHS_Dependency]
     private ?PHS_Model_Accounts_details $_account_details_model = null;
 
+    #[PHS_Dependency]
     private ?PHS_Model_Accounts_tenants $_tenants_model = null;
 
+    #[PHS_Dependency]
     private ?PHS_Model_Roles $_roles_model = null;
 
     protected static array $STATUSES_ARR = [
@@ -332,9 +337,7 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function populate_account_data_for_account_contract(null | bool | int | array | PHS_Record_data $account_data) : ?array
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
+        $this->reset_error();
 
         if (!$account_data
             || !($account_arr = $this->data_to_array($account_data))
@@ -461,8 +464,9 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function get_account_details(null | bool | int | array | PHS_Record_data $account_data, array $params = []) : ?array
     {
-        if (!$account_data
-            || !$this->_load_dependencies()) {
+        $this->reset_error();
+
+        if (!$account_data) {
             return null;
         }
 
@@ -1076,9 +1080,7 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function activate_account_after_registration(int | array | PHS_Record_data $account_data) : null | array | PHS_Record_data
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
+        $this->reset_error();
 
         if (!$account_data
             || !($account_arr = $this->data_to_array($account_data))
@@ -1106,9 +1108,7 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function activate_account(int | array | PHS_Record_data $account_data, array $params = []) : null | array | PHS_Record_data
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
+        $this->reset_error();
 
         if (!$account_data
             || !($account_arr = $this->data_to_array($account_data))) {
@@ -1151,9 +1151,7 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function inactivate_account(int | array | PHS_Record_data $account_data, array $params = []) : null | array | PHS_Record_data
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
+        $this->reset_error();
 
         if (!$account_data
             || !($account_arr = $this->data_to_array($account_data))) {
@@ -1193,9 +1191,7 @@ class PHS_Model_Accounts extends PHS_Model
 
     public function delete_account(int | array | PHS_Record_data $account_data, array $params = []) : null | array | PHS_Record_data
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
+        $this->reset_error();
 
         if (!$account_data
             || !($account_arr = $this->data_to_array($account_data))) {
@@ -1720,8 +1716,6 @@ class PHS_Model_Accounts extends PHS_Model
 
     protected function _relations_definition() : void
     {
-        $this->_load_dependencies();
-
         $this->relation_one_to_one('details',
             PHS_Model_Accounts_details::class, 'details_id', dest_flow: ['table_name' => 'users_details'],
         );
@@ -1773,9 +1767,7 @@ class PHS_Model_Accounts extends PHS_Model
 
     protected function get_insert_prepare_params_users($params) : ?array
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
+        $this->reset_error();
 
         if (empty($params) || !is_array($params)) {
             $this->set_error(self::ERR_INSERT, $this->_pt('Error loading required resources.'));
@@ -2049,9 +2041,7 @@ class PHS_Model_Accounts extends PHS_Model
 
     protected function get_edit_prepare_params_users($existing_data, $params) : ?array
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
+        $this->reset_error();
 
         if (empty($params) || !is_array($params)) {
             $this->set_error(self::ERR_EDIT, $this->_pt('Error loading required resources.'));
@@ -2369,10 +2359,6 @@ class PHS_Model_Accounts extends PHS_Model
      */
     protected function get_count_list_common_params($params = false)
     {
-        if (!$this->_load_dependencies()) {
-            return $params;
-        }
-
         $model_table = $this->get_flow_table_name($params);
 
         if (!empty($params['flags']) && is_array($params['flags'])) {
@@ -2519,8 +2505,7 @@ class PHS_Model_Accounts extends PHS_Model
 
     private function _check_lockout_policy(int | array | PHS_Record_data $account_arr) : null | array | PHS_Record_data
     {
-        if (!$this->_load_dependencies()
-            || $this->is_locked($account_arr)
+        if ($this->is_locked($account_arr)
             || !($flow_arr = $this->fetch_default_flow_params(['table_name' => 'users']))
             || !($users_table = $this->get_flow_table_name($flow_arr))
             || !($settings_arr = $this->_accounts_plugin->get_plugin_settings())
@@ -2848,24 +2833,6 @@ class PHS_Model_Accounts extends PHS_Model
         $this->_pt('Admin');
         $this->_pt('Super admin');
         $this->_pt('Developer');
-    }
-
-    private function _load_dependencies() : bool
-    {
-        $this->reset_error();
-
-        if (
-            (!$this->_accounts_plugin && !($this->_accounts_plugin = PHS_Plugin_Accounts::get_instance()))
-            || (!$this->_account_details_model && !($this->_account_details_model = PHS_Model_Accounts_details::get_instance()))
-            || (!$this->_tenants_model && !($this->_tenants_model = PHS_Model_Accounts_tenants::get_instance()))
-            || (!$this->_roles_model && !($this->_roles_model = PHS_Model_Roles::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
     }
     //
     // END Custom updates

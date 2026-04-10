@@ -6,11 +6,13 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\models\PHS_Model_Agent_jobs_monitor;
 
 /** @property PHS_Model_Agent_jobs_monitor $_paginator_model */
 class PHS_Action_Report extends PHS_Action_Generic_list
 {
+    #[PHS_Dependency]
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
     /**
@@ -167,22 +169,9 @@ class PHS_Action_Report extends PHS_Action_Generic_list
             return null;
         }
 
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $this->_paginator::CELL_RENDER_JSON:
-                case $this->_paginator::CELL_RENDER_TEXT:
-                case $this->_paginator::CELL_RENDER_CSV:
-                case $this->_paginator::CELL_RENDER_EXCEL:
-                    $params['preset_content'] = (int)$agent_job['id'];
-                    break;
-
-                case $this->_paginator::CELL_RENDER_HTML:
-                    $params['preset_content'] = '';
-                    break;
-            }
-        }
-
-        return $params['preset_content'];
+        return $this->_paginator->is_cell_rendering_for_html($params)
+            ? ''
+            : (int)$agent_job['id'];
     }
 
     public function display_job_title(array $params) : ?string
@@ -193,24 +182,12 @@ class PHS_Action_Report extends PHS_Action_Generic_list
         }
 
         $params['preset_content'] ??= '';
-
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $this->_paginator::CELL_RENDER_JSON:
-                case $this->_paginator::CELL_RENDER_TEXT:
-                case $this->_paginator::CELL_RENDER_CSV:
-                case $this->_paginator::CELL_RENDER_EXCEL:
-                    $params['preset_content'] .= (!empty($params['preset_content']) ? ' - ' : '').$agent_job['job_handle'];
-                    break;
-
-                case $this->_paginator::CELL_RENDER_HTML:
-                    if (!empty($params['preset_content'])) {
-                        $params['preset_content'] .= '<br/><small>'.$agent_job['job_handle'].'</small>';
-                    } else {
-                        $params['preset_content'] = $agent_job['job_handle'];
-                    }
-                    break;
-            }
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
+            $params['preset_content'] .= (!empty($params['preset_content']) ? ' - ' : '').$agent_job['job_handle'];
+        } elseif (!empty($params['preset_content'])) {
+            $params['preset_content'] .= '<br/><small>'.$agent_job['job_handle'].'</small>';
+        } else {
+            $params['preset_content'] = $agent_job['job_handle'];
         }
 
         return $params['preset_content'];
@@ -224,32 +201,20 @@ class PHS_Action_Report extends PHS_Action_Generic_list
         }
 
         $params['preset_content'] ??= '';
-
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $this->_paginator::CELL_RENDER_JSON:
-                case $this->_paginator::CELL_RENDER_TEXT:
-                case $this->_paginator::CELL_RENDER_CSV:
-                case $this->_paginator::CELL_RENDER_EXCEL:
-                    $params['preset_content'] = str_replace(["\r", "\n"], ' ', $agent_job['error_message']);
-                    break;
-
-                case $this->_paginator::CELL_RENDER_HTML:
-                    if (empty($agent_job['error_message'])) {
-                        $params['preset_content'] = '-';
-                    } else {
-                        ob_start();
-                        ?>
-                        <a href="javascript:void(0)" onclick="phs_open_agent_job_error( '<?php echo $agent_job['id']; ?>' )"
-                           onfocus="this.blur()"><i class="fa fa-exclamation action-icons"></i></a>
-                        <div id="phs_agent_jobs_report_error_<?php echo $agent_job['id']; ?>" style="display:none;">
-                            <?php echo str_replace('  ', ' &nbsp;', nl2br($agent_job['error_message'])); ?>
-                        </div>
-                        <?php
-                        $params['preset_content'] = ob_get_clean() ?: '';
-                    }
-                    break;
-            }
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
+            $params['preset_content'] = str_replace(["\r", "\n"], ' ', $agent_job['error_message']);
+        } elseif (empty($agent_job['error_message'])) {
+            $params['preset_content'] = '-';
+        } else {
+            ob_start();
+            ?>
+            <a href="javascript:void(0)" onclick="phs_open_agent_job_error( '<?php echo $agent_job['id']; ?>' )"
+               onfocus="this.blur()"><i class="fa fa-exclamation action-icons"></i></a>
+            <div id="phs_agent_jobs_report_error_<?php echo $agent_job['id']; ?>" style="display:none;">
+                <?php echo str_replace('  ', ' &nbsp;', nl2br($agent_job['error_message'])); ?>
+            </div>
+            <?php
+            $params['preset_content'] = ob_get_clean() ?: '';
         }
 
         return $params['preset_content'];
@@ -296,10 +261,8 @@ class PHS_Action_Report extends PHS_Action_Generic_list
 
     protected function _load_dependencies() : bool
     {
-        if (
-            (!$this->_admin_plugin && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-            || (!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Agent_jobs_monitor::get_instance()))
-        ) {
+        if (!$this->_paginator_model
+            && !($this->_paginator_model = PHS_Model_Agent_jobs_monitor::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;

@@ -4,6 +4,7 @@ namespace phs\plugins\hubspot;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
+use phs\plugins\hubspot\libraries\PHS_Hubspot;
 
 class PHS_Plugin_Hubspot extends PHS_Plugin
 {
@@ -50,9 +51,9 @@ class PHS_Plugin_Hubspot extends PHS_Plugin
     /**
      * Returns an instance of Hubspot class
      *
-     * @return bool|libraries\PHS_Hubspot
+     * @return null|PHS_Hubspot
      */
-    public function get_hubspot_instance()
+    public function get_hubspot_instance() : ?PHS_Hubspot
     {
         static $hubspot_library = null;
 
@@ -61,22 +62,20 @@ class PHS_Plugin_Hubspot extends PHS_Plugin
         }
 
         $library_params = [];
-        $library_params['full_class_name'] = '\\phs\\plugins\\hubspot\\libraries\\PHS_Hubspot';
+        $library_params['full_class_name'] = PHS_Hubspot::class;
         $library_params['as_singleton'] = true;
 
-        /** @var libraries\PHS_Hubspot $loaded_library */
+        /** @var PHS_Hubspot $loaded_library */
         if (!($loaded_library = $this->load_library('phs_hubspot', $library_params))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_LIBRARY, $this->_pt('Error loading HubSpot library.'));
-            }
+            $this->set_error_if_not_set(self::ERR_LIBRARY, $this->_pt('Error loading HubSpot library.'));
 
-            return false;
+            return null;
         }
 
         if ($loaded_library->has_error()) {
             $this->copy_error($loaded_library, self::ERR_LIBRARY);
 
-            return false;
+            return null;
         }
 
         $hubspot_library = $loaded_library;
