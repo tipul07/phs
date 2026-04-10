@@ -1843,7 +1843,7 @@ final class PHS extends PHS_Registry
     }
 
     /**
-     * @param null|array $params
+     * @param array $params
      *
      * @return null|array|bool
      */
@@ -1859,7 +1859,17 @@ final class PHS extends PHS_Registry
             || empty($route_details[self::ROUTE_CONTROLLER])) {
             self::st_set_error(self::ERR_RUN_ROUTE_NOT_FOUND, self::_t('Couldn\'t obtain route details.'));
         } elseif (!($controller_obj = self::load_controller($route_details[self::ROUTE_CONTROLLER], $route_details[self::ROUTE_PLUGIN]))) {
-            self::st_set_error_if_not_set(self::ERR_RUN_ROUTE_NOT_FOUND, self::_t('Couldn\'t obtain controller instance for %s.', $route_details[self::ROUTE_CONTROLLER]));
+            if (self::st_debugging_mode()) {
+                self::st_set_error_if_not_set(
+                    self::ERR_RUN_ROUTE_NOT_FOUND,
+                    self::_t('Couldn\'t obtain controller instance for %s.', $route_details[self::ROUTE_CONTROLLER])
+                );
+            } else {
+                self::st_set_error(
+                    self::ERR_RUN_ROUTE_NOT_FOUND,
+                    self::_t('Couldn\'t obtain controller instance for %s.', $route_details[self::ROUTE_CONTROLLER])
+                );
+            }
         } elseif (!($action_result = $controller_obj->run_action($route_details[self::ROUTE_ACTION], null, $route_details[self::ROUTE_ACTION_DIR]))) {
             self::st_copy_or_set_error($controller_obj,
                 self::ERR_RUN_ROUTE_ERROR, self::_t('Error executing action [%s].', $route_details[self::ROUTE_ACTION]));

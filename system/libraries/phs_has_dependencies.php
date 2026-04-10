@@ -158,7 +158,7 @@ abstract class PHS_Has_dependencies extends PHS_Registry
 
             if (($parent = $obj->getParentClass())
                && ($parent_properties = $this->_get_all_properties($parent))) {
-                $all_properties = array_merge($all_properties, $parent_properties);
+                $all_properties = array_merge($parent_properties, $all_properties);
             }
 
             return $all_properties;
