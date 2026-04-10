@@ -32,9 +32,6 @@ class PHS_Action_Settings extends PHS_Action
             return action_request_login();
         }
 
-        /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-        /** @var \phs\system\core\models\PHS_Model_Tenants $tenants_model */
-        /** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
             || !($tenants_model = PHS_Model_Tenants::get_instance())
             || !($plugins_model = PHS_Model_Plugins::get_instance())) {

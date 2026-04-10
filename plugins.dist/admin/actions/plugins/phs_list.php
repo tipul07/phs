@@ -9,22 +9,23 @@ use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
 use phs\system\core\models\PHS_Model_Plugins;
 use phs\system\core\models\PHS_Model_Tenants;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\plugins\admin\libraries\Phs_Plugin_settings;
 
 /** @property \phs\system\core\models\PHS_Model_Plugins $_paginator_model */
 class PHS_Action_List extends PHS_Action_Generic_list
 {
+    #[PHS_Dependency]
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
+    #[PHS_Dependency]
     private ?PHS_Model_Tenants $_tenants_model = null;
 
     private array $_tenants_key_val_arr = [];
 
     protected function _load_dependencies(): bool
     {
-        if (!($this->_admin_plugin = PHS_Plugin_Admin::get_instance())
-         || !($this->_tenants_model = PHS_Model_Tenants::get_instance())
-         || !($this->_paginator_model = PHS_Model_Plugins::get_instance())) {
+        if (!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Plugins::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;

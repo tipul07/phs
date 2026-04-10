@@ -4,7 +4,7 @@ namespace phs\libraries;
 // ! All plugin libraries should extend this class
 use phs\PHS;
 
-abstract class PHS_Library extends PHS_Registry
+abstract class PHS_Library extends PHS_Has_dependencies
 {
     private ?PHS_Plugin $_parent_plugin = null;
 

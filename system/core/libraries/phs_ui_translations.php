@@ -77,9 +77,7 @@ class PHS_Ui_translations extends PHS_Library
 
     public function start_ui_translations(string $lang, bool $force = false) : ?array
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
+        $this->reset_error();
 
         if (!$lang || !self::valid_language($lang)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid language provided.'));
@@ -169,8 +167,9 @@ class PHS_Ui_translations extends PHS_Library
 
     public function start_ui_translations_bg(string $lang, bool $force = false, array $params = []) : ?array
     {
-        if (!$this->_load_dependencies()
-            || !($resources = $this->_get_status_resources_details($lang))) {
+        $this->reset_error();
+
+        if (!($resources = $this->_get_status_resources_details($lang))) {
             return null;
         }
 
@@ -323,8 +322,9 @@ class PHS_Ui_translations extends PHS_Library
 
     public function update_language_files_with_translation_result(string $lang, array $params = []) : ?array
     {
-        if (!$this->_load_dependencies()
-            || !($po_obj = $this->get_po_instance())) {
+        $this->reset_error();
+
+        if (!($po_obj = $this->get_po_instance())) {
             return null;
         }
 
@@ -375,9 +375,7 @@ class PHS_Ui_translations extends PHS_Library
 
     public function force_stop_ui_translation(string $lang) : ?array
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
+        $this->reset_error();
 
         if (!$lang || !self::valid_language($lang)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Please provide a valid language for translation.'));
@@ -501,9 +499,7 @@ class PHS_Ui_translations extends PHS_Library
 
     private function _translate_po_unit(array $po_unit, string $lang) : ?string
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
+        $this->reset_error();
 
         if (!($po_unit['index'] ?? null)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid PO unit for translation.'));
@@ -600,21 +596,5 @@ class PHS_Ui_translations extends PHS_Library
         }
 
         return $new_payload_arr;
-    }
-
-    private function _load_dependencies() : bool
-    {
-        $this->reset_error();
-
-        if (
-            (!$this->_admin_plugin && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-            || (!$this->_ai_lib && !($this->_ai_lib = PHS_Ai_translations::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
     }
 }

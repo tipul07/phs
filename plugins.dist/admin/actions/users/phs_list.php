@@ -9,18 +9,23 @@ use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\system\core\models\PHS_Model_Tenants;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts_tenants;
 
 /** @property PHS_Model_Accounts $_paginator_model */
 class PHS_Action_List extends PHS_Action_Generic_list
 {
+    #[PHS_Dependency]
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
+    #[PHS_Dependency]
     private ?PHS_Plugin_Accounts $_accounts_plugin = null;
 
+    #[PHS_Dependency]
     private ?PHS_Model_Accounts_tenants $_account_tenants_model = null;
 
+    #[PHS_Dependency]
     private ?PHS_Model_Tenants $_tenants_model = null;
 
     private array $_tenants_list_arr = [];
@@ -297,7 +302,16 @@ class PHS_Action_List extends PHS_Action_Generic_list
             [
                 'column_title'     => $this->_pt('Nickname'),
                 'record_field'     => 'nick',
-                'display_callback' => [$this, 'display_nickname'],
+                'display_callback' => function(array $params) {
+                    $return_str = '<strong>'.($params['preset_content'] ?? '-').'</strong>';
+
+                    $name_str
+                        = trim(($params['record']['users_details_title'] ?? '').' ')
+                        .trim(($params['record']['users_details_fname'] ?? '').' ')
+                        .trim(($params['record']['users_details_lname'] ?? '').' ');
+
+                    return $return_str.($name_str !== '' ? '<br/>'.$name_str : '');
+                },
             ],
             [
                 'column_title'        => $this->_pt('Email'),
@@ -934,43 +948,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_nickname($params)
+    public function display_tenants(array $params) : ?string
     {
-        if (empty($params)
-            || !is_array($params)
-            || empty($params['record']) || !is_array($params['record'])) {
-            return false;
-        }
-
-        $return_str = '<strong>'.$params['preset_content'].'</strong>';
-
-        $name_str = '';
-        if (!empty($params['record']['users_details_title'])
-         || !empty($params['record']['users_details_fname'])
-         || !empty($params['record']['users_details_lname'])) {
-            if (!empty($params['record']['users_details_title'])) {
-                $name_str .= $params['record']['users_details_title'].' ';
-            }
-            if (!empty($params['record']['users_details_fname'])) {
-                $name_str .= $params['record']['users_details_fname'].' ';
-            }
-            if (!empty($params['record']['users_details_lname'])) {
-                $name_str .= $params['record']['users_details_lname'].' ';
-            }
-
-            if ($name_str !== '') {
-                $name_str = '<br/>'.$name_str;
-            }
-        }
-
-        return $return_str.$name_str;
-    }
-
-    public function display_tenants($params)
-    {
-        if (empty($params)
-            || empty($params['record']['id'])) {
-            return false;
+        if (empty($params['record']['id'])) {
+            return null;
         }
 
         if (!empty($params['record']['is_multitenant'])) {
@@ -993,11 +974,11 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $result_str !== '' ? $result_str : $this->_pt('ALL');
     }
 
-    public function display_locked($params)
+    public function display_locked(array $params) : ?string
     {
         if (empty($params['record']) || !is_array($params['record'])
             || !($account_arr = $this->_paginator_model->data_to_array($params['record']))) {
-            return false;
+            return null;
         }
 
         $pretty_params = [];
@@ -1013,19 +994,10 @@ class PHS_Action_List extends PHS_Action_Generic_list
             $params['record']['failed_logins'] = 0;
         }
 
-        if (!empty($params['request_render_type'])) {
-            switch ($params['request_render_type']) {
-                case $this->_paginator::CELL_RENDER_JSON:
-                case $this->_paginator::CELL_RENDER_TEXT:
-                case $this->_paginator::CELL_RENDER_CSV:
-                case $this->_paginator::CELL_RENDER_EXCEL:
-                    $cell_str = strip_tags($cell_str).' ('.$params['record']['failed_logins'].')';
-                    break;
-
-                case $this->_paginator::CELL_RENDER_HTML:
-                    $cell_str .= '<br/>'.$this->_pt('%s failures', $params['record']['failed_logins']);
-                    break;
-            }
+        if ($this->_paginator->is_cell_rendering_for_html($params)) {
+            $cell_str .= '<br/>'.$this->_pt('%s failures', $params['record']['failed_logins']);
+        } else {
+            $cell_str = strip_tags($cell_str).' ('.$params['record']['failed_logins'].')';
         }
 
         return $cell_str;
@@ -1033,8 +1005,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     public function display_actions(array $params) : ?string
     {
-        if (!$this->_paginator->is_cell_rendering_for_html($params)
-            || !$this->_admin_plugin->can_admin_manage_accounts()) {
+        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
             return '-';
         }
 
@@ -1075,29 +1046,29 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 ><i class="fa fa-unlock action-icons" title="<?php echo $this->_pt('Reset account locking'); ?>"></i></a>
                 <?php
             }
-        }
 
-        if ($this->_paginator_model->needs_after_registration_email($account_arr)) {
-            ?>
-            <a href="javascript:void(0)"
-               onclick="phs_users_list_resend_registration_email( '<?php echo $account_arr['id']; ?>' )"
-            ><i class="fa fa-share-square-o action-icons" title="<?php echo $this->_pt('Re-send registration email'); ?>"></i></a>
-            <?php
-        }
+            if ($this->_paginator_model->needs_after_registration_email($account_arr)) {
+                ?>
+                <a href="javascript:void(0)"
+                   onclick="phs_users_list_resend_registration_email( '<?php echo $account_arr['id']; ?>' )"
+                ><i class="fa fa-share-square-o action-icons" title="<?php echo $this->_pt('Re-send registration email'); ?>"></i></a>
+                <?php
+            }
 
-        if ($is_inactive) {
-            ?>
-            <a href="javascript:void(0)"
-               onclick="phs_users_list_activate_account( '<?php echo $account_arr['id']; ?>' )"
-            ><i class="fa fa-play-circle-o action-icons" title="<?php echo $this->_pt('Activate account'); ?>"></i></a>
-            <?php
-        }
-        if ($is_active) {
-            ?>
-            <a href="javascript:void(0)"
-               onclick="phs_users_list_inactivate_account( '<?php echo $account_arr['id']; ?>' )"
-            ><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt('Inactivate account'); ?>"></i></a>
-            <?php
+            if ($is_inactive) {
+                ?>
+                <a href="javascript:void(0)"
+                   onclick="phs_users_list_activate_account( '<?php echo $account_arr['id']; ?>' )"
+                ><i class="fa fa-play-circle-o action-icons" title="<?php echo $this->_pt('Activate account'); ?>"></i></a>
+                <?php
+            }
+            if ($is_active) {
+                ?>
+                <a href="javascript:void(0)"
+                   onclick="phs_users_list_inactivate_account( '<?php echo $account_arr['id']; ?>' )"
+                ><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt('Inactivate account'); ?>"></i></a>
+                <?php
+            }
         }
 
         if (!$this->_paginator_model->is_deleted($account_arr)) {
@@ -1106,10 +1077,15 @@ class PHS_Action_List extends PHS_Action_Generic_list
             <a href="javascript:void(0)"
                onclick="phs_users_list_view_info( '<?php echo $account_arr['id']; ?>' )"
             ><i class="fa fa-info action-icons" title="<?php echo $this->_pt('Account details'); ?>"></i></a>
-            <a href="javascript:void(0)"
-               onclick="phs_users_list_delete_account( '<?php echo $account_arr['id']; ?>' )"
-            ><i class="fa fa-times-circle-o action-icons" style="color:red;" title="<?php echo $this->_pt('Delete account'); ?>"></i></a>
             <?php
+            if ($can_manage_account) {
+                ?>
+                <a href="javascript:void(0)"
+                   onclick="phs_users_list_delete_account( '<?php echo $account_arr['id']; ?>' )"
+                ><i class="fa fa-times-circle-o action-icons"
+                    style="color:red;" title="<?php echo $this->_pt('Delete account'); ?>"></i></a>
+                <?php
+            }
         }
 
         return ob_get_clean() ?: '';
@@ -1348,12 +1324,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
     protected function _load_dependencies() : bool
     {
-        if ((!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Accounts::get_instance()))
-         || (!$this->_account_tenants_model && !($this->_account_tenants_model = PHS_Model_Accounts_tenants::get_instance()))
-         || (!$this->_tenants_model && !($this->_tenants_model = PHS_Model_Tenants::get_instance()))
-         || (!$this->_admin_plugin && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-         || (!$this->_accounts_plugin && !($this->_accounts_plugin = PHS_Plugin_Accounts::get_instance()))
-        ) {
+        if (!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Accounts::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;

@@ -1859,7 +1859,7 @@ final class PHS extends PHS_Registry
             || empty($route_details[self::ROUTE_CONTROLLER])) {
             self::st_set_error(self::ERR_RUN_ROUTE_NOT_FOUND, self::_t('Couldn\'t obtain route details.'));
         } elseif (!($controller_obj = self::load_controller($route_details[self::ROUTE_CONTROLLER], $route_details[self::ROUTE_PLUGIN]))) {
-            self::st_set_error(self::ERR_RUN_ROUTE_NOT_FOUND, self::_t('Couldn\'t obtain controller instance for %s.', $route_details[self::ROUTE_CONTROLLER]));
+            self::st_set_error_if_not_set(self::ERR_RUN_ROUTE_NOT_FOUND, self::_t('Couldn\'t obtain controller instance for %s.', $route_details[self::ROUTE_CONTROLLER]));
         } elseif (!($action_result = $controller_obj->run_action($route_details[self::ROUTE_ACTION], null, $route_details[self::ROUTE_ACTION_DIR]))) {
             self::st_copy_or_set_error($controller_obj,
                 self::ERR_RUN_ROUTE_ERROR, self::_t('Error executing action [%s].', $route_details[self::ROUTE_ACTION]));
@@ -2061,7 +2061,7 @@ final class PHS extends PHS_Registry
             $load_result = self::load_core_library_file($library_details['library_file'], $library_details['path_in_lib_dir'] ?? '');
         }
 
-        if (!$load_result && !class_exists($class_name, false)) {
+        if (!$load_result || !class_exists($class_name, false)) {
             // class/file cannot be loaded, so we create an undefined instatiable...
             $newclass = new class extends PHS_Undefined_instantiable {
             };
@@ -2104,7 +2104,7 @@ final class PHS extends PHS_Registry
             return null;
         }
 
-        if (!empty($params['as_singleton'])
+        if ($params['as_singleton']
             && !empty(self::$_core_libraries_instances[$library_file])) {
             return self::$_core_libraries_instances[$library_file];
         }
@@ -2134,10 +2134,21 @@ final class PHS extends PHS_Registry
             return null;
         }
 
-        if ($library_instance->has_error()) {
-            self::st_set_error(self::ERR_LIBRARY,
-                self::_t('Core library [%s] error while instantiating library: %s',
-                    $library_file, $library_instance->get_simple_error_message()));
+        $has_dependency_errors = $library_instance::has_dependency_errors();
+        if ($has_dependency_errors || $library_instance->has_error()) {
+            $error_msg = self::_t('Error loading core library %s', $library_file);
+            if ($library_instance->has_error()) {
+                $error_msg .= ' '.self::_t('ERROR: %s', $library_instance->get_simple_error_message());
+            }
+            if ($has_dependency_errors) {
+                $error_msg .= ' '.self::_t('ERROR: %s', implode('; ', $library_instance::get_dependency_errors()));
+            }
+
+            if (self::st_debugging_mode()) {
+                PHS_Logger::error($error_msg, PHS_Logger::TYPE_DEBUG);
+            }
+
+            self::st_set_error(self::ERR_LIBRARY, $error_msg);
 
             return null;
         }
@@ -2153,7 +2164,7 @@ final class PHS extends PHS_Registry
             return null;
         }
 
-        if (!empty($params['as_singleton'])) {
+        if ($params['as_singleton']) {
             self::$_core_libraries_instances[$library_file] = $library_instance;
         }
 
@@ -2195,7 +2206,7 @@ final class PHS extends PHS_Registry
     {
         self::st_reset_error();
 
-        if (empty($core_library)
+        if (!$core_library
             || !PHS_Instantiable::safe_escape_library_name($core_library)) {
             self::st_set_error(self::ERR_LIBRARY, self::_t('Couldn\'t load core library.'));
 
@@ -2572,9 +2583,11 @@ final class PHS extends PHS_Registry
         }
 
         /** @var PHS_Scope $instance_obj */
-        if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin, PHS_Instantiable::INSTANCE_TYPE_SCOPE))) {
-            self::st_set_error_if_not_set(self::ERR_LOAD_SCOPE, self::_t('Couldn\'t obtain instance for scope %s from plugin %s.',
-                $scope, $plugin ?? PHS_Instantiable::CORE_PLUGIN));
+        if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin,
+            PHS_Instantiable::INSTANCE_TYPE_SCOPE))) {
+            self::st_set_error_if_not_set(self::ERR_LOAD_SCOPE,
+                self::_t('Couldn\'t obtain instance for scope %s from plugin %s.',
+                    $scope, $plugin ?? PHS_Instantiable::CORE_PLUGIN));
 
             return null;
         }
@@ -2597,9 +2610,11 @@ final class PHS extends PHS_Registry
 
         $class_name = 'PHS_Plugin_'.ucfirst(strtolower($plugin_safe_name));
 
-        if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin_name, PHS_Instantiable::INSTANCE_TYPE_PLUGIN))) {
+        if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin_name,
+            PHS_Instantiable::INSTANCE_TYPE_PLUGIN))) {
             self::st_set_error_if_not_set(self::ERR_LOAD_PLUGIN,
-                self::_t('Couldn\'t obtain instance for plugin class %s from plugin %s.', $class_name, $plugin_name));
+                self::_t('Couldn\'t obtain instance for plugin class %s from plugin %s.',
+                    $class_name, $plugin_name));
 
             return null;
         }
@@ -2616,8 +2631,10 @@ final class PHS extends PHS_Registry
      *
      * @return null|array
      */
-    public static function get_plugin_scripts_from_dir(?string $plugin = null, string $instance_type = PHS_Instantiable::INSTANCE_TYPE_PLUGIN) : ?array
-    {
+    public static function get_plugin_scripts_from_dir(
+        ?string $plugin = null,
+        string $instance_type = PHS_Instantiable::INSTANCE_TYPE_PLUGIN
+    ) : ?array {
         self::st_reset_error();
 
         if (!($class_name = PHS_Instantiable::get_class_name_from_instance_name($instance_type))) {
@@ -2648,7 +2665,8 @@ final class PHS extends PHS_Registry
         }
 
         if (empty($instance_details['instance_path'])) {
-            self::st_set_error_if_not_set(self::ERR_SCRIPT_FILES, self::_t('Couldn\'t read controllers directory from plugin %s .', (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
+            self::st_set_error_if_not_set(self::ERR_SCRIPT_FILES,
+                self::_t('Couldn\'t read controllers directory from plugin %s .', (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
 
             return null;
         }
@@ -2664,7 +2682,8 @@ final class PHS extends PHS_Registry
         if ($plugin !== PHS_Instantiable::CORE_PLUGIN
             && $instance_type === PHS_Instantiable::INSTANCE_TYPE_PLUGIN) {
             if (!@file_exists($instance_details['instance_path'].'phs_'.$plugin.'.php')) {
-                self::st_set_error_if_not_set(self::ERR_SCRIPT_FILES, self::_t('Couldn\'t read plugin script file for plugin %s .', $plugin));
+                self::st_set_error_if_not_set(self::ERR_SCRIPT_FILES,
+                    self::_t('Couldn\'t read plugin script file for plugin %s .', $plugin));
 
                 return null;
             }
@@ -2674,7 +2693,8 @@ final class PHS extends PHS_Registry
             if (empty($instance_details['instance_type_accepts_subdirs'])) {
                 $file_scripts = @glob($instance_details['instance_path'].'phs_*.php');
             } else {
-                $file_scripts = PHS_Utils::get_files_recursive($instance_details['instance_path'], ['basename_regex' => '/phs_(.+).php/']);
+                $file_scripts = PHS_Utils::get_files_recursive($instance_details['instance_path'],
+                    ['basename_regex' => '/phs_(.+).php/']);
             }
 
             if (!empty($file_scripts) && is_array($file_scripts)) {

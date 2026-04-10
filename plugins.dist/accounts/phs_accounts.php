@@ -467,10 +467,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
     public function do_logout_subaccount() : bool
     {
-        if (!$this->_load_dependencies()) {
-            return false;
-        }
-
         if (!($db_details = $this->get_current_user_db_details())
             || empty($db_details['session_db_data']['id'])
             || empty($db_details['session_db_data']['auid'])) {
@@ -636,12 +632,8 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return null;
         }
 
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
-
-        if (empty($account_data)
-         || !($account_arr = $this->_accounts_model->data_to_array($account_data))) {
+        if (!$account_data
+            || !($account_arr = $this->_accounts_model->data_to_array($account_data))) {
             $this->set_error(self::ERR_CONFIRMATION, $this->_pt('Unknown account.'));
 
             return null;
@@ -886,10 +878,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             return $hook_args;
         }
 
-        if (!$this->_load_dependencies()) {
-            return $hook_args;
-        }
-
         if (!($hook_args['account_structure'] = $this->_accounts_model->data_to_array($hook_args['account_data']))) {
             $hook_args['account_structure'] = false;
         } else {
@@ -1080,10 +1068,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
     public function import_accounts_from_json_array(array $json_arr, array $params = []) : ?array
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
-
         if (!($a_flow = $this->_accounts_model->fetch_default_flow_params(['table_name' => 'users']))
             || !($roles_model = PHS_Model_Roles::get_instance())) {
             $this->set_error(self::ERR_RESOURCES, $this->_pt('Error loading required resources.'));
@@ -1396,10 +1380,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
     public function default_export_array_for_account_data() : ?array
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
-
         // "hardcoded" data...
         if (!($user_details = $this->_accounts_details_model->get_empty_data())) {
             $user_details = ['title' => '', 'fname' => '', 'lname' => '',
@@ -1516,10 +1496,11 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
     public function send_account_confirmation_email(int | array | PHS_Record_data $account_data) : bool
     {
-        if (empty($account_data)
-         || !$this->_load_dependencies()
+        $this->reset_error();
+
+        if (!$account_data
          || !($account_arr = $this->_accounts_model->data_to_array($account_data))) {
-            $this->set_error_if_not_set(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
 
             return false;
         }
@@ -1570,10 +1551,11 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
     public function send_account_password_setup(int | array | PHS_Record_data $account_data) : bool
     {
-        if (empty($account_data)
-         || !$this->_load_dependencies()
+        $this->reset_error();
+
+        if (!$account_data
          || !($account_arr = $this->_accounts_model->data_to_array($account_data))) {
-            $this->set_error_if_not_set(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
 
             return false;
         }
@@ -1727,23 +1709,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return true;
     }
 
-    private function _load_dependencies() : bool
-    {
-        $this->reset_error();
-
-        if ((empty($this->_accounts_model)
-             && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
-         || (empty($this->_accounts_details_model)
-             && !($this->_accounts_details_model = PHS_Model_Accounts_details::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
     private function _get_current_session_data(array $params = []) : ?array
     {
         static $online_db_details = null;
@@ -1753,10 +1718,6 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         if ($online_db_details
             && empty($params['force'])) {
             return $online_db_details;
-        }
-
-        if (!$this->_load_dependencies()) {
-            return null;
         }
 
         $db_check_arr = [];
@@ -1796,9 +1757,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      */
     private function _get_accounts_qid(array $account_ids = [])
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
+        $this->reset_error();
 
         if (!empty($account_ids)) {
             $account_ids = self::extract_integers_from_array($account_ids);

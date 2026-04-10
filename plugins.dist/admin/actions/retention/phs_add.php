@@ -3,8 +3,6 @@ namespace phs\plugins\admin\actions\retention;
 
 use phs\PHS;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Model;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
@@ -17,9 +15,7 @@ use phs\system\core\models\PHS_Model_Data_retention;
 class PHS_Action_Add extends PHS_Action
 {
     /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
+     * @inheritdoc
      */
     public function allowed_scopes() : array
     {
@@ -27,7 +23,7 @@ class PHS_Action_Add extends PHS_Action
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute() : ?array
     {
@@ -39,9 +35,6 @@ class PHS_Action_Add extends PHS_Action
             return action_request_login();
         }
 
-        /** @var PHS_Plugin_Admin $admin_plugin */
-        /** @var PHS_Model_Data_retention $retention_model */
-        /** @var PHS_Model_Plugins $plugins_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
             || !($retention_model = PHS_Model_Data_retention::get_instance())
             || !($plugins_model = PHS_Model_Plugins::get_instance())) {
@@ -156,10 +149,6 @@ class PHS_Action_Add extends PHS_Action
 
     private function _get_models_for_plugin(?PHS_Plugin $plugin_obj) : array
     {
-        if (!$plugin_obj) {
-            return PHS::get_core_models();
-        }
-
-        return $plugin_obj->get_models();
+        return $plugin_obj ? $plugin_obj->get_models() : PHS::get_core_models();
     }
 }

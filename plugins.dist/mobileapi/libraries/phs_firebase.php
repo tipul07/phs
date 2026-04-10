@@ -27,7 +27,7 @@ class PHS_Firebase extends PHS_Library
         $this->reset_api_params();
     }
 
-    public function get_default_api_settings(): array
+    public function get_default_api_settings() : array
     {
         return [
             'fcm_base_url'    => 'https://fcm.googleapis.com',
@@ -36,7 +36,7 @@ class PHS_Firebase extends PHS_Library
         ];
     }
 
-    public function get_default_api_params(): array
+    public function get_default_api_params() : array
     {
         return [
             'rest_url' => '',
@@ -46,12 +46,12 @@ class PHS_Firebase extends PHS_Library
         ];
     }
 
-    public function reset_api_settings(): void
+    public function reset_api_settings() : void
     {
         $this->_api_settings = $this->get_default_api_settings();
     }
 
-    public function reset_api_params(): void
+    public function reset_api_params() : void
     {
         $this->_api_params = $this->get_default_api_params();
     }

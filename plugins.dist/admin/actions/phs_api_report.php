@@ -6,11 +6,13 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\models\PHS_Model_Api_monitor;
 
 /** @property PHS_Model_Api_monitor $_paginator_model */
 class PHS_Action_Api_report extends PHS_Action_Generic_list
 {
+    #[PHS_Dependency]
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
     /**
@@ -567,10 +569,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
     {
         $this->reset_error();
 
-        if (
-            (!$this->_admin_plugin && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-            || (!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Api_monitor::get_instance()))
-        ) {
+        if (!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Api_monitor::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;

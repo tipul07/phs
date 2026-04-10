@@ -48,8 +48,7 @@ class PHS_Error
         string $error_msg = '',
         string $error_debug_msg = '',
         bool $static_instance = false
-    )
-    {
+    ) {
         $error_msg = trim($error_msg);
 
         $this->error_no = $error_no;

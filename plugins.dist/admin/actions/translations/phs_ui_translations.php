@@ -12,6 +12,7 @@ use phs\libraries\PHS_Po_format;
 use phs\libraries\PHS_Api_action;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\libraries\PHS_Ui_translations;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
@@ -20,10 +21,13 @@ class PHS_Action_Ui_translations extends PHS_Api_action
     // How many secods should a download token be valid
     public const TOKEN_LIFETIME_SECS = 60;
 
+    #[PHS_Dependency]
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
+    #[PHS_Dependency]
     private ?PHS_Ui_translations $_ui_translations = null;
 
+    #[PHS_Dependency]
     private ?PHS_Model_Accounts $_accounts_model = null;
 
     public function allowed_scopes() : array
@@ -39,12 +43,6 @@ class PHS_Action_Ui_translations extends PHS_Api_action
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
-        }
-
-        if (!$this->_load_dependencies()) {
-            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
-
-            return self::default_action_result();
         }
 
         if (!$this->_accounts_model->acc_is_developer()) {
@@ -390,22 +388,5 @@ class PHS_Action_Ui_translations extends PHS_Api_action
             'basename'  => $token_arr[1],
             'extension' => $token_arr[2],
         ];
-    }
-
-    private function _load_dependencies() : bool
-    {
-        $this->reset_error();
-
-        if (
-            (!$this->_admin_plugin && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-            || (!$this->_ui_translations && !($this->_ui_translations = PHS_Ui_translations::get_instance()))
-            || (!$this->_accounts_model && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
     }
 }

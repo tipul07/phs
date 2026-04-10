@@ -2,6 +2,7 @@
 namespace phs\plugins\phs_security\libraries;
 
 use phs\libraries\PHS_Library;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\plugins\phs_security\PHS_Plugin_Phs_security;
 
 class Phs_security_headers extends PHS_Library
@@ -10,6 +11,7 @@ class Phs_security_headers extends PHS_Library
         REFERRER_POLICY = 'referrer_policy', CONTENT_SECURITY_POLICY = 'content_security_policy', PERMISSIONS_POLICY = 'permissions_policy',
         CORS_EMBEDDER_POLICY = 'cors_embedder_policy', CORS_OPENER_POLICY = 'cors_opener_policy', CORS_RESOURCE_POLICY = 'cors_resource_policy';
 
+    #[PHS_Dependency]
     private ?PHS_Plugin_Phs_security $_security_plugin = null;
 
     public function get_security_headers_definition() : array
@@ -108,19 +110,5 @@ class Phs_security_headers extends PHS_Library
         }
 
         return $headers_arr;
-    }
-
-    private function _load_dependencies() : bool
-    {
-        $this->reset_error();
-
-        if (!$this->_security_plugin
-            && !($this->_security_plugin = PHS_Plugin_Phs_security::get_instance())) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
     }
 }
