@@ -21,22 +21,22 @@ abstract class PHS_Action_Generic_list extends PHS_Action
 
     protected ?PHS_Model $_paginator_model = null;
 
+    protected null | string | PHS_Instantiable $_paginator_model_class = null;
+
     /**
      * @return null|array Returns an array with flow_parameters, bulk_actions, filters_arr and columns_arr keys
      *                    containing arrays with definitions for paginator class
      */
     abstract public function load_paginator_params() : ?array;
 
-    abstract public function manage_action(array $action) : null | bool | array;
-
-    /**
-     * @return bool true if all depencies were loaded successfully, false if any error (set_error should be used to pass error message)
-     */
-    abstract protected function _load_dependencies() : bool;
-
     public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
+    }
+
+    public function manage_action(array $action) : null | bool | array
+    {
+        return $this->_paginator->default_action_params();
     }
 
     // Backwards compatibility
@@ -343,6 +343,22 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         }
 
         return $buffer;
+    }
+
+    /**
+     * @return bool true if all depencies were loaded successfully, false if any error (set_error should be used to pass error message)
+     */
+    protected function _load_dependencies() : bool
+    {
+        if ($this->_paginator_model_class === null
+           || (!$this->_paginator_model
+              && !($this->_paginator_model = $this->_paginator_model_class::get_instance()))) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
+
+            return false;
+        }
+
+        return true;
     }
 
     protected function _bootstrap_paginator() : bool | array
