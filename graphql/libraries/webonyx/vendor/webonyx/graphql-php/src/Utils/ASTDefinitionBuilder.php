@@ -50,7 +50,7 @@ use GraphQL\Type\Definition\UnionType;
  * @phpstan-import-type InputObjectFieldConfig from InputObjectField
  * @phpstan-import-type UnnamedInputObjectFieldConfig from InputObjectField
  *
- * @phpstan-type ResolveType callable(string, Node|null): Type&NamedType
+ * @phpstan-type ResolveType callable(string, Node|null): (Type&NamedType)
  * @phpstan-type TypeConfigDecorator callable(array<string, mixed>, Node&TypeDefinitionNode, array<string, Node&TypeDefinitionNode>): array<string, mixed>
  * @phpstan-type FieldConfigDecorator callable(UnnamedFieldDefinitionConfig, FieldDefinitionNode, ObjectTypeDefinitionNode|ObjectTypeExtensionNode|InterfaceTypeDefinitionNode|InterfaceTypeExtensionNode): UnnamedFieldDefinitionConfig
  */
@@ -174,10 +174,10 @@ class ASTDefinitionBuilder
      */
     private function makeInputFields(array $nodes): array
     {
-        /** @var array<int, InputValueDefinitionNode>> $fields */
+        /** @var array<int, InputValueDefinitionNode> $fields */
         $fields = [];
         foreach ($nodes as $node) {
-            \array_push($fields, ...$node->fields);
+            array_push($fields, ...$node->fields);
         }
 
         return $this->makeInputValues(new NodeList($fields));
@@ -275,18 +275,11 @@ class ASTDefinitionBuilder
                     );
                 } catch (\Throwable $e) {
                     $class = static::class;
-                    throw new Error(
-                        "Type config decorator passed to {$class} threw an error when building {$typeName} type: {$e->getMessage()}",
-                        null,
-                        null,
-                        [],
-                        null,
-                        $e
-                    );
+                    throw new Error("Type config decorator passed to {$class} threw an error when building {$typeName} type: {$e->getMessage()}", null, null, [], null, $e);
                 }
 
                 // @phpstan-ignore-next-line should not happen, but function types are not enforced by PHP
-                if (! \is_array($config) || isset($config[0])) {
+                if (! is_array($config) || isset($config[0])) {
                     $class = static::class;
                     $notArray = Utils::printSafe($config);
                     throw new Error("Type config decorator passed to {$class} is expected to return an array, but got {$notArray}");
@@ -356,9 +349,9 @@ class ASTDefinitionBuilder
     /**
      * @param array<ObjectTypeDefinitionNode|ObjectTypeExtensionNode|InterfaceTypeDefinitionNode|InterfaceTypeExtensionNode> $nodes
      *
-     * @phpstan-return array<string, UnnamedFieldDefinitionConfig>
-     *
      * @throws \Exception
+     *
+     * @phpstan-return array<string, UnnamedFieldDefinitionConfig>
      */
     private function makeFieldDefMap(array $nodes): array
     {
@@ -543,16 +536,36 @@ class ASTDefinitionBuilder
         ]);
     }
 
-    /** @throws InvariantViolation */
+    /**
+     * @throws \Exception
+     * @throws \ReflectionException
+     * @throws InvariantViolation
+     */
     private function makeInputObjectDef(InputObjectTypeDefinitionNode $def): InputObjectType
     {
         $name = $def->name->value;
         /** @var array<InputObjectTypeExtensionNode> $extensionASTNodes (proven by schema validation) */
         $extensionASTNodes = $this->typeExtensionsMap[$name] ?? [];
 
+        $oneOfDirective = Directive::oneOfDirective();
+
+        // Check for @oneOf directive in the definition node
+        $isOneOf = Values::getDirectiveValues($oneOfDirective, $def) !== null;
+
+        // Check for @oneOf directive in extension nodes
+        if (! $isOneOf) {
+            foreach ($extensionASTNodes as $extensionNode) {
+                if (Values::getDirectiveValues($oneOfDirective, $extensionNode) !== null) {
+                    $isOneOf = true;
+                    break;
+                }
+            }
+        }
+
         return new InputObjectType([
             'name' => $name,
             'description' => $def->description->value ?? null,
+            'isOneOf' => $isOneOf,
             'fields' => fn (): array => $this->makeInputFields([$def, ...$extensionASTNodes]),
             'astNode' => $def,
             'extensionASTNodes' => $extensionASTNodes,

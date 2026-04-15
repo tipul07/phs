@@ -112,9 +112,7 @@ abstract class PHS_Library extends PHS_Has_dependencies
             );
         }
 
-        if (!($plugin_obj = PHS::load_plugin($library_details['plugin']))
-           || (!$force && !$plugin_obj->plugin_active())
-        ) {
+        if (!($plugin_obj = PHS::load_plugin($library_details['plugin']))) {
             self::st_set_error_if_not_set(
                 self::ERR_FUNCTIONALITY,
                 self::_t('Couldn\'t load library from plugin [%s]', $library_details['plugin'])

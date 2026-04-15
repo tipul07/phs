@@ -1,6 +1,7 @@
 # graphql-php
 
-[![CI](https://github.com/webonyx/graphql-php/workflows/CI/badge.svg)](https://github.com/webonyx/graphql-php/actions?query=workflow:CI+branch:master)
+[![Test](https://github.com/webonyx/graphql-php/workflows/Test/badge.svg)](https://github.com/webonyx/graphql-php/actions?query=workflow:Test+branch:master)
+[![Static Analysis](https://github.com/webonyx/graphql-php/workflows/Static%20Analysis/badge.svg)](https://github.com/webonyx/graphql-php/actions?query=workflow:%22Static%20Analysis%22+branch:master)
 [![Coverage Status](https://codecov.io/gh/webonyx/graphql-php/branch/master/graph/badge.svg)](https://codecov.io/gh/webonyx/graphql-php/branch/master)
 [![Latest Stable Version](https://poser.pugx.org/webonyx/graphql-php/version)](https://packagist.org/packages/webonyx/graphql-php)
 
@@ -30,11 +31,12 @@ with a specific README file per example.
 This project follows [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
 
 Elements that belong to the public API of this package are marked with the `@api` PHPDoc tag.
-Those elements are thus guaranteed to be stable within major versions. All other elements are
-not part of this backwards compatibility guarantee and may change between minor or patch versions.
+Constants included in the [class-reference docs](https://webonyx.github.io/graphql-php/class-reference) are also part of the public API.
+Those elements are thus guaranteed to be stable within major versions.
+All other elements are not part of this backwards compatibility guarantee and may change between minor or patch versions.
 
 The most recent version is actively developed on [`master`](https://github.com/webonyx/graphql-php/tree/master).
-Older versions are generally no longer supported, although exceptions may be made for sponsors.
+Older versions are generally no longer supported, although exceptions may be made for [sponsors](#sponsors).
 
 ## Security
 
@@ -50,7 +52,8 @@ This project exists thanks to [all the people](https://github.com/webonyx/graphq
 
 ## Sponsors
 
-Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [Become a sponsor](https://opencollective.com/webonyx-graphql-php#sponsor).
+Support this project by becoming a sponsor via [OpenCollective](https://opencollective.com/webonyx-graphql-php#sponsor) or [GitHub Sponsors](https://github.com/sponsors/spawnia).
+Your logo will show up here with a link to your website.
 
 <a href="https://opencollective.com/webonyx-graphql-php/sponsor/0/website" target="_blank"><img src="https://opencollective.com/webonyx-graphql-php/sponsor/0/avatar.svg"></a>
 <a href="https://opencollective.com/webonyx-graphql-php/sponsor/1/website" target="_blank"><img src="https://opencollective.com/webonyx-graphql-php/sponsor/1/avatar.svg"></a>
