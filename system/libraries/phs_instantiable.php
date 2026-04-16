@@ -1231,6 +1231,7 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
 
         if ($singleton
             && ($instance_obj = self::_get_instance_for_full_class_with_namespace($instance_class))) {
+            $instance_obj->reset_error();
             return $instance_obj;
         }
 
