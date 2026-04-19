@@ -1136,7 +1136,16 @@ if (typeof PHS_JSEN === 'undefined' || !PHS_JSEN) {
             }
         },
 
-        // Create AJAX request
+        setTitleForAjaxDialog : function( suffix, title ) {
+            const dialog_obj = $('#' + PHS_JSEN.dialogs_prefix + suffix);
+            if(!dialog_obj || !dialog_obj.length) {
+                return;
+            }
+
+            dialog_obj.dialog('option', 'title', title);
+            PHS_JSEN.dialogOptions( suffix, 'title', title );
+        },
+
         redirectAjaxDialog : function( o ) {
             var defaults = {
                 suffix            : "",
