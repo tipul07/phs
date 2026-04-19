@@ -17,8 +17,11 @@ if (!$record_arr || !is_array($record_arr)) {
 }
 
 $redirect_url = null;
+$javascript_functionality = null;
 if (($redirect_callback = $action['callbacks']['redirect_url'] ?? null)) {
     $redirect_url = $redirect_callback($record_arr);
+} elseif (($javascript_callback = $action['callbacks']['javascript_callback'] ?? null)) {
+    $javascript_functionality = $javascript_callback($record_arr);
 }
 
 $tooltip = $action['display_tooltip'] ?? '';
@@ -31,6 +34,8 @@ if ($tooltip) {
 <a <?php
 if ($redirect_url) {
     ?>href="<?php echo $redirect_url; ?>" onclick="this.blur()"<?php
+} elseif ($javascript_functionality) {
+    ?>href="javascript:void(0)" onclick="this.blur();<?php echo $javascript_functionality?>"<?php
 } else {
     ?>href="javascript:void(0)" onclick="this.blur();phs_paginator_default_action('<?php echo $action['action'] ?? ''; ?>', '<?php echo $record_arr['id'] ?? ''; ?>')"<?php
 }

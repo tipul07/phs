@@ -2442,6 +2442,8 @@ class PHS_Paginator extends PHS_Registry
                 'can_run' => null,
                 // For simple actions. Return a string (URL) where user will be redirected
                 'redirect_url' => null,
+                // For calling JavaScript functions. Return a string with a JavaScript function call
+                'javascript_callback' => null,
             ],
             // URL or path where user should be redirected when clicking action icon
             'action_redirect' => null,
