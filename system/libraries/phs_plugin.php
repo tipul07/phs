@@ -316,6 +316,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         if ($params['as_singleton']
             && !empty($this->_libraries_instances[$library_file])) {
+            $this->_libraries_instances[$library_file]->reset_error();
+
             return $this->_libraries_instances[$library_file];
         }
 

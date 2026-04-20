@@ -130,6 +130,15 @@ abstract class PHS_Library extends PHS_Has_dependencies
             ]))
             || $library_obj->has_error()
         ) {
+            if (self::st_debugging_mode()) {
+                PHS_Logger::error(
+                    'Error loading library '.$library_details['library_name'].' from plugin '
+                    .$library_details['plugin'].': '
+                    .($library_obj?->get_simple_error_message('Unknown error') ?? 'Unknown error'),
+                    PHS_Logger::TYPE_DEBUG
+                );
+            }
+
             self::st_copy_or_set_error(
                 $plugin_obj,
                 self::ERR_FUNCTIONALITY,

@@ -35,7 +35,7 @@ if ($tooltip) {
 if ($redirect_url) {
     ?>href="<?php echo $redirect_url; ?>" onclick="this.blur()"<?php
 } elseif ($javascript_functionality) {
-    ?>href="javascript:void(0)" onclick="this.blur();<?php echo $javascript_functionality?>"<?php
+    ?>href="javascript:void(0)" onclick="this.blur();<?php echo $javascript_functionality; ?>"<?php
 } else {
     ?>href="javascript:void(0)" onclick="this.blur();phs_paginator_default_action('<?php echo $action['action'] ?? ''; ?>', '<?php echo $record_arr['id'] ?? ''; ?>')"<?php
 }
