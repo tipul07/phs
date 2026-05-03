@@ -2,7 +2,7 @@
 namespace phs\libraries;
 
 if (!defined('PHS_VERSION')
- && (!defined('PHS_SETUP_FLOW') || !constant('PHS_SETUP_FLOW'))) {
+    && (!defined('PHS_SETUP_FLOW') || !constant('PHS_SETUP_FLOW'))) {
     exit;
 }
 
@@ -1133,7 +1133,9 @@ class PHS_Error
         if (@class_exists(PHS_Logger::class, false)) {
             PHS_Logger::critical($error_msg, PHS_Logger::TYPE_DEBUG);
         }
-        trigger_error($error_msg, E_USER_ERROR);
+
+        echo 'Critical ERROR: '.$error_msg;
+        exit;
     }
 
     /**
