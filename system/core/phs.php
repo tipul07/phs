@@ -205,7 +205,7 @@ final class PHS extends PHS_Registry
                     || (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])
                         && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?: '') === 'https')
                 )
-               )
+        )
                // If we run in cli mode, assume we are on https calls in order to force https URL generation
                || PHP_SAPI === 'cli';
     }
