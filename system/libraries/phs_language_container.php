@@ -798,9 +798,11 @@ class PHS_Language_Container extends PHS_Error
         $file_mime = str_replace($file.': ', '', $file_mime);
 
         if (!in_array(strtolower($file_mime), ['utf8', 'utf-8'], true)) {
-            if (false === @system($iconv_bin.' -f '.escapeshellarg($file_mime)
-                                   .' -t utf-8 '.escapeshellarg($file).' > '.escapeshellarg($params['utf8_file']))
-             || !@file_exists($params['utf8_file'])) {
+            if ((@file_exists($params['utf8_file'])
+                 && !@is_writable($params['utf8_file']))
+                || false === @system($iconv_bin.' -f '.escapeshellarg($file_mime)
+                                     .' -t utf-8 '.escapeshellarg($file).' > '.escapeshellarg($params['utf8_file']))
+                || !@file_exists($params['utf8_file'])) {
                 ob_end_clean();
 
                 return null;
