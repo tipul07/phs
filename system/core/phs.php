@@ -2076,12 +2076,12 @@ final class PHS extends PHS_Registry
             $load_result = self::load_core_library_file($library_details['library_file'], $library_details['path_in_lib_dir'] ?? '');
         }
 
-        if (!$load_result || !class_exists($class_name, false)) {
+        if (!$load_result && !@class_exists($class_name, false)) {
             // class/file cannot be loaded, so we create an undefined instatiable...
             $newclass = new class extends PHS_Undefined_instantiable {
             };
 
-            class_alias(get_class($newclass), $class_name);
+            @class_alias(@get_class($newclass), $class_name);
         }
     }
 
