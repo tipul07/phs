@@ -37,9 +37,9 @@ echo $this->sub_view('ractive/bootstrap');
 
 <script id="PHS_RActive_Ui_translations_template" type="text/html">
 
-    <section class="heading-bordered">
-        <h3><?php echo $this->_pt('Language Files'); ?></h3>
-    </section>
+<section class="heading-bordered">
+    <h3><?php echo $this->_pt('Language Files'); ?></h3>
+</section>
 
 <table class="table table-hover" style="width=100%;">
     <thead>
@@ -92,9 +92,9 @@ echo $this->sub_view('ractive/bootstrap');
     </tbody>
 </table>
 
-    <section class="heading-bordered">
-        <h3><?php echo $this->_pt('Regenerate POT File'); ?></h3>
-    </section>
+<section class="heading-bordered">
+    <h3><?php echo $this->_pt('Regenerate POT File'); ?></h3>
+</section>
 
 {{#if excluding_paths.length === 0 }}
 <p class="p-5 text-center"><?php echo $this->_pt('You can add directories which will be excluded when generating POT file...'); ?></p>
@@ -138,21 +138,21 @@ echo $this->sub_view('ractive/bootstrap');
            value="<?php echo $this->_pte('Generate POT file'); ?>" />
 </div>
 
-    <section class="heading-bordered">
-        <h3><?php echo $this->_pt('Regenerate PO File'); ?></h3>
-    </section>
+<section class="heading-bordered">
+    <h3><?php echo $this->_pt('Regenerate PO File'); ?></h3>
+</section>
 
-    <div class="form-group row">
-        <label for="language_to_update" class="col-sm-2 col-form-label"><?php echo $this->_pt('For language'); ?></label>
-        <div class="col-sm-10">
-            <select name="language_to_update" id="language_to_update" value="{{language_to_update}}">
-                <option value=""> - <?php echo $this->_pt('Select language'); ?> - </option>
-                {{#each @this.get_languages_arr() }}
-                <option value="{{.id}}">{{.label}}</option>
-                {{/each}}
-            </select>
-        </div>
+<div class="form-group row">
+    <label for="language_to_update" class="col-sm-2 col-form-label"><?php echo $this->_pt('For language'); ?></label>
+    <div class="col-sm-10">
+        <select name="language_to_update" id="language_to_update" value="{{language_to_update}}">
+            <option value=""> - <?php echo $this->_pt('Select language'); ?> - </option>
+            {{#each @this.get_languages_arr() }}
+            <option value="{{.id}}">{{.label}}</option>
+            {{/each}}
+        </select>
     </div>
+</div>
 
 <div class="form-group">
     <input type="button" id="do_generate_po_file" name="do_generate_po_file"
@@ -161,30 +161,109 @@ echo $this->sub_view('ractive/bootstrap');
            value="<?php echo $this->_pte('Update PO file'); ?>" />
 </div>
 
-    <section class="heading-bordered">
-        <h3><?php echo $this->_pt('Translate PO File'); ?></h3>
+<section class="heading-bordered">
+    <h3><?php echo $this->_pt('Translate PO File'); ?></h3>
+</section>
+
+<div class="form-group row">
+    <label for="language_to_translate" class="col-sm-2 col-form-label"><?php echo $this->_pt('Translate language'); ?></label>
+    <div class="col-sm-10">
+        <select name="language_to_translate" id="language_to_translate" value="{{language_to_translate}}">
+            <option value=""> - <?php echo $this->_pt('Select language'); ?> - </option>
+            {{#each @this.get_languages_arr() }}
+            {{ #if .id !== '<?php echo LANG_EN; ?>' }}
+            <option value="{{.id}}">{{.label}}</option>
+            {{/if}}
+            {{/each}}
+        </select>
+    </div>
+</div>
+
+<div class="form-group">
+<input type="button" id="do_translate_po_file" name="do_translate_po_file"
+       class="btn btn-primary submit-protection ignore_hidden_required"
+       on-click="@this.do_translate_po_file()"
+       value="<?php echo $this->_pte('Translate PO file'); ?>" />
+</div>
+
+<section class="heading-bordered">
+    <h3><?php echo $this->_pt('Import Translations In Platform'); ?></h3>
+</section>
+
+<div class="form-group">
+    <input type="button" id="do_check_translations" name="do_check_translations"
+           class="btn btn-primary submit-protection ignore_hidden_required"
+           on-click="@this.do_check_translations()"
+           value="<?php echo $this->_pte('Check Translations'); ?>"/>
+</div>
+
+<div style="display: none;" id="phs_po_translation_results_container">
+    <p><?php echo $this->_t('Results of translations... Make sure translations are finished before applying result.'); ?></p>
+    {{ #if !translation_check_result }}
+    <p>No results to display...</p>
+    {{ else }}
+    <table class='table table-hover' style='width=100%;'>
+        <thead>
+        <tr>
+            <th class="text-center">&nbsp;</th>
+            <th class="text-center"><?php echo $this->_pt('File'); ?></th>
+            <th class="text-center"><?php echo $this->_pt('Modified'); ?></th>
+            <th class="text-center"><?php echo $this->_pt('Size'); ?></th>
+            <th>&nbsp;</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each translation_check_result }}
+        <tr>
+            <td>{{ @this.get_language_title(.id) }}</td>
+            <td>{{ .file }}</td>
+            <td class="text-right">{{ @this.format_date_timestamp(.last_modified, 'd-m-Y H:i') }}</td>
+            <td class="text-right"><span title="<?php echo $this::_e(sprintf('%s bytes', '{{.file_size}}')); ?>">{{@this.format_file_size(.file_size)}}</span></td>
+            <td><a href='javascript:void(0)' title="<?php echo $this->_t('Update language files'); ?>" onfocus="this.blur();"
+                   on-click='@this.do_update_translation_files(.id)'><i class='fa fa-level-up action-icons'></i></a></td>
+        </tr>
+        {{/each}}
+        </tbody>
+        </table>
+    {{ /if }}
+
+    {{ #if translation_update_result }}
+    <section class='heading-bordered'>
+        <h3><?php
+            echo $this->_pt('Translation Files Update Result'); ?></h3>
     </section>
 
-    <div class="form-group row">
-        <label for="language_to_translate" class="col-sm-2 col-form-label"><?php echo $this->_pt('Translate language'); ?></label>
-        <div class="col-sm-10">
-            <select name="language_to_translate" id="language_to_translate" value="{{language_to_translate}}">
-                <option value=""> - <?php echo $this->_pt('Select language'); ?> - </option>
-                {{#each @this.get_languages_arr() }}
-                {{ #if .id !== '<?php echo LANG_EN; ?>' }}
-                <option value="{{.id}}">{{.label}}</option>
-                {{/if}}
-                {{/each}}
-            </select>
+    <div class='form-group row'>
+        <label class='col-sm-4 col-form-label'><?php echo $this->_pt('Updated language'); ?></label>
+        <div class="col-sm-8">{{@this.get_language_title(translation_update_language)}}</div>
+    </div>
+    <div class='form-group row'>
+        <label class='col-sm-4 col-form-label'><?php echo $this->_pt('New indexes'); ?></label>
+        <div class="col-sm-8">{{translation_update_result.new_indexes}}</div>
+    </div>
+    <div class='form-group row'>
+        <label class='col-sm-4 col-form-label'><?php echo $this->_pt('Updated indexes'); ?></label>
+        <div class="col-sm-8">{{translation_update_result.updated_indexes}}</div>
+    </div>
+    <div class='form-group row'>
+        <label class='col-sm-4 col-form-label'><?php echo $this->_pt('Updated files'); ?></label>
+        <div class="col-sm-8">
+            {{ #each translation_update_result.updated_files}}
+            <p>{{.}}</p>
+            {{ /each }}
         </div>
     </div>
-
-    <div class="form-group">
-    <input type="button" id="do_translate_po_file" name="do_translate_po_file"
-           class="btn btn-primary submit-protection ignore_hidden_required"
-           on-click="@this.do_translate_po_file()"
-           value="<?php echo $this->_pte('Translate PO file'); ?>" />
+    <div class='form-group row'>
+        <label class='col-sm-4 col-form-label'><?php echo $this->_pt('Update errors'); ?></label>
+        <div class="col-sm-8">
+            {{ #each translation_update_result.update_errors}}
+            <p>{{.}}</p>
+            {{ /each }}
+        </div>
+    </div>
+    {{ /if }}
 </div>
+
 <div style="display: none;" id="phs_po_file_info_container">
     <div class="form-group row">
         <label class="col-sm-4 col-form-label"><?php echo $this->_pt('PO file'); ?></label>
@@ -255,6 +334,10 @@ echo $this->sub_view('ractive/bootstrap');
         <div class="col-sm-8">{{ui_translation_status.records_success}}</div>
     </div>
     <div class="form-group row">
+        <label class="col-sm-4 col-form-label"><?php echo $this->_pt('Already translated'); ?></label>
+        <div class="col-sm-8">{{ui_translation_status.records_translated_already}}</div>
+    </div>
+    <div class="form-group row">
         <label class="col-sm-4 col-form-label"><?php echo $this->_pt('Last log'); ?></label>
         <div class="col-sm-8">{{ui_translation_status.log}}</div>
     </div>
@@ -313,7 +396,12 @@ $(document).ready(function() {
 
                 po_info_file: '',
                 po_info: null,
-                ui_translation_status: null
+                ui_translation_status: null,
+                translation_check_result: null,
+                translation_update_language: null,
+                translation_update_result: null,
+
+                ui_refresh_timeout: null
             }
         },
 
@@ -432,6 +520,7 @@ $(document).ready(function() {
                 return;
             }
 
+            this._clear_refresh_timeout();
             const base_file = this._basename(file);
 
             let form_data = {};
@@ -443,7 +532,8 @@ $(document).ready(function() {
                 form_data,
                 "<?php echo $this->_pte('Obtaining details...'); ?>",
                 function(response){
-                    if( typeof response.po_info === "undefined" ) {
+                    if( typeof response.po_info === "undefined"
+                        || !response.po_info ) {
                         self.phs_add_error_message( "<?php echo $this->_pte('Error obtaining PO file details. Please try again.'); ?>", 10 );
                         return;
                     }
@@ -457,9 +547,19 @@ $(document).ready(function() {
 
                     if(response?.ui_translation_status !== null
                         && self.status_is_running( response?.ui_translation_status?.status )) {
-                        setTimeout(() => self.po_file_info(file, false), 5000);
+                        self.set("ui_refresh_timeout", setTimeout(() => self.po_file_info(file, false), 5000));
                     }
                 });
+        },
+
+        _clear_refresh_timeout: function() {
+            var timeouth = this.get('ui_refresh_timeout');
+            if (!timeouth) {
+                return;
+            }
+
+            clearTimeout(timeouth);
+            this.set('ui_refresh_timeout', null);
         },
 
         _display_po_file_info: function ( file, po_info ) {
@@ -486,6 +586,8 @@ $(document).ready(function() {
         },
         _hide_po_file_info_dialogue: function() {
             this._reset_po_file_info_data();
+            this._clear_refresh_timeout();
+
             let container_obj = $("#phs_po_file_info_container");
             if( !container_obj || !container_obj.length ) {
                 return;
@@ -654,6 +756,86 @@ $(document).ready(function() {
                     self.phs_add_success_message( "<?php echo $this->_pte('PO translation task launched with success in background job.'); ?>" );
                     self.phs_add_success_message( "<?php echo $this->_pte('You can check the progress by clicking the <i class="fa fa-info"></i> icon for provided language.'); ?>" );
                 });
+        },
+
+        do_update_translation_files: function (lang) {
+            let form_data = {};
+            form_data.lang = lang;
+            form_data.backup_language_files = true;
+            form_data.action = 'do_update_translation_files';
+
+            let self = this;
+            this._send_action_request(
+                form_data,
+                "<?php echo $this->_pte('Updating translations...'); ?>",
+                function (response) {
+                    if (typeof response.update_result === 'undefined') {
+                        self.phs_add_error_message("<?php echo $this->_pte('Error obtaining translations update result. Please try again.'); ?>", 10);
+                        return;
+                    }
+
+                    if (response?.update_result) {
+                        self.set('translation_update_language', lang);
+                        self.set('translation_update_result', response.update_result);
+                    } else {
+                        self.set('translation_update_language', null);
+                        self.set('translation_update_result', null);
+                    }
+
+                    self._display_translation_results();
+                });
+        },
+
+        do_check_translations: function () {
+            let form_data = {};
+            form_data.action = 'do_check_translations';
+
+            let self = this;
+            this._send_action_request(
+                form_data,
+                "<?php echo $this->_pte('Checking translations...'); ?>",
+                function (response) {
+                    if (typeof response.check_result === 'undefined') {
+                        self.phs_add_error_message("<?php echo $this->_pte('Error obtaining translations check result. Please try again.'); ?>", 10);
+                        return;
+                    }
+
+                    if (response?.check_result) {
+                        self.set('translation_check_result', response.check_result);
+                    } else {
+                        self.set('translation_check_result', null);
+                    }
+
+                    self._display_translation_results();
+                });
+        },
+        _display_translation_results: function () {
+            let container_obj = $('#phs_po_translation_results_container');
+            if (!container_obj || !container_obj.length) {
+                return;
+            }
+
+            container_obj.show();
+
+            PHS_JSEN.createAjaxDialog({
+                suffix: 'phs_po_translation_results_',
+                width: 800,
+                height: 700,
+                title: "<?php echo $this->_pt('Translation Results'); ?>",
+                resizable: true,
+                source_not_cloned: true,
+                close_outside_click: false,
+                source_obj: container_obj,
+                onbeforeclose: () => this._hide_translation_results_dialogue()
+            });
+        },
+        _hide_translation_results_dialogue: function () {
+            let container_obj = $('#phs_po_translation_results_container');
+            if (!container_obj || !container_obj.length) {
+                return;
+            }
+
+            container_obj.hide();
         },
 
         _basename: function(file) {

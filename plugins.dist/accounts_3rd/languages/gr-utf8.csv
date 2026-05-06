@@ -1,0 +1,119 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Error loading required resources.,Σφάλμα φόρτωσης απαιτούμενων πόρων.
+Couldn't get parent plugin object.,Αδυναμία λήψης του αντικειμένου γονικού προσθέτου.
+No session.,Χωρίς συνεδρία.
+Authentication failed.,Αποτυχία πιστοποίησης.
+Error updating session.,Σφάλμα κατά την ενημέρωση της συνεδρίας.
+Couldn't register user. Please try again.,Αδυναμία εγγραφής χρήστη. Παρακαλώ προσπαθήστε ξανά.
+Error obtaining Google 3rd party library directory paths.,Σφάλμα κατά τη λήψη των διαδρομών καταλόγου της βιβλιοθήκης τρίτων Google.
+Please provide a Google verification code.,Παρακαλώ παρέχετε έναν κωδικό επαλήθευσης Google.
+Error obtaining Google 3rd party WEB services instance.,Σφάλμα κατά τη λήψη της παρουσίας υπηρεσιών WEB τρίτων μερών της Google.
+Error obtaining access token for Google 3rd party WEB services.,Σφάλμα κατά τη λήψη του τοκέν πρόσβασης για υπηρεσίες ιστού τρίτων μερών της Google.
+Error obtaining Google account details for WEB services.,Σφάλμα κατά τη λήψη των λεπτομερειών λογαριασμού Google για υπηρεσίες WEB.
+Error obtaining Google 3rd party MOBILE services instance.,Σφάλμα κατά τη λήψη της παρουσίας υπηρεσιών κινητής τρίτης Google.
+Error obtaining account details for Google 3rd party MOBILE services.,Σφάλμα κατά τη λήψη λεπτομερειών λογαριασμού για υπηρεσίες κινητής τρίτου μέρους της Google.
+Error obtaining Google account details for MOBILE services.,Σφάλμα κατά τη λήψη των λεπτομερειών λογαριασμού Google για τις υπηρεσίες ΚΙΝΗΤΟΥ.
+Couldn't load accounts 3rd party plugin instance.,Αδυναμία φόρτωσης λογαριασμών παράδοσης 3ης μερικής εφαρμογής.
+3rd party Google services are not enabled.,Οι υπηρεσίες Google τρίτων δεν είναι ενεργοποιημένες.
+Error obtaining phpseclib library directory paths.,Σφάλμα κατά τη λήψη των διαδρομών καταλόγου της βιβλιοθήκης phpseclib.
+Autoload for Google 3rd party functionality not found.,Το αυτόματο φόρτωσης για λειτουργικότητα τρίτων κατασκευαστών της Google δεν βρέθηκε.
+Error obtaining an instance of Google 3rd party client.,Σφάλμα κατά τη λήψη μιας παρουσίας του πελάτη Google 3ου μέρους.
+Please provide an action for Google 3rd party WEB services.,Παρακαλώ παρέχετε μια ενέργεια για τις υπηρεσίες ιστού τρίτων για την Google.
+Error obtaining Google 3rd party WEB services settings.,Σφάλμα κατά τη λήψη των ρυθμίσεων υπηρεσιών WEB τρίτων από τη Google.
+Error obtaining Google 3rd party MOBILE services settings.,Σφάλμα κατά τη λήψη των ρυθμίσεων υπηρεσιών κινητής τηλεφωνίας τρίτων από τη Google.
+Invalid authentication platform for Google 3rd party MOBILE services.,Μη έγκυρη πλατφόρμα πιστοποίησης για υπηρεσίες κινητών τρίτων μερών της Google.
+Error verifying token with Apple. Please try again.,Σφάλμα κατά την επαλήθευση του τοκέν με την Apple. Παρακαλώ προσπαθήστε ξανά.
+Please provide full URL for Apple 3rd party service.,Παρακαλώ παρέχετε τον πλήρη URL για την υπηρεσία τρίτου μέρους της Apple.
+Error initiating call to Apple service API.,Σφάλμα κατά την εκκίνηση κλήσης προς το API υπηρεσίας της Apple.
+Error retrieving Apple service API request details.,Σφάλμα κατά την ανάκτηση λεπτομερειών αιτήματος API υπηρεσίας Apple.
+Apple service API responded with HTTP code: %s.,Η υπηρεσία API της Apple απάντησε με κωδικό HTTP: %s.
+3rd party Apple services are not enabled.,Οι υπηρεσίες τρίτων από την Apple δεν είναι ενεργοποιημένες.
+Please provide an action for Apple 3rd party service.,Παρακαλώ παρέχετε μια ενέργεια για την υπηρεσία τρίτων της Apple.
+Error obtaining Apple 3rd party service settings.,Σφάλμα κατά τη λήψη των ρυθμίσεων υπηρεσίας τρίτων για την Apple.
+Error obtaining a return URL for Apple 3rd party service.,Σφάλμα κατά τη λήψη της διεύθυνσης URL επιστροφής για την υπηρεσία τρίτου μέρους της Apple.
+Please provide an Apple verification code.,Παρακαλώ παρέχετε έναν κωδικό επαλήθευσης της Apple.
+Error preparing Apple services for action %s.,Σφάλμα κατά την προετοιμασία των υπηρεσιών της Apple για την ενέργεια %s.
+Error sending request to Apple services for action %s.,Σφάλμα κατά την αποστολή αιτήματος προς τις υπηρεσίες της Apple για την ενέργεια %s.
+Couldn't decode Apple token ID.,Αδυναμία αποκωδικοποίησης του ταυτότητας του τοκέν της Apple.
+Error sending request to Apple services.,Σφάλμα κατά την αποστολή αιτήματος προς τις υπηρεσίες της Apple.
+Apple 3rd party service requires openssl with sha256 support.,Η υπηρεσία τρίτων της Apple απαιτεί το openssl με υποστήριξη sha256.
+Error encoding data for Apple 3rd party service.,Σφάλμα κωδικοποίησης δεδομένων για υπηρεσία τρίτου μέρους της Apple.
+Invalid JWT token when decoding it.,Μη έγκυρο τεκμήριο JWT κατά την αποκωδικοποίησή του.
+Enable 3rd Party,Ενεργοποίηση Τρίτων Μερών
+Enable 3rd party login or register in this platform?,Ενεργοποίηση σύνδεσης ή εγγραφής τρίτων στην πλατφόρμα αυτή;
+Ask Register at Login,Ζήτηση Εγγραφής στην Σύνδεση
+"If user tries to login with a non-existing email, should we offer register option?","Εάν ο χρήστης προσπαθήσει να συνδεθεί με μια μη υπαρκτή διεύθυνση email, πρέπει να προσφέρουμε την επιλογή εγγραφής;"
+Force Registration at Login,Εξαναγκαστική Εγγραφή κατά την Είσοδο
+"If user tries to login with a non-existing email, force registration with provided details.","Εάν ο χρήστης προσπαθήσει να συνδεθεί με μια μη υπαρκτή διεύθυνση email, επιβάλλεται η εγγραφή με τα παρεχόμενα στοιχεία."
+Google 3rd Party Settings,Ρυθμίσεις τρίτων μερών Google
+Login or register with Google settings.,Συνδεθείτε ή εγγραφείτε με τις ρυθμίσεις του Google.
+Enable Google Service,Ενεργοποίηση Υπηρεσίας Google
+Enable login or register with Google 3rd party?,Ενεργοποίηση σύνδεσης ή εγγραφής με Google τρίτου μέρους;
+WEB Client ID,Αναγνωριστικό πελάτη WEB
+WEB Client ID to be used with OAuth when checking accounts in WEB interface,Το αναγνωριστικό πελάτη WEB που θα χρησιμοποιηθεί με το OAuth κατά τον έλεγχο των λογαριασμών στη διεπαφή WEB
+WEB Client Secret,Μυστικός Κωδικός Πελάτη WEB
+WEB Client Secret to be used with OAuth when checking accounts in WEB interface,Μυστικό πελάτη WEB που θα χρησιμοποιηθεί με το OAuth κατά τον έλεγχο λογαριασμών στη διεπαφή WEB
+WEB Login Return URL,Επιστροφή URL σύνδεσης WEB
+"When user wants to login using Google on WEB, what's the rewrite rule that redirects to Google WEB login page?","Όταν ο χρήστης επιθυμεί να συνδεθεί χρησιμοποιώντας το Google στον Ιστό, ποιος είναι ο κανόνας επανεγγραφής που ανακατευθύνει στη σελίδα σύνδεσης του Google στον Ιστό;"
+WEB Register Return URL,Επιστροφή URL Εγγραφής Ιστοσελίδας
+"When user wants to register using Google on WEB, what's the rewrite rule that redirects to Google WEB register page?","Όταν ο χρήστης επιθυμεί να εγγραφεί χρησιμοποιώντας το Google στον ΙΣΤΟ, ποιος είναι ο κανόνας επανεγγραφής που ανακατευθύνει στη σελίδα εγγραφής του Google στον ΙΣΤΟ;"
+MOBILE Client ID (Android),ΑΝΑΓΝΩΡΙΣΤΙΚΟ ΠΕΛΑΤΗ ΚΙΝΗΤΟΥ (Android)
+MOBILE Client ID to be used with OAuth when checking accounts from an Android MOBILE application,Το αναγνωριστικό πελάτη ΚΙΝΗΤΟΥ που θα χρησιμοποιηθεί με το OAuth κατά τον έλεγχο λογαριασμών από μια εφαρμογή ΚΙΝΗΤΟΥ Android
+MOBILE Client ID (iOS),ΑΝΑΓΝΩΡΙΣΤΙΚΟ ΠΕΛΑΤΗ ΚΙΝΗΤΟΥ (iOS)
+MOBILE Client ID to be used with OAuth when checking accounts from an iOS MOBILE application,Το αναγνωριστικό πελάτη ΚΙΝΗΤΟΥ που θα χρησιμοποιηθεί με το OAuth κατά τον έλεγχο λογαριασμών από μια εφαρμογή ΚΙΝΗΤΟΥ iOS
+Apple 3rd Party Settings,Ρυθμίσεις τρίτων στοιχείων της Apple
+Login or register with Apple settings.,Συνδεθείτε ή εγγραφείτε με τις ρυθμίσεις της Apple.
+Enable Apple Service,Ενεργοποίηση Υπηρεσίας Apple
+Enable login or register with Apple 3rd party?,Ενεργοποίηση σύνδεσης ή εγγραφής με τρίτο μέρος Apple;
+Client ID,Ταυτότητα Πελάτη
+Apple Client ID to be used when registering or logging in with Apple,Το αναγνωριστικό πελάτη της Apple πρέπει να χρησιμοποιηθεί κατά την εγγραφή ή την σύνδεση με την Apple
+Team ID,Αναγνωριστικό Ομάδας
+Apple Team ID to be used when registering or logging in with Apple,Το αναγνωριστικό ομάδας της Apple που θα χρησιμοποιηθεί κατά την εγγραφή ή σύνδεση με την Apple
+Key ID,Κλειδί Ταυτότητας
+Apple Key ID to be used when registering or logging in with Apple,Το Apple Key ID πρέπει να χρησιμοποιηθεί κατά την εγγραφή ή την σύνδεση με την Apple
+Authentication Key,Κλειδί Πιστοποίησης
+Apple Login Return URL,Επιστροφή URL σύνδεσης Apple
+"When user wants to login using Apple, what's the rewrite rule that redirects to Apple login page?","Όταν ο χρήστης επιθυμεί να συνδεθεί χρησιμοποιώντας το Apple, ποιος είναι ο κανόνας επανεγγραφής που ανακατευθύνει στη σελίδα σύνδεσης του Apple;"
+Apple Register Return URL,Επιστροφή URL Εγγραφής Apple
+"When user wants to register using Apple, what's the rewrite rule that redirects to Apple register page?","Όταν ο χρήστης επιθυμεί να εγγραφεί χρησιμοποιώντας την Apple, ποιος είναι ο κανόνας επανεγγραφής που ανακατευθύνει στη σελίδα εγγραφής της Apple;"
+Register with Google,Εγγραφή με το Google
+Invalid Google token. Please try again.,Μη έγκυρο το Google token. Παρακαλώ προσπαθήστε ξανά.
+Error obtaining Google account details. Please try again.,Σφάλμα κατά τη λήψη των λεπτομερειών λογαριασμού Google. Παρακαλώ προσπαθήστε ξανά.
+Error obtaining Google account email address. Please make sure you give us rights to read Google account email address.,Σφάλμα κατά τη λήψη της διεύθυνσης email του λογαριασμού Google. Βεβαιωθείτε ότι μας δίνετε τα δικαιώματα για την ανάγνωση της διεύθυνσης email του λογαριασμού Google.
+This email address is already registered on this platform.,Αυτή η διεύθυνση email είναι ήδη εγγεγραμμένη σε αυτή την πλατφόρμα.
+Error registering account.,Σφάλμα κατά την εγγραφή λογαριασμού.
+Please try again.,Παρακαλώ προσπαθήστε ξανά.
+Error logging in.,Σφάλμα συνδεσης.
+Login with Apple,Σύνδεση με Apple
+Error decoding Apple account details. Please try again.,Σφάλμα αποκωδικοποίησης λεπτομερειών λογαριασμού Apple. Παρακαλώ προσπαθήστε ξανά.
+Invalid Apple token. Please try again.,Μη έγκυρο τεκμήριο Apple. Παρακαλώ προσπαθήστε ξανά.
+Error obtaining Apple account details. Please try again.,Σφάλμα κατά τη λήψη των λεπτομερειών λογαριασμού Apple. Παρακαλώ προσπαθήστε ξανά.
+Error obtaining Apple account email address. Please make sure you give us rights to read Apple account email address.,Σφάλμα κατά τη λήψη της διεύθυνσης email λογαριασμού Apple. Βεβαιωθείτε ότι μας δίνετε τα δικαιώματα για την ανάγνωση της διεύθυνσης email λογαριασμού Apple.
+This email address is not registered on this platform.,Αυτή η διεύθυνση email δεν είναι εγγεγραμμένη σε αυτή την πλατφόρμα.
+Account linked with this email address is not active.,Ο λογαριασμός που συνδέεται με αυτήν τη διεύθυνση email δεν είναι ενεργός.
+Please try logging in using a different email address.,Παρακαλώ προσπαθήστε να συνδεθείτε χρησιμοποιώντας διαφορετική διεύθυνση email.
+Invalid authentication platform.,Μη έγκυρη πλατφόρμα πιστοποίησης.
+Invalid Google token.,Μη έγκυρο το Google τεκμήριο.
+Please provide device info.,Παρακαλώ παρέχετε πληροφορίες συσκευής.
+Error obtaining Google account details.,Σφάλμα κατά τη λήψη των λεπτομερειών λογαριασμού Google.
+Registration failed.,Η εγγραφή απέτυχε.
+Invalid Apple token.,Μη έγκυρο τεκμήριο Apple.
+Error obtaining Apple account details.,Σφάλμα κατά τη λήψη των λεπτομερειών λογαριασμού Apple.
+Email address doesn't have an account associated on this platform.,Η διεύθυνση email δεν έχει λογαριασμό που σχετίζεται με αυτήν την πλατφόρμα.
+Login with Google,Σύνδεση με Google
+Error decoding Google account details. Please try again.,Σφάλμα αποκωδικοποίησης λεπτομερειών λογαριασμού Google. Παρακαλώ προσπαθήστε ξανά.
+Register with Apple,Εγγραφή με την Apple
+Retry registering in with Apple,Επανάληψη εγγραφής με την Apple
+Retry logging in with Apple,Δοκιμάστε ξανά να συνδεθείτε με το Apple
+Register a new account,Καταχωρήστε ένα νέο λογαριασμό
+Login with Facebook,Σύνδεση με το Facebook
+Retry registering in with Google,Επανάληψη εγγραφής με το Google
+Retry logging in with Google,Δοκιμάστε ξανά τη σύνδεση με το Google
+Register with Facebook,Εγγραφή με το Facebook
+Invalid service ID provided.,Παρέχεται μη έγκυρο αναγνωριστικό υπηρεσίας.
+Please provide an account id for this service.,Παρακαλώ παρέχετε ένα αναγνωριστικό λογαριασμού για αυτήν την υπηρεσία.
+Please provide a valid service for this account.,Παρακαλώ παρέχετε ένα έγκυρο υπηρεσία για αυτόν τον λογαριασμό.
+Please provide service account details. This should be a JSON string.,Παρακαλώ παράσχετε λεπτομέρειες λογαριασμού υπηρεσίας. Αυτό πρέπει να είναι ένα JSON string.
+Please provide valid service account details. This should be a JSON string.,Παρακαλώ παράσχετε έγκυρες λεπτομέρειες λογαριασμού υπηρεσίας. Αυτό πρέπει να είναι ένα JSON string.

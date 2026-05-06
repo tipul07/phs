@@ -1,0 +1,44 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+N/A,Μ/Α
+Please provide a valid email address.,Παρακαλώ δώστε μια έγκυρη διεύθυνση email.
+Site test email,Δοκιμαστικό email ιστότοπου
+Error sending email to provided email address.,Σφάλμα κατά την αποστολή email στην παρεχόμενη διεύθυνση email.
+Couldn't load template from plugin settings.,Αδυναμία φόρτωσης προτύπου από τις ρυθμίσεις του πρόσθετου.
+Failed validating main email template file.,Αποτυχία επικύρωσης του κύριου αρχείου προτύπου email.
+Failed validating email template file.,Αποτυχία επικύρωσης αρχείου προτύπου email.
+Rendering template %s resulted in empty buffer.,Η απεικόνιση του προτύπου %s οδήγησε σε κενό buffer.
+Rendering template resulted in empty buffer.,Η απεικόνιση του προτύπου οδήγησε σε κενό buffer.
+Rendering main template resulted in empty buffer.,Η απεικόνιση του κύριου προτύπου οδήγησε σε κενό buffer.
+Invalid parameters for attachment #%s.,Μη έγκυρες παράμετροι για το συνημμένο #%s.
+Destination is not an email.,Ο προορισμός δεν είναι email.
+Email body is empty.,Το σώμα του email είναι κενό.
+Couldn't obtain attachment file content.,Αδυναμία λήψης περιεχομένου αρχείου συνημμένου.
+Successfully sent test email.,Επιτυχής αποστολή δοκιμαστικοϋ email.
+To email,Να στείλετε email
+To what email should we send test email,Σε ποιο email θα πρέπει να στείλουμε το δοκιμαστικό email
+Send test email,Αποστολή δοκιμαστικού email
+Email Sending Settings,Ρυθμίσεις Αποστολής Email
+Settings related to sending emails.,Ρυθμίσεις που σχετίζονται με την αποστολή emails.
+Email Debugging Settings,Ρυθμίσεις Αποσφαλμάτωσης Email
+Settings related to debugging sending emails from platform.,Ρυθμίσεις που σχετίζονται με την εντοπισμό σφαλμάτων κατά την αποστολή email από την πλατφόρμα.
+Localhost,Τοπικός διακομιστής
+Username,Όνομα χρήστη
+Password,Κωδικός πρόσβασης
+Undisclosed pass,Μη αποκαλυπτόμενος κωδικός
+SMTP Host,Κεντρικός διακομιστής SMTP
+SMTP Port,Θύρα SMTP
+SMTP Timeout,Χρονικό Όριο SMTP
+SMTP Encryption,Κρυπτογράφηση SMTP
+SMTP Authetication,Επαλήθευση SMTP
+Invalid SMTP route.,Μη έγκυρη διαδρομή SMTP.
+Mandatory SMTP parameters not set.,Τα υποχρεωτικά παράμετρα SMTP δεν έχουν οριστεί.
+Error loading SMTP library.,Σφάλμα φόρτωσης βιβλιοθήκης SMTP.
+Error obtaining SMTP credentials.,Σφάλμα κατά τη λήψη διαπιστευτηρίων SMTP.
+Error sending email using SMTP library.,Σφάλμα κατά την αποστολή email χρησιμοποιώντας τη βιβλιοθήκη SMTP.
+Mandatory native mail parameters not set.,Τα υποχρεωτικά παράμετρα του τοπικού ταχυδρομείου δεν έχουν οριστεί.
+Route,Διαδρομή
+What hostname should be reported to SMTP server,Ποιο όνομα κεντρικού υπολογιστή πρέπει να αναφερθεί στον διακομιστή SMTP
+SMTP server used to send emails,Διακομιστής SMTP που χρησιμοποιείται για την αποστολή email
+Test will be done using route %s. Be sure to save settings before testing.,Η δοκιμή θα πραγματοποιηθεί χρησιμοποιώντας τη διαδρομή %s. Βεβαιωθείτε ότι έχετε αποθηκεώσει τις ρυθμίσεις πριν από τη δοκιμή.

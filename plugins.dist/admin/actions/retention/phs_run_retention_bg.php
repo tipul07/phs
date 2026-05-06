@@ -25,7 +25,6 @@ class PHS_Action_Run_retention_bg extends PHS_Action
             return null;
         }
 
-        /** @var PHS_Plugin_Admin $admin_plugin */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
             || !($retention_lib = Phs_Data_retention::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));

@@ -666,165 +666,227 @@ class PHS_Utils extends PHS_Language
         }
 
         $file_mime_type = '';
-        if (empty($params['virtual_file'])
+        if (!$params['virtual_file']
             && @function_exists('finfo_open')) {
-            if (!($flags = constant('FILEINFO_MIME'))) {
-                $flags = 0;
-            }
-
+            $flags = constant('FILEINFO_MIME') ?: 0;
             if (defined('FILEINFO_PRESERVE_ATIME')) {
                 $flags |= constant('FILEINFO_PRESERVE_ATIME');
             }
 
-            if (!empty($flags)
+            if ($flags
                 && ($finfo = @finfo_open($flags))) {
-                $file_mime_type = @finfo_file($finfo, $file);
+                $file_mime_type = @finfo_file($finfo, $file) ?: '';
                 @finfo_close($finfo);
             }
         }
 
-        if (empty($params['virtual_file'])
-            && empty($file_mime_type)
+        if (!$params['virtual_file']
+            && !$file_mime_type
             && ($cmd_buf = @exec('file -bi '.@escapeshellarg($file)))) {
             $file_mime_type = trim($cmd_buf);
         }
 
-        if (empty($file_mime_type)) {
-            $file_ext = '';
-            if (($file_dots_arr = explode('.', $file)) && is_array($file_dots_arr) && count($file_dots_arr) > 1) {
-                $file_ext = array_pop($file_dots_arr);
-            }
+        if (!$file_mime_type) {
+            $file_mime_type = self::guess_mimetype_by_filename($file);
+        }
 
-            $file_ext = strtolower($file_ext);
+        if (str_contains($file_mime_type, ';')) {
+            $file_mime_type = explode(';', $file_mime_type)[0] ?? null;
+        }
 
-            switch ($file_ext) {
-                default:
-                    $file_mime_type = null;
-                    break;
+        return $file_mime_type;
+    }
 
-                case 'js':
-                    $file_mime_type = 'application/x-javascript';
-                    break;
+    public static function guess_mimetype_by_filename(string $file) : ?string
+    {
+        $file_ext = '';
+        if (($file_dots_arr = explode('.', $file))
+            && is_array($file_dots_arr) && count($file_dots_arr) > 1) {
+            $file_ext = array_pop($file_dots_arr);
+        }
 
-                case 'json':
-                    $file_mime_type = 'application/json';
-                    break;
+        return $file_ext
+            ? self::guess_mimetype_by_extension(strtolower($file_ext))
+            : null;
+    }
 
-                case 'jpg':
-                case 'jpeg':
-                case 'jpe':
-                    $file_mime_type = 'image/jpeg';
-                    break;
+    public static function guess_mimetype_by_extension(string $extension) : ?string
+    {
+        $file_mime_type = null;
 
-                case 'png':
-                case 'gif':
-                case 'bmp':
-                case 'tiff':
-                    $file_mime_type = 'image/'.$file_ext;
-                    break;
+        switch ($extension) {
+            case 'js':
+                $file_mime_type = 'text/javascript';
+                break;
 
-                case 'css':
-                    $file_mime_type = 'text/css';
-                    break;
+            case 'md':
+                $file_mime_type = 'text/markdown';
+                break;
 
-                case 'xml':
-                    $file_mime_type = 'application/xml';
-                    break;
+            case 'json':
+                $file_mime_type = 'application/json';
+                break;
 
-                case 'doc':
-                case 'docx':
-                    $file_mime_type = 'application/msword';
-                    break;
+            case 'jpg':
+            case 'jpeg':
+            case 'jpe':
+                $file_mime_type = 'image/jpeg';
+                break;
 
-                case 'xls':
-                case 'xlt':
-                case 'xlm':
-                case 'xld':
-                case 'xla':
-                case 'xlc':
-                case 'xlw':
-                case 'xll':
-                    $file_mime_type = 'application/vnd.ms-excel';
-                    break;
+            case 'png':
+            case 'gif':
+            case 'bmp':
+                $file_mime_type = 'image/'.$extension;
+                break;
 
-                case 'ppt':
-                case 'pps':
-                    $file_mime_type = 'application/vnd.ms-powerpoint';
-                    break;
+            case 'tif':
+            case 'tiff':
+                $file_mime_type = 'image/tiff';
+                break;
 
-                case 'rtf':
-                    $file_mime_type = 'application/rtf';
-                    break;
+            case 'svg':
+                $file_mime_type = 'image/svg+xml';
+                break;
 
-                case 'pdf':
-                    $file_mime_type = 'application/pdf';
-                    break;
+            case 'css':
+                $file_mime_type = 'text/css';
+                break;
 
-                case 'html':
-                case 'htm':
-                case 'php':
-                    $file_mime_type = 'text/html';
-                    break;
+            case 'xml':
+                $file_mime_type = 'application/xml';
+                break;
 
-                case 'txt':
-                    $file_mime_type = 'text/plain';
-                    break;
+            case 'odp':
+                $file_mime_type = 'application/vnd.oasis.opendocument.presentation';
+                break;
 
-                case 'csv':
-                    $file_mime_type = 'text/csv';
-                    break;
+            case 'doc':
+                $file_mime_type = 'application/msword';
+                break;
 
-                case 'mpeg':
-                case 'mpg':
-                case 'mpe':
-                    $file_mime_type = 'video/mpeg';
-                    break;
+            case 'docx':
+                $file_mime_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                break;
 
-                case 'mp3':
-                    $file_mime_type = 'audio/mpeg3';
-                    break;
+            case 'xls':
+            case 'xlt':
+            case 'xlm':
+            case 'xld':
+            case 'xla':
+            case 'xlc':
+            case 'xlw':
+            case 'xll':
+                $file_mime_type = 'application/vnd.ms-excel';
+                break;
 
-                case 'wav':
-                    $file_mime_type = 'audio/wav';
-                    break;
+            case 'xlsx':
+                $file_mime_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+                break;
 
-                case 'aiff':
-                case 'aif':
-                    $file_mime_type = 'audio/aiff';
-                    break;
+            case 'ods':
+                $file_mime_type = 'application/vnd.oasis.opendocument.spreadsheet';
+                break;
 
-                case 'avi':
-                    $file_mime_type = 'video/avi';
-                    break;
+            case 'odt':
+                $file_mime_type = 'application/vnd.oasis.opendocument.text';
+                break;
 
-                case 'wmv':
-                    $file_mime_type = 'video/x-ms-wmv';
-                    break;
+            case 'ppt':
+            case 'pps':
+                $file_mime_type = 'application/vnd.ms-powerpoint';
+                break;
 
-                case 'mov':
-                    $file_mime_type = 'video/quicktime';
-                    break;
+            case 'pptx':
+                $file_mime_type = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+                break;
 
-                case 'mp4':
-                    $file_mime_type = 'video/mp4';
-                    break;
+            case 'rtf':
+                $file_mime_type = 'application/rtf';
+                break;
 
-                case 'webm':
-                    $file_mime_type = 'video/webm';
-                    break;
+            case 'pdf':
+                $file_mime_type = 'application/pdf';
+                break;
 
-                case 'zip':
-                    $file_mime_type = 'application/zip';
-                    break;
+            case 'html':
+            case 'htm':
+                $file_mime_type = 'text/html';
+                break;
 
-                case 'tar':
-                    $file_mime_type = 'application/x-tar';
-                    break;
+            case 'php':
+                $file_mime_type = 'application/x-httpd-php';
+                break;
 
-                case 'swf':
-                    $file_mime_type = 'application/x-shockwave-flash';
-                    break;
-            }
+            case 'txt':
+                $file_mime_type = 'text/plain';
+                break;
+
+            case 'csv':
+                $file_mime_type = 'text/csv';
+                break;
+
+            case 'mpeg':
+            case 'mpg':
+            case 'mpe':
+                $file_mime_type = 'video/mpeg';
+                break;
+
+            case '3gp':
+                $file_mime_type = 'video/3gpp';
+                break;
+
+            case 'mp3':
+                $file_mime_type = 'audio/mpeg';
+                break;
+
+            case 'wav':
+                $file_mime_type = 'audio/wav';
+                break;
+
+            case 'aiff':
+            case 'aif':
+                $file_mime_type = 'audio/aiff';
+                break;
+
+            case 'avi':
+                $file_mime_type = 'video/x-msvideo';
+                break;
+
+            case 'wmv':
+                $file_mime_type = 'video/x-ms-wmv';
+                break;
+
+            case 'mov':
+                $file_mime_type = 'video/quicktime';
+                break;
+
+            case 'mp4':
+                $file_mime_type = 'video/mp4';
+                break;
+
+            case 'weba':
+                $file_mime_type = 'audio/webm';
+                break;
+
+            case 'webm':
+                $file_mime_type = 'video/webm';
+                break;
+
+            case 'zip':
+                $file_mime_type = 'application/zip';
+                break;
+
+            case 'tar':
+                $file_mime_type = 'application/x-tar';
+                break;
+
+            case 'rar':
+                $file_mime_type = 'application/vnd.rar';
+                break;
+
+            case '7z':
+                $file_mime_type = 'application/x-7z-compressed';
+                break;
         }
 
         return $file_mime_type;

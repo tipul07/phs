@@ -184,7 +184,7 @@ class PHS_View extends PHS_Instantiable
     {
         $this->reset_error();
 
-        if (empty($file)
+        if (!$file
             || !($file = self::safe_escape_resource($file))) {
             $this->set_error(self::ERR_BAD_TEMPLATE, self::_t('Invalid resource file.'));
 
@@ -235,11 +235,18 @@ class PHS_View extends PHS_Instantiable
      */
     public function get_resource_url(string | array $resource) : string
     {
-        if (!($resource_details = $this->_get_resource_details($resource))) {
-            return '#resource_not_found';
-        }
+        return $this->get_resource_url_if_exists($resource) ?? '#resource_not_found';
+    }
 
-        return $resource_details['full_url'] ?: '#resource_not_found';
+    /**
+     * Return URL to file resource
+     * @param string|array $resource
+     *
+     * @return null|string
+     */
+    public function get_resource_url_if_exists(string | array $resource) : ?string
+    {
+        return $this->_get_resource_details($resource)['full_url'] ?? null;
     }
 
     /**
@@ -614,7 +621,7 @@ class PHS_View extends PHS_Instantiable
 
     protected function _get_resource_details(string | array $res_file) : ?array
     {
-        if (empty($res_file)) {
+        if (!$res_file) {
             return null;
         }
 
@@ -623,7 +630,7 @@ class PHS_View extends PHS_Instantiable
         }
 
         foreach ($res_file as $file) {
-            if (empty($file)) {
+            if (!$file) {
                 continue;
             }
 
@@ -639,7 +646,7 @@ class PHS_View extends PHS_Instantiable
     {
         $this->reset_error();
 
-        if (empty($file_name)) {
+        if (!$file_name) {
             $this->set_error(self::ERR_BAD_TEMPLATE, self::_t('Please provide a resource file.'));
 
             return null;

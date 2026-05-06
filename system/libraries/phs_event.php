@@ -252,6 +252,8 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
             $this->output = $this->_validate_event_output($this->output);
         }
 
+        $this->_finally($are_we_in_background);
+
         return $this->output;
     }
 
@@ -386,6 +388,14 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         }
 
         $this->_set_input($input);
+    }
+
+    /**
+     * Override this method if event should do a cleanup after calling all listeners for current event
+     * @param bool $are_we_in_background Tells if the method was called from background
+     */
+    protected function _finally(bool $are_we_in_background) : void
+    {
     }
 
     /**

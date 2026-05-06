@@ -11,50 +11,50 @@ Invalid Google token.,Token Google invalid.
 Invalid authentication platform.,Platformă de autentificare invalidă.
 Error obtaining Google account details.,Eroare la obținerea informaţiilor contului Google.
 Error decoding Apple account details. Please try again.,Eroare la decodarea detaliilor contului Apple. Încercaţi din nou.
-Invalid Apple token. Please try again.,Token Apple invalid. Încercaţi din nou.
-Error obtaining Apple account details. Please try again.,Eroare la obţinerea detaliilor contului Apple. Încercaţi din nou.
+Invalid Apple token. Please try again.,Token Apple nevalid. Încercați din nou.
+Error obtaining Apple account details. Please try again.,Eroare la obținerea detaliilor contului Apple. Vă rugăm să încercați din nou.
 This email address is not registered on this platform.,Adresa de email nu este înregistrată pe această platformă.
 Error registering account.,Eroare la înregistrarea contului.
 Please try again.,Încercaţi din nou.
 Account linked with this email address is not active.,Contul asociat cu această adresă de e-mail nu este activ.
 Please try logging in using a different email address.,Vă rugăm să încercați să vă conectați folosind o altă adresă de e-mail.
 Error logging in.,Eroare la logarea în cont.
-Error decoding Google account details. Please try again.,Eroare la decodarea datelor contului Google. Încercaţi din nou.
-Invalid Google token. Please try again.,Token-ul Google este invalid. Încercaţi din nou.
-Error obtaining Google account details. Please try again.,Eroare la obţinerea datelor contului Google. Încercaţi din nou.
-Couldn't load accounts 3rd party plugin instance.,Nu am putut încărca resursele necesare.
-Please provide an action for Apple 3rd party service.,Vă rugăm să oferiți o acţiune pentru serviciul Apple.
-Error obtaining Apple 3rd party service settings.,Eroare la obţinerea setărilor serviciilor Apple.
-Error obtaining a return URL for Apple 3rd party service.,Eroare la obţinerea URL-ului de retur pentru serviciul Apple.
-Error verifying token with Apple. Please try again.,Eroare la citirea detaliilor producatorului. Incercati din nou.
-Please provide an Apple verification code.,Vă rugăm să oferiți un cod de verificare Apple.
-Error preparing Apple services for action %s.,Eroare la pregătirea serviciilor Apple pentru acţiunea %s.
-Error sending request to Apple services for action %s.,Eroare la trimiterea cererii la serverele Apple pentru acţiunea %s.
-Couldn't decode Apple token ID.,Nu am putut decoda ID-ul tokenului Apple.
-Error sending request to Apple services.,Eroare la încărcarea resurselor necesare.
-Error encoding data for Apple 3rd party service.,Eroare la trimiterea SMSului pentru comandă.
-Please provide full URL for Apple 3rd party service.,Citire detalii producator...
-Error retrieving Apple service API request details.,Eroare la citirea detaliilor producatorului. Incercati din nou.
-Apple service API responded with HTTP code: %s.,Cantitate returnată pentru comanda #%s.
-Error obtaining phpseclib library directory paths.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
-Error obtaining Google 3rd party library directory paths.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
-Error obtaining an instance of Google 3rd party client.,Eroare la citirea detaliilor producatorului. Incercati din nou.
-Please provide an action for Google 3rd party WEB services.,Vă rugăm să oferiți un email.
-Error obtaining Google 3rd party WEB services settings.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
-Error obtaining Google 3rd party MOBILE services settings.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
-Please provide a Google verification code.,Vă rugăm să oferiți un email.
-Error obtaining Google 3rd party WEB services instance.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
-Error obtaining Google account details for WEB services.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
-Error obtaining Google 3rd party MOBILE services instance.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
-Error obtaining account details for Google 3rd party MOBILE services.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
-Error obtaining Google account details for MOBILE services.,Eroare la salvarea detaliilor produsului. Încercaţi din nou.
-Invalid service ID provided.,ID serviciu invalid.
-Please provide an account id for this service.,Vă rugăm să oferiți un email valid.
-Please provide a valid service for this account.,Vă rugăm să oferiți un email valid.
-Please provide service account details. This should be a JSON string.,Vă rugăm să oferiți un email valid.
-Please provide valid service account details. This should be a JSON string.,Vă rugăm să oferiți un email valid.
-Ask Register at Login,Cere înregistrare la login
-Google 3rd Party Settings,Setări Google
+Error decoding Google account details. Please try again.,Eroare la decodificarea detaliilor contului Google. Încercați din nou.
+Invalid Google token. Please try again.,Token Google nevalid. Încercați din nou.
+Error obtaining Google account details. Please try again.,Eroare la obținerea detaliilor contului Google. Vă rugăm să încercați din nou.
+Couldn't load accounts 3rd party plugin instance.,Nu s-au putut încărca conturile instanței plugin-ului de terțe părți.
+Please provide an action for Apple 3rd party service.,Vă rugăm să furnizați o acțiune pentru serviciul terțiar Apple.
+Error obtaining Apple 3rd party service settings.,Eroare la obținerea setărilor serviciului terțiar Apple.
+Error obtaining a return URL for Apple 3rd party service.,Eroare la obținerea unui URL de returnare pentru serviciul terț Apple.
+Error verifying token with Apple. Please try again.,Eroare la verificarea tokenului cu Apple. Încercați din nou.
+Please provide an Apple verification code.,Vă rugăm să furnizați un cod de verificare Apple.
+Error preparing Apple services for action %s.,Eroare la pregătirea serviciilor Apple pentru acțiunea %s.
+Error sending request to Apple services for action %s.,Eroare la trimiterea cererii către serviciile Apple pentru acțiunea %s.
+Couldn't decode Apple token ID.,Nu s-a putut decoda ID-ul tokenului Apple.
+Error sending request to Apple services.,Eroare la trimiterea cererii către serviciile Apple.
+Error encoding data for Apple 3rd party service.,Eroare la codificarea datelor pentru serviciul terț Apple.
+Please provide full URL for Apple 3rd party service.,Vă rugăm să furnizați URL-ul complet pentru serviciul terță parte Apple.
+Error retrieving Apple service API request details.,Eroare la recuperarea detaliilor cererii API a serviciului Apple.
+Apple service API responded with HTTP code: %s.,API-ul serviciului Apple a răspuns cu codul HTTP: %s.
+Error obtaining phpseclib library directory paths.,Eroare la obținerea căilor de director pentru biblioteca phpseclib.
+Error obtaining Google 3rd party library directory paths.,Eroare la obținerea căilor de director ale bibliotecii terțe Google.
+Error obtaining an instance of Google 3rd party client.,Eroare la obținerea unei instanțe a clientului terț Google 3rd party.
+Please provide an action for Google 3rd party WEB services.,Vă rugăm să furnizați o acțiune pentru serviciile WEB terțe Google.
+Error obtaining Google 3rd party WEB services settings.,Eroare la obținerea setărilor serviciilor WEB terțe Google.
+Error obtaining Google 3rd party MOBILE services settings.,Eroare la obținerea setărilor serviciilor MOBILE de la terții Google.
+Please provide a Google verification code.,Vă rugăm să furnizați un cod de verificare Google.
+Error obtaining Google 3rd party WEB services instance.,Eroare la obținerea instanței serviciilor WEB terțe Google.
+Error obtaining Google account details for WEB services.,Eroare la obținerea detaliilor contului Google pentru serviciile WEB.
+Error obtaining Google 3rd party MOBILE services instance.,Eroare la obținerea instanței serviciilor MOBILE de la terțul Google.
+Error obtaining account details for Google 3rd party MOBILE services.,Eroare la obținerea detaliilor contului pentru serviciile MOBILE de la terțe părți Google.
+Error obtaining Google account details for MOBILE services.,Eroare la obținerea detaliilor contului Google pentru serviciile MOBILE.
+Invalid service ID provided.,ID-ul serviciului furnizat este invalid.
+Please provide an account id for this service.,Vă rugăm să furnizați un ID de cont pentru acest serviciu.
+Please provide a valid service for this account.,Vă rugăm să furnizați un serviciu valid pentru acest cont.
+Please provide service account details. This should be a JSON string.,Vă rugăm să furnizați detaliile contului de serviciu. Acestea ar trebui să fie un șir JSON.
+Please provide valid service account details. This should be a JSON string.,Vă rugăm să furnizați detalii valide ale contului de serviciu. Acestea ar trebui să fie un șir JSON.
+Ask Register at Login,Solicită Înregistrare la Autentificare
+Google 3rd Party Settings,Setări terțe Google
 Authentication Key,Cheie de autentificare
 Error loading Google 3rd party library.,Eroare la incărcarea librăriei Google.
 Error loading Apple 3rd party library.,Eroare la încărcarea librăriei Apple.
@@ -73,3 +73,49 @@ Login with Google,Logare cu Google
 Register with Google,Înregistrare cu Google
 Login with Facebook,Login cu Facebook
 This email address is already registered on this platform.,Această adresă de e-mail este deja înregistrată pe această platformă.
+Couldn't get parent plugin object.,Nu s-a putut obține obiectul pluginului părinte.
+Error obtaining access token for Google 3rd party WEB services.,Eroare la obținerea tokenului de acces pentru serviciile WEB terțe Google.
+3rd party Google services are not enabled.,Serviciile Google de la terți nu sunt activate.
+Autoload for Google 3rd party functionality not found.,Funcționalitatea de încărcare automată pentru funcționalitatea terță Google nu a fost găsită.
+Invalid authentication platform for Google 3rd party MOBILE services.,Platformă de autentificare nevalidă pentru serviciile MOBILE de la terțe părți Google.
+Error initiating call to Apple service API.,Eroare la inițierea apelului către API-ul serviciului Apple.
+3rd party Apple services are not enabled.,Serviciile Apple de la terți nu sunt activate.
+Apple 3rd party service requires openssl with sha256 support.,Serviciul terților Apple 3 necesită openssl cu suport pentru sha256.
+Invalid JWT token when decoding it.,Tokenul JWT invalid la decodificare.
+Enable 3rd Party,Activare terță parte
+Enable 3rd party login or register in this platform?,Activare autentificare sau înregistrare terță parte în această platformă?
+"If user tries to login with a non-existing email, should we offer register option?","Dacă utilizatorul încearcă să se autentifice cu un email care nu există, ar trebui să oferim opțiunea de înregistrare?"
+Force Registration at Login,Înregistrare forțată la autentificare
+"If user tries to login with a non-existing email, force registration with provided details.","Dacă utilizatorul încearcă să se autentifice cu un email inexistent, forțează înregistrarea cu detaliile furnizate."
+Login or register with Google settings.,Conectați-vă sau înregistrați-vă cu setările Google.
+Enable Google Service,Activare serviciu Google
+Enable login or register with Google 3rd party?,Activare conectare sau înregistrare cu terț Google?
+WEB Client ID,ID client WEB
+WEB Client ID to be used with OAuth when checking accounts in WEB interface,ID-ul clientului WEB care trebuie folosit cu OAuth atunci când se verifică conturile în interfața WEB
+WEB Client Secret,Secretul clientului WEB
+WEB Client Secret to be used with OAuth when checking accounts in WEB interface,Secretul clientului WEB care trebuie folosit cu OAuth atunci când se verifică conturile în interfața WEB
+WEB Login Return URL,URL de returnare la autentificarea WEB
+"When user wants to login using Google on WEB, what's the rewrite rule that redirects to Google WEB login page?","Când utilizatorul dorește să se autentifice folosind Google pe WEB, care este regula de rescriere care îl redirecționează către pagina de autentificare Google pe WEB?"
+WEB Register Return URL,URL de Returnare a Înregistrării WEB
+"When user wants to register using Google on WEB, what's the rewrite rule that redirects to Google WEB register page?","Când utilizatorul dorește să se înregistreze folosind Google pe WEB, care este regula de rescriere care îl redirecționează către pagina de înregistrare Google WEB?"
+MOBILE Client ID (Android),ID client MOBIL (Android)
+MOBILE Client ID to be used with OAuth when checking accounts from an Android MOBILE application,ID-ul clientului MOBIL care trebuie folosit cu OAuth atunci când se verifică conturile dintr-o aplicație MOBIL Android
+MOBILE Client ID (iOS),ID client MOBIL (iOS)
+MOBILE Client ID to be used with OAuth when checking accounts from an iOS MOBILE application,ID-ul clientului MOBILE care trebuie folosit cu OAuth atunci când se verifică conturile dintr-o aplicație MOBILE iOS
+Apple 3rd Party Settings,Setări terțe Apple
+Login or register with Apple settings.,Conectați-vă sau înregistrați-vă cu setările Apple.
+Enable Apple Service,Activare Serviciu Apple
+Enable login or register with Apple 3rd party?,Activare autentificare sau înregistrare cu Apple terță parte?
+Apple Client ID to be used when registering or logging in with Apple,ID-ul clientului Apple care trebuie folosit la înregistrare sau autentificare cu Apple
+Apple Team ID to be used when registering or logging in with Apple,ID-ul echipei Apple care trebuie folosit atunci când vă înregistrați sau conectați cu Apple
+Apple Key ID to be used when registering or logging in with Apple,ID-ul cheii Apple care trebuie folosit atunci când vă înregistrați sau conectați cu Apple
+Apple Login Return URL,URL de returnare a autentificării Apple
+"When user wants to login using Apple, what's the rewrite rule that redirects to Apple login page?","Când utilizatorul dorește să se autentifice folosind Apple, care este regula de rescriere care îl redirecționează către pagina de autentificare Apple?"
+Apple Register Return URL,URL de Returnare a Înregistrării Apple
+"When user wants to register using Apple, what's the rewrite rule that redirects to Apple register page?","Când utilizatorul dorește să se înregistreze folosind Apple, care este regulă de rescriere care îl redirecționează către pagina de înregistrare Apple?"
+Error obtaining Google account email address. Please make sure you give us rights to read Google account email address.,Eroare la obținerea adresei de email a contului Google. Vă rugăm să vă asigurați că ne acordați drepturile de citire a adresei de email a contului Google.
+Error obtaining Apple account email address. Please make sure you give us rights to read Apple account email address.,Eroare la obținerea adresei de email a contului Apple. Vă rugăm să vă asigurați că ne acordați drepturile de citire a adresei de email a contului Apple.
+Retry registering in with Apple,Reîncercați înregistrarea cu Apple
+Retry logging in with Apple,Reîncercați conectarea cu Apple
+Retry registering in with Google,Reîncercați înregistrarea cu Google
+Retry logging in with Google,Reîncercați conectarea cu Google

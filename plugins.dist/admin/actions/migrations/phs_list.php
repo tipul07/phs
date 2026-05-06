@@ -7,15 +7,14 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\models\PHS_Model_Migrations;
-use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 /** @property PHS_Model_Migrations $_paginator_model */
 class PHS_Action_List extends PHS_Action_Generic_list
 {
+    #[PHS_Dependency]
     private ?PHS_Plugin_Admin $_admin_plugin = null;
-
-    private ?PHS_Model_Accounts $_accounts_model = null;
 
     public function should_stop_execution() : ?array
     {
@@ -370,13 +369,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
     {
         $this->reset_error();
 
-        if ((empty($this->_admin_plugin)
-             && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-         || (empty($this->_accounts_model)
-             && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
-         || (empty($this->_paginator_model)
-             && !($this->_paginator_model = PHS_Model_Migrations::get_instance()))
-        ) {
+        if (!$this->_paginator_model
+            && !($this->_paginator_model = PHS_Model_Migrations::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;

@@ -1,0 +1,29 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Please provide a valid email address.,Παρακαλώ δώστε μια έγκυρη διεύθυνση email.
+Site test email,Δοκιμαστικό email ιστότοπου
+Error sending email to provided email address.,Σφάλμα κατά την αποστολή email στην παρεχόμενη διεύθυνση email.
+Couldn't load template from plugin settings.,Αδυναμία φόρτωσης προτύπου από τις ρυθμίσεις του πρόσθετου.
+Failed validating main email template file.,Αποτυχία επικύρωσης του κύριου αρχείου προτύπου email.
+Failed validating email template file.,Αποτυχία επικύρωσης αρχείου προτύπου email.
+Rendering template %s resulted in empty buffer.,Η απεικόνιση του προτύπου %s οδήγησε σε κενό buffer.
+Rendering template resulted in empty buffer.,Η απεικόνιση του προτύπου οδήγησε σε κενό buffer.
+Rendering main template resulted in empty buffer.,Η απεικόνιση του κύριου προτύπου οδήγησε σε κενό buffer.
+Invalid parameters for attachment #%s.,Μη έγκυρες παράμετροι για το συνημμένο #%s.
+Please provide a SendGrid API Key in plugin settings.,Παρακαλώ παρέχετε ένα Κλειδί API SendGrid στις ρυθμίσεις του προσθέτου.
+Error loading SendGrid library.,Σφάλμα φόρτωσης βιβλιοθήκης SendGrid.
+Destination is not an email.,Ο προορισμός δεν είναι email.
+Email body is empty.,Το σώμα του email είναι κενό.
+Couldn't obtain attachment file content.,Αδυναμία λήψης περιεχομένου αρχείου συνημμένου.
+Error sending email with erro code %s.,Σφάλμα κατά την αποστολή email με κωδικό σφάλματος %s.
+Error sending email.,Σφάλμα κατά την αποστολή email.
+Error obtaining SendGrid library directory paths.,Σφάλμα κατά τη λήψη των διαδρομών καταλόγου της βιβλιοθήκης SendGrid.
+Couldn't load SendGrid plugin instance.,Αδυναμία φόρτωσης της δείκτη του πρόσθετου SendGrid.
+Autoload for SendGrid functionality not found.,Η λειτουργικότητα Autoload για το SendGrid δεν βρέθηκε.
+SendGrid required classes not found.,Οι απαιτούμενες κλάσεις του SendGrid δεν βρέθηκαν.
+Be sure to save settings before testing.,Βεβαιωθείτε ότι έχετε αποθηκεύσει τις ρυθμίσεις πριν τον έλεγχο.
+Successfully sent test email.,Επιτυχής αποστολή δοκιμαστικοϋ email.
+To email,Να στείλετε email
+To what email should we send test email,Σε ποιο email θα πρέπει να στείλουμε το δοκιμαστικό email
+Send test email,Αποστολή δοκιμαστικού email

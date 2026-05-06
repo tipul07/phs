@@ -29,7 +29,8 @@ class PHS_Language_Container extends PHS_Error
 
     // ! Contains defined language which can be used by the system. These are not necessary loaded in memory in order to optimize memory
     // ! eg. $DEFINED_LANGUAGES['en'] = [
-    // 'title' => 'English (friendly name of language)',
+    // 'title' => 'English (english name of language)',
+    // 'title_local' => 'English (title of language in that specific language)',
     // 'dir' => '{server path to language directory}',
     // 'www' => '{URL to language directory}',
     // 'files' => [ 'path_to_csv_file1', 'path_to_csv_file2' ],
@@ -148,26 +149,23 @@ class PHS_Language_Container extends PHS_Error
         $this->reset_error();
 
         $lang = self::prepare_lang_index($lang);
-        if (empty($lang)
-         || empty($lang_params)
-         || empty($lang_params['title'])) {
+        if (!$lang
+            || !$lang_params
+            || empty($lang_params['title'])) {
             $this->set_error(self::ERR_LANGUAGE_DEFINITION, 'Please provide valid parameters for language definition.');
 
             return false;
         }
 
-        if (empty(self::$DEFINED_LANGUAGES[$lang])) {
-            self::$DEFINED_LANGUAGES[$lang] = [];
-        }
+        self::$DEFINED_LANGUAGES[$lang] ??= [];
 
         self::$DEFINED_LANGUAGES[$lang]['title'] = trim($lang_params['title']);
+        self::$DEFINED_LANGUAGES[$lang]['title_local'] = trim($lang_params['title_local'] ?? '');
 
-        if (empty(self::$DEFINED_LANGUAGES[$lang]['files'])) {
-            self::$DEFINED_LANGUAGES[$lang]['files'] = [];
-        }
+        self::$DEFINED_LANGUAGES[$lang]['files'] ??= [];
 
         if (!empty($lang_params['files'])
-         && !$this->add_language_files($lang, $lang_params['files'])) {
+            && !$this->add_language_files($lang, $lang_params['files'])) {
             return false;
         }
 
@@ -348,7 +346,10 @@ class PHS_Language_Container extends PHS_Error
         if (!empty($lang_details['files']) && is_array($lang_details['files'])) {
             foreach ($lang_details['files'] as $file) {
                 if (!$this->load_language_file($file, $lang, $force)) {
-                    $this->set_error(self::ERR_LANGUAGE_LOAD, 'Error loading file ['.$lang.':'.$file.']');
+                    $this->set_error_if_not_set(
+                        self::ERR_LANGUAGE_LOAD,
+                        'Error loading file ['.$lang.':'.$file.']'
+                    );
                     $this->_loading_language(false);
 
                     return false;
@@ -382,8 +383,7 @@ class PHS_Language_Container extends PHS_Error
             return true;
         }
 
-        if (null === ($language_arr = $this->get_language_file_lines($file, $lang))
-         || !is_array($language_arr)) {
+        if (null === ($language_arr = $this->get_language_file_lines($file, $lang))) {
             return false;
         }
 
@@ -452,8 +452,8 @@ class PHS_Language_Container extends PHS_Error
             return null;
         }
 
-        if (!($utf8_file = self::convert_to_utf8($file))) {
-            $this->set_error(self::ERR_LANGUAGE_LOAD,
+        if (!($utf8_file = $this->convert_to_utf8($file))) {
+            $this->set_error_if_not_set(self::ERR_LANGUAGE_LOAD,
                 'Couldn\'t convert language file ['.@basename($file).'], language ['.$lang.'] to UTF-8 encoding.');
 
             return null;
@@ -517,10 +517,6 @@ class PHS_Language_Container extends PHS_Error
      */
     public function _t(string $index, array $args = []) : string
     {
-        if (empty($args) || !is_array($args)) {
-            $args = [];
-        }
-
         if (!isset($args[0])
             || !$this->valid_language($args[0])) {
             $t_lang = $this->get_current_language();
@@ -546,11 +542,7 @@ class PHS_Language_Container extends PHS_Error
     {
         $lang = self::st_valid_language($lang);
 
-        if (empty($args) || !is_array($args)) {
-            $args = [];
-        }
-
-        if (!empty($lang)
+        if ($lang
             && self::st_get_multi_language_enabled()
             && !$this->_loading_language()
             && (!self::language_loaded($lang)
@@ -559,7 +551,7 @@ class PHS_Language_Container extends PHS_Error
             return $this->get_simple_error_message('Error loading language ['.$lang.']');
         }
 
-        if (!empty($lang)
+        if ($lang
             && isset(self::$LANGUAGE_INDEXES[$lang][$index])
             && self::st_get_multi_language_enabled()) {
             $working_index = self::$LANGUAGE_INDEXES[$lang][$index];
@@ -567,13 +559,13 @@ class PHS_Language_Container extends PHS_Error
             $working_index = $index;
         }
 
-        if (!empty($args)
+        if ($args
             && isset($args[0])
             && $args[0] === false) {
             @array_shift($args);
         }
 
-        if (!empty($args)) {
+        if ($args) {
             // we should replace some %s...
             try {
                 if (($result = @vsprintf($working_index, $args))) {
@@ -586,6 +578,91 @@ class PHS_Language_Container extends PHS_Error
         }
 
         return $working_index;
+    }
+
+    /**
+     * Converts a given file to a UTF-8 encoded content.
+     *
+     * @param string $file ablsolute path of file which should be converted to UTF-8 encoding
+     * @param null|array $params Method parameters allows to overwrite UTF-8 encoded file name
+     *
+     * @return null|string Returns absolute path of UTF-8 encoded file
+     */
+    public function convert_to_utf8(string $file, array $params = []) : ?string
+    {
+        $this->reset_error();
+
+        if (!$file || !@file_exists($file)) {
+            $this->set_error(
+                self::ERR_LANGUAGE_LOAD,
+                $this->_t('Language file does not exist.')
+            );
+
+            return null;
+        }
+
+        if (empty($params['utf8_file'])) {
+            $params['utf8_file'] = self::get_utf8_file_name($file);
+        }
+
+        if (!self::st_get_utf8_conversion()
+            && @file_exists($params['utf8_file'])) {
+            return $params['utf8_file'];
+        }
+
+        // On some systems file and iconv binaries are not available and will display the results of which command
+        // So, as long as utf8 files exist, just let it be...
+        ob_start();
+        if (!($file_bin = @system('which file'))
+            || !($iconv_bin = @system('which iconv'))) {
+            ob_end_clean();
+
+            // we don't have required files to convert csv to utf8... check if we have an utf8 language file...
+            if (@file_exists($params['utf8_file'])) {
+                return $params['utf8_file'];
+            }
+
+            $this->set_error(
+                self::ERR_LANGUAGE_LOAD,
+                $this->_t('Cannot find file and iconv binary files.')
+            );
+
+            return null;
+        }
+
+        if (!($file_mime = @system($file_bin.' --mime-encoding '.escapeshellarg($file)))) {
+            ob_end_clean();
+
+            return null;
+        }
+
+        $file_mime = str_replace($file.': ', '', $file_mime);
+
+        if (!in_array(strtolower($file_mime), ['utf8', 'utf-8'], true)) {
+            if (@file_exists($params['utf8_file'])
+                && !@is_writable($params['utf8_file'])) {
+                ob_end_clean();
+
+                return $params['utf8_file'];
+            }
+
+            if (false === @system($iconv_bin.' -f '.escapeshellarg($file_mime)
+                                     .' -t utf-8 '.escapeshellarg($file).' > '.escapeshellarg($params['utf8_file']))
+                || !@file_exists($params['utf8_file'])) {
+                ob_end_clean();
+
+                return null;
+            }
+        } else {
+            @copy($file, $params['utf8_file']);
+        }
+        ob_end_clean();
+
+        if (!@file_exists($params['utf8_file'])) {
+            return null;
+        }
+
+        return $params['utf8_file'];
     }
 
     private function _loading_language(?bool $loading = null) : bool
@@ -730,6 +807,7 @@ class PHS_Language_Container extends PHS_Error
     {
         return [
             'title'           => '',
+            'title_local'     => '',
             'dir'             => '',
             'www'             => '',
             'files'           => [],
@@ -760,69 +838,5 @@ class PHS_Language_Container extends PHS_Error
         $path_info = @pathinfo($file);
 
         return $path_info['dirname'].'/'.$path_info['filename'].'-utf8.'.$path_info['extension'];
-    }
-
-    /**
-     * Converts a given file to a UTF-8 encoded content.
-     *
-     * @param string $file ablsolute path of file which should be converted to UTF-8 encoding
-     * @param null|array $params Method parameters allows to overwrite UTF-8 encoded file name
-     *
-     * @return null|string Returns absolute path of UTF-8 encoded file
-     */
-    public static function convert_to_utf8(string $file, array $params = []) : ?string
-    {
-        if (empty($file) || !@file_exists($file)) {
-            return null;
-        }
-
-        if (empty($params['utf8_file'])) {
-            $params['utf8_file'] = self::get_utf8_file_name($file);
-        }
-
-        // On some systems file and iconv binaries are not available and will display the results of which command
-        // So, as long as utf8 files exist, just let it be...
-        if (!self::st_get_utf8_conversion()
-         && @file_exists($params['utf8_file'])) {
-            return $params['utf8_file'];
-        }
-
-        ob_start();
-        if (!($file_bin = @system('which file'))
-         || !($iconv_bin = @system('which iconv'))) {
-            ob_end_clean();
-
-            // we don't have required files to convert csv to utf8... check if we have a utf8 language file...
-            if (@file_exists($params['utf8_file'])) {
-                return $params['utf8_file'];
-            }
-
-            return null;
-        }
-
-        if (!($file_mime = @system($file_bin.' --mime-encoding '.escapeshellarg($file)))) {
-            return null;
-        }
-
-        $file_mime = str_replace($file.': ', '', $file_mime);
-
-        if (!in_array(strtolower($file_mime), ['utf8', 'utf-8'], true)) {
-            if (false === @system($iconv_bin.' -f '.escapeshellarg($file_mime)
-                                   .' -t utf-8 '.escapeshellarg($file).' > '.escapeshellarg($params['utf8_file']))
-             || !@file_exists($params['utf8_file'])) {
-                ob_end_clean();
-
-                return null;
-            }
-        } else {
-            @copy($file, $params['utf8_file']);
-        }
-        ob_end_clean();
-
-        if (!@file_exists($params['utf8_file'])) {
-            return null;
-        }
-
-        return $params['utf8_file'];
     }
 }

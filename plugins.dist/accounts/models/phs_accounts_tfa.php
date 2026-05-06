@@ -8,6 +8,7 @@ use phs\libraries\PHS_Model;
 use phs\libraries\PHS_Logger;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\phs_libs\PHS_Plugin_Phs_libs;
+use phs\system\core\attributes\PHS_Dependency;
 
 class PHS_Model_Accounts_tfa extends PHS_Model
 {
@@ -21,10 +22,10 @@ class PHS_Model_Accounts_tfa extends PHS_Model
 
     private const TFA_ALGO = 'SHA1';
 
-    /** @var null|PHS_Plugin_Accounts */
+    #[PHS_Dependency]
     private ?PHS_Plugin_Accounts $_accounts_plugin = null;
 
-    /** @var null|PHS_Model_Accounts */
+    #[PHS_Dependency]
     private ?PHS_Model_Accounts $_accounts_model = null;
 
     private static array $SECRET_CHARS_ARR = [
@@ -91,25 +92,19 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      */
     public function is_device_tfa_valid() : bool
     {
-        return $this->_load_dependencies()
-               && $this->_accounts_plugin->tfa_remember_device_length()
+        return $this->_accounts_plugin->tfa_remember_device_length()
                && ($cookie_value = PHS_Session::get_cookie(self::DEVICE_COOKIE_NAME))
                && $this->_tfa_cookie_is_valid($cookie_value);
     }
 
     public function should_mark_device_as_tfa_valid() : ?bool
     {
-        return $this->_load_dependencies()
-               && $this->_accounts_plugin->tfa_remember_device_length();
+        return $this->_accounts_plugin->tfa_remember_device_length();
     }
 
     public function mark_device_as_tfa_valid() : ?bool
     {
         $this->reset_error();
-
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
 
         if (!($device_session_length_hours = $this->_accounts_plugin->tfa_remember_device_length())) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('This option is disabled.'));
@@ -141,10 +136,6 @@ class PHS_Model_Accounts_tfa extends PHS_Model
     public function validate_tfa_for_session() : ?bool
     {
         $this->reset_error();
-
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
 
         if ($this->is_session_tfa_valid()) {
             return true;
@@ -181,10 +172,6 @@ class PHS_Model_Accounts_tfa extends PHS_Model
     public function cancel_tfa_setup($tfa_data) : ?bool
     {
         $this->reset_error();
-
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
 
         if (!($tfa_arr = $this->data_to_array($tfa_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid TFA data provided.'));
@@ -403,10 +390,6 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      */
     public function get_tfa_data_for_account($account_data) : ?array
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
-
         if (!($account_arr = $this->_accounts_model->data_to_array($account_data))
             || $this->_accounts_model->is_deleted($account_arr)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account not found in database.'));
@@ -551,10 +534,6 @@ class PHS_Model_Accounts_tfa extends PHS_Model
     public function get_qr_code_url_for_tfa_setup($account_data, ?array $params = null) : ?array
     {
         $this->reset_error();
-
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
 
         $params ??= [];
 
@@ -712,10 +691,6 @@ class PHS_Model_Accounts_tfa extends PHS_Model
     public function get_recovery_codes_download_file_content($tfa_data) : ?string
     {
         $this->reset_error();
-
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
 
         if (!($tfa_arr = $this->data_to_array($tfa_data))
             || !($account_arr = $this->_accounts_model->get_details($tfa_arr['uid']))
@@ -920,10 +895,6 @@ class PHS_Model_Accounts_tfa extends PHS_Model
     {
         $this->reset_error();
 
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
-
         if (!$this->_accounts_plugin->tfa_remember_device_length()) {
             return false;
         }
@@ -957,8 +928,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
     {
         $this->reset_error();
 
-        if (!$this->_load_dependencies()
-            || !($session_length = $this->_accounts_plugin->tfa_remember_device_length())
+        if (!($session_length = $this->_accounts_plugin->tfa_remember_device_length())
             || !($decoded_str = PHS_Crypt::quick_decode($cookie_value))
             || !($parts_arr = explode(':', $decoded_str, 5))
             || empty($parts_arr[0]) || empty($parts_arr[1]) || empty($parts_arr[2])
@@ -1002,24 +972,6 @@ class PHS_Model_Accounts_tfa extends PHS_Model
     }
 
     /**
-     * @return bool
-     */
-    private function _load_dependencies() : bool
-    {
-        if ((empty($this->_accounts_plugin)
-             && !($this->_accounts_plugin = PHS_Plugin_Accounts::get_instance()))
-            || (empty($this->_accounts_model)
-                && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
      * @param int|array $account_data
      *
      * @return null|string
@@ -1027,10 +979,6 @@ class PHS_Model_Accounts_tfa extends PHS_Model
     private function _get_tfa_otp_url($account_data) : ?string
     {
         $this->reset_error();
-
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
 
         if (!($tfa_check = $this->get_tfa_data_for_account($account_data))) {
             return null;

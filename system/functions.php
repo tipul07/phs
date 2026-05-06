@@ -20,7 +20,7 @@ use phs\system\core\libraries\PHS_Requests_queue_manager;
 
 function phs_version() : string
 {
-    return '1.2.6.1';
+    return '1.3.0.0';
 }
 
 // region Helper functions
@@ -199,11 +199,11 @@ function phs_init_before_bootstrap() : bool
     static $did_definitions = null;
 
     if (!defined('PHS_PATH')
-     || !defined('PHS_DEFAULT_DOMAIN')
-     || !defined('PHS_DEFAULT_PORT')
-     || !defined('PHS_DEFAULT_SSL_DOMAIN')
-     || !defined('PHS_DEFAULT_SSL_PORT')
-     || !defined('PHS_DEFAULT_DOMAIN_PATH')) {
+        || !defined('PHS_DEFAULT_DOMAIN')
+        || !defined('PHS_DEFAULT_PORT')
+        || !defined('PHS_DEFAULT_SSL_DOMAIN')
+        || !defined('PHS_DEFAULT_SSL_PORT')
+        || !defined('PHS_DEFAULT_DOMAIN_PATH')) {
         return false;
     }
 
@@ -298,6 +298,9 @@ function phs_init_before_bootstrap() : bool
     }
     if (!defined('PHS_CORE_TRAITS_DIR')) {
         define('PHS_CORE_TRAITS_DIR', PHS_CORE_DIR.'traits/');
+    }
+    if (!defined('PHS_CORE_ATTRIBUTES_DIR')) {
+        define('PHS_CORE_ATTRIBUTES_DIR', PHS_CORE_DIR.'attributes/');
     }
 
     // These paths will need a www pair, but after bootstrap
@@ -1041,9 +1044,8 @@ function http_pretty_date(?string $date, array $params = []) : string
 {
     $params['date_format'] ??= null;
 
-    if (empty($date)
-        || !($date_time = is_db_date($date))
-        || empty_db_date($date)) {
+    if (!$date
+        || !($date_time = is_db_date($date))) {
         return '';
     }
 
@@ -1092,31 +1094,18 @@ function from_safe_url($url) : string
 
 /**
  * This function behaves as http_build_query() except that it doesn't rawurlencode the values (only values if required)
- *
- * @param array|mixed $arr
- * @param bool|array $params
- *
- * @return string
+ * @param array $arr
+ * @param array $params
  */
-function array_to_query_string($arr, $params = false) : string
+function array_to_query_string(array $arr, array $params = []) : string
 {
-    if (empty($params) || !is_array($params)) {
-        $params = [];
-    }
-
-    if (!isset($params['arg_separator'])) {
-        $params['arg_separator'] = '&';
-    }
-    if (!isset($params['raw_encode_values'])) {
-        $params['raw_encode_values'] = true;
-    }
-    if (empty($params['array_name'])) {
-        $params['array_name'] = '';
-    }
-
-    if (empty($arr) || !is_array($arr)) {
+    if (!$arr) {
         return '';
     }
+
+    $params['arg_separator'] ??= '&';
+    $params['raw_encode_values'] = !isset($params['raw_encode_values']) || !empty($params['raw_encode_values']);
+    $params['array_name'] = ($params['array_name'] ?? '') ?: '';
 
     $return_str = '';
     foreach ($arr as $key => $val) {
@@ -1124,20 +1113,19 @@ function array_to_query_string($arr, $params = false) : string
 
         if (is_array($val)) {
             $call_params = $params;
-            $call_params['array_name'] = (!empty($params['array_name']) ? $params['array_name'].'['.$key.']' : $key);
+            $call_params['array_name'] = $params['array_name'] ? $params['array_name'].'['.$key.']' : $key;
 
             $return_str .= array_to_query_string($val, $call_params);
-        } else {
-            if (!empty($params['raw_encode_values'])) {
-                $val = urlencode($val);
-            }
-
-            if (empty($params['array_name'])) {
-                $return_str .= $key.'='.$val;
-            } else {
-                $return_str .= $params['array_name'].'['.$key.']='.$val;
-            }
+            continue;
         }
+
+        if ($params['raw_encode_values']) {
+            $val = urlencode($val);
+        }
+
+        $return_str .= !$params['array_name']
+            ? $key.'='.$val
+            : $params['array_name'].'['.$key.']='.$val;
     }
 
     return $return_str;
@@ -1167,7 +1155,7 @@ function add_url_params($str, $params) : string
         $anchor = '#'.$anch_arr[1];
     }
 
-    if (strpos($str, '?') === false) {
+    if (!str_contains($str, '?')) {
         $str .= '?';
     }
 
@@ -1220,7 +1208,7 @@ function exclude_params($str, $params) : string
         $eg_pos = strpos($script, '=');
         $slash_pos = strpos($script, '/');
         if ($slash_pos === false
-         && (substr($script, 0, 1) === '&' || $eg_pos !== false)) {
+            && (str_starts_with($script, '&') || $eg_pos !== false)) {
             // only params provided to class...
             $param_str = $script;
             $script = '';
@@ -1252,11 +1240,6 @@ function exclude_params($str, $params) : string
     return $script.$params_res.$anchor;
 }
 
-/**
- * @param int $files
- *
- * @return string
- */
 function format_filesize(int $files) : string
 {
     if ($files >= 1073741824) {

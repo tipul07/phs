@@ -29,9 +29,6 @@ class PHS_Action_Plugins extends PHS_Api_action
             return action_request_login();
         }
 
-        /** @var PHS_Plugin_Admin $admin_plugin */
-        /** @var PHS_Model_Plugins $plugins_model */
-        /** @var PHS_Model_Tenants $tenants_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
             || !($plugins_model = PHS_Model_Plugins::get_instance())
             || !($tenants_model = PHS_Model_Tenants::get_instance())) {

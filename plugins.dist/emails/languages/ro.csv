@@ -1,0 +1,44 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+N/A,N/A
+Please provide a valid email address.,Vă rugăm să furnizați o adresă de email validă.
+Site test email,Email de test pentru site
+Error sending email to provided email address.,Eroare la trimiterea emailului la adresa de email furnizată.
+Couldn't load template from plugin settings.,Nu s-a putut încărca template-ul din setările pluginului.
+Failed validating main email template file.,Validarea eșuată a fișierului principal al șablonului de email.
+Failed validating email template file.,Validarea fișierului șablonului de email a eșuat.
+Rendering template %s resulted in empty buffer.,Renderea șablonului %s a rezultat într-un buffer gol.
+Rendering template resulted in empty buffer.,Renderea șablonului a rezultat într-un buffer gol.
+Rendering main template resulted in empty buffer.,Renderea șablonului principal a rezultat într-un buffer gol.
+Invalid parameters for attachment #%s.,Parametri invalizi pentru atașamentul #%s.
+Destination is not an email.,Destinaţia nu este o adresă de email.
+Email body is empty.,Corpul emailului este gol.
+Couldn't obtain attachment file content.,Nu s-a putut obține conținutul fișierului atașat.
+Successfully sent test email.,Am trimis emailul de test cu succes.
+To email,Către emailul
+To what email should we send test email,Către ce email să se trimită emailul de test
+Send test email,Trimite email de test
+Email Sending Settings,Setări Trimitere Email
+Settings related to sending emails.,Setări legate de trimiterea de emailuri.
+Email Debugging Settings,Setări Debugging Email
+Settings related to debugging sending emails from platform.,Setări legate de debugging la trimiterea de e-mailuri de pe platformă.
+Localhost,Localhost
+Username,Username
+Password,Parola
+Undisclosed pass,Parolă nedezvăluită
+SMTP Host,Host SMTP
+SMTP Port,Port SMTP
+SMTP Timeout,Timp de expirare SMTP
+SMTP Encryption,Criptare SMTP
+SMTP Authetication,Autentificare SMTP
+Invalid SMTP route.,Ruta SMTP invalidă.
+Mandatory SMTP parameters not set.,Parametrii SMTP obligatorii nu sunt setați.
+Error loading SMTP library.,Eroare la încărcarea librăriei SMTP.
+Error obtaining SMTP credentials.,Eroare la obţinerea credenţialelor de SMTP.
+Error sending email using SMTP library.,Eroare la trimiterea emailului folosind librăria de SMTP.
+Mandatory native mail parameters not set.,Parametrii obligatorii pentru e-mail nativ nu sunt setați.
+Route,Rută
+What hostname should be reported to SMTP server,Ce hostname trebuie raportat către serverul de SMTP
+SMTP server used to send emails,Serverul de SMTP folosit pentru trimiterea emalurilor
+Test will be done using route %s. Be sure to save settings before testing.,Testul va fi efectuat folosind ruta %s. Asigurați-vă că salvați setările înainte de a testa.

@@ -381,7 +381,7 @@ abstract class PHS_Action extends PHS_Instantiable
     final public static function validate_action_result($action_result) : array
     {
         $default_action_result = self::default_action_result();
-        if (empty($action_result)) {
+        if (!$action_result) {
             return $default_action_result;
         }
 
@@ -404,7 +404,7 @@ abstract class PHS_Action extends PHS_Instantiable
             $technical_error = $end_user_error;
         }
 
-        if (empty($action_result)) {
+        if (!$action_result) {
             $action_result = self::default_action_result();
         }
 

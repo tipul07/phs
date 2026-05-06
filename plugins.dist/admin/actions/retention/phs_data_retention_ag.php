@@ -18,8 +18,6 @@ class PHS_Action_Data_retention_ag extends PHS_Action
 
     public function execute() : ?array
     {
-        /** @var PHS_Plugin_Admin $admin_plugin */
-        /** @var PHS_Model_Data_retention $retention_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
              || !($retention_lib = Phs_Data_retention::get_instance())
              || !($retention_model = PHS_Model_Data_retention::get_instance())) {

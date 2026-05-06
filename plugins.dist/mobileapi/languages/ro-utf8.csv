@@ -1,0 +1,86 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Error loading required resources.,Eroare la încărcarea resurselor necesare.
+Undefined,Nedefinit
+Account not found in database.,Contul nu a fost găsit în baza de date.
+You don't have enough rights to access this section.,Nu aveti destule drepturi pentru accesarea acestei secţiuni.
+Account details not found in database.,Detaliile contului nu au fost găsite în baza de date.
+Error loading accounts model.,Eroare la încărcarea modelului de conturi.
+Please provide data and/or notification in payload.,Vă rugăm să furnizați date și/sau notificări în încărcătură.
+Please provide a device token or an array of tokens.,Vă rugăm să furnizați un token de dispozitiv sau un șir de token-uri.
+You can provide up to %s tokens for a notification.,Puteți furniza până la %s token-uri pentru o notificare.
+Please provide a device token or an array of device tokens.,Vă rugăm să furnizați un token de dispozitiv sau un tablou de token-uri de dispozitiv.
+Error sending notification using Firebase.,Eroare la trimiterea notificării folosind Firebase.
+Couldn't obtain Firebase API settings from plugin.,Nu s-au putut obține setările API Firebase din plugin.
+Invalid Firebase plugin settings.,Setări nevalide ale plugin-ului Firebase.
+Error loading MobileAPI plugin.,Eroare la încărcarea pluginului MobileAPI.
+Please provide Firebase API parameters.,Vă rugăm să furnizați parametrii API Firebase.
+Couldn't obtain JSON from payload.,Nu s-a putut obține JSON-ul din încărcare.
+Error sending request to Firebase server.,Eroare la trimiterea cererii către serverul Firebase.
+Firebase server responded with an error.,Serverul Firebase a răspuns cu o eroare.
+No session.,Nu este sesiune.
+Error deleting session from server.,Eroare la ștergerea sesiunii de pe server.
+Please provide device details.,Precizaţi detaliile dispozitivului.
+Error generating session.,Eroare la generarea sesiunii.
+Not authenticated.,Ne-autentificat.
+Please provide account details you want to change.,Vă rugăm să furnizați detaliile contului pe care doriți să le schimbați.
+Error saving account details.,Eroare la salvarea detaliilor contului.
+Please provide credentials.,Vă rugăm precizati credenţialele.
+Authentication failed.,Autentificarea a eşuat.
+Account locked temporarily because of too many login attempts.,Cont blocat temporar din cauza prea multor încercări de conectare.
+Bad user or password.,User sau parolă greșită.
+Error updating session.,Eroare la updatarea sesiunii.
+Registration is closed for this site.,Înregistrarea de conturi noi este închisă pentru acest site.
+Please provide required fields.,Vă rugăm să precizaţi câmpurile cerute.
+Couldn't register user. Please try again.,Eroare la înregistrarea contului. Incercati din nou.
+Device not found in database.,Dispozitivul nu a fost găsit în baza de date.
+Error updating device.,Eroare la actualizarea dispozitivului.
+Error checking API sessions.,Verificarea erorilor în sesiunile API.
+Please provide OLD and NEW password.,Precizaţi parola VECHE si cea NOUĂ.
+Wrong current password.,Parola curentă este greşită.
+Error changing password.,Eroare la schimbarea parolei.
+Invalid account.,Cont invalid.
+Error sending forgot password email. Please try again.,Eroare la trimiterea emailului pentru parola uitată. Încercaţi din nou.
+Native (PHS),Nativ (PHS)
+Android,Android
+iOS,iOS
+Session not found in database.,Sesiunea nu a fost găsită în baza de date.
+Couldn't obtain session device.,Nu s-a putut obține dispozitivul de sesiune.
+Please provide session details.,Precizaţi detaliile de sesiune.
+Couldn't initialize session parameters.,Nu s-au putut inițializa parametrii sesiunii.
+Error saving session details in database.,Eroare la salvarea detaliilor sesiunii în baza de date.
+Session details not found in database.,Detaliile sesiunii nu s-au găsit în baza de date.
+Error saving device details in database.,Eroare la salvarea detaliilor dispozitivului în baza de date.
+Invalid device type.,Tip de dispozitiv invalid.
+Couldn't initiate device update details.,Nu s-au putut iniția detaliile actualizării dispozitivului.
+Device type and device token not provided for current session.,Tipul dispozitivului și tokenul dispozitivului nu au fost furnizate pentru sesiunea curentă.
+Please provide a valid device source.,Vă rugăm să furnizați o sursă de dispozitiv validă.
+Error saving session device details to database.,Eroare la salvarea detaliilor dispozitivului sesiunii în baza de date.
+Couldn't initiate data to update avatar profile location details.,Nu s-a putut iniția datele pentru actualizarea detaliilor locației profilului avatarului.
+Couldn't find session details in database.,Nu am găsit detaliile sesiunii în baza de date.
+Couldn't update session device.,Nu s-a putut actualiza dispozitivul sesiunii.
+Error linking device to session.,Eroare la conectarea dispozitivului la sesiune.
+Couldn't initialize required resources to check mobile API sessions.,Nu s-au putut inițializa resursele necesare pentru verificarea sesiunilor API mobile.
+Error querying database for API mobile sessions.,Eroare la interogarea bazei de date pentru sesiunile mobile API.
+Please provide a device token.,Vă rugăm să furnizați un token de dispozitiv.
+Please provide a valid device type.,Vă rugăm să furnizați un tip de dispozitiv valid.
+FireBase Settings,Setări FireBase
+Settings related to FireBase server (used when sending Push Notification messages to devices),Setări legate de serverul FireBase (folosit atunci când se trimit mesaje de notificare push către dispozitive)
+Firebase Authentication Key,Cheie de autentificare Firebase
+Key used for authentication when sending push notification using Firebase library.,Cheie folosită pentru autentificare la trimiterea notificării push folosind biblioteca Firebase.
+Firebase API Timeout,Firebase API Timeout
+After how many seconds should request to Firebase server timeout.,După câte secunde ar trebui să expire cererea către serverul Firebase.
+API Sessions Settings,Setări sesiuni API
+Defines how system should handle API/applications sessions,Defineste modul in care sistemul ar trebui sa gestioneze sesiunile API/aplicatii
+API Sessions Timeout,Expirarea sesiunilor API
+After how many hours should API sessions expire. (0 will not expire),După câte ore ar trebui să expire sesiunile API. (0 nu va expira)
+Error inserting account in database.,Eroare la inserarea contului în baza de date.
+Couldn't load required models.,Nu am putut încărca modelele cerute.
+Authentication parameters not provided.,Parametrii de autentificare nu au fost furnizați.
+API object not provided to authentication method.,Obiectul API nu a fost furnizat metodei de autentificare.
+Not authorized.,Neautorizat.
+Error sending notification to device.,Eroare la trimiterea notificării către dispozitiv.
+Device doesn't have a token set.,Dispozitivul nu are un token setat.
+Error loading Firebase library.,Eroare la incărcarea librăriei Firebase.
+Error sending push notification using Firebase library.,Eroare la trimiterea notificării push folosind biblioteca Firebase.

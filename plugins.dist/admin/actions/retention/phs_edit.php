@@ -39,9 +39,6 @@ class PHS_Action_Edit extends PHS_Action
             return action_request_login();
         }
 
-        /** @var PHS_Plugin_Admin $admin_plugin */
-        /** @var PHS_Model_Data_retention $retention_model */
-        /** @var PHS_Model_Plugins $plugins_model */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
             || !($retention_model = PHS_Model_Data_retention::get_instance())
             || !($plugins_model = PHS_Model_Plugins::get_instance())) {
@@ -207,10 +204,6 @@ class PHS_Action_Edit extends PHS_Action
 
     private function _get_models_for_plugin(?PHS_Plugin $plugin_obj) : array
     {
-        if (!$plugin_obj) {
-            return PHS::get_core_models();
-        }
-
-        return $plugin_obj->get_models();
+        return $plugin_obj ? $plugin_obj->get_models() : PHS::get_core_models();
     }
 }

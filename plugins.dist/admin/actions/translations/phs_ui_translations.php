@@ -12,6 +12,7 @@ use phs\libraries\PHS_Po_format;
 use phs\libraries\PHS_Api_action;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\libraries\PHS_Ui_translations;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
@@ -20,10 +21,13 @@ class PHS_Action_Ui_translations extends PHS_Api_action
     // How many secods should a download token be valid
     public const TOKEN_LIFETIME_SECS = 60;
 
+    #[PHS_Dependency]
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
+    #[PHS_Dependency]
     private ?PHS_Ui_translations $_ui_translations = null;
 
+    #[PHS_Dependency]
     private ?PHS_Model_Accounts $_accounts_model = null;
 
     public function allowed_scopes() : array
@@ -39,12 +43,6 @@ class PHS_Action_Ui_translations extends PHS_Api_action
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
-        }
-
-        if (!$this->_load_dependencies()) {
-            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
-
-            return self::default_action_result();
         }
 
         if (!$this->_accounts_model->acc_is_developer()) {
@@ -80,14 +78,16 @@ class PHS_Action_Ui_translations extends PHS_Api_action
     private function _execute_api_call() : null | bool | array
     {
         return match ($this->request_var('action', PHS_Params::T_NOHTML)) {
-            'do_regenerate_pot'    => $this->_do_regenerate_pot(),
-            'do_po_info'           => $this->_do_po_info(),
-            'do_regenerate_po'     => $this->_do_regenerate_po_file(),
-            'do_translate_po_file' => $this->_do_translate_po_file(),
-            'do_stop_translation'  => $this->_do_stop_translation(),
-            'do_download'          => $this->_do_download(),
-            'download_file'        => $this->_do_download_file(),
-            default                => $this->send_api_error(PHS_Api_base::H_CODE_BAD_REQUEST,
+            'do_regenerate_pot'           => $this->_do_regenerate_pot(),
+            'do_po_info'                  => $this->_do_po_info(),
+            'do_regenerate_po'            => $this->_do_regenerate_po_file(),
+            'do_translate_po_file'        => $this->_do_translate_po_file(),
+            'do_check_translations'       => $this->_do_check_translations(),
+            'do_update_translation_files' => $this->_do_update_translation_files(),
+            'do_stop_translation'         => $this->_do_stop_translation(),
+            'do_download'                 => $this->_do_download(),
+            'download_file'               => $this->_do_download_file(),
+            default                       => $this->send_api_error(PHS_Api_base::H_CODE_BAD_REQUEST,
                 self::ERR_PARAMETERS,
                 $this->_pt('Invalid action provided.')),
         };
@@ -162,6 +162,51 @@ class PHS_Action_Ui_translations extends PHS_Api_action
 
         $payload_arr = [];
         $payload_arr['ui_translation_status'] = $status_arr;
+        $payload_arr['server_time'] = time();
+
+        return $this->send_api_success($payload_arr);
+    }
+
+    private function _do_check_translations() : ?array
+    {
+        if (!($check_result = $this->_ui_translations->check_ui_translations_results())) {
+            $this->copy_or_set_error($this->_ui_translations,
+                self::ERR_FUNCTIONALITY, $this->_pt('Error starting UI translations background job.'));
+
+            return null;
+        }
+
+        $payload_arr = [];
+        $payload_arr['check_result'] = $check_result;
+        $payload_arr['server_time'] = time();
+
+        return $this->send_api_success($payload_arr);
+    }
+
+    private function _do_update_translation_files() : ?array
+    {
+        if (!($lang = $this->request_var('lang', PHS_Params::T_NOHTML) ?: '')
+            || !self::valid_language($lang)) {
+            $this->set_error(self::ERR_PARAMETERS, $this->_pt('Please provide a language for PO file.'));
+
+            return null;
+        }
+
+        $backup_language_files = $this->request_var('backup_language_files', PHS_Params::T_BOOL) ?? true;
+
+        $params = [];
+        $params['backup_language_files'] = $backup_language_files;
+
+        if (!($update_result = $this->_ui_translations->update_language_files_with_translation_result($lang, $params))) {
+            $this->copy_or_set_error($this->_ui_translations,
+                self::ERR_FUNCTIONALITY, $this->_pt('Error starting UI translations background job.'));
+
+            return null;
+        }
+
+        $payload_arr = [];
+        $payload_arr['language'] = $lang;
+        $payload_arr['update_result'] = $update_result;
         $payload_arr['server_time'] = time();
 
         return $this->send_api_success($payload_arr);
@@ -343,22 +388,5 @@ class PHS_Action_Ui_translations extends PHS_Api_action
             'basename'  => $token_arr[1],
             'extension' => $token_arr[2],
         ];
-    }
-
-    private function _load_dependencies() : bool
-    {
-        $this->reset_error();
-
-        if (
-            (!$this->_admin_plugin && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-            || (!$this->_ui_translations && !($this->_ui_translations = PHS_Ui_translations::get_instance()))
-            || (!$this->_accounts_model && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
     }
 }

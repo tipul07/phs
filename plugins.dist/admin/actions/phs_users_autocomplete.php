@@ -8,6 +8,7 @@ use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts_details;
 
@@ -15,16 +16,16 @@ class PHS_Action_Users_autocomplete extends PHS_Action
 {
     public const FORMAT_NICK_EMAIL_ID = 1, FORMAT_NICK_NAME_ID = 2;
 
-    /** @var bool|PHS_Plugin_Admin */
-    private $_admin_plugin = false;
+    #[PHS_Dependency]
+    private ?PHS_Plugin_Admin $_admin_plugin = null;
 
-    /** @var bool|PHS_Model_Accounts */
-    private $_accounts_model = false;
+    #[PHS_Dependency]
+    private ?PHS_Model_Accounts $_accounts_model = null;
 
-    /** @var bool|PHS_Model_Accounts_details */
-    private $_account_details_model = false;
+    #[PHS_Dependency]
+    private ?PHS_Model_Accounts_details $_account_details_model = null;
 
-    private $autocomplete_params = [
+    private array $autocomplete_params = [
         'account_data'         => false,
         'account_details_data' => [],
 
@@ -58,14 +59,6 @@ class PHS_Action_Users_autocomplete extends PHS_Action
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
 
             return action_request_login();
-        }
-
-        if (!$this->_load_dependencies()) {
-            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error loading required resources.'));
-
-            PHS_Notifications::add_error_notice($this->get_error_message());
-
-            return self::default_action_result();
         }
 
         if (!$this->_admin_plugin->can_admin_list_accounts()) {
@@ -177,16 +170,11 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         return true;
     }
 
-    /**
-     * @param false|int|array $account_data
-     *
-     * @return array|false
-     */
-    public function account_data($account_data = false)
+    public function account_data($account_data = false) : ?array
     {
         if ($account_data === false) {
             if (!($account_arr = $this->autocomplete_params('account_data'))) {
-                return false;
+                return null;
             }
 
             return [
@@ -207,10 +195,9 @@ class PHS_Action_Users_autocomplete extends PHS_Action
             ];
         }
 
-        if (!$this->_load_dependencies()
-         || empty($account_data)
-         || !($account_arr = $this->_accounts_model->data_to_array($account_data))) {
-            return false;
+        if (!$account_data
+            || !($account_arr = $this->_accounts_model->data_to_array($account_data))) {
+            return null;
         }
 
         if (!($account_details = $this->_accounts_model->get_account_details($account_arr))) {
@@ -229,9 +216,8 @@ class PHS_Action_Users_autocomplete extends PHS_Action
 
     public function format_data($account_data = false, $as_html = true, $format = false)
     {
-        if (!$this->_load_dependencies()
-         || !($account_details = $this->account_data($account_data))
-         || !is_array($account_details)) {
+        if (!$account_data
+            || !($account_details = $this->account_data($account_data))) {
             return '';
         }
 

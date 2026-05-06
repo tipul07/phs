@@ -4,11 +4,17 @@ namespace phs\libraries;
 // ! All plugin libraries should extend this class
 use phs\PHS;
 
-abstract class PHS_Library extends PHS_Registry
+abstract class PHS_Library extends PHS_Has_dependencies
 {
     private ?PHS_Plugin $_parent_plugin = null;
 
     private array $_location_paths = [];
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->_check_dependencies_properties();
+    }
 
     public function set_library_location_paths(array $paths) : array
     {
@@ -106,9 +112,7 @@ abstract class PHS_Library extends PHS_Registry
             );
         }
 
-        if (!($plugin_obj = PHS::load_plugin($library_details['plugin']))
-           || (!$force && !$plugin_obj->plugin_active())
-        ) {
+        if (!($plugin_obj = PHS::load_plugin($library_details['plugin']))) {
             self::st_set_error_if_not_set(
                 self::ERR_FUNCTIONALITY,
                 self::_t('Couldn\'t load library from plugin [%s]', $library_details['plugin'])
@@ -124,7 +128,17 @@ abstract class PHS_Library extends PHS_Registry
                 'as_singleton'    => $as_singleton ?? static::instances_as_singletons(),
                 'path_in_lib_dir' => $library_details['path_in_lib_dir'],
             ]))
+            || $library_obj->has_error()
         ) {
+            if (self::st_debugging_mode()) {
+                PHS_Logger::error(
+                    'Error loading library '.$library_details['library_name'].' from plugin '
+                    .$library_details['plugin'].': '
+                    .($library_obj?->get_simple_error_message('Unknown error') ?? 'Unknown error'),
+                    PHS_Logger::TYPE_DEBUG
+                );
+            }
+
             self::st_copy_or_set_error(
                 $plugin_obj,
                 self::ERR_FUNCTIONALITY,

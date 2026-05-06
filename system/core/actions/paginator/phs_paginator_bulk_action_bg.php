@@ -57,7 +57,7 @@ class PHS_Action_Paginator_bulk_action_bg extends PHS_Action
             $admin_plugin::LOG_PAGINATOR
         );
 
-        if (!$action_obj->manage_action($params['context']['bulk_action'])) {
+        if (!$action_obj->default_manage_action($params['context']['bulk_action'])) {
             PHS_Logger::error('Error in manage action '.($params['context']['bulk_action']['action'] ?? 'N/A')
                               .' for class '.$action_obj::class.': '
                               .$action_obj->get_simple_error_message('Unknown error.'),

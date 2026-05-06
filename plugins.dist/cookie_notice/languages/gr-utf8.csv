@@ -1,0 +1,10 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Error rendering template [%s].,Σφάλμα κατά την απεικόνιση του προτύπου [%s].
+Couldn't load template from plugin settings.,Αδυναμία φόρτωσης προτύπου από τις ρυθμίσεις του πρόσθετου.
+Failed validating notifications template file.,Απέτυχε η επικύρωση του αρχείου προτύπου ειδοποιήσεων.
+"This site uses cookies which help us deliver a better user experience. By browsing the site, you agree to cookies usage.","Αυτός ο ιστότοπος χρησιμοποιεί cookies τα οποία μας βοηθούν να παρέχουμε μια καλύτερη εμπειρία χρήστη. Συνεχίζοντας την περιήγηση στον ιστότοπο, συμφωνείτε με τη χρήση cookies."
+More info,Περισσότερες πληροφορίες
+I don't agree,Δε συμφωνώ
+I AGREE,ΣΥΜΦΩΝΩ

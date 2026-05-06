@@ -1,0 +1,147 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Error loading required resources.,Eroare la încărcarea resurselor necesare.
+You should login first...,Trebuie mai întâi să vă logaţi...
+You don't have rights to access this section.,Nu aveți destule drepturi pentru accesarea acestei secțiuni.
+ - Choose - , - Alege - 
+Delete,Șterge
+N/A,N/A
+Invalid,Invalid
+Actions,Acţiuni
+Unknown action.,Acțiune necunoscută.
+Couldn't get parent plugin object.,Nu s-a putut obține obiectul pluginului părinte.
+System,Sistem
+Compose Message,Compune Mesaj
+Message queued... Server will send it as soon as possible.,Mesaj în coadă... Serverul îl va trimite cât mai curând posibil.
+Unknown message or you don't have rights to reply to this message.,Mesaj necunoscut sau nu aveți drepturi de a răspunde la acest mesaj.
+Unknown message or you don't have rights to follow up this message.,Mesaj necunoscut sau nu aveți drepturi de a urmări acest mesaj.
+You cannot reply to this message. Author not reachable.,Nu puteți răspunde la acest mesaj. Autorul nu este accesibil.
+Re: ,Re: 
+You cannot follow up this message.,Nu puteți urmări acest mesaj.
+Message details saved in database.,Detaliile mesajului au fost salvate în baza de date.
+Error sending message. Please try again.,Eroare la trimiterea mesajului. Vă rugăm să încercați din nou.
+View Message,Vizualizare mesaj
+Couldn't load messages plugin.,Plugin-ul de mesaje nu a putut fi încărcat.
+Couldn't load message details.,Detaliile mesajului nu au putut fi încărcate.
+Couldn't load thread of message.,Nu am putut încărca firul de discuţie al mesajului.
+Message doesn't require additional work.,Mesajul nu necesită muncă suplimentară.
+Error finishing additional work required for message #%s.,Eroare la finalizarea lucrărilor suplimentare necesare pentru mesajul #%s.
+No more messages...,Nu mai sunt mesaje...
+Error rendering messages. Please retry.,Eroare la randarea mesajelor. Vă rugăm să reîncercați.
+Inbox,Inbox
+Couldn't load required functionality.,Nu am putu incărca funcţionalitatea cerută.
+message,mesaj
+messages,mesaje
+Message details not found in database.,Detaliile mesajului nu au fost găsite în baza de date.
+Message thread details not found in database.,Detaliile firului de mesaje nu au fost găsite în baza de date.
+Mark as read,Marchează ca citit
+From,De la
+Author messaging handle contains this value,Mânerul de mesagerie al autorului conține această valoare
+To,Către
+Destination messagin handle contains this value,Destinatia mesajului contine aceasta valoare
+Subject,Subiect
+Subject contains this value,Subiectul conține această valoare
+Last reply,Ultimul răspuns
+Required messages deleted with success.,Mesajele necesare au fost șterse cu succes.
+Deleting selected messages failed. Please try again.,Nu s-a reuşit ştergerea mesajelor selectate. Vă rugăm să încercați din nou.
+Failed deleting all selected messages. Messages which failed deletion are still selected. Please try again.,Nu s-au șters toate mesajele selectate. Mesajele care au eșuat ștergerea sunt încă selectate. Vă rugăm să încercați din nou.
+Required messages marked as read with success.,Mesajele necesare au fost marcate ca citite cu succes.
+Marking selected messages as read failed. Please try again.,Nu s-a reuşit marcarea mesajele selectate ca citite. Vă rugăm să încercați din nou.
+Failed marking as read all selected messages. Failed messages are still selected. Please try again.,Marcarea ca citite a tuturor mesajelor selectate a eșuat. Mesajele eșuate sunt încă selectate. Vă rugăm să încercați din nou.
+Message deleted with success.,Mesaj șters cu succes.
+Deleting message failed. Please try again.,Ștergerea mesajului nu a reușit. Vă rugăm să încercați din nou.
+Cannot delete address. Address not found in database.,Nu se poate șterge adresa. Adresa nu a fost găsită în baza de date.
+You (%s),Tu (%s)
+Unknown destination,Destinaţie necunoscută
+Unknown user level,Nivel de utilizator necunoscut
+Unknown role,Rol necunoscut
+Unknown role unit,Unitate de rol necunoscută
+View thread,Vizualizare fir discuţie
+Delete message thread,Şterge firului mesajului
+Messages,Mesaje
+Compose,Compune
+Couldn't initialize required parameters for current view.,Nu s-au putut inițializa parametrii necesari pentru vizualizarea curentă.
+Unknown author,Autor necunoscut
+FROM: %s,DE LA: %s
+TO: %s,CĂTRE: %s
+Reply,Răspunde
+Reply to all,Răspunde tuturor
+Follow Up,Urmăreşte
+Load previous messages,Încarcă mesajele anterioare
+%s messages,%s mesaje
+1 message,1 mesaj
+%s new messages,%s mesaje noi
+1 new message,1 mesaj nou
+Load next messages,Încarcă mesajele următoare
+Loading previous messages...,Încarc mesajele anterioare...
+Loading next messages...,Încarc mesajele următoare...
+Error loading messages. Please retry.,Eroare la încărcarea mesajelor. Vă rugăm să reîncercați.
+Compose message,Compune mesaj
+Destination,Destinaţie
+Comma separated user ids,Identificatori de utilizator separați prin virgulă
+Comma separated user nicknames or emails,Nume de utilizator sau adrese de email separate prin virgulă
+Comma separated messaging handlers,Manipulatoare de mesaje separate prin virgulă
+Message subject...,Subiect de mesaj...
+Destination cannot reply,Destinaţia nu poate răspunde
+Destination will not be able to reply to this message.,Destinația nu va putea răspunde la acest mesaj.
+Body,Conţinut
+Message body...,Conținutul mesajului...
+Send Message,Trimite Mesaj
+Couldn't load dependencies.,Nu am putut încărca dependinţele.
+Error deleting message. Please retry.,Eroare la ştergerea mesajului. Încercaţi din nou.
+Internal Messages,Mesaje Interne
+Message handler,Manipulator de mesaje
+You,Tu
+Error initiating parameters for summary listing of messages.,Eroare la inițializarea parametrilor pentru listarea sumară a mesajelor.
+Error initiating parameters for message emulation.,Eroare la inițializarea parametrilor pentru emularea mesajului.
+Couldn't find message details in database.,Nu s-au putut găsi detaliile mesajului în baza de date.
+Couldn't load message details from database.,Nu s-au putut încărca detaliile mesajului din baza de date.
+Couldn't load account details from database.,Nu s-au putut încărca detaliile contului din baza de date.
+Message body not available yet...,Corpul mesajului nu este disponibil încă...
+Couldn't retrieve message data.,Nu s-au putut obține datele mesajului.
+Couldn't load account data of the message.,Nu s-au putut încărca datele contului din mesaj.
+Couldn't retrieve message body.,Nu s-a putut obține corpul mesajului.
+Couldn't retrieve user message details.,Nu s-au putut obține detaliile mesajului utilizatorului.
+Destination type %s,Tip destinaţie %s
+Type %s,Tip %s
+Importance %s,Importanţă %s
+Error loading depedencies.,Eroare la încărcarea dependinţelor.
+Error initiating parameters for message.,Eroare la inițializarea parametrilor pentru mesaj.
+Invalid parameters when saving message in database.,Parametrii invalizi la salvarea mesajului în baza de date.
+Please provide a subject for this message.,Vă rugăm să furnizați un subiect pentru acest mesaj.
+Invalid account for message sender.,Cont invalid pentru expeditorul mesajului.
+Unknown message or you don't have rights to reply to this messages.,Mesaj necunoscut sau nu aveți drepturi de a răspunde la aceste mesaje.
+Unknown message or you don't have rights to follow up this messages.,Mesaj necunoscut sau nu aveți drepturi de a urmări aceste mesaje.
+Invalid destination type.,Tip de destinație invalid.
+Invalid message type.,Tip de mesaj invalid.
+Users ids list not provided for message destination.,Lista de identificatori ai utilizatorilor nu a fost furnizată pentru destinația mesajului.
+No users match destination you provided.,Nu există utilizatori care să corespundă destinației pe care ați furnizat-o.
+User list not provided for message destination.,Lista utilizatorilor nu a fost furnizată pentru destinația mesajului.
+No message handlers match destination you provided.,Nu există manipulatoare de mesaje care se potrivesc cu destinația pe care ați furnizat-o.
+User level not provided for message destination.,Nivelul utilizatorului nu a fost furnizat pentru destinația mesajului.
+Role not provided for message destination.,Rolul nu a fost furnizat pentru destinația mesajului.
+Role not found in database for message destination.,Rolul nu a fost găsit în baza de date pentru destinația mesajului.
+Role unit not provided for message destination.,Unitatea de rol nu a fost furnizată pentru destinația mesajului.
+Role unit not found in database for message destination.,Unitatea de rol nu a fost găsită în baza de date pentru destinația mesajului.
+Error saving message details to database.,Eroare la salvarea detaliilor mesajului în baza de date.
+Error saving message body details to database.,Eroare la salvarea detaliilor corpului mesajului în baza de date.
+Error updating message details to database.,Eroare la actualizarea detaliilor mesajului în baza de date.
+Error completing message flow. Please try again.,Eroare la finalizarea fluxului de mesaje. Vă rugăm să încercați din nou.
+Error obtaining message details from database.,Eroare la obținerea detaliilor mesajului din baza de date.
+Sender account details not found.,Detaliile contului expeditorului nu au fost găsite.
+Couldn't find message body in database.,Nu s-a putut găsi corpul mesajului în baza de date.
+Couldn't find reply message in database.,Nu s-a putut găsi mesajul de răspuns în baza de date.
+Couldn't find follow up message in database.,Nu am putut găsi mesajul de urmărire în baza de date.
+Internal message sent,Mesaj intern trimis
+New internal message,Mesaj intern nou
+Unknown user for this user message.,Utilizator necunoscut pentru acest mesaj de utilizator.
+Unknown message details for this user message.,Detalii necunoscute ale mesajului pentru acest mesaj al utilizatorului.
+Unknown thread id for this user message.,ID-ul firului de execuție necunoscut pentru acest mesaj al utilizatorului.
+Couldn't load summary template from plugin settings.,Nu s-a putut încărca șablonul de rezumat din setările modulului.
+Failed validating messages summary template file.,Validarea eșuată a fișierului șablonului de rezumat al mesajelor.
+Failed loading messages model.,Modelul de mesaje nu a putut fi încărcat.
+Error obtaining summary list of messages.,Eroare la obținerea listei de rezumat a mesajelor.
+Error rendering template [%s].,Nu am putut randa template-ul [%s].
+Error instantiating accounts details model.,Eroare la instanțierea modelului de detalii conturi.
+Error altering user_details table.,Eroare la modificarea tabelului user_details.

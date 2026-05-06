@@ -23,7 +23,7 @@ class PHS_Paginator_exporter_generic extends PHS_Paginator_exporter_library
             $this->_set_callbacks($init_params['callbacks']);
         }
 
-        parent::__construct($init_params);
+        parent::__construct();
     }
 
     /**

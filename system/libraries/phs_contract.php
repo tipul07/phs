@@ -737,9 +737,15 @@ abstract class PHS_Contract extends PHS_Instantiable
             $params['ignore_outside_nodes'] = [];
         }
 
-        if (!($ignore_nodes = self::array_merge_unique_values($params['ignore_nodes'], $params['ignore_outside_nodes']))) {
-            $ignore_nodes = [];
+        if (empty($params['only_nodes']) || !is_array($params['only_nodes'])) {
+            $params['only_nodes'] = [];
         }
+        if (empty($params['only_outside_nodes']) || !is_array($params['only_outside_nodes'])) {
+            $params['only_outside_nodes'] = [];
+        }
+
+        $ignore_nodes = self::array_merge_unique_values($params['ignore_nodes'], $params['ignore_outside_nodes']) ?: [];
+        $only_nodes = self::array_merge_unique_values($params['only_nodes'], $params['only_outside_nodes']) ?: [];
 
         $processing_params = [];
         $processing_params['lvl'] = $params['lvl'];
@@ -776,7 +782,8 @@ abstract class PHS_Contract extends PHS_Instantiable
         $return_arr = [];
         foreach ($definition_arr as $node_key => $node_arr) {
             if ($node_arr['key_type'] === self::FROM_INSIDE
-                || ($ignore_nodes && in_array($node_key, $ignore_nodes, true))) {
+                || ($ignore_nodes && in_array($node_key, $ignore_nodes, true))
+                || ($only_nodes && !in_array($node_key, $only_nodes, true))) {
                 continue;
             }
 
@@ -1001,9 +1008,15 @@ abstract class PHS_Contract extends PHS_Instantiable
             $params['ignore_inside_nodes'] = [];
         }
 
-        if (!($ignore_nodes = self::array_merge_unique_values($params['ignore_nodes'], $params['ignore_inside_nodes']))) {
-            $ignore_nodes = [];
+        if (empty($params['only_nodes']) || !is_array($params['only_nodes'])) {
+            $params['only_nodes'] = [];
         }
+        if (empty($params['only_inside_nodes']) || !is_array($params['only_inside_nodes'])) {
+            $params['only_inside_nodes'] = [];
+        }
+
+        $ignore_nodes = self::array_merge_unique_values($params['ignore_nodes'], $params['ignore_inside_nodes']) ?: [];
+        $only_nodes = self::array_merge_unique_values($params['only_nodes'], $params['only_inside_nodes']) ?: [];
 
         $processing_params = [];
         $processing_params['lvl'] = $params['lvl'];
@@ -1036,7 +1049,8 @@ abstract class PHS_Contract extends PHS_Instantiable
         $return_arr = [];
         foreach ($definition_arr as $node_key => $node_arr) {
             if ($node_arr['key_type'] === self::FROM_OUTSIDE
-                || ($ignore_nodes && in_array($node_key, $ignore_nodes, true))) {
+                || ($ignore_nodes && in_array($node_key, $ignore_nodes, true))
+                || ($only_nodes && !in_array($node_key, $only_nodes, true))) {
                 continue;
             }
 
@@ -1303,6 +1317,12 @@ abstract class PHS_Contract extends PHS_Instantiable
             // Default value when transforming inside data to outside data
             'default_outside' => null,
 
+            // array of strings which represents exclusive nodes keys to be added in result when parsing contract
+            // only_inside_nodes exclusive inside source node keys, only_outside_nodes exclusive outside source node keys, only_nodes (for both)
+            'only_nodes'         => [],
+            'only_inside_nodes'  => [],
+            'only_outside_nodes' => [],
+
             // array of strings which represents nodes keys to be ignored when parsing contract
             // ignore_inside_nodes ignore inside source node keys, ignore_outside_nodes ignore outside source node keys, ignore_nodes (for both)
             'ignore_nodes'         => [],
@@ -1350,11 +1370,11 @@ abstract class PHS_Contract extends PHS_Instantiable
             'max_data_recursive_lvl' => 0,
 
             // In case we want to overwrite parameters sent to _parse_data_from_inside_source only for this node and its children
-            // we set this as array of parameters (eg. maybe change max_data_recursive_lvl, ignore_nodes, etc)
+            // we set this as array of parameters (eg. maybe change max_data_recursive_lvl, ignore_nodes, only_nodes, etc.)
             'inside_parsing_params' => [],
 
             // In case we want to overwrite parameters sent to _parse_data_from_outside_source only for this node and its children
-            // we set this as array of parameters (eg. maybe change max_data_recursive_lvl, ignore_nodes, etc)
+            // we set this as array of parameters (eg. maybe change max_data_recursive_lvl, ignore_nodes, only_nodes, etc.)
             'outside_parsing_params' => [],
 
             // (OPTIONAL) Descriptive info about this node (can generate documentation based on this

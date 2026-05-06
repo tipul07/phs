@@ -8,7 +8,6 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\phs_libs\PHS_Plugin_Phs_libs;
-use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts_tfa;
 use phs\system\core\events\actions\PHS_Event_Action_start;
 
@@ -52,9 +51,6 @@ class PHS_Action_Settings extends PHS_Action
         }
 
         PHS::page_settings('page_title', $this->_pt('Two Factor Authentication Settings'));
-        /** @var PHS_Plugin_Accounts $accounts_plugin */
-        /** @var PHS_Model_Accounts_tfa $tfa_model */
-        /** @var PHS_Plugin_Phs_libs $libs_plugin */
         if (!($tfa_model = PHS_Model_Accounts_tfa::get_instance())
             || !($accounts_plugin = PHS_Plugin_Accounts::get_instance())
             || !($libs_plugin = PHS_Plugin_Phs_libs::get_instance())) {

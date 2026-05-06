@@ -31,9 +31,9 @@ class Bbcode extends PHS_Library
         ],
     ];
 
-    public function __construct($error_no = self::ERR_OK, $error_msg = '', $error_debug_msg = '', $static_instance = false)
+    public function __construct()
     {
-        parent::__construct($error_no, $error_msg, $error_debug_msg, $static_instance);
+        parent::__construct();
 
         if (empty(self::$BB_CODES)) {
             self::$BB_CODES = [

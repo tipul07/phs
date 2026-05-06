@@ -6,6 +6,7 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\admin\libraries\Phs_Data_retention;
 use phs\system\core\models\PHS_Model_Data_retention;
@@ -13,11 +14,11 @@ use phs\system\core\models\PHS_Model_Data_retention;
 /** @property PHS_Model_Data_retention $_paginator_model */
 class PHS_Action_List_runs extends PHS_Action_Generic_list
 {
+    #[PHS_Dependency]
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
+    #[PHS_Dependency]
     private ?Phs_Data_retention $_data_retention_lib = null;
-
-    private ?PHS_Model_Accounts $_accounts_model = null;
 
     private array $policies_cache = [];
 
@@ -386,15 +387,8 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
 
     protected function _load_dependencies() : bool
     {
-        if ((empty($this->_admin_plugin)
-             && !($this->_admin_plugin = PHS_Plugin_Admin::get_instance()))
-            || (empty($this->_data_retention_lib)
-                && !($this->_data_retention_lib = Phs_Data_retention::get_instance()))
-            || (empty($this->_accounts_model)
-                && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))
-            || (empty($this->_paginator_model)
-                && !($this->_paginator_model = PHS_Model_Data_retention::get_instance()))
-        ) {
+        if (!$this->_paginator_model
+            && !($this->_paginator_model = PHS_Model_Data_retention::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;

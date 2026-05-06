@@ -11,6 +11,7 @@ use phs\libraries\PHS_Line_params;
 use phs\libraries\PHS_Record_data;
 use phs\system\core\models\PHS_Model_Roles;
 use phs\plugins\messages\PHS_Plugin_Messages;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts_details;
 
@@ -46,10 +47,13 @@ class PHS_Model_Messages extends PHS_Model
         self::IMPORTANCE_HIGH   => ['title' => 'High'],
     ];
 
+    #[PHS_Dependency]
     private static ?PHS_Model_Accounts $_accounts_model = null;
 
+    #[PHS_Dependency]
     private static ?PHS_Model_Roles $_roles_model = null;
 
+    #[PHS_Dependency]
     private static ?PHS_Plugin_Messages $_messages_plugin = null;
 
     public function get_model_version() : string
@@ -73,10 +77,6 @@ class PHS_Model_Messages extends PHS_Model
             return $this->_pt('System');
         }
 
-        if (!$this->load_dependencies()) {
-            return false;
-        }
-
         if (empty($current_user)
             || !($current_user_arr = self::$_accounts_model->data_to_array($current_user))) {
             return $this->get_account_message_handler($account_data);
@@ -95,10 +95,6 @@ class PHS_Model_Messages extends PHS_Model
 
     public function get_account_message_handler($account_data)
     {
-        if (!$this->load_dependencies()) {
-            return false;
-        }
-
         if (empty($account_data)
          || !($account_details_arr = self::$_accounts_model->get_account_details($account_data))
          || empty($account_details_arr[self::$_messages_plugin::UD_COLUMN_MSG_HANDLER])) {
@@ -110,10 +106,6 @@ class PHS_Model_Messages extends PHS_Model
 
     public function get_new_messages_count($account_data) : int
     {
-        if (!$this->load_dependencies()) {
-            return 0;
-        }
-
         if (!($mu_flow_params = $this->fetch_default_flow_params(['table_name' => 'messages_users']))
          || !($m_flow_params = $this->fetch_default_flow_params(['table_name' => 'messages']))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error initiating parameters for summary listing of messages.'));
@@ -145,10 +137,6 @@ class PHS_Model_Messages extends PHS_Model
 
     public function get_total_messages_count($account_data) : int
     {
-        if (!$this->load_dependencies()) {
-            return 0;
-        }
-
         if (!($mu_flow_params = $this->fetch_default_flow_params(['table_name' => 'messages_users']))
          || !($m_flow_params = $this->fetch_default_flow_params(['table_name' => 'messages']))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error initiating parameters for summary listing of messages.'));
@@ -179,10 +167,6 @@ class PHS_Model_Messages extends PHS_Model
 
     public function get_summary_listing($hook_args, $account_data)
     {
-        if (!$this->load_dependencies()) {
-            return false;
-        }
-
         if (!($mu_flow_params = $this->fetch_default_flow_params(['table_name' => 'messages_users']))
          || !($m_flow_params = $this->fetch_default_flow_params(['table_name' => 'messages']))) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error initiating parameters for summary listing of messages.'));
@@ -267,10 +251,6 @@ class PHS_Model_Messages extends PHS_Model
 
     public function emulate_full_message($message_user_data, $message_data = false, $account_data = false)
     {
-        if (!$this->load_dependencies()) {
-            return false;
-        }
-
         if (!($mu_flow_params = $this->fetch_default_flow_params(['table_name' => 'messages_users']))
          || !($m_flow_params = $this->fetch_default_flow_params(['table_name' => 'messages']))
          || !($mu_table_name = $this->get_flow_table_name($mu_flow_params))
@@ -363,10 +343,6 @@ class PHS_Model_Messages extends PHS_Model
      */
     public function full_data_to_array($full_message_data, $account_data = false, array $params = [])
     {
-        if (!$this->load_dependencies()) {
-            return false;
-        }
-
         $params['ignore_user_message'] = !empty($params['ignore_user_message']);
 
         $message_data = false;
@@ -494,10 +470,6 @@ class PHS_Model_Messages extends PHS_Model
 
     public function can_reply(null | int | array $record_data, array $params = []) : bool
     {
-        if (!$this->load_dependencies()) {
-            return false;
-        }
-
         $params['account_data'] ??= null;
 
         $account_arr = null;
@@ -546,13 +518,7 @@ class PHS_Model_Messages extends PHS_Model
      */
     public function can_followup($record_data, array $params = []) : bool
     {
-        if (!$this->load_dependencies()) {
-            return false;
-        }
-
         $params['account_data'] ??= null;
-
-        $messages_plugin = self::$_messages_plugin;
 
         $account_arr = null;
         if (!empty($params['account_data'])
@@ -1028,11 +994,8 @@ class PHS_Model_Messages extends PHS_Model
 
     public function get_accounts_from_handlers($dest_handlers)
     {
-        if (!$this->load_dependencies()) {
-            return false;
-        }
+        $this->reset_error();
 
-        /** @var PHS_Model_Accounts_details $account_details_model */
         if (!($account_details_model = PHS_Model_Accounts_details::get_instance())
             || !($ad_flow_params = $account_details_model->fetch_default_flow_params())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading depedencies.'));
@@ -1105,9 +1068,7 @@ class PHS_Model_Messages extends PHS_Model
 
     public function get_destination_as_string($message_data) : ?string
     {
-        if (!$this->load_dependencies()) {
-            return null;
-        }
+        $this->reset_error();
 
         if (!($m_flow_params = $this->fetch_default_flow_params(['table_name' => 'messages']))) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error initiating parameters for message.'));
@@ -1176,9 +1137,7 @@ class PHS_Model_Messages extends PHS_Model
 
     public function write_message(array $params) : ?array
     {
-        if (!$this->load_dependencies()) {
-            return null;
-        }
+        $this->reset_error();
 
         $roles_model = self::$_roles_model;
 
@@ -1591,9 +1550,7 @@ class PHS_Model_Messages extends PHS_Model
      */
     public function write_message_finish_bg($message_data, array $params = [])
     {
-        if (!$this->load_dependencies()) {
-            return false;
-        }
+        $this->reset_error();
 
         $params['email_author'] = !isset($params['email_author']) || !empty($params['email_author']);
         $params['email_destination'] = !isset($params['email_destination']) || !empty($params['email_destination']);
@@ -2316,25 +2273,6 @@ class PHS_Model_Messages extends PHS_Model
         }
 
         return $params;
-    }
-
-    private function load_dependencies() : bool
-    {
-        $this->reset_error();
-
-        if ((empty(self::$_accounts_model)
-            && !(self::$_accounts_model = PHS_Model_Accounts::get_instance()))
-         || (empty(self::$_roles_model)
-            && !(self::$_roles_model = PHS_Model_Roles::get_instance()))
-         || (empty(self::$_messages_plugin)
-            && !(self::$_messages_plugin = PHS_Plugin_Messages::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
     }
 
     public static function default_full_message_data() : array

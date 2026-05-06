@@ -1,7 +1,6 @@
 <?php
 namespace phs\plugins\hubspot\libraries;
 
-use phs\PHS;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
@@ -14,8 +13,7 @@ class PHS_Hubspot extends PHS_Library
 
     public const MAX_CONTACTS_BULK_UPDATE = 1000;
 
-    /** @var PHS_Plugin_Hubspot */
-    private $_hubspot_plugin = false;
+    private ?PHS_Plugin_Hubspot $_hubspot_plugin = null;
 
     private $_api_settings = [];
 
@@ -23,9 +21,9 @@ class PHS_Hubspot extends PHS_Library
 
     private $_contacts_update_queue = [];
 
-    public function __construct($error_no = self::ERR_OK, $error_msg = '', $error_debug_msg = '', $static_instance = false)
+    public function __construct()
     {
-        parent::__construct($error_no, $error_msg, $error_debug_msg, $static_instance);
+        parent::__construct();
 
         $this->reset_api_settings();
         $this->reset_api_params();
@@ -791,12 +789,8 @@ class PHS_Hubspot extends PHS_Library
         return $response['json_response_arr'];
     }
 
-    protected function _extract_api_info()
+    protected function _extract_api_info() : bool
     {
-        if (!$this->_load_dependencies()) {
-            return false;
-        }
-
         if (!($settings_arr = $this->_hubspot_plugin->get_plugin_settings())) {
             $this->set_error(self::ERR_SETTINGS, $this->_pt('Couldn\'t obtain HubSpot plugin settings.'));
 
@@ -859,20 +853,6 @@ class PHS_Hubspot extends PHS_Library
         return $contact_arr;
     }
 
-    private function _load_dependencies() : bool
-    {
-        $this->reset_error();
-
-        if (empty($this->_hubspot_plugin)
-            && !($this->_hubspot_plugin = PHS_Plugin_Hubspot::get_instance())) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading HubSpot plugin.'));
-
-            return false;
-        }
-
-        return true;
-    }
-
     private function _api_params($key = null, $val = null)
     {
         if ($key === null && $val === null) {
@@ -919,10 +899,6 @@ class PHS_Hubspot extends PHS_Library
      */
     private function _do_call($payload_arr = false, $params = false)
     {
-        if (!$this->_load_dependencies()) {
-            return false;
-        }
-
         $this->reset_error();
 
         if (!$this->_can_connect()) {
@@ -949,8 +925,6 @@ class PHS_Hubspot extends PHS_Library
             $params['extra_get_params'] = [];
         }
 
-        $hubspot_plugin = $this->_hubspot_plugin;
-
         $payload_str = '';
         if (!empty($payload_arr)
         && !($payload_str = @json_encode($payload_arr))) {
@@ -961,7 +935,7 @@ class PHS_Hubspot extends PHS_Library
                 $payload_buf = ob_get_clean();
             }
 
-            PHS_Logger::error('Couldn\'t obtain JSON from payload: ['.$payload_buf.']', $hubspot_plugin::LOG_CHANNEL);
+            PHS_Logger::error('Couldn\'t obtain JSON from payload: ['.$payload_buf.']', $this->_hubspot_plugin::LOG_CHANNEL);
 
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t obtain JSON from payload.'));
 
@@ -990,15 +964,15 @@ class PHS_Hubspot extends PHS_Library
 
         if (!($response = PHS_Utils::quick_curl($api_url, $api_params))
          || empty($response['http_code'])) {
-            PHS_Logger::error('Error sending request to ['.$api_url.']', $hubspot_plugin::LOG_CHANNEL);
+            PHS_Logger::error('Error sending request to ['.$api_url.']', $this->_hubspot_plugin::LOG_CHANNEL);
 
             if (!empty($response['request_error_msg'])) {
                 PHS_Logger::error('cURL said: '.$response['request_error_msg'].' (#'.(!empty($response['request_error_no']) ? $response['request_error_no'] : '0').')',
-                    $hubspot_plugin::LOG_CHANNEL);
+                    $this->_hubspot_plugin::LOG_CHANNEL);
             }
 
             if (!empty($params['log_payload'])) {
-                PHS_Logger::error('Payload: '.$payload_str, $hubspot_plugin::LOG_CHANNEL);
+                PHS_Logger::error('Payload: '.$payload_str, $this->_hubspot_plugin::LOG_CHANNEL);
             }
 
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error sending request to HubSpot server.'));
@@ -1058,15 +1032,15 @@ class PHS_Hubspot extends PHS_Library
             }
 
             if ($do_log_error) {
-                PHS_Logger::error('Error in response from ['.$api_url.'], http code: '.$response['http_code'].', error: '.(!empty($short_error) ? $short_error : 'N/A'), $hubspot_plugin::LOG_CHANNEL);
+                PHS_Logger::error('Error in response from ['.$api_url.'], http code: '.$response['http_code'].', error: '.(!empty($short_error) ? $short_error : 'N/A'), $this->_hubspot_plugin::LOG_CHANNEL);
                 if (!empty($long_error)) {
-                    PHS_Logger::error('Detailed errors: '.$long_error, $hubspot_plugin::LOG_CHANNEL);
+                    PHS_Logger::error('Detailed errors: '.$long_error, $this->_hubspot_plugin::LOG_CHANNEL);
                 }
 
-                PHS_Logger::error('Response: '.(!empty($response['response']) ? $response['response'] : 'N/A'), $hubspot_plugin::LOG_CHANNEL);
+                PHS_Logger::error('Response: '.(!empty($response['response']) ? $response['response'] : 'N/A'), $this->_hubspot_plugin::LOG_CHANNEL);
 
                 if (!empty($params['log_payload'])) {
-                    PHS_Logger::error('Payload: '.$payload_str, $hubspot_plugin::LOG_CHANNEL);
+                    PHS_Logger::error('Payload: '.$payload_str, $this->_hubspot_plugin::LOG_CHANNEL);
                 }
             }
 
@@ -1081,11 +1055,11 @@ class PHS_Hubspot extends PHS_Library
                 return $response;
             }
 
-            PHS_Logger::error('Error in response from ['.$api_url.'], http code: '.$response['http_code'], $hubspot_plugin::LOG_CHANNEL);
-            PHS_Logger::error('Response: '.(!empty($response['response']) ? $response['response'] : 'N/A'), $hubspot_plugin::LOG_CHANNEL);
+            PHS_Logger::error('Error in response from ['.$api_url.'], http code: '.$response['http_code'], $this->_hubspot_plugin::LOG_CHANNEL);
+            PHS_Logger::error('Response: '.(!empty($response['response']) ? $response['response'] : 'N/A'), $this->_hubspot_plugin::LOG_CHANNEL);
 
             if (!empty($params['log_payload'])) {
-                PHS_Logger::error('Payload: '.$payload_str, $hubspot_plugin::LOG_CHANNEL);
+                PHS_Logger::error('Payload: '.$payload_str, $this->_hubspot_plugin::LOG_CHANNEL);
             }
 
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('HubSpot server responded with an error.'));

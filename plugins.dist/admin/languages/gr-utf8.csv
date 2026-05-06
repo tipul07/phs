@@ -1,0 +1,1074 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Unknown error.,Άγνωστο σφάλμα.
+Choose,Επιλέξτε
+Error loading required resources.,Σφάλμα φόρτωσης απαιτούμενων πόρων.
+INSTALLED,ΕΓΚΑΤΕΣΤΗΜΕΝΟ
+Update URL vailable for %s.,Ενημέρωση διαθέσιμη για το URL %s.
+"NOTE: Provided URL is forced to use HTTPS, if you don't have HTTPS enabled, change the link to use HTTP protocol.","ΣΗΜΕΙΩΣΗ: Η παρεχόμενη διεύθυνση URL είναι υποχρεωτικά να χρησιμοποιεί το πρωτόκολλο HTTPS, αν δεν έχετε ενεργοποιημένο το HTTPS, αλλάξτε τον σύνδεσμο για να χρησιμοποιεί το πρωτόκολλο HTTP."
+Installed,Εγκατεστημένο
+You should login first...,Πρέπει να συνδεθείτε πρώτα...
+You don't have rights to access this section.,Δεν έχετε δικαιώματα πρόσβασης σε αυτήν την ενότητα.
+ - Choose - , - Επιλέξτε - 
+No,Όχι
+Yes,Ναι
+Inactivate,Απενεργοποίηση
+Activate,Ενεργοποίηση
+Delete,Διαγραφή
+Title,Τίτλος
+Status,Κατάσταση
+N/A,Μ/Α
+Undefined,Απροσδιόριστο
+Created,Δημιουργήθηκε
+Invalid,Μη έγκυρο
+Actions,Ενέργειες
+Unknown action.,Άγνωστη ενέργεια.
+Error initiating upload procedure.,Σφάλμα κατά την εκκίνηση της διαδικασίας μεταφόρτωσης.
+Unknown error. Please try again.,Άγνωστο σφάλμα. Παρακαλώ προσπαθήστε ξανά.
+Error saving details to database. Please try again.,Σφάλμα κατά την αποθήκευση λεπτομερειών στη βάση δεδομένων. Παρακαλώ προσπαθήστε ξανά.
+Company,Εταιρεία
+Note,Σημείωση
+Last update,Τελευταία ενημέρωση
+Translations,Μεταφράσεις
+NOTE: You cannot undo this action!,ΣΗΜΕΙΩΣΗ: Δεν μπορείτε να αναιρέσετε αυτήν την ενέργεια!
+Account not found in database.,Ο λογαριασμός δεν βρέθηκε στη βάση δεδομένων.
+Name,Όνομα
+Model,Μοντέλο
+Type,Τύπος
+All,Όλα
+ - All - , - Όλα - 
+Description,Περιγραφή
+Back,Πίσω
+Error sending request to the server. Please try again.,Σφάλμα κατά την αποστολή του αιτήματος στον διακομιστή. Παρακαλώ προσπαθήστε ξανά.
+Cancel,Ακύρωση
+Started,Ξεκίνησε
+Finished,Ολοκληρώθηκε
+Progress,Πρόοδος
+Remove,Αφαίρεση
+unknown,άγνωστο
+You don't have enough rights to access this section.,Δεν έχετε αρκετά δικαιώματα για πρόσβαση σε αυτήν την ενότητα.
+Save changes,Αποθήκευση αλλαγών
+Edit,Επεξεργασία
+Choose file,Επιλέξτε αρχείο
+Select,Επιλογή
+Please wait...,Παρακαλώ περιμένετε...
+Models,Μοντέλα
+System,Σύστημα
+Date,Ημερομηνία
+Nothing to export.,Τίποτα να εξάγετε.
+Message deleted with success.,Το μήνυμα διαγράφηκε με επιτυχία.
+Invalid account.,Μη έγκυρος λογαριασμός.
+Email,Ηλεκτρονικό Ταχυδρομείο
+Ok,Εντάξει
+Created by,Δημιουργήθηκε από
+Please provide a valid payload for translation.,Παρακαλώ παρέχετε ένα έγκυρο φορτίο για μετάφραση.
+Please valid languages for translation.,Παρακαλώ έγκυρες γλώσσες για μετάφραση.
+Error obtaining prompt for OpenAI request.,Σφάλμα κατά τη λήψη της προτροπής για το αίτημα του OpenAI.
+Error sending request to OpenAI API.,Σφάλμα κατά την αποστολή αιτήματος προς το API της OpenAI.
+Invalid OpenAI response.,Μη έγκυρη απάντηση OpenAI.
+Error extracting OpenAI response.,Σφάλμα εξαγωγής απάντησης OpenAI.
+Error loading OpenAI settings.,Σφάλμα φόρτωσης ρυθμίσεων OpenAI.
+Running,Εκτέλεση
+Error,Σφάλμα
+Force stop,Διακοπή εξαναγκασμοϋ
+Translation task hangs for %s. You might need to force stop it.,Η εργασία μετάφρασης κολλάει για %s. Ίσως χρειαστεί να την διακόψετε με εξωτερική επέμβαση.
+Username,Όνομα χρήστη
+Password,Κωδικός πρόσβασης
+Route,Διαδρομή
+Account,Λογαριασμός
+Error sending request to server.,Σφάλμα κατά την αποστολή αιτήματος προς τον διακομιστή.
+Couldn't load accounts model.,Αδυναμία φόρτωσης μοντέλου λογαριασμών.
+Couldn't load roles model.,Αδυναμία φόρτωσης μοντέλου ρόλων.
+API settings,Ρυθμίσεις API
+Default theme in admin,Προεπιλεγμένο θέμα στον διαχειριστή
+Should framework use default theme in admin section?,Θα πρέπει το πλαίσιο εργασίας να χρησιμοποιεί το προεπιλεγμένο θέμα στη διαχειριστική ενότητα;
+Current theme as default,Τρέχον θέμα ως προεπιλογή
+"If using default theme in admin section, should we set current theme as default (helps with loading resources from current theme if needed in admin interface)","Εάν χρησιμοποιείτε το προεπιλεγμένο θέμα στην ενότητα διαχειριστή, πρέπει να ορίσουμε το τρέχον θέμα ως προεπιλεγμένο (βοηθά στη φόρτωση πόρων από το τρέχον θέμα εάν χρειαστεί στη διεπαφή διαχειριστή)"
+Language,Γλώσσα
+Close,Κλείσιμο
+seconds,δευτερόλεπτα
+File,Αρχείο
+Size,Μέγεθος
+Log file,Αρχείο καταγραφής
+Couldn't load required resources.,Αδυναμία φόρτωσης των απαιτούμενων πόρων.
+No directory provided to save export data to or no rights to write in that directory.,Δεν παρέχεται κατάλογος για την αποθήκευση των δεδομένων εξαγωγής ή δεν υπάρχουν δικαιώματα εγγραφής σε αυτόν τον κατάλογο.
+Couldn't create export file.,Αδυναμία δημιουργίας αρχείου εξαγωγής.
+Headers already sent. Cannot send export file to browser.,Κεφαλίδες έχουν ήδη σταλεί. Δεν είναι δυνατή η αποστολή του αρχείου εξαγωγής στον περιηγητή.
+Password changed,Ο κωδικός πρόσβασης άλλαξε
+Changes saved to database.,Οι αλλαγές αποθηκεύτηκαν στη βάση δεδομένων.
+Password should be at least %s characters.,Ο κωδικός πρόσβασης πρέπει να αποτελείται από τουλάχιστον %s χαρακτήρες.
+Password should pass regular expresion: ,Ο κωδικός πρόσβασης πρέπει να περάσει τον τακτικό εκφρασμένο:
+Password should pass regular expresion: %s.,Ο κωδικός πρόσβασης πρέπει να περάσει τον τακτικό εκφρασμένο: %s.
+"eg. Mr., Ms., Mrs., etc","π.χ. κ.κ., κα., κυα., κλπ."
+First Name,Όνομα
+Last Name,Επώνυμο
+Phone Number,Αριθμός Τηλεφώνου
+Save Changes,Αποθήκευση Αλλαγών
+Click for details,Κάντε κλικ για λεπτομέρειες
+Invalid data retention policy.,Μη έγκυρη πολιτική διατήρησης δεδομένων.
+Invalid data retention policy ids.,Μη έγκυρα αναγνωριστικά πολιτικής διατήρησης δεδομένων.
+Error launching background job for data retention run.,Σφάλμα κατά την εκκίνηση φόντου εργασίας για την εκτέλεση διαδικασίας διατήρησης δεδομένων.
+Invalid retention policy list.,Μη έγκυρη λίστα πολιτικής διατήρησης.
+Data retention not found in database.,Η διατήρηση δεδομένων δεν βρέθηκε στη βάση δεδομένων.
+Error running data retention migration.,Σφάλμα κατά την εκτέλεση της μεταφοράς διατήρησης δεδομένων.
+Error while checking data retention existing table.,Σφάλμα κατά τον έλεγχο της διατήρησης δεδομένων υπάρχουσας πίνακα.
+Error while checking data retention destination table.,Σφάλμα κατά τον έλεγχο του πίνακα προορισμού διατήρησης δεδομένων.
+Data retention configuration is invalid.,Η διαμόρφωση διατήρησης δεδομένων δεν είναι έγκυρη.
+Data retention record is invalid.,Η εγγραφή διατήρησης δεδομένων είναι μη έγκυρη.
+Error loading data retention model.,Σφάλμα φόρτωσης μοντέλου διατήρησης δεδομένων.
+Error setting up data retention model.,Σφάλμα κατά την ρύθμιση του μοντέλου διατήρησης δεδομένων.
+Data retention details are invalid.,Λεπτομέρειες διατήρησης δεδομένων είναι μη έγκυρες.
+Error moving records for data retention policy.,Σφάλμα κατά τη μετακίνηση εγγραφών για την πολιτική διατήρησης δεδομένων.
+Error validating injected OpenAI settings.,Σφάλμα επικύρωσης των ρυθμίσεων OpenAI που έχουν εισαχθεί.
+Please provide valid OpenAI settings.,Παρακαλώ παρέχετε έγκυρες ρυθμίσεις OpenAI.
+Error decoding settings data.,Σφάλμα αποκωδικοποίησης δεδομένων ρυθμίσεων.
+Error decoding settings from encrypted array.,Σφάλμα αποκωδικοποίησης ρυθμίσεων από κρυπτογραφημένο πίνακα.
+Import JSON doesn't contain settngs for import..,Η εισαγωγή JSON δεν περιέχει ρυθμίσεις για εισαγωγή.
+Error saving settings for plugin %s.,Σφάλμα κατά την αποθήκευση των ρυθμίσεων για το πρόσθετο %s.
+Error decoding JSON buffer to array.,Σφάλμα αποκωδικοποίησης του buffer JSON σε πίνακα.
+Error exporting plugin settings. No crypting key provided.,Σφάλμα εξαγωγής ρυθμίσεων προσθέτου. Δεν παρέχεται κλειδί κρυπτογράφησης.
+Error encrypting plugin settings.,Σφάλμα κρυπτογράφησης ρυθμίσεων προσθέτου.
+Invalid plugin provided.,Παρέχεται μη έγκυρο πρόσθετο.
+Couldn't obtain plugin settings.,Αδυναμία λήψης ρυθμίσεων προσθέτου.
+Couldn't obtain plugin's models settings.,Δεν ήταν δυνατή η λήψη των ρυθμίσεων μοντέλων του πρόσθετου.
+Error instantiating plugin %s.,Σφάλμα κατά την αρχικοποίηση του προσθέτου %s.
+Error saving models settings for plugin %s.,Σφάλμα κατά την αποθήκευση των ρυθμίσεων μοντέλων για το πρόσθετο %s.
+"Error saving settings for model %s, plugin %s.","Σφάλμα κατά την αποθήκευση των ρυθμίσεων για το μοντέλο %s, το πρόσθετο %s."
+Couldn't obtain plugin instance id.,Αδυναμία λήψης του αναγνωριστικού προσθέτου παράδειγμα.
+Core,Πυρήνας
+Couldn't instantiate model %s to extract settings.,Αδυναμία δημιουργίας προτύπου %s για την εξαγωγή ρυθμίσεων.
+Couldn't initiate model %s to extract settings.,Αδυναμία εκκίνησης του μοντέλου %s για την εξαγωγή ρυθμίσεων.
+Theme settings,Ρυθμίσεις θέματος
+How should themes inheritance be used.,Πώς πρέπει να χρησιμοποιείται η κληρονομιά θεμάτων.
+API CORS settings,Ρυθμίσεις API CORS
+<strong>WARNING</strong>: High risk security settings! Change them if you know what you are doing!,<strong>ΠΡΟΕΙΔΟΠΟΙΗΣΗ</strong>: Ρυθμίσεις υψηλού κινδύνου ασφάλειας! Αλλάξτε τις αν ξέρετε τι κάνετε!
+Allow CORS calls,Να επιτρέπονται κλήσεις CORS
+Is platform accepting CORS calls? Usually front-end applications from other domains.,Δέχεται η πλατφόρμα κλήσεις CORS; Συνήθως εφαρμογές προσώπου από άλλους τομείς.
+CORS Origin,Προέλευση CORS
+"Comma separated domains from which platform accepts CORS calls. * - accept from all, empty - platform will send as origin what was sent in request (Access-Control-Allow-Origin)","Διαχωρισμένοι με κόμματα τομείς από τους οποίους η πλατφόρμα αποδέχεται κλήσεις CORS. * - αποδοχή από όλους, κενό - η πλατφόρμα θα στείλει ως προέλευση αυτό που στάλθηκε στο αίτημα (Access-Control-Allow-Origin)"
+CORS Methods,Μέθοδοι CORS
+"Comma separated HTTP methods which platform accepts for CORS calls. * - accept all methods, empty - doesn't respond with this header (Access-Control-Allow-Methods)","Διαχωρισμένες με κόμμα μέθοδοι HTTP που η πλατφόρμα δέχεται για κλήσεις CORS. * - δέχεται όλες τις μεθόδους, κενό - δεν απαντά με αυτή την κεφαλίδα (Access-Control-Allow-Methods)"
+CORS Headers,Κεφαλίδες CORS
+"Comma separated HTTP headers which platform accepts for CORS calls. * - accept all headers, empty - doesn't respond with this header (Access-Control-Allow-Headers)","Διαχωρισμένοι με κόμμα κεφαλίδες HTTP που η πλατφόρμα δέχεται για κλήσεις CORS. * - δέχεται όλες τις κεφαλίδες, κενό - δεν απαντά με αυτήν την κεφαλίδα (Access-Control-Allow-Headers)"
+CORS Max Age (seconds),Μέγιστη Ηλικία CORS (δευτερόλεπτα)
+Preflight requests can be cached. This represents how much time should a client cache OPTIONS response. -1 - do not send this header (Access-Control-Max-Age),Οι αιτήσεις προελέγχου μπορούν να αποθηκευτούν στη μνήμη cache. Αυτό αντιπροσωπεύει πόσο χρόνο θα πρέπει να αποθηκεύει ο πελάτης την απάντηση OPTIONS. -1 - μην στέλνετε αυτή την κεφαλίδα (Access-Control-Max-Age)
+Settings related to REST API calls made to this platform.,Ρυθμίσεις που σχετίζονται με τις κλήσεις REST API που γίνονται σε αυτήν την πλατφόρμα.
+Allow API calls,Επιτρέψτε κλήσεις API
+Are API calls allowed to this platform?,Επιτρέπονται οι κλήσεις API σε αυτήν την πλατφόρμα;
+Allow HTTP API calls,Να επιτρέπονται κλήσεις HTTP API
+Allow API calls over HTTP? If this checkbox is not ticked only HTTPS calls will be accepted.,"Να επιτρέπονται οι κλήσεις API μέσω HTTP; Αν αυτό το πλαίσιο ελέγχου δεν είναι επιλεγμένο, θα γίνονται δεκτές μόνο κλήσεις HTTPS."
+API calls WEB emulation,Κλήσεις API προσομοίωση Ιστού
+Allow API calls to simulate a normal web call by interpreting JSON body as POST variables. (should send %s=1 as query parameter),Να επιτρέπονται οι κλήσεις του API να προσομοιώνουν μια κανονική κλήση στο web με την ερμηνεία του σώματος JSON ως μεταβλητές POST. (θα πρέπει να στείλει το %s=1 ως παράμετρο ερώτησης)
+Allow bearer token authentication,Να επιτρέπεται η εξουσιοδότηση με διακριτικό φορέα
+Allow API authentication using bearer token mechanism. To obtain bearer tokens 3rd party should call login script using API call and ask a bearer token in response.,"Να επιτρέπεται η πιστοποίηση του API χρησιμοποιώντας τον μηχανισμό bearer token. Για να λάβει ο τρίτος φορέας τα bearer tokens, θα πρέπει να καλέσει το σενάριο σύνδεσης χρησιμοποιώντας κλήση API και να ζητήσει έναν bearer token ως απάντηση."
+Monitor incoming calls,Παρακολούθηση εισερχόμενων κλήσεων
+Incoming API calls will be saved in a special monitoring table.,Οι εισερχόμενες κλήσεις API θα αποθηκεψουν σε μια ειδική πίνακα παρακολούθησης.
+Monitor incoming CORS calls,Παρακολούθηση εισερχόμενων κλήσεων CORS
+Should framework also log incoming CORS OPTIONS method calls?,Θα έπρεπε το πλαίσιο εργασίας επίσης να καταγράφει τις εισερχόμενες κλήσεις μεθόδου CORS OPTIONS;
+Monitor outgoing API calls,Παρακολούθηση εξερχόμενων κλήσεων API
+Gives option to programatically add outgoing calls to API monitoring report table.,Παρέχει τη δυνατότητα προγραμματικής προσθήκης εξερχόμενων κλήσεων στον πίνακα αναφοράς παρακολούθησης του API.
+Log full request body,Καταγραφή πλήρους σώματος αιτήματος
+Log full request body as JSON.,Καταγράψτε το πλήρες σώμα του αιτήματος ως JSON.
+Log full response body,Καταγραφή πλήρους σώματος απάντησης
+Log full response body as JSON.,Καταγράψτε το πλήρες σώμα απάντησης ως JSON.
+GraphQL settings,Ρυθμίσεις GraphQL
+Settings related to GraphQL calls made to this platform.,Ρυθμίσεις που σχετίζονται με τις κλήσεις GraphQL που γίνονται σε αυτήν την πλατφόρμα.
+Allow GraphQL calls,Να επιτρέπονται κλήσεις GraphQL
+Are GraphQL calls allowed to this platform?,Επιτρέπονται οι κλήσεις GraphQL σε αυτήν την πλατφόρμα;
+Monitor GraphQL calls,Παρακολούθηση κλήσεων GraphQL
+If GraphQL calls are monitored.,Εάν οι κλήσεις του GraphQL παρακολουθούνται.
+Agent Jobs Settings,Ρυθμίσεις Εργασιών Πράκτορα
+Settings related to agent jobs details on this platform.,Ρυθμίσεις που σχετίζονται με λεπτομέρειες των εργασιών πράκτορα σε αυτήν την πλατφόρμα.
+Monitor agent jobs,Παρακολούθηση των εργασιών πράκτορα
+"Monitor start, success or failure of agent jobs running on this platform","Παρακολούθηση έναρξης, επιτυχίας ή αποτυχίας των εργασιών πράκτορα που εκτελούνται σε αυτήν την πλατφόρμα"
+Jobs allowance interval,Διάστημα επιδόματος εργασιών
+"(seconds) When calculating next time agent job has to run, substract this time iterval. This should be big for slow servers. Crontab interval should be biger than this value!","(δευτερόλεπτα) Κατά τον υπολογισμό του επόμενου χρόνου που πρέπει να τρέξει το job του πράκτορα, αφαιρέστε αυτό το χρονικό διάστημα. Αυτό πρέπει να είναι μεγάλο για αργούς διακομιστές. Το διάστημα του Crontab πρέπει να είναι μεγαλύτερο από αυτήν την τιμή!"
+System Logs Settings,Ρυθμίσεις Καταγραφής Συστήματος
+Settings related to how system should handle logs,Ρυθμίσεις που σχετίζονται με τον τρόπο με τον οποίο το σύστημα πρέπει να χειρίζεται τα αρχεία καταγραφής
+Data Retention Settings,Ρυθμίσεις Διατήρησης Δεδομένων
+Settings related to data retention functionality,Ρυθμίσεις που σχετίζονται με τη λειτουργικότητα διατήρησης δεδομένων
+AI Translations Settings,Ρυθμίσεις Μεταφράσεων Τεχνητής Νοημοσύνης
+Settings related to AI translation functionality,Ρυθμίσεις που σχετίζονται με τη λειτουργικότητα μετάφρασης AI
+UI Translations,Μεταφράσεις διεπαφής χρήστη
+Unknown error occured.,Παρουσιάστηκε άγνωστο σφάλμα.
+Invalid action provided.,Παρέχεται μη έγκυρη ενέργεια.
+Error validating request.,Σφάλμα επικύρωσης αιτήματος.
+Please provide a language for PO file.,Παρακαλώ καθορίστε μια γλώσσα για το αρχείο PO.
+Error generating PO file.,Σφάλμα κατά τη δημιουργία του αρχείου PO.
+Error starting UI translations background job.,Σφάλμα κατά την εκκίνηση της εργασίας φόντου μεταφράσεων του UI.
+Error sending STOP request to UI translations background job.,Σφάλμα κατά την αποστολή αιτήματος ΔΙΑΚΟΠΗΣ στην εργασία φόντου μεταφράσεων του χρήστη.
+Error obtaining PO format instance.,Σφάλμα κατά τη λήψη της μορφής της ΠΑ.
+Error generating POT file.,Σφάλμα κατά τη δημιουργία του αρχείου POT.
+Please provide a PO file.,Παρακαλώ παρέχετε ένα αρχείο PO.
+Invalid language for provided PO file.,Μη έγκυρη γλώσσα για το παρεχόμενο αρχείο PO.
+Error parsing PO file.,Σφάλμα κατά την ανάλυση του αρχείου PO.
+Edit Role,Επεξεργασία Ρόλου
+Invalid role...,Μη έγκυρος ρόλος...
+Role details saved.,Λεπτομέρειες ρόλου αποθηκεύτηκαν.
+Role details saved...,Λεπτομέρειες ρόλου αποθηκεύτηκαν...
+Add Tenant,Προσθήκη Ενοικιαστή
+Tenant details saved...,Λεπτομέρειες ενοικιαστή αποθηκεύτηκαν...
+Manage Tenant's Plugins,Διαχείριση Προσθέτων Ενοικιαστή
+Selected plugins activated with success.,Επιλεγμένα πρόσθετα ενεργοποιήθηκαν με επιτυχία.
+Selected plugins inactivated with success.,Επιλεγμένα πρόσθετα απενεργοποιήθηκαν με επιτυχία.
+Default,Προεπιλογή
+Not Installed,Μη Εγκατεστημένο
+Provided tenant is invalid.,Ο παρεχόμενος ενοικιαστής δεν είναι έγκυρος.
+Please provide a list of plugins.,Παρακαλώ παρέχετε μια λίστα με τα πρόσθετα.
+Error obtaining a list of framework plugins.,Σφάλμα κατά τη λήψη ενός καταλόγου με τα πρόσθετα του πλαισίου.
+Cannot change status for plugin %s.,Δεν είναι δυνατή η αλλαγή κατάστασης για το πρόσθετο %s.
+Error inactivating plugin %s on tenant %s.,Σφάλμα στην απενεργοποίηση του προσθέτου %s στον ενοικιαστή %s.
+Error activating plugin %s on tenant %s.,Σφάλμα ενεργοποίησης προσθέτου %s στον ενοικιαστή %s.
+Please provide a valid plugin id.,Παρακαλώ δώστε έναν έγκυρο αναγνωριστικό προσθέτου.
+Unknown action in request.,Άγνωστη ενέργεια στο αίτημα.
+Edit Tenant,Επεξεργασία Ενοικιαστή
+Invalid tenant...,Μη έγκυρος ενοικιαστής...
+Tenant details saved.,Λεπτομέρειες ενοικιαστή αποθηκεύτηκαν.
+Tenants List,Λίστα Ενοικιαστών
+tenant,ενοικιαστής
+tenants,ενοικιαστές
+Invalid tenant or tenant was not found in database.,Μη έγκυρος ενοικιαστής ή ο ενοικιαστής δεν βρέθηκε στη βάση δεδομένων.
+Tenant details saved in database.,Λεπτομέρειες ενοικιαστή αποθηκεύτηκαν στη βάση δεδομένων.
+All records containing this value,Όλες οι εγγραφές που περιέχουν αυτήν την τιμή
+Domain,Τομέας
+Directory,Κατάλογος
+Identifier,Αναγνωριστικό
+Required tenants activated with success.,Οι απαιτούμενοι ενοικιαστές ενεργοποιήθηκαν με επιτυχία.
+Activating selected tenants failed. Please try again.,Η ενεργοποίηση των επιλεγμένων ενοικιαστών απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed activating all selected tenants. Tenants which failed activation are still selected. Please try again.,Αποτυχία ενεργοποίησης όλων των επιλεγμένων ενοικιαστών. Οι ενοικιαστές που απέτυχαν στην ενεργοποίηση παραμένουν επιλεγμένοι. Παρακαλώ προσπαθήστε ξανά.
+Required tenants inactivated with success.,Απαιτούμενοι ενοικιαστές απενεργοποιήθηκαν με επιτυχία.
+Inactivating selected tenants failed. Please try again.,Η απενεργοποίηση επιλεγμένων ενοικιαστών απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed inactivating all selected tenants. Tenants which failed inactivation are still selected. Please try again.,Αποτυχία απενεργοποίησης όλων των επιλεγμένων ενοικιαστών. Οι ενοικιαστές που απέτυχαν στην απενεργοποίηση παραμένουν επιλεγμένοι. Παρακαλώ προσπαθήστε ξανά.
+Required tenants deleted with success.,Οι απαιτούμενοι ενοικιαστές διαγράφηκαν με επιτυχία.
+Deleting selected tenants failed. Please try again.,Η διαγραφή των επιλεγμένων ενοικιαστών απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed deleting all selected tenants. Tenants which failed deletion are still selected. Please try again.,Απέτυχε η διαγραφή όλων των επιλεγμένων ενοικιαστών. Οι ενοικιαστές που απέτυχαν στη διαγραφή παραμένουν επιλεγμένοι. Παρακαλώ προσπαθήστε ξανά.
+Tenant activated with success.,Ο ενοικιαστής ενεργοποιήθηκε με επιτυχία.
+Activating tenant failed. Please try again.,Απέτυχε η ενεργοποίηση του ενοικιαστή. Παρακαλώ προσπαθήστε ξανά.
+Cannot activate tenant. Tenant not found.,Αδυναμία ενεργοποίησης ενοικιαστή. Ο ενοικιαστής δεν βρέθηκε.
+Tenant inactivated with success.,Ο ενοικιαστής απενεργοποιήθηκε με επιτυχία.
+Inactivating tenant failed. Please try again.,Απέτυχε η απενεργοποίηση του ενοικιαστή. Παρακαλώ προσπαθήστε ξανά.
+Cannot inactivate tenant. Tenant not found.,Αδυναμία απενεργοποίησης ενοικιαστή. Ο ενοικιαστής δεν βρέθηκε.
+Tenant deleted with success.,Ο ενοικιαστής διαγράφηκε με επιτυχία.
+Deleting tenant failed. Please try again.,Απέτυχε η διαγραφή ενοικιαστή. Παρακαλώ προσπαθήστε ξανά.
+Cannot delete tenant. Tenant not found.,Αδυναμία διαγραφής ενοικιαστή. Ο ενοικιαστής δεν βρέθηκε.
+Edit tenant,Επεξεργασία ενοικιαστή
+Activate tenant,Ενεργοποίηση ενοικιαστή
+Inactivate tenant,Απενεργοποίηση ενοικιαστή
+Delete tenant,Διαγραφή ενοικιαστή
+New Tenant,Νέος Ενοικιαστής
+API Monitor Report,Αναφορά Παρακολούθησης Διεπαφής Προγραμματισμού Εφαρμογών
+API call,Κλήση API
+API calls,Κλήσεις API
+External route,Εξωτερική διαδρομή
+All records containing this value at title field,Όλες οι εγγραφές που περιέχουν αυτήν την τιμή στο πεδίο τίτλο
+Internal route,Εσωτερική διαδρομή
+All records containing this value at handler field,Όλες οι εγγραφές που περιέχουν αυτήν την τιμή στο πεδίο χειριστή
+Method,Μέθοδος
+All requests done with this method,Όλα τα αιτήματα γίνονται με αυτήν τη μέθοδο
+Plugin,Πρόσθετο
+All records containing this value at plugin field,Όλες οι εγγραφές που περιέχουν αυτήν την τιμή στο πεδίο του προσθέτου
+Response code,Κωδικός απόκρισης
+Requests From,Αιτήσεις Από
+All HTTP requests run after this date,Όλα τα αιτήματα HTTP τρέχουν μετά από αυτήν την ημερομηνία
+Requests after this date,Αιτήσεις μετά από αυτήν την ημερομηνία
+Requests Up To,Αιτήσεις Έως Το
+All HTTP requests run before this date,Όλα τα αιτήματα HTTP τρέχουν πριν από αυτήν την ημερομηνία
+Requests before this date,Αιτήσεις πριν από αυτήν την ημερομηνία
+External Route,Εξωτερική Διαδρομή
+Internal Route,Εσωτερική Διαδρομή
+Request,Αίτημα
+Response,Απάντηση
+HTTP Code,Κωδικός HTTP
+API Monitoring Record Request,Αίτημα Καταγραφής Παρακολούθησης API
+API Monitoring Record Response,Απάντηση Καταγραφής Παρακολούθησης API
+API Monitoring Error Message,Μήνυμα Σφάλματος Παρακολούθησης API
+Import Plugin Settings,Εισαγωγή Ρυθμίσεων Προσθέτου
+Error decoding settings JSON string. Please try again.,Σφάλμα αποκωδικοποίησης της συμβολοσειράς JSON ρυθμίσεων. Παρακαλώ προσπαθήστε ξανά.
+Error while importing the settings. Please try again.,Σφάλμα κατά την εισαγωγή των ρυθμίσεων. Παρακαλώ προσπαθήστε ξανά.
+Plugin Settings,Ρυθμίσεις Προσθέτου
+Error initializing plugin settings page.,Σφάλμα κατά την αρχικοποίηση της σελίδας ρυθμίσεων του προσθέτου.
+Settings saved in database.,Οι ρυθμίσεις αποθηκεύτηκαν στη βάση δεδομένων.
+Cannot save settings. Unknown instance.,Αδυναμία αποθήκευσης ρυθμίσεων. Άγνωστη περίπτωση.
+Error saving settings in database. Please try again.,Σφάλμα κατά την αποθήκευση των ρυθμίσεων στη βάση δεδομένων. Παρακαλώ προσπαθήστε ξανά.
+Plugin ID is invalid or plugin was not found.,Το αναγνωριστικό του προσθέτου δεν είναι έγκυρο ή το πρόσθετο δεν βρέθηκε.
+Plugins List,Λίστα Προσθέτων
+plugin,πρόσθετο
+plugins,πρόσθετα
+Export settings for selected,Ρυθμίσεις εξαγωγής για την επιλεγμένη
+Export settings for ALL,Ρυθμίσεις εξαγωγής για ΟΛΑ
+Plugin Name,Όνομα Προσθήκης
+All plugins for which name contains this value,Όλα τα πρόσθετα για τα οποία το όνομα περιέχει αυτήν την τιμή
+Vendor,Προμηθευτής
+All plugins from specified vendor,Όλα τα πρόσθετα από τον καθορισμένο προμηθευτή
+Tenant,Ενοικιαστής
+Version,Έκδοση
+Installed / Script,Εγκατεστημένο / Σενάριο
+Status Date,Ημερομηνία Κατάστασης
+Required plugin settings exported with success.,Οι απαιτούμενες ρυθμίσεις προσθέτου εξήχθησαν με επιτυχία.
+Exporting selected plugin settings failed. Please try again.,Απέτυχε η εξαγωγή των επιλεγμένων ρυθμίσεων προσθέτου. Παρακαλώ προσπαθήστε ξανά.
+Failed exporting all selected plugin settings. Plugin settings which failed export are still selected. Please try again.,Απέτυχε η εξαγωγή όλων των επιλεγμένων ρυθμίσεων προσθέτου. Οι ρυθμίσεις προσθέτου που απέτυχαν στην εξαγωγή παραμένουν επιλεγμένες. Παρακαλώ προσπαθήστε ξανά.
+Crypting key not provided.,Κλειδί κρυπτογράφησης δεν παρέχεται.
+Plugin installed with success.,Το πρόσθετο εγκαταστάθηκε με επιτυχία.
+Installing plugin failed. Please try again.,Η εγκατάσταση του πρόσθετου απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Cannot install plugin. Invalid module ID.,Αδυναμία εγκατάστασης προσθέτου. Μη έγκυρο αναγνωριστικό μονάδας.
+Couldn't instantiate plugin.,Αδυναμία δημιουργίας προσθέτου.
+Plugin activated with success.,Το πρόσθετο ενεργοποιήθηκε με επιτυχία.
+Activating plugin failed. Please try again.,Η ενεργοποίηση του πρόσθετου απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Cannot install plugin. Invalid plugin ID.,Αδυναμία εγκατάστασης προσθέτου. Μη έγκυρο αναγνωριστικό προσθέτου.
+Plugin inactivated with success.,Το πρόσθετο απενεργοποιήθηκε με επιτυχία.
+Inactivating plugin failed. Please try again.,Απέτυχε η απενεργοποίηση του προσθέτου. Παρακαλώ προσπαθήστε ξανά.
+Cannot inactivate plugin. Invalid plugin ID.,Αδυναμία απενεργοποίησης προσθέτου. Μη έγκυρο αναγνωριστικό προσθέτου.
+Plugin upgraded with success.,Το πρόσθετο αναβαθμίστηκε με επιτυχία.
+Upgrading plugin failed. Please try again.,Η αναβάθμιση του πρόσθετου απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Cannot upgrade plugin. Invalid plugin ID.,Αδυναμία αναβάθμισης προσθέτου. Μη έγκυρο αναγνωριστικό προσθέτου.
+Plugin uninstalled with success.,Το πρόσθετο απεγκαταστάθηκε με επιτυχία.
+Uninstalling plugin failed. Please try again.,Αποτυχία απεγκατάστασης προσθέτου. Παρακαλώ προσπαθήστε ξανά.
+Cannot uninstall plugin. Invalid plugin ID.,Αδυναμία απεγκατάστασης προσθέτου. Μη έγκυρο αναγνωριστικό προσθέτου.
+Cannot uninstall this plugin.,Αδυναμία απεγκατάστασης αυτού του πρόσθετου.
+Plugin deleted with success.,Το πρόσθετο διαγράφηκε με επιτυχία.
+Deleting plugin failed. Please try again.,Απέτυχε η διαγραφή του πρόσθετου. Παρακαλώ προσπαθήστε ξανά.
+Cannot delete plugin. Invalid plugin ID.,Αδυναμία διαγραφής προσθέτου. Μη έγκυρο αναγνωριστικό προσθέτου.
+Cannot delete this plugin.,Αδυναμία διαγραφής αυτού του πρόσθετου.
+%s models,%s μοντέλα
+Install plugin,Εγκατάσταση προσθέτου
+Uninstall plugin,Απεγκατάσταση προσθέτου
+Activate plugin,Ενεργοποίηση προσθέτου
+Upgrade plugin,Αναβάθμιση προσθέτου
+Plugin Registry,Κατάλογος Προσθέτων
+Inactivate plugin,Απενεργοποίηση προσθέτου
+Delete plugin,Διαγραφή προσθέτου
+Export Plugins' Settings,Εξαγωγή Ρυθμίσεων Προσθέτων
+Export ALL Plugins' Settings,Εξαγωγή Ρυθμίσεων ΟΛΩΝ των Προσθέτων
+Please provide a crypting key.,Παρακαλώ παρέχετε ένα κλειδί κρυπτογράφησης.
+Crypting key length should be at least 64 characters length. Current length is %s characters.,Το μήκος του κλειδιού κρυπτογράφησης πρέπει να είναι τουλάχιστον 64 χαρακτήρες. Το τρέχον μήκος είναι %s χαρακτήρες.
+Exporting plugin settings...,Εξαγωγή ρυθμίσεων προσθέτου...
+Crypt Key,Κρυπτοκλειδί
+Please provide a crypting key,Παρακαλώ παράσχετε ένα κλειδί κρυπτογράφησης
+Min. 64 characters,Ελάχ. 64 χαρακτήρες
+"This crypt key will be used to encrypt plugins settings. Once you obtain the export file, make sure you keep this crypt key safe. It will be used when importing settings on other platforms. If you loose it, you will not be able to import any settings from exported file.","Αυτό το κρυπτοκλειδί θα χρησιμοποιηθεί για την κρυπτογράφηση των ρυθμίσεων των προσθέτων. Μόλις αποκτήσετε το αρχείο εξαγωγής, βεβαιωθείτε ότι κρατάτε ασφαλές αυτό το κρυπτοκλειδί. Θα χρησιμοποιηθεί κατά την εισαγωγή ρυθμίσεων σε άλλες πλατφόρμες. Αν το χάσετε, δεν θα μπορείτε να εισάγετε καμία ρύθμιση από το εξαγόμενο αρχείο."
+You can generate safe crypt keys here: %s,Μπορείτε να δημιουργήσετε ασφαλείς κρυπτοκλειδικές τιμές εδώ: %s
+Export Settings,Ρυθμίσεις Εξαγωγής
+Provided plugin is not a multi-tenant plugin. Data will be saved on default tenant.,Το παρεχόμενο πρόσθετο δεν είναι ένα πολυ-ενοικιαστικό πρόσθετο. Τα δεδομένα θα αποθηκευτούν στον προεπιλεγμένο ενοικιαστή.
+Registry data saved in database.,Τα δεδομένα του μητρώου αποθηκεύτηκαν στη βάση δεδομένων.
+Error saving registry data. Please try again.,Σφάλμα κατά την αποθήκευση δεδομένων μητρώου. Παρακαλώ προσπαθήστε ξανά.
+Migration not found in database.,Η μεταφορά δεν βρέθηκε στη βάση δεδομένων.
+Migrations List,Λίστα Μεταναστεύσεων
+Migration Scripts List,Λίστα Σεναρίων Μετεγκατάστασης
+migration,μετανάστευση
+migrations,μεταναστεύσεις
+Force run,Εξαναγκαστική εκτέλεση
+All migrations from specific plugin name,Όλες οι μετακινήσεις από συγκεκριμένο όνομα προσθέτου
+Plugin of the migration script,Πρόσθετο του σεναρίου μεταφοράς
+Script,Σενάριο
+Migrations with a specific filename,Μετακινήσεις με συγκεκριμένο όνομα αρχείου
+Migration filename contains,Το όνομα αρχείου μεταφοράς περιέχει
+Run From,Εκτέλεση Από
+All migration scripts run after this date,Όλα τα σενάρια μεταφοράς εκτελούνται μετά από αυτήν την ημερομηνία
+Start date of the script after this date,Ημερομηνία έναρξης του σεναρίου μετά από αυτήν την ημερομηνία
+Run Up To,Εκτέλεση Προς
+All migration scripts run before this date,Όλα τα σενάρια μεταφοράς εκτελούνται πριν από αυτήν την ημερομηνία
+Start date of the script before this date,Ημερομηνία έναρξης του σεναρίου πριν από αυτήν την ημερομηνία
+Specific state,Συγκεκριμένη κατάσταση
+Select only migration scripts in specific state,Επιλέξτε μόνο σενάρια μετεγκατάστασης σε συγκεκριμένη κατάσταση
+Still running,Εξακολουθεί να τρέχει
+Finished running,Ολοκληρώθηκε η εκτέλεση
+With errors,Με σφάλματα
+At version,Στην έκδοση
+Last refresh,Τελευταία ανανέωση
+Migration launched in a background script with success. Check maintenance.log to see the output.,Η μεταφορά ξεκίνησε σε ένα σενάριο φόντου με επιτυχία. Ελέγξτε το maintenance.log για να δείτε την έξοδο.
+Failed launching migration in a background script. Check maintenance.log to see any errors reported.,Αποτυχία εκκίνησης μετεγκατάστασης σε ένα σενάριο φόντου. Ελέγξτε το maintenance.log για να δείτε οποιαδήποτε αναφερόμενα σφάλματα.
+Migration script details not found in database.,Λεπτομέρειες σεναρίου μετεγκατάστασης δεν βρέθηκαν στη βάση δεδομένων.
+Run migration again,Εκτέλεσε ξανά τη μεταφορά δεδομένων
+System logs,Καταγραφές συστήματος
+Invalid log file for download.,Μη έγκυρο αρχείο καταγραφής για λήψη.
+Cannot read provided log file data.,Δεν είναι δυνατή η ανάγνωση των παρεχόμενων δεδομένων αρχείου καταγραφής.
+Agent Jobs Report,Αναφορά Εργασιών Πράκτορα
+agent job,πράκτορας εργασία
+agent jobs,εργασίες πράκτορα
+Job title,Τίτλος Θέσης Εργασίας
+Job handler,Χειριστής εργασίας
+Error code,Κωδικός σφάλματος
+Agent job error,Σφάλμα εργασίας πράκτορα
+Add Agent Job,Προσθήκη Εργασίας Πράκτορα
+Please provide a handler for this agent job.,Παρακαλώ παρέχετε έναν χειριστή για αυτήν την εργασία του πράκτορα.
+Agent job handler already exists. Pick another one.,Ο χειριστής εργασίας πράκτορα υπάρχει ήδη. Επιλέξτε έναν άλλον.
+Job parameters doesn't look like a valid JSON string or JSON is empty.,Οι παράμετροι της εργασίας δεν φαίνεται να είναι έγκυρη συμβολοσειρά JSON ή το JSON είναι κενό.
+"Invalid plugin, controller or action selected. Please select valid values from drop down list.","Επιλέχθηκε μη έγκυρο πρόσθετο, ελεγκτής ή ενέργεια. Παρακαλώ επιλέξτε έγκυρες τιμές από τη λίστα αναπτυσσόμενου μενού."
+"Couldn't compose a valid route using provided plugin, controller or action. Please select valid values from drop down list.","Δεν ήταν δυνατή η σύνθεση μιας έγκυρης διαδρομής χρησιμοποιώντας το παρεχόμενο πρόσθετο, ελεγκτή ή ενέργεια. Παρακαλώ επιλέξτε έγκυρες τιμές από τη λίστα αναπτυσσόμενου μενού."
+Please provide a valid running interval in seconds.,Παρακαλώ παρέχετε ένα έγκυρο διάστημα λειτουργίας σε δευτερόλεπτα.
+Agent job details saved...,Λεπτομέρειες εργασίας πράκτορα αποθηκεύτηκαν...
+Edit Agent Job,Επεξεργασία Εργασίας Πράκτορα
+Invalid agent job...,Μη έγκυρη εργασία πράκτορα...
+Agent job details saved.,Λεπτομέρειες εργασίας πράκτορα αποθηκεύτηκαν.
+Manage Agent Jobs,Διαχείριση Εργασιών Πράκτορα
+Agent Jobs,Εργασίες Πράκτορα
+Invalid agent job or agent job was not found in database.,Μη έγκυρη δουλειά πράκτορα ή η δουλειά του πράκτορα δεν βρέθηκε στη βάση δεδομένων.
+Agent job details saved in database.,Λεπτομέρειες εργασίας πράκτορα αποθηκεύτηκαν στη βάση δεδομένων.
+Handler,Χειριστής
+All records containing this value at route field,Όλες οι εγγραφές που περιέχουν αυτήν την τιμή στο πεδίο διαδρομής
+Next run,Επόμενη εκτέλεση
+Last action,Τελευταία ενέργεια
+Required agent jobs activated with success.,Τα απαιτούμενα θέσεις πράκτορα ενεργοποιήθηκαν με επιτυχία.
+Activating selected agent jobs failed. Please try again.,Η ενεργοποίηση των επιλεγμένων θέσεων εργασίας πράκτορα απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed activating all selected agent jobs. Agent jobs which failed activation are still selected. Please try again.,Αποτυχία ενεργοποίησης όλων των επιλεγμένων εργασιών πράκτορα. Οι εργασίες πράκτορα που απέτυχαν στην ενεργοποίηση παραμένουν επιλεγμένες. Παρακαλώ προσπαθήστε ξανά.
+Required agent jobs inactivated with success.,Τα απαιτούμενα θέσεις πράκτορα απενεργοποιήθηκαν με επιτυχία.
+Inactivating selected agent jobs failed. Please try again.,Η απενεργοποίηση επιλεγμένων θέσεων εργασίας πράκτορα απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed inactivating all selected agent jobs. Agent jobs which failed inactivation are still selected. Please try again.,Αποτυχία απενεργοποίησης όλων των επιλεγμένων θέσεων πράκτορα. Οι θέσεις πράκτορα που απέτυχαν στην απενεργοποίηση παραμένουν επιλεγμένες. Παρακαλώ προσπαθήστε ξανά.
+Required agent jobs deleted with success.,Τα απαιτούμενα θέσεις πράκτορα διαγράφηκαν με επιτυχία.
+Deleting selected agent jobs failed. Please try again.,Η διαγραφή των επιλεγμένων θέσεων εργασίας πράκτορα απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed deleting all selected agent jobs. Agent jobs which failed deletion are still selected. Please try again.,Απέτυχε η διαγραφή όλων των επιλεγμένων θέσεων πράκτορα. Οι θέσεις πράκτορα που απέτυχαν στη διαγραφή παραμένουν επιλεγμένες. Παρακαλώ προσπαθήστε ξανά.
+Agent job activated with success.,Το εργασίας πράκτορα ενεργοποιήθηκε με επιτυχία.
+Activating agent job failed. Please try again.,Η ενεργοποίηση της εργασίας του παράγοντα απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Cannot activate agent job. Agent job not found in database.,Αδυναμία ενεργοποίησης εργασίας πράκτορα. Η εργασία πράκτορα δεν βρέθηκε στη βάση δεδομένων.
+Agent job inactivated with success.,Το εργασία πράκτορα απενεργοποιήθηκε με επιτυχία.
+Inactivating agent job failed. Please try again.,Η εργασία του ανενεργοποιητικοϿ παράγοντα απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Cannot inactivate agent job. Agent job not found in database.,Αδυναμία απενεργοποίησης της εργασίας πράκτορα. Η εργασία πράκτορα δεν βρέθηκε στη βάση δεδομένων.
+Agent job started with success.,Η εργασία του πράκτορα ξεκίνησε με επιτυχία.
+Running agent job failed. Please try again.,Η εκτέλεση της εργασίας του πράκτορα απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Cannot run agent job. Agent job not found in database.,Αδυναμία εκτέλεσης της εργασίας πράκτορα. Η εργασία πράκτορα δεν βρέθηκε στη βάση δεδομένων.
+Cannot instantiate agent class.,Αδυναμία δημιουργίας αντικειμένου κλάσης πράκτορα.
+Agent job deleted with success.,Το job του πράκτορα διαγράφηκε με επιτυχία.
+Deleting agent job failed. Please try again.,Αποτυχία διαγραφής εργασίας πράκτορα. Παρακαλώ προσπαθήστε ξανά.
+Cannot delete address. Agent job not found in database.,Αδυναμία διαγραφής διεύθυνσης. Το job του πράκτορα δεν βρέθηκε στη βάση δεδομένων.
+Stalling,Κολλημένος
+Runs every %s,Εκτελείται κάθε %s
+Stalling %s,Κολλημένο %s
+Edit agent job,Επεξεργασία εργασίας πράκτορα
+Activate agent job,Ενεργοποίηση εργασίας πράκτορα
+Inactivate agent job,Απενεργοποίηση εργασίας πράκτορα
+Manually run agent job,Εκτέλεση της εργασίας του πράκτορα με το χέρι
+Delete agent job,Διαγραφή εργασίας πράκτορα
+Agent job last error,Τελευταίο σφάλμα εργασίας πράκτορα
+Are you sure you want to activate this agent job?,Είστε σίγουροι ότι θέλετε να ενεργοποιήσετε αυτήν την εργασία πράκτορα;
+Are you sure you want to inactivate this agent job?,Είστε σίγουροι ότι θέλετε να απενεργοποιήσετε αυτήν την εργασία πράκτορα;
+NOTE: This agent job is part of a plugin. If you delete it plugin might not function normally.,"ΣΗΜΕΙΩΣΗ: Αυτή η εργασία πράκτορα είναι μέρος ενός πρόσθετου. Εάν το διαγράψετε, το πρόσθετο ενδέχεται να μη λειτουργεί κανονικά."
+Are you sure you want to continue?,Είστε σίγουροι ότι θέλετε να συνεχίσετε;
+Are you sure you want to DELETE this agent job?,Είστε σίγουροι ότι θέλετε να ΔΙΑΓΡΑΨΕΤΕ αυτήν την εργασία πράκτορα;
+NOTE: Job is still running! You should run this job only if you know what you'r doing!!!,ΣΗΜΕΙΩΣΗ: Η εργασία εξακολουθεί να εκτελείται! Θα πρέπει να εκτελέσετε αυτήν την εργασία μόνο αν γνωρίζετε τι κάνετε!!!
+Are you sure you want to manually run this agent job?,Είστε σίγουροι ότι θέλετε να εκτελέσετε χειροκίνητα αυτήν την εργασία πράκτορα;
+Please select agent jobs you want to activate first.,Παρακαλώ επιλέξτε πρώτα τις εργασίες πράκτορα που θέλετε να ενεργοποιήσετε.
+Are you sure you want to activate %s agent jobs?,Είστε σίγουροι ότι θέλετε να ενεργοποιήσετε τις εργασίες του πράκτορα %s;
+Please select agent jobs you want to inactivate first.,Παρακαλώ επιλέξτε πρώτα τις εργασίες πράκτορα που θέλετε να απενεργοποιήσετε.
+Are you sure you want to inactivate %s agent jobs?,Είστε σίγουροι ότι θέλετε να απενεργοποιήσετε τις εργασίες του παράγοντα %s;
+Please select agent jobs you want to delete first.,Παρακαλώ επιλέξτε πρώτα τις εργασίες πράκτορα που θέλετε να διαγράψετε.
+Are you sure you want to DELETE %s agent jobs?,Είστε σίγουροι ότι θέλετε να ΔΙΑΓΡΑΨΕΤΕ %s θέσεις εργασίας πράκτορα;
+Add Role,Προσθήκη Ρόλου
+Plugins' Integrity,Ακεραιότητα Προσθέτων
+Couldn't load plugins model.,Αδυναμία φόρτωσης μοντέλων προσθέτων.
+Please provide a valid plugin name.,Παρακαλώ δώστε ένα έγκυρο όνομα προσθέτου.
+"Checking plugin %s (%s controllers, %s actions, %s contracts, %s models, %s events)...","Έλεγχος προσθέτου %s (%s ελεγκτές, %s ενέργειες, %s συμβάσεις, %s μοντέλα, %s συμβάντα)..."
+NOT Installed,ΜΗ Εγκατεστημένο
+Framework Updates,Ενημερώσεις Πλαισίου
+Add API Key,Προσθήκη κλειδιού API
+Error creating API instance: %s,Σφάλμα κατά τη δημιουργία παράδειγματος API: %s
+Couldn't obtain an API instance.,Αδυναμία λήψης μιας περίπτωσης API.
+API key details saved...,Λεπτομέρειες κλειδιού API αποθηκεύτηκαν...
+Edit API Key,Επεξεργασία κλειδιού API
+Invalid API key...,Μη έγκυρο κλειδί API...
+API key details saved.,Λεπτομέρειες κλειδιού API αποθηκεύτηκαν.
+API Keys List,Λίστα κλειδιών API
+API keys,Κλειδιά API
+API key,Κλειδί API
+Invalid API key or API key was not found in database.,Μη έγκυρο κλειδί API ή το κλειδί API δεν βρέθηκε στη βάση δεδομένων.
+API key details saved in database.,Λεπτομέρειες κλειδιού API αποθηκευμένες στη βάση δεδομένων.
+API Key,Κλειδί API
+Simulate Web,Προσομοίωση Ιστού
+??,Απαιτείται κείμενο για μετάφραση.
+Required API keys activated with success.,Τα απαιτούμενα κλειδιά API ενεργοποιήθηκαν με επιτυχία.
+Activating selected API keys failed. Please try again.,Η ενεργοποίηση των επιλεγμένων κλειδιών API απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed activating all selected API keys. API keys which failed activation are still selected. Please try again.,Αποτυχία ενεργοποίησης όλων των επιλεγμένων κλειδιών API. Τα κλειδιά API που απέτυχαν στην ενεργοποίηση παραμένουν επιλεγμένα. Παρακαλώ προσπαθήστε ξανά.
+Required API keys inactivated with success.,Τα απαιτούμενα κλειδιά API απενεργοποιήθηκαν με επιτυχία.
+Inactivating selected API keys failed. Please try again.,Η απενεργοποίηση των επιλεγμένων κλειδιών API απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed inactivating all selected API keys. API keys which failed inactivation are still selected. Please try again.,Αποτυχία απενεργοποίησης όλων των επιλεγμένων κλειδιών API. Τα κλειδιά API που απέτυχαν στην απενεργοποίηση παραμένουν επιλεγμένα. Παρακαλώ προσπαθήστε ξανά.
+Required API keys deleted with success.,Τα απαιτούμενα κλειδιά API διαγράφηκαν με επιτυχία.
+Deleting selected API keys failed. Please try again.,Η διαγραφή των επιλεγμένων κλειδιών API απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed deleting all selected API keys. API keys which failed deletion are still selected. Please try again.,Αποτυχία διαγραφής όλων των επιλεγμένων κλειδιών API. Τα κλειδιά API που απέτυχαν στη διαγραφή παραμένουν επιλεγμένα. Παρακαλώ προσπαθήστε ξανά.
+API key activated with success.,Το κλειδί API ενεργοποιήθηκε με επιτυχία.
+Activating API key failed. Please try again.,Απέτυχε η ενεργοποίηση του κλειδιού API. Παρακαλώ προσπαθήστε ξανά.
+Cannot activate API key. API key not found.,Αδυναμία ενεργοποίησης κλειδιού API. Το κλειδί API δεν βρέθηκε.
+API key inactivated with success.,Το κλειδί API απενεργοποιήθηκε με επιτυχία.
+Inactivating API key failed. Please try again.,Αποτυχία απενεργοποίησης κλειδιού API. Παρακαλώ προσπαθήστε ξανά.
+Cannot inactivate API key. API key not found.,Αδυναμία απενεργοποίησης κλειδιού API. Το κλειδί API δεν βρέθηκε.
+API key deleted with success.,Το κλειδί API διαγράφηκε με επιτυχία.
+Deleting API key failed. Please try again.,Απέτυχε η διαγραφή του κλειδιού API. Παρακαλώ προσπαθήστε ξανά.
+Cannot delete API key. API key not found.,Αδυναμία διαγραφής κλειδιού API. Το κλειδί API δεν βρέθηκε.
+API Secret,Μυστικό API
+Show,Εμφάνιση
+ALL,ΟΛΑ
+Edit API key,Επεξεργασία κλειδιού API
+Activate API key,Ενεργοποίηση κλειδιού API
+Inactivate API key,Απενεργοποίηση κλειδιού API
+Delete API key,Διαγραφή κλειδιού API
+Are you sure you want to activate this API key?,Είστε σίγουροι ότι θέλετε να ενεργοποιήσετε αυτό το κλειδί API;
+Are you sure you want to inactivate this API key?,Είστε σίγουροι ότι θέλετε να απενεργοποιήσετε αυτό το κλειδί API;
+Are you sure you want to DELETE this API key?,Είστε σίγουροι ότι θέλετε να ΔΙΑΓΡΑΨΕΤΕ αυτό το κλειδί API;
+Please select API keys you want to activate first.,Παρακαλώ επιλέξτε πρώτα τα κλειδιά API που θέλετε να ενεργοποιήσετε.
+Are you sure you want to activate %s API keys?,Είστε σίγουροι ότι θέλετε να ενεργοποιήσετε τα κλειδιά API %s;
+Please select API keys you want to inactivate first.,Παρακαλώ επιλέξτε πρώτα τα κλειδιά API που θέλετε να απενεργοποιήσετε.
+Are you sure you want to inactivate %s API keys?,Είστε σίγουροι ότι θέλετε να απενεργοποιήσετε τα κλειδιά API του %s;
+Please select API keys you want to delete first.,Παρακαλώ επιλέξτε πρώτα τα κλειδιά API που θέλετε να διαγράψετε.
+Are you sure you want to DELETE %s API keys?,Είστε σίγουροι ότι θέλετε να ΔΙΑΓΡΑΨΕΤΕ τα κλειδιά API %s;
+Roles List,Λίστα Ρόλων
+role,ρόλος
+roles,ρόλοι
+Invalid role or role was not found in database.,Μη έγκυρος ρόλος ή ο ρόλος δεν βρέθηκε στη βάση δεδομένων.
+Role details saved in database.,Λεπτομέρειες ρόλου αποθηκεύτηκαν στη βάση δεδομένων.
+Slug,Σαλιγκάρι
+Required roles activated with success.,Τα απαιτούμενα ρόλα ενεργοποιήθηκαν με επιτυχία.
+Activating selected roles failed. Please try again.,Η ενεργοποίηση των επιλεγμένων ρόλων απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed activating all selected roles. Roles which failed activation are still selected. Please try again.,Αποτυχία ενεργοποίησης όλων των επιλεγμένων ρόλων. Οι ρόλοι που απέτυχαν στην ενεργοποίηση παραμένουν επιλεγμένοι. Παρακαλώ προσπαθήστε ξανά.
+Required roles inactivated with success.,Τα απαιτούμενα ρόλα απενεργοποιήθηκαν με επιτυχία.
+Inactivating selected roles failed. Please try again.,Η απενεργοποίηση επιλεγμένων ρόλων απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed inactivating all selected roles. Roles which failed inactivation are still selected. Please try again.,Απέτυχε η απενεργοποίηση όλων των επιλεγμένων ρόλων. Οι ρόλοι που απέτυχαν στην απενεργοποίηση παραμένουν επιλεγμένοι. Παρακαλώ προσπαθήστε ξανά.
+Required roles deleted with success.,Τα απαιτούμενα ρόλα διαγράφηκαν με επιτυχία.
+Deleting selected roles failed. Please try again.,Η διαγραφή των επιλεγμένων ρόλων απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed deleting all selected roles. Roles which failed deletion are still selected. Please try again.,Απέτυχε η διαγραφή όλων των επιλεγμένων ρόλων. Οι ρόλοι που απέτυχαν στη διαγραφή παραμένουν επιλεγμένοι. Παρακαλώ προσπαθήστε ξανά.
+Role activated with success.,Ο ρόλος ενεργοποιήθηκε με επιτυχία.
+Activating role failed. Please try again.,Αποτυχία ενεργοποίησης ρόλου. Παρακαλώ προσπαθήστε ξανά.
+Cannot activate role. Role not found.,Αδυναμία ενεργοποίησης ρόλου. Ο ρόλος δεν βρέθηκε.
+Role inactivated with success.,Ο ρόλος απενεργοποιήθηκε με επιτυχία.
+Inactivating role failed. Please try again.,Απέτυχε ο ρόλος απενεργοποίησης. Παρακαλώ προσπαθήστε ξανά.
+Cannot inactivate role. Role not found.,Αδυναμία απενεργοποίησης ρόλου. Ο ρόλος δεν βρέθηκε.
+Role deleted with success.,Ο ρόλος διαγράφηκε με επιτυχία.
+Deleting role failed. Please try again.,Αποτυχία διαγραφής ρόλου. Παρακαλώ προσπαθήστε ξανά.
+Cannot delete role. Role not found.,Αδυναμία διαγραφής ρόλου. Ο ρόλος δεν βρέθηκε.
+Edit role,Επεξεργασία ρόλου
+Activate role,Ενεργοποίηση ρόλου
+Inactivate role,Απενεργοποίηση ρόλου
+Delete role,Διαγραφή ρόλου
+Plugin name not provided for validity check,Δεν παρέχεται το όνομα του πρόσθετου για έλεγχο εγκυρότητας
+Unknown error while instantiating plugin.,Άγνωστο σφάλμα κατά την αρχικοποίηση του προσθέτου.
+Unknown error while instantiating controller.,Άγνωστο σφάλμα κατά την αρχικοποίηση του ελεγκτή.
+Unknown error while instantiating action.,Άγνωστο σφάλμα κατά την αρχικοποίηση της ενέργειας.
+Unknown error while instantiating contract.,Άγνωστο σφάλμα κατά την αρχικοποίηση του συμβολαίου.
+Unknown error while instantiating event.,Άγνωστο σφάλμα κατά την αρχικοποίηση του συμβάντος.
+Unknown error while instantiating model.,Άγνωστο σφάλμα κατά την αρχικοποίηση του μοντέλου.
+Nothing to instantiate. Please check parameters.,Δεν υπάρχει τίποτα να δημιουργηθεί. Παρακαλώ ελέγξτε τις παραμέτρους.
+Admin Area,Περιοχή Διαχειριστή
+Add Data Retention Policy,Προσθήκη Πολιτικής Διατήρησης Δεδομένων
+Provided details are not valid. Please try again.,Τα παρεχόμενα στοιχεία δεν είναι έγκυρα. Παρακαλώ προσπαθήστε ξανά.
+Invalid retention interval. Please try again.,Μη έγκυρο διάστημα διατήρησης. Παρακαλώ προσπαθήστε ξανά.
+Data retention policy details saved...,Λεπτομέρειες πολιτικής διατήρησης δεδομένων αποθηκεύτηκαν...
+Edit Data Retention Policy,Επεξεργασία Πολιτικής Διατήρησης Δεδομένων
+Invalid data retention policy...,Μη έγκυρη πολιτική διατήρησης δεδομένων...
+Data retention policy details saved.,Λεπτομέρειες πολιτικής διατήρησης δεδομένων αποθηκεύτηκαν.
+Initial data retention details are not valid anymore. Please delete or re-setup the policy.,Οι αρχικές λεπτομέρειες διατήρησης δεδομένων δεν είναι πλέον έγκυρες. Παρακαλώ διαγράψτε ή επαναρυθμίστε την πολιτική.
+Data Retention Policies Runs,Πολιτικές Διατήρησης Δεδομένων Εκτελείται
+policy,πολιτική
+policies,πολιτικές
+Invalid data retention policy or data retention policy was not found in database.,Μη έγκυρη πολιτική διατήρησης δεδομένων ή η πολιτική διατήρησης δεδομένων δεν βρέθηκε στη βάση δεδομένων.
+Re-run,Επανεκτέλεση
+From Table,Από Πίνακα
+Runs which moved records from this table,Εκτελέσεις που μετέφεραν εγγραφές από αυτόν τον πίνακα
+Source table,Πίνακας πηγής
+To Table,Πίνακας
+Runs which moved records to this table,Εκτελέσεις που μετέφεραν εγγραφές σε αυτόν τον πίνακα
+Destination table,Πίνακας προορισμού
+Action Type,Τύπος Δράσης
+All data policies which run after this date,Όλες οι πολιτικές δεδομένων που τρέχουν μετά από αυτήν την ημερομηνία
+Start date from,Ημερομηνία έναρξης από
+All data policies which run before this date,Όλες οι πολιτικές δεδομένων που τρέχουν πριν από αυτήν την ημερομηνία
+Start date to,Ημερομηνία έναρξης
+Retention Policy,Πολιτική Διατήρησης
+From table,Από πίνακα
+To table,Στον πίνακα
+Field,Πεδίο
+Max date,Μέγιστη ημερομηνία
+Rows,Σειρές
+Data retention policy launched with success.,Η πολιτική διατήρησης δεδομένων ξεκίνησε με επιτυχία.
+Launching data retention policy failed. Please try again.,Απέτυχε η εκκίνηση της πολιτικής διατήρησης δεδομένων. Παρακαλώ προσπαθήστε ξανά.
+Cannot launch data retention policy. Data retention policy not found.,Αδυναμία εκκίνησης πολιτικής διατήρησης δεδομένων. Η πολιτική διατήρησης δεδομένων δεν βρέθηκε.
+Re-run data retention policy,Επανεκτέλεση πολιτικής διατήρησης δεδομένων
+Are you sure you want to run this data retention policy again?,Είστε σίγουροι ότι θέλετε να εκτελέσετε ξανά αυτήν την πολιτική διατήρησης δεδομένων;
+Data retention Policies,Πολιτικές διατήρησης δεδομένων
+Data Retention Policies,Πολιτικές Διατήρησης Δεδομένων
+Data retention policy details saved in database.,Λεπτομέρειες πολιτικής διατήρησης δεδομένων αποθηκευμένες στη βάση δεδομένων.
+Run,Εκτέλεση
+Policies for specific plugin,Πολιτικές για συγκεκριμένο πρόσθετο
+Policy plugin,Πρόσθετο πολιτικής
+Policies for specific model,Πολιτικές για συγκεκριμένο μοντέλο
+Policy model,Μοντέλο πολιτικής
+Table,Πίνακας
+Policies for specific model table,Πολιτικές για συγκεκριμένο πίνακα μοντέλου
+Policy model table,Πίνακας μοντέλου πολιτικής
+Retention,Διατήρηση
+Required data retention policies launched with success.,Οι απαιτούμενες πολιτικές διατήρησης δεδομένων ξεκίνησαν με επιτυχία.
+Launching selected data retention policies failed. Please try again.,Η εκκίνηση των επιλεγμένων πολιτικών διατήρησης δεδομένων απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed launched all selected data retention policies. Data retention policies which failed launching are still selected. Please try again.,Απέτυχε η εκκίνηση όλων των επιλεγμένων πολιτικών διατήρησης δεδομένων. Οι πολιτικές διατήρησης δεδομένων που απέτυχαν να εκκινήσουν παραμένουν επιλεγμένες. Παρακαλώ προσπαθήστε ξανά.
+Required data retention policies activated with success.,Οι απαιτούμενες πολιτικές διατήρησης δεδομένων ενεργοποιήθηκαν με επιτυχία.
+Activating selected data retention policies failed. Please try again.,Η ενεργοποίηση των επιλεγμένων πολιτικών διατήρησης δεδομένων απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed activating all selected data retention policies. Data retention policies which failed activation are still selected. Please try again.,Αποτυχία ενεργοποίησης όλων των επιλεγμένων πολιτικών διατήρησης δεδομένων. Οι πολιτικές διατήρησης δεδομένων που απέτυχαν στην ενεργοποίηση παραμένουν επιλεγμένες. Παρακαλώ προσπαθήστε ξανά.
+Required data retention policies inactivated with success.,Οι απαιτούμενες πολιτικές διατήρησης δεδομένων απενεργοποιήθηκαν με επιτυχία.
+Inactivating selected data retention policies failed. Please try again.,Η απενεργοποίηση επιλεγμένων πολιτικών διατήρησης δεδομένων απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed inactivating all selected data retention policies. Data retention policies which failed inactivation are still selected. Please try again.,Αποτυχία απενεργοποίησης όλων των επιλεγμένων πολιτικών διατήρησης δεδομένων. Οι πολιτικές διατήρησης δεδομένων που απέτυχαν στην απενεργοποίηση παραμένουν επιλεγμένες. Παρακαλώ προσπαθήστε ξανά.
+Required data retention policies deleted with success.,Οι απαιτούμενες πολιτικές διατήρησης δεδομένων διαγράφηκαν με επιτυχία.
+Deleting selected data retention policies failed. Please try again.,Η διαγραφή των επιλεγμένων πολιτικών διατήρησης δεδομένων απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed deleting all selected data retention policies. Data retention policies which failed deletion are still selected. Please try again.,Αποτυχία διαγραφής όλων των επιλεγμένων πολιτικών διατήρησης δεδομένων. Οι πολιτικές διατήρησης δεδομένων που απέτυχαν στη διαγραφή παραμένουν επιλεγμένες. Παρακαλώ προσπαθήστε ξανά.
+Data retention policy activated with success.,Η πολιτική διατήρησης δεδομένων ενεργοποιήθηκε με επιτυχία.
+Activating data retention policy failed. Please try again.,Απέτυχε η ενεργοποίηση της πολιτικής διατήρησης δεδομένων. Παρακαλώ προσπαθήστε ξανά.
+Cannot activate data retention policy. Data retention policy not found.,Αδυναμία ενεργοποίησης πολιτικής διατήρησης δεδομένων. Η πολιτική διατήρησης δεδομένων δεν βρέθηκε.
+Data retention policy inactivated with success.,Η πολιτική διατήρησης δεδομένων απενεργοποιήθηκε με επιτυχία.
+Inactivating data retention policy failed. Please try again.,Απέτυχε η απενεργοποίηση της πολιτικής διατήρησης δεδομένων. Παρακαλώ προσπαθήστε ξανά.
+Cannot inactivate data retention policy. Data retention policy not found.,Αδυναμία απενεργοποίησης πολιτικής διατήρησης δεδομένων. Δεν βρέθηκε η πολιτική διατήρησης δεδομένων.
+Data retention policy deleted with success.,Η πολιτική διατήρησης δεδομένων διαγράφηκε με επιτυχία.
+Deleting data retention policy failed. Please try again.,Αποτυχία διαγραφής πολιτικής διατήρησης δεδομένων. Παρακαλώ προσπαθήστε ξανά.
+Cannot delete data retention policy. Data retention policy not found.,Αδυναμία διαγραφής πολιτικής διατήρησης δεδομένων. Δεν βρέθηκε η πολιτική διατήρησης δεδομένων.
+Edit data retention policy,Επεξεργασία πολιτικής διατήρησης δεδομένων
+Activate data retention policy,Ενεργοποίηση πολιτικής διατήρησης δεδομένων
+Inactivate data retention policy,Απενεργοποίηση πολιτικής διατήρησης δεδομένων
+Run data retention policy,Εκτέλεση πολιτικής διατήρησης δεδομένων
+Delete data retention policy,Διαγραφή πολιτικής διατήρησης δεδομένων
+Are you sure you want to activate this data retention policy?,Είστε σίγουροι ότι θέλετε να ενεργοποιήσετε αυτήν την πολιτική διατήρησης δεδομένων;
+Are you sure you want to inactivate this data retention policy?,Είστε σίγουροι ότι θέλετε να απενεργοποιήσετε αυτήν την πολιτική διατήρησης δεδομένων;
+Are you sure you want to run this data retention policy?,Είστε σίγουροι ότι θέλετε να εκτελέσετε αυτήν την πολιτική διατήρησης δεδομένων;
+Are you sure you want to DELETE this data retention policy?,Είστε σίγουροι ότι θέλετε να ΔΙΑΓΡΑΨΕΤΕ αυτήν την πολιτική διατήρησης δεδομένων;
+Please select data retention policies you want to activate first.,Παρακαλώ επιλέξτε πρώτα τις πολιτικές διατήρησης δεδομένων που θέλετε να ενεργοποιήσετε.
+Are you sure you want to activate %s data retention policies?,Είστε σίγουροι ότι θέλετε να ενεργοποιήσετε τις πολιτικές διατήρησης δεδομένων %s;
+Please select data retention policies you want to inactivate first.,Παρακαλώ επιλέξτε πολιτικές διατήρησης δεδομένων που θέλετε να απενεργοποιήσετε πρώτα.
+Are you sure you want to inactivate %s data retention policies?,Είστε σίγουροι ότι θέλετε να απενεργοποιήσετε τις πολιτικές διατήρησης δεδομένων του %s;
+Please select data retention policies you want to run first.,Παρακαλώ επιλέξτε πολιτικές διατήρησης δεδομένων που θέλετε να εκτελέσετε πρώτα.
+Are you sure you want to run %s data retention policies?,Είστε σίγουροι ότι θέλετε να εκτελέσετε τις πολιτικές διατήρησης δεδομένων %s;
+Please select data retention policies you want to delete first.,Παρακαλώ επιλέξτε πολιτικές διατήρησης δεδομένων που θέλετε να διαγράψετε πρώτα.
+Are you sure you want to DELETE %s data retention policies?,Είστε σίγουροι ότι θέλετε να ΔΙΑΓΡΑΨΕΤΕ τις πολιτικές διατήρησης δεδομένων %s;
+Data retention details not provided.,Λεπτομέρειες διατήρησης δεδομένων δεν παρέχονται.
+Import Users,Εισαγωγή Χρηστών
+"Import finished. %s accounts in import file, %s accounts processed, %s new accounts (%s inserted in database), %s updated accounts, %s errors.","Η εισαγωγή ολοκληρώθηκε. %s λογαριασμοί στο αρχείο εισαγωγής, %s λογαριασμοί επεξεργάστηκαν, %s νέοι λογαριασμοί (%s εισήχθησαν στη βάση δεδομένων), %s ενημερωμένοι λογαριασμοί, %s σφάλματα."
+For more details check import log file.,Για περισσότερες λεπτομέρειες ελέγξτε το αρχείο καταγραφής εισαγωγής.
+Error uploading accounts import file: %s,Σφάλμα κατά τη μεταφόρτωση του αρχείου εισαγωγής λογαριασμών: %s
+Error processing import: %s,Σφάλμα κατά την επεξεργασία εισαγωγής: %s
+Import finished...,Η εισαγωγή ολοκληρώθηκε...
+Add User,Προσθήκη Χρήστη
+User account created...,Δημιουργήθηκε λογαριασμός χρήστη...
+Edit User,Επεξεργασία Χρήστη
+Invalid account...,Μη έγκυρος λογαριασμός...
+Account details saved in database.,Λεπτομέρειες λογαριασμού αποθηκεύτηκαν στη βάση δεδομένων.
+Password fields don't match.,Τα πεδία κωδικού πρόσβασης δεν ταιριάζουν.
+Account details,Λεπτομέρειες λογαριασμού
+List Users,Λίστα Χρηστών
+User account created.,Ο λογαριασμός χρήστη δημιουργήθηκε.
+You don't have enough rights to edit the account.,Δεν έχετε αρκετά δικαιώματα για να επεξεργαστείτε τον λογαριασμό.
+user,χρήστης
+users,χρήστες
+Reset account locking,Επαναφορά κλειδώματος λογαριασμού
+Export selected,Εξαγωγή επιλεγμένων
+Export ALL accounts,Εξαγωγή ΟΛΩΝ των λογαριασμών
+Has login attempts,Έχει προσπάθειες σύνδεσης
+IS or WAS locked,ΚΛΕΙΣΤΟ ή ΗΤΑΝ κλειδωμένο
+IS locked,ΕΙΝΑΙ κλειδωμένο
+IDs,Αναγνωριστικά
+Comma separated ids,Ταυτότητες χωρισμένες με κόμμα
+"eg. 1,2,3","π.χ. 1,2,3"
+Nickname,Ψευδώνυμο
+Account lockout,Κλείδωμα λογαριασμού
+Select only accounts with specific account lockout conditions,Επιλέξτε μόνο λογαριασμούς με συγκεκριμένες συνθήκες κλειδώματος λογαριασμού
+Level,Επίπεδο
+Tenants,Ενοικιαστές
+Locked?,Κλειδωμένο;
+Last Login,Τελευταία Σύνδεση
+Never,Ποτέ
+Reseted account locking for required accounts with success.,Επαναφορά κλειδώματος λογαριασμού για τους απαιτούμενους λογαριασμούς με επιτυχία.
+Resetting account locking for selected accounts failed. Please try again.,Αποτυχία επαναφοράς κλειδώματος λογαριασμού για τους επιλεγμένους λογαριασμούς. Παρακαλώ προσπαθήστε ξανά.
+Failed resetting account locking for all selected accounts. Accounts for which action failed are still selected. Please try again.,Αποτυχία επαναφοράς κλειδώματος λογαριασμού για όλους τους επιλεγμένους λογαριασμούς. Οι λογαριασμοί για τους οποίους απέτυχε η ενέργεια παραμένουν επιλεγμένοι. Παρακαλώ προσπαθήστε ξανά.
+Required accounts activated with success.,Απαιτούμενοι λογαριασμοί ενεργοποιήθηκαν με επιτυχία.
+Activating selected accounts failed. Please try again.,Η ενεργοποίηση των επιλεγμένων λογαριασμών απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed activating all selected accounts. Accounts which failed activation are still selected. Please try again.,Αποτυχία ενεργοποίησης όλων των επιλεγμένων λογαριασμών. Οι λογαριασμοί που απέτυχαν στην ενεργοποίηση παραμένουν επιλεγμένοι. Παρακαλώ προσπαθήστε ξανά.
+Required accounts inactivated with success.,Τα απαιτούμενα λογαριασμοί απενεργοποιήθηκαν με επιτυχία.
+Inactivating selected accounts failed. Please try again.,Αποτυχία απενεργοποίησης επιλεγμένων λογαριασμών. Παρακαλώ προσπαθήστε ξανά.
+Failed inactivating all selected accounts. Accounts which failed inactivation are still selected. Please try again.,Αποτυχία απενεργοποίησης όλων των επιλεγμένων λογαριασμών. Οι λογαριασμοί που απέτυχαν στην απενεργοποίηση παραμένουν επιλεγμένοι. Παρακαλώ προσπαθήστε ξανά.
+Required accounts deleted with success.,Τα απαιτούμενα λογαριασμοί διαγράφηκαν με επιτυχία.
+Deleting selected accounts failed. Please try again.,Η διαγραφή των επιλεγμένων λογαριασμών απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed deleting all selected accounts. Accounts which failed deletion are still selected. Please try again.,Απέτυχε η διαγραφή όλων των επιλεγμένων λογαριασμών. Οι λογαριασμοί που απέτυχαν τη διαγραφή παραμένουν επιλεγμένοι. Παρακαλώ προσπαθήστε ξανά.
+Required accounts exported with success.,Τα απαιτούμενα λογαριασμοί εξαχθήκαν με επιτυχία.
+Exporting selected accounts failed. Please try again.,Απέτυχε η εξαγωγή των επιλεγμένων λογαριασμών. Παρακαλώ προσπαθήστε ξανά.
+Failed exporting all selected accounts. Accounts which failed export are still selected. Please try again.,Απέτυχε η εξαγωγή όλων των επιλεγμένων λογαριασμών. Οι λογαριασμοί που απέτυχαν την εξαγωγή παραμένουν επιλεγμένοι. Παρακαλώ προσπαθήστε ξανά.
+Logged in with success.,Συνδέθηκε με επιτυχία.
+Logging in as this account failed. Please try again.,Η σύνδεση με αυτόν τον λογαριασμό απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Cannot login as this account. Account not found.,Αδυναμία σύνδεσης με αυτόν τον λογαριασμό. Ο λογαριασμός δεν βρέθηκε.
+Account not active. Activate account first.,Ο λογαριασμός δεν είναι ενεργός. Ενεργοποιήστε πρώτα τον λογαριασμό.
+Account locking reset with success.,Επαναφορά κλειδώματος λογαριασμού με επιτυχία.
+Resetting account locking failed. Please try again.,Αποτυχία επαναφοράς κλειδώματος λογαριασμού. Παρακαλώ προσπαθήστε ξανά.
+Cannot reset account locking. Account not found.,Αδυναμία επαναφοράς κλειδώματος λογαριασμού. Ο λογαριασμός δεν βρέθηκε.
+You don't have rights to manage this account.,Δεν έχετε δικαιώματα για τη διαχείριση αυτού του λογαριασμού.
+Re-sent registration email with success.,Επαναστέλνονται το email εγγραφής με επιτυχία.
+Re-sending registration email failed. Please try again.,Αποτυχία επανάληψης αποστολής email εγγραφής. Παρακαλώ προσπαθήστε ξανά.
+You don't have rights to manage accounts.,Δεν έχετε δικαιώματα για τη διαχείριση λογαριασμών.
+Cannot re-send registration email. Account not found.,Δεν είναι δυνατή η επανάληψη αποστολής email εγγραφής. Ο λογαριασμός δεν βρέθηκε.
+Account activated with success.,Ο λογαριασμός ενεργοποιήθηκε με επιτυχία.
+Activating account failed. Please try again.,Απέτυχε η ενεργοποίηση λογαριασμού. Παρακαλώ προσπαθήστε ξανά.
+Cannot activate account. Account not found.,Αδυναμία ενεργοποίησης λογαριασμού. Ο λογαριασμός δεν βρέθηκε.
+Account inactivated with success.,Ο λογαριασμός απενεργοποιήθηκε με επιτυχία.
+Inactivating account failed. Please try again.,Αποτυχία απενεργοποίησης λογαριασμού. Παρακαλώ προσπαθήστε ξανά.
+Cannot inactivate account. Account not found.,Αδυναμία απενεργοποίησης λογαριασμού. Ο λογαριασμός δεν βρέθηκε.
+Account deleted with success.,Ο λογαριασμός διαγράφηκε με επιτυχία.
+Deleting account failed. Please try again.,Αποτυχία διαγραφής λογαριασμού. Παρακαλώ προσπαθήστε ξανά.
+Cannot delete account. Account not found.,Αδυναμία διαγραφής λογαριασμού. Ο λογαριασμός δεν βρέθηκε.
+YES,ΝΑΙ
+%s failures,%s αποτυχίες
+Change login to this account,Αλλαγή σύνδεσης σε αυτόν τον λογαριασμό
+Edit account,Επεξεργασία λογαριασμού
+Re-send registration email,Επανάληψη αποστολής email εγγραφής
+Activate account,Ενεργοποίηση λογαριασμού
+Inactivate account,Απενεργοποίηση λογαριασμού
+Delete account,Διαγραφή λογαριασμού
+Are you sure you want to change login as this account?,Είστε σίγουροι ότι θέλετε να αλλάξετε τη σύνδεση ως αυτόν τον λογαριασμό;
+Are you sure you want to reset account locking for this account?,Είστε σίγουροι ότι θέλετε να επαναφέρετε τον κλειδαριθμό λογαριασμού για αυτόν τον λογαριασμό;
+Are you sure you want to re-send registration email for this account?,Είστε σίγουροι ότι θέλετε να ξαναστείλετε το email εγγραφής για αυτόν τον λογαριασμό;
+Are you sure you want to activate this account?,Είστε σίγουροι ότι θέλετε να ενεργοποιήσετε αυτόν τον λογαριασμό;
+Are you sure you want to inactivate this account?,Είστε σίγουροι ότι θέλετε να απενεργοποιήσετε αυτόν τον λογαριασμό;
+Are you sure you want to DELETE this account?,Είστε σίγουροι ότι θέλετε να ΔΙΑΓΡΑΨΕΤΕ αυτόν τον λογαριασμό;
+Reading account details...,Ανάγνωση λεπτομερειών λογαριασμού...
+Error reading account details. Please try again.,Σφάλμα κατά την ανάγνωση λεπτομερειών λογαριασμού. Παρακαλώ προσπαθήστε ξανά.
+Please select accounts you want to activate first.,Παρακαλώ επιλέξτε τους λογαριασμούς που θέλετε να ενεργοποιήσετε πρώτα.
+Are you sure you want to activate %s accounts?,Είστε σίγουροι ότι θέλετε να ενεργοποιήσετε %s λογαριασμούς;
+Please select accounts you want to inactivate first.,Παρακαλώ επιλέξτε πρώτα τους λογαριασμούς που θέλετε να απενεργοποιήσετε.
+Are you sure you want to inactivate %s accounts?,Είστε σίγουροι ότι θέλετε να απενεργοποιήσετε τους λογαριασμούς %s;
+Please select accounts you want to delete first.,Παρακαλώ επιλέξτε πρώτα τους λογαριασμούς που θέλετε να διαγράψετε.
+Are you sure you want to DELETE %s accounts?,Είστε σίγουροι ότι θέλετε να ΔΙΑΓΡΑΨΕΤΕ %s λογαριασμούς;
+Please select accounts you want to reset locking for first.,Παρακαλώ επιλέξτε πρώτα τους λογαριασμούς για τους οποίους θέλετε να επαναφέρετε το κλείδωμα.
+Are you sure you want to reset locking for %s accounts?,Είστε σίγουροι ότι θέλετε να επαναφέρετε το κλείδωμα για %s λογαριασμούς;
+Are you sure you want to export ALL accounts?,Είστε σίγουροι ότι θέλετε να εξάγετε ΟΛΟΥΣ τους λογαριασμούς;
+HTTP Calls Requests,Κλήσεις HTTP Αιτημάτων
+Invalid HTTP call...,Μη έγκυρη κλήση HTTP...
+HTTP Calls,Κλήσεις HTTP
+Invalid HTTP call or HTTP call not found in database.,Μη έγκυρη κλήση HTTP ή κλήση HTTP που δεν βρέθηκε στη βάση δεδομένων.
+HTTP call,Κλήση HTTP
+HTTP calls,Κλήσεις HTTP
+URL,Διεύθυνση URL
+All HTTP calls to provided URL,Όλες οι κλήσεις HTTP στην παρεχόμενη διεύθυνση URL
+All HTTP calls done using this method,Όλες οι κλήσεις HTTP γίνονται χρησιμοποιώντας αυτήν τη μέθοδο
+Handle,Χειριστείτε
+All HTTP calls created using specified handle,Όλες οι κλήσεις HTTP δημιουργούνται χρησιμοποιώντας τον καθορισμένο χειριστή
+Is final?,Είναι τελικό;
+Select only final HTTP calls,Επιλέξτε μόνο τελικές κλήσεις HTTP
+Final calls,Τελικές κλήσεις
+NOT final calls,ΜΗΝ τελικές κλήσεις
+All HTTP calls run after this date,Όλες οι κλήσεις HTTP τρέχουν μετά από αυτήν την ημερομηνία
+Calls run after this date,Οι κλήσεις τρέχουν μετά από αυτήν την ημερομηνία
+All HTTP calls run before this date,Όλες οι κλήσεις HTTP τρέχουν πριν από αυτήν την ημερομηνία
+Calls run before this date,Οι κλήσεις τρέχουν πριν από αυτήν την ημερομηνία
+Payload,Φορτίο
+Runs,Εκτελέσεις
+Is Final?,Είναι τελικό;
+Pause,Παύση
+Un-pause,Αναστολή-παύση
+View Payload,Προβολή Φορτίου
+Fails,Αποτυγχάνει
+Max retries,Μέγιστες επαναλήψεις
+View HTTP call requests,Προβολή αιτημάτων κλήσης HTTP
+Run After,Εκτέλεση Μετά
+RA,ΑΣ
+Last Run,Τελευταία Εκτέλεση
+LR,Γραμμική Ρύθμιση
+Last HTTP Call Error,Τελευταίο Σφάλμα Κλήσης HTTP
+Resume HTTP call,Επανέναρξη κλήσης HTTP
+Pause HTTP call,Παύση κλήσης HTTP
+Resend HTTP call,Επανάληψη κλήσης HTTP
+View HTTP call settings,Προβολή ρυθμίσεων κλήσης HTTP
+Delete HTTP call,Διαγραφή κλήσης HTTP
+Payload updated with success.,Το φορτίο ενημερώθηκε με επιτυχία.
+Error updating payload. Please try again.,Σφάλμα κατά την ενημέρωση του φορτίου δεδομένων. Παρακαλώ προσπαθήστε ξανά.
+Please provide a payload content.,Παρακαλώ παρέχετε περιεχόμενο φορτίου.
+HTTP call not found in database.,Η κλήση HTTP δεν βρέθηκε στη βάση δεδομένων.
+HTTP call running in a background job with success.,Κλήση HTTP που εκτελείται σε φόντο με επιτυχία.
+Retrying HTTP call failed. Please try again.,Η επανάληψη της κλήσης HTTP απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+HTTP call paused with success.,Η κλήση HTTP διακόπηκε με επιτυχία.
+Pausing HTTP call failed. Please try again.,Η παύση της κλήσης HTTP απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+HTTP call un-paused with success.,Κλήση HTTP ανασταλμένη με επιτυχία.
+Un-pausing HTTP call failed. Please try again.,Η αναστολή της κλήσης HTTP απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+HTTP call deleted with success.,Η κλήση HTTP διαγράφηκε με επιτυχία.
+Deleting HTTP call failed. Please try again.,Η διαγραφή της κλήσης HTTP απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Required HTTP calls paused with success.,Οι απαιτούμενες κλήσεις HTTP διακόπηκαν με επιτυχία.
+Pausing selected HTTP calls failed. Please try again.,Η παύση επιλεγμένων κλήσεων HTTP απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed pausing all selected HTTP calls. HTTP calls which failed pausing are still selected. Please try again.,Αποτυχία παύσης όλων των επιλεγμένων κλήσεων HTTP. Οι κλήσεις HTTP που απέτυχαν να παγώσουν παραμένουν επιλεγμένες. Παρακαλώ προσπαθήστε ξανά.
+Required HTTP calls un-paused with success.,Απαιτούμενες κλήσεις HTTP αναστάθηκαν με επιτυχία.
+Un-pausing selected HTTP calls failed. Please try again.,Η αναστολή των επιλεγμένων κλήσεων HTTP απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed un-pausing all selected HTTP calls. HTTP calls which failed un-pausing are still selected. Please try again.,Αποτυχία αναστολής όλων των επιλεγμένων κλήσεων HTTP. Οι κλήσεις HTTP που απέτυχαν να ανασταλούν παραμένουν επιλεγμένες. Παρακαλώ προσπαθήστε ξανά.
+Required HTTP calls deleted with success.,Απαιτούμενες κλήσεις HTTP διαγράφηκαν με επιτυχία.
+Deleting selected HTTP calls failed. Please try again.,Η διαγραφή των επιλεγμένων κλήσεων HTTP απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Failed deleting all selected HTTP calls. HTTP calls which failed deletion are still selected. Please try again.,Απέτυχε η διαγραφή όλων των επιλεγμένων κλήσεων HTTP. Οι κλήσεις HTTP που απέτυχαν τη διαγραφή παραμένουν επιλεγμένες. Παρακαλώ προσπαθήστε ξανά.
+HTTP Call Payload,Πληρωμή κλήσης HTTP
+HTTP Call Settings,Ρυθμίσεις κλήσης HTTP
+Please wait..,Παρακαλώ περιμένετε..
+HTTP Call Requests,Αιτήσεις κλήσης HTTP
+Edit payload,Επεξεργασία φορτίου
+Language Files,Αρχεία Γλώσσας
+Modified,Τροποποιημένο
+POT File,Αρχείο POT
+POT Files List,Λίστα αρχείων POT
+Regenerate POT File,Αναγέννηση αρχείου POT
+You can add directories which will be excluded when generating POT file...,Μπορείτε να προσθέσετε καταλόγους που θα εξαιρεθούν κατά τη δημιουργία του αρχείου POT...
+Excluded directory,Αποκλεισμένος κατάλογος
+Delete excluding path,Διαγραφή εξαιρουμένου του μονοπατιού
+Add directory exception,Προσθήκη εξαίρεσης καταλόγου
+Generate POT file,Δημιουργία αρχείου POT
+Regenerate PO File,Αναγέννηση αρχείου PO
+For language,Για γλώσσα
+Select language,Επιλογή γλώσσας
+Update PO file,Ενημέρωση αρχείου PO
+Translate PO File,Μετάφραση αρχείου PO
+Translate language,Μετάφραση γλώσσας
+Translate PO file,Μετάφραση αρχείου PO
+PO file,Αρχείο PO
+Total translations,Συνολικές μεταφράσεις
+Already translated,Ήδη μεταφρασμένο
+AI Translation,Μετάφραση Τεχνητής Νοημοσύνης
+No status for UI translation using AI for this file.,Δεν υπάρχει κατάσταση για τη μετάφραση του UI χρησιμοποιώντας την τεχνητή νοημοσύνη για αυτό το αρχείο.
+Errors,Σφάλματα
+Success,Επιτυχία
+Last log,Τελευταία καταγραφή
+Are you sure you want to remove this excluding path?,Είστε σίγουροι ότι θέλετε να αφαιρέσετε αυτήν την αποκλειστική διαδρομή;
+File does not exist.,Το αρχείο δεν υπάρχει.
+Obtaining details...,Λήψη λεπτομερειών...
+Error obtaining PO file details. Please try again.,Σφάλμα κατά τη λήψη λεπτομερειών αρχείου PO. Παρακαλώ προσπαθήστε ξανά.
+Displaying PO file info...,Εμφάνιση πληροφοριών αρχείου PO...
+PO file info %s,Πληροφορίες αρχείου PO %s
+Preparing download...,Προετοιμασία λήψης...
+Error obtaining a download link. Please try again.,Σφάλμα κατά τη λήψη ενός συνδέσμου λήψης. Παρακαλώ προσπαθήστε ξανά.
+Downloading file (%s bytes)...,Λήψη αρχείου (%s bytes)...
+Generating POT file...,Δημιουργία αρχείου POT...
+POT file generated with success.,Το αρχείο POT δημιουργήθηκε με επιτυχία.
+Generating PO file...,Δημιουργία αρχείου PO...
+PO file generated with success.,Το αρχείο PO δημιουργήθηκε με επιτυχία.
+Are you sure you want to force stop the current translation task?,Είστε σίγουροι ότι θέλετε να εξαναγκάσετε τη διακοπή της τρέχουσας εργασίας μετάφρασης;
+No running translation task found.,Δεν βρέθηκε εργασία μετάφρασης τρέξιμο.
+Sending stop request...,Αποστολή αίτησης διακοπής...
+Error sending stop request. Please try again.,Σφάλμα κατά την αποστολή αιτήματος διακοπής. Παρακαλώ προσπαθήστε ξανά.
+Stop request sent to background task. Refresh PO file details to see the status.,Η αίτηση διακοπής στάλθηκε στη φόντο εργασία. Ανανεώστε τις λεπτομέρειες του αρχείου PO για να δείτε την κατάσταση.
+Translating PO file...,Μετάφραση αρχείου PO...
+PO translation task launched with success in background job.,Η εργασία μετάφρασης PO ξεκίνησε με επιτυχία σε φόντο εργασίας.
+"You can check the progress by clicking the <i class=\""fa fa-info\""></i> icon for provided language.","Μπορείτε να ελέγξετε την πρόοδο κάνοντας κλικ στο εικονίδιο <i class=\""fa fa-info\""></i> για την παρεχόμενη γλώσσα."
+Choose tenant,Επιλέξτε ενοικιαστή
+"Current platform doesn't support multi-tenant setup. All changes will be done on a \""Default\"" tenant.","Η τρέχουσα πλατφόρμα δεν υποστηρίζει τη ρύθμιση πολλαπλών ενοικιαστών. Όλες οι αλλαγές θα πραγματοποιηθούν σε έναν ενοικιαστή με την ονομασία \""Προεπιλεγμένος\""."
+Plugin name,Όνομα προσθέτου
+Plugin status,Κατάσταση προσθέτου
+No plugins selected with current filters.,Δεν έχουν επιλεγεί πρόσθετα με τα τρέχοντα φίλτρα.
+Selected %s plugins...,Επιλέχθηκαν %s πρόσθετα...
+There are selected plugins which are not visible!,Υπάρχουν επιλεγμένα πρόσθετα τα οποία δεν είναι ορατά!
+ACTIVATE Selected,ΕΝΕΡΓΟΠΟΙΗΣΗ Επιλεγμένο
+INACTIVATE Selected,ΑΠΕΝΕΡΓΟΠΟΙΗΣΗ Επιλεγμένων
+Registry data for plugin %s on tenant %s.,Δεδομένα μητρώου για το πρόσθετο %s στον ενοικιαστή %s.
+Registry key,Κλειδί μητρώου
+Registry value,Τιμή καταχώρισης
+No registry data yet...,Δεν υπάρχουν ακόμα δεδομένα από το μητρώο...
+Settings for plugin %s on tenant %s.,Ρυθμίσεις για το πρόσθετο %s στον ενοικιαστή %s.
+Settings value,Τιμή ρυθμίσεων
+No settings yet...,Δεν υπάρχουν ακόμα ρυθμίσεις...
+"First, select pluins from the list.","Πρώτα, επιλέξτε πρόσθετα από τη λίστα."
+Are you sure you want to ACTIVATE %s plugins for selected tenant?,Είστε σίγουροι ότι θέλετε να ΕΝΕΡΓΟΠΟΙΗΣΕΤΕ τα %s πρόσθετα για τον επιλεγμένο ενοικιαστή;
+Refreshing the page...,Ανανέωση της σελίδας...
+Are you sure you want to INACTIVATE %s plugins for selected tenant?,Είστε σίγουροι ότι θέλετε να απενεργοποιήσετε τα %s πρόσθετα για τον επιλεγμένο ενοικιαστή;
+"First, select plugins from the list.","Πρώτα, επιλέξτε πρόσθετα από τη λίστα."
+Error obtaining form data. Please try again.,Σφάλμα κατά τη λήψη δεδομένων φόρμας. Παρακαλώ προσπαθήστε ξανά.
+Please select plugin for which you want to see registry data.,Επιλέξτε το πρόσθετο για το οποίο θέλετε να δείτε τα δεδομένα του μητρώου.
+Error obtaining plugin registry data. Please try again.,Σφάλμα κατά τη λήψη δεδομένων από το μητρώο προσθέτων. Παρακαλώ προσπαθήστε ξανά.
+%s registry for %s tenant,%s καταχώριση για τον ενοικιαστή %s
+Please select plugin for which you want to see settings.,Παρακαλώ επιλέξτε το πρόσθετο για το οποίο θέλετε να δείτε τις ρυθμίσεις.
+Error obtaining plugin settings. Please try again.,Σφάλμα κατά τη λήψη των ρυθμίσεων του προσθέτου. Παρακαλώ προσπαθήστε ξανά.
+%s settings for %s tenant,%s ρυθμίσεις για τον ενοικιαστή %s
+Friendly tenant name,Φιλικό όνομα ενοικιαστή
+A friendly name to identify the tenant. This will replace PHS_SITE_NAME constant.,Ένα φιλικό όνομα για την ταυτοποίηση του ενοικιαστή. Αυτό θα αντικαταστήσει τη σταθερά PHS_SITE_NAME.
+What domain is used for this tenant (e.g. www.example.com),Ποιο τομέα χρησιμοποιείται για αυτόν τον ενοικιαστή (π.χ. www.example.com)
+What directory (if any) is used for this tenant (e.g. appdir/),Ποιος κατάλογος (αν υπάρχει) χρησιμοποιείται για αυτόν τον ενοικιαστή (π.χ. appdir/)
+External tenant identifier,Εξωτερικός αναγνωριστής ενοικιαστή
+Used to identify the tenant from requests from outside.,Χρησιμοποιείται για την ταυτοποίηση του ενοικιαστή από αιτήσεις από το εξωτερικό.
+Default tenant?,Προεπιλεγμένος ενοικιαστής;
+"If no tenant can be selected from the request, use this tenant as default","Εάν δεν μπορεί να επιλεγεί κάποιος ενοικιαστής από το αίτημα, χρησιμοποιήστε αυτόν τον ενοικιαστή ως προεπιλογή"
+Default Theme,Προεπιλεγμένο Θέμα
+Current Theme,Τρέχον Θέμα
+Themes Cascade,Θέματα Καταρράκτη
+Move up,Μετακίνηση προς τα επάνω
+Move down,Μετακίνηση προς τα κάτω
+No theme selected yet.,Δεν έχει επιλεγεί ακόμα θέμα.
+Add theme,Προσθήκη θέματος
+System Logs,Καταγραφές Συστήματος
+lines,γραμμές
+View file,Προβολή αρχείου
+Sending request to server... Please wait.,Αποστολή αίτησης στον διακομιστή... Παρακαλώ περιμένετε.
+Error sending request to server. Please retry.,Σφάλμα κατά την αποστολή του αιτήματος στον διακομιστή. Παρακαλώ προσπαθήστε ξανά.
+For tenant,Για ενοικιαστή
+- Default tenant -,- Προεπιλεγμένος ενοικιαστής -
+Crypt key used when settings were exported,Κρυπτοκλειδί που χρησιμοποιήθηκε όταν εξήχθησαν οι ρυθμίσεις
+Crypted Settings,Κρυπτογραφημένες Ρυθμίσεις
+Copy and paste the JSON string from the file obtained at plugin settings export,Αντιγράψτε και επικολλήστε τη συμβολοσειρά JSON από το αρχείο που λήφθηκε στις ρυθμίσεις του προσθέτου εξαγωγής
+Validate Settings,Επικύρωση Ρυθμίσεων
+Source Platform,Πλατφόρμα Πηγής
+Source URL,Διεύθυνση URL πηγής
+Seems linke provided import JSON doesn't contain any settings to be imported.,Φαίνεται ότι το παρεχόμενο JSON εισαγωγής δεν περιέχει καμία ρύθμιση προς εισαγωγή.
+Try again,Προσπαθήστε ξανά
+Pick the settings you want to import from te table below.,Επιλέξτε τις ρυθμίσεις που θέλετε να εισαγάγετε από τον παρακάτω πίνακα.
+"If you don't select any plugin, system will import all plugin settings presented in this table.","Εάν δεν επιλέξετε κανένα πρόσθετο, το σύστημα θα εισάγει όλες τις ρυθμίσεις προσθέτων που παρουσιάζονται σε αυτόν τον πίνακα."
+In import file,Στο αρχείο εισαγωγής
+In current platform,Στην τρέχουσα πλατφόρμα
+Plugin (in file),Πρόσθετο (σε αρχείο)
+Only models with settings,Μόνο μοντέλα με ρυθμίσεις
+Import Settings,Ρυθμίσεις Εισαγωγής
+Plugin settings imported with success.,Οι ρυθμίσεις του προσθέτου εισήχθησαν με επιτυχία.
+There were errors while importing plugin settings. Please try again.,Παρουσιάστηκαν σφάλματα κατά την εισαγωγή των ρυθμίσεων του προσθέτου. Παρακαλώ προσπαθήστε ξανά.
+Import information is also available in maintenance.log file.,Οι πληροφορίες εισαγωγής είναι επίσης διαθέσιμες στο αρχείο maintenance.log.
+Finish,Ολοκλήρωση
+This plugin is not a multi-tenant plugin! Settings will be same for all tenants.,Αυτό το πρόσθετο δεν είναι ένα πολυ-ενοικιαστικό πρόσθετο! Οι ρυθμίσεις θα είναι ίδιες για όλους τους ενοικιαστές.
+Select tenant,Επιλογή ενοικιαστή
+- Default settings -,- Προεπιλεγμένες ρυθμίσεις -
+Select plugin or a model,Επιλέξτε το πρόσθετο ή ένα μοντέλο
+Database version,Έκδοση βάσης δεδομένων
+Script version,Έκδοση σεναρίου
+Please upgrade the plugin,Παρακαλώ αναβαθμίστε το πρόσθετο
+"For selected tenant, current plugin status is %s.","Για τον επιλεγμένο ενοικιαστή, η τρέχουσα κατάσταση του πρόσθετου είναι %s."
+Manage plugins for this tenant,Διαχείριση προσθέτων για αυτό το ενοίκιο
+Selected module doesn't have any settings.,Το επιλεγμένο μοντούλο δεν έχει καμία ρύθμιση.
+Save settings,Αποθήκευση ρυθμίσεων
+Are you sure you want to cancel changes in plugin settings?,Είστε σίγουροι ότι θέλετε να ακυρώσετε τις αλλαγές στις ρυθμίσεις του προσθέτου;
+[Non-editable],[Μη επεξεργάσιμο]
+Use custom tenant value,Χρησιμοποιήστε προσαρμοσμένη τιμή ενοικιαστή
+Main settings value,Κύρια τιμή ρυθμίσεων
+Empty string value,Κενή τιμή συμβολοσειράς
+Default value,Προεπιλεγμένη τιμή
+Render settings field call failed.,Αποτυχία κλήσης πεδίου ρυθμίσεων απεικόνισης.
+Not a key-value array...,Δεν είναι ένας πίνακας κλειδιού-τιμής...
+Template file,Αρχείο προτύπου
+From paths,Από διαδρομές
+Values array should be provided,Πρέπει να παρέχεται πίνακας τιμών
+This plugin is not a multi-tenant plugin! Registry data will be same for all tenants.,Αυτό το πρόσθετο δεν είναι ένα πολυ-ενοικιαστικό πρόσθετο! Τα δεδομένα του μητρώου θα είναι τα ίδια για όλους τους ενοικιαστές.
+Are you sure you want to cancel changes in plugin registry data?,Είστε σίγουροι ότι θέλετε να ακυρώσετε τις αλλαγές στα δεδομένα του μητρώου προσθέτων;
+Delete record data,Διαγραφή δεδομένων εγγραφής
+Add registry value,Προσθήκη τιμής καταχώρισης
+Save registry data,Αποθήκευση δεδομένων μητρώου
+Are you sure you want to remove this registry data?,Είστε σίγουροι ότι θέλετε να αφαιρέσετε αυτά τα δεδομένα από το μητρώο;
+Please provide registry keys for all lines.,Παρακαλώ παρέχετε τα κλειδιά καταχώρισης για όλες τις γραμμές.
+There are duplicates in registry keys.,Υπάρχουν διπλότυπα στα κλειδιά του μητρώου.
+Are you sure you want to save plugin registry data?,Είστε σίγουροι ότι θέλετε να αποθηκεύσετε τα δεδομένα του μητρώου προσθέτων;
+Error saving registry data.,Σφάλμα κατά την αποθήκευση δεδομένων μητρώου.
+User friendly title describing this agent job.,Χρήσιμος τίτλος που περιγράφει τη δουλειά αυτού του πράκτορα.
+"Only plugins, controllers and actions which support agent scope will be shown.","Θα εμφανιστούν μόνο τα πρόσθετα, οι ελεγκτές και οι ενέργειες που υποστηρίζουν το πεδίο πράκτορα."
+Controller,Ελεγκτής
+Action,Ενέργεια
+Handler should be unique as it will identify agent job.,Ο χειριστής πρέπει να είναι μοναδικός καθώς θα ταυτοποιεί την εργασία του πράκτορα.
+Job parameters,Παράμετροι εργασίας
+This is a JSON string which will be decoded and passed as parameter to job execute method.,Αυτό είναι ένα JSON string το οποίο θα αποκωδικοποιηθεί και θα περάσει ως παράμετρος στη μέθοδο εκτέλεσης εργασίας.
+Running interval,Διάστημα εκτέλεσης
+Once how many seconds should this job run. Minimum interval depends on interval set for _agent.php script to run in crontab.,Πόσα δευτερόλεπτα πρέπει να τρέξει αυτή η δουλειά. Το ελάχιστο διάστημα εξαρτάται από το διάστημα που έχει οριστεί για το σενάριο _agent.php να τρέχει στο crontab.
+Run asynchronous,Εκτέλεση ασύγχρονα
+This agent job will stop agent from advancing to next job untill it is finished.,Αυτή η εργασία πράκτορα θα σταματήσει τον πράκτορα από το να προχωρήσει στην επόμενη εργασία μέχρι να ολοκληρωθεί.
+Stalling minutes,Λεπτά στάσης
+After how many minutes should this job be considered as stalling.,Μετά από πόσα λεπτά πρέπει να θεωρηθεί αυτή η εργασία ως σε κατάσταση αδράνειας.
+minutes,λεπτά
+Edit job,Επεξεργασία εργασίας
+Add job,Προσθήκη εργασίας
+Couldn't initialize view.,Αδυναμία αρχικοποίησης προβολής.
+User account,Λογαριασμός χρήστη
+All tenants,Όλοι οι ενοικιαστές
+Short description for this API key,Σύντομη περιγραφή για αυτό το κλειδί API
+Allowed HTTP methods,Επιτρεπόμενες μέθοδοι HTTP
+Don't tick any method to allow all.,Μην επιλέξετε καμία μέθοδο για να επιτραπεί όλα.
+Denied HTTP methods,Απορρίφθηκαν μέθοδοι HTTP
+Tick only methods which you want to deny access to.,Επιλέξτε μόνο τις μεθόδους στις οποίες θέλετε να απαγορεύσετε την πρόσβαση.
+Allow Simulating Web,Επιτρέπει την προσομοίωση του διαδικτύου
+"If ticked, API key will be allowed to access actions which are normally available in web scope (by sending %s=1 in GET).","Εάν είναι επιλεγμένο, το κλειδί API θα επιτρέπεται να έχει πρόσβαση σε ενέργειες που συνήθως είναι διαθέσιμες στο πεδίο του web (με το να στέλνετε %s=1 στο GET)."
+Allow GraphQL,Να επιτρέπεται το GraphQL
+"If ticked, API key can be used when authenticating requests to GraphQL endpoint.","Εάν είναι επιλεγμένο, το κλειδί API μπορεί να χρησιμοποιηθεί κατά την αυθεντικοποίηση αιτημάτων προς το τέλος GraphQL."
+Add API key,Προσθέστε το κλειδί API
+Leave empty to autogenerate.,Αφήστε κενό για αυτόματη δημιουργία.
+Role Units,Μονάδες Ρόλου
+Manually added,Χειροκίνητη προσθήκη
+"Slug should be unique. Once role is defined, you cannot change this slug.","Το Slug πρέπει να είναι μοναδικό. Μόλις οριστεί ο ρόλος, δεν μπορείτε να αλλάξετε αυτό το Slug."
+Add role,Προσθήκη ρόλου
+Welcome...,Καλώς ήρθατε...
+You are in admin section of %s site.,Βρίσκεστε στη διαχειριστική ενότητα του ιστότοπου %s.
+Currently logged in %s - %s.,Επί του παρόντος συνδεδεμένος %s - %s.
+Select a plugin first.,Επιλέξτε πρώτα ένα πρόσθετο.
+Select a model first.,Επιλέξτε πρώτα ένα μοντέλο.
+Date field,Πεδίο ημερομηνίας
+Select a table first.,Επιλέξτε πρώτα έναν πίνακα.
+This field will be checked agains interval settings.,Αυτό το πεδίο θα ελεγχθεί ξανά έναντι των ρυθμίσεων διαστήματος.
+Retention Action,Δράση Κράτησης
+Retention Interval,Διάστημα Κράτησης
+Interval length,Διάρκεια διαστήματος
+Add Retention Policy,Προσθήκη Πολιτικής Διατήρησης
+Plugin to check,Πρόσθετο για έλεγχο
+ - All plugins - , - Όλα τα πρόσθετα - 
+Integrity check,Έλεγχος ακεραιότητας
+Checking plugin integrity...,Έλεγχος ακεραιότητας προσθέτου...
+Checking integrity for plugin %s...,Έλεγχος ακεραιότητας για το πρόσθετο %s...
+Checking integrity for ALL plugins...,Έλεγχος ακεραιότητας για ΟΛΑ τα πρόσθετα...
+Didn't find a valid value in plugins list to check integrity.,Δεν βρέθηκε έγκυρη τιμή στη λίστα των προσθέτων για έλεγχο ακεραιότητας.
+DONE,ΟΛΟΚΛΗΡΩΘΗΚΕ
+Import User Accounts,Εισαγωγή Λογαριασμών Χρηστών
+Import file,Εισαγωγή αρχείου
+This should be a JSON file exported using Export options from accounts management page.,Αυτό πρέπει να είναι ένα αρχείο JSON που εξάγεται χρησιμοποιώντας τις επιλογές Εξαγωγή από τη σελίδα διαχείρισης λογαριασμών.
+Current maximum upload file size %s.,Τρέχον μέγιστο μέγεθος αρχείου μεταφόρτωσης %s.
+Import options,Επιλογές εισαγωγής
+"Create non-existing accounts (if email is not found in database, create a new account)","Δημιουργία μη υπαρκτών λογαριασμών (εάν το email δεν βρεθεί στη βάση δεδομένων, δημιουργήστε έναν νέο λογαριασμό)"
+Override account level from database with the level found in import file,Αντικατάσταση επιπέδου λογαριασμού από τη βάση δεδομένων με το επίπεδο που βρέθηκε στο αρχείο εισαγωγής
+Update roles (if account is found). Append roles found in import file.,Ενημέρωση ρόλων (εάν βρεθεί λογαριασμός). Προσάρτηση ρόλων που βρέθηκαν στο αρχείο εισαγωγής.
+Remove existing roles and use the ones found in import file,Αφαιρέστε τους υπάρχοντες ρόλους και χρησιμοποιήστε αυτούς που βρέθηκαν στο αρχείο εισαγωγής
+Update user account details with data from import file,Ενημέρωση λεπτομερειών λογαριασμού χρήστη με δεδομένα από αρχείο εισαγωγής
+Import only level,Εισαγωγή μόνο επιπέδου
+Import only specific levels from import file.,Εισαγωγή μόνο συγκεκριμένων επιπέδων από το αρχείο εισαγωγής.
+Import Accounts,Εισαγωγή Λογαριασμών
+Account Details,Λεπτομέρειες Λογαριασμού
+ID,Ταυτότητα
+Last login,Τελευταία σύνδεση
+from IP %s,από τη διεύθυνση IP %s
+Selected language,Επιλεγμένη γλώσσα
+Email verified,Το email επαληθεύτηκε
+Password generated,Δημιουργήθηκε κωδικός πρόσβασης
+Locked,Κλειδωμένο
+Multi-tenancy,Πολυ-ενοικίαση
+Multi-tenancy enabled,Ενεργοποιημένη πολυ-ενοικίαση
+Multi-tenant account,Λογαριασμός πολλαπλών ενοικιαστών
+Account tenants,Ενοικιαστές λογαριασμού
+Unknown tenant,Άγνωστος ενοικιαστής
+Edit User Account,Επεξεργασία Λογαριασμού Χρήστη
+Roles,Ρόλοι
+Change roles,Αλλαγή ρόλων
+Change tenants,Αλλαγή ενοικιαστών
+Complete password fields ony if you want to change password,Συμπληρώστε τα πεδία κωδικού μόνο εάν θέλετε να αλλάξετε τον κωδικό πρόσβασης
+confirm,επιβεβαίωση
+Account Roles,Ρόλοι λογαριασμού
+No role assigned to this account.,Δεν έχει ανατεθεί ρόλος σε αυτόν τον λογαριασμό.
+Account Tenants,Ενοικιαστές λογαριασμού
+ALL TENANTS,ΟΛΟΙ ΕΝΟΙΚΙΑΣΤΕΣ
+Add User Account,Προσθήκη Λογαριασμού Χρήστη
+User will setup a password at first login.,Ο χρήστης θα ρυθμίσει έναν κωδικό πρόσβασης κατά την πρώτη σύνδεσή του.
+"If password field is left empty, system will generate a password and will send it by email to the provided email.","Εάν το πεδίο κωδικού πρόσβασης αφεθεί κενό, το σύστημα θα δημιουργήσει έναν κωδικό πρόσβασης και θα τον στείλει με email στο παρεχόμενο email."
+"If no roles are provided, roles will be set depending on selected level.","Εάν δεν παρέχονται ρόλοι, οι ρόλοι θα οριστούν ανάλογα με τον επιλεγμένο επίπεδο."
+Create Account,Δημιουργία Λογαριασμού
+Retries,Επαναδοκιμές
+"Fails: %s, Max retries: %s","Αποτυγχάνει: %s, Μέγιστες επαναλήψεις: %s"
+Final,Τελικό
+Run after,Εκτέλεση μετά
+Id,Αναγνωριστικό
+There are no requests for this HTTP call yet.,Δεν υπάρχουν αιτήσεις για αυτήν την κλήση HTTP ακόμα.
+View request error,Σφάλμα προβολής αιτήματος
+View response body,Προβολή σώματος απάντησης
+There are %s requests for current HTTP call.,Υπάρχουν %s αιτήσεις για την τρέχουσα κλήση HTTP.
+Response Body,Σώμα Απάντησης
+Request Error,Σφάλμα Αίτησης
+Log file not provided or invalid.,Το αρχείο καταγραφής (log) δεν παρέχεται ή είναι μη έγκυρο.
+File name,Όνομα αρχείου
+File size,Μέγεθος αρχείου
+Download file,Λήψη αρχείου
+Displaying last %s lines from %s file.,Εμφάνιση των τελευταίων %s γραμμών από το αρχείο %s.
+Log file returned empty buffer.,Το αρχείο καταγραφής επέστρεψε κενό buffer.
+Platform Tenants,Ενοικιαστές Πλατφόρμας
+List Tenants,Λίστα Ενοικιαστών
+Accounts Management,Διαχείριση Λογαριασμών
+Add Account,Προσθήκη Λογαριασμού
+Manage Accounts,Διαχείριση Λογαριασμών
+Roles Management,Διαχείριση Ρόλων
+Manage Roles,Διαχείριση Ρόλων
+Plugins Management,Διαχείριση Προσθέτων
+List Plugins,Λίστα Προσθέτων
+Tenant Plugin Management,Διαχείριση Προσθέτου Ενοικιαστή
+Plugins Migrations,Μεταφορές Προσθηκών
+List Migrations,Λίστα Μετακινήσεων
+List Agent Jobs,Λίστα Εργασιών Πράκτορα
+API Settings,Ρυθμίσεις API
+List API Keys,Λίστα κλειδιών API
+API Monitoring Report,Αναφορά Παρακολούθησης API
+List HTTP Calls,Λίστα κλήσεων HTTP
+View Logs,Προβολή Καταγραφών
+Data Retention,Διατήρηση Δεδομένων
+List Data Retention Policies,Κατάλογος Πολιτικών Διατήρησης Δεδομένων
+Update PHS Structure,Ενημέρωση Δομής PHS

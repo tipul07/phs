@@ -1,0 +1,379 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Error loading required resources.,Σφάλμα φόρτωσης απαιτούμενων πόρων.
+Active,Ενεργό
+You should login first...,Πρέπει να συνδεθείτε πρώτα...
+Title,Τίτλος
+N/A,Μ/Α
+Error saving details to database. Please try again.,Σφάλμα κατά την αποθήκευση λεπτομερειών στη βάση δεδομένων. Παρακαλώ προσπαθήστε ξανά.
+Company,Εταιρεία
+Operator,Τελεστής
+Account not found in database.,Ο λογαριασμός δεν βρέθηκε στη βάση δεδομένων.
+Cancel,Ακύρωση
+Error obtaining products import export directory path.,Σφάλμα κατά τη λήψη της διαδρομής καταλόγου εισαγωγής εξαγωγής προϊόντων.
+Invalid flow parameters.,Μη έγκυρες παράμετροι ροής.
+Inactive,Ανενεργό
+Deleted,Διαγράφηκε
+Nothing to export.,Τίποτα να εξάγετε.
+Account locked temporarily because of too many login attempts.,Ο λογαριασμός έχει κλειδωθεί προσωρινά λόγω υπερβολικών προσπαθειών σύνδεσης.
+Bad user or password.,Λανθασμένος χρήστης ή κωδικός πρόσβασης.
+Error updating session.,Σφάλμα κατά την ενημέρωση της συνεδρίας.
+Registration is closed for this site.,Η εγγραφή έχει κλείσει για αυτόν τον ιστότοπο.
+Couldn't register user. Please try again.,Αδυναμία εγγραφής χρήστη. Παρακαλώ προσπαθήστε ξανά.
+Wrong current password.,Λάθος τρέχων κωδικός πρόσβασης.
+Invalid account.,Μη έγκυρος λογαριασμός.
+Error sending forgot password email. Please try again.,Σφάλμα κατά την αποστολή email ξεχασμένου κωδικού πρόσβασης. Παρακαλώ προσπαθήστε ξανά.
+Email,Ηλεκτρονικό Ταχυδρομείο
+Username,Όνομα χρήστη
+Password,Κωδικός πρόσβασης
+Please provide a valid status.,Παρακαλώ παρέχετε ένα έγκυρο κατάσταση.
+Login,Σύνδεση
+Suspended,Ανασταλμένο
+Account Registration Settings,Ρυθμίσεις Εγγραφής Λογαριασμού
+Settings related to account registration.,Ρυθμίσεις που σχετίζονται με την εγγραφή λογαριασμού.
+Email mandatory at registration,Το email είναι υποχρεωτικό κατά την εγγραφή
+Should users provide emails when registering?,Θα πρέπει οι χρήστες να παρέχουν τα email κατά την εγγραφή;
+Replace nick with email,Αντικαταστήστε το όνομα χρήστη με το email
+"If, by any reasons, nickname is not provided when creating an account should it be replaced with provided email?","Εάν, για οποιονδήποτε λόγο, δεν παρέχεται ψευδώνυμο κατά τη δημιουργία λογαριασμού, πρέπει να αντικατασταθεί με το παρεχόμενο email;"
+"Use only email, no nickname","Χρησιμοποιήστε μόνο το email, χωρίς ψευδώνυμο"
+Hide nickname complately and use only email as nickname.,Απόκρυψη του ψευδώνυμου εντελώς και χρήση μόνο του email ως ψευδώνυμου.
+Account requires activation,Ο λογαριασμός απαιτεί ενεργοποίηση
+"Should an account be activated before login after registration? When admin creates accounts, these will be automatically active.","Πρέπει να ενεργοποιηθεί ένας λογαριασμός πριν τη σύνδεση μετά την εγγραφή; Όταν ο διαχειριστής δημιουργεί λογαριασμούς, αυτοί θα είναι αυτόματα ενεργοί."
+Generate password if not present,Δημιουργία κωδικού πρόσβασης εάν δεν υπάρχει
+"If, by any reasons, password is not present when creating an account autogenerate a password or return error?","Αν, για οποιονδήποτε λόγο, ο κωδικός πρόσβασης δεν υπάρχει κατά τη δημιουργία λογαριασμού, να αυτοδημιουργηθεί ένας κωδικός πρόσβασης ή να επιστραφεί σφάλμα;"
+Emails should be unique,Τα emails πρέπει να είναι μοναδικά
+Should account creation fail if same email already exists in database?,Θα πρέπει η δημιουργία λογαριασμού να αποτύχει εάν το ίδιο email υπάρχει ήδη στη βάση δεδομένων;
+Account Password Settings,Ρυθμίσεις Κωδικού Λογαριασμού
+Settings related to account password rules.,Ρυθμίσεις που σχετίζονται με τους κανόνες του κωδικού πρόσβασης του λογαριασμού.
+Password decryption enabled,Απενεργοποιήθηκε η αποκρυπτογράφηση κωδικού πρόσβασης
+"If NOT ticked, system will not use internal encryption/decryption for passwords, so passwords cannot be decrypted anymore.","Εάν ΔΕΝ είναι επιλεγμένο, το σύστημα δεν θα χρησιμοποιήσει εσωτερική κρυπτογράφηση/αποκρυπτογράφηση για τους κωδικούς πρόσβασης, οπότε οι κωδικοί πρόσβασης δεν μπορούν πλέον να αποκρυπτογραφηθούν."
+Accounts will have to setup a password at first login.,Οι λογαριασμοί θα πρέπει να δημιουργήσουν έναν κωδικό πρόσβασης κατά την πρώτη σύνδεση.
+Password policy (if not provided),Πολιτική κωδικού πρόσβασης (εάν δεν παρέχεται)
+"When password is not provided at registration, we can generate one or ask user to setup a password at first login. If <em>Password decryption enabled</em> is NOT ticked, user will be asked to setup a password anyway.","Όταν δεν παρέχεται κωδικός πρόσβασης κατά την εγγραφή, μπορούμε να δημιουργήσουμε έναν ή να ζητήσουμε από τον χρήστη να ορίσει έναν κωδικό πρόσβασης κατά την πρώτη σύνδεσή του. Εάν το <em>Ενεργοποιημένη αποκρυπτογράφηση κωδικού πρόσβασης</em> ΔΕΝ είναι επιλεγμένο, ο χρήστης θα ζητηθεί να ορίσει έναν κωδικό πρόσβασης ούτως ή άλλως."
+Minimum password length,Ελάχιστο μήκος κωδικού πρόσβασης
+Password reg-exp,Κωδικός παράστασης reg-exp
+"If provided, all passwords have to pass this regular expression. Previous created accounts will not be affected by this. Please use / as preg_match delimiter.","Εάν παρέχεται, όλοι οι κωδικοί πρόσβασης πρέπει να περάσουν αυτήν την τακτική έκφραση. Τα προηγούμενα δημιουργημένα λογαριασμοί δεν θα επηρεαστούν από αυτό. Παρακαλούμε χρησιμοποιήστε το / ως διαχωριστή preg_match."
+Password explanation,Εξήγηση κωδικού πρόσβασης
+"Explain password rules (if required) in a friendly text (eg. Password should contain lower and upper chars, with at least one digit, etc) This will pass translation as string to be available in other languages.","Εξηγήστε τους κανόνες για τον κωδικό πρόσβασης (εάν απαιτείται) με φιλικό κείμενο (π.χ. Ο κωδικός πρόσβασης πρέπει να περιέχει πεζούς και κεφαλαίους χαρακτήρες, με τουλάχιστον έναν αριθμό, κλπ). Αυτό θα περάσει τη μετάφραση ως συμβολοσειρά για να είναι διαθέσιμο σε άλλες γλώσσες."
+Password salt length,Μήκος αλατιού κωδικού πρόσβασης
+Each account uses it's own password salt. (Google salt for more details),Κάθε λογαριασμός χρησιμοποιεί το δικό του αλάτι κωδικοποίησης. (Αναζητήστε τον όρο 'αλάτι' στη Google για περισσότερες λεπτομέρειες)
+Expire passwords days,Ημέρες λήξης κωδικών πρόσβασης
+After how many days should passwords expire (0 - no expiration),Μετά από πόσες ημέρες πρέπει να λήξουν οι κωδικοί πρόσβασης (0 - χωρίς λήξη)
+Old passwords history,Ιστορικό παλαιών κωδικών πρόσβασης
+"When changing password, keep a history of older passwords and don't allow using an old one as the new password. (0 - no history)","Κατά την αλλαγή του κωδικού πρόσβασης, διατηρήστε μια ιστορική λίστα με τους παλαιότερους κωδικούς και μην επιτρέπετε τη χρήση ενός παλαιού ως νέο κωδικό. (0 - χωρίς ιστορικό)"
+Block expired accounts time,Χρόνος λήξης αποκλεισμένων λογαριασμών
+"After how many hours to force user to change account password by redirecting to change password page. (0 - right away, -1 - don't block, only alerts)","Μετά από πόσες ώρες να αναγκαστεί ο χρήστης να αλλάξει τον κωδικό λογαριασμού με ανακατεύθυνση στη σελίδα αλλαγής κωδικού. (0 - αμέσως, -1 - μην αποκλείσεις, μόνο ειδοποιήσεις)"
+Announce password change,Ανακοίνωση αλλαγής κωδικού πρόσβασης
+Should system send an email to account's email address when password changes?,Θα πρέπει το σύστημα να στείλει email στη διεύθυνση email του λογαριασμού όταν αλλάζει ο κωδικός;
+Account Session Settings,Ρυθμίσεις Συνεδρίας Λογαριασμού
+Settings related to account session rules.,Ρυθμίσεις που σχετίζονται με τους κανόνες συνεδρίας λογαριασμού.
+Session lifetime (long) mins,Διάρκεια συνεδρίας (μακρά) λεπτά
+"After how many minutes should session expire if user ticked \""Remember Me\"" checkbox","Μετά από πόσα λεπτά πρέπει να λήξει η συνεδρία αν ο χρήστης επέλεξε το πλαίσιο επιλογής \""Να με θυμάσαι\"
+Session lifetime (short) mins,Διάρκεια συνεδρίας (σύντομη) λεπτά
+"After how many minutes should session expire if user DIDN'T tick \""Remember Me\"" checkbox","Μετά από πόσα λεπτά πρέπει να λήξει η συνεδρία αν ο χρήστης ΔΕΝ επέλεξε το πλαίσιο επιλογής \""Να με θυμάσαι\"
+Account Security Settings,Ρυθμίσεις Ασφάλειας Λογαριασμού
+Settings related to account security audit policies.,Ρυθμίσεις που σχετίζονται με τις πολιτικές ελέγχου ασφαλείας λογαριασμού.
+Log account creation,Καταγραφή δημιουργίας λογαριασμού
+Should system log account creation?,Θα πρέπει το σύστημα να καταγράφει τη δημιουργία λογαριασμού;
+Log account logins,Καταγραφή συνδέσεων λογαριασμού
+Should system log account logins?,Θα πρέπει το σύστημα να καταγράφει τις συνδέσεις στον λογαριασμό;
+Log password changes,Καταγραφή αλλαγών κωδικού πρόσβασης
+Should system log account password changes?,Θα πρέπει το σύστημα να καταγράφει τις αλλαγές στον κωδικό πρόσβασης του λογαριασμού;
+Log roles changes,Καταγραφή αλλαγών ρόλων
+Should system log account roles changes?,Θα πρέπει το σύστημα να καταγράφει τις αλλαγές στους ρόλους των λογαριασμών;
+Account Lockout Settings,Ρυθμίσεις Κλειδώματος Λογαριασμού
+Settings related to account lockout policy.,Ρυθμίσεις που σχετίζονται με την πολιτική κλειδώματος λογαριασμού.
+Account lockout enabled?,Ενεργοποιημένο κλείδωμα λογαριασμού;
+Is account lockout enabled on this platform,Είναι η απενεργοποίηση λογαριασμού ενεργοποιημένη σε αυτήν την πλατφόρμα
+Lockout after failed logins,Κλείδωμα μετά από αποτυχημένες προσπάθειες σύνδεσης
+After how many failed logins should system lockout the account,Μετά από πόσες αποτυχημένες προσπάθειες σύνδεσης πρέπει το σύστημα να κλειδώσει τον λογαριασμό
+Lockout interval (minutes),Διάστημα κλειδώματος (λεπτά)
+How many minutes should platform lock the account,Πόσα λεπτά πρέπει να κλειδώσει η πλατφόρμα τον λογαριασμό
+Two Factor Authentication Settings,Ρυθμίσεις Διπλής Πιστοποίησης Παράγοντα
+Settings related to two factor authentication feature.,Ρυθμίσεις που σχετίζονται με το χαρακτηριστικό διπλής ταυτοποίησης.
+Account 2FA policy,Πολιτική λογαριασμού 2FA
+What 2FA policy should be applied on this platform,Ποια πολιτική 2FA πρέπει να εφαρμοστεί σε αυτήν την πλατφόρμα
+2FA account levels,Επίπεδα λογαριασμού 2FA
+"Which account levels should follow selected 2FA policy. If no account level is selected, all will follow the policy.","Ποια επίπεδα λογαριασμών πρέπει να ακολουθήσουν την επιλεγμένη πολιτική 2FA. Αν δεν επιλεγεί κανένα επίπεδο λογαριασμού, όλοι θα ακολουθήσουν την πολιτική."
+2FA account exceptions,Εξαιρέσεις λογαριασμού 2FA
+Comma separated account IDs or nicknames which will always skip 2FA flow.,Τα αναγνωριστικά λογαριασμών ή τα ονόματα χρηστών που χωρίζονται με κόμμα και θα παραλείπουν πάντα τη ροή 2FA.
+2FA session length (hours),Διάρκεια συνεδρίας 2FA (ώρες)
+How many hours should 2FA not be required on current session. 0 means forever,Για πόσες ώρες δεν πρέπει να απαιτείται η διπλή επαλήθευση στην τρέχουσα συνεδρία. Το 0 σημαίνει για πάντα
+Remember device length (hours),Να θυμάστε το μήκος της συσκευής (ώρες)
+How many hours should 2FA not be required on current device. 0 means disable this option,Πόσες ώρες πρέπει να μην απαιτείται η διπλή επαλήθευση ταυτότητας (2FA) στην τρέχουσα συσκευή. Το 0 σημαίνει απενεργοποίηση αυτής της επιλογής.
+2FA Issuer,Εκδότης 2FA
+How should this platform appear in Google Authenticator as name,Πώς θα πρέπει να εμφανίζεται αυτή η πλατφόρμα στο Google Authenticator ως όνομα
+Error defining login source.,Σφάλμα κατά τον ορισμό της πηγής σύνδεσης εισόδου.
+Couldn't logout from subaccount.,Αδυναμία αποσύνδεσης από υπολογαριαστικό λογαριασμό.
+Couldn't logout from your account. Please retry.,Αδυναμία αποσύνδεσης από τον λογαριασμό σας. Παρακαλώ προσπαθήστε ξανά.
+Error generating bearer token.,Σφάλμα κατά τη δημιουργία του bearer token.
+Error decoding bearer token.,Σφάλμα αποκωδικοποίησης του bearer token.
+Unknown or inactive account.,Άγνωστος ή ανενεργός λογαριασμός.
+Login failed. Please try again.,Αποτυχία σύνδεσης. Παρακαλώ προσπαθήστε ξανά.
+Invalid confirmation reason.,Μη έγκυρος λόγος επιβεβαίωσης.
+Unknown account.,Άγνωστος λογαριασμός.
+Error obtaining confirmation parameter. Please try again.,Σφάλμα κατά τη λήψη της παραμέτρου επιβεβαίωσης. Παρακαλώ προσπαθήστε ξανά.
+Confirmation parameter is invalid or expired.,Ο παράμετρος επιβεβαίωσης είναι μη έγκυρη ή έχει λήξει.
+Your account is now active.,Ο λογαριασμός σας είναι πλέον ενεργός.
+Your email address is now confirmed.,Η διεύθυνση email σας επιβεβαιώθηκε τώρα.
+You can now change your password.,Μπορείτε τώρα να αλλάξετε τον κωδικό πρόσβασής σας.
+Setup a password for your account.,Διαμορφώστε έναν κωδικό πρόσβασης για τον λογαριασμό σας.
+Couldn't obtain confirmation parameters.,Αδυναμία λήψης παραμέτρων επιβεβαίωσης.
+Couldn't load required resources.,Αδυναμία φόρτωσης των απαιτούμενων πόρων.
+Confirmation reason unknown.,Άγνωστος λόγος επιβεβαίωσης.
+Account doesn't require activation.,Ο λογαριασμός δεν απαιτεί ενεργοποίηση.
+Failed activating account. Please try again.,Αποτυχία ενεργοποίησης λογαριασμού. Παρακαλώ προσπαθήστε ξανά.
+Failed confirming email address. Please try again.,Αποτυχία επιβεβαίωσης διεύθυνσης email. Παρακαλώ προσπαθήστε ξανά.
+Cannot change password for this account.,Δεν είναι δυνατή η αλλαγή του κωδικού πρόσβασης για αυτόν τον λογαριασμό.
+Couldn't obtain change password page parameters. Please try again.,Δεν ήταν δυνατή η λήψη των παραμέτρων της σελίδας αλλαγής κωδικού πρόσβασης. Παρακαλώ προσπαθήστε ξανά.
+Import file is not readable.,Το αρχείο εισαγωγής δεν είναι αναγνώσιμο.
+Couldn't extract data from import file.,Δεν ήταν δυνατή η εξαγωγή δεδομένων από το αρχείο εισαγωγής.
+Accounts import data is invalid.,Η εισαγωγή δεδομένων λογαριασμών είναι μη έγκυρη.
+Import level provided is invalid.,Το επίπεδο εισαγωγής που παρέχεται δεν είναι έγκυρο.
+No directory provided to save export data to or no rights to write in that directory.,Δεν παρέχεται κατάλογος για την αποθήκευση των δεδομένων εξαγωγής ή δεν υπάρχουν δικαιώματα εγγραφής σε αυτόν τον κατάλογο.
+Couldn't create export file.,Αδυναμία δημιουργίας αρχείου εξαγωγής.
+Headers already sent. Cannot send export file to browser.,Κεφαλίδες έχουν ήδη σταλεί. Δεν είναι δυνατή η αποστολή του αρχείου εξαγωγής στον περιηγητή.
+Account Confirmation,Επιβεβαίωση Λογαριασμού
+Error sending confirmation email.,Σφάλμα κατά την αποστολή email επιβεβαίωσης.
+Error sending confirmation email to %s.,Σφάλμα κατά την αποστολή επιβεβαίωσης email προς το %s.
+No need to setup a password for provided account.,Δεν χρειάζεται να ρυθμίσετε έναν κωδικό πρόσβασης για το παρεχόμενο λογαριασμό.
+Account Password Setup,Ρύθμιση Κωδικού Λογαριασμού
+Error querying accounts for export.,Σφάλμα κατά τον ερώτημα των λογαριασμών για εξαγωγή.
+Error creating temporary accounts import directory: [%s].,Σφάλμα δημιουργίας καταλόγου εισαγωγής προσωρινών λογαριασμών: [%s].
+Password Setup,Ρύθμιση Κωδικού Πρόσβασης
+login page,σελίδα σύνδεσης
+Password setup not required. Go to %s.,Η ρύθμιση κωδικού πρόσβασης δεν απαιτείται. Μεταβείτε στο %s.
+Password setup link expired. Please try again.,Ο σύνδεσμος δημιουργίας κωδικού πρόσβασης έχει λήξει. Παρακαλώ προσπαθήστε ξανά.
+Password setup with success.,Ρύθμιση κωδικού πρόσβασης με επιτυχία.
+Please provide mandatory fields.,Παρακαλώ παρέχετε υποχρεωτικά πεδία.
+Passwords mismatch.,Οι κωδικοί πρόσβασης δεν ταιριάζουν.
+Error settings up a password. Please try again.,Σφάλμα ρύθμισης κωδικού πρόσβασης. Παρακαλώ προσπαθήστε ξανά.
+Account Activation,Ενεργοποίηση λογαριασμού
+Couldn't interpret confirmation parameter. Please try again.,Δεν ήταν δυνατή η ερμηνεία της παραμέτρου επιβεβαίωσης. Παρακαλώ προσπαθήστε ξανά.
+Action Confirmed...,Ενέργεια Επιβεβαιώθηκε...
+Cannot send registration email to this account.,Αδυναμία αποστολής email εγγραφής σε αυτόν τον λογαριασμό.
+Error sending registration email to %s.,Σφάλμα κατά την αποστολή email εγγραφής προς τον %s.
+Logout,Αποσύνδεση
+You logged out from your account...,Αποσυνδεθήκατε από τον λογαριασμό σας...
+Couldn't load accounts plugin.,Αδυναμία φόρτωσης του πρόσθετου λογαριασμών.
+Successfully logged out...,Αποσυνδέθηκε με επιτυχία...
+Error logging out... Please try again.,Σφάλμα καταγραφής εξόδου... Παρακαλώ προσπαθήστε ξανά.
+Cannot send forgot password email to this account.,Δεν είναι δυνατή η αποστολή email επαναφοράς κωδικού πρόσβασης σε αυτόν τον λογαριασμό.
+Error triggering account action in background for account #%s (%s).,Σφάλμα ενεργοποίησης ενέργειας λογαριασμού στο παρασκήνιο για τον λογαριασμό #%s (%s).
+Your session expired. Please login again into your account.,Η συνεδρία σας έληξε. Παρακαλώ συνδεθείτε ξανά στον λογαριασμό σας.
+Account registered and active. You can login now.,Ο λογαριασμός έχει εγγραφεί και είναι ενεργός. Μπορείτε να συνδεθείτε τώρα.
+Password changed with success. You can login now.,Ο κωδικός πρόσβασης άλλαξε με επιτυχία. Μπορείτε να συνδεθείτε τώρα.
+An email with your password was sent to email provided in your account details.,Ένα email με τον κωδικό πρόσβασής σας εστάλη στο email που δόθηκε στα στοιχεία λογαριασμού σας.
+Already logged in...,Ήδη συνδεδεμένος...
+Please provide complete mandatory fields.,Παρακαλώ παρέχετε τα πλήρη υποχρεωτικά πεδία.
+Bad username or password.,Λανθασμένο όνομα χρήστη ή κωδικός πρόσβασης.
+Successfully logged in...,Επιτυχής σύνδεση...
+Error logging in... Please try again.,Σφάλμα καταγραφής σύνδεσης... Παρακαλώ προσπαθήστε ξανά.
+Account doesn't need password change notification.,Ο λογαριασμός δεν χρειάζεται ειδοποίηση αλλαγής κωδικού πρόσβασης.
+Password changed,Ο κωδικός πρόσβασης άλλαξε
+Error sending password changed message to %s.,Σφάλμα κατά την αποστολή μηνύματος αλλαγής κωδικού πρόσβασης προς το %s.
+Account doesn't need email verification.,Ο λογαριασμός δεν χρειάζεται επαλήθευση email.
+Verify Email,Επαλήθευση Email
+Error sending verify email message to %s.,Σφάλμα κατά την αποστολή μηνύματος επαλήθευσης email προς το %s.
+Error logging in. Please try again.,Σφάλμα καταγραφής σύνδεσης. Παρακαλώ προσπαθήστε ξανά.
+API change password should use mobileapi plugin.,Η αλλαγή κωδικού πρόσβασης του API θα πρέπει να χρησιμοποιεί το πρόσθετο mobileapi.
+Error changing account password. Please try again.,Σφάλμα κατά την αλλαγή του κωδικού πρόσβασης λογαριασμού. Παρακαλώ προσπαθήστε ξανά.
+Register an Account,Καταχωρήστε έναν Λογαριασμό
+User account registered with success...,Ο λογαριασμός χρήστη καταχωρήθηκε με επιτυχία...
+Invalid validation code.,Μη έγκυρος κωδικός επικύρωσης.
+Passwords mistmatch.,Οι κωδικοί πρόσβασης δεν ταιριάζουν.
+Two Factor Authentication Setup,Ρύθμιση Πιστοποίησης Δύο Παραγόντων
+Two factor authentication setup with success.,Ρύθμιση διπλής πιστοποίησης με επιτυχία.
+Error obtaining two factor authentication setup link. Please refresh the page or contact support.,Σφάλμα κατά τη λήψη του συνδέσμου ρύθμισης διπλής πιστοποίησης. Παρακαλώ ανανεώστε τη σελίδα ή επικοινωνήστε με την υποστήριξη.
+You have to finalize two factor authentication setup first.,Πρέπει να ολοκληρώσετε πρώτα τη ρύθμιση ταυτοποίησης δύο παραγόντων.
+Couldn't generate recovery codes file.,Αδυναμία δημιουργίας αρχείου κωδικών ανάκτησης.
+Error downloading two factor authentication recovery codes file: %s,Σφάλμα λήψης αρχείου ανάκτησης κωδικών αυθεντικοποίησης δύο παραγόντων: %s
+Please provide a verification code.,Παρακαλώ παράσχετε έναν κωδικό επαλήθευσης.
+Two factor authentication verification failed. Please try again.,Η επαλήθευση διπλού παράγοντα απέτυχε. Παρακαλώ προσπαθήστε ξανά.
+Error finializing two factor authentication setup. Please try again.,Σφάλμα κατά την ολοκλήρωση της ρύθμισης διπλής πιστοποίησης. Παρακαλώ προσπαθήστε ξανά.
+Error marking device as two factor authentication valid.,Σφάλμα σήμανσης συσκευής ως έγκυρης για διπλή πιστοποίηση ταυτότητας.
+Two Factor Authentication disabled for your account.,Η διπλή πιστοποίηση απενεργοποιήθηκε για τον λογαριασμό σας.
+You should first setup two factor authentication for your account.,Πρέπει πρώτα να ρυθμίσετε τη διπλή πιστοποίηση για τον λογαριασμό σας.
+Please provide a two factor authentication code.,Παρακαλώ παρέχετε έναν κωδικό επαλήθευσης δύο παραγόντων.
+Invalid verification code. Please try again.,Μη έγκυρος κωδικός επαλήθευσης. Παρακαλώ προσπαθήστε ξανά.
+No two factor authentication set up for your account yet.,Δεν έχει διαμορφωθεί ακόμα η διπλή πιστοποίηση παράγοντα για τον λογαριασμό σας.
+Error cancelling two factor authentication for your account. Please try again,Σφάλμα στην ακύρωση της διπλής πιστοποίησης ταυτότητας για τον λογαριασμό σας. Παρακαλώ προσπαθήστε ξανά
+Two Factor Authentication Verification,Επαλήθευση Διπλής Ταυτοποίησης Παράγοντα
+Error updating session details. Please try again.,Σφάλμα κατά την ενημέρωση των λεπτομερειών συνεδρίας. Παρακαλώ προσπαθήστε ξανά.
+Two factor authentication verification passed.,Επιτυχής επαλήθευση διπλής πιστοποίησης παρέλθει.
+Edit Profile,Επεξεργασία Προφίλ
+Changes saved to database.,Οι αλλαγές αποθηκεύτηκαν στη βάση δεδομένων.
+Verification email sent... Please follow the steps in email to acknowledge your email address.,Το email επαλήθευσης εστάλη... Παρακαλώ ακολουθήστε τα βήματα στο email για να επιβεβαιώσετε τη διεύθυνση email σας.
+Couldn't send verification email. Please try again.,Αδυναμία αποστολής email επαλήθευσης. Παρακαλώ προσπαθήστε ξανά.
+Changes saved...,Οι αλλαγές αποθηκεύτηκαν...
+Cannot send registration confirmation to this account.,Δεν είναι δυνατή η αποστολή επιβεβαίωσης εγγραφής σε αυτόν τον λογαριασμό.
+Password reset link,Σύνδεσμος επαναφοράς κωδικού πρόσβασης
+Error sending forgot password email to %s.,Σφάλμα κατά την αποστολή email ξεχασμένου κωδικού πρόσβασης προς το %s.
+Change Password,Αλλαγή Κωδικού Πρόσβασης
+"Your password expired. For security reasons, please change it.","Ο κωδικός πρόσβασής σας έληξε. Προς λόγους ασφαλείας, παρακαλούμε να τον αλλάξετε."
+Password changed with success.,Ο κωδικός πρόσβασης άλλαξε με επιτυχία.
+Error changing password. Please try again.,Σφάλμα κατά την αλλαγή του κωδικού πρόσβασης. Παρακαλώ προσπαθήστε ξανά.
+Forgot Password,Ξεχάσατε τον κωδικό πρόσβασης
+Email with instructions sent to provided email address.,Το email με οδηγίες εστάλη στη διεύθυνση email που δόθηκε.
+Account registered,Ο λογαριασμός εγγράφηκε
+Hello %s.,Γεια σας %s.
+"You successfully registered your account. However, before using your account you must activate it.","Επιτυχής εγγραφή λογαριασμού. Ωστόσο, πριν χρησιμοποιήσετε τον λογαριασμό σας πρέπει να τον ενεργοποιήσετε."
+We sent you an activation link at %s. Please check your email (also looking into spam folder) and click or access the activation link.,Σας στείλαμε έναν σύνδεσμο ενεργοποίησης στο %s. Παρακαλούμε ελέγξτε το email σας (ελέγξτε επίσης τον φάκελο ανεπιθύμητης αλληλογραφίας) και κάντε κλικ ή αποκτήστε πρόσβαση στον σύνδεσμο ενεργοποίησης.
+Go to login page,Μετάβαση στη σελίδα σύνδεσης
+Current Password,Τρέχον Κωδικός Πρόσβασης
+New Password,Νέος Κωδικός
+Password should be at least %s characters.,Ο κωδικός πρόσβασης πρέπει να αποτελείται από τουλάχιστον %s χαρακτήρες.
+Password should pass regular expresion: ,Ο κωδικός πρόσβασης πρέπει να περάσει τον τακτικό εκφρασμένο:
+Password should pass regular expresion: %s.,Ο κωδικός πρόσβασης πρέπει να περάσει τον τακτικό εκφρασμένο: %s.
+Confirm Password,Επιβεβαίωση Κωδικού
+Change password,Αλλαγή κωδικού πρόσβασης
+Register an account,Καταχωρήστε έναν λογαριασμό
+Confirm password,Επιβεβαίωση κωδικού πρόσβασης
+Validation code,Κωδικός επικύρωσης
+Register,Καταχώριση
+Already have an account,Έχετε ήδη λογαριασμό
+I just forgot my password,Απλά ξέχασα τον κωδικό πρόσβασής μου
+NOT VERIFIED,ΜΗ ΕΠΙΒΕΒΑΙΩΜΕΝΟ
+Send verification email,Αποστολή email επαλήθευσης
+Email is %s,Το ηλεκτρονικό ταχυδρομείο είναι %s
+VERIFIED,ΕΠΑΛΗΘΕΥΜΕΝΟ
+"eg. Mr., Ms., Mrs., etc","π.χ. κ.κ., κα., κυα., κλπ."
+First Name,Όνομα
+Last Name,Επώνυμο
+Phone Number,Αριθμός Τηλεφώνου
+Limit emails received from platform,Περιορισμός email που λαμβάνονται από την πλατφόρμα
+"Platform will minimize emails sent to you, however functionality emails will still be send to your email address (e.g. forgot password emails, change password emails, etc)","Η πλατφόρμα θα ελαχιστοποιήσει τα emails που στέλνονται σε εσάς, ωστόσο τα emails λειτουργικότητας θα εξακολουθούν να στέλνονται στη διεύθυνση email σας (π.χ. emails για ξεχασμένο κωδικό πρόσβασης, emails για αλλαγή κωδικού πρόσβασης, κλπ)."
+Save Changes,Αποθήκευση Αλλαγών
+Confirmation action failed,Η επιβεβαίωση της ενέργειας απέτυχε
+there,εκεί
+Action required for confirmation failed. This might happen because confirmation link expired. Please try again.,Απαιτείται ενέργεια για την επιβεβαίωση απέτυχε. Αυτό μπορεί να συμβεί επειδή ο σύνδεσμος επιβεβαίωσης έληξε. Παρακαλώ προσπαθήστε ξανά.
+"In order to access your account, please open Google Authenticator on you device and provide the code in the input below.","Για να αποκτήσετε πρόσβαση στον λογαριασμό σας, ανοίξτε το Google Authenticator στη συσκευή σας και δώστε τον κωδικό στο πεδίο εισόδου παρακάτω."
+Verification Code,Κωδικός Επαλήθευσης
+Remember this device. Ask for a two factor authentication code only after %s of inactivity.,Να θυμάστε αυτή τη συσκευή. Ζητήστε έναν κωδικό επαλήθευσης δύο παραγόντων μόνο μετά από %s αδράνεια.
+Check Code,Έλεγχος Κώδικα
+"In case you lost your device or you don't have access to Google Authenticator, you can use one of your recovery codes below.","Σε περίπτωση που χάσετε τη συσκευή σας ή δεν έχετε πρόσβαση στο Google Authenticator, μπορείτε να χρησιμοποιήσετε έναν από τους κωδικούς ανάκτησης σας παρακάτω."
+Use Recovery Code,Χρησιμοποιήστε τον κωδικό ανάκτησης
+"In order to download your recovery codes, please provide a two factor authentication verification code first.","Για να κατεβάσετε τους κωδικούς ανάκτησής σας, παρακαλούμε προσφέρετε πρώτα έναν κωδικό επαλήθευσης διπλής παράγοντα ταυτοποίησης."
+Recovery Code,Κωδικός Ανάκτησης
+Check Recovery Code,Έλεγχος Κωδικού Ανάκτησης
+Cancel Recovery Check,Ακύρωση Έλεγχου Ανάκτησης
+You didn't set up yet Two Factor Authentication for your account.,Δεν έχετε ακόμα ρυθμίσει τη Διπλή Παράγοντα Ταυτοποίηση για τον λογαριασμό σας.
+"In order to strengthen your account security, it is recommended that you set up Two-Factor Authentication.","Για να ενισχύσετε την ασφάλεια του λογαριασμού σας, συνιστάται να ενεργοποιήσετε τη Διπλή Πιστοποίηση."
+What Two-Factor Authentication (TFA) means?,Τι σημαίνει η Διπλή Πιστοποίηση Ταυτότητας (TFA);
+Setup Two Factor Authentication,Ρύθμιση Διπλής Ταυτοποίησης Παράγοντα
+"In case you didn't download your recovery codes yet, you still can, by providing a two factor authentication verification code first.","Σε περίπτωση που δεν έχετε κατεβάσει ακόμα τους κωδικούς ανάκτησής σας, μπορείτε ακόμα να το κάνετε, παρέχοντας πρώτα έναν κωδικό επαλήθευσης διπλού παράγοντα."
+Download Recovery Codes,Λήψη Κωδικών Ανάκτησης
+Cancel Download,Ακύρωση Λήψης
+"Altough we don't recommend it, you can disable your Two Factor Authentication set up.","Παρόλο που δεν το συνιστούμε, μπορείτε να απενεργοποιήσετε τη διαδικασία εγκατάστασης της Διπλής Πιστοποίησης Ταυτότητας."
+Disable Two Factor Authentication,Απενεργοποίηση Διπλής Παράγοντα Ταυτοποίησης
+"Altough we don't recommend it, you can disable your Two Factor Authentication set up after providing a verification code.","Παρόλο που δεν το συνιστούμε, μπορείτε να απενεργοποιήσετε τη διπλή πιστοποίηση μετά την παροχή ενός κωδικού επαλήθευσης."
+Disable TFA Setup,Απενεργοποίηση Ρύθμισης TFA
+Please provide a verification code first.,Παρακαλώ παρέχετε έναν κωδικό επαλήθευσης πρώτα.
+Are you sure you want to disable TFA setup for your account?,Είστε σίγουροι ότι θέλετε να απενεργοποιήσετε τη ρύθμιση TFA για τον λογαριασμό σας;
+You are setting up two factor authentication for account %s.,Διαμορφώνετε τη διπλή πιστοποίηση για τον λογαριασμό %s.
+Please note that on this platform two factor authentication is mandatory.,Σημειώστε ότι σε αυτήν την πλατφόρμα η διπλή ταυτοποίηση είναι υποχρεωτική.
+Error obtaining two factor authentication recovery codes. Please refresh the page.,Σφάλμα κατά τη λήψη των κωδικών ανάκτησης διπλής πιστοποίησης ταυτότητας. Παρακαλώ ανανεώστε τη σελίδα.
+Please download your recovery codes and store them somewhere safe.,Παρακαλώ κατεβάστε τους κωδικούς ανάκτησής σας και αποθηκεύστε τους κάπου ασφαλώς.
+Downloading file. Please wait...,Λήψη αρχείου. Παρακαλώ περιμένετε...
+"After download finishes, you can continue browsing the site.","Μετά το τέλος της λήψης, μπορείτε να συνεχίσετε την περιήγηση στον ιστότοπο."
+Continue browsing the site,Συνεχίστε την περιήγηση στον ιστότοπο
+Remember Me,Θυμήσου με
+ (for %s), (για %s)
+Normal sessions will expire in %s.,Οι κανονικές συνεδρίες θα λήξουν σε %s.
+Forgot password,Ξεχάσατε τον κωδικό πρόσβασης
+Provide email address of your account,Παράσχετε τη διεύθυνση email του λογαριασμού σας
+Once you submit this form you will receive an email with instructions.,"Μόλις υποβάλετε αυτή τη φόρμα, θα λάβετε email με οδηγίες."
+Submit,Υποβολή
+You are setting up a password for account %s.,Δημιουργείτε έναν κωδικό πρόσβασης για τον λογαριασμό %s.
+Set password,Ορισμός κωδικού πρόσβασης
+Error un-linking old tenants from account.,Σφάλμα κατά την αποσύνδεση των παλαιών ενοικιαστών από τον λογαριασμό.
+Error linking all tenants to account.,Σφάλμα σύνδεσης όλων των ενοικιαστών στον λογαριασμό.
+Error obtaining tenants count for the account.,Σφάλμα κατά τη λήψη του αριθμού των ενοικιαστών για τον λογαριασμό.
+Error updating multi-tenant details for account.,Σφάλμα κατά την ενημέρωση των λεπτομερειών πολλαπλών ενοικιαστών για τον λογαριασμό.
+Please provide account tenant details.,Παρακαλώ παράσχετε λεπτομέρειες λογαριασμού ενοικιαστή.
+Level %s,Επίπεδο %s
+Couldn't obtain account password.,Αδυναμία λήψης κωδικού πρόσβασης λογαριασμού.
+Cannot obtain flow params.,Αδυναμία λήψης παραμέτρων ροής.
+Please provide a valid account to save password history.,Παρακαλώ παρέχετε ένα έγκυρο λογαριασμό για να αποθηκεύσετε το ιστορικό κωδικών πρόσβασης.
+Please provide a valid language.,Παρακαλώ παρέχετε μια έγκυρη γλώσσα.
+Error updating account language.,Σφάλμα κατά την ενημέρωση της γλώσσας του λογαριασμού.
+Error saving session details to database.,Σφάλμα κατά την αποθήκευση λεπτομερειών συνεδρίας στη βάση δεδομένων.
+Invalid login source.,Μη έγκυρη πηγή σύνδεσης.
+Already logged in.,Ήδη συνδεδεμένος.
+Error resetting account locking.,Σφάλμα επαναφοράς κλειδώματος λογαριασμού.
+Error inactivating account.,Σφάλμα στην απενεργοποίηση λογαριασμού.
+Error activating account.,Σφάλμα κατά την ενεργοποίηση λογαριασμού.
+Error launching account action in background.,Σφάλμα κατά την εκκίνηση της ενέργειας λογαριασμού στο παρασκήνιο.
+This account doesn't need a confirmation email anymore. Logged in before or already active.,Αυτός ο λογαριασμός δεν χρειάζεται πλέον επιβεβαιωτικό email. Έχει συνδεθεί προηγουμένως ή είναι ήδη ενεργός.
+Error sending confirmation email. Please try again.,Σφάλμα κατά την αποστολή email επιβεβαίωσης. Παρακαλώ προσπαθήστε ξανά.
+Error sending activation email. Please try again.,Σφάλμα κατά την αποστολή email ενεργοποίησης. Παρακαλώ προσπαθήστε ξανά.
+Invalid flow parameters while updating user details.,Μη έγκυρες παράμετροι ροής κατά την ενημέρωση των στοιχείων χρήστη.
+Error obtaining account details model instance.,Σφάλμα κατά τη λήψη της μονάδας μοντέλου λεπτομερειών λογαριασμού.
+Invalid account to update details.,Μη έγκυρος λογαριασμός για ενημέρωση στοιχείων.
+Error saving account details in database. Please try again.,Σφάλμα κατά την αποθήκευση των λεπτομερειών λογαριασμού στη βάση δεδομένων. Παρακαλώ προσπαθήστε ξανά.
+Couldn't link account details with the account. Please try again.,Δεν ήταν δυνατή η σύνδεση των λεπτομερειών του λογαριασμού με τον λογαριασμό. Παρακαλώ προσπαθήστε ξανά.
+Please provide an email.,Παρακαλώ δώστε μια διεύθυνση email.
+Please provide a valid email.,Παρακαλώ δώστε ένα έγκυρο email.
+Please provide an username.,Παρακαλώ δώστε ένα όνομα χρήστη.
+Please provide a valid account level.,Παρακαλώ παρέχετε ένα έγκυρο επίπεδο λογαριασμού.
+Please provide a password.,Παρακαλώ δώστε έναν κωδικό πρόσβασης.
+Username already exists in database. Please pick another one.,Το όνομα χρήστη υπάρχει ήδη στη βάση δεδομένων. Παρακαλώ επιλέξτε ένα άλλο.
+Email address exists in database. Please pick another one.,Η διεύθυνση email υπάρχει στη βάση δεδομένων. Παρακαλώ επιλέξτε μια άλλη.
+Error encrypting account password. Please retry.,Σφάλμα κρυπτογράφησης κωδικού λογαριασμού. Παρακαλώ δοκιμάστε ξανά.
+Error obtaining account password. Please retry.,Σφάλμα κατά τη λήψη του κωδικού πρόσβασης λογαριασμού. Παρακαλώ προσπαθήστε ξανά.
+Error saving account password. Please try again.,Σφάλμα κατά την αποθήκευση του κωδικού πρόσβασης λογαριασμού. Παρακαλώ προσπαθήστε ξανά.
+Error sending registration email. Please try again.,Σφάλμα κατά την αποστολή email εγγραφής. Παρακαλώ προσπαθήστε ξανά.
+You used this password in the past. Please provide another one.,Χρησιμοποιήσατε αυτόν τον κωδικό πρόσβασης στο παρελθόν. Παρακαλώ δώστε έναν άλλον.
+"You used this password in last %s, one of last %s passwords. Please provide another one.","Χρησιμοποιήσατε αυτόν τον κωδικό πρόσβασης την τελευταία φορά %s, έναν από τους τελευταίους %s κωδικούς πρόσβασης. Παρακαλώ δώστε έναν άλλον."
+Invalid email address.,Μη έγκυρη διεύθυνση email.
+Nickname already exists in database. Please pick another one.,Το ψευδώνυμο υπάρχει ήδη στη βάση δεδομένων. Παρακαλώ επιλέξτε ένα άλλο.
+Error saving account roles in database. Please try again.,Σφάλμα κατά την αποθήκευση των ρόλων λογαριασμού στη βάση δεδομένων. Παρακαλώ προσπαθήστε ξανά.
+Error saving account tenants in database. Please try again.,Σφάλμα κατά την αποθήκευση των ενοικιαστών λογαριασμού στη βάση δεδομένων. Παρακαλώ προσπαθήστε ξανά.
+Error inserting account password. Please try again.,Σφάλμα κατά την εισαγωγή του κωδικού λογαριασμού. Παρακαλώ προσπαθήστε ξανά.
+Click for details,Κάντε κλικ για λεπτομέρειες
+Password doesn't match regular expression %s.,Ο κωδικός πρόσβασης δεν ταιριάζει με την τακτική εκφραση %s.
+Error saving password history data.,Σφάλμα κατά την αποθήκευση δεδομένων ιστορικού κωδικού πρόσβασης.
+%s hash algorithm not available on this server.,Ο αλγόριθμος hash %s δεν είναι διαθέσιμος σε αυτό τον διακομιστή.
+Error querying users from database.,Σφάλμα κατά τον ερώτημα των χρηστών από τη βάση δεδομένων.
+Error obtaining password salts flow.,Σφάλμα κατά τη λήψη των υπολοίπων των κωδικών πρόσβασης.
+Member,Μέλος
+Admin,Διαχειριστής
+Super admin,Υπερδιαχειριστής
+Developer,Προγραμματιστής
+Please provide an user account id.,Παρακαλώ παρέχετε ένα αναγνωριστικό λογαριασμού χρήστη.
+This option is disabled.,Αυτή η επιλογή είναι απενεργοποιημένη.
+Error obtaining required account data.,Σφάλμα κατά τη λήψη των απαιτούμενων δεδομένων λογαριασμού.
+Error marking this device as TFA valid.,Σφάλμα σήμανσης αυτής της συσκευής ως έγκυρη για TFA.
+Session not created yet.,Η συνεδρία δεν έχει δημιουργηθεί ακόμα.
+Invalid TFA data provided.,Παρέχονται μη έγκυρα δεδομένα TFA.
+Error deleting two factor authentication data.,Σφάλμα διαγραφής δεδομένων διπλής πιστοποίησης ταυτότητας.
+Error finishing two factor authenticatrion setup.,Σφάλμα ολοκλήρωσης ρύθμισης διπλής πιστοποίησης ταυτότητας.
+Error updating two factor authenticatrion setup.,Σφάλμα κατά την ενημέρωση της ρύθμισης διπλής πιστοποίησης.
+Error obtaining secret for provided TFA data.,Σφάλμα κατά τη λήψη μυστικού για τα παρεχόμενα δεδομένα TFA.
+Error obtaining recovery codes for provided TFA data.,Σφάλμα κατά τη λήψη των κωδικών ανάκτησης για τα παρεχόμενα δεδομένα TFA.
+Two factor authentication secret length is not valid.,Το μήκος του μυστικού της διπλής πιστοποίησης δύο παραγόντων δεν είναι έγκυρο.
+Two factor authentication installation not required for provided account.,Η εγκατάσταση διπλής ταυτοποίησης δεν απαιτείται για το παρεχόμενο λογαριασμό.
+Error installing two factor authentication data for provided account.,Σφάλμα κατά την εγκατάσταση δεδομένων διπλής πιστοποίησης ταυτότητας για τον παρεχόμενο λογαριασμό.
+Account doesn't have two factor authentication installed.,Ο λογαριασμός δεν έχει εγκατεστημένη διπλή πιστοποίηση.
+Invalid secret for two factor authentication.,Μη έγκυρο μυστικό για διπλή πιστοποίηση ταυτότητας.
+Invalid recovery data for two factor authentication.,Μη έγκυρα δεδομένα ανάκτησης για διπλή πιστοποίηση ταυτότητας.
+Nothing to update for two factor authentication for provided account.,Δεν υπάρχει κάτι να ενημερωθεί για τη διπλή πιστοποίηση ταυτότητας για το συγκεκριμένο λογαριασμό.
+Error saving two factor authentication data for provided account.,Σφάλμα κατά την αποθήκευση δεδομένων διπλής πιστοποίησης ταυτότητας για τον παρεχόμενο λογαριασμό.
+Error obtaining two factor authentication setup URL.,Σφάλμα κατά τη λήψη του URL ρύθμισης διπλής πιστοποίησης παράγοντα.
+Error generating two factor authentication setup link.,Σφάλμα κατά τη δημιουργία του συνδέσμου εγκατάστασης διπλής πιστοποίησης παράγοντα.
+Two factor authentication data not found in database.,Τα δεδομένα διπλής επαλήθευσης δεν βρέθηκαν στη βάση δεδομένων.
+Error obtaining two factor authentication secret.,Σφάλμα κατά τη λήψη του μυστικού διπλής πιστοποίησης παράγοντα.
+Headers already sent. Cannot send file to browser.,Κεφαλίδες έχουν ήδη σταλεί. Δεν είναι δυνατή η αποστολή του αρχείου στον περιηγητή.
+Error updating two factor authentication data. Please try again.,Σφάλμα κατά την ενημέρωση δεδομένων διπλής πιστοποίησης. Παρακαλώ προσπαθήστε ξανά.
+Two factor authentication setup not finialized.,Η εγκατάσταση της διπλής ταυτοποίησης δεν ολοκληρώθηκε.
+Error obtaining recovery codes.,Σφάλμα κατά τη λήψη των κωδικών ανάκτησης.
+Error decoding recovery data.,Σφάλμα αποκωδικοποίησης δεδομένων ανάκτησης.
+Please provide a secret for 2FA.,Παρακαλώ παρέχετε ένα μυστικό για το 2FA.
+Error encoding recovery data.,Σφάλμα κωδικοποίησης δεδομένων ανάκτησης.
+Error encoding secret key.,Σφάλμα κωδικοποίησης μυστικού κλειδιού.
+Error in TFA data.,Σφάλμα στα δεδομένα TFA.
+Error decoding TFA details.,Σφάλμα αποκωδικοποίησης λεπτομερειών TFA.
+Error encoding TFA details.,Σφάλμα κωδικοποίησης λεπτομερειών TFA.
+Account doesn't have two factor authentication enabled.,Ο λογαριασμός δεν έχει ενεργοποιημένη τη διπλή πιστοποίηση παράγοντα.
+Error obtaining two factor authentication details.,Σφάλμα κατά τη λήψη λεπτομερειών διπλής πιστοποίησης ταυτότητας.

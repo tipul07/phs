@@ -2,7 +2,7 @@
 namespace phs\libraries;
 
 if (!defined('PHS_VERSION')
- && (!defined('PHS_SETUP_FLOW') || !constant('PHS_SETUP_FLOW'))) {
+    && (!defined('PHS_SETUP_FLOW') || !constant('PHS_SETUP_FLOW'))) {
     exit;
 }
 
@@ -16,44 +16,39 @@ class PHS_Error
     public const WARNING_NOTAG = -1;
 
     // ! Error code as integer
-    /** @var int */
-    private int $error_no = self::ERR_OK;
+    private int $error_no;
 
     // ! Contains error message including debugging information
-    /** @var string */
-    private string $error_msg = '';
+    private string $error_msg;
 
     // ! Contains only error message
-    /** @var string */
     private string $error_simple_msg = '';
 
     // ! Contains a debugging error message
-    /** @var string */
-    private string $error_debug_msg = '';
+    private string $error_debug_msg;
 
     // ! Warnings count
-    /** @var int */
     private int $warnings_no = 0;
 
     // ! Warning messages as array. Warnings are categorized by tags saved as array keys
-    /** @var array */
     private array $warnings_arr = [];
 
     // ! If true platform will automatically throw errors in set_error() method
-    /** @var bool */
     private bool $throw_errors = false;
 
     // ! Tells if platform in is debugging mode
-    /** @var bool */
     private bool $debugging_mode = false;
 
     // ! Tells if we should get full backtrace when we have an error.
     // ! In some cases debug_backtrace() would result in Segmentation fault because of some resources (eg. SSH2/SFTP connections)
-    /** @var bool */
     private bool $suppress_backtrace = false;
 
-    public function __construct(int $error_no = self::ERR_OK, string $error_msg = '', string $error_debug_msg = '', bool $static_instance = false)
-    {
+    public function __construct(
+        int $error_no = self::ERR_OK,
+        string $error_msg = '',
+        string $error_debug_msg = '',
+        bool $static_instance = false
+    ) {
         $error_msg = trim($error_msg);
 
         $this->error_no = $error_no;
@@ -61,7 +56,7 @@ class PHS_Error
         $this->error_debug_msg = $error_debug_msg;
 
         // Make sure we inherit debugging mode from static call...
-        if (empty($static_instance)) {
+        if (!$static_instance) {
             $this->throw_errors(self::st_throw_errors());
             $this->debugging_mode(self::st_debugging_mode());
             $this->suppress_backtrace(self::st_suppress_backtrace());
@@ -1138,7 +1133,9 @@ class PHS_Error
         if (@class_exists(PHS_Logger::class, false)) {
             PHS_Logger::critical($error_msg, PHS_Logger::TYPE_DEBUG);
         }
-        trigger_error($error_msg, E_USER_ERROR);
+
+        echo 'Critical ERROR: '.$error_msg;
+        exit;
     }
 
     /**

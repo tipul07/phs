@@ -2,6 +2,7 @@
 /** @var \phs\system\core\views\PHS_View $this */
 
 use phs\PHS;
+use phs\PHS_Scope;
 use phs\libraries\PHS_Params;
 
 /** @var \phs\libraries\PHS_Paginator $paginator_obj */
@@ -25,12 +26,9 @@ $originals_arr = $paginator_obj->get_originals() ?: [];
 
 $show_filters = (bool)PHS_Params::_g('show_filters', PHS_Params::T_INT);
 
-if ($flow_params_arr['before_filters_callback']
-    && @is_callable($flow_params_arr['before_filters_callback'])) {
-    $callback_params = $paginator_obj->default_others_render_call_params();
-    $callback_params['filters'] = $filters_arr;
-
-    if (false === ($cell_content = @call_user_func($flow_params_arr['before_filters_callback'], $callback_params))
+if (($callback = ($flow_params_arr['before_filters_callback'] ?? null))
+    && @is_callable($callback)) {
+    if (false === ($cell_content = @$callback($paginator_obj->default_others_render_call_params()))
         || $cell_content === null) {
         $cell_content = '['.$this->_pt('Render before filters call failed.').']';
     }
@@ -355,16 +353,12 @@ function phs_filters_should_be_opened( path_id )
 }
 </script>
 <?php
-
-    if ($flow_params_arr['after_filters_callback']
-        && @is_callable($flow_params_arr['after_filters_callback'])) {
-        $callback_params = $paginator_obj->default_others_render_call_params();
-        $callback_params['filters'] = $filters_arr;
-
-        if (false === ($cell_content = @call_user_func($flow_params_arr['after_filters_callback'], $callback_params))
-            || $cell_content === null) {
-            $cell_content = '['.$this->_pt('Render after filters call failed.').']';
-        }
-
-        echo $cell_content;
+if (($callback = $flow_params_arr['after_filters_callback'] ?? null)
+    && @is_callable($callback)) {
+    if (false === ($cell_content = @$callback($paginator_obj->default_others_render_call_params()))
+        || $cell_content === null) {
+        $cell_content = '['.$this->_pt('Render after filters call failed.').']';
     }
+
+    echo $cell_content;
+}

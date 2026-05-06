@@ -1,0 +1,379 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Error loading required resources.,Eroare la încărcarea resurselor necesare.
+Active,Activ
+You should login first...,Trebuie mai întâi să vă logaţi...
+Title,Titlu
+N/A,N/A
+Error saving details to database. Please try again.,Eroare la salvarea detaliilor în baza de date. Încercați din nou.
+Company,Companie
+Operator,Operator
+Account not found in database.,Contul nu a fost găsit în baza de date.
+Cancel,Anulare
+Error obtaining products import export directory path.,Eroare la obţinerea căii către directorul de import export pentru produse.
+Invalid flow parameters.,Parametrii fluxului sunt nevalizi.
+Inactive,Inactiv
+Deleted,Şters
+Nothing to export.,Nimic de exportat.
+Account locked temporarily because of too many login attempts.,Cont blocat temporar din cauza prea multor încercări de conectare.
+Bad user or password.,User sau parolă greșită.
+Error updating session.,Eroare la updatarea sesiunii.
+Registration is closed for this site.,Înregistrarea de conturi noi este închisă pentru acest site.
+Couldn't register user. Please try again.,Eroare la înregistrarea contului. Incercati din nou.
+Wrong current password.,Parola curentă este greşită.
+Invalid account.,Cont invalid.
+Error sending forgot password email. Please try again.,Eroare la trimiterea emailului pentru parola uitată. Încercaţi din nou.
+Email,Email
+Username,Username
+Password,Parola
+Please provide a valid status.,Furnizaţi un status valid.
+Login,Logare
+Suspended,Suspendat
+Account Registration Settings,Setări Înregistrare Cont
+Settings related to account registration.,Setări legate de înregistrarea unui cont.
+Email mandatory at registration,Email obligatoriu la înregistrare
+Should users provide emails when registering?,Ar trebui utilizatorii să furnizeze adrese de email la înregistrare?
+Replace nick with email,Înlocuieşte nick cu email
+"If, by any reasons, nickname is not provided when creating an account should it be replaced with provided email?","Dacă, din orice cauză, numele de utilizator (nickname/username) nu este precizat când se creează contul, ar trebui înlocuit cu adresa de email?"
+"Use only email, no nickname","Foloseşte doar email, fără nickname"
+Hide nickname complately and use only email as nickname.,Ascunde complet pseudonimul și folosește doar adresa de email ca pseudonim.
+Account requires activation,Contul necesită activare
+"Should an account be activated before login after registration? When admin creates accounts, these will be automatically active.","Ar trebui ca un cont să fie activat înainte de autentificare după înregistrare? Atunci când administratorul creează conturi, acestea vor fi activate automat."
+Generate password if not present,Generează o parolă daca nu e dată
+"If, by any reasons, password is not present when creating an account autogenerate a password or return error?","Dacă, din orice motive, parola lipsește atunci când se creează un cont, se autogenerează o parolă sau se returnează o eroare?"
+Emails should be unique,Emailul trebuie să fie unic
+Should account creation fail if same email already exists in database?,Ar trebui să eșueze crearea contului dacă aceeași adresă de email există deja în baza de date?
+Account Password Settings,Setări Parolă Cont
+Settings related to account password rules.,Setări legate de regulile parolei contului.
+Password decryption enabled,Decriptarea parolei activă
+"If NOT ticked, system will not use internal encryption/decryption for passwords, so passwords cannot be decrypted anymore.","Dacă NU e bifat, sistemul nu va folosi criptarea/decriptarea internă pentru parole, deci parolele nu vor mai putea fi decriptate."
+Accounts will have to setup a password at first login.,Conturile vor trebui să își configureze o parolă la prima autentificare.
+Password policy (if not provided),Politica de parolă (dacă nu este furnizată)
+"When password is not provided at registration, we can generate one or ask user to setup a password at first login. If <em>Password decryption enabled</em> is NOT ticked, user will be asked to setup a password anyway.","Când parola nu este furnizată la înregistrare, putem genera una sau putem cere utilizatorului să configureze o parolă la prima autentificare. Dacă opțiunea <em>Decodificare parolă activată</em> NU este bifată, utilizatorul va fi oricum rugat să configureze o parolă."
+Minimum password length,Lungimea minimă a parolei
+Password reg-exp,Expresie regulată pentru parolă
+"If provided, all passwords have to pass this regular expression. Previous created accounts will not be affected by this. Please use / as preg_match delimiter.","Dacă este furnizat, toate parolele trebuie să treacă de această expresie regulată. Conturile create anterior nu vor fi afectate de aceasta. Vă rugăm să folosiți / ca delimitator preg_match."
+Password explanation,Explicație a parolei
+"Explain password rules (if required) in a friendly text (eg. Password should contain lower and upper chars, with at least one digit, etc) This will pass translation as string to be available in other languages.","Explicați regulile pentru parole (dacă este necesar) într-un text prietenos (de exemplu, Parola ar trebui să conțină caractere mici și mari, cu cel puțin o cifră, etc) Acest lucru va trece traducerea ca șir pentru a fi disponibil în alte limbi."
+Password salt length,Lungimea sarii parolei
+Each account uses it's own password salt. (Google salt for more details),Fiecare cont folosește propria sa saramură de parolă. (Caută „saramură” pe Google pentru mai multe detalii)
+Expire passwords days,Expirați zilele parolelor
+After how many days should passwords expire (0 - no expiration),După câte zile ar trebui să expire parolele (0 - fără expirare)
+Old passwords history,Istoricul vechilor parole
+"When changing password, keep a history of older passwords and don't allow using an old one as the new password. (0 - no history)","La schimbarea parolei, păstrați un istoric al parolelor anterioare și nu permiteți utilizarea unei parole vechi ca nouă parolă. (0 - fără istoric)"
+Block expired accounts time,Blocare conturi expirate timp
+"After how many hours to force user to change account password by redirecting to change password page. (0 - right away, -1 - don't block, only alerts)","După câte ore să forțezi utilizatorul să-și schimbe parola de cont redirecționându-l către pagina de schimbare a parolei. (0 - imediat, -1 - fără blocare, doar alerte)"
+Announce password change,Anunțați schimbarea parolei
+Should system send an email to account's email address when password changes?,Ar trebui sistemul să trimită un e-mail la adresa de e-mail a contului atunci când se modifică parola?
+Account Session Settings,Setări sesiune cont
+Settings related to account session rules.,Setări legate de regulile sesiunii contului.
+Session lifetime (long) mins,Durata de viață a sesiunii (lung) minute
+"After how many minutes should session expire if user ticked \""Remember Me\"" checkbox","După câte minute ar trebui să expire sesiunea dacă utilizatorul a bifat caseta \""Ține-mă minte\"
+Session lifetime (short) mins,Durata sesiunii (scurtă) minute
+"After how many minutes should session expire if user DIDN'T tick \""Remember Me\"" checkbox","După câte minute ar trebui să expire sesiunea dacă utilizatorul NU a bifat caseta \""Ține-mă minte\"
+Account Security Settings,Setări de Securitate Contului
+Settings related to account security audit policies.,Setări legate de politicile de audit al securității contului.
+Log account creation,Logare creare de cont
+Should system log account creation?,Ar trebui sistemul să logheze crearea contului?
+Log account logins,Jurnalizați autentificările contului
+Should system log account logins?,Logăm evenimentele de login cont?
+Log password changes,Loghează schimbările de parolă
+Should system log account password changes?,Sistemul ar trebui să logheze schimbările de parolă?
+Log roles changes,Loghează schimbările de rol
+Should system log account roles changes?,Ar trebui să înregistreze sistemul modificările de roluri ale contului?
+Account Lockout Settings,Setări Blocare Cont
+Settings related to account lockout policy.,Setări legate de politica de blocare a contului.
+Account lockout enabled?,Blocarea contului este activată?
+Is account lockout enabled on this platform,Este blocarea contului activă pe această platformă
+Lockout after failed logins,Blocare după încercări eșuate de autentificare
+After how many failed logins should system lockout the account,După câte încercări eșuate de autentificare ar trebui să blocheze sistemul contul
+Lockout interval (minutes),Interval de blocare (minute)
+How many minutes should platform lock the account,Câte minute ar trebui să blocheze platforma contul
+Two Factor Authentication Settings,Setări Autentificare Doi Factori
+Settings related to two factor authentication feature.,Setări referitoare la funcția de autentificare cu doi factori.
+Account 2FA policy,Politică Cont TFA
+What 2FA policy should be applied on this platform,Ce politică de autentificare în doi pași ar trebui aplicată pe această platformă
+2FA account levels,Nivel Cont TFA
+"Which account levels should follow selected 2FA policy. If no account level is selected, all will follow the policy.","Care niveluri de conturi ar trebui să urmeze politica selectată de autentificare în doi pași. Dacă nu este selectat niciun nivel de cont, toate vor urma politica."
+2FA account exceptions,Excepții cont TFA
+Comma separated account IDs or nicknames which will always skip 2FA flow.,ID-urile conturilor sau pseudonimele separate prin virgulă care vor sări întotdeauna peste fluxul de autentificare cu doi factori.
+2FA session length (hours),Durata sesiunii 2FA (ore)
+How many hours should 2FA not be required on current session. 0 means forever,Câte ore ar trebui să nu fie necesară autentificarea în doi pași în sesiunea curentă. 0 înseamnă pentru totdeauna
+Remember device length (hours),Reține lungimea dispozitivului (ore)
+How many hours should 2FA not be required on current device. 0 means disable this option,Câte ore ar trebui să nu fie necesară autentificarea în doi pași pe dispozitivul curent. 0 înseamnă dezactivarea acestei opțiuni.
+2FA Issuer,Emițător 2FA
+How should this platform appear in Google Authenticator as name,Cum ar trebui să apară această platformă în Google Authenticator ca nume
+Error defining login source.,Eroare la definirea sursei de autentificare.
+Couldn't logout from subaccount.,Nu am putut să mă deconectez de la subcont.
+Couldn't logout from your account. Please retry.,Nu am putut să mă deconectez de pe contul tău. Te rog încearcă din nou.
+Error generating bearer token.,Eroare la generarea unui bearer token.
+Error decoding bearer token.,Eroare la decodarea tokenului bearer.
+Unknown or inactive account.,Cont necunoscut sau inactiv.
+Login failed. Please try again.,Nu s-a putut efectua logarea. Încercaţi din nou.
+Invalid confirmation reason.,Motivul confirmării este invalid.
+Unknown account.,Cont necunoscut.
+Error obtaining confirmation parameter. Please try again.,Eroare la obținerea parametrului de confirmare. Încercaţi din nou.
+Confirmation parameter is invalid or expired.,Parametrul de confirmare este invalid sau expirat.
+Your account is now active.,Contul dumneavoastră este activ.
+Your email address is now confirmed.,Adresa dumneavoastră de email este confirmată.
+You can now change your password.,Acum puteți schimba parola.
+Setup a password for your account.,Setează o parolo pentru contul tău.
+Couldn't obtain confirmation parameters.,Nu s-au putut obține parametrii de confirmare.
+Couldn't load required resources.,Nu s-au putut încărca resursele necesare.
+Confirmation reason unknown.,Motivul confirmării necunoscut.
+Account doesn't require activation.,Contul nu necesită activare.
+Failed activating account. Please try again.,Eroare la activarea contului. Încercaţi din nou.
+Failed confirming email address. Please try again.,Eroare la confirmarea adresei de email. Încercați din nou.
+Cannot change password for this account.,Nu se poate schimba parola pentru acest cont.
+Couldn't obtain change password page parameters. Please try again.,Nu s-au putut obține parametrii paginii de schimbare a parolei. Vă rugăm să încercați din nou.
+Import file is not readable.,Fişierul de import nu este citibil.
+Couldn't extract data from import file.,Nu am putut extrage informaţia din fişierul de import.
+Accounts import data is invalid.,Informaţia pentru importarea contului este invalidă.
+Import level provided is invalid.,Nivelul de import furnizat este invalid.
+No directory provided to save export data to or no rights to write in that directory.,Nu a fost furnizat niciun director pentru a salva datele exportate sau nu există drepturi de scriere în acel director.
+Couldn't create export file.,Nu am putut crea fişierul de export.
+Headers already sent. Cannot send export file to browser.,Nu am putut trimite fişierul de export către browser. Hederele au fost deja trimise.
+Account Confirmation,Confirmare Cont
+Error sending confirmation email.,Eroare la trimiterea emailului de confirmare.
+Error sending confirmation email to %s.,Eroare la trimiterea emailului de confirmare către %s.
+No need to setup a password for provided account.,Contul nu necesită setarea unei parole.
+Account Password Setup,Setare Parolă Cont
+Error querying accounts for export.,Eroare la obţinerea conturilor din baza de date pentru export.
+Error creating temporary accounts import directory: [%s].,Eroare la crearea directorului temporar pentru importul conturilor: [%s].
+Password Setup,Setări Parolă
+login page,pagina de login
+Password setup not required. Go to %s.,Setarea parolei nu e necesară. Mergi la %s.
+Password setup link expired. Please try again.,Linkul pentru setarea parolei a expirat. Încercaţi din nou.
+Password setup with success.,Parola a fost setată cu succes.
+Please provide mandatory fields.,Vă rugăm să completaţi câmpurile obligatorii.
+Passwords mismatch.,Parolele nu se potrivesc.
+Error settings up a password. Please try again.,Eroare la setarea unei parole. Încercaţi din nou.
+Account Activation,Activare Cont
+Couldn't interpret confirmation parameter. Please try again.,Nu am putut interpreta parametrul de confirmare. Încercaţi din nou.
+Action Confirmed...,Acţiune Confirmată...
+Cannot send registration email to this account.,Nu am putut trimite emailul de înregistrare pentru acest cont.
+Error sending registration email to %s.,Eroare la trimiterea emailului de înregistrare către %s.
+Logout,Ieşire
+You logged out from your account...,Aţi ieşit din cont...
+Couldn't load accounts plugin.,Nu am putut încărca pluginul accounts.
+Successfully logged out...,Ieşire din cont cu succes...
+Error logging out... Please try again.,Eroare la logout... Încercaţi din nou.
+Cannot send forgot password email to this account.,Nu am putut trimite emailul de parolă uitată.
+Error triggering account action in background for account #%s (%s).,Eroare la declanșarea acțiunii contului în fundal pentru contul #%s (%s).
+Your session expired. Please login again into your account.,Sesiune expirată. Logaţi-vă din nou în cont.
+Account registered and active. You can login now.,Cont înregistrat şi activ. Vă puteţi loga acum.
+Password changed with success. You can login now.,Parola schimbată cu succes. Vă puteţi loga acum.
+An email with your password was sent to email provided in your account details.,Un email ce conţine parola a fost trimis la adresa de email precizată în detaliile contului.
+Already logged in...,Deja logat...
+Please provide complete mandatory fields.,Vă rugăm să furnizaţi toate câmpurile obligatorii.
+Bad username or password.,Utilizator sau parolă greşite.
+Successfully logged in...,Logare cu succes...
+Error logging in... Please try again.,Eroare la logare... Încercaţi din nou.
+Account doesn't need password change notification.,Contul nu are nevoie de notificare pentru schimbarea parolei.
+Password changed,Parola schimbată
+Error sending password changed message to %s.,Eroare la trimiterea mesajului de schimbare de parolă către %s.
+Account doesn't need email verification.,Contul nu are nevoie de verificarea adresei de email.
+Verify Email,Verifică Emailul
+Error sending verify email message to %s.,Eroare la trimiterea emailului de verificare către %s.
+Error logging in. Please try again.,Eroare la login... Încercaţi din nou.
+API change password should use mobileapi plugin.,API-ul de schimbare a parolei ar trebui să folosească modulul mobileapi.
+Error changing account password. Please try again.,Eroare la salvarea schimbarea parolei. Încercaţi din nou.
+Register an Account,Înregistrează Cont
+User account registered with success...,Contul a fost înregistrat cu succes...
+Invalid validation code.,Cod de validare invalid.
+Passwords mistmatch.,Parolele nu se potrivesc.
+Two Factor Authentication Setup,Configurare Autentificare În Doi Factori
+Two factor authentication setup with success.,Autentificare în doi factori configurată cu succes.
+Error obtaining two factor authentication setup link. Please refresh the page or contact support.,Eroare în obținerea linkului de configurare a autentificării cu doi factori. Vă rugăm să reîmprospătați pagina sau să contactați asistența.
+You have to finalize two factor authentication setup first.,Trebuie să terminați configurarea autentificării în doi factori.
+Couldn't generate recovery codes file.,Nu am putut crea fişierul cu codurile de recuperare.
+Error downloading two factor authentication recovery codes file: %s,Eroare la copierea fișierului ce conține codurile de recuperare: %s
+Please provide a verification code.,Precizaţi un cod de verificare.
+Two factor authentication verification failed. Please try again.,Verificarea autentificării cu doi factori a eșuat. Vă rugăm să încercați din nou.
+Error finializing two factor authentication setup. Please try again.,Eroare finalizare configurare autentificare cu doi factori. Vă rugăm să încercați din nou.
+Error marking device as two factor authentication valid.,Eroare la marcarea dispozitivului ca valid pentru autentificare cu doi factori.
+Two Factor Authentication disabled for your account.,Autentificarea în doi factori este dezactivată pentru contul tău.
+You should first setup two factor authentication for your account.,Mai întâi trebuie activată autorizarea în doi factori pentru contul tău.
+Please provide a two factor authentication code.,Precizaţi un cod de autentificare în doi factori.
+Invalid verification code. Please try again.,Cod de verificare invalid. Încercaţi din nou.
+No two factor authentication set up for your account yet.,Contul tău nu e configurat pentru autentificarea în doi factori.
+Error cancelling two factor authentication for your account. Please try again,Eroare la anularea autentificării cu doi factori pentru contul dvs. Vă rugăm să încercați din nou
+Two Factor Authentication Verification,Verificare Autentificare În Doi Factori
+Error updating session details. Please try again.,Eroare la salvarea detaliilor de sesiune. Încercați din nou.
+Two factor authentication verification passed.,Verificarea pentru autentificarea în doi factori a trecut.
+Edit Profile,Editare Profil
+Changes saved to database.,Detaliile salvate în baza de date.
+Verification email sent... Please follow the steps in email to acknowledge your email address.,Emailul de verificare trimis... Urmaţi paşii descrişi în email pentru a confirma adresa de email.
+Couldn't send verification email. Please try again.,Eroare la trimiterea emailului de verificare. Încercaţi din nou.
+Changes saved...,Schimbările salvate...
+Cannot send registration confirmation to this account.,Nu am putut trimite confirmarea de înregistrare către acest cont.
+Password reset link,Linkul pentru resetarea parolei
+Error sending forgot password email to %s.,Eroare la trimiterea emailului pentru parola uitată către %s.
+Change Password,Schimbă parola
+"Your password expired. For security reasons, please change it.","Parola a expirat. Din motive de securitate, vă rugăm să o schimbaţi."
+Password changed with success.,Parola a fost schimbată cu succes.
+Error changing password. Please try again.,Eroare la schimbarea parolei. Încercaţi din nou.
+Forgot Password,Parola Uitată
+Email with instructions sent to provided email address.,Email cu instrucţiuni trimis către adresa specificată.
+Account registered,Cont înregistrat
+Hello %s.,Salut %s.
+"You successfully registered your account. However, before using your account you must activate it.","Contul a fost creat cu succes. Cu toate acestea, contul trebuie activat înainte de folosire."
+We sent you an activation link at %s. Please check your email (also looking into spam folder) and click or access the activation link.,Am trimit un link de activare la %s. Verificați acest email (căutând și în spam) și accesați sau dați click pe linkul de activare.
+Go to login page,Pagina de login
+Current Password,Parolă curentă
+New Password,Parolă nouă
+Password should be at least %s characters.,Parola trebuie să fie de măcar %s caractere.
+Password should pass regular expresion: ,Parola trebuie să treacă expresia regulată: 
+Password should pass regular expresion: %s.,Parola trebuie să treacă expresia regulată: %s.
+Confirm Password,Confirmă Parola
+Change password,Schimbare parolă
+Register an account,Înregistrează cont
+Confirm password,Confirmă parola
+Validation code,Cod de validare
+Register,Înregistrare
+Already have an account,Am deja cont
+I just forgot my password,Mi-am uitat parola
+NOT VERIFIED,NU E VERIFICAT
+Send verification email,Trimite email de verificare
+Email is %s,Emailul este %s
+VERIFIED,VERIFICAT
+"eg. Mr., Ms., Mrs., etc","ex. Dn., Dna., Dra., etc"
+First Name,Prenume
+Last Name,Nume
+Phone Number,Telefon
+Limit emails received from platform,Limitează emailurile de la platformă
+"Platform will minimize emails sent to you, however functionality emails will still be send to your email address (e.g. forgot password emails, change password emails, etc)","Platforma va minimiza emailurile trimise către tine, dar emailurile de funcţionalitate vor fi în cntinuare trimise (ex. emailurile pentru parolă uitată, de schimbare de parolă, etc)"
+Save Changes,Salvează Modificările
+Confirmation action failed,Acțiunea de confirmare eşuată
+there,acolo
+Action required for confirmation failed. This might happen because confirmation link expired. Please try again.,Acţiunea de confirmare nu a funcţionat. Asta se poate întâmpla când expiră linkul de confirmare. Încercaţi din nou.
+"In order to access your account, please open Google Authenticator on you device and provide the code in the input below.","Pentru a vă accesa contul, vă rugăm să deschideți Google Authenticator pe dispozitivul dvs. și să furnizați codul în câmpul de mai jos."
+Verification Code,Cod de verificare
+Remember this device. Ask for a two factor authentication code only after %s of inactivity.,Rețineți acest dispozitiv. Solicitați un cod de autentificare cu doi factori numai după %s de inactivitate.
+Check Code,Verifică cod
+"In case you lost your device or you don't have access to Google Authenticator, you can use one of your recovery codes below.","În cazul în care v-ați pierdut dispozitivul sau nu aveți acces la Google Authenticator, puteți utiliza unul dintre codurile de recuperare mai jos."
+Use Recovery Code,Folosește Cod Recuperare
+"In order to download your recovery codes, please provide a two factor authentication verification code first.","Pentru a vă descărca codurile de recuperare, vă rugăm să furnizați mai întâi un cod de verificare pentru autentificarea cu doi factori."
+Recovery Code,Cod de Recuperare
+Check Recovery Code,Verificați codul de recuperare
+Cancel Recovery Check,Anulare verificare cod recuperare
+You didn't set up yet Two Factor Authentication for your account.,Nu ați configurat încă Autentificarea cu doi factori pentru contul dvs.
+"In order to strengthen your account security, it is recommended that you set up Two-Factor Authentication.","Pentru a-ți întări securitatea contului, se recomandă să activezi Autentificarea în Două Pași."
+What Two-Factor Authentication (TFA) means?,Ce înseamnă Autentificarea cu Două Factori (TFA)?
+Setup Two Factor Authentication,Configurare Autentificare În Doi Factori
+"In case you didn't download your recovery codes yet, you still can, by providing a two factor authentication verification code first.","În cazul în care nu v-ați descărcat încă codurile de recuperare, încă mai puteți, furnizând mai întâi un cod de verificare prin autentificare cu doi factori."
+Download Recovery Codes,Ia Codurile de Recuperare
+Cancel Download,Anulează Copierea
+"Altough we don't recommend it, you can disable your Two Factor Authentication set up.","Deși nu recomandăm acest lucru, puteți dezactiva configurarea autentificării cu doi factori."
+Disable Two Factor Authentication,Dezactivează Autentificarea În Doi Factori
+"Altough we don't recommend it, you can disable your Two Factor Authentication set up after providing a verification code.","Deși nu recomandăm acest lucru, puteți dezactiva autentificarea cu doi factori după furnizarea unui cod de verificare."
+Disable TFA Setup,Dezactivează Configurarea TFA
+Please provide a verification code first.,Vă rugăm să furnizați mai întâi un cod de verificare.
+Are you sure you want to disable TFA setup for your account?,Sunteți sigur că doriți să dezactivați configurarea TFA pentru contul dvs.?
+You are setting up two factor authentication for account %s.,Configurați autentificarea cu doi factori pentru contul %s.
+Please note that on this platform two factor authentication is mandatory.,Vă rugăm să rețineți că pe această platformă autentificarea cu doi factori este obligatorie.
+Error obtaining two factor authentication recovery codes. Please refresh the page.,Eroare în obținerea codurilor de recuperare pentru autentificarea cu doi factori. Vă rugăm să reîmprospătați pagina.
+Please download your recovery codes and store them somewhere safe.,Vă rugăm să descărcați codurile de recuperare și să le păstrați într-un loc sigur.
+Downloading file. Please wait...,Descărcare fișier. Vă rugăm să așteptați...
+"After download finishes, you can continue browsing the site.","După finalizarea descărcării, puteți continua navigarea pe site."
+Continue browsing the site,Continuați navigarea pe site
+Remember Me,Tine-mă minte
+ (for %s), (pentru %s)
+Normal sessions will expire in %s.,Sesiunile normale expiră in %s.
+Forgot password,Am uitat parola
+Provide email address of your account,Oferiţi emailul contului
+Once you submit this form you will receive an email with instructions.,"Odată ce se trimite acest formular, vei primi un email cu instrucţiuni."
+Submit,Trimite
+You are setting up a password for account %s.,Setare parolă pentru contul %s.
+Set password,Setează parolă
+Error un-linking old tenants from account.,Eroare la dezlegarea vechilor chiriași de pe cont.
+Error linking all tenants to account.,Eroare la conectarea tuturor chiriașilor la cont.
+Error obtaining tenants count for the account.,Eroare la obținerea numărului de chiriași pentru cont.
+Error updating multi-tenant details for account.,Eroare la actualizarea detaliilor multi-locatar pentru cont.
+Please provide account tenant details.,Vă rugăm să furnizați detaliile contului chiriașului.
+Level %s,Nivel %s
+Couldn't obtain account password.,Nu am putut obţine parola contului.
+Cannot obtain flow params.,Eroare la obținerea parametrilor de flow.
+Please provide a valid account to save password history.,Furnizaţi un cont valid pentru salvarea istoricului de parole.
+Please provide a valid language.,Oferiţi o limbă validă.
+Error updating account language.,Eroare la updatarea limbii pentru cont.
+Error saving session details to database.,Eroare la salvarea detaliilor sesiunii în baza de date.
+Invalid login source.,Sursă de autentificare invalidă.
+Already logged in.,Deja logat.
+Error resetting account locking.,Eroare la resetarea blocării contului.
+Error inactivating account.,Eroare la inactivarea contului.
+Error activating account.,Eroare la activarea contului.
+Error launching account action in background.,Eroare la lansarea acţiunii în background.
+This account doesn't need a confirmation email anymore. Logged in before or already active.,Acest cont nu mai are nevoie de email de confirmare. S-a logat înainte sau este deja activ.
+Error sending confirmation email. Please try again.,Eroare la trimiterea emailului de confirmare. Incercati din nou.
+Error sending activation email. Please try again.,Eroare la trimiterea emailului de activare. Încercaţi din nou.
+Invalid flow parameters while updating user details.,Parametrii fluxului invalizi în timpul actualizării detaliilor utilizatorului.
+Error obtaining account details model instance.,Eroare la încărcarea modelului account details.
+Invalid account to update details.,Cont invalid pentru actualizarea detaliilor.
+Error saving account details in database. Please try again.,Eroare la salvarea detaliilor contului în baza de date. Încercați din nou.
+Couldn't link account details with the account. Please try again.,Eroare la legarea detaliilor contului de cont. Încercaţi din nou.
+Please provide an email.,Vă rugăm să oferiți un email.
+Please provide a valid email.,Vă rugăm să oferiți un email valid.
+Please provide an username.,Vă rugăm să oferiți un nume de utilizator.
+Please provide a valid account level.,Furnizaţi un nivel de cont valid.
+Please provide a password.,Vă rugăm să oferiți o parolă.
+Username already exists in database. Please pick another one.,Username-ul există deja în baza de date. Alegeți altul.
+Email address exists in database. Please pick another one.,Adresa de email există deja in baza de date. Alegeți alta.
+Error encrypting account password. Please retry.,Eroare la criptarea parolei. Încercaţi din nou.
+Error obtaining account password. Please retry.,Eroare la obținerea parolei contului. Încercați din nou.
+Error saving account password. Please try again.,Eroare la salvarea parolei contului. Încercaţi din nou.
+Error sending registration email. Please try again.,Eroare la trimiterea emailului de înregistrare. Încercaţi din nou.
+You used this password in the past. Please provide another one.,Această parolă a mai fost folosită în trecut. Folosiţi altă parolă.
+"You used this password in last %s, one of last %s passwords. Please provide another one.","Aţi folosit această parolă în perioada %s, una din ultimele %s parole. Furnizaţi altă parolă."
+Invalid email address.,Adresă de email invalidă.
+Nickname already exists in database. Please pick another one.,Numele de utilizator există deja în baza de date. Alegeți altul.
+Error saving account roles in database. Please try again.,Eroare la salvarea rolurilor contului în baza de date. Încercați din nou.
+Error saving account tenants in database. Please try again.,Eroare la salvarea detaliilor tenantului în baza de date. Încercați din nou.
+Error inserting account password. Please try again.,Eroare la salvarea parolei contului. Încercaţi din nou.
+Click for details,Click pentru detalii
+Password doesn't match regular expression %s.,Parola nu se potriveşte cu expresia regulată %s.
+Error saving password history data.,Eroare la salvarea istoricului de parolă.
+%s hash algorithm not available on this server.,Algoritmul de criptare %s nu este disponibil pe serverul acesta.
+Error querying users from database.,Eroare la citirea datelor despre conturi din baza de date.
+Error obtaining password salts flow.,Eroare la obținerea fluxului de săruri de parolă.
+Member,Membru
+Admin,Admin
+Super admin,Super-Admin
+Developer,Dezvoltator
+Please provide an user account id.,Furnizaţi un id de cont.
+This option is disabled.,Această opțiune e dezactivată.
+Error obtaining required account data.,Eroare la obținerea detaliilor contului.
+Error marking this device as TFA valid.,Eroare la marcarea dispozitivului ca valid pentru TFA.
+Session not created yet.,Sesiunea nu a fost creată încă.
+Invalid TFA data provided.,Date de TFA furnizate invalide.
+Error deleting two factor authentication data.,Eroare la ștergerea datelor de autentificare cu doi factori.
+Error finishing two factor authenticatrion setup.,Eroare la terminarea configurării autentificării cu doi factori.
+Error updating two factor authenticatrion setup.,Eroare la actualizarea configurării autentificării cu doi factori.
+Error obtaining secret for provided TFA data.,Eroare la obținerea secretului pentru datele TFA furnizate.
+Error obtaining recovery codes for provided TFA data.,Eroare la obținerea codurilor de recuperare pentru datele TFA furnizate.
+Two factor authentication secret length is not valid.,Lungimea secretului de autentificare cu doi factori nu este valabilă.
+Two factor authentication installation not required for provided account.,Instalarea autentificării cu doi factori nu este necesară pentru contul furnizat.
+Error installing two factor authentication data for provided account.,Eroare la instalarea datelor de autentificare cu doi factori pentru contul furnizat.
+Account doesn't have two factor authentication installed.,Contul nu are instalată autentificarea cu doi factori.
+Invalid secret for two factor authentication.,Secret invalid pentru autentificarea cu doi factori.
+Invalid recovery data for two factor authentication.,Date de recuperare invalide pentru autentificarea cu doi factori.
+Nothing to update for two factor authentication for provided account.,Nimic de actualizat pentru autentificarea cu doi factori pentru contul furnizat.
+Error saving two factor authentication data for provided account.,Eroare la salvarea datelor de autentificare cu doi factori pentru contul furnizat.
+Error obtaining two factor authentication setup URL.,Eroare la obținerea URL-ului de configurare a autentificării cu doi factori.
+Error generating two factor authentication setup link.,Eroare la generarea link-ului de configurare a autentificării cu doi factori.
+Two factor authentication data not found in database.,Datele de autentificare cu doi factori nu au fost găsite în baza de date.
+Error obtaining two factor authentication secret.,Eroare la obținerea secretului de autentificare în doi pași.
+Headers already sent. Cannot send file to browser.,Antetele au fost deja trimise. Nu se poate trimite fișierul către browser.
+Error updating two factor authentication data. Please try again.,Eroare la actualizarea datelor de autentificare cu doi factori. Încercați din nou.
+Two factor authentication setup not finialized.,Configurarea autentificării cu doi factori nu este finalizată.
+Error obtaining recovery codes.,Eroare la obținerea codurilor de recuperare.
+Error decoding recovery data.,Eroare la decodarea datelor de recuperare.
+Please provide a secret for 2FA.,Vă rugăm să oferiți un secret pentru TFA.
+Error encoding recovery data.,Eroare la codarea datelor de recuperare.
+Error encoding secret key.,Eroare codare cheie secretă.
+Error in TFA data.,Eroare la datele TFA.
+Error decoding TFA details.,Eroare la decodarea detaliilor TFA.
+Error encoding TFA details.,Eroare la codarea detaliilor TFA.
+Account doesn't have two factor authentication enabled.,Contul nu are activată autentificarea cu doi factori.
+Error obtaining two factor authentication details.,Eroare în obținerea detaliilor de autentificare cu doi factori.

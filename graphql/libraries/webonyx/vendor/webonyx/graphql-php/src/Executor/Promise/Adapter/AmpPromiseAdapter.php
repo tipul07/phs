@@ -41,10 +41,9 @@ class AmpPromiseAdapter implements PromiseAdapter
             }
         };
 
-        $adoptedPromise = $promise->adoptedPromise;
-        \assert($adoptedPromise instanceof AmpPromise);
-
-        $adoptedPromise->onResolve($onResolve);
+        $ampPromise = $promise->adoptedPromise;
+        assert($ampPromise instanceof AmpPromise);
+        $ampPromise->onResolve($onResolve);
 
         return new Promise($deferred->promise(), $this);
     }
@@ -96,7 +95,7 @@ class AmpPromiseAdapter implements PromiseAdapter
         foreach ($promisesOrValues as $key => $item) {
             if ($item instanceof Promise) {
                 $ampPromise = $item->adoptedPromise;
-                \assert($ampPromise instanceof AmpPromise);
+                assert($ampPromise instanceof AmpPromise);
                 $promises[$key] = $ampPromise;
             } elseif ($item instanceof AmpPromise) {
                 $promises[$key] = $item;
@@ -107,12 +106,12 @@ class AmpPromiseAdapter implements PromiseAdapter
 
         all($promises)->onResolve(static function (?\Throwable $reason, ?array $values) use ($promisesOrValues, $deferred): void {
             if ($reason === null) {
-                \assert(\is_array($values), 'Either $reason or $values must be passed');
+                assert(is_array($values), 'Either $reason or $values must be passed');
 
                 $promisesOrValuesArray = is_array($promisesOrValues)
                     ? $promisesOrValues
                     : iterator_to_array($promisesOrValues);
-                $resolvedValues = \array_replace($promisesOrValuesArray, $values);
+                $resolvedValues = array_replace($promisesOrValuesArray, $values);
                 $deferred->resolve($resolvedValues);
 
                 return;
@@ -126,7 +125,7 @@ class AmpPromiseAdapter implements PromiseAdapter
 
     /**
      * @template TArgument
-     * @template TResult
+     * @template TResult of AmpPromise<mixed>
      *
      * @param Deferred<TResult> $deferred
      * @param callable(TArgument): TResult $callback
