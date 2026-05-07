@@ -87,12 +87,8 @@ class Phs_security_headers extends PHS_Library
         ];
     }
 
-    public function get_security_headers_for_response() : ?array
+    public function get_security_headers_for_response() : array
     {
-        if (!$this->_load_dependencies()) {
-            return null;
-        }
-
         if (!$this->_security_plugin->security_headers_are_enabled()) {
             return [];
         }
