@@ -45,7 +45,6 @@ abstract class PHS_Remote_action extends PHS_Api_action
         if ($json_request === null) {
             if (!($api_obj = $this->get_action_api_instance())
                 || !($message_arr = $api_obj->api_flow_value('remote_domain_message'))
-                || !is_array($message_arr)
                 || empty($message_arr['request_arr']) || !is_array($message_arr['request_arr'])) {
                 $json_request = [];
             } else {

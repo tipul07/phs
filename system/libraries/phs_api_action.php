@@ -178,14 +178,7 @@ abstract class PHS_Api_action extends PHS_Action
 
     public function get_request_body() : ?array
     {
-        static $json_request = null;
-
-        if ($json_request === null
-            && !($json_request = PHS_Api_base::get_request_body_as_json_array())) {
-            $json_request = [];
-        }
-
-        return $json_request;
+        return PHS_Api_base::get_request_body_as_json_array();
     }
 
     /**
@@ -197,8 +190,13 @@ abstract class PHS_Api_action extends PHS_Action
      *
      * @return mixed
      */
-    public function request_var(string $var_name, int $type = PHS_Params::T_ASIS, $default = null, $type_extra = false, string $order = 'bpg')
-    {
+    public function request_var(
+        string $var_name,
+        int $type = PHS_Params::T_ASIS,
+        $default = null,
+        $type_extra = false,
+        string $order = 'bpg'
+    ) : mixed {
         if ($order === '') {
             return $default;
         }
@@ -209,8 +207,8 @@ abstract class PHS_Api_action extends PHS_Action
         while (($ch = substr($order, 0, 1))) {
             switch (strtolower($ch)) {
                 case 'b':
-                    if (!empty($json_request)
-                     && isset($json_request[$var_name])) {
+                    if ($json_request
+                        && isset($json_request[$var_name])) {
                         $val = $json_request[$var_name];
                         break 2;
                     }
@@ -235,7 +233,7 @@ abstract class PHS_Api_action extends PHS_Action
         }
 
         if ($val === null
-         || null === ($type_val = PHS_Params::set_type($val, $type, $type_extra))) {
+            || null === ($type_val = PHS_Params::set_type($val, $type, $type_extra))) {
             return $default;
         }
 

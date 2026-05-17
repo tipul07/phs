@@ -8,96 +8,42 @@ class PHS_Params
     public const ERR_OK = 0, ERR_PARAMS = 1;
 
     public const T_ASIS = 1, T_INT = 2, T_FLOAT = 3, T_ALPHANUM = 4, T_SAFEHTML = 5, T_NOHTML = 6, T_EMAIL = 7,
-        T_REMSQL_CHARS = 8, T_ARRAY = 9, T_DATE = 10, T_URL = 11, T_BOOL = 12, T_NUMERIC_BOOL = 13, T_TIMESTAMP = 14;
+        T_REMSQL_CHARS = 8, T_ARRAY = 9, T_DATE = 10, T_URL = 11, T_BOOL = 12, T_NUMERIC_BOOL = 13, T_TIMESTAMP = 14,
+        T_GUID = 15;
 
     public const FLOAT_PRECISION = 10;
 
     public const REGEX_INT = '/^[+-]?\d+$/', REGEX_FLOAT = '/^[+-]?\d+\.?\d*$/',
         REGEX_EMAIL = '/^[a-zA-Z0-9]+[a-zA-Z0-9\._\-\+]*@[a-zA-Z0-9_-]+\.[a-zA-Z0-9\._-]+$/',
-        REGEX_URL = '_^(?:(?:https?|ftp)://)(?:\S+(?::\S*)?@)?(?:(?!10(?:\.\d{1,3}){3})(?!127(?:\.\d{1,3}){3})(?!169\.254(?:\.\d{1,3}){2})(?!192\.168(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\x{00a1}-\x{ffff}0-9]+-?)*[a-z\x{00a1}-\x{ffff}0-9]+)(?:\.(?:[a-z\x{00a1}-\x{ffff}0-9]+-?)*[a-z\x{00a1}-\x{ffff}0-9]+)*(?:\.(?:[a-z\x{00a1}-\x{ffff}]{2,})))(?::\d{2,5})?(?:/[^\s]*)?$_iuS';
+        REGEX_URL = '_^(?:(?:https?|ftp)://)(?:\S+(?::\S*)?@)?(?:(?!10(?:\.\d{1,3}){3})(?!127(?:\.\d{1,3}){3})(?!169\.254(?:\.\d{1,3}){2})(?!192\.168(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\x{00a1}-\x{ffff}0-9]+-?)*[a-z\x{00a1}-\x{ffff}0-9]+)(?:\.(?:[a-z\x{00a1}-\x{ffff}0-9]+-?)*[a-z\x{00a1}-\x{ffff}0-9]+)*(?:\.(?:[a-z\x{00a1}-\x{ffff}]{2,})))(?::\d{2,5})?(?:/[^\s]*)?$_iuS',
+        REGEX_GUID = '/^(\{)?[a-f\d]{8}(-[a-f\d]{4}){4}[a-f\d]{8}(?(1)\})$/i';
 
-    /**
-     * @return array
-     */
-    public static function get_valid_types()
+    public static function get_valid_types() : array
     {
         return [
             self::T_ASIS, self::T_INT, self::T_FLOAT, self::T_ALPHANUM, self::T_SAFEHTML, self::T_NOHTML, self::T_EMAIL,
-            self::T_REMSQL_CHARS, self::T_ARRAY, self::T_DATE, self::T_URL, self::T_BOOL, self::T_NUMERIC_BOOL, self::T_TIMESTAMP,
+            self::T_REMSQL_CHARS, self::T_ARRAY, self::T_DATE, self::T_URL, self::T_BOOL, self::T_NUMERIC_BOOL,
+            self::T_TIMESTAMP, self::T_GUID,
         ];
     }
 
-    /**
-     * @param int $type
-     *
-     * @return bool
-     */
-    public static function valid_type($type)
+    public static function valid_type(int $type) : bool
     {
-        return in_array((int)$type, self::get_valid_types(), true);
+        return in_array($type, self::get_valid_types(), true);
     }
 
-    /**
-     * @param int|float|string $val
-     * @param int $type
-     * @param false|array $extra
-     *
-     * @return bool
-     */
-    public static function check_type($val, $type, $extra = false)
+    public static function check_type(mixed $val, int $type) : bool
     {
-        $type = (int)$type;
-
-        switch ($type) {
-            default:
-                return true;
-                break;
-
-            case self::T_INT:
-                if (preg_match(self::REGEX_INT, $val)) {
-                    return true;
-                }
-                break;
-
-            case self::T_FLOAT:
-                if (preg_match(self::REGEX_FLOAT, $val)) {
-                    return true;
-                }
-                break;
-
-            case self::T_ALPHANUM:
-                if (ctype_alnum($val)) {
-                    return true;
-                }
-                break;
-
-            case self::T_EMAIL:
-                if (preg_match(self::REGEX_EMAIL, $val)) {
-                    return true;
-                }
-                break;
-
-            case self::T_DATE:
-                if (!empty($val) && @strtotime($val) !== false) {
-                    return true;
-                }
-                break;
-
-            case self::T_TIMESTAMP:
-                if (!empty($val)
-                 && (is_numeric($val) || @strtotime($val) !== false)) {
-                    return true;
-                }
-                break;
-
-            case self::T_URL:
-                if (preg_match(self::REGEX_URL, $val)) {
-                    return true;
-                }
-                break;
-        }
-
-        return false;
+        return match ($type) {
+            self::T_INT       => preg_match(self::REGEX_INT, $val),
+            self::T_FLOAT     => preg_match(self::REGEX_FLOAT, $val),
+            self::T_ALPHANUM  => ctype_alnum((string)$val),
+            self::T_EMAIL     => preg_match(self::REGEX_EMAIL, $val),
+            self::T_DATE      => !empty($val) && @strtotime($val) !== false,
+            self::T_TIMESTAMP => !empty($val) && (is_numeric($val) || @strtotime($val) !== false),
+            self::T_URL       => preg_match(self::REGEX_URL, $val),
+            self::T_GUID      => preg_match(self::REGEX_GUID, $val),
+        };
     }
 
     /**
@@ -107,19 +53,15 @@ class PHS_Params
      *
      * @return mixed
      */
-    public static function set_type($val, int $type, $extra = false)
+    public static function set_type(mixed $val, int $type, array $extra = []) : mixed
     {
         if ($val === null) {
             return null;
         }
 
-        if (empty($extra) || !is_array($extra)) {
-            $extra = [];
-        }
-
         $extra['trim_before'] = !empty($extra['trim_before']);
 
-        if (!empty($extra['trim_before'])
+        if ($extra['trim_before']
             && is_scalar($val)) {
             $val = trim($val);
         }
@@ -129,7 +71,8 @@ class PHS_Params
             case self::T_ASIS:
                 return $val;
             case self::T_INT:
-                if (empty($extra['trim_before'])) {
+                // Make sure we trim
+                if (!$extra['trim_before']) {
                     $val = trim($val);
                 }
 
@@ -139,7 +82,8 @@ class PHS_Params
 
                 return $val;
             case self::T_FLOAT:
-                if (empty($extra['trim_before'])) {
+                // Make sure we trim
+                if (!$extra['trim_before']) {
                     $val = trim($val);
                 }
 
@@ -193,7 +137,7 @@ class PHS_Params
 
                 return $val;
             case self::T_DATE:
-                if (empty($extra['trim_before'])) {
+                if (!$extra['trim_before']) {
                     $val = trim($val);
                 }
 
@@ -205,7 +149,7 @@ class PHS_Params
 
                 return $val;
             case self::T_TIMESTAMP:
-                if (empty($extra['trim_before'])) {
+                if (!$extra['trim_before']) {
                     $val = trim($val);
                 }
 
@@ -225,7 +169,7 @@ class PHS_Params
             case self::T_BOOL:
             case self::T_NUMERIC_BOOL:
                 if (is_string($val)) {
-                    if (empty($extra['trim_before'])) {
+                    if (!$extra['trim_before']) {
                         $val = trim($val);
                     }
 

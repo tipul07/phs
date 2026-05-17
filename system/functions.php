@@ -13,6 +13,7 @@ use phs\libraries\PHS_Error;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Action;
+use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Record_data;
 use phs\libraries\PHS_Model_Core_base;
 use phs\system\core\libraries\PHS_Migrations_manager;
@@ -337,6 +338,11 @@ function generate_guid() : string
             mt_rand(0, 65535), mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535),
             mt_rand(0, 65535));
     }
+}
+
+function is_guid(string $guid) : bool
+{
+    return PHS_Params::check_type($guid, PHS_Params::T_GUID);
 }
 
 function validate_ip(string $ip) : string
