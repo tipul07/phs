@@ -104,15 +104,13 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $can_export_accounts = $this->_admin_plugin->can_admin_export_accounts();
         $account_lockout_enabled = $this->_accounts_plugin->lockout_is_enabled();
 
-        $accounts_model = $this->_paginator_model;
-
-        if (!($u_flow = $accounts_model->fetch_default_flow_params(['table_name' => 'users']))
-            || !($u_table_name = $accounts_model->get_flow_table_name($u_flow))) {
+        if (!($u_flow = $this->_paginator_model->fetch_default_flow_params(['table_name' => 'users']))
+            || !($u_table_name = $this->_paginator_model->get_flow_table_name($u_flow))) {
             $u_table_name = 'users';
         }
 
         $list_arr = [];
-        $list_arr['fields']['status'] = ['check' => '!=', 'value' => $accounts_model::STATUS_DELETED];
+        $list_arr['fields']['status'] = ['check' => '!=', 'value' => $this->_paginator_model::STATUS_DELETED];
         if ($platform_is_multitenant
          && !empty($account_tenant_ids)) {
             $list_arr['fields'][] = ['raw' => '(`'.$u_table_name.'`.is_multitenant = 1 OR '
@@ -137,8 +135,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $users_statuses_filters = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $users_statuses);
         $all_tenants_filter = self::merge_array_assoc([0 => $this->_pt(' - Choose - ')], $all_tenants_arr);
 
-        if (isset($users_statuses[$accounts_model::STATUS_DELETED])) {
-            unset($users_statuses[$accounts_model::STATUS_DELETED], $users_statuses_filters[$accounts_model::STATUS_DELETED]);
+        if (isset($users_statuses[$this->_paginator_model::STATUS_DELETED])) {
+            unset($users_statuses[$this->_paginator_model::STATUS_DELETED], $users_statuses_filters[$this->_paginator_model::STATUS_DELETED]);
         }
 
         $bulk_actions = [
@@ -306,9 +304,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     $return_str = '<strong>'.($params['preset_content'] ?? '-').'</strong>';
 
                     $name_str
-                        = trim(($params['record']['users_details_title'] ?? '').' ')
-                        .trim(($params['record']['users_details_fname'] ?? '').' ')
-                        .trim(($params['record']['users_details_lname'] ?? '').' ');
+                        = trim(($params['record']['users_details_title'] ?? '').' '
+                        .($params['record']['users_details_fname'] ?? '').' '
+                        .($params['record']['users_details_lname'] ?? '').' ');
 
                     return $return_str.($name_str !== '' ? '<br/>'.$name_str : '');
                 },
