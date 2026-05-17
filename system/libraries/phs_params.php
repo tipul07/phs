@@ -1,12 +1,8 @@
 <?php
 namespace phs\libraries;
 
-// ! \version 1.90
-
 class PHS_Params
 {
-    public const ERR_OK = 0, ERR_PARAMS = 1;
-
     public const T_ASIS = 1, T_INT = 2, T_FLOAT = 3, T_ALPHANUM = 4, T_SAFEHTML = 5, T_NOHTML = 6, T_EMAIL = 7,
         T_REMSQL_CHARS = 8, T_ARRAY = 9, T_DATE = 10, T_URL = 11, T_BOOL = 12, T_NUMERIC_BOOL = 13, T_TIMESTAMP = 14,
         T_GUID = 15;
@@ -46,13 +42,6 @@ class PHS_Params
         };
     }
 
-    /**
-     * @param mixed $val
-     * @param int $type
-     * @param bool|array $extra
-     *
-     * @return mixed
-     */
     public static function set_type(mixed $val, int $type, array $extra = []) : mixed
     {
         if ($val === null) {
@@ -190,66 +179,36 @@ class PHS_Params
                     return !empty($val) ? 1 : 0;
                 }
                 break;
+
+            case self::T_GUID:
+                // Make sure we trim
+                if (!$extra['trim_before']) {
+                    $val = trim($val);
+                }
+
+                if (!self::check_type($val, self::T_GUID)) {
+                    $val = null;
+                }
+
+                return $val;
         }
 
         return null;
     }
 
     /**
-     * Obtain a variable from _GET, then check _POST if not found in _GET
-     * @param string $v
-     * @param int $type
-     * @param bool|array $extra
-     *
-     * @return null|mixed
-     */
-    public static function _gp($v, $type = self::T_ASIS, $extra = false)
-    {
-        if (isset($_POST[$v])) {
-            $var = $_POST[$v];
-        } elseif (isset($_GET[$v])) {
-            $var = $_GET[$v];
-        } else {
-            return null;
-        }
-
-        return self::set_type($var, $type, $extra);
-    }
-
-    /**
-     * Obtain a variable from _POST, then check _GET if not found in _POST
-     * @param string $v
-     * @param int $type
-     * @param bool|array $extra
-     *
-     * @return null|mixed
-     */
-    public static function _pg($v, $type = self::T_ASIS, $extra = false)
-    {
-        if (isset($_POST[$v])) {
-            $var = $_POST[$v];
-        } elseif (isset($_GET[$v])) {
-            $var = $_GET[$v];
-        } else {
-            return null;
-        }
-
-        return self::set_type($var, $type, $extra);
-    }
-
-    /**
      * Checks _GET (g), _POST (p), _SESSION (s), _FILES (f), _COOKIE (c), _REQUEST (r), _ENV (e), _SERVER (v) arrays to find $v key in provided order in $from
      *
      * @param string $from Order in which to check arrays as string _GET (g), _POST (p), _SESSION (s), _FILES (f), _COOKIE (c), _REQUEST (r), _ENV (e), _SERVER (v)
-     * @param string $v Key to be search in provided order in arrays
+     * @param null|string $v Key to be search in provided order in arrays
      * @param int $type
-     * @param bool|array $extra
+     * @param array $extra
      *
      * @return null|mixed
      */
-    public static function _var($from, $v, $type = self::T_ASIS, $extra = false)
+    public static function _var(string $from, ?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
     {
-        if (empty($from)) {
+        if (!$from) {
             return null;
         }
 
@@ -257,42 +216,42 @@ class PHS_Params
         while (!empty($from[0])) {
             switch ($from[0]) {
                 case 'g':
-                    if (!empty($_GET) && isset($_GET[$v])) {
+                    if (isset($_GET[$v])) {
                         return self::_g($v, $type, $extra);
                     }
                     break;
                 case 'p':
-                    if (!empty($_POST) && isset($_POST[$v])) {
+                    if (isset($_POST[$v])) {
                         return self::_p($v, $type, $extra);
                     }
                     break;
                 case 's':
-                    if (!empty($_SESSION) && isset($_SESSION[$v])) {
+                    if (isset($_SESSION[$v])) {
                         return self::_s($v, $type, $extra);
                     }
                     break;
                 case 'f':
-                    if (!empty($_FILES) && isset($_FILES[$v])) {
+                    if (isset($_FILES[$v])) {
                         return self::_f($v);
                     }
                     break;
                 case 'c':
-                    if (!empty($_COOKIE) && isset($_COOKIE[$v])) {
+                    if (isset($_COOKIE[$v])) {
                         return self::_c($v, $type, $extra);
                     }
                     break;
                 case 'r':
-                    if (!empty($_REQUEST) && isset($_REQUEST[$v])) {
+                    if (isset($_REQUEST[$v])) {
                         return self::_r($v, $type, $extra);
                     }
                     break;
                 case 'e':
-                    if (!empty($_ENV) && isset($_ENV[$v])) {
+                    if (isset($_ENV[$v])) {
                         return self::_e($v, $type, $extra);
                     }
                     break;
                 case 'v':
-                    if (!empty($_SERVER) && isset($_SERVER[$v])) {
+                    if (isset($_SERVER[$v])) {
                         return self::_v($v, $type, $extra);
                     }
                     break;
@@ -304,80 +263,94 @@ class PHS_Params
         return null;
     }
 
-    public static function _g($v, $type = self::T_ASIS, $extra = false)
+    public static function _gp(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
     {
-        if (empty($_GET) || !isset($_GET[$v])) {
+        $var = $_GET[$v] ?? $_POST[$v] ?? null;
+        if ($v === null || $var === null) {
+            return null;
+        }
+
+        return self::set_type($var, $type, $extra);
+    }
+
+    public static function _pg(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
+    {
+        $var = $_POST[$v] ?? $_GET[$v] ?? null;
+        if ($v === null || $var === null) {
+            return null;
+        }
+
+        return self::set_type($var, $type, $extra);
+    }
+
+    public static function _g(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
+    {
+        if ($v === null || !isset($_GET[$v])) {
             return null;
         }
 
         return self::set_type($_GET[$v], $type, $extra);
     }
 
-    public static function _p($v, $type = self::T_ASIS, $extra = false)
+    public static function _p(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
     {
-        if (empty($_POST) || !isset($_POST[$v])) {
+        if ($v === null || !isset($_POST[$v])) {
             return null;
         }
 
         return self::set_type($_POST[$v], $type, $extra);
     }
 
-    /**
-     * @param string $v
-     *
-     * @return null|array
-     */
-    public static function _f($v)
+    public static function _f(?string $v) : ?array
     {
-        if (empty($_FILES)
-         || !isset($_FILES[$v])
-         || !isset($_FILES[$v]['name'])
-         || $_FILES[$v]['name'] === '') {
+        if ($v === null
+            || !isset($_FILES[$v]['name'])
+            || $_FILES[$v]['name'] === '') {
             return null;
         }
 
         return $_FILES[$v];
     }
 
-    public static function _s($v, $type = self::T_ASIS, $extra = false)
+    public static function _s(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
     {
-        if (empty($_SESSION) || !isset($_SESSION[$v])) {
+        if ($v === null || !isset($_SESSION[$v])) {
             return null;
         }
 
         return self::set_type($_SESSION[$v], $type, $extra);
     }
 
-    public static function _c($v, $type = self::T_ASIS, $extra = false)
+    public static function _c(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
     {
-        if (empty($_COOKIE) || !isset($_COOKIE[$v])) {
+        if ($v === null || !isset($_COOKIE[$v])) {
             return null;
         }
 
         return self::set_type($_COOKIE[$v], $type, $extra);
     }
 
-    public static function _r($v, $type = self::T_ASIS, $extra = false)
+    public static function _r(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
     {
-        if (empty($_REQUEST) || !isset($_REQUEST[$v])) {
+        if ($v === null || !isset($_REQUEST[$v])) {
             return null;
         }
 
         return self::set_type($_REQUEST[$v], $type, $extra);
     }
 
-    public static function _v($v, $type = self::T_ASIS, $extra = false)
+    public static function _v(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
     {
-        if (empty($_SERVER) || !isset($_SERVER[$v])) {
+        if ($v === null || !isset($_SERVER[$v])) {
             return null;
         }
 
         return self::set_type($_SERVER[$v], $type, $extra);
     }
 
-    public static function _e($v, $type = self::T_ASIS, $extra = false)
+    public static function _e(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
     {
-        if (empty($_ENV) || !isset($_ENV[$v])) {
+        if ($v === null || !isset($_ENV[$v])) {
             return null;
         }
 

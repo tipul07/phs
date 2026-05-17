@@ -10,7 +10,6 @@ abstract class PHS_Api_action extends PHS_Action
 {
     public const ERR_API_INIT = 40000, ERR_AUTHENTICATION = 40001;
 
-    /** @var null|PHS_Api_base */
     protected ?PHS_Api_base $api_obj = null;
 
     public function allowed_scopes()
@@ -154,24 +153,24 @@ abstract class PHS_Api_action extends PHS_Action
      *
      * @return array|false
      */
-    public function send_api_success($payload_arr, int $http_code = PHS_Api_base::H_CODE_OK,
-        ?array $action_result_defaults = null, ?array $extra_arr = null)
-    {
+    public function send_api_success(
+        $payload_arr,
+        int $http_code = PHS_Api_base::H_CODE_OK,
+        ?array $action_result_defaults = null,
+        ?array $extra_arr = null
+    ) {
         if (!PHS_Api::valid_http_code($http_code)) {
             $http_code = PHS_Api_base::H_CODE_OK;
         }
 
-        if (empty($extra_arr)) {
-            $extra_arr = [];
-        }
-
-        $extra_arr['only_response_data_node'] = (!empty($extra_arr['only_response_data_node']));
+        $extra_arr ??= [];
+        $extra_arr['only_response_data_node'] = !empty($extra_arr['only_response_data_node']);
 
         $response_params = self::default_api_response();
         $response_params['api_obj'] = $this->get_action_api_instance();
         $response_params['http_code'] = $http_code;
         $response_params['only_response_data_node'] = $extra_arr['only_response_data_node'];
-        $response_params['response_data'] = $payload_arr;
+        $response_params['response_data'] = $payload_arr ?: [];
 
         return $this->send_api_response($response_params, $action_result_defaults);
     }
@@ -193,8 +192,8 @@ abstract class PHS_Api_action extends PHS_Action
     public function request_var(
         string $var_name,
         int $type = PHS_Params::T_ASIS,
-        $default = null,
-        $type_extra = false,
+        mixed $default = null,
+        array $type_extra = [],
         string $order = 'bpg'
     ) : mixed {
         if ($order === '') {

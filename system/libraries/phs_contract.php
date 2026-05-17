@@ -820,7 +820,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                 foreach ($outside_data[$node_arr['outside_key']] as $outside_item) {
                     if (!empty($node_arr['recurring_scalar_node'])) {
                         // Recurring scalar value...
-                        if (null === ($result_item = PHS_Params::set_type($outside_item, $node_arr['type'], (!empty($node_arr['type_extra']) ? $node_arr['type_extra'] : false)))) {
+                        if (null === ($result_item = PHS_Params::set_type($outside_item, $node_arr['type'], $node_arr['type_extra'] ?? [] ?: []))) {
                             continue;
                         }
                     } elseif (!is_array($outside_item)
@@ -854,7 +854,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                     }
 
                     $inside_knti = PHS_Params::set_type($recurring_items_no, $node_arr['recurring_key_type'],
-                        (!empty($node_arr['recurring_key_type_extra']) ? $node_arr['recurring_key_type_extra'] : []));
+                        $node_arr['recurring_key_type_extra'] ?? [] ?: []);
 
                     $recurring_items_no++;
 
@@ -943,7 +943,7 @@ abstract class PHS_Contract extends PHS_Instantiable
 
             // Scalar value...
             $return_arr[$node_arr['inside_key']] = PHS_Params::set_type($outside_data[$node_arr['outside_key']], $node_arr['type'],
-                (!empty($node_arr['type_extra']) ? $node_arr['type_extra'] : false));
+                $node_arr['type_extra'] ?? [] ?: []);
         }
 
         // Post-process for "root" object
@@ -1160,7 +1160,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                 foreach ($inside_data[$node_arr['inside_key']] as $input_item) {
                     if (!empty($node_arr['recurring_scalar_node'])) {
                         // Recurring scalar value...
-                        if (null === ($result_item = PHS_Params::set_type($input_item, $node_arr['type'], (!empty($node_arr['type_extra']) ? $node_arr['type_extra'] : false)))) {
+                        if (null === ($result_item = PHS_Params::set_type($input_item, $node_arr['type'], $node_arr['type_extra'] ?? [] ?: []))) {
                             continue;
                         }
                     } elseif (!is_array($input_item)
@@ -1194,7 +1194,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                     }
 
                     $inside_knti = PHS_Params::set_type($recurring_items_no, $node_arr['recurring_key_type'],
-                        (!empty($node_arr['recurring_key_type_extra']) ? $node_arr['recurring_key_type_extra'] : []));
+                        $node_arr['recurring_key_type_extra'] ?? [] ?: []);
 
                     $recurring_items_no++;
 
@@ -1283,7 +1283,7 @@ abstract class PHS_Contract extends PHS_Instantiable
 
             // Scalar value...
             $return_arr[$node_arr['outside_key']] = PHS_Params::set_type($inside_data[$node_arr['inside_key']], $node_arr['type'],
-                (!empty($node_arr['type_extra']) ? $node_arr['type_extra'] : false));
+                $node_arr['type_extra'] ?? [] ?: []);
         }
 
         // Post-process for "root" object

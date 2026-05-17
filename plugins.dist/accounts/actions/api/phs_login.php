@@ -39,9 +39,9 @@ class PHS_Action_Login extends PHS_Api_action
         }
 
         // Accept parameters only in POST or JSON body
-        $nick = $this->request_var('nick', PHS_Params::T_NOHTML, null, false, 'bp');
-        $pass = $this->request_var('pass', PHS_Params::T_ASIS, null, false, 'bp');
-        $do_remember = $this->request_var('do_remember', PHS_Params::T_INT, null, false, 'bp');
+        $nick = $this->request_var('nick', PHS_Params::T_NOHTML, order: 'bp');
+        $pass = $this->request_var('pass', order: 'bp');
+        $do_remember = $this->request_var('do_remember', PHS_Params::T_INT, order: 'bp');
 
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
          || !($accounts_model = PHS_Model_Accounts::get_instance())

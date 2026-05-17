@@ -226,8 +226,6 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var PHS_Model_Accounts $accounts_model */
-        /** @var PHS_Model_Api_online $online_model */
         if (!($online_model = PHS_Model_Api_online::get_instance())
             || !($accounts_model = PHS_Model_Accounts::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Couldn\'t load required models.'));
@@ -235,7 +233,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
             return false;
         }
 
-        if (empty($account_data)) {
+        if (!$account_data) {
             $account_arr = null;
         } elseif (!($account_arr = $accounts_model->data_to_array($account_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Account details not found in database.'));
@@ -243,7 +241,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
             return false;
         }
 
-        if (empty($session_data)) {
+        if (!$session_data) {
             $session_arr = null;
         } elseif (!($session_arr = $online_model->data_to_array($session_data))) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Session details not found in database.'));
@@ -251,10 +249,10 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
             return false;
         }
 
-        if (!empty($account_arr)) {
+        if ($account_arr) {
             $account_arr = $this->export_data_from_account_data($account_arr);
         }
-        if (!empty($session_arr)) {
+        if ($session_arr) {
             $session_arr = $online_model->export_data_from_session_data($session_arr);
         }
 

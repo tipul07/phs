@@ -4,7 +4,6 @@ namespace phs\plugins\accounts\actions\api;
 use phs\PHS;
 use phs\PHS_Scope;
 use phs\PHS_Api_base;
-use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Api_action;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
@@ -44,14 +43,15 @@ class PHS_Action_Change_password extends PHS_Api_action
         }
 
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
-         || !($accounts_model = PHS_Model_Accounts::get_instance())
-         || !($account_contract = PHS_Contract_Account_basic::get_instance())) {
+            || !($accounts_model = PHS_Model_Accounts::get_instance())
+            || !($account_contract = PHS_Contract_Account_basic::get_instance())) {
             return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                 $this->_pt('Error loading required resources.'));
         }
+
         // Accept parameters only in POST or JSON body
-        $old_pass = $this->request_var('old_pass', PHS_Params::T_ASIS, null, false, 'bp');
-        $pass = $this->request_var('pass', PHS_Params::T_ASIS, null, false, 'bp');
+        $old_pass = $this->request_var('old_pass', order: 'bp');
+        $pass = $this->request_var('pass', order: 'bp');
 
         if (!$old_pass
             || !$accounts_model->check_pass($current_user, $old_pass)) {
@@ -72,10 +72,6 @@ class PHS_Action_Change_password extends PHS_Api_action
             $user_payload_arr = [];
         }
 
-        $payload_arr = [];
-        $payload_arr['account'] = $user_payload_arr;
-        $payload_arr['password_changed'] = true;
-
-        return $this->send_api_success($payload_arr);
+        return $this->send_api_success(['account' => $user_payload_arr, 'password_changed' => true]);
     }
 }
