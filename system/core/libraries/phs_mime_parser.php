@@ -60,58 +60,182 @@ class PHS_Mime_parser extends PHS_Library
         return true;
     }
 
-    public function get_headers() : array
+    public function get_main_part() : ?PHS_Mime_part
     {
         if (!$this->_main_part) {
             $this->parse_email();
         }
 
-        return $this->_main_part?->get_headers() ?: [];
+        return $this->_main_part;
+    }
+
+    public function get_headers() : array
+    {
+        return $this->get_main_part()?->get_headers() ?: [];
     }
 
     public function get_parts() : array
     {
-        if (!$this->_main_part) {
-            $this->parse_email();
-        }
-
-        return $this->_main_part?->get_parts() ?: [];
+        return $this->get_main_part()?->get_parts() ?: [];
     }
 
-    public function get_part_settings() : array
+    public function get_email_from() : ?string
     {
-        if (!$this->_main_part) {
-            $this->parse_email();
-        }
-
-        return $this->_main_part?->get_settings() ?: [];
+        return $this->get_main_part()?->get_header_from();
     }
 
-    public function get_content() : ?string
+    public function email_from_contains_email(string $email) : bool
     {
-        if (!$this->_main_part) {
-            $this->parse_email();
+        $email = strtolower($email);
+        foreach ($this->as_recipients($this->get_email_from()) as $recipient) {
+            if (!empty($recipient['email']) && strtolower($recipient['email']) === $email) {
+                return true;
+            }
         }
 
-        return $this->_main_part?->get_content() ?: null;
+        return false;
     }
 
-    public function get_encoded_content() : ?string
+    public function get_email_to() : ?string
     {
-        if (!$this->_main_part) {
-            $this->parse_email();
+        return $this->get_main_part()?->get_header_to();
+    }
+
+    public function email_to_contains_email(string $email) : bool
+    {
+        $email = strtolower($email);
+        foreach ($this->as_recipients($this->get_email_to()) as $recipient) {
+            if (!empty($recipient['email']) && strtolower($recipient['email']) === $email) {
+                return true;
+            }
         }
 
-        return $this->_main_part?->get_encoded_content() ?: null;
+        return false;
+    }
+
+    public function get_email_cc() : ?string
+    {
+        return $this->get_main_part()?->get_header_cc();
+    }
+
+    public function email_cc_contains_email(string $email) : bool
+    {
+        $email = strtolower($email);
+        foreach ($this->as_recipients($this->get_email_cc()) as $recipient) {
+            if (!empty($recipient['email']) && strtolower($recipient['email']) === $email) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function get_email_bcc() : ?string
+    {
+        return $this->get_main_part()?->get_header_bcc();
+    }
+
+    public function email_bcc_contains_email(string $email) : bool
+    {
+        $email = strtolower($email);
+        foreach ($this->as_recipients($this->get_email_bcc()) as $recipient) {
+            if (!empty($recipient['email']) && strtolower($recipient['email']) === $email) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function get_email_delivered_to() : ?string
+    {
+        return $this->get_main_part()?->get_header_delivered_to();
+    }
+
+    public function email_delivered_to_contains_email(string $email) : bool
+    {
+        $email = strtolower($email);
+        foreach ($this->as_recipients($this->get_email_delivered_to()) as $recipient) {
+            if (!empty($recipient['email']) && strtolower($recipient['email']) === $email) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function get_email_reply_to() : ?string
+    {
+        return $this->get_main_part()?->get_header_reply_to();
+    }
+
+    public function as_recipients(?string $str) : array
+    {
+        return PHS_Mime_part::parse_recipients($str);
+    }
+
+    public function get_email_subject() : ?string
+    {
+        return $this->get_main_part()?->get_header_subject();
+    }
+
+    public function get_email_content() : ?string
+    {
+        return $this->get_main_part()?->get_content() ?: null;
+    }
+
+    public function get_email_encoded_content() : ?string
+    {
+        return $this->get_main_part()?->get_encoded_content() ?: null;
+    }
+
+    public function get_email_html_body() : ?string
+    {
+        if (!($main_part = $this->get_main_part())) {
+            return null;
+        }
+
+        if ($main_part->is_text_html()) {
+            return $main_part->get_content();
+        }
+
+        if (!($parts = $main_part->get_parts())) {
+            return null;
+        }
+
+        return $this->_get_email_html_body_from_parts($parts);
+    }
+
+    public function get_email_text_body() : ?string
+    {
+        if (!($main_part = $this->get_main_part())) {
+            return null;
+        }
+
+        if ($main_part->is_text_plain()) {
+            return $main_part->get_content();
+        }
+
+        if (!($parts = $main_part->get_parts())) {
+            return null;
+        }
+
+        return $this->_get_email_text_body_from_parts($parts);
+    }
+
+    public function get_email_attachments() : array
+    {
+        if (!($main_part = $this->get_main_part())
+            || !($parts = $main_part->get_parts())) {
+            return [];
+        }
+
+        return $this->_get_email_attachments_from_parts($parts);
     }
 
     public function has_parts() : bool
     {
-        if (!$this->_main_part) {
-            $this->parse_email();
-        }
-
-        return $this->_main_part?->has_parts() ?: false;
+        return $this->get_main_part()?->has_parts() ?: false;
     }
 
     public function full_read_filsezise_limit(?int $limit = null) : int
@@ -125,11 +249,7 @@ class PHS_Mime_parser extends PHS_Library
 
     public function is_valid_email() : bool
     {
-        if (!$this->_main_part) {
-            $this->parse_email();
-        }
-
-        return $this->_main_part?->is_valid_email();
+        return $this->get_main_part()?->is_valid_email();
     }
 
     public function parse_email() : void
@@ -161,6 +281,67 @@ class PHS_Mime_parser extends PHS_Library
         }
 
         return $this->_get_line_from_file($advance);
+    }
+
+    /**
+     * @param array<\phs\system\core\libraries\PHS_Mime_part> $parts
+     *
+     * @return null|string
+     */
+    private function _get_email_html_body_from_parts(array $parts) : ?string
+    {
+        foreach ($parts as $part) {
+            if ($part->is_text_html()) {
+                return $part->get_content();
+            }
+
+            if ($part->has_parts()) {
+                return $this->_get_email_html_body_from_parts($part->get_parts());
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<\phs\system\core\libraries\PHS_Mime_part> $parts
+     *
+     * @return null|string
+     */
+    private function _get_email_text_body_from_parts(array $parts) : ?string
+    {
+        foreach ($parts as $part) {
+            if ($part->is_text_plain()) {
+                return $part->get_content();
+            }
+
+            if ($part->has_parts()) {
+                return $this->_get_email_text_body_from_parts($part->get_parts());
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<\phs\system\core\libraries\PHS_Mime_part> $parts
+     *
+     * @return array
+     */
+    private function _get_email_attachments_from_parts(array $parts) : array
+    {
+        $return_arr = [];
+        foreach ($parts as $part) {
+            if ($part->is_attachment()) {
+                $return_arr[] = $part->get_attachment_details();
+            }
+
+            if ($part->has_parts()) {
+                $return_arr = array_merge($return_arr, $this->_get_email_attachments_from_parts($part->get_parts()));
+            }
+        }
+
+        return $return_arr;
     }
 
     private function _get_line_from_file(bool $advance = true) : ?string
@@ -240,10 +421,14 @@ class PHS_Mime_parser extends PHS_Library
 
 class PHS_Mime_part
 {
-    public const H_FROM = 'From', H_TO = 'To', H_SUBJECT = 'Subject', H_DATE = 'Date', H_DELIVERED_TO = 'Delivered-To',
-        H_REPLY_TO = 'Reply-To',
-        H_CONTENT_TYPE = 'Content-Type', H_CONTENT_DISPOSITION = 'Content-Disposition',
+    public const H_FROM = 'From', H_TO = 'To', H_CC = 'Cc', H_BCC = 'Bcc', H_SUBJECT = 'Subject', H_DATE = 'Date',
+        H_DELIVERED_TO = 'Delivered-To', H_REPLY_TO = 'Reply-To', H_RETURN_PATH = 'Return-Path',
+        H_CONTENT_TYPE = 'Content-Type', H_CONTENT_DISPOSITION = 'Content-Disposition', H_CONTENT_ID = 'Content-ID',
         H_CONTENT_TRANSFER_ENCODING = 'Content-Transfer-Encoding', H_MIME_VERSION = 'Mime-Version';
+
+    private const TYPE_TEXT_PLAIN = 'text/plain', TYPE_TEXT_HTML = 'text/html';
+
+    private const CONTENT_DISPOSITION_INLINE = 'inline', CONTENT_DISPOSITION_ATTACHMENT = 'attachment';
 
     // Headers' values
     private array $_hval_arr = [];
@@ -281,6 +466,16 @@ class PHS_Mime_part
         return $this->get_header_by_key(self::H_TO);
     }
 
+    public function get_header_cc() : ?string
+    {
+        return $this->get_header_by_key(self::H_CC);
+    }
+
+    public function get_header_bcc() : ?string
+    {
+        return $this->get_header_by_key(self::H_BCC);
+    }
+
     public function get_header_delivered_to() : ?string
     {
         return $this->get_header_by_key(self::H_DELIVERED_TO);
@@ -289,6 +484,11 @@ class PHS_Mime_part
     public function get_header_reply_to() : ?string
     {
         return $this->get_header_by_key(self::H_REPLY_TO);
+    }
+
+    public function get_header_return_path() : ?string
+    {
+        return $this->get_header_by_key(self::H_RETURN_PATH);
     }
 
     public function get_header_subject() : ?string
@@ -319,6 +519,9 @@ class PHS_Mime_part
         return $this->_settings;
     }
 
+    /**
+     * @return array<PHS_Mime_part>
+     */
     public function get_parts() : array
     {
         return $this->_parts_arr;
@@ -344,8 +547,9 @@ class PHS_Mime_part
     public function get_predefined_headers() : array
     {
         return [
-            self::H_FROM, self::H_TO, self::H_SUBJECT, self::H_DATE, self::H_DELIVERED_TO, self::H_REPLY_TO,
-            self::H_CONTENT_TYPE, self::H_CONTENT_DISPOSITION,
+            self::H_FROM, self::H_TO, self::H_CC, self::H_BCC, self::H_SUBJECT, self::H_DATE,
+            self::H_DELIVERED_TO, self::H_REPLY_TO, self::H_RETURN_PATH,
+            self::H_CONTENT_TYPE, self::H_CONTENT_DISPOSITION, self::H_CONTENT_ID,
             self::H_CONTENT_TRANSFER_ENCODING, self::H_MIME_VERSION,
         ];
     }
@@ -374,6 +578,11 @@ class PHS_Mime_part
         return $this->_settings['content_type'] ?? null;
     }
 
+    public function get_part_content_disposition() : ?string
+    {
+        return $this->_settings['content_disposition'] ?? null;
+    }
+
     public function get_part_outer_boundary() : ?string
     {
         return $this->_settings['outer_boundary'] ?? null;
@@ -399,6 +608,26 @@ class PHS_Mime_part
         return $this->_settings['filename'] ?? null;
     }
 
+    public function get_part_content_id() : ?string
+    {
+        return $this->_settings['content_id'] ?? null;
+    }
+
+    public function get_part_size() : ?string
+    {
+        return $this->_settings['size'] ?? null;
+    }
+
+    public function get_part_creation_date() : ?string
+    {
+        return $this->_settings['creation_date'] ?? null;
+    }
+
+    public function get_part_modification_date() : ?string
+    {
+        return $this->_settings['modification_date'] ?? null;
+    }
+
     public function get_predefined_header_key(string $hkey) : ?string
     {
         static $lower_predefined_headers = null;
@@ -414,13 +643,56 @@ class PHS_Mime_part
             : $predefined_headers[$index];
     }
 
+    public function is_text_plain() : bool
+    {
+        return $this->get_part_content_type() === self::TYPE_TEXT_PLAIN;
+    }
+
+    public function is_text_html() : bool
+    {
+        return $this->get_part_content_type() === self::TYPE_TEXT_HTML;
+    }
+
+    public function is_attachment() : bool
+    {
+        return $this->is_disposition_inline()
+               || $this->is_disposition_attachment();
+    }
+
+    public function get_attachment_details() : array
+    {
+        if (!$this->is_attachment()) {
+            return [];
+        }
+
+        return [
+            'filename'          => $this->get_part_filename() ?? $this->get_part_name() ?? '',
+            'size'              => $this->get_part_size() ?? '',
+            'creation_date'     => $this->get_part_creation_date(),
+            'modification_date' => $this->get_part_modification_date(),
+            'content_id'        => $this->get_part_content_id(),
+            'content_type'      => $this->get_part_content_type(),
+            'content'           => '', // $this->get_content(),
+        ];
+    }
+
+    public function is_disposition_inline() : bool
+    {
+        return $this->get_part_content_disposition() === self::CONTENT_DISPOSITION_INLINE;
+    }
+
+    public function is_disposition_attachment() : bool
+    {
+        return $this->get_part_content_disposition() === self::CONTENT_DISPOSITION_ATTACHMENT;
+    }
+
     private function _extract_parts() : void
     {
         if (!$this->_line_feeder) {
             return;
         }
 
-        $is_text_plain = $this->get_part_content_type() === 'text/plain';
+        $is_text_plain = $this->is_text_plain();
         $boundary = $this->get_part_boundary();
         $outer_boundary = $this->get_part_outer_boundary();
         $this->_parts_arr = [];
@@ -430,9 +702,11 @@ class PHS_Mime_part
             $tr_line = trim($line);
 
             $advance_line = true;
-            if ($outer_boundary
-               && ($tr_line === '--'.$outer_boundary
-                   || $tr_line === '--'.$outer_boundary.'--')) {
+            if (($outer_boundary
+                 && ($tr_line === '--'.$outer_boundary
+                     || $tr_line === '--'.$outer_boundary.'--'))
+                || ($boundary
+                    && $tr_line === '--'.$boundary.'--')) {
                 break;
             }
 
@@ -544,6 +818,7 @@ class PHS_Mime_part
             default                           => null,
             self::H_CONTENT_TYPE              => [$this, '_extract_content_type'],
             self::H_CONTENT_DISPOSITION       => [$this, '_extract_content_disposition'],
+            self::H_CONTENT_ID                => [$this, '_extract_content_id'],
             self::H_CONTENT_TRANSFER_ENCODING => [$this, '_extract_transfer_encoding'],
         };
     }
@@ -562,8 +837,12 @@ class PHS_Mime_part
         return [
             'outer_boundary'      => '',
             'boundary'            => '',
+            'content_id'          => '',
             'name'                => '',
             'filename'            => '',
+            'size'                => '',
+            'creation_date'       => '',
+            'modification_date'   => '',
             'transfer_encoding'   => '',
             'content_disposition' => '',
             'content_type'        => 'text/plain',
@@ -580,7 +859,7 @@ class PHS_Mime_part
             }
 
             if ($knti === 0) {
-                $this->_settings['content_type'] = trim($part);
+                $this->_settings['content_type'] = strtolower(trim($part));
                 continue;
             }
 
@@ -621,13 +900,110 @@ class PHS_Mime_part
             $attr = strtolower(trim($attrs[0]));
             if ($attr === 'filename') {
                 $this->_settings['filename'] = trim(trim($attrs[1] ?? ''), '"');
+            } elseif ($attr === 'size') {
+                $this->_settings['size'] = trim(trim($attrs[1] ?? ''), '"');
+            } elseif ($attr === 'creation-date') {
+                $this->_settings['creation_date'] = trim(trim($attrs[1] ?? ''), '"');
+            } elseif ($attr === 'modification-date') {
+                $this->_settings['modification_date'] = trim(trim($attrs[1] ?? ''), '"');
             }
         }
+    }
+
+    private function _extract_content_id(string $kval) : void
+    {
+        $this->_settings['content_id'] = trim(trim($kval), '"<>');
     }
 
     private function _extract_transfer_encoding(string $kval) : void
     {
         $this->_settings['transfer_encoding'] = trim($kval);
+    }
+
+    public static function parse_recipients(?string $str) : array
+    {
+        if (!$str) {
+            return [];
+        }
+
+        $len = strlen($str);
+        $in_name = true;
+        $in_email = false;
+        $in_quotes = false;
+
+        $name = '';
+        $email = '';
+
+        $return_arr = [];
+
+        for ($i = 0; $i < $len; $i++) {
+            if ($str[$i] === '"') {
+                $in_name = $in_email = !$in_quotes;
+
+                $in_quotes = !$in_quotes;
+                continue;
+            }
+
+            if ($str[$i] === '<') {
+                $in_email = true;
+                $in_name = false;
+                continue;
+            }
+            if ($str[$i] === '>') {
+                $in_email = false;
+                $in_name = false;
+                continue;
+            }
+
+            if (!$in_name && !$in_email
+               && $str[$i] === ',') {
+                $return_arr[] = [
+                    'name'  => trim($name),
+                    'email' => trim($email),
+                ];
+
+                $name = '';
+                $email = '';
+
+                $in_name = true;
+                $in_email = false;
+                $in_quotes = false;
+                continue;
+            }
+
+            if (!$in_quotes && !$in_name
+               && $str[$i] === ' ') {
+                $in_email = true;
+                continue;
+            }
+
+            if ($in_name && !$in_quotes
+               && $str[$i] === '@') {
+                $in_name = false;
+                $in_email = true;
+                $email = $name;
+                $name = '';
+            }
+
+            if ($in_name) {
+                $name .= $str[$i];
+                continue;
+            }
+
+            if ($in_email) {
+                $email .= $str[$i];
+                continue;
+            }
+        }
+
+        if ($email !== '') {
+            $return_arr[] = [
+                'name'  => trim($name),
+                'email' => trim($email),
+            ];
+        }
+
+        return $return_arr;
     }
 }
 
