@@ -76,6 +76,8 @@ include_once PHS_LIBRARIES_DIR.'phs_paginator.php';
 include_once PHS_LIBRARIES_DIR.'phs_paginator_action.php';
 include_once PHS_LIBRARIES_DIR.'phs_paginator_exporter_library.php';
 include_once PHS_LIBRARIES_DIR.'phs_autocomplete_action.php';
+include_once PHS_LIBRARIES_DIR.'phs_mime_charset.php';
+include_once PHS_LIBRARIES_DIR.'phs_mime_part.php';
 include_once PHS_CORE_DIR.'phs.php';
 include_once PHS_CORE_DIR.'phs_db.php';
 include_once PHS_CORE_DIR.'phs_session.php';
