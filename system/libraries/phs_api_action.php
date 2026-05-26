@@ -146,7 +146,7 @@ abstract class PHS_Api_action extends PHS_Action
     }
 
     /**
-     * @param bool|array $payload_arr
+     * @param null|array $payload_arr
      * @param int $http_code
      * @param null|array $action_result_defaults
      * @param null|array $extra_arr
@@ -170,7 +170,7 @@ abstract class PHS_Api_action extends PHS_Action
         $response_params['api_obj'] = $this->get_action_api_instance();
         $response_params['http_code'] = $http_code;
         $response_params['only_response_data_node'] = $extra_arr['only_response_data_node'];
-        $response_params['response_data'] = $payload_arr ?: [];
+        $response_params['response_data'] = $payload_arr;
 
         return $this->send_api_response($response_params, $action_result_defaults);
     }
