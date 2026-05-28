@@ -233,6 +233,11 @@ class PHS_Mime_parser extends PHS_Library
         return $this->_get_email_attachments_from_parts($parts);
     }
 
+    public function has_attachments() : bool
+    {
+        return (bool)$this->get_email_attachments();
+    }
+
     public function has_parts() : bool
     {
         return $this->get_main_part()?->has_parts() ?: false;

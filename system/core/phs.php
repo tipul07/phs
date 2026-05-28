@@ -70,6 +70,8 @@ final class PHS extends PHS_Registry
 
     private static string $_UPDATE_SCRIPT = '_update';
 
+    private static string $_INMAIL_SCRIPT = '_eml';
+
     public function __construct()
     {
         parent::__construct();
@@ -81,8 +83,11 @@ final class PHS extends PHS_Registry
     {
         // All plugins that come with the framework (these will be installed by default)
         // Rest of plugins will be managed in plugins interface in admin interface
-        return ['phs_libs', 'accounts', 'accounts_3rd', 'admin', 'backup', 'bbeditor', 'captcha', 'cookie_notice',
-            'emails', 'hubspot', 'mailchimp', 'messages', 'mobileapi', 'notifications', 'remote_phs', 'sendgrid', ];
+        return [
+            'phs_libs', 'phs_security', 'phs_inmail',
+            'accounts', 'accounts_3rd', 'admin', 'backup', 'bbeditor', 'captcha', 'cookie_notice',
+            'emails', 'hubspot', 'mailchimp', 'messages', 'mobileapi', 'notifications', 'remote_phs', 'sendgrid',
+        ];
     }
 
     public static function get_always_active_plugins() : array
@@ -865,17 +870,17 @@ final class PHS extends PHS_Registry
             }
         }
 
-        if (empty($controller)) {
+        if (!$controller) {
             $controller = self::ROUTE_DEFAULT_CONTROLLER;
         }
-        if (empty($action)) {
+        if (!$action) {
             $action = self::ROUTE_DEFAULT_ACTION;
         }
 
         if (($plugin !== null && !($plugin = PHS_Instantiable::safe_escape_plugin_name($plugin)))
-         || !($controller = PHS_Instantiable::safe_escape_class_name($controller))
-         || !($action = PHS_Instantiable::safe_escape_action_name($action))
-         || (!empty($action_dir) && !($action_dir = PHS_Instantiable::safe_escape_instance_subdir($action_dir)))
+            || !($controller = PHS_Instantiable::safe_escape_class_name($controller))
+            || !($action = PHS_Instantiable::safe_escape_action_name($action))
+            || ($action_dir && !($action_dir = PHS_Instantiable::safe_escape_instance_subdir($action_dir)))
         ) {
             self::st_set_error(self::ERR_ROUTE, self::_t('Bad route in request.'));
 
@@ -936,16 +941,9 @@ final class PHS extends PHS_Registry
             return null;
         }
 
-        if (empty($route_parts) || !is_array($route_parts)) {
-            self::st_set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Route is invalid.'));
-
-            return null;
-        }
-
         $route_parts = self::validate_route_from_parts($route_parts, false);
 
-        /** @var bool|PHS_Plugin $plugin_obj */
-        $plugin_obj = false;
+        $plugin_obj = null;
         if (!empty($route_parts['plugin'])
             && !($plugin_obj = self::load_plugin($route_parts['plugin']))) {
             self::st_set_error_if_not_set(self::ERR_ROUTE, self::_t('Couldn\'t instantiate plugin from route.'));
@@ -953,8 +951,7 @@ final class PHS extends PHS_Registry
             return null;
         }
 
-        /** @var bool|PHS_Controller $controller_obj */
-        $controller_obj = false;
+        $controller_obj = null;
         if (!empty($route_parts['controller'])
             && !($controller_obj = self::load_controller($route_parts['controller'], ($plugin_obj ? $plugin_obj->instance_plugin_name() : false)))) {
             self::st_set_error_if_not_set(self::ERR_ROUTE, self::_t('Couldn\'t instantiate controller from route.'));
@@ -962,7 +959,6 @@ final class PHS extends PHS_Registry
             return null;
         }
 
-        /** @var bool|PHS_Action $action_obj */
         $action_obj = null;
         if (!empty($route_parts['action'])
             && !($action_obj = self::load_action($route_parts['action'], ($plugin_obj ? $plugin_obj->instance_plugin_name() : false), $route_parts['action_dir']))) {
@@ -971,15 +967,15 @@ final class PHS extends PHS_Registry
             return null;
         }
 
-        if (empty($action_obj)) {
+        if (!$action_obj) {
             self::st_set_error(self::ERR_ROUTE, self::_t('Couldn\'t instantiate action from route.'));
 
             return null;
         }
 
         if (!empty($params['action_accepts_scopes'])) {
-            if (empty($controller_obj)
-             || !($controller_scopes_arr = $controller_obj->allowed_scopes())) {
+            if (!$controller_obj
+                || !($controller_scopes_arr = $controller_obj->allowed_scopes())) {
                 $controller_scopes_arr = [];
             }
 
@@ -987,7 +983,7 @@ final class PHS extends PHS_Registry
 
             $scopes_check_arr = self::array_merge_unique_values($controller_scopes_arr, $action_scopes_arr);
 
-            if (!empty($scopes_check_arr)) {
+            if ($scopes_check_arr) {
                 foreach ($params['action_accepts_scopes'] as $scope) {
                     $scope = (int)$scope;
                     if (!in_array($scope, $scopes_check_arr, true)) {
@@ -1027,7 +1023,7 @@ final class PHS extends PHS_Registry
     {
         self::st_reset_error();
 
-        if (empty($route)) {
+        if (!$route) {
             $route = self::extract_route();
         }
 
@@ -1037,7 +1033,6 @@ final class PHS extends PHS_Registry
             return false;
         }
 
-        /** @var PHS_Event_Route $event_obj */
         if (($event_obj = PHS_Event_Route::trigger(['route' => $route_parts]))
             && ($new_route = $event_obj->get_output('route'))
             && ($new_route = self::parse_route($new_route, false))) {
@@ -1054,7 +1049,7 @@ final class PHS extends PHS_Registry
 
     public static function safe_escape_root_script(string $script) : ?string
     {
-        if (empty($script)
+        if (!$script
             || preg_match('@[^a-zA-Z0-9_\-]@', $script)) {
             return null;
         }
@@ -1244,6 +1239,29 @@ final class PHS extends PHS_Registry
         return self::$_UPDATE_SCRIPT.'.php';
     }
 
+    /**
+     * Change default inmail script (default is _eml). .php file extension will be added by platform.
+     *
+     * @param null|string $script New inmail script (default is _eml). No extension should be provided (.php will be appended)
+     *
+     * @return string
+     */
+    public static function inmail_script(?string $script = null) : string
+    {
+        if ($script === null) {
+            return self::$_INMAIL_SCRIPT.'.php';
+        }
+
+        if (!self::safe_escape_root_script($script)
+            || !@file_exists(PHS_PATH.$script.'.php')) {
+            return '';
+        }
+
+        self::$_INMAIL_SCRIPT = $script;
+
+        return self::$_INMAIL_SCRIPT.'.php';
+    }
+
     public static function get_background_path() : string
     {
         return PHS_PATH.self::background_script();
@@ -1254,15 +1272,11 @@ final class PHS extends PHS_Registry
         return PHS_PATH.self::agent_script();
     }
 
-    /**
-     * @param bool $force_https
-     * @param bool $slash_terminated
-     * @param null|string $for_domain
-     *
-     * @return null|string
-     */
-    public static function get_domain_url(bool $force_https = false, bool $slash_terminated = false, ?string $for_domain = null) : ?string
-    {
+    public static function get_domain_url(
+        bool $force_https = false,
+        bool $slash_terminated = false,
+        ?string $for_domain = null
+    ) : ?string {
         if ($for_domain !== null) {
             if ($force_https
              || self::is_secured_request()) {
@@ -1285,12 +1299,6 @@ final class PHS extends PHS_Registry
         return $base_url;
     }
 
-    /**
-     * @param bool $force_https
-     * @param null|string $for_domain
-     *
-     * @return null|string
-     */
     public static function get_interpret_url(bool $force_https = false, ?string $for_domain = null) : ?string
     {
         if (!($base_url = self::get_domain_url($force_https, true, $for_domain))) {
@@ -1305,12 +1313,6 @@ final class PHS extends PHS_Registry
         return PHS_PATH.self::interpret_script();
     }
 
-    /**
-     * @param bool $force_https
-     * @param null|string $for_domain
-     *
-     * @return null|string
-     */
     public static function get_ajax_url(bool $force_https = false, ?string $for_domain = null) : ?string
     {
         if (!($base_url = self::get_domain_url($force_https, true, $for_domain))) {
@@ -1325,13 +1327,6 @@ final class PHS extends PHS_Registry
         return PHS_PATH.self::ajax_script();
     }
 
-    /**
-     * @param bool $force_https
-     * @param bool $use_rewrite
-     * @param null|string $for_domain
-     *
-     * @return null|string
-     */
     public static function get_api_url(bool $force_https = false, bool $use_rewrite = true, ?string $for_domain = null) : ?string
     {
         if (!($base_url = self::get_domain_url($force_https, true, $for_domain))) {
@@ -1350,15 +1345,11 @@ final class PHS extends PHS_Registry
         return PHS_PATH.self::api_script();
     }
 
-    /**
-     * @param bool $force_https
-     * @param bool $use_rewrite
-     * @param null|string $for_domain
-     *
-     * @return null|string
-     */
-    public static function get_remote_script_url(bool $force_https = false, bool $use_rewrite = true, ?string $for_domain = null) : ?string
-    {
+    public static function get_remote_script_url(
+        bool $force_https = false,
+        bool $use_rewrite = true,
+        ?string $for_domain = null
+    ) : ?string {
         if (!($base_url = self::get_domain_url($force_https, true, $for_domain))) {
             return null;
         }
@@ -1375,12 +1366,6 @@ final class PHS extends PHS_Registry
         return PHS_PATH.self::remote_script();
     }
 
-    /**
-     * @param bool $force_https
-     * @param null|string $for_domain
-     *
-     * @return null|string
-     */
     public static function get_update_script_url(bool $force_https = false, ?string $for_domain = null) : ?string
     {
         if (!($base_url = self::get_domain_url($force_https, true, $for_domain))) {
@@ -1393,6 +1378,11 @@ final class PHS extends PHS_Registry
     public static function get_update_script_path() : string
     {
         return PHS_PATH.self::update_script();
+    }
+
+    public static function get_inmail_script_path() : string
+    {
+        return PHS_PATH.self::inmail_script();
     }
 
     public static function current_url() : ?string
