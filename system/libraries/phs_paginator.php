@@ -2406,7 +2406,7 @@ class PHS_Paginator extends PHS_Registry
             'display_hint'              => '',
             'display_placeholder'       => '',
             'type'                      => PHS_Params::T_ASIS,
-            'extra_type'                => false,
+            'extra_type'                => [],
             'default'                   => null,
             'display_default_as_filter' => false,
             'values_arr'                => false,

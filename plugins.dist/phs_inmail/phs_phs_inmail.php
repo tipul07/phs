@@ -20,6 +20,11 @@ class PHS_Plugin_Phs_inmail extends PHS_Plugin
      */
     public function get_settings_structure() : array
     {
+        $extensions_arr = [];
+        foreach(PHS_Utils::extension_to_mimetype_array() as $extension => $mimetype) {
+            $extensions_arr[$extension] = $extension.' ('.$mimetype.')';
+        }
+
         return [
             'generic_settings_group' => [
                 'display_name' => $this->_pt('InMail Generic Settings'),
@@ -37,7 +42,7 @@ class PHS_Plugin_Phs_inmail extends PHS_Plugin
                         'type'         => PHS_Params::T_ARRAY,
                         'extra_type'   => ['type' => PHS_Params::T_NOHTML],
                         'input_type'   => self::INPUT_TYPE_ONE_OR_MORE_MULTISELECT,
-                        'values_arr'   => PHS_Utils::extension_to_mimetype_array(),
+                        'values_arr'   => $extensions_arr,
                         'default'      => [],
                     ],
                 ],
