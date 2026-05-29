@@ -22,7 +22,7 @@ class PHS_Scope_Ajax extends PHS_Scope
     /**
      * @inheritdoc
      */
-    public function process_action_result($action_result, $static_error_arr = false)
+    public function process_action_result($action_result, ?array $static_error_arr = [])
     {
         // We have already an error from flow before initiating scope class
         if ($static_error_arr

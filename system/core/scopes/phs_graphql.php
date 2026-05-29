@@ -15,11 +15,11 @@ class PHS_Scope_Graphql extends PHS_Scope
 
     /**
      * $action_result is processed in \phs\graphql\libraries\PHS_Graphql::resolve_request()
-     * @see \phs\graphql\libraries\PHS_Graphql::resolve_request()
-     * @param mixed $action_result
-     * @param mixed $static_error_arr
+     * * @see \phs\graphql\libraries\PHS_Graphql::resolve_request()
+     *
+     * @inheritdoc
      */
-    public function process_action_result($action_result, $static_error_arr = false)
+    public function process_action_result($action_result, ?array $static_error_arr = [])
     {
         if (empty($action_result['output_arr'])) {
             return null;

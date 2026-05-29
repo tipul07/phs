@@ -22,6 +22,8 @@ class PHS_Mime_parser extends PHS_Library
 
     private int $_li = 0;
 
+    private string $_id = '';
+
     private ?PHS_Mime_part $_main_part = null;
 
     public function set_buffer(string $buffer) : void
@@ -60,6 +62,13 @@ class PHS_Mime_parser extends PHS_Library
         return true;
     }
 
+    public function get_email_parsing_id() : string
+    {
+        $this->get_main_part();
+
+        return $this->_id;
+    }
+
     public function get_main_part() : ?PHS_Mime_part
     {
         if (!$this->_main_part) {
@@ -84,10 +93,15 @@ class PHS_Mime_parser extends PHS_Library
         return $this->get_main_part()?->get_header_from();
     }
 
+    public function get_email_from_as_recipients() : array
+    {
+        return $this->as_recipients($this->get_email_from());
+    }
+
     public function email_from_contains_email(string $email) : bool
     {
         $email = strtolower($email);
-        foreach ($this->as_recipients($this->get_email_from()) as $recipient) {
+        foreach ($this->get_email_from_as_recipients() as $recipient) {
             if (!empty($recipient['email']) && strtolower($recipient['email']) === $email) {
                 return true;
             }
@@ -101,10 +115,15 @@ class PHS_Mime_parser extends PHS_Library
         return $this->get_main_part()?->get_header_to();
     }
 
+    public function get_email_to_as_recipients() : array
+    {
+        return $this->as_recipients($this->get_email_to());
+    }
+
     public function email_to_contains_email(string $email) : bool
     {
         $email = strtolower($email);
-        foreach ($this->as_recipients($this->get_email_to()) as $recipient) {
+        foreach ($this->get_email_to_as_recipients() as $recipient) {
             if (!empty($recipient['email']) && strtolower($recipient['email']) === $email) {
                 return true;
             }
@@ -118,10 +137,15 @@ class PHS_Mime_parser extends PHS_Library
         return $this->get_main_part()?->get_header_cc();
     }
 
+    public function get_email_cc_as_recipients() : array
+    {
+        return $this->as_recipients($this->get_email_cc());
+    }
+
     public function email_cc_contains_email(string $email) : bool
     {
         $email = strtolower($email);
-        foreach ($this->as_recipients($this->get_email_cc()) as $recipient) {
+        foreach ($this->get_email_cc_as_recipients() as $recipient) {
             if (!empty($recipient['email']) && strtolower($recipient['email']) === $email) {
                 return true;
             }
@@ -135,10 +159,15 @@ class PHS_Mime_parser extends PHS_Library
         return $this->get_main_part()?->get_header_bcc();
     }
 
+    public function get_email_bcc_as_recipients() : array
+    {
+        return $this->as_recipients($this->get_email_bcc());
+    }
+
     public function email_bcc_contains_email(string $email) : bool
     {
         $email = strtolower($email);
-        foreach ($this->as_recipients($this->get_email_bcc()) as $recipient) {
+        foreach ($this->get_email_bcc_as_recipients() as $recipient) {
             if (!empty($recipient['email']) && strtolower($recipient['email']) === $email) {
                 return true;
             }
@@ -152,10 +181,15 @@ class PHS_Mime_parser extends PHS_Library
         return $this->get_main_part()?->get_header_delivered_to();
     }
 
+    public function get_email_delivered_to_as_recipients() : array
+    {
+        return $this->as_recipients($this->get_email_delivered_to());
+    }
+
     public function email_delivered_to_contains_email(string $email) : bool
     {
         $email = strtolower($email);
-        foreach ($this->as_recipients($this->get_email_delivered_to()) as $recipient) {
+        foreach ($this->get_email_delivered_to_as_recipients() as $recipient) {
             if (!empty($recipient['email']) && strtolower($recipient['email']) === $email) {
                 return true;
             }
@@ -167,6 +201,11 @@ class PHS_Mime_parser extends PHS_Library
     public function get_email_reply_to() : ?string
     {
         return $this->get_main_part()?->get_header_reply_to();
+    }
+
+    public function get_email_reply_to_as_recipients() : array
+    {
+        return $this->as_recipients($this->get_email_reply_to());
     }
 
     public function as_recipients(?string $str) : array
@@ -261,6 +300,7 @@ class PHS_Mime_parser extends PHS_Library
     {
         $this->reset_error();
 
+        $this->_id = microtime(true);
         $this->_main_part = new PHS_Mime_part([$this, 'get_next_line']);
         $this->_main_part->parse_parts();
 

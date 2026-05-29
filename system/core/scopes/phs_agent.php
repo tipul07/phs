@@ -14,12 +14,9 @@ class PHS_Scope_Agent extends PHS_Scope
     }
 
     /**
-     * @param array|false $action_result
-     * @param array|false $static_error_arr
-     *
-     * @return array
+     * @inheritdoc
      */
-    public function process_action_result($action_result, $static_error_arr = false)
+    public function process_action_result($action_result, ?array $static_error_arr = [])
     {
         $action_result = PHS_Action::validate_action_result($action_result);
 

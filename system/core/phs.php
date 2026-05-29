@@ -1837,12 +1837,7 @@ final class PHS extends PHS_Registry
         return self::route_from_parts($route_arr);
     }
 
-    /**
-     * @param array $params
-     *
-     * @return null|array|bool
-     */
-    public static function execute_route(array $params = [])
+    public static function execute_route(array $params = []) : ?array
     {
         self::st_reset_error();
 
@@ -1894,7 +1889,7 @@ final class PHS extends PHS_Registry
                 exit;
             }
 
-            return false;
+            return null;
         }
 
         // Don't display technical stuff to end-user...
@@ -1925,7 +1920,7 @@ final class PHS extends PHS_Registry
                 PHS_Logger::critical($error_msg, PHS_Logger::TYPE_DEBUG);
             }
 
-            return false;
+            return null;
         }
 
         return $scope_action_result;
@@ -3080,6 +3075,21 @@ final class PHS extends PHS_Registry
         }
 
         return true;
+    }
+
+    public static function get_php_input() : ?string
+    {
+        static $input = null;
+
+        if ($input !== null) {
+            return $input;
+        }
+
+        if (($input = @file_get_contents('php://input')) === false) {
+            return null;
+        }
+
+        return $input;
     }
 
     /**

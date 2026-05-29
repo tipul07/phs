@@ -1099,7 +1099,7 @@ abstract class PHS_Api_base extends PHS_Registry
         }
 
         if (!($request_body = PHS_Api::get_php_input())
-         || !($json_arr = @json_decode($request_body, true))) {
+            || !($json_arr = @json_decode($request_body, true))) {
             return [];
         }
 
@@ -1108,17 +1108,7 @@ abstract class PHS_Api_base extends PHS_Registry
 
     public static function get_php_input() : ?string
     {
-        static $input = null;
-
-        if ($input !== null) {
-            return $input;
-        }
-
-        if (($input = @file_get_contents('php://input')) === false) {
-            return null;
-        }
-
-        return $input;
+        return PHS::get_php_input();
     }
 
     public static function generic_error(?string $msg = null) : bool
@@ -1137,7 +1127,7 @@ abstract class PHS_Api_base extends PHS_Registry
         }
 
         if (empty($msg)
-        && !($msg = self::valid_http_code($code))) {
+            && !($msg = self::valid_http_code($code))) {
             $msg = '';
         }
 

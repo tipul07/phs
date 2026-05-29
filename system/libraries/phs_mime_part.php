@@ -456,7 +456,7 @@ class PHS_Mime_part
             } elseif ($attr === 'boundary') {
                 $this->_settings['boundary'] = trim(trim($attrs[1] ?? ''), '"');
             } elseif ($attr === 'name') {
-                $this->_settings['name'] = trim(trim($attrs[1] ?? ''), '"');
+                $this->_settings['name'] = $this->_cleanup_filename(trim(trim($attrs[1] ?? ''), '"'));
             }
         }
     }
@@ -481,7 +481,7 @@ class PHS_Mime_part
 
             $attr = strtolower(trim($attrs[0]));
             if ($attr === 'filename') {
-                $this->_settings['filename'] = trim(trim($attrs[1] ?? ''), '"');
+                $this->_settings['filename'] = $this->_cleanup_filename(trim(trim($attrs[1] ?? ''), '"'));
             } elseif ($attr === 'size') {
                 $this->_settings['size'] = trim(trim($attrs[1] ?? ''), '"');
             } elseif ($attr === 'creation-date') {
@@ -490,6 +490,11 @@ class PHS_Mime_part
                 $this->_settings['modification_date'] = trim(trim($attrs[1] ?? ''), '"');
             }
         }
+    }
+
+    private function _cleanup_filename(string $filename) : string
+    {
+        return str_replace(['..', '/', '\\', '~', ':'], '', $filename);
     }
 
     private function _extract_content_id(string $kval) : void
