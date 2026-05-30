@@ -51,6 +51,6 @@ class PHS_Event_Inmail_new extends PHS_Event
         }
 
         @clearstatcache();
-        PHS_Utils::rmdir_tree($inmail_dir, ['recursive' => true]);
+        PHS_Utils::rmdir_tree($attachments_dir, ['recursive' => true]);
     }
 }

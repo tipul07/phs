@@ -316,7 +316,6 @@ class PHS_Bg_jobs extends PHS_Registry
         $crypted_data = $parts_arr[0];
         $pub_key = $parts_arr[1];
 
-        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
         if (!($decrypted_data = PHS_Crypt::quick_decode($crypted_data))
          || !($decrypted_parts = explode('::', $decrypted_data, 2))
          || empty($decrypted_parts[0]) || empty($decrypted_parts[1])
@@ -340,7 +339,6 @@ class PHS_Bg_jobs extends PHS_Registry
     {
         self::st_reset_error();
 
-        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
         if (!($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())) {
             self::st_set_error(self::ERR_RESOURCES, self::_t('Error loading required resources.'));
 

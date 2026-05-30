@@ -3092,6 +3092,21 @@ final class PHS extends PHS_Registry
         return $input;
     }
 
+    public static function get_php_stdin() : ?string
+    {
+        static $stdin = null;
+
+        if ($stdin !== null) {
+            return $stdin;
+        }
+
+        if (($stdin = @file_get_contents('php://stdin')) === false) {
+            return null;
+        }
+
+        return $stdin;
+    }
+
     /**
      * @noinspection ForgottenDebugOutputInspection
      */

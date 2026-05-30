@@ -65,8 +65,12 @@ class PHS_Inmail_parser extends PHS_Library
     {
         if (!$this->_check_incoming_email_conditions($mime_lib)
             || null === ($attachments_arr = $this->_convert_attachments_to_files($mime_lib))) {
+            PHS_Logger::warning('Mail didn\'t meet required conditions or failed extracting attachments.', $this->_inmail_plugin::LOG_CHANNEL);
+
             return false;
         }
+
+        PHS_Logger::notice('InMail event triggered.', $this->_inmail_plugin::LOG_CHANNEL);
 
         if (!PHS_Event_Inmail_new::trigger(
             [
@@ -74,8 +78,8 @@ class PHS_Inmail_parser extends PHS_Library
                 'cc_list'          => $mime_lib->get_email_cc(),
                 'bcc_list'         => $mime_lib->get_email_bcc(),
                 'subject'          => $mime_lib->get_email_subject(),
-                'text_body'        => $mime_lib->get_email_text_body(),
-                'html_body'        => $mime_lib->get_email_html_body(),
+                'text_body'        => $mime_lib->get_email_text_body() ?: '',
+                'html_body'        => $mime_lib->get_email_html_body() ?: '',
                 'attachment_files' => $attachments_arr['files'] ?? [],
                 'attachments_dir'  => $attachments_arr['directory'] ?? '',
                 'mime_obj'         => $mime_lib,
@@ -133,7 +137,7 @@ class PHS_Inmail_parser extends PHS_Library
                 continue;
             }
 
-            $filename = microtime(true).'.'.$ext;
+            $filename = generate_guid().'.'.$ext;
 
             $filepath = $event_dir.'/'.$filename;
 

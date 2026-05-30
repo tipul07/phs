@@ -1,3 +1,4 @@
+#!/usr/bin/php
 <?php
 
 @set_time_limit(0);
@@ -10,22 +11,36 @@ include_once 'main.php';
 use phs\PHS;
 use phs\libraries\PHS_Logger;
 use phs\plugins\phs_inmail\PHS_Plugin_Phs_inmail;
+use phs\plugins\phs_inmail\events\PHS_Event_Inmail_new;
 use phs\plugins\phs_inmail\libraries\PHS_Inmail_parser;
 
 if (!($inmail_plugin = PHS_Plugin_Phs_inmail::get_instance())
    || !$inmail_plugin->plugin_active()
    || !$inmail_plugin->is_inmail_enabled()) {
-    exit;
-}
-
-if ((!$email_buf = PHS::get_php_input())) {
-    exit;
+    exit(254);
 }
 
 if (!($inmail_lib = PHS_Inmail_parser::get_instance())) {
     PHS_Logger::error('Error loading required resources.', $inmail_plugin::LOG_CHANNEL);
 
-    exit;
+    exit(254);
+}
+
+if ((!$email_buf = PHS::get_php_stdin() ?? PHS::get_php_input())) {
+    $input_file = $_SERVER['argv'][1] ?? $argv[1] ?? null;
+
+    if ($input_file) {
+        PHS_Logger::notice('Reading input file: '.$input_file, $inmail_plugin::LOG_CHANNEL);
+        if (!@file_exists($input_file) || @is_readable($input_file)
+           || !($email_buf = @file_get_contents($input_file))) {
+            PHS_Logger::error('Error reading file content.', $inmail_plugin::LOG_CHANNEL);
+        }
+    }
+
+    if (!$email_buf) {
+        PHS_Logger::error('Could not obtain email buffer.', $inmail_plugin::LOG_CHANNEL);
+        exit(254);
+    }
 }
 
 PHS_Logger::notice(' --- Started InMail check', $inmail_plugin::LOG_CHANNEL);
