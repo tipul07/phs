@@ -2435,10 +2435,13 @@ class PHS_Paginator extends PHS_Registry
             'checkbox_column' => '', // defaults to id
             'js_callback'     => null,
             'callbacks'       => [
+                // !!! Parameter to this function is the record for which we want to make the action !!!
                 'action' => null,
-                // For simple actions. Should action icon be displayed for current record
+                // For simple actions. Should action icon be displayed for rendering params?
+                // !!! Parameter to this function is an array with rendering params !!!
                 'should_display' => null,
                 // For simple actions. Should action run for current record
+                // !!! Parameter to this function is the record for which we want to make the action !!!
                 'can_run' => null,
                 // For simple actions. Return a string (URL) where user will be redirected
                 'redirect_url' => null,

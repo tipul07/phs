@@ -59,4 +59,38 @@ Error,Eroare
 Subject,Subiect
 Failed rendering cell,Eroare la randarea celulei
 Error obtaining dialogue body. Please try again.,Eroare la obținerea conținutului dialogului. Încercați din nou.
-TFA Settings,Setări TFA
+TFA Settings,Setări FTP
+Status,Status
+N/A,N/A
+Format,Format
+NOTE: You cannot undo this action!,NOTĂ: Nu puteți anula această acțiune!
+Cancel,Anulare
+Started,Început
+ALL,TOT
+Couldn't obtain jQuery object for autocomplete field.,Nu s-a putut obține obiectul jQuery pentru câmpul de autocompletare.
+URL not provided for autocomplete field.,URL-ul nu a fost furnizat pentru câmpul de autocompletare.
+Error initializing PHS JS Engine,Eroare la inițializarea motorului PHS JS
+Rendered from outside of paginator.,Randat din afara paginatorului.
+Render before filters call failed.,Apelul de randare înainte de filtre a eșuat.
+Invalid action icon.,Icon de acțiune invalid.
+Reset export,Resetare export
+Download,Download
+Are you sure you want to reset export details?,Sigur doriți să resetați detaliile de export?
+Resetting export...,Se resetează exportul...
+Cancel request will be sent to the background script which might take some time. Export will be cancelled as soon as possible.,"Cererea de anulare va fi trimisă scriptului de background, ceea ce ar putea dura ceva timp. Exportul va fi anulat cât mai curând posibil."
+Are you sure you want to CANCEL the export?,Sigur doriți să ANULAȚI exportul?
+Cancelling export...,Se anulează exportul...
+Error updating export status. You can refresh the page for status update.,Eroare la actualizarea stării exportului. Puteți reîncarca pagina pentru actualizarea stării.
+Render before table call failed.,Apelul de randare înainte de tabel a eșuat.
+Render after headers call failed.,Apelul de randare după headere a eșuat.
+Render before footer call failed.,Renderea înainte de apelul la subsol a eșuat.
+Render after table call failed.,Renderea după apelul tabelei a eșuat.
+Render after full list call failed.,Renderea după eșuarea apelului complet al listei.
+Exporting %s records...,Export %s înregistrari...
+Export format,Format export
+Column delimiter,Delimitare coloană
+Run export action in background script.,Execută acțiunea de exportare în scriptul de background.
+Start export,Start export
+Sending request to server. Please wait...,Se trimite solicitarea către server. Vă rugăm să așteptați...
+Please select recods you want to export first.,Vă rugăm să selectați mai întâi înregistrările pe care doriți să le exportați.
+Export options,Opțiuni export

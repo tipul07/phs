@@ -367,16 +367,16 @@ if (!defined('PHS_INSTALLING_FLOW') || !constant('PHS_INSTALLING_FLOW')) {
 
         if (!$plugins_model->check_table_exists(['table_name' => 'plugins'])) {
             if (!@is_dir(PHS_SETUP_DIR)) {
-                echo 'It seems you didn\'t run yet install script.';
+                echo PHS::_t('It seems you didn\'t run yet install script.');
             }
 
             // If we have a main.php script it means platform was setup before
             // Don't redirect to setup script
             elseif (!@is_file(PHS_PATH.'main.php')) {
-                echo 'It seems plugins table is missing. You should create a main file with database settings and then run ./bin/phs phs_setup in CLI.';
+                echo PHS::_t('It seems plugins table is missing. You should create a main file with database settings and then run ./bin/phs phs_setup in CLI.');
             } else {
                 @header('Location: '.PHS_SETUP_WWW);
-                echo 'You should run ./bin/phs phs_setup in CLI to setup database.';
+                echo PHS::_t('You should run ./bin/phs phs_setup in CLI to setup database.');
             }
 
             exit;
@@ -387,15 +387,15 @@ if (!defined('PHS_INSTALLING_FLOW') || !constant('PHS_INSTALLING_FLOW')) {
         $all_plugins = [];
     }
 
-    echo 'Checking plugins module installation... ';
+    echo PHS::_t('Checking plugins module installation... ');
 
     if (!$plugins_model->check_install_plugins_db()) {
         echo PHS::_t('ERROR checking plugins model install:')."\n"
-             .$plugins_model->get_simple_error_message('Unknown error.');
+             .$plugins_model->get_simple_error_message(PHS::_t('Unknown error.'));
         exit;
     }
 
-    echo 'DONE'."\n\n";
+    echo PHS::_t('DONE')."\n\n";
 }
 
 $bootstrap_scripts = [];

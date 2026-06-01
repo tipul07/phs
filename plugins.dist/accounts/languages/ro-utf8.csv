@@ -377,3 +377,5 @@ Error decoding TFA details.,Eroare la decodarea detaliilor TFA.
 Error encoding TFA details.,Eroare la codarea detaliilor TFA.
 Account doesn't have two factor authentication enabled.,Contul nu are activată autentificarea cu doi factori.
 Error obtaining two factor authentication details.,Eroare în obținerea detaliilor de autentificare cu doi factori.
+"After how many minutes should session expire if user ticked \\""Remember Me\\"" checkbox","După câte minute ar trebui să expire sesiunea dacă utilizatorul a bifat caseta \\""Ține-mă minte\"
+"After how many minutes should session expire if user DIDN'T tick \\""Remember Me\\"" checkbox","După câte minute ar trebui să expire sesiunea dacă utilizatorul NU a bifat caseta \\""Ține-mă minte\"
