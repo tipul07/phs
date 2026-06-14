@@ -7,7 +7,7 @@ use phs\system\core\events\accounts\PHS_Event_Accounts_info_template;
 
 /** @var PHS_View $this */
 
-/** @var PHS\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
+/** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
 if (!($accounts_model = $this->view_var('accounts_model'))) {
     return $this->_pt('Error loading required resources.');
 }
