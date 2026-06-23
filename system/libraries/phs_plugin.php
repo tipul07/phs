@@ -427,11 +427,9 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $file_path;
     }
 
-    public function email_template_resource_from_file(string $file) : array
+    public function email_template_resource_from_file(string $file, ?string $force_language = null) : array
     {
-        if (!($init_arr = $this->instance_plugin_themes_email_templates_pairs())) {
-            $init_arr = [];
-        }
+        $init_arr = $this->instance_plugin_themes_email_templates_pairs($force_language);
 
         $template_arr = [
             'file'        => $file,
@@ -439,7 +437,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         ];
 
         if (($plugin_path = $this->instance_plugin_email_templates_path())
-         && ($www_path = $this->instance_plugin_email_templates_www())) {
+            && ($www_path = $this->instance_plugin_email_templates_www())) {
             $template_arr['extra_paths'][PHS::relative_path($plugin_path)] = PHS::relative_url($www_path);
         }
 

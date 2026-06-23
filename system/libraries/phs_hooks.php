@@ -506,6 +506,8 @@ class PHS_Hooks extends PHS_Registry
             'route'          => false,
             'route_settings' => false,
 
+            'force_language' => null,
+
             'to'           => '',
             'to_name'      => '',
             'from_name'    => '',

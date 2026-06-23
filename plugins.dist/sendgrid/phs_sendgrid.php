@@ -2,6 +2,8 @@
 namespace phs\plugins\sendgrid;
 
 use phs\PHS;
+use SendGrid;
+use Exception;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
@@ -137,14 +139,14 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         return $this->quick_render_template_for_buffer('test_email_sending', $data_arr);
     }
 
-    public function init_email_hook_args($hook_args)
+    public function init_email_hook_args($hook_args) : array
     {
         $this->reset_error();
 
         $hook_args = self::validate_array_recursive($hook_args, PHS_Hooks::default_init_email_hook_args());
 
         if (!($settings_arr = $this->get_plugin_settings())
-         || empty($settings_arr['template_main'])) {
+            || empty($settings_arr['template_main'])) {
             $this->set_error(self::ERR_TEMPLATE, $this->_pt('Couldn\'t load template from plugin settings.'));
 
             PHS_Logger::error('Couldn\'t load template from plugin settings.', self::LOG_CHANNEL);
@@ -168,18 +170,17 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         }
 
         if (empty($hook_args['body_buffer'])
-         && (empty($hook_args['template'])
-            || !($email_template = PHS_View::validate_template_resource($hook_args['template'], $template_params))
-         )) {
-            if (self::st_has_error()) {
-                $this->copy_static_error(self::ERR_TEMPLATE);
-            } else {
-                $this->set_error(self::ERR_TEMPLATE, $this->_pt('Failed validating email template file.'));
-            }
+            && (empty($hook_args['template'])
+                || !($email_template = PHS_View::validate_template_resource($hook_args['template'], $template_params))
+            )) {
+            $this->copy_or_set_static_error(self::ERR_TEMPLATE, $this->_pt('Failed validating email template file.'));
 
             PHS_Logger::error('Email template error ['.$this->get_error_message().'].', self::LOG_CHANNEL);
 
-            $hook_args['hook_errors'] = self::arr_set_error(self::ERR_TEMPLATE, $this->_pt('Failed validating email template file.'));
+            $hook_args['hook_errors'] = self::arr_set_error(
+                self::ERR_TEMPLATE,
+                $this->_pt('Failed validating email template file.')
+            );
 
             return $hook_args;
         }
@@ -218,8 +219,8 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         if (!empty($hook_args['body_buffer'])) {
             $email_content_buffer = $hook_args['body_buffer'];
         } elseif (empty($email_template)
-         || !($email_template_obj = PHS_View::init_view($email_template, $view_params))
-         || !($email_content_buffer = $email_template_obj->render())) {
+                  || !($email_template_obj = PHS_View::init_view($email_template, $view_params))
+                  || !($email_content_buffer = $email_template_obj->render(force_language: $hook_args['force_language'] ?? null))) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
             } elseif (!empty($email_template_obj) && $email_template_obj->has_error()) {
@@ -241,7 +242,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         $view_params['template_data']['email_content'] = $email_content_buffer;
 
         if (!($main_template_obj = PHS_View::init_view($email_main_template, $view_params))
-         || !($email_html_body = $main_template_obj->render())) {
+            || !($email_html_body = $main_template_obj->render(force_language: $hook_args['force_language'] ?? null))) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
             } elseif (!empty($main_template_obj) && $main_template_obj->has_error()) {
@@ -264,7 +265,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
 
         $attach_files = [];
         if (!empty($hook_args['attach_files']) && is_array($hook_args['attach_files'])) {
-            $default_file_details = self::default_file_attachment();
+            $default_file_details = self::_default_file_attachment();
             foreach ($hook_args['attach_files'] as $knti => $file_details) {
                 if (empty($file_details) || !is_array($file_details)) {
                     continue;
@@ -303,7 +304,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         return $hook_args;
     }
 
-    public function send_email($hook_args)
+    public function send_email($hook_args) : array
     {
         $this->reset_error();
 
@@ -437,10 +438,10 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
                 $email_obj->addAttachments($attach_files);
             }
 
-            $sendgrid = new \SendGrid($settings_arr['sendgrid_api_key']);
+            $sendgrid = new SendGrid($settings_arr['sendgrid_api_key']);
             if (!($response = $sendgrid->send($email_obj))
-             || !($http_code = $response->statusCode())
-             || ($http_code !== 202 && $http_code !== 200)) {
+                || !($http_code = $response->statusCode())
+                || ($http_code !== 202 && $http_code !== 200)) {
                 if (empty($http_code)) {
                     $http_code = 0;
                 }
@@ -453,7 +454,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
 
                 return $hook_args;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $hook_args['hook_errors'] = self::arr_set_error(self::ERR_SEND, $this->_pt('Error sending email.'));
 
             PHS_Logger::error('ERROR sending email ['.$e->getMessage().']', self::LOG_CHANNEL);
@@ -474,7 +475,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         return $this->sendgrid_library;
     }
 
-    public static function default_file_attachment() : array
+    private static function _default_file_attachment() : array
     {
         return [
             'file'                => '',

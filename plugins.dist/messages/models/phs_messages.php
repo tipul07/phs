@@ -1870,12 +1870,15 @@ class PHS_Model_Messages extends PHS_Model
                 if (!empty($params['email_author'])
                  && !empty($settings_arr['send_emails'])
                  && (empty($author_details_arr) || empty($author_details_arr['limit_emails']))) {
+                    $lang = self::$_accounts_model->get_account_language($author_arr) ?: self::get_default_language();
+
                     // send confirmation email...
                     $hook_args = [];
-                    $hook_args['template'] = self::$_messages_plugin->email_template_resource_from_file('message_author');
+                    $hook_args['force_language'] = $lang;
+                    $hook_args['template'] = self::$_messages_plugin->email_template_resource_from_file('message_author', $lang);
                     $hook_args['to'] = $author_arr['email'];
                     $hook_args['to_name'] = $author_arr['nick'];
-                    $hook_args['subject'] = $this->_pt('Internal message sent').': '.$message_arr['subject'];
+                    $hook_args['subject'] = $this->_pt('Internal message sent', $lang).': '.$message_arr['subject'];
                     $hook_args['email_vars'] = [
                         'author_nick'     => $author_arr['nick'],
                         'message_date'    => $message_date,
@@ -1937,12 +1940,15 @@ class PHS_Model_Messages extends PHS_Model
                 if (!empty($params['email_destination'])
                  && !empty($settings_arr['send_emails'])
                  && empty($account_arr['users_details_limit_emails'])) {
+                    $lang = self::$_accounts_model->get_account_language($account_arr) ?: self::get_default_language();
+
                     // send confirmation email...
                     $hook_args = [];
-                    $hook_args['template'] = self::$_messages_plugin->email_template_resource_from_file('message_destination');
+                    $hook_args['force_language'] = $lang;
+                    $hook_args['template'] = self::$_messages_plugin->email_template_resource_from_file('message_destination', $lang);
                     $hook_args['to'] = $account_arr['email'];
                     $hook_args['to_name'] = $account_arr['nick'];
-                    $hook_args['subject'] = $this->_pt('New internal message').': '.$message_arr['subject'];
+                    $hook_args['subject'] = $this->_pt('New internal message', $lang).': '.$message_arr['subject'];
                     $hook_args['email_vars'] = [
                         'destination_nick' => $account_arr['nick'],
                         'author_handle'    => $author_handle,

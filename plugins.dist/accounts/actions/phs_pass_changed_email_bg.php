@@ -6,6 +6,9 @@ use phs\PHS_Scope;
 use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
+use phs\libraries\PHS_Logger;
+use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Action_Pass_changed_email_bg extends PHS_Action
 {
@@ -26,16 +29,11 @@ class PHS_Action_Pass_changed_email_bg extends PHS_Action
 
     public function execute()
     {
-        /** @var \phs\plugins\accounts\models\PHS_Model_Accounts $accounts_model */
-        /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
         if (!($params = PHS_Bg_jobs::get_current_job_parameters())
-         || !is_array($params)
          || empty($params['uid'])
-         || !($accounts_plugin = $this->get_plugin_instance())
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))
-         || !($accounts_settings = $this->get_plugin_settings())
-         || !is_array($accounts_settings)
-         || empty($accounts_settings['announce_pass_change'])
+         || !($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+         || !($accounts_model = PHS_Model_Accounts::get_instance())
+         || $accounts_plugin->should_announce_pass_change()
          || !($account_arr = $accounts_model->get_details($params['uid']))
          || !$accounts_model->is_active($account_arr)
          || empty($account_arr['email'])) {
@@ -44,11 +42,14 @@ class PHS_Action_Pass_changed_email_bg extends PHS_Action
             return false;
         }
 
+        $lang = $accounts_model->get_account_language($account_arr) ?: self::get_default_language();
+
         $hook_args = [];
-        $hook_args['template'] = $accounts_plugin->email_template_resource_from_file('password_changed');
+        $hook_args['force_language'] = $lang;
+        $hook_args['template'] = $accounts_plugin->email_template_resource_from_file('password_changed', $lang);
         $hook_args['to'] = $account_arr['email'];
         $hook_args['to_name'] = $account_arr['nick'];
-        $hook_args['subject'] = $this->_pt('Password changed');
+        $hook_args['subject'] = $this->_pt('Password changed', $lang);
         $hook_args['email_vars'] = [
             'nick'            => $account_arr['nick'],
             'obfuscated_pass' => $accounts_model->obfuscate_password($account_arr),
@@ -59,17 +60,20 @@ class PHS_Action_Pass_changed_email_bg extends PHS_Action
             return self::default_action_result();
         }
 
-        if (empty($hook_results) || !is_array($hook_results)
-         || empty($hook_results['send_result'])) {
-            if (self::st_has_error()) {
-                $this->copy_static_error(self::ERR_SEND_EMAIL);
-            } else {
-                $this->set_error(self::ERR_SEND_EMAIL, $this->_pt('Error sending password changed message to %s.', $account_arr['email']));
-            }
+        if (empty($hook_results['send_result'])) {
+            $this->copy_or_set_static_error(
+                self::ERR_SEND_EMAIL,
+                $this->_pt('Error sending password changed message to %s.', $account_arr['email'])
+            );
 
-            return false;
+            PHS_Logger::error(
+                'Error sending password changed email: '.$this->get_simple_error_message(),
+                PHS_Logger::TYPE_DEBUG
+            );
+
+            $this->reset_error();
         }
 
-        return PHS_Action::default_action_result();
+        return self::default_action_result();
     }
 }
