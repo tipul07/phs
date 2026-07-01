@@ -370,7 +370,7 @@ class PHS_Api extends PHS_Api_base
             // in case this node is dynamic we should check if it's value respects the type, see if we should consider this
             // as parameter in action and where to move it (if required): in get or post
             'type'           => PHS_Params::T_ASIS,
-            'extra_type'     => false,
+            'extra_type'     => [],
             'default'        => null,
             'var_name'       => '', // in case we should move this from route to _GET or _POST, how should we call this variable
             'append_to_get'  => false,

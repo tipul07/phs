@@ -1,0 +1,34 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Error loading required resources.,Σφάλμα φόρτωσης απαιτούμενων πόρων.
+Error obtaining products import export directory path.,Σφάλμα κατά τη λήψη της διαδρομής καταλόγου εισαγωγής εξαγωγής προϊόντων.
+InMail Generic Settings,Γενικές Ρυθμίσεις InMail
+Generic settings for emails received by email entry-point.,Γενικές ρυθμίσεις για τα emails που λαμβάνονται μέσω της εισόδου email.
+Enable InMail Functionality,Ενεργοποίηση λειτουργικότητας InMail
+Should framework take in consideration any emails?,Πρέπει το πλαίσιο εργασίας να λάβει υπόψη του οποιοδήποτε email;
+Accept attachments extensions,Αποδοχή επεκτάσεων συνημμένων
+From email attachments take only files with following extensions. No value means accept all.,"Από τα συνημμένα email, πάρτε μόνο τα αρχεία με τις ακόλουθες επεκτάσεις. Η απουσία τιμής σημαίνει αποδοχή όλων."
+Trigger InMail Event,Ενεργοποίηση Συμβάντος InMail
+Settings related to triggering incoming email event. Empty conditions are not used.,Ρυθμίσεις που σχετίζονται με την ενεργοποίηση του γεγονότος εισερχόμενου email. Οι κενές συνθήκες δεν χρησιμοποιούνται.
+Condition Operand,Τελεστής Συνθήκης
+What logic operand should be used for all conditions below,Ποιο λογικό τελεστή πρέπει να χρησιμοποιηθεί για όλες τις παρακάτω συνθήκες
+FROM contains,ΑΠΟ περιέχει
+A comma separated emails. If ONE of the emails is found in FROM field this condition is true,Μια λίστα με emails χωρισμένα με κόμμα. Εάν ΈΝΑ από τα emails βρεθεί στο πεδίο ΑΠΟ αυτή η συνθήκη είναι αληθής.
+TO contains,ΤΟ περιέχει
+A comma separated emails. If ONE of the emails is found in TO field this condition is true,"Μια λίστα με emails χωρισμένα με κόμμα. Εάν ΈΝΑ από τα emails βρεθεί στο πεδίο TO, τότε αυτή η συνθήκη είναι αληθής."
+CC contains,Το CC περιέχει
+A comma separated emails. If ONE of the emails is found in CC field this condition is true,"Μια λίστα με emails χωρισμένα με κόμμα. Εάν ΈΝΑ από τα emails βρεθεί στο πεδίο CC, αυτή η συνθήκη είναι αληθής."
+BCC contains,Το BCC περιέχει
+A comma separated emails. If ONE of the emails is found in BCC field this condition is true,"Μια λίστα με emails χωρισμένα με κόμμα. Εάν ΈΝΑ από τα emails βρεθεί στο πεδίο BCC, αυτή η συνθήκη είναι αληθής"
+Subject Regex,Κανονική έκφραση θέματος
+Regex to be applied on subject of the incoming email. Regex limits will be / and check is case insensitive.,Το Regex πρέπει να εφαρμοστεί στο θέμα του εισερχόμενου email. Τα όρια του Regex θα είναι / και ο έλεγχος θα είναι μη διάκριση πεζών-κεφαλαίων.
+Has attachments,Έχει συνημμένα
+Does the incoming email have attachments?,Έχει το εισερχόμενο email συνημμένα αρχεία;
+Error creating inmail directory: [%s].,Σφάλμα δημιουργίας καταλόγου inmail: [%s].
+Incoming email is not enabled.,Η εισερχόμενη ηλεκτρονική αλληλογραφία δεν είναι ενεργοποιημένη.
+Error using email file in incoming email.,Σφάλμα κατά τη χρήση του αρχείου email στο εισερχόμενο email.
+Error triggering incoming email event.,Σφάλμα κατά την ενεργοποίηση του γεγονότος εισερχόμενου email.
+Error writing email attachment file.,Σφάλμα κατά την εγγραφή του αρχείου συνημμένου email.
+Inmail directory is not writeable.,Ο κατάλογος Inmail δεν είναι εγγράψιμος.
+Error creating inmail attachments directory.,Σφάλμα δημιουργίας καταλόγου συνημμένων στοιχείων inmail.

@@ -53,11 +53,11 @@ class PHS_Logger extends PHS_Registry
     {
         static $levels_arr = [];
 
-        if (empty(self::$LEVELS_ARR)) {
+        if (!self::$LEVELS_ARR) {
             return [];
         }
 
-        if (empty($lang)
+        if (!$lang
             && !empty($levels_arr)) {
             return $levels_arr;
         }
@@ -80,11 +80,6 @@ class PHS_Logger extends PHS_Registry
         return $result_arr;
     }
 
-    /**
-     * @param ?string $lang
-     *
-     * @return array
-     */
     public static function get_log_levels_as_key_val(?string $lang = null) : array
     {
         static $levels_key_val_arr = null;
@@ -112,21 +107,9 @@ class PHS_Logger extends PHS_Registry
         return $key_val_arr;
     }
 
-    /**
-     * @param int $level
-     * @param null|string $lang
-     *
-     * @return null|array
-     */
     public static function valid_log_level(int $level, ?string $lang = null) : ?array
     {
-        $all_levels = self::get_log_levels($lang);
-        if (empty($level)
-         || !isset($all_levels[$level])) {
-            return null;
-        }
-
-        return $all_levels[$level];
+        return self::get_log_levels($lang)[$level] ?? null;
     }
 
     public static function get_types() : array
@@ -140,7 +123,7 @@ class PHS_Logger extends PHS_Registry
 
     public static function valid_type(string $type) : bool
     {
-        return !empty($type) && ($types_arr = self::get_types()) && in_array($type, $types_arr, true);
+        return $type && in_array($type, self::get_types(), true);
     }
 
     public static function defined_channel($channel) : bool
@@ -150,8 +133,8 @@ class PHS_Logger extends PHS_Registry
 
     public static function safe_escape_log_channel(string $channel) : ?string
     {
-        if (empty($channel)
-         || preg_match('@[^a-zA-Z0-9_\-]@', $channel)) {
+        if (!$channel
+            || preg_match('@[^a-zA-Z0-9_\-]@', $channel)) {
             return null;
         }
 
@@ -165,7 +148,7 @@ class PHS_Logger extends PHS_Registry
      */
     public static function define_channel(string $channel) : bool
     {
-        if (empty($channel)) {
+        if (!$channel) {
             return false;
         }
 
@@ -422,117 +405,46 @@ class PHS_Logger extends PHS_Registry
         return $output;
     }
 
-    /**
-     * System is unusable.
-     *
-     * @param string $message
-     * @param string $log_file
-     * @param array $context
-     */
     public static function emergency(string $message, string $log_file, array $context = []) : void
     {
         self::log(self::L_EMERGENCY, $message, $log_file, $context);
     }
 
-    /**
-     * Action must be taken immediately.
-     * Example: Entire website down, database unavailable, etc. This should
-     * trigger the SMS alerts and wake you up.
-     *
-     * @param string $message
-     * @param string $log_file
-     * @param array $context
-     */
     public static function alert(string $message, string $log_file, array $context = []) : void
     {
         self::log(self::L_ALERT, $message, $log_file, $context);
     }
 
-    /**
-     * Critical conditions.
-     * Example: Application component unavailable, unexpected exception.
-     *
-     * @param string $message
-     * @param string $log_file
-     * @param array $context
-     */
     public static function critical(string $message, string $log_file, array $context = []) : void
     {
         self::log(self::L_CRITICAL, $message, $log_file, $context);
     }
 
-    /**
-     * Runtime errors that do not require immediate action but should typically
-     * be logged and monitored.
-     *
-     * @param string $message
-     * @param string $log_file
-     * @param array $context
-     */
     public static function error(string $message, string $log_file, array $context = []) : void
     {
         self::log(self::L_ERROR, $message, $log_file, $context);
     }
 
-    /**
-     * Exceptional occurrences that are not errors.
-     * Example: Use of deprecated APIs, poor use of an API, undesirable things
-     * that are not necessarily wrong.
-     *
-     * @param string $message
-     * @param string $log_file
-     * @param array $context
-     */
     public static function warning(string $message, string $log_file, array $context = []) : void
     {
         self::log(self::L_WARNING, $message, $log_file, $context);
     }
 
-    /**
-     * Normal but significant events.
-     *
-     * @param string $message
-     * @param string $log_file
-     * @param array $context
-     */
     public static function notice(string $message, string $log_file, array $context = []) : void
     {
         self::log(self::L_NOTICE, $message, $log_file, $context);
     }
 
-    /**
-     * Interesting events.
-     * Example: User logs in, SQL logs.
-     *
-     * @param string $message
-     * @param string $log_file
-     * @param array $context
-     */
     public static function info(string $message, string $log_file, array $context = []) : void
     {
         self::log(self::L_INFO, $message, $log_file, $context);
     }
 
-    /**
-     * Detailed debug information.
-     *
-     * @param string $message
-     * @param string $log_file
-     * @param array $context
-     */
     public static function debug(string $message, string $log_file, array $context = []) : void
     {
         self::log(self::L_DEBUG, $message, $log_file, $context);
     }
 
-    /**
-     * Logs with an arbitrary level.
-     *
-     * @param int $level
-     * @param string $log_file
-     * @param string $message
-     * @param array $context
-     */
     public static function log(int $level, string $message, string $log_file, array $context = []) : void
     {
         self::logf(self::interpolate($message, $context), $log_file, $level);
@@ -540,7 +452,7 @@ class PHS_Logger extends PHS_Registry
 
     public static function interpolate($message, array $context = []) : string
     {
-        if (false === strpos($message, '{')) {
+        if (!str_contains($message, '{')) {
             return $message;
         }
 
@@ -561,8 +473,8 @@ class PHS_Logger extends PHS_Registry
         }
 
         if (!($logs_dir = self::logging_dir())
-         || !func_num_args()
-         || !($args_arr = func_get_args())) {
+            || !func_num_args()
+            || !($args_arr = func_get_args())) {
             return false;
         }
 
@@ -646,7 +558,7 @@ class PHS_Logger extends PHS_Registry
 
         $log_file = $logs_dir.$channel;
 
-        if (substr($channel, -4) !== '.log') {
+        if (!str_ends_with($channel, '.log')) {
             $log_file .= '.log';
         }
 
@@ -658,7 +570,6 @@ class PHS_Logger extends PHS_Registry
         $log_time = date('d-m-Y H:i:s T', $log_timestamp);
 
         $stop_logging = false;
-        /** @var PHS_Event_Log $event_obj */
         if (($event_obj = PHS_Event_Log::trigger([
             'channel'            => $channel,
             'log_level'          => $log_level,
@@ -735,7 +646,7 @@ class PHS_Logger extends PHS_Registry
             return $log_file;
         }
 
-        if (substr($log_file, -4) === '.log') {
+        if (str_ends_with($log_file, '.log')) {
             $log_file = substr($log_file, 0, -4);
         }
 

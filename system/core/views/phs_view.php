@@ -177,10 +177,11 @@ class PHS_View extends PHS_Instantiable
      * Return resource details for found file based on themes, action, controller, parent plugin and current plugin
      *
      * @param string $file
+     * @param null|string $force_language
      *
      * @return null|array
      */
-    public function get_resource_details(string $file) : ?array
+    public function get_resource_details(string $file, ?string $force_language = null) : ?array
     {
         $this->reset_error();
 
@@ -191,7 +192,7 @@ class PHS_View extends PHS_Instantiable
             return null;
         }
 
-        if (!($file_details = $this->_get_file_details($file))) {
+        if (!($file_details = $this->_get_file_details($file, $force_language))) {
             $this->set_error_if_not_set(self::ERR_BAD_TEMPLATE, self::_t('Resource file [%s] not found.', $file));
 
             return null;
@@ -204,10 +205,11 @@ class PHS_View extends PHS_Instantiable
      * Return resource details for found file based on themes, action, controller, parent plugin and current plugin
      *
      * @param string $template
+     * @param null|string $force_language
      *
      * @return null|array
      */
-    public function get_template_file_details(string $template) : ?array
+    public function get_template_file_details(string $template, ?string $force_language = null) : ?array
     {
         $this->reset_error();
 
@@ -218,7 +220,7 @@ class PHS_View extends PHS_Instantiable
             return null;
         }
 
-        if (!($template_details = $this->_get_file_details($template.'.php'))) {
+        if (!($template_details = $this->_get_file_details($template.'.php', $force_language))) {
             $this->set_error_if_not_set(self::ERR_BAD_TEMPLATE, self::_t('Template file [%s] not found.', $template));
 
             return null;
@@ -313,8 +315,9 @@ class PHS_View extends PHS_Instantiable
         return true;
     }
 
-    public function sub_view_if_exists(string | array $template, ?string $force_theme = null) : ?string
-    {
+    public function sub_view_if_exists(
+        string | array $template, ?string $force_theme = null, ?string $force_language = null
+    ) : ?string {
         $this->reset_error();
 
         $view_theme = $force_theme ?: $this->get_theme();
@@ -326,7 +329,7 @@ class PHS_View extends PHS_Instantiable
             return null;
         }
 
-        if (!$this->get_template_file_details($valid_template['file'])) {
+        if (!$this->get_template_file_details($valid_template['file'], $force_language)) {
             $this->reset_error();
 
             return '';
@@ -429,11 +432,21 @@ class PHS_View extends PHS_Instantiable
      * @param null|array|string $template
      * @param null|string $force_theme
      * @param null|array $params
+     * @param null|string $force_language
      *
      * @return null|string
      */
-    public function render(null | string | array $template = null, ?string $force_theme = null, ?array $params = null) : ?string
-    {
+    public function render(
+        null | string | array $template = null,
+        ?string $force_theme = null,
+        ?array $params = null,
+        ?string $force_language = null
+    ) : ?string {
+        if ($force_language !== null
+           && !self::valid_language($force_language)) {
+            $force_language = null;
+        }
+
         if ($template !== null
             && !$this->set_template($template)) {
             return null;
@@ -444,13 +457,14 @@ class PHS_View extends PHS_Instantiable
             return null;
         }
 
-        if (!$this->_get_template_path()) {
+        if (!$this->_get_template_path($force_language)) {
             if (self::st_debugging_mode()) {
                 PHS_Logger::debug(
-                    sprintf('Template [%s, file: %s] not found using theme [%s].',
+                    sprintf('Template [%s, file: %s] not found using theme [%s], forced language [%s].',
                         (!empty($this->_template) ? $this->_template : 'N/A'),
                         (!empty($this->_template_file) ? $this->_template_file : 'N/A'),
-                        $this->get_theme()
+                        $this->get_theme(),
+                        $force_language ?? '-'
                     ),
                     PHS_Logger::TYPE_DEBUG);
             }
@@ -461,14 +475,24 @@ class PHS_View extends PHS_Instantiable
         $resulting_buf = '';
 
         $params ??= [];
-        $params['only_string_result'] = (!isset($params['only_string_result']) || !empty($params['only_string_result']));
+        $params['only_string_result'] = !isset($params['only_string_result']) || !empty($params['only_string_result']);
 
         // sanity check...
         if (!empty($this->_template_file)
             && @file_exists($this->_template_file)) {
+            $current_language = null;
+            if ($force_language) {
+                $current_language = self::get_current_language();
+                self::set_current_language($force_language);
+            }
+
             ob_start();
             if (!($resulting_buf = include ($this->_template_file))) {
                 $resulting_buf = '';
+            }
+
+            if ($current_language) {
+                self::set_current_language($current_language);
             }
 
             if (empty($params['only_string_result'])) {
@@ -493,22 +517,33 @@ class PHS_View extends PHS_Instantiable
         $this->_template_file = '';
     }
 
-    protected function _check_directory_for_template(string $path, string $www, string $language, array &$matching_arr) : void
-    {
-        if (@file_exists($path)
-            && @is_dir($path)) {
-            if (@file_exists($path.'/'.$language)
-                && @is_dir($path.'/'.$language)) {
-                $matching_arr[$path.'/'.$language.'/'] = $www.'/'.$language.'/';
-            }
-
-            $matching_arr[$path.'/'] = $www.'/';
+    protected function _check_directory_for_template(
+        string $path, string $www, string $language, array &$matching_arr, ?string $force_language = null
+    ) : void {
+        if (!@file_exists($path) || !@is_dir($path)) {
+            return;
         }
+
+        if ($force_language
+            && @file_exists($path.'/'.$force_language)
+            && @is_dir($path.'/'.$force_language)) {
+            $matching_arr[$path.'/'.$force_language.'/'] = $www.'/'.$force_language.'/';
+        } elseif ($language
+                  && @file_exists($path.'/'.$language)
+                  && @is_dir($path.'/'.$language)) {
+            $matching_arr[$path.'/'.$language.'/'] = $www.'/'.$language.'/';
+        }
+
+        $matching_arr[$path.'/'] = $www.'/';
     }
 
-    protected function _get_template_directories() : array
+    protected function _get_template_directories(?string $force_language = null) : array
     {
         $this->_template_dirs = [];
+
+        if ($force_language && !self::valid_language($force_language)) {
+            $force_language = null;
+        }
 
         $current_language = PHS_Language::get_current_language();
         $themes_stack = PHS::get_all_themes_stack($this->_theme);
@@ -533,7 +568,8 @@ class PHS_View extends PHS_Instantiable
                             PHS_THEMES_DIR.$location,
                             PHS_THEMES_WWW.$location,
                             $current_language,
-                            $this->_template_dirs
+                            $this->_template_dirs,
+                            $force_language
                         );
                     }
                 }
@@ -547,7 +583,8 @@ class PHS_View extends PHS_Instantiable
                     rtrim($dir_path, '/\\'),
                     rtrim($dir_www, '/'),
                     $current_language,
-                    $this->_template_dirs
+                    $this->_template_dirs,
+                    $force_language
                 );
             }
         }
@@ -559,7 +596,8 @@ class PHS_View extends PHS_Instantiable
                 $plugin_path.'/'.self::TEMPLATES_DIR,
                 $this->_controller->instance_plugin_www().self::TEMPLATES_DIR,
                 $current_language,
-                $this->_template_dirs
+                $this->_template_dirs,
+                $force_language
             );
         }
 
@@ -570,7 +608,8 @@ class PHS_View extends PHS_Instantiable
                 $plugin_path.'/'.self::TEMPLATES_DIR,
                 $this->_action->instance_plugin_www().self::TEMPLATES_DIR,
                 $current_language,
-                $this->_template_dirs
+                $this->_template_dirs,
+                $force_language
             );
         }
 
@@ -581,7 +620,8 @@ class PHS_View extends PHS_Instantiable
                     PHS_THEMES_DIR.$theme,
                     PHS_THEMES_WWW.$theme,
                     $current_language,
-                    $this->_template_dirs
+                    $this->_template_dirs,
+                    $force_language
                 );
             }
         }
@@ -591,9 +631,13 @@ class PHS_View extends PHS_Instantiable
 
     /**
      * Return full path to template file based on themes, action, controller, parent plugin and current plugin
+     * with option to force a language for template
+     *
+     * @param null|string $force_language
+     *
      * @return null|string
      */
-    protected function _get_template_path() : ?string
+    protected function _get_template_path(?string $force_language = null) : ?string
     {
         $this->reset_error();
 
@@ -607,9 +651,13 @@ class PHS_View extends PHS_Instantiable
             return null;
         }
 
-        if (!($template_details = $this->get_template_file_details($this->_template))
+        if (!($template_details = $this->get_template_file_details($this->_template, $force_language))
             || empty($template_details['full_path'])) {
-            $this->set_error_if_not_set(self::ERR_BAD_TEMPLATE, self::_t('Template [%s] not found, theme [%s].', $this->_template, $this->_theme));
+            $this->set_error_if_not_set(
+                self::ERR_BAD_TEMPLATE,
+                self::_t('Template [%s] not found, theme [%s], forced language [%s].',
+                    $this->_template, $this->_theme, $force_language ?? '-')
+            );
 
             return null;
         }
@@ -642,7 +690,7 @@ class PHS_View extends PHS_Instantiable
         return null;
     }
 
-    private function _get_file_details(string $file_name) : ?array
+    private function _get_file_details(string $file_name, ?string $force_language = null) : ?array
     {
         $this->reset_error();
 
@@ -652,7 +700,7 @@ class PHS_View extends PHS_Instantiable
             return null;
         }
 
-        if (!($dirs_list = $this->_get_template_directories())) {
+        if (!($dirs_list = $this->_get_template_directories($force_language))) {
             $this->set_error(self::ERR_TEMPLATE_DIRS, self::_t('Couldn\'t get includes directories.'));
 
             return null;

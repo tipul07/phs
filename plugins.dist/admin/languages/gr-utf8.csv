@@ -1072,3 +1072,20 @@ View Logs,Προβολή Καταγραφών
 Data Retention,Διατήρηση Δεδομένων
 List Data Retention Policies,Κατάλογος Πολιτικών Διατήρησης Δεδομένων
 Update PHS Structure,Ενημέρωση Δομής PHS
+Import Translations In Platform,Εισαγωγή Μεταφράσεων Στην Πλατφόρμα
+Check Translations,Έλεγχος Μεταφράσεων
+Results of translations... Make sure translations are finished before applying result.,Αποτελέσματα μεταφράσεων... Βεβαιωθείτε ότι οι μεταφράσεις έχουν ολοκληρωθεί πριν εφαρμόσετε το αποτέλεσμα.
+Update language files,Ενημέρωση αρχείων γλώσσας
+Translation Files Update Result,Αποτέλεσμα Ενημέρωσης Αρχείων Μετάφρασης
+Updated language,Ενημερωμένη γλώσσα
+New indexes,Νέοι δείκτες
+Updated indexes,Ενημερωμένοι δείκτες
+Updated files,Ενημερωμένα αρχεία
+Update errors,Σφάλματα ενημέρωσης
+"You can check the progress by clicking the <i class=""fa fa-info""></i> icon for provided language.","Μπορείτε να ελέγξετε την πρόοδο κάνοντας κλικ στο εικονίδιο <i class=""fa fa-info""></i> για την παρεχόμενη γλώσσα."
+Updating translations...,Ενημέρωση μεταφράσεων...
+Error obtaining translations update result. Please try again.,Σφάλμα κατά τη λήψη του αποτελέσματος ενημέρωσης μεταφράσεων. Παρακαλώ προσπαθήστε ξανά.
+Checking translations...,Έλεγχος μεταφράσεων...
+Error obtaining translations check result. Please try again.,Σφάλμα κατά τη λήψη του αποτελέσματος ελέγχου μεταφράσεων. Παρακαλώ προσπαθήστε ξανά.
+Translation Results,Αποτελέσματα Μετάφρασης
+"Current platform doesn't support multi-tenant setup. All changes will be done on a ""Default"" tenant.","Η τρέχουσα πλατφόρμα δεν υποστηρίζει τη ρύθμιση πολλαπλών ενοικιαστών. Όλες οι αλλαγές θα πραγματοποιηθούν σε έναν ενοικιαστή με την ονομασία ""Προεπιλεγμένος""."

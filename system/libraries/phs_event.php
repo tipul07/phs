@@ -808,12 +808,19 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
 
         /** @var self $event_obj */
         if (!($event_obj = static::get_instance(true, static::class))) {
+            PHS_Logger::error(self::_t('Error instantiating event %s.', static::class), PHS_Logger::TYPE_DEBUG);
+
             self::st_set_error(self::ERR_LISTEN, self::_t('Error instantiating event.'));
 
             return null;
         }
 
         if (!$event_obj->add_listener($callback, $event_prefix, $options)) {
+            PHS_Logger::error(self::_t('Error adding listener for event %s: %s',
+                static::class, $event_obj->get_simple_error_message('Unknown error.')),
+                PHS_Logger::TYPE_DEBUG
+            );
+
             self::st_set_error(self::ERR_LISTEN, self::_t('Error adding listener to the event.')
                                                  .(($error_msg = $event_obj->get_simple_error_message()) !== ''
                     ? ' '.$error_msg

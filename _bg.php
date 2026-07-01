@@ -2,14 +2,6 @@
 
 @set_time_limit(0);
 
-header('Cache-Control: no-store, no-cache, must-revalidate');
-
-header('Cache-Control: post-check=0, pre-check=0', false);
-
-// HTTP/1.0
-
-header('Pragma: no-cache');
-
 const PHS_PREVENT_SESSION = true;
 const PHS_SCRIPT_SCOPE = 'background';
 

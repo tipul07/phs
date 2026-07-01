@@ -56,7 +56,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
                         'display_name'    => 'Emails routes',
                         'custom_renderer' => [$this, 'display_settings_routes'],
                         'custom_save'     => [$this, 'save_settings_routes'],
-                        'default'         => [self::DEFAULT_ROUTE => self::get_default_smtp_settings()],
+                        'default'         => [self::DEFAULT_ROUTE => self::_get_default_smtp_settings()],
                     ],
                     'max_attachment_size' => [
                         'display_name' => 'Max Attachment file size',
@@ -123,7 +123,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             $old_values = [];
         }
 
-        $default_smtp_settings = self::get_default_smtp_settings();
+        $default_smtp_settings = self::_get_default_smtp_settings();
         $return_data = [];
         foreach ($params['form_data']['routes'] as $route_name => $route_arr) {
             $route_arr = self::merge_array_assoc($default_smtp_settings, $route_arr);
@@ -154,7 +154,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
     {
         $params = self::validate_array($params, self::default_custom_renderer_params());
 
-        $default_smtp_settings = self::get_default_smtp_settings();
+        $default_smtp_settings = self::_get_default_smtp_settings();
 
         if (empty($params['field_value']) || !is_array($params['field_value'])) {
             $routes_arr = [self::DEFAULT_ROUTE => $default_smtp_settings];
@@ -293,8 +293,8 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         $route_settings_arr = [];
         foreach ($plugin_settings['routes'] as $route_key => $route_arr) {
-            $route_arr = self::validate_array($route_arr, self::get_default_smtp_settings());
-            if (!self::valid_smtp_settings($route_arr)) {
+            $route_arr = self::validate_array($route_arr, self::_get_default_smtp_settings());
+            if (!self::_valid_smtp_settings($route_arr)) {
                 continue;
             }
 
@@ -322,7 +322,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $routes_settings[$route] ?? null;
     }
 
-    public function init_email_hook_args($hook_args)
+    public function init_email_hook_args($hook_args) : array
     {
         $this->reset_error();
 
@@ -420,7 +420,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             $email_content_buffer = $hook_args['body_buffer'];
         } elseif (empty($email_template)
                   || !($email_template_obj = PHS_View::init_view($email_template, $view_params))
-                  || !($email_content_buffer = $email_template_obj->render())) {
+                  || !($email_content_buffer = $email_template_obj->render(force_language: $hook_args['force_language'] ?? null))) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
             } elseif ($email_template_obj !== null && $email_template_obj->has_error()) {
@@ -440,7 +440,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $view_params['template_data']['email_content'] = $email_content_buffer;
 
         if (!($main_template_obj = PHS_View::init_view($email_main_template, $view_params))
-            || !($email_html_body = $main_template_obj->render())) {
+            || !($email_html_body = $main_template_obj->render(force_language: $hook_args['force_language'] ?? null))) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
             } elseif ($main_template_obj !== null && $main_template_obj->has_error()) {
@@ -461,7 +461,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         $attach_files = [];
         if (!empty($hook_args['attach_files']) && is_array($hook_args['attach_files'])) {
-            $default_file_details = self::default_file_attachment();
+            $default_file_details = self::_default_file_attachment();
             foreach ($hook_args['attach_files'] as $knti => $file_details) {
                 if (empty($file_details) || !is_array($file_details)) {
                     continue;
@@ -800,7 +800,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return self::$MAIL_AUTH_KEY;
     }
 
-    public static function get_default_smtp_settings() : array
+    private static function _get_default_smtp_settings() : array
     {
         return [
             'localhost'           => '',
@@ -814,12 +814,12 @@ class PHS_Plugin_Emails extends PHS_Plugin
         ];
     }
 
-    public static function valid_smtp_settings(array $settings) : bool
+    private static function _valid_smtp_settings(array $settings) : bool
     {
         return !empty($settings['smtp_host']) && !empty($settings['smtp_port']);
     }
 
-    public static function default_file_attachment() : array
+    private static function _default_file_attachment() : array
     {
         return [
             'file'                   => '',

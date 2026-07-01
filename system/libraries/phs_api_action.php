@@ -10,7 +10,6 @@ abstract class PHS_Api_action extends PHS_Action
 {
     public const ERR_API_INIT = 40000, ERR_AUTHENTICATION = 40001;
 
-    /** @var null|PHS_Api_base */
     protected ?PHS_Api_base $api_obj = null;
 
     public function allowed_scopes()
@@ -147,25 +146,25 @@ abstract class PHS_Api_action extends PHS_Action
     }
 
     /**
-     * @param bool|array $payload_arr
+     * @param null|array $payload_arr
      * @param int $http_code
      * @param null|array $action_result_defaults
      * @param null|array $extra_arr
      *
      * @return array|false
      */
-    public function send_api_success($payload_arr, int $http_code = PHS_Api_base::H_CODE_OK,
-        ?array $action_result_defaults = null, ?array $extra_arr = null)
-    {
+    public function send_api_success(
+        $payload_arr,
+        int $http_code = PHS_Api_base::H_CODE_OK,
+        ?array $action_result_defaults = null,
+        ?array $extra_arr = null
+    ) {
         if (!PHS_Api::valid_http_code($http_code)) {
             $http_code = PHS_Api_base::H_CODE_OK;
         }
 
-        if (empty($extra_arr)) {
-            $extra_arr = [];
-        }
-
-        $extra_arr['only_response_data_node'] = (!empty($extra_arr['only_response_data_node']));
+        $extra_arr ??= [];
+        $extra_arr['only_response_data_node'] = !empty($extra_arr['only_response_data_node']);
 
         $response_params = self::default_api_response();
         $response_params['api_obj'] = $this->get_action_api_instance();
@@ -178,14 +177,7 @@ abstract class PHS_Api_action extends PHS_Action
 
     public function get_request_body() : ?array
     {
-        static $json_request = null;
-
-        if ($json_request === null
-            && !($json_request = PHS_Api_base::get_request_body_as_json_array())) {
-            $json_request = [];
-        }
-
-        return $json_request;
+        return PHS_Api_base::get_request_body_as_json_array();
     }
 
     /**
@@ -197,8 +189,13 @@ abstract class PHS_Api_action extends PHS_Action
      *
      * @return mixed
      */
-    public function request_var(string $var_name, int $type = PHS_Params::T_ASIS, $default = null, $type_extra = false, string $order = 'bpg')
-    {
+    public function request_var(
+        string $var_name,
+        int $type = PHS_Params::T_ASIS,
+        mixed $default = null,
+        array $type_extra = [],
+        string $order = 'bpg'
+    ) : mixed {
         if ($order === '') {
             return $default;
         }
@@ -209,8 +206,8 @@ abstract class PHS_Api_action extends PHS_Action
         while (($ch = substr($order, 0, 1))) {
             switch (strtolower($ch)) {
                 case 'b':
-                    if (!empty($json_request)
-                     && isset($json_request[$var_name])) {
+                    if ($json_request
+                        && isset($json_request[$var_name])) {
                         $val = $json_request[$var_name];
                         break 2;
                     }
@@ -235,7 +232,7 @@ abstract class PHS_Api_action extends PHS_Action
         }
 
         if ($val === null
-         || null === ($type_val = PHS_Params::set_type($val, $type, $type_extra))) {
+            || null === ($type_val = PHS_Params::set_type($val, $type, $type_extra))) {
             return $default;
         }
 

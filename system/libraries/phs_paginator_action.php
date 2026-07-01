@@ -334,8 +334,8 @@ abstract class PHS_Action_Generic_list extends PHS_Action
 
         $buffer = '';
         foreach ($actions_arr as $action_arr) {
-            if ((($callback = $action_arr['callbacks']['should_display'] ?? null) && !$callback($record_arr))
-               || (($callback = $action_arr['callbacks']['can_run'] ?? null) && !$callback($record_arr))) {
+            if ((($callback = $action_arr['callbacks']['should_display'] ?? null) && !$callback($render_params))
+                || (($callback = $action_arr['callbacks']['can_run'] ?? null) && !$callback($record_arr))) {
                 continue;
             }
 

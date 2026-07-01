@@ -11,7 +11,8 @@ use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 abstract class PHS_Api_base extends PHS_Registry
 {
-    public const ERR_RUN_ROUTE = 30001, ERR_AUTHENTICATION = 30002, ERR_HTTP_METHOD = 30003, ERR_HTTP_PROTOCOL = 30004, ERR_APIKEY = 30005;
+    public const ERR_RUN_ROUTE = 30001, ERR_AUTHENTICATION = 30002, ERR_HTTP_METHOD = 30003,
+        ERR_HTTP_PROTOCOL = 30004, ERR_APIKEY = 30005;
 
     public const DEFAULT_VERSION = 1;
 
@@ -20,10 +21,11 @@ abstract class PHS_Api_base extends PHS_Registry
     // Most used HTTP error codes
     public const H_CODE_OK = 200, H_CODE_OK_CREATED = 201, H_CODE_OK_ACCEPTED = 202, H_CODE_OK_NO_CONTENT = 204,
         H_CODE_MOVED_PERMANENTLY = 301, H_CODE_NOT_MODIFIED = 304, H_CODE_TEMPORARY_REDIRECT = 307, H_CODE_PERMANENT_REDIRECT = 308,
-        H_CODE_BAD_REQUEST = 400, H_CODE_UNAUTHORIZED = 401, H_CODE_FORBIDDEN = 403, H_CODE_NOT_FOUND = 404, H_CODE_METHOD_NOT_ALLOWED = 405,
-        H_CODE_NOT_ACCEPTABLE = 406, H_CODE_CONFLICT = 409, H_CODE_UNSUPPORTED_MEDIA_TYPE = 415, H_CODE_TOO_MANY_REQUESTS = 429,
-        H_CODE_INTERNAL_SERVER_ERROR = 500, H_CODE_NOT_IMPLEMENTED = 501, H_CODE_BAD_GATEWAY = 502, H_CODE_SERVICE_UNAVAILABLE = 503, H_CODE_GATEWAY_TIMEOUT = 504,
-        H_CODE_INSUFFICIENT_STORAGE = 507;
+        H_CODE_BAD_REQUEST = 400, H_CODE_UNAUTHORIZED = 401, H_CODE_FORBIDDEN = 403, H_CODE_NOT_FOUND = 404,
+        H_CODE_METHOD_NOT_ALLOWED = 405, H_CODE_NOT_ACCEPTABLE = 406, H_CODE_CONFLICT = 409, H_CODE_ITS_GONE = 410,
+        H_CODE_UNSUPPORTED_MEDIA_TYPE = 415, H_CODE_TOO_MANY_REQUESTS = 429,
+        H_CODE_INTERNAL_SERVER_ERROR = 500, H_CODE_NOT_IMPLEMENTED = 501, H_CODE_BAD_GATEWAY = 502, H_CODE_SERVICE_UNAVAILABLE = 503,
+        H_CODE_GATEWAY_TIMEOUT = 504, H_CODE_INSUFFICIENT_STORAGE = 507;
 
     // API version
     public const PARAM_VERSION = 'v',
@@ -1040,52 +1042,52 @@ abstract class PHS_Api_base extends PHS_Registry
 
     public static function framework_allows_api_calls() : bool
     {
-        return ($settings = self::_get_framework_api_settings()) && !empty($settings['allow_api_calls']);
+        return (bool)(self::_get_framework_api_settings()['allow_api_calls'] ?? false);
     }
 
     public static function framework_allows_api_calls_over_http() : bool
     {
-        return ($settings = self::_get_framework_api_settings()) && !empty($settings['allow_api_calls_over_http']);
+        return (bool)(self::_get_framework_api_settings()['allow_api_calls_over_http'] ?? false);
     }
 
     public static function framework_api_can_simulate_web() : bool
     {
-        return ($settings = self::_get_framework_api_settings()) && !empty($settings['api_can_simulate_web']);
+        return (bool)(self::_get_framework_api_settings()['api_can_simulate_web'] ?? false);
     }
 
     public static function framework_allow_bearer_token_authentication() : bool
     {
-        return ($settings = self::_get_framework_api_settings()) && !empty($settings['allow_bearer_token_authentication']);
+        return (bool)(self::_get_framework_api_settings()['allow_bearer_token_authentication'] ?? false);
     }
 
     public static function framework_allow_cors_api_calls() : bool
     {
-        return ($settings = self::_get_framework_api_settings()) && !empty($settings['allow_cors_api_calls']);
+        return (bool)(self::_get_framework_api_settings()['allow_cors_api_calls'] ?? false);
     }
 
     public static function framework_monitor_cors_options_calls() : bool
     {
-        return ($settings = self::_get_framework_api_settings()) && !empty($settings['monitor_cors_options_calls']);
+        return (bool)(self::_get_framework_api_settings()['monitor_cors_options_calls'] ?? false);
     }
 
     public static function framework_cors_origins() : string
     {
-        return (($settings = self::_get_framework_api_settings()) && isset($settings['cors_origins'])) ? $settings['cors_origins'] : '';
+        return self::_get_framework_api_settings()['cors_origins'] ?? '';
     }
 
     public static function framework_cors_methods() : string
     {
-        return (($settings = self::_get_framework_api_settings()) && isset($settings['cors_methods'])) ? $settings['cors_methods'] : '';
+        return self::_get_framework_api_settings()['cors_methods'] ?? '';
     }
 
     public static function framework_cors_headers() : string
     {
-        return (($settings = self::_get_framework_api_settings()) && isset($settings['cors_headers'])) ? $settings['cors_headers'] : '';
+        return self::_get_framework_api_settings()['cors_headers'] ?? '';
     }
 
     public static function framework_cors_max_age() : int
     {
-        return (($settings = self::_get_framework_api_settings()) && isset($settings['cors_max_age'])) ? (int)$settings['cors_max_age'] : -1;
+        return (int)(self::_get_framework_api_settings()['cors_max_age'] ?? -1);
     }
 
     public static function get_request_body_as_json_array() : array
@@ -1097,7 +1099,7 @@ abstract class PHS_Api_base extends PHS_Registry
         }
 
         if (!($request_body = PHS_Api::get_php_input())
-         || !($json_arr = @json_decode($request_body, true))) {
+            || !($json_arr = @json_decode($request_body, true))) {
             return [];
         }
 
@@ -1106,17 +1108,7 @@ abstract class PHS_Api_base extends PHS_Registry
 
     public static function get_php_input() : ?string
     {
-        static $input = null;
-
-        if ($input !== null) {
-            return $input;
-        }
-
-        if (($input = @file_get_contents('php://input')) === false) {
-            return null;
-        }
-
-        return $input;
+        return PHS::get_php_input();
     }
 
     public static function generic_error(?string $msg = null) : bool
@@ -1135,7 +1127,7 @@ abstract class PHS_Api_base extends PHS_Registry
         }
 
         if (empty($msg)
-        && !($msg = self::valid_http_code($code))) {
+            && !($msg = self::valid_http_code($code))) {
             $msg = '';
         }
 
@@ -1160,12 +1152,7 @@ abstract class PHS_Api_base extends PHS_Registry
 
     public static function valid_http_code(int $code) : ?string
     {
-        if (!($all_codes = self::http_response_codes())
-         || empty($all_codes[$code])) {
-            return null;
-        }
-
-        return $all_codes[$code];
+        return self::http_response_codes()[$code] ?? null;
     }
 
     /**
@@ -1213,7 +1200,7 @@ abstract class PHS_Api_base extends PHS_Registry
             407                                 => 'Proxy Authentication Required',
             408                                 => 'Request Timeout',
             self::H_CODE_CONFLICT               => 'Conflict',
-            410                                 => 'Gone',
+            self::H_CODE_ITS_GONE               => 'Gone',
             411                                 => 'Length Required',
             412                                 => 'Precondition Failed',
             413                                 => 'Payload Too Large',
@@ -1296,9 +1283,8 @@ abstract class PHS_Api_base extends PHS_Registry
 
         self::$_framework_settings = self::_default_framework_api_settings();
 
-        /** @var PHS_Plugin_Admin $admin_plugin */
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
-         || !($admin_plugin_settings = $admin_plugin->get_plugin_settings())) {
+            || !($admin_plugin_settings = $admin_plugin->get_plugin_settings())) {
             return self::$_framework_settings;
         }
 

@@ -1,8 +1,6 @@
 <?php
 namespace phs\plugins\foobar\models;
 
-use phs\libraries\PHS_Model;
-use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Model_Mongo;
 
 class PHS_Model_Foobar_mongo extends PHS_Model_Mongo

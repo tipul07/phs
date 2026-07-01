@@ -377,3 +377,5 @@ Error decoding TFA details.,Σφάλμα αποκωδικοποίησης λεπ
 Error encoding TFA details.,Σφάλμα κωδικοποίησης λεπτομερειών TFA.
 Account doesn't have two factor authentication enabled.,Ο λογαριασμός δεν έχει ενεργοποιημένη τη διπλή πιστοποίηση παράγοντα.
 Error obtaining two factor authentication details.,Σφάλμα κατά τη λήψη λεπτομερειών διπλής πιστοποίησης ταυτότητας.
+"After how many minutes should session expire if user ticked ""Remember Me"" checkbox","Μετά από πόσα λεπτά πρέπει να λήξει η συνεδρία αν ο χρήστης επέλεξε το πλαίσιο επιλογής ""Να με θυμάσαι"""
+"After how many minutes should session expire if user DIDN'T tick ""Remember Me"" checkbox","Μετά από πόσα λεπτά πρέπει να λήξει η συνεδρία αν ο χρήστης ΔΕΝ επέλεξε το πλαίσιο επιλογής ""Να με θυμάσαι"""

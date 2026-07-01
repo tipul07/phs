@@ -22,7 +22,10 @@ class PHS_Scope_Web extends PHS_Scope
         return self::SCOPE_WEB;
     }
 
-    public function process_action_result($action_result, $static_error_arr = false)
+    /**
+     * @inheritdoc
+     */
+    public function process_action_result($action_result, ?array $static_error_arr = [])
     {
         $action_obj = PHS::running_action() ?: null;
         $controller_obj = PHS::running_controller() ?: null;

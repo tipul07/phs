@@ -400,17 +400,17 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
     final public function instance_plugin_email_templates_path() : string
     {
         if ($this->instance_is_core()
-         || !($prefix = $this->instance_plugin_path())) {
+            || !($prefix = $this->instance_plugin_path())) {
             return '';
         }
 
         return $prefix.self::TEMPLATES_DIR.'/'.PHS_EMAILS_DIRS.'/';
     }
 
-    final public function instance_plugin_themes_email_templates_pairs() : array
+    final public function instance_plugin_themes_email_templates_pairs(?string $force_language = null) : array
     {
         if ($this->instance_is_core()
-         || !($plugin_name = $this->instance_plugin_name())) {
+            || !($plugin_name = $this->instance_plugin_name())) {
             return [];
         }
 
@@ -425,7 +425,8 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
                     PHS_THEMES_DIR.$location,
                     PHS_THEMES_WWW.$location,
                     $current_lang,
-                    $pairs_arr
+                    $pairs_arr,
+                    $force_language
                 );
             }
         }
@@ -438,16 +439,20 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
         return $this->instance_details;
     }
 
-    protected function _check_directory_for_email_templates(string $path, string $www, string $language, array &$matching_arr) : void
-    {
-        if (!empty($language)
+    protected function _check_directory_for_email_templates(
+        string $path, string $www, string $language, array &$matching_arr, ?string $force_language = null
+    ) : void {
+        if ($force_language
+            && @file_exists($path.'/'.$force_language)
+            && @is_dir($path.'/'.$force_language)) {
+            $matching_arr[$path.'/'.$force_language.'/'] = $www.'/'.$force_language.'/';
+        } elseif ($language
             && @file_exists($path.'/'.$language)
             && @is_dir($path.'/'.$language)) {
             $matching_arr[$path.'/'.$language.'/'] = $www.'/'.$language.'/';
         }
 
-        if (@file_exists($path)
-            && @is_dir($path)) {
+        if (@file_exists($path) && @is_dir($path)) {
             $matching_arr[$path.'/'] = $www.'/';
         }
     }

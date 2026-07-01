@@ -6,6 +6,7 @@ use phs\PHS_Scope;
 use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
+use phs\libraries\PHS_Logger;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
@@ -28,25 +29,25 @@ class PHS_Action_Registration_email_bg extends PHS_Action
 
     public function execute()
     {
-        /** @var PHS_Model_Accounts $accounts_model */
-        /** @var PHS_Plugin_Accounts $accounts_plugin */
         if (!($params = PHS_Bg_jobs::get_current_job_parameters())
-         || !is_array($params)
-         || empty($params['uid'])
-         || !($accounts_plugin = PHS_Plugin_Accounts::get_instance())
-         || !($accounts_model = PHS_Model_Accounts::get_instance())
-         || !($account_arr = $accounts_model->get_details($params['uid']))
-         || !$accounts_model->needs_activation($account_arr)) {
+            || empty($params['uid'])
+            || !($accounts_plugin = PHS_Plugin_Accounts::get_instance())
+            || !($accounts_model = PHS_Model_Accounts::get_instance())
+            || !($account_arr = $accounts_model->get_details($params['uid']))
+            || !$accounts_model->needs_activation($account_arr)) {
             $this->set_error(self::ERR_UNKNOWN_ACCOUNT, $this->_pt('Cannot send registration email to this account.'));
 
             return false;
         }
 
+        $lang = $accounts_model->get_account_language($account_arr) ?: self::get_default_language();
+
         $hook_args = [];
-        $hook_args['template'] = $accounts_plugin->email_template_resource_from_file('registration');
+        $hook_args['force_language'] = $lang;
+        $hook_args['template'] = $accounts_plugin->email_template_resource_from_file('registration', $lang);
         $hook_args['to'] = $account_arr['email'];
         $hook_args['to_name'] = $account_arr['nick'];
-        $hook_args['subject'] = $this->_pt('Account Activation');
+        $hook_args['subject'] = $this->_pt('Account Activation', $lang);
         $hook_args['email_vars'] = [
             'nick'            => $account_arr['nick'],
             'pass_generated'  => $account_arr['pass_generated'],
@@ -59,17 +60,20 @@ class PHS_Action_Registration_email_bg extends PHS_Action
             return self::default_action_result();
         }
 
-        if (empty($hook_results) || !is_array($hook_results)
-         || empty($hook_results['send_result'])) {
-            if (self::st_has_error()) {
-                $this->copy_static_error(self::ERR_SEND_EMAIL);
-            } else {
-                $this->set_error(self::ERR_SEND_EMAIL, $this->_pt('Error sending registration email to %s.', $account_arr['email']));
-            }
+        if (empty($hook_results['send_result'])) {
+            $this->copy_or_set_static_error(
+                self::ERR_SEND_EMAIL,
+                $this->_pt('Error sending registration email to %s.', $account_arr['email'])
+            );
 
-            return false;
+            PHS_Logger::error(
+                'Error sending registration email: '.$this->get_simple_error_message(),
+                PHS_Logger::TYPE_DEBUG
+            );
+
+            $this->reset_error();
         }
 
-        return PHS_Action::default_action_result();
+        return self::default_action_result();
     }
 }

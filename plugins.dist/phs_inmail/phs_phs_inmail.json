@@ -1,0 +1,7 @@
+{
+    "vendor_id": "phs",
+    "vendor_name": "PHS",
+    "name": "PHS InMail Plugin",
+    "description": "Manage incoming emails from email special entry-point.",
+    "version": "1.0.1"
+}

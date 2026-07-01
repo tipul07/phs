@@ -1,0 +1,34 @@
+# !!!!! DON'T EDIT THIS COLUMN AT ALL !!!!!,TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE
+# Please use Excel (or similar) as editor for this file to be sure formatting will not be broken!!!,
+# Lines starting with # will be ignored.,Column separator is comma!! (configure Excel or similar to use comma)
+Error loading required resources.,Eroare la încărcarea resurselor necesare.
+Error obtaining products import export directory path.,Eroare la obţinerea căii către directorul de import export pentru produse.
+InMail Generic Settings,Setări generice InMail
+Generic settings for emails received by email entry-point.,Setări generice pentru emailurile primite prin punctul de intrare al emailului.
+Enable InMail Functionality,Activare funcționalitate InMail
+Should framework take in consideration any emails?,Ar trebui ca framework-ul să ia în considerare orice emailuri?
+Accept attachments extensions,Acceptați extensiile atașamentelor
+From email attachments take only files with following extensions. No value means accept all.,"Din atașamentele emailului, luați doar fișierele cu următoarele extensii. Lipsa valorii înseamnă acceptarea tuturor."
+Trigger InMail Event,Declanșați evenimentul InMail
+Settings related to triggering incoming email event. Empty conditions are not used.,Setări legate de declanșarea evenimentului de email de intrare. Condițiile goale nu sunt folosite.
+Condition Operand,Operand de condiție
+What logic operand should be used for all conditions below,Ce operand logic ar trebui să fie folosit pentru toate condițiile de mai jos
+FROM contains,DE CONTINE
+A comma separated emails. If ONE of the emails is found in FROM field this condition is true,"O serie de adrese de email separate prin virgulă. Dacă UNA dintre adresele de email este găsită în câmpul DE LA, această condiție este adevărată."
+TO contains,TO conține
+A comma separated emails. If ONE of the emails is found in TO field this condition is true,"O listă de adrese de email separate prin virgulă. Dacă UNA dintre adresele de email este găsită în câmpul DESTINATAR, această condiție este adevărată."
+CC contains,CC conține
+A comma separated emails. If ONE of the emails is found in CC field this condition is true,"O serie de adrese de email separate prin virgulă. Dacă UNA dintre adresele de email este găsită în câmpul CC, această condiție este adevărată"
+BCC contains,BCC conține
+A comma separated emails. If ONE of the emails is found in BCC field this condition is true,"O serie de adrese de email separate prin virgulă. Dacă UNA dintre adresele de email este găsită în câmpul CCI, această condiție este adevărată."
+Subject Regex,Expresie regulată a subiectului
+Regex to be applied on subject of the incoming email. Regex limits will be / and check is case insensitive.,Expresia regulată care va fi aplicată pe subiectul emailului primit. Limitele expresiei regulate vor fi / și verificarea va fi insensibilă la majuscule.
+Has attachments,Are atașamente
+Does the incoming email have attachments?,Are email-ul primit atașamente?
+Error creating inmail directory: [%s].,Eroare la crearea directorului inmail: [%s].
+Incoming email is not enabled.,Email-ul de intrare nu este activat.
+Error using email file in incoming email.,Eroare la utilizarea fișierului de email în emailul primit.
+Error triggering incoming email event.,Eroare la declanșarea evenimentului de email de intrare.
+Error writing email attachment file.,Eroare la scrierea fișierului atașat emailului.
+Inmail directory is not writeable.,Directorul Inmail nu poate fi scris.
+Error creating inmail attachments directory.,Eroare la crearea directorului de atașamente inmail.

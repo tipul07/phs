@@ -4,21 +4,31 @@ namespace phs\plugins\admin\actions\apikeys;
 use phs\PHS;
 use phs\PHS_Api;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\models\PHS_Model_Tenants;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\models\PHS_Model_Api_keys;
 use phs\plugins\admin\actions\PHS_Action_Users_autocomplete;
 
 class PHS_Action_Add extends PHS_Action
 {
+    #[PHS_Dependency]
+    private ?PHS_Plugin_Admin $_admin_plugin = null;
+
+    #[PHS_Dependency]
+    private ?PHS_Model_Api_keys $_apikeys_model = null;
+
+    #[PHS_Dependency]
+    private ?PHS_Action_Users_autocomplete $_users_autocomplete_action = null;
+
+    #[PHS_Dependency]
+    private ?PHS_Model_Tenants $_tenants_model = null;
+
     /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
+     * @inheritdoc
      */
     public function allowed_scopes() : array
     {
@@ -26,7 +36,7 @@ class PHS_Action_Add extends PHS_Action
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {
@@ -40,30 +50,15 @@ class PHS_Action_Add extends PHS_Action
 
         $is_multi_tenant = PHS::is_multi_tenant();
 
-        /** @var PHS_Plugin_Admin $admin_plugin */
-        /** @var PHS_Model_Api_keys $apikeys_model */
-        /** @var PHS_Action_Users_autocomplete $users_autocomplete_action */
-        /** @var PHS_Model_Tenants $tenants_model */
-        if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
-            || !($apikeys_model = PHS_Model_Api_keys::get_instance())
-            || !($users_autocomplete_action = PHS_Action_Users_autocomplete::get_instance())
-            || ($is_multi_tenant
-                && !($tenants_model = PHS_Model_Tenants::get_instance()))
-        ) {
-            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
-
-            return self::default_action_result();
-        }
-
-        if (!$admin_plugin->can_admin_manage_api_keys()) {
+        if (!$this->_admin_plugin->can_admin_manage_api_keys()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }
 
         if (!($api_obj = PHS_Api::api_factory())) {
-            if (!PHS_Api::st_has_error()) {
-                $error_msg = $this->_pt('Error creating API instance: %s', PHS_Api::st_get_error_message());
+            if (PHS_Api::st_has_error()) {
+                $error_msg = $this->_pt('Error creating API instance: %s', PHS_Api::st_get_simple_error_message());
             } else {
                 $error_msg = $this->_pt('Couldn\'t obtain an API instance.');
             }
@@ -77,7 +72,7 @@ class PHS_Action_Add extends PHS_Action
 
         $all_tenants_arr = [];
         if ($is_multi_tenant
-            && !($all_tenants_arr = $tenants_model->get_all_tenants())) {
+            && !($all_tenants_arr = $this->_tenants_model->get_all_tenants())) {
             $all_tenants_arr = [];
         }
 
@@ -90,16 +85,14 @@ class PHS_Action_Add extends PHS_Action
         $api_secret = PHS_Params::_p('api_secret', PHS_Params::T_NOHTML);
         $allow_sw = PHS_Params::_p('allow_sw', PHS_Params::T_NUMERIC_BOOL);
         $allow_graphql = PHS_Params::_p('allow_graphql', PHS_Params::T_NUMERIC_BOOL);
-        if (!($allowed_methods = PHS_Params::_p('allowed_methods', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML, 'trim_before' => true]))) {
-            $allowed_methods = [];
-        }
-        if (!($denied_methods = PHS_Params::_p('denied_methods', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML, 'trim_before' => true]))) {
-            $denied_methods = [];
-        }
+        $allowed_methods = PHS_Params::_p('allowed_methods', PHS_Params::T_ARRAY,
+            ['type' => PHS_Params::T_NOHTML, 'trim_before' => true]) ?: [];
+        $denied_methods = PHS_Params::_p('denied_methods', PHS_Params::T_ARRAY,
+            ['type' => PHS_Params::T_NOHTML, 'trim_before' => true]) ?: [];
 
         $do_submit = PHS_Params::_p('do_submit');
 
-        $users_autocomplete_action->autocomplete_params([
+        $this->_users_autocomplete_action->autocomplete_params([
             'id_id'     => 'uid',
             'text_id'   => 'autocomplete_uid',
             'id_name'   => 'uid',
@@ -109,8 +102,8 @@ class PHS_Action_Add extends PHS_Action
             'text_css_classes' => 'form-control',
             'text_css_style'   => 'display: inline-block;',
 
-            'id_value'   => (empty($uid) ? 0 : $uid),
-            'text_value' => (empty($autocomplete_uid) ? '' : $autocomplete_uid),
+            'id_value'   => $uid ?: 0,
+            'text_value' => $autocomplete_uid ?: '',
 
             'min_text_length' => 1,
         ]);
@@ -145,7 +138,7 @@ class PHS_Action_Add extends PHS_Action
             $denied_methods = $new_denied_methods;
         }
 
-        if (!empty($do_submit)) {
+        if ($do_submit) {
             $insert_arr = [];
             $insert_arr['added_by_uid'] = $current_user['id'];
             $insert_arr['uid'] = $uid;
@@ -163,13 +156,16 @@ class PHS_Action_Add extends PHS_Action
             $insert_params_arr = [];
             $insert_params_arr['fields'] = $insert_arr;
 
-            if ($apikeys_model->insert($insert_params_arr)) {
+            if ($this->_apikeys_model->insert($insert_params_arr)) {
                 PHS_Notifications::add_success_notice($this->_pt('API key details saved...'));
 
                 return action_redirect(['p' => 'admin', 'a' => 'list', 'ad' => 'apikeys'], ['api_key_added' => 1]);
             }
 
-            PHS_Notifications::add_error_notice($apikeys_model->get_error_message($this->_pt('Error saving details to database. Please try again.')));
+            PHS_Notifications::add_error_notice(
+                $this->_apikeys_model->get_simple_error_message(
+                    $this->_pt('Error saving details to database. Please try again.'))
+            );
         }
 
         $data = [
@@ -188,8 +184,8 @@ class PHS_Action_Add extends PHS_Action
             'all_tenants_arr' => $all_tenants_arr,
 
             'api_obj'                   => $api_obj,
-            'apikeys_model'             => $apikeys_model,
-            'users_autocomplete_action' => $users_autocomplete_action,
+            'apikeys_model'             => $this->_apikeys_model,
+            'users_autocomplete_action' => $this->_users_autocomplete_action,
         ];
 
         return $this->quick_render_template('apikeys/add', $data);

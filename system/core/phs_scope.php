@@ -14,7 +14,7 @@ abstract class PHS_Scope extends PHS_Instantiable
     public const SCOPE_VAR_PREFIX = '__scp_pre_';
 
     public const SCOPE_WEB = 1, SCOPE_BACKGROUND = 2, SCOPE_AJAX = 3, SCOPE_API = 4,
-        SCOPE_AGENT = 5, SCOPE_TESTS = 6, SCOPE_CLI = 7, SCOPE_REMOTE = 8, SCOPE_GRAPHQL = 9;
+        SCOPE_AGENT = 5, SCOPE_TESTS = 6, SCOPE_CLI = 7, SCOPE_REMOTE = 8, SCOPE_GRAPHQL = 9, SCOPE_INMAIL = 10;
 
     private static array $SCOPES_ARR = [
         self::SCOPE_WEB => [
@@ -80,6 +80,13 @@ abstract class PHS_Scope extends PHS_Instantiable
             // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
             'constant_name' => 'graphql',
         ],
+        self::SCOPE_INMAIL => [
+            'title'      => 'InMail',
+            'plugin'     => null,
+            'class_name' => 'inmail',
+            // Value of PHS_SCRIPT_SCOPE constant defined in entry script (if required)
+            'constant_name' => 'inmail',
+        ],
     ];
 
     /**
@@ -89,26 +96,22 @@ abstract class PHS_Scope extends PHS_Instantiable
 
     /**
      * @param false|array $action_result
-     * @param false|array $static_error_arr
+     * @param null|array $static_error_arr
      *
      * @return mixed
      */
-    abstract public function process_action_result($action_result, $static_error_arr = false);
+    abstract public function process_action_result($action_result, ?array $static_error_arr = []);
 
     final public function instance_type() : string
     {
         return self::INSTANCE_TYPE_SCOPE;
     }
 
-    /**
-     * @param null|false|array $action_result
-     * @param null|array $end_user_error_arr
-     * @param null|array $technical_error_arr
-     *
-     * @return array
-     */
-    public function generate_response($action_result, ?array $end_user_error_arr = null, ?array $technical_error_arr = null) : array
-    {
+    public function generate_response(
+        $action_result,
+        ?array $end_user_error_arr = null,
+        ?array $technical_error_arr = null
+    ) : array {
         $this->reset_error();
 
         if (!$action_result) {

@@ -1087,3 +1087,5 @@ Error obtaining translations update result. Please try again.,Eroare la obținer
 Checking translations...,Verificarea traducerilor...
 Error obtaining translations check result. Please try again.,Eroare la obținerea rezultatului verificării traducerilor. Vă rugăm să încercați din nou.
 Translation Results,Rezultatele traducerii
+"You can check the progress by clicking the <i class=""fa fa-info""></i> icon for provided language.","Puteți verifica progresul făcând clic pe iconița <i class=""fa fa-info""></i> pentru limba furnizată."
+"Current platform doesn't support multi-tenant setup. All changes will be done on a ""Default"" tenant.","Platformul curent nu suportă configurarea multi-locatar. Toate modificările vor fi făcute pe un locatar „Implicit”."

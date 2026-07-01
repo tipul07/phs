@@ -2,11 +2,9 @@
 
 header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Cache-Control: post-check=0, pre-check=0', false);
-// HTTP/1.0
 header('Pragma: no-cache');
 
 const PHS_PREVENT_SESSION = true;
-
 const PHS_SCRIPT_SCOPE = 'remote';
 
 include_once 'main.php';
@@ -29,9 +27,8 @@ if (!PHS::is_secured_request()) {
     exit;
 }
 
-/** @var PHS_Plugin_Remote_phs $remote_plugin */
 if (!($remote_plugin = PHS_Plugin_Remote_phs::get_instance())
- || !$remote_plugin->is_accepting_remote_calls()) {
+    || !$remote_plugin->is_accepting_remote_calls()) {
     PHS_Api_remote::http_header_response(PHS_Api_base::H_CODE_SERVICE_UNAVAILABLE, 'Service unavailable.');
     exit;
 }

@@ -17,7 +17,10 @@ class PHS_Scope_Remote extends PHS_Scope
         return self::SCOPE_REMOTE;
     }
 
-    public function process_action_result($action_result, $static_error_arr = false)
+    /**
+     * @inheritdoc
+     */
+    public function process_action_result($action_result, ?array $static_error_arr = [])
     {
         // We have already an error from flow before initiating scope class
         if (!empty($static_error_arr)
