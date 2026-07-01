@@ -102,7 +102,7 @@ class PHS_Mime_part
     }
 
     /**
-     * @return array<\phs\libraries\PHS_Mime_part>
+     * @return array<PHS_Mime_part>
      */
     public function get_parts() : array
     {

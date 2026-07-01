@@ -329,7 +329,7 @@ class PHS_Mime_parser extends PHS_Library
     }
 
     /**
-     * @param array<\phs\libraries\PHS_Mime_part> $parts
+     * @param array<PHS_Mime_part> $parts
      *
      * @return null|string
      */
@@ -349,7 +349,7 @@ class PHS_Mime_parser extends PHS_Library
     }
 
     /**
-     * @param array<\phs\libraries\PHS_Mime_part> $parts
+     * @param array<PHS_Mime_part> $parts
      *
      * @return null|string
      */
@@ -369,7 +369,7 @@ class PHS_Mime_parser extends PHS_Library
     }
 
     /**
-     * @param array<\phs\libraries\PHS_Mime_part> $parts
+     * @param array<PHS_Mime_part> $parts
      *
      * @return array
      */

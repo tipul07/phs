@@ -4,17 +4,29 @@ namespace phs\plugins\admin\actions\apikeys;
 use phs\PHS;
 use phs\PHS_Api;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\models\PHS_Model_Tenants;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\models\PHS_Model_Api_keys;
 use phs\plugins\admin\actions\PHS_Action_Users_autocomplete;
 
 class PHS_Action_Edit extends PHS_Action
 {
+    #[PHS_Dependency]
+    private ?PHS_Plugin_Admin $_admin_plugin = null;
+
+    #[PHS_Dependency]
+    private ?PHS_Model_Api_keys $_apikeys_model = null;
+
+    #[PHS_Dependency]
+    private ?PHS_Action_Users_autocomplete $_users_autocomplete_action = null;
+
+    #[PHS_Dependency]
+    private ?PHS_Model_Tenants $_tenants_model = null;
+
     /**
      * @inheritdoc
      */
@@ -38,30 +50,15 @@ class PHS_Action_Edit extends PHS_Action
 
         $is_multi_tenant = PHS::is_multi_tenant();
 
-        /** @var PHS_Plugin_Admin $admin_plugin */
-        /** @var PHS_Model_Api_keys $apikeys_model */
-        /** @var PHS_Action_Users_autocomplete $users_autocomplete_action */
-        /** @var PHS_Model_Tenants $tenants_model */
-        if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
-            || !($apikeys_model = PHS_Model_Api_keys::get_instance())
-            || !($users_autocomplete_action = PHS_Action_Users_autocomplete::get_instance())
-            || ($is_multi_tenant
-                && !($tenants_model = PHS_Model_Tenants::get_instance()))
-        ) {
-            PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
-
-            return self::default_action_result();
-        }
-
-        if (!$admin_plugin->can_admin_manage_api_keys()) {
+        if (!$this->_admin_plugin->can_admin_manage_api_keys()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
         }
 
         if (!($api_obj = PHS_Api::api_factory())) {
-            if (!PHS_Api::st_has_error()) {
-                $error_msg = $this->_pt('Error creating API instance: %s', PHS_Api::st_get_error_message());
+            if (PHS_Api::st_has_error()) {
+                $error_msg = $this->_pt('Error creating API instance: %s', PHS_Api::st_get_simple_error_message());
             } else {
                 $error_msg = $this->_pt('Couldn\'t obtain an API instance.');
             }
@@ -74,21 +71,15 @@ class PHS_Action_Edit extends PHS_Action
         $aid = PHS_Params::_gp('aid', PHS_Params::T_INT);
         $back_page = PHS_Params::_gp('back_page', PHS_Params::T_ASIS);
 
-        if (empty($aid)
-         || !($apikey_arr = $apikeys_model->get_details($aid))) {
+        if (!$aid
+            || !($apikey_arr = $this->_apikeys_model->get_details($aid))) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid API key...'));
 
-            $args = [
-                'unknown_api_key' => 1,
-            ];
+            $back_page = !$back_page
+                ? PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'apikeys'])
+                : from_safe_url($back_page);
 
-            if (empty($back_page)) {
-                $back_page = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'apikeys']);
-            } else {
-                $back_page = from_safe_url($back_page);
-            }
-
-            return action_redirect(add_url_params($back_page, $args));
+            return action_redirect(add_url_params($back_page, ['unknown_api_key' => 1, ]));
         }
 
         if (PHS_Params::_g('changes_saved', PHS_Params::T_INT)) {
@@ -99,7 +90,7 @@ class PHS_Action_Edit extends PHS_Action
 
         $all_tenants_arr = [];
         if ($is_multi_tenant
-            && !($all_tenants_arr = $tenants_model->get_all_tenants())) {
+            && !($all_tenants_arr = $this->_tenants_model->get_all_tenants())) {
             $all_tenants_arr = [];
         }
 
@@ -112,24 +103,21 @@ class PHS_Action_Edit extends PHS_Action
         $api_secret = PHS_Params::_p('api_secret', PHS_Params::T_NOHTML);
         $allow_sw = PHS_Params::_p('allow_sw', PHS_Params::T_NUMERIC_BOOL);
         $allow_graphql = PHS_Params::_p('allow_graphql', PHS_Params::T_NUMERIC_BOOL);
-        if (!($allowed_methods = PHS_Params::_p('allowed_methods', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML, 'trim_before' => true]))) {
-            $allowed_methods = [];
-        }
-        if (!($denied_methods = PHS_Params::_p('denied_methods', PHS_Params::T_ARRAY, ['type' => PHS_Params::T_NOHTML, 'trim_before' => true]))) {
-            $denied_methods = [];
-        }
+        $allowed_methods = PHS_Params::_p('allowed_methods', PHS_Params::T_ARRAY,
+            ['type' => PHS_Params::T_NOHTML, 'trim_before' => true]) ?: [];
+        $denied_methods = PHS_Params::_p('denied_methods', PHS_Params::T_ARRAY,
+            ['type' => PHS_Params::T_NOHTML, 'trim_before' => true]) ?: [];
 
         $do_submit = PHS_Params::_p('do_submit');
 
         if (empty($foobar)) {
-            if (empty($apikey_arr['uid'])
-             || !($account_data = $users_autocomplete_action->account_data($apikey_arr['uid']))) {
-                $account_data = [];
+            if (!empty($apikey_arr['uid'])) {
+                $this->_users_autocomplete_action->set_account_data($apikey_arr['uid']);
             }
 
             $uid = (int)$apikey_arr['uid'];
             $tenant_id = (int)$apikey_arr['tenant_id'];
-            $autocomplete_uid = $users_autocomplete_action->format_data(false, false);
+            $autocomplete_uid = $this->_users_autocomplete_action->format_data(false);
             $title = $apikey_arr['title'];
             $api_key = $apikey_arr['api_key'];
             $api_secret = $apikey_arr['api_secret'];
@@ -149,7 +137,7 @@ class PHS_Action_Edit extends PHS_Action
             }
         }
 
-        $users_autocomplete_action->autocomplete_params([
+        $this->_users_autocomplete_action->autocomplete_params([
             'id_id'     => 'uid',
             'text_id'   => 'autocomplete_uid',
             'id_name'   => 'uid',
@@ -159,8 +147,8 @@ class PHS_Action_Edit extends PHS_Action
             'text_css_classes' => 'form-control',
             'text_css_style'   => 'display: inline-block;',
 
-            'id_value'   => (empty($uid) ? 0 : $uid),
-            'text_value' => (empty($autocomplete_uid) ? '' : $autocomplete_uid),
+            'id_value'   => $uid ?: 0,
+            'text_value' => $autocomplete_uid ?: '',
 
             'min_text_length' => 1,
         ]);
@@ -210,10 +198,7 @@ class PHS_Action_Edit extends PHS_Action
             $edit_arr['allowed_methods'] = (!empty($allowed_methods) ? implode(',', $allowed_methods) : null);
             $edit_arr['denied_methods'] = (!empty($denied_methods) ? implode(',', $denied_methods) : null);
 
-            $edit_params_arr = [];
-            $edit_params_arr['fields'] = $edit_arr;
-
-            if ($apikeys_model->edit($apikey_arr, $edit_params_arr)) {
+            if ($this->_apikeys_model->edit($apikey_arr, ['fields' => $edit_arr])) {
                 PHS_Notifications::add_success_notice($this->_pt('API key details saved...'));
 
                 $url_params = [];
@@ -227,7 +212,7 @@ class PHS_Action_Edit extends PHS_Action
             }
 
             PHS_Notifications::add_error_notice(
-                $apikeys_model->get_simple_error_message(
+                $this->_apikeys_model->get_simple_error_message(
                     $this->_pt('Error saving details to database. Please try again.')));
         }
 
@@ -249,8 +234,8 @@ class PHS_Action_Edit extends PHS_Action
             'all_tenants_arr' => $all_tenants_arr,
 
             'api_obj'                   => $api_obj,
-            'apikeys_model'             => $apikeys_model,
-            'users_autocomplete_action' => $users_autocomplete_action,
+            'apikeys_model'             => $this->_apikeys_model,
+            'users_autocomplete_action' => $this->_users_autocomplete_action,
         ];
 
         return $this->quick_render_template('apikeys/edit', $data);

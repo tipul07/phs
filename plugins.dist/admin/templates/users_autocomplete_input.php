@@ -1,9 +1,5 @@
 <?php
-/** @var \phs\system\core\views\PHS_View $this */
-
-use phs\PHS;
-use phs\PHS_Ajax;
-
+/** @var phs\system\core\views\PHS_View $this */
 if (!($id_id = $this->view_var('id_id'))
  || !($id_name = $this->view_var('id_name'))
  || !($text_id = $this->view_var('text_id'))
@@ -11,9 +7,7 @@ if (!($id_id = $this->view_var('id_id'))
     return '<!-- Autocomplete not setup correctly -->';
 }
 
-if (!($css_style = $this->view_var('text_css_style'))) {
-    $css_style = '';
-}
+$css_style = $this->view_var('text_css_style') ?: '';
 
 $css_style .= 'width:90%;';
 ?>
