@@ -81,7 +81,11 @@ abstract class PHS_Library extends PHS_Has_dependencies
         return $plugin_obj->quick_render_template_for_buffer($template, $template_data);
     }
 
-    // Overwrite this method if you want the library to be loaded always as singleton
+    /**
+     * Overwrite this method if you don't want the library to be loaded always as singleton
+     *
+     * @return bool
+     */
     public static function instances_as_singletons() : bool
     {
         return true;
