@@ -75,8 +75,8 @@ class PHS_Inmail_parser extends PHS_Library
         if (!PHS_Event_Inmail_new::trigger(
             [
                 'to_list'          => $mime_lib->get_email_to_as_recipients(),
-                'cc_list'          => $mime_lib->get_email_cc(),
-                'bcc_list'         => $mime_lib->get_email_bcc(),
+                'cc_list'          => $mime_lib->get_email_cc_as_recipients(),
+                'bcc_list'         => $mime_lib->get_email_bcc_as_recipients(),
                 'subject'          => $mime_lib->get_email_subject(),
                 'text_body'        => $mime_lib->get_email_text_body() ?: '',
                 'html_body'        => $mime_lib->get_email_html_body() ?: '',
