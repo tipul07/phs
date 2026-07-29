@@ -29,11 +29,9 @@ class PHS_View extends PHS_Instantiable
     // Resulting template file
     protected string $_template_file = '';
 
-    /** @var PHS_Controller|bool */
-    protected $_controller = false;
+    protected ?PHS_Controller $_controller = null;
 
-    /** @var PHS_Action|bool */
-    protected $_action = false;
+    protected ?PHS_Action $_action = null;
 
     protected ?self $_parent_view = null;
 
@@ -42,34 +40,34 @@ class PHS_View extends PHS_Instantiable
         return self::INSTANCE_TYPE_VIEW;
     }
 
-    public function set_controller($controller_obj) : bool
+    public function set_controller(null | bool | PHS_Controller $controller_obj) : bool
     {
         $this->reset_error();
 
-        if (!empty($controller_obj)
+        if ($controller_obj
             && !($controller_obj instanceof PHS_Controller)) {
             $this->set_error(self::ERR_BAD_CONTROLLER, self::_t('Not a controller instance.'));
 
             return false;
         }
 
-        $this->_controller = $controller_obj;
+        $this->_controller = $controller_obj ?: null;
 
         return true;
     }
 
-    public function set_action($action_obj) : bool
+    public function set_action(null | bool | PHS_Action $action_obj) : bool
     {
         $this->reset_error();
 
-        if (!empty($action_obj)
+        if ($action_obj
             && !($action_obj instanceof PHS_Action)) {
             $this->set_error(self::ERR_BAD_ACTION, self::_t('Not an action instance.'));
 
             return false;
         }
 
-        $this->_action = $action_obj;
+        $this->_action = $action_obj ?: null;
 
         return true;
     }
@@ -85,25 +83,25 @@ class PHS_View extends PHS_Instantiable
     }
 
     /**
-     * @return bool|PHS_Controller Controller that "owns" this view or false if no controller
+     * @return null|PHS_Controller Controller that "owns" this view or null if no controller
      */
-    public function get_controller()
+    public function get_controller() : ?PHS_Controller
     {
         return $this->_controller;
     }
 
     /**
-     * @return bool|PHS_Action Action that "owns" this view or false if no action
+     * @return null|PHS_Action Action that "owns" this view or null if no action
      */
-    final public function get_action()
+    final public function get_action() : ?PHS_Action
     {
         return $this->_action;
     }
 
     /**
-     * @return bool|PHS_View View that "owns" this sub-view or false if no parent view
+     * @return null|PHS_View View that "owns" this sub-view or null if no parent view
      */
-    final public function get_parent_view()
+    final public function get_parent_view() : ?self
     {
         return $this->_parent_view;
     }
@@ -114,7 +112,6 @@ class PHS_View extends PHS_Instantiable
     public function get_action_result() : array
     {
         $default_action_result = PHS_Action::default_action_result();
-        /** @var PHS_Action $action */
         if (!($action = $this->get_action())) {
             return $default_action_result;
         }
@@ -552,7 +549,7 @@ class PHS_View extends PHS_Instantiable
             // Check if current theme overrides plugin template
             $plugins_check_arr = [$this->_action, $this->_controller, $this->parent_plugin(), $this->get_plugin_instance()];
             foreach ($plugins_check_arr as $instance_obj) {
-                if (empty($instance_obj)
+                if (!$instance_obj
                  || !is_object($instance_obj)
                  || !($instance_obj instanceof PHS_Instantiable)
                  || $instance_obj->instance_is_core()) {
@@ -589,9 +586,9 @@ class PHS_View extends PHS_Instantiable
             }
         }
 
-        if (!empty($this->_controller)
-         && !$this->_controller->instance_is_core()
-         && ($plugin_path = $this->_controller->instance_plugin_path())) {
+        if ($this->_controller
+            && !$this->_controller->instance_is_core()
+            && ($plugin_path = $this->_controller->instance_plugin_path())) {
             $this->_check_directory_for_template(
                 $plugin_path.'/'.self::TEMPLATES_DIR,
                 $this->_controller->instance_plugin_www().self::TEMPLATES_DIR,
@@ -601,9 +598,9 @@ class PHS_View extends PHS_Instantiable
             );
         }
 
-        if (!empty($this->_action)
-         && !$this->_action->instance_is_core()
-         && ($plugin_path = $this->_action->instance_plugin_path())) {
+        if ($this->_action
+            && !$this->_action->instance_is_core()
+            && ($plugin_path = $this->_action->instance_plugin_path())) {
             $this->_check_directory_for_template(
                 $plugin_path.'/'.self::TEMPLATES_DIR,
                 $this->_action->instance_plugin_www().self::TEMPLATES_DIR,
@@ -813,7 +810,6 @@ class PHS_View extends PHS_Instantiable
         }
 
         $action_result = PHS_Action::default_action_result();
-
         if (($action_result['buffer'] = $view_obj->render()) === null) {
             self::st_copy_or_set_error($view_obj,
                 self::ERR_INIT_VIEW, self::_t('Error rendering template [%s].', $view_obj->get_template()));
@@ -840,6 +836,10 @@ class PHS_View extends PHS_Instantiable
         $params['controller_obj'] ??= null;
         $params['parent_plugin_obj'] ??= null;
 
+        $params['action_obj'] = $params['action_obj'] ?: null;
+        $params['controller_obj'] = $params['controller_obj'] ?: null;
+        $params['parent_plugin_obj'] = $params['parent_plugin_obj'] ?: null;
+
         if (empty($params['template_data']) || !is_array($params['template_data'])) {
             $params['template_data'] = null;
         }
@@ -854,7 +854,7 @@ class PHS_View extends PHS_Instantiable
          || !$view_obj->set_controller($params['controller_obj'])
          || !$view_obj->set_theme($params['theme'])
          || !$view_obj->set_template($template)
-         || (!empty($params['parent_plugin_obj']) && !$view_obj->parent_plugin($params['parent_plugin_obj']))
+         || ($params['parent_plugin_obj'] && !$view_obj->parent_plugin($params['parent_plugin_obj']))
         ) {
             self::st_copy_or_set_error($view_obj,
                 self::ERR_INIT_VIEW, self::_t('Error setting up view instance.'));

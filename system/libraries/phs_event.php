@@ -317,11 +317,6 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         return $this->input[$key] ?? null;
     }
 
-    /**
-     * @param null|string $key
-     *
-     * @return null|mixed
-     */
     public function get_output(?string $key = null) : mixed
     {
         if ($key === null) {

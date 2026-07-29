@@ -1,0 +1,7 @@
+{
+    "vendor_id": "phs",
+    "vendor_name": "PHS",
+    "name": "Email Mocking Plugin",
+    "description": "Mock email sending by logging them only.",
+    "version": "1.0.0"
+}

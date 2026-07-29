@@ -25,7 +25,6 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
 
     private array $instance_details = [];
 
-    /** @var null|PHS_Plugin */
     private ?PHS_Plugin $_parent_plugin = null;
 
     protected static array $instances_details = [];
@@ -68,8 +67,7 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
             return null;
         }
 
-        // cover null or false
-        if (empty($plugin_obj)) {
+        if (!$plugin_obj) {
             return $this->_parent_plugin;
         }
 

@@ -402,9 +402,8 @@ class PHS_Error
      */
     public function copy_error_from_array(array $error_arr, ?int $force_error_code = null) : bool
     {
-        if (empty($error_arr)
-         || !isset($error_arr['error_no']) || !isset($error_arr['error_msg'])
-         || !isset($error_arr['error_simple_msg']) || !isset($error_arr['error_debug_msg'])) {
+        if (!isset($error_arr['error_no']) || !isset($error_arr['error_msg'])
+            || !isset($error_arr['error_simple_msg']) || !isset($error_arr['error_debug_msg'])) {
             return false;
         }
 
@@ -889,6 +888,25 @@ class PHS_Error
         }
 
         return array_merge($err_arr, self::default_error_array());
+    }
+
+    public static function arr_merge_errors(array $errors_arr) : array
+    {
+        $error_msg = '';
+        $error_code = self::ERR_OK;
+        foreach ($errors_arr as $k => $v) {
+            if (!is_array($v)
+                || empty($v['error_msg'])) {
+                continue;
+            }
+
+            if ($v['error_no'] !== self::ERR_OK) {
+                $error_code = $v['error_no'];
+            }
+            $error_msg .= ($error_msg !== '' ? '; ' : '').$v['error_msg'];
+        }
+
+        return self::arr_set_error($error_code, $error_msg);
     }
 
     /**
