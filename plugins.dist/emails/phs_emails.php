@@ -423,10 +423,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         }
 
         $view_params = [];
-        $view_params['action_obj'] = null;
-        $view_params['controller_obj'] = null;
-        $view_params['parent_plugin_obj'] = $this;
-        $view_params['plugin'] = $this->instance_plugin_name();
+        $view_params['plugin_obj'] = $this;
         $view_params['template_data'] = [
             'hook_args'     => $hook_args,
             'email_content' => '',

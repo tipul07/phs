@@ -2038,13 +2038,7 @@ class PHS_Paginator extends PHS_Registry
             $template_data = ['paginator' => $this];
         }
 
-        $view_params = [];
-        $view_params['action_obj'] = null;
-        $view_params['controller_obj'] = null;
-        $view_params['plugin'] = null;
-        $view_params['template_data'] = $template_data;
-
-        if (!($view_obj = PHS_View::init_view($template, $view_params))) {
+        if (!($view_obj = PHS_View::init_view($template, ['template_data' => $template_data]))) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
             }

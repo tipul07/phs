@@ -17,11 +17,4 @@ class PHS_View_email extends PHS_View
     {
         return $this->email_vars()[$key] ?? $default;
     }
-
-    public static function init_view(string | array $template, array $params = []) : ?self
-    {
-        $params['view_class'] = 'email';
-
-        return parent::init_view($template, $params);
-    }
 }

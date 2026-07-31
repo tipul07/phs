@@ -72,13 +72,10 @@ abstract class PHS_Library extends PHS_Has_dependencies
         return $plugin_obj->get_db_settings() ?: $plugin_obj->get_default_settings();
     }
 
-    final public function quick_render_template_for_buffer($template, ?array $template_data = null) : ?string
+    final public function quick_render_template_for_buffer(string $template, array $template_data = []) : ?string
     {
-        if (!($plugin_obj = $this->get_plugin_instance())) {
-            return '';
-        }
-
-        return $plugin_obj->quick_render_template_for_buffer($template, $template_data);
+        return $this->get_plugin_instance()
+            ?->quick_render_template_for_buffer($template, $template_data) ?? '';
     }
 
     /**

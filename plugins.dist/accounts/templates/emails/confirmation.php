@@ -1,5 +1,6 @@
 <?php
 /** @var phs\system\core\views\PHS_View_email $this */
+$this->_pt();
 ?>
 Hi <?php echo $this->email_var('nick'); ?>,<br/>
 <br/>

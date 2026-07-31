@@ -4,7 +4,7 @@ namespace phs\system\core\libraries;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Library;
-use phs\system\core\views\PHS_View;
+use phs\system\core\views\PHS_View_email;
 use phs\system\core\events\emails\PHS_Event_Emails_send;
 use phs\system\core\events\emails\PHS_Event_Emails_settings;
 
@@ -292,7 +292,7 @@ class PHS_Email extends PHS_Library
             'theme_relative_dirs' => [PHS_EMAILS_DIRS],
         ];
 
-        if (!($main_template = PHS_View::validate_template_resource(
+        if (!($main_template = PHS_View_email::validate_template_resource(
             $this->_main_template ?? self::DEFAULT_MAIN_TEMPLATE,
             $template_params
         ))) {
@@ -304,31 +304,35 @@ class PHS_Email extends PHS_Library
         }
 
         $view_params = [];
-        $view_params['action_obj'] = null;
-        $view_params['controller_obj'] = null;
-        $view_params['parent_plugin_obj'] = $this->_template_plugin;
-        $view_params['plugin'] = $this->_template_plugin?->instance_plugin_name();
+        $view_params['plugin_obj'] = $this->_template_plugin;
         $view_params['template_data'] = [
             'email_obj'  => $this,
-            'email_vars' => $this->email_vars(),
+            'email_vars' => $this->get_email_vars(),
         ];
 
         if ($this->_full_body) {
             $body_buffer = $this->_full_body;
-        } elseif (!$this->_template
-             || !($body_template = PHS_View::init_view($this->_template, $view_params))
-             || null === ($body_buffer = $body_template->render(force_language: $this->_force_language))) {
-            $this->copy_or_set_static_error(
-                self::ERR_TEMPLATE,
-                $this->_pt('Failed rendering email template file.')
-            );
+        } else {
+            if (!$this->_template) {
+                $this->set_error(self::ERR_TEMPLATE, $this->_pt('Please provide an email template file.'));
 
-            return false;
+                return false;
+            }
+
+            if (!($body_template = PHS_View_email::init_view($this->_template, $view_params))
+                || null === ($body_buffer = $body_template->render(force_language: $this->_force_language))) {
+                $this->copy_or_set_static_error(
+                    self::ERR_TEMPLATE,
+                    $this->_pt('Failed rendering email template file.')
+                );
+
+                return false;
+            }
         }
 
         $view_params['template_data']['email_content'] = $body_buffer;
 
-        if (!($email_template = PHS_View::init_view($main_template, $view_params))
+        if (!($email_template = PHS_View_email::init_view($main_template, $view_params))
            || null === ($email_html_body = $email_template->render(force_language: $this->_force_language))) {
             $this->copy_or_set_static_error(
                 self::ERR_TEMPLATE,
@@ -385,7 +389,7 @@ class PHS_Email extends PHS_Library
         return true;
     }
 
-    public function email_vars() : array
+    public function get_email_vars() : array
     {
         if ($this->_enriched_vars) {
             return $this->_email_vars;
@@ -401,7 +405,7 @@ class PHS_Email extends PHS_Library
 
     private function _check_email_parameters() : void
     {
-        $this->email_vars();
+        $this->get_email_vars();
 
         if ($this->_as_noreply) {
             $this->_from_email = $this->_email_vars['from_noreply'] ?? $this->_no_reply_email;

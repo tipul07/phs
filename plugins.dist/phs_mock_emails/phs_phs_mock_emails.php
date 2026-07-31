@@ -6,13 +6,17 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
-use phs\system\core\views\PHS_View;
+use phs\system\core\views\PHS_View_email;
+use phs\system\core\events\emails\PHS_Event_Emails_send;
+use phs\system\core\events\emails\PHS_Event_Emails_settings;
 
 class PHS_Plugin_Phs_mock_emails extends PHS_Plugin
 {
     public const ERR_TEMPLATE = 40000, ERR_SEND = 40001, ERR_ATTACHMENTS = 40002;
 
     public const LOG_CHANNEL = 'phs_mock_emails.log';
+
+    public const FAKE_MAX_ATTACHMENT_SIZE = 20971520;
 
     public static string $MAIL_AUTH_KEY = 'XMailAuth';
 
@@ -79,6 +83,18 @@ class PHS_Plugin_Phs_mock_emails extends PHS_Plugin
         ];
     }
 
+    public function get_max_attachment_size() : int
+    {
+        return self::FAKE_MAX_ATTACHMENT_SIZE;
+    }
+
+    public function get_email_vars() : array
+    {
+        $email_vars = $this->get_plugin_settings()['email_vars'] ?? [];
+
+        return is_array($email_vars) ? $email_vars : [];
+    }
+
     public function get_template_main() : string | array
     {
         return $this->get_plugin_settings()['template_main']
@@ -125,7 +141,7 @@ class PHS_Plugin_Phs_mock_emails extends PHS_Plugin
         $template_params = [];
         $template_params['theme_relative_dirs'] = [PHS_EMAILS_DIRS];
 
-        if (!($email_main_template = PHS_View::validate_template_resource($main_template, $template_params))) {
+        if (!($email_main_template = PHS_View_email::validate_template_resource($main_template, $template_params))) {
             $this->set_error(self::ERR_TEMPLATE, $this->_pt('Failed validating main email template file.'));
 
             PHS_Logger::error('Failed validating main email template file.', self::LOG_CHANNEL);
@@ -137,7 +153,7 @@ class PHS_Plugin_Phs_mock_emails extends PHS_Plugin
 
         if (empty($hook_args['body_buffer'])
             && (empty($hook_args['template'])
-            || !($email_template = PHS_View::validate_template_resource($hook_args['template'], $template_params))
+            || !($email_template = PHS_View_email::validate_template_resource($hook_args['template'], $template_params))
             )) {
             $this->copy_or_set_static_error(self::ERR_TEMPLATE, $this->_pt('Failed validating email template file.'));
 
@@ -170,10 +186,7 @@ class PHS_Plugin_Phs_mock_emails extends PHS_Plugin
         }
 
         $view_params = [];
-        $view_params['action_obj'] = null;
-        $view_params['controller_obj'] = null;
-        $view_params['parent_plugin_obj'] = $this;
-        $view_params['plugin'] = $this->instance_plugin_name();
+        $view_params['plugin_obj'] = $this;
         $view_params['template_data'] = [
             'hook_args'     => $hook_args,
             'email_content' => '',
@@ -183,7 +196,7 @@ class PHS_Plugin_Phs_mock_emails extends PHS_Plugin
         if (!empty($hook_args['body_buffer'])) {
             $email_content_buffer = $hook_args['body_buffer'];
         } elseif (empty($email_template)
-                  || !($email_template_obj = PHS_View::init_view($email_template, $view_params))
+                  || !($email_template_obj = PHS_View_email::init_view($email_template, $view_params))
                   || !($email_content_buffer = $email_template_obj->render(force_language: $hook_args['force_language'] ?? null))) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
@@ -194,7 +207,7 @@ class PHS_Plugin_Phs_mock_emails extends PHS_Plugin
             $this->set_error_if_not_set(self::ERR_TEMPLATE, $this->_pt('Rendering template %s resulted in empty buffer.',
                 $email_template_obj?->get_template() ?: '(???)'));
 
-            PHS_Logger::error('Email template render error ['.$this->get_error_message().'].', self::LOG_CHANNEL);
+            PHS_Logger::error('Email template render error ['.$this->get_simple_error_message().'].', self::LOG_CHANNEL);
 
             $hook_args['hook_errors'] = self::arr_set_error(self::ERR_TEMPLATE, $this->_pt('Rendering template resulted in empty buffer.'));
 
@@ -203,7 +216,7 @@ class PHS_Plugin_Phs_mock_emails extends PHS_Plugin
 
         $view_params['template_data']['email_content'] = $email_content_buffer;
 
-        if (!($main_template_obj = PHS_View::init_view($email_main_template, $view_params))
+        if (!($main_template_obj = PHS_View_email::init_view($email_main_template, $view_params))
             || !($email_html_body = $main_template_obj->render(force_language: $hook_args['force_language'] ?? null))) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
@@ -435,9 +448,92 @@ class PHS_Plugin_Phs_mock_emails extends PHS_Plugin
             }
         }
 
-        PHS_Logger::error('New email:'."\n".$log_buf, self::LOG_CHANNEL);
+        PHS_Logger::notice('New email (from hook):'."\n".$log_buf, self::LOG_CHANNEL);
 
         return $hook_args;
+    }
+
+    public function listen_email_settings(PHS_Event_Emails_settings $event_obj) : bool
+    {
+        $event_obj->set_output([
+            'email_vars'          => $this->get_email_vars(),
+            'max_attachment_size' => $this->get_max_attachment_size(),
+        ]);
+
+        return true;
+    }
+
+    public function listen_email_send(PHS_Event_Emails_send $event_obj) : bool
+    {
+        if (!($is_success = $this->_send_from_event($event_obj->get_input()))) {
+            $this->set_error_if_not_set(self::ERR_SEND, $this->_pt('Couldn\'t send email.'));
+
+            PHS_Logger::error('New email (from event):'."\n".$this->get_simple_error_message(), self::LOG_CHANNEL);
+        }
+
+        $event_obj->set_output([
+            'send_result'  => $is_success,
+            'result_error' => $is_success ? null : $this->get_error(),
+        ]);
+
+        return true;
+    }
+
+    private function _send_from_event(array $event_input) : bool
+    {
+        $this->reset_error();
+
+        if (empty($event_input['to'])
+            || !PHS_Params::check_type($event_input['to'], PHS_Params::T_EMAIL)) {
+            $this->set_error(self::ERR_SEND, $this->_pt('Destination is not an email.'));
+
+            return false;
+        }
+
+        if (empty($event_input['email_html_body']) && empty($event_input['email_text_body'])) {
+            $this->set_error(self::ERR_SEND, $this->_pt('Email body is empty.'));
+
+            return false;
+        }
+
+        $log_buf
+            = 'Forced language: '.($event_input['forced_language'] ?? '-')."\n"
+              .'To: "'.($event_input['to_name'] ?? '-').'" <'.$event_input['to'].'>'."\n"
+              .'From: "'.($event_input['from_name'] ?? '-').'" <'.$event_input['from_email'].'>'."\n"
+              .'Reply To: "'.($event_input['reply_name'] ?? '-').'" <'.$event_input['reply_email'].'>'."\n"
+              .'Subject: "'.($event_input['subject'] ?? '-').'"'."\n"
+              .'With priority: '.(($event_input['with_priority'] ?? false) ? 'yes' : 'no')."\n";
+
+        if ($this->log_text_body()) {
+            $log_buf .= 'Text body:'."\n".($event_input['email_text_body'] ?? '-')."\n";
+        }
+        if ($this->log_html_body()) {
+            $log_buf .= 'HTML body:'."\n".($event_input['email_html_body'] ?? '-')."\n";
+        }
+
+        if ($this->log_headers()) {
+            $log_buf .= 'Custom headers:'."\n";
+            if (!empty($event_input['custom_headers']) && is_array($event_input['custom_headers'])) {
+                foreach ($event_input['custom_headers'] as $key => $value) {
+                    $log_buf .= ' - '.$key.': '.$value."\n";
+                }
+            }
+        }
+
+        if ($this->log_attachment_names()) {
+            $attachments = $event_input['attachments'] ?? [];
+            $log_buf .= "\n"
+                        .'Attachments: '.count($attachments).' files'."\n";
+            foreach ($attachments as $attachment) {
+                $log_buf .= ' - '.$attachment['file_name'].' ('.$attachment['content_type'].'), '
+                            .' encoding: '.$attachment['transfer_encoding'].', '
+                            .'disposition: '.$attachment['content_disposition']."\n";
+            }
+        }
+
+        PHS_Logger::notice('New email (from event):'."\n".$log_buf, self::LOG_CHANNEL);
+
+        return true;
     }
 
     public static function mail_auth_key(?string $key = null) : string

@@ -225,10 +225,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
         }
 
         $view_params = [];
-        $view_params['action_obj'] = false;
-        $view_params['controller_obj'] = false;
-        $view_params['parent_plugin_obj'] = $this;
-        $view_params['plugin'] = $this->instance_plugin_name();
+        $view_params['plugin_obj'] = $this;
         $view_params['template_data'] = [
             'summary_container_id' => $hook_args['summary_container_id'],
             'messages_new'         => $hook_args['messages_new'],
@@ -272,9 +269,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
     {
         $hook_args = self::validate_array($hook_args, PHS_Hooks::default_buffer_hook_args());
 
-        $data = [];
-
-        $hook_args['buffer'] = $this->quick_render_template_for_buffer('main_menu_member', $data);
+        $hook_args['buffer'] = $this->quick_render_template_for_buffer('main_menu_member');
 
         return $hook_args;
     }

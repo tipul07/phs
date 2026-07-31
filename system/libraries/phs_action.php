@@ -176,15 +176,14 @@ abstract class PHS_Action extends PHS_Instantiable
         return $this->_action_result;
     }
 
-    final public function quick_render_template($template, $template_data = false)
+    final public function quick_render_template(string $template, array $template_data = []) : ?array
     {
         $this->reset_error();
 
         $view_params = [];
         $view_params['action_obj'] = $this;
         $view_params['controller_obj'] = $this->get_controller();
-        $view_params['parent_plugin_obj'] = $this->get_plugin_instance();
-        $view_params['plugin'] = $this->instance_plugin_name();
+        $view_params['plugin_obj'] = $this->get_plugin_instance();
         $view_params['template_data'] = $template_data;
 
         if (!($view_obj = PHS_View::init_view($template, $view_params))) {
@@ -192,19 +191,19 @@ abstract class PHS_Action extends PHS_Instantiable
                 $this->copy_static_error();
             }
 
-            return false;
+            return null;
         }
 
         $action_result = self::default_action_result();
 
-        if (($action_result['buffer'] = $view_obj->render()) === null) {
-            if ($view_obj->has_error()) {
-                $this->copy_error($view_obj);
-            } else {
-                $this->set_error(self::ERR_RENDER, self::_t('Error rendering template [%s].', $view_obj->get_template()));
-            }
+        if (null === ($action_result['buffer'] = $view_obj->render())) {
+            $this->copy_or_set_error(
+                $view_obj,
+                self::ERR_RENDER,
+                self::_t('Error rendering template [%s].', $view_obj->get_template())
+            );
 
-            return false;
+            return null;
         }
 
         if (empty($action_result['buffer'])) {
@@ -282,7 +281,10 @@ abstract class PHS_Action extends PHS_Instantiable
             // if execute() fails, it means it's a logic error, not an action flow error, so we return an action result with an error
             return self::set_action_result_errors(
                 [],
-                self::arr_copy_or_set_error($this, self::ERR_RUN_ROUTE_ERROR, self::_t('Error in action execution.'))
+                self::arr_copy_or_set_error(
+                    $this,
+                    self::ERR_RUN_ROUTE_ERROR, self::_t('Error in action execution.')
+                )
             );
         }
 

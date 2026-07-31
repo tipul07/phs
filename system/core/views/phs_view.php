@@ -793,58 +793,36 @@ class PHS_View extends PHS_Instantiable
         return $template_structure;
     }
 
-    public static function quick_render_template(string | array $template, ?string $plugin = null, $template_data = false) : ?array
-    {
-        self::st_reset_error();
-
-        $view_params = [];
-        $view_params['action_obj'] = null;
-        $view_params['controller_obj'] = null;
-        $view_params['plugin'] = $plugin;
-        $view_params['template_data'] = $template_data;
-
-        if (!($view_obj = self::init_view($template, $view_params))) {
-            self::st_set_error_if_not_set(self::ERR_INIT_VIEW, self::_t('Error initializing view.'));
-
-            return null;
-        }
-
-        $action_result = PHS_Action::default_action_result();
-        if (($action_result['buffer'] = $view_obj->render()) === null) {
-            self::st_copy_or_set_error($view_obj,
-                self::ERR_INIT_VIEW, self::_t('Error rendering template [%s].', $view_obj->get_template()));
-
-            return null;
-        }
-
-        $action_result['buffer'] ??= '';
-
-        return $action_result;
-    }
-
     public static function init_view(string | array $template, array $params = []) : ?self
     {
-        if (empty($params['theme']) || !is_string($params['theme'])) {
-            $params['theme'] = '';
-        }
-
-        $params['view_class'] ??= null;
-        $params['plugin'] ??= null;
-        $params['as_singleton'] = !empty($params['as_singleton']);
-
         $params['action_obj'] ??= null;
+        /** @var PHS_Controller $params['controller_obj'] */
         $params['controller_obj'] ??= null;
-        $params['parent_plugin_obj'] ??= null;
+        $params['plugin_obj'] ??= null;
 
         $params['action_obj'] = $params['action_obj'] ?: null;
         $params['controller_obj'] = $params['controller_obj'] ?: null;
-        $params['parent_plugin_obj'] = $params['parent_plugin_obj'] ?: null;
+        $params['plugin_obj'] = $params['plugin_obj'] ?: null;
+
+        /** @var PHS_Action $action_obj */
+        if (!$params['plugin_obj']
+           && ($action_obj = $params['action_obj'])) {
+            $params['plugin_obj'] = $action_obj->parent_plugin();
+        }
+
+        /** @var PHS_Controller $controller_obj */
+        if (!$params['plugin_obj']
+           && ($controller_obj = $params['controller_obj'])) {
+            $params['plugin_obj'] = $controller_obj->parent_plugin();
+        }
+
+        $params['theme'] ??= null;
 
         if (empty($params['template_data']) || !is_array($params['template_data'])) {
             $params['template_data'] = null;
         }
 
-        if (!($view_obj = PHS::load_view($params['view_class'], $params['plugin'], $params['as_singleton']))) {
+        if (!($view_obj = static::get_instance(false))) {
             self::st_set_error_if_not_set(self::ERR_INIT_VIEW, self::_t('Error instantiating view class.'));
 
             return null;
@@ -854,7 +832,7 @@ class PHS_View extends PHS_Instantiable
          || !$view_obj->set_controller($params['controller_obj'])
          || !$view_obj->set_theme($params['theme'])
          || !$view_obj->set_template($template)
-         || ($params['parent_plugin_obj'] && !$view_obj->parent_plugin($params['parent_plugin_obj']))
+         || ($params['plugin_obj'] && !$view_obj->parent_plugin($params['plugin_obj']))
         ) {
             self::st_copy_or_set_error($view_obj,
                 self::ERR_INIT_VIEW, self::_t('Error setting up view instance.'));
@@ -862,7 +840,7 @@ class PHS_View extends PHS_Instantiable
             return null;
         }
 
-        if (!empty($params['template_data'])) {
+        if ($params['template_data']) {
             $view_obj->set_view_var($params['template_data']);
         }
 

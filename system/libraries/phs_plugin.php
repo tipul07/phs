@@ -136,31 +136,22 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return (array)($this->get_json_info()['agent_jobs'] ?? []);
     }
 
-    /**
-     * @param string|array $template
-     * @param null|array $template_data
-     *
-     * @return false|PHS_View
-     */
-    final public function quick_init_view_instance($template, ?array $template_data = null)
-    {
+    final public function quick_init_view_instance(
+        string | array $template,
+        array $template_data = []
+    ) : ?PHS_View {
         $this->reset_error();
-
-        $view_params = [];
-        $view_params['action_obj'] = false;
-        $view_params['controller_obj'] = false;
-        $view_params['parent_plugin_obj'] = $this;
-        $view_params['plugin'] = $this->instance_plugin_name();
-        $view_params['template_data'] = $template_data;
 
         if (is_string($template)) {
             $template = $this->template_resource_from_file($template);
         } elseif (is_array($template)) {
-            if (!($template = PHS_View::validate_template_resource($template))) {
+            if (!($valid_template = PHS_View::validate_template_resource($template))) {
                 $this->copy_or_set_static_error(self::ERR_RENDER, $this->_pt('Error validating template resource.'));
 
-                return false;
+                return null;
             }
+
+            $template = $valid_template;
 
             $path_key = PHS::relative_path($this->instance_plugin_templates_path());
             if (empty($template['extra_paths']) || !is_array($template['extra_paths'])
@@ -169,28 +160,28 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
             }
         }
 
+        $view_params = [];
+        $view_params['plugin_obj'] = $this;
+        $view_params['template_data'] = $template_data;
+
         if (!($view_obj = PHS_View::init_view($template, $view_params))) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
             }
 
-            return false;
+            return null;
         }
 
         return $view_obj;
     }
 
-    /**
-     * @param string|array $template
-     * @param null|array $template_data
-     *
-     * @return null|string
-     */
-    final public function quick_render_template_for_buffer($template, ?array $template_data = null) : ?string
-    {
+    final public function quick_render_template_for_buffer(
+        string $template,
+        array $template_data = []
+    ) : ?string {
         $this->reset_error();
 
-        if (empty($template)
+        if (!$template
             || !($view_obj = $this->quick_init_view_instance($template, $template_data))) {
             $this->set_error_if_not_set(self::ERR_RENDER, self::_t('Instantiating view from plugin.'));
 
@@ -202,10 +193,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
                 self::ERR_RENDER, self::_t('Error rendering template [%s].', $view_obj->get_template()));
 
             return null;
-        }
-
-        if (empty($buffer)) {
-            $buffer = '';
         }
 
         return $buffer;

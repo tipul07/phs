@@ -25,6 +25,6 @@ A summary of the issue and the environment in which it occurs. If suitable, incl
 ```
 
 ### Technical details:
-* php-http-client version: 
+* sendgrid-php version: 
 * php version:
 
