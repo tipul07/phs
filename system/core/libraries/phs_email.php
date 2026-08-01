@@ -70,6 +70,12 @@ class PHS_Email extends PHS_Library
 
     public function to(string $to_email, ?string $to_name = null) : self
     {
+        if (!PHS_Params::check_type($to_email, PHS_Params::T_EMAIL)) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid TO email address.'));
+
+            return $this;
+        }
+
         $this->_to = $to_email;
         $this->_to_name = $to_name;
 
@@ -78,6 +84,12 @@ class PHS_Email extends PHS_Library
 
     public function from(string $from_email, ?string $from_name = null) : self
     {
+        if (!PHS_Params::check_type($from_email, PHS_Params::T_EMAIL)) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid FROM email address.'));
+
+            return $this;
+        }
+
         $this->_from_email = $from_email;
         $this->_from_name = $from_name;
 
@@ -86,6 +98,12 @@ class PHS_Email extends PHS_Library
 
     public function reply(string $reply_email, ?string $reply_name = null) : self
     {
+        if (!PHS_Params::check_type($reply_email, PHS_Params::T_EMAIL)) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid REPLY email address.'));
+
+            return $this;
+        }
+
         $this->_reply_email = $reply_email;
         $this->_reply_name = $reply_name;
 
@@ -94,6 +112,12 @@ class PHS_Email extends PHS_Library
 
     public function no_reply(string $no_reply_email, ?string $no_reply_name = null) : self
     {
+        if (!PHS_Params::check_type($no_reply_email, PHS_Params::T_EMAIL)) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid NO REPLY email address.'));
+
+            return $this;
+        }
+
         $this->_no_reply_email = $no_reply_email;
         $this->_no_reply_name = $no_reply_name;
 
@@ -161,31 +185,29 @@ class PHS_Email extends PHS_Library
             return $this;
         }
 
-        if (!$plugin) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid plugin for email template.'));
+        if ($plugin) {
+            if (is_string($plugin)) {
+                if (!($plugin_obj = $plugin::get_instance())
+                    || !($plugin_obj instanceof PHS_Plugin)) {
+                    $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid plugin class.'));
 
-            return $this;
-        }
+                    return $this;
+                }
 
-        if (is_string($plugin)) {
-            if (!($plugin_obj = $plugin::get_instance())
-               || !($plugin_obj instanceof PHS_Plugin)) {
-                $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid plugin class.'));
+                $plugin = $plugin_obj;
+            }
+
+            if (!($plugin instanceof PHS_Plugin)) {
+                $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid plugin object for email template.'));
 
                 return $this;
             }
-
-            $plugin = $plugin_obj;
-        }
-
-        if (!($plugin instanceof PHS_Plugin)) {
-            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid plugin object for email template.'));
-
-            return $this;
         }
 
         $this->_template_plugin = $plugin;
-        $this->_template = $plugin->email_template_resource_from_file($template, $force_language ?? $this->_force_language);
+        $this->_template = $plugin
+            ? $plugin->email_template_resource_from_file($template, $force_language ?? $this->_force_language)
+            : PHS_View_email::validate_template_resource($template);
 
         return $this;
     }
@@ -439,5 +461,13 @@ class PHS_Email extends PHS_Library
             'file_base64_buffer'  => '',
             'size'                => 0,
         ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function instances_as_singletons() : bool
+    {
+        return false;
     }
 }

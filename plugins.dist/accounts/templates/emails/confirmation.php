@@ -1,6 +1,5 @@
 <?php
 /** @var phs\system\core\views\PHS_View_email $this */
-$this->_pt();
 ?>
 Hi <?php echo $this->email_var('nick'); ?>,<br/>
 <br/>
@@ -20,4 +19,4 @@ Need help? <a href="<?php echo $this->email_var('contact_us_link', '#'); ?>">Ple
 We're looking forward to working with you!<br/>
 <br/>
 Best wishes,<br/>
-<?php echo $this->email_var('site_name'); ?> team
+<?php echo $this->email_var('site_name', 'Our'); ?> team

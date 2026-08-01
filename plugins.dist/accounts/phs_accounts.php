@@ -12,6 +12,7 @@ use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Record_data;
+use phs\system\core\libraries\PHS_Email;
 use phs\system\core\models\PHS_Model_Roles;
 use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\libraries\PHS_Ui_translations;
@@ -1516,26 +1517,20 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         $clean_pass = $this->_accounts_model->clean_password($account_arr)
             ?: $this->_accounts_model::OBFUSCATED_PASSWORD;
 
-        $hook_args = [];
-        $hook_args['force_language'] = $lang;
-        $hook_args['template'] = $this->email_template_resource_from_file('confirmation', $lang);
-        $hook_args['to'] = $account_arr['email'];
-        $hook_args['to_name'] = $account_arr['nick'];
-        $hook_args['subject'] = $this->_pt('Account Confirmation', $lang);
-        $hook_args['email_vars'] = [
-            'nick'            => $account_arr['nick'],
-            'clean_pass'      => $clean_pass,
-            'contact_us_link' => PHS::url(['a' => 'contact_us']),
-            'login_link'      => PHS::url(['p' => 'accounts', 'a' => 'login'], ['nick' => $account_arr['nick']]),
-        ];
+        $email_obj
+            = PHS_Email::get_instance()
+                ?->force_language($lang)
+                ->to($account_arr['email'], $account_arr['nick'])
+                ->template('confirmation', $this)
+                ->subject($this->_pt('Account Confirmation', $lang))
+                ->email_variables([
+                    'nick'            => $account_arr['nick'],
+                    'clean_pass'      => $clean_pass,
+                    'contact_us_link' => PHS::url(['a' => 'contact_us']),
+                    'login_link'      => PHS::url(['p' => 'accounts', 'a' => 'login'], ['nick' => $account_arr['nick']]),
+                ]);
 
-        if (null === ($hook_results = PHS_Hooks::trigger_email($hook_args))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error sending confirmation email.'));
-
-            return false;
-        }
-
-        if (empty($hook_results['send_result'])) {
+        if (!$email_obj?->send()) {
             $this->copy_or_set_static_error(self::ERR_FUNCTIONALITY,
                 $this->_pt('Error sending confirmation email to %s.', $account_arr['email']));
 
@@ -1576,27 +1571,24 @@ class PHS_Plugin_Accounts extends PHS_Plugin
 
         $lang = $this->_accounts_model->get_account_language($account_arr) ?: self::get_default_language();
 
-        $hook_args = [];
-        $hook_args['force_language'] = $lang;
-        $hook_args['template'] = $this->email_template_resource_from_file('password_setup', $lang);
-        $hook_args['to'] = $account_arr['email'];
-        $hook_args['to_name'] = $account_arr['nick'];
-        $hook_args['subject'] = $this->_pt('Account Password Setup', $lang);
-        $hook_args['email_vars'] = [
-            'nick'            => $account_arr['nick'],
-            'contact_us_link' => PHS::url(['a' => 'contact_us']),
-            'setup_link'      => $this->get_confirmation_link($account_arr, self::CONF_REASON_PASS_SETUP),
-        ];
+        $email_obj
+            = PHS_Email::get_instance()
+                ?->force_language($lang)
+                ->to($account_arr['email'], $account_arr['nick'])
+                ->template('password_setup', $this)
+                ->subject($this->_pt('Account Password Setup', $lang))
+                ->email_variables([
+                    'nick'            => $account_arr['nick'],
+                    'contact_us_link' => PHS::url(['a' => 'contact_us']),
+                    'setup_link'      => $this->get_confirmation_link($account_arr, self::CONF_REASON_PASS_SETUP),
+                ]);
 
-        if (null === ($hook_results = PHS_Hooks::trigger_email($hook_args))) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error sending confirmation email.'));
-
-            return false;
-        }
-
-        if (empty($hook_results['send_result'])) {
-            $this->copy_or_set_static_error(self::ERR_FUNCTIONALITY,
-                $this->_pt('Error sending confirmation email to %s.', $account_arr['email']));
+        if (!$email_obj?->send()) {
+            $this->copy_or_set_error(
+                $email_obj,
+                self::ERR_FUNCTIONALITY,
+                $this->_pt('Error sending confirmation email to %s.', $account_arr['email'])
+            );
 
             return false;
         }

@@ -7,6 +7,7 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
+use phs\system\core\libraries\PHS_Email;
 use phs\system\core\views\PHS_View_email;
 use phs\plugins\emails\libraries\PHS_Smtp;
 use phs\system\core\attributes\PHS_Dependency;
@@ -225,9 +226,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             return '';
         }
 
-        if (!($current_settings = $this->get_plugin_settings())) {
-            $current_settings = [];
-        }
+        $current_settings = $this->get_plugin_settings();
 
         $default_route = [];
         if (!empty($current_settings['routes'])
@@ -239,51 +238,33 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $testing_error = '';
         $testing_success = false;
 
-        if (!($test_email_sending_email = PHS_Params::_pg('test_email_sending_email', PHS_Params::T_EMAIL))) {
-            $test_email_sending_email = '';
-        }
-        if (!($do_test_email_sending_submit = PHS_Params::_p('do_test_email_sending_submit'))) {
-            $do_test_email_sending_submit = false;
-        }
+        $test_email_sending_email = PHS_Params::_pg('test_email_sending_email', PHS_Params::T_EMAIL) ?: '';
 
-        if (!empty($do_test_email_sending_submit)) {
-            if (empty($test_email_sending_email)
-             || !PHS_Params::check_type($test_email_sending_email, PHS_Params::T_EMAIL)) {
-                $testing_error .= ($testing_error !== '' ? '<br/>' : '').$this->_pt('Please provide a valid email address.');
+        if (PHS_Params::_p('do_test_email_sending_submit')) {
+            if (!$test_email_sending_email
+                || !PHS_Params::check_type($test_email_sending_email, PHS_Params::T_EMAIL)) {
+                $testing_error = $this->_pt('Please provide a valid email address.');
             } else {
-                $previous_error = self::st_stack_error();
-                self::st_reset_error();
+                $email_obj
+                    = PHS_Email::get_instance()
+                        ?->to($test_email_sending_email, self::_t('Site test email'))
+                        ->subject('Site test email')
+                        ->full_body(
+                            'Hello,<br/>'."\n"
+                            .'<br/>'."\n"
+                            .'This is a test email sent from '.PHS_SITE_NAME.' ('.PHS::url().')<br/>'."\n"
+                            .'<br/>'."\n"
+                            .'<strong>Note</strong>: this email is sent using SMTP plugin ('.$this->instance_plugin_name().' v'.$this->get_plugin_version().')<br/>'.'Best wishes,<br/>'."\n"
+                            .'<br/>'."\n"
+                            .PHS_SITE_NAME.' team<br/>'."\n"
+                        );
 
-                $hook_args = [];
-                $hook_args['subject'] = 'Site test email';
-                $hook_args['to'] = $test_email_sending_email;
-                $hook_args['to_name'] = self::_t('Site test email');
-                $hook_args['body_buffer'] = 'Hello,<br/>'."\n"
-                    .'<br/>'."\n"
-                    .'This is a test email sent from '.PHS_SITE_NAME.' ('.PHS::url().')<br/>'."\n"
-                    .'<br/>'."\n"
-                    .'<strong>Note</strong>: this email is sent using SMTP plugin ('.$this->instance_plugin_name().' v'.$this->get_plugin_version().')<br/>'.'Best wishes,<br/>'."\n"
-                    .'<br/>'."\n"
-                    .PHS_SITE_NAME.' team<br/>'."\n";
-
-                if (!($hook_results = PHS_Hooks::trigger_email($hook_args))
-                 || !is_array($hook_results)
-                 || empty($hook_results['send_result'])) {
-                    if (empty($hook_results)
-                     && self::st_has_error()) {
-                        $testing_error .= ($testing_error !== '' ? '<br/>' : '').self::st_get_error_message();
-                    } elseif (!empty($hook_results)
-                    && !empty($hook_results['hook_errors']) && is_array($hook_results['hook_errors'])
-                    && self::arr_has_error($hook_results['hook_errors'])) {
-                        $testing_error .= ($testing_error !== '' ? '<br/>' : '').self::arr_get_error_message($hook_results['hook_errors']);
-                    } else {
-                        $testing_error .= ($testing_error !== '' ? '<br/>' : '').$this->_pt('Error sending email to provided email address.');
-                    }
-                } else {
+                if ($email_obj?->send()) {
                     $testing_success = true;
+                } else {
+                    $testing_error .= $email_obj?->get_simple_error_message()
+                                     ?? $this->_pt('Error sending email to provided email address.');
                 }
-
-                self::st_restore_errors($previous_error);
             }
         }
 
@@ -816,7 +797,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return false;
     }
 
-    private function _log_debug_log(): void
+    private function _log_debug_log() : void
     {
         if (($debugging_log = $this->smtp_library->debug_log())) {
             $debugging_str = '';

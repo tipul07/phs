@@ -1,32 +1,23 @@
 <?php
-/** @var phs\system\core\views\PHS_View $this */
-
-use phs\libraries\PHS_Hooks;
-
-$hook_args = $this::validate_array($this->view_var('hook_args'), PHS_Hooks::default_init_email_hook_args());
-
-$email_vars = $hook_args['email_vars'];
-if (empty($email_vars) || !is_array($email_vars)) {
-    $email_vars = [];
-}
-
+/** @var phs\system\core\views\PHS_View_email $this */
+$current_user = $this->email_var('current_user', null);
 ?>
 Hello,<br/>
 <br/>
-Recently someone completed Contact Us form on <?php echo $email_vars['site_name']; ?> Platform!<br/>
+Recently someone completed Contact Us form on <?php echo $this->email_var('site_name', 'our'); ?> Platform!<br/>
 <hr/>
 <?php
-if (!empty($email_vars['current_user'])) {
-    ?>Account: <?php echo $email_vars['current_user']['nick'].' (#'.$email_vars['current_user']['id'].')'; ?><br/><?php
+if (!empty($current_user['id'])) {
+    ?>Account: <?php echo ($current_user['nick'] ?? '-').' (#'.$current_user['id'].')'; ?><br/><?php
 }
 ?>
-User-Agent: <?php echo $email_vars['user_agent']; ?><br/>
-Host: <?php echo $email_vars['request_ip']; ?><br/>
-Email: <?php echo $email_vars['email']; ?><br/>
-Subject: <?php echo $email_vars['subject']; ?><br/>
+User-Agent: <?php echo $this->email_var('user_agent'); ?><br/>
+Host: <?php echo $this->email_var('request_ip'); ?><br/>
+Email: <?php echo $this->email_var('email'); ?><br/>
+Subject: <?php echo $this->email_var('subject'); ?><br/>
 <hr/>
-<?php echo $email_vars['body']; ?><br/>
+<?php echo $this->email_var('body'); ?><br/>
 <hr/>
 <br/>
 Best wishes,<br/>
-<?php echo $email_vars['site_name']; ?> team
+<?php echo $this->email_var('site_name'); ?> team

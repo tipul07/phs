@@ -14,4 +14,4 @@ Did you remember the password? <a href="<?php echo $this->email_var('login_link'
 Need help? <a href="<?php echo $this->email_var('contact_us_link', '#'); ?>">Please contact us!</a><br/>
 <br/>
 Best wishes,<br/>
-<?php echo $this->email_var('site_name'); ?> team
+<?php echo $this->email_var('site_name', 'Our'); ?> team

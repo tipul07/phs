@@ -10,12 +10,11 @@ use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
+use phs\system\core\libraries\PHS_Email;
 use phs\plugins\captcha\PHS_Plugin_Captcha;
 
 class PHS_Action_Contact_us extends PHS_Action
 {
-    public const ERR_SEND_EMAIL = 40000;
-
     public function allowed_scopes() : array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
@@ -30,21 +29,14 @@ class PHS_Action_Contact_us extends PHS_Action
         $vcode = PHS_Params::_p('vcode', PHS_Params::T_NOHTML);
         $do_submit = PHS_Params::_p('do_submit');
 
-        $sent = PHS_Params::_g('sent', PHS_Params::T_INT);
-
-        if (!empty($sent)) {
+        if (PHS_Params::_g('sent', PHS_Params::T_INT)) {
             PHS_Notifications::add_success_notice(self::_t('Your message was succesfully sent. Thank you!'));
         }
 
-        if (!($user_logged_in = PHS::user_logged_in())) {
-            $user_logged_in = false;
-        }
-        if (!($current_user = PHS::current_user())) {
-            $current_user = false;
-        }
+        $user_logged_in = (bool)PHS::user_logged_in();
+        $current_user = PHS::current_user();
 
-        if (!empty($user_logged_in)
-         && empty($foobar)) {
+        if ($current_user && !$foobar) {
             $email = $current_user['email'];
         }
 
@@ -52,18 +44,16 @@ class PHS_Action_Contact_us extends PHS_Action
             PHS_Notifications::add_error_notice(self::_t('You don\'t have rights to access this section.'));
         }
 
-        if (!empty($do_submit)
-         && !PHS_Notifications::have_notifications_errors()) {
+        if ($do_submit
+            && !PHS_Notifications::have_notifications_errors()) {
             $emails_arr = [];
             if (defined('PHS_CONTACT_EMAIL')
-             && ($emails_str = constant('PHS_CONTACT_EMAIL'))
-             && ($emails_parts_arr = explode(',', $emails_str))
-             && is_array($emails_parts_arr)) {
+                && (($emails_str = constant('PHS_CONTACT_EMAIL')) ?: '')
+                && ($emails_parts_arr = self::extract_strings_from_comma_separated($emails_str))) {
                 foreach ($emails_parts_arr as $email_addr) {
-                    $email_addr = trim($email_addr);
-                    if (empty($email_addr)
-                     || !PHS_Params::check_type($email_addr, PHS_Params::T_EMAIL)) {
-                        PHS_Notifications::add_error_notice('['.$email_addr.'] doesn\'t seem to be an email address. Please change your PHS_CONTACT_EMAIL constant in main.php file.');
+                    if (!$email_addr
+                        || !PHS_Params::check_type($email_addr, PHS_Params::T_EMAIL)) {
+                        PHS_Notifications::add_error_notice('Invalid contact email address. Make sure contact email address is set.');
                         continue;
                     }
 
@@ -71,56 +61,65 @@ class PHS_Action_Contact_us extends PHS_Action
                 }
             }
 
-            if (empty($emails_arr)) {
+            if (!$emails_arr) {
                 PHS_Notifications::add_error_notice(self::_t('No email addresses setup in the platform.'));
             } elseif (empty($email) || empty($subject) || empty($body)
-             || (empty($user_logged_in) && empty($vcode))) {
+                      || (!$current_user && !$vcode)) {
                 PHS_Notifications::add_error_notice(self::_t('Please provide mandatory fields in the form.'));
             } elseif (!PHS_Params::check_type($email, PHS_Params::T_EMAIL)) {
                 PHS_Notifications::add_error_notice(self::_t('Please provide a valid email address.'));
-            } elseif (empty($user_logged_in)
-                && !PHS_Plugin_Captcha::get_instance()) {
+            } elseif (!$current_user
+                      && !PHS_Plugin_Captcha::get_instance()) {
                 PHS_Notifications::add_error_notice(self::_t('Couldn\'t load captcha plugin.'));
-            } elseif (empty($user_logged_in)
-            && ($hook_result = PHS_Hooks::trigger_captcha_check($vcode)) !== null
-            && empty($hook_result['check_valid'])) {
-                if (PHS_Error::arr_has_error($hook_result['hook_errors'])) {
-                    PHS_Notifications::add_error_notice(PHS_Error::arr_get_error_message($hook_result['hook_errors']));
-                } else {
-                    PHS_Notifications::add_error_notice(self::_t('Invalid validation code.'));
-                }
+            } elseif (!$current_user
+                      && ($hook_result = PHS_Hooks::trigger_captcha_check($vcode)) !== null
+                      && empty($hook_result['check_valid'])) {
+                PHS_Notifications::add_error_notice(
+                    PHS_Error::arr_get_simple_error_message(
+                        $hook_result['hook_errors'], self::_t('Invalid validation code.'))
+                );
+            }
+
+            $email_obj
+                = PHS_Email::get_instance()
+                    ?->template('contact_us')
+                    ->from($email, self::_t('Site Contact'))
+                    ->subject(self::_t('Contact Us: %s', $subject))
+                    ->email_variables([
+                        'current_user' => ($user_logged_in ? $current_user : null),
+                        'user_agent'   => $_SERVER['HTTP_USER_AGENT'] ?? self::_t('N/A'),
+                        'request_ip'   => request_ip(),
+                        'subject'      => $subject,
+                        'email'        => $email,
+                        'body'         => str_replace('  ', '&nbsp; ', nl2br($body)),
+                    ]);
+
+            if (!$email_obj || $email_obj->has_error()) {
+                PHS_Notifications::add_error_notice(
+                    self::_t('Error obtaining email instance: %s',
+                        $email_obj?->get_simple_error_message(self::_t('Unknown error')) ?? self::_t('Unknown error')
+                    )
+                );
             }
 
             if (!PHS_Notifications::have_notifications_errors()) {
                 PHS_Hooks::trigger_captcha_regeneration();
 
-                $hook_args = [];
-                $hook_args['template'] = ['file' => 'contact_us'];
-                $hook_args['from'] = $email;
-                $hook_args['from_name'] = self::_t('Site Contact');
-                $hook_args['subject'] = self::_t('Contact Us: %s', $subject);
-                $hook_args['email_vars'] = [
-                    'current_user' => (!empty($user_logged_in) ? $current_user : false),
-                    'user_agent'   => (!empty($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : self::_t('N/A')),
-                    'request_ip'   => request_ip(),
-                    'subject'      => $subject,
-                    'email'        => $email,
-                    'body'         => str_replace('  ', '&nbsp; ', nl2br($body)),
-                ];
-
                 $email_failed = true;
                 foreach ($emails_arr as $email_address) {
-                    $hook_args['to'] = $email_address;
-                    $hook_args['to_name'] = self::_t('Site Contact');
+                    $email_obj->to($email_address, self::_t('Site Contact'));
 
-                    if (!($hook_results = PHS_Hooks::trigger_email($hook_args))
-                     || !is_array($hook_results)
-                     || empty($hook_results['send_result'])) {
-                        PHS_Logger::error(self::_t('Error sending email from contact form to [%s].', $email_address),
-                            PHS_Logger::TYPE_DEBUG);
-                    } else {
+                    if ($email_obj->send()) {
                         $email_failed = false;
+                        continue;
                     }
+
+                    PHS_Logger::error(
+                        self::_t('Error sending email from contact form to [%s].', $email_address),
+                        PHS_Logger::TYPE_DEBUG
+                    );
+
+                    $email_obj->reset_error();
                 }
 
                 if (!$email_failed) {
@@ -131,13 +130,11 @@ class PHS_Action_Contact_us extends PHS_Action
             }
         }
 
-        $data = [
+        return $this->quick_render_template('contact_us', [
             'email'   => $email,
             'subject' => $subject,
             'body'    => $body,
             'vcode'   => $vcode,
-        ];
-
-        return $this->quick_render_template('contact_us', $data);
+        ]);
     }
 }

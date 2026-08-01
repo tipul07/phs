@@ -267,7 +267,7 @@ class PHS_View extends PHS_Instantiable
     {
         $this->reset_error();
 
-        if (!($template_structure = self::validate_template_resource($template, $params))) {
+        if (!($template_structure = static::validate_template_resource($template, $params))) {
             $this->set_error(self::ERR_BAD_TEMPLATE, self::_t('Invalid template structure.'));
 
             return null;
@@ -319,7 +319,7 @@ class PHS_View extends PHS_Instantiable
 
         $view_theme = $force_theme ?: $this->get_theme();
 
-        if (!($valid_template = self::validate_template_resource($template, ['theme' => $view_theme]))
+        if (!($valid_template = static::validate_template_resource($template, ['theme' => $view_theme]))
             || empty($valid_template['file'])) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Error validating sub-view template.'));
 
