@@ -2067,7 +2067,6 @@ final class PHS extends PHS_Registry
         }
 
         if (!$load_result && !@class_exists($class_name, false)) {
-            // var_dump($class_name, $instantiable_details, self::st_get_error());
             // class/file cannot be loaded, so we create an undefined instatiable...
             $newclass = new class extends PHS_Undefined_instantiable {
             };

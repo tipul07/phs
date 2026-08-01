@@ -1202,7 +1202,6 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
         if (!@class_exists($instance_details['instance_full_class'], false)) {
             $instance_file_path = $instance_details['instance_path'].$instance_details['instance_file_name'];
             if (!@file_exists($instance_file_path)) {
-                var_dump('cn', $class_name, $instance_file_path, self::st_debug_call_backtrace(), 'cn');
                 if (PHS::st_debugging_mode()) {
                     self::st_set_error(self::ERR_INSTANCE_CLASS,
                         self::_t('Couldn\'t load instance file for class %s from plugin %s.', $class_name,
