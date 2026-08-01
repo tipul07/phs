@@ -9,6 +9,7 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
 use phs\system\core\views\PHS_View_email;
 use phs\plugins\emails\libraries\PHS_Smtp;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\events\emails\PHS_Event_Emails_send;
 use phs\system\core\events\emails\PHS_Event_Emails_settings;
 
@@ -24,6 +25,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
     public const MAIN_TEMPLATE = 'template_emails';
 
+    #[PHS_Dependency]
     private ?PHS_Smtp $smtp_library = null;
 
     public static string $MAIL_AUTH_KEY = 'XMailAuth';
@@ -210,7 +212,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         $data_arr = [];
         $data_arr['email_routes'] = $email_routes;
-        $data_arr['smtp_library'] = $this->_get_smtp_library();
+        $data_arr['smtp_library'] = $this->smtp_library;
 
         return $this->quick_render_template_for_buffer('routes_settings', $data_arr);
     }
@@ -290,7 +292,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $data_arr['test_email_sending_success'] = $testing_success;
         $data_arr['test_email_sending_email'] = $test_email_sending_email;
         $data_arr['default_route'] = $default_route;
-        $data_arr['smtp_library'] = $this->_get_smtp_library();
+        $data_arr['smtp_library'] = $this->smtp_library;
 
         return $this->quick_render_template_for_buffer('test_email_sending', $data_arr);
     }
@@ -701,15 +703,9 @@ class PHS_Plugin_Emails extends PHS_Plugin
     {
         $this->reset_error();
 
-        if (!($smtp_library = PHS_Smtp::get_instance())) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading SMTP library.'));
-
-            return false;
-        }
-
         if (!($route_settings = $this->get_smtp_route_settings(self::DEFAULT_ROUTE))
-            || (!empty($smtp_settings['smtp_pass'])
-                && !($smtp_settings['smtp_pass'] = PHS_Crypt::quick_decode($smtp_settings['smtp_pass'])))) {
+            || (!empty($route_settings['smtp_pass'])
+                && !($route_settings['smtp_pass'] = PHS_Crypt::quick_decode($route_settings['smtp_pass'])))) {
             $this->set_error(self::ERR_SETTINGS, $this->_pt('Invalid SMTP route settings.'));
 
             return false;
@@ -787,9 +783,9 @@ class PHS_Plugin_Emails extends PHS_Plugin
             $full_body .= '--'.$mime_boundary."--\n\n";
         }
 
-        $smtp_library->settings($route_settings);
+        $this->smtp_library->settings($route_settings);
 
-        $smtp_library->email_details([
+        $this->smtp_library->email_details([
             'headers'       => $final_headers_arr,
             'to_name'       => $event_input['to_name'] ?? '',
             'to_email'      => $event_input['to'],
@@ -804,18 +800,25 @@ class PHS_Plugin_Emails extends PHS_Plugin
             'body_full'     => $full_body,
         ]);
 
-        if ($smtp_library->send()) {
+        if ($this->smtp_library->send()) {
             if ($this->should_log_success_emails()) {
-                $this->_log_success_email($smtp_library->get_last_email_details());
+                $this->_log_success_email($this->smtp_library->get_last_email_details());
             }
 
             return true;
         }
 
-        $this->copy_or_set_error($smtp_library,
+        $this->copy_or_set_error($this->smtp_library,
             self::ERR_SEND, $this->_pt('Error sending email using SMTP library.'));
 
-        if (($debugging_log = $smtp_library->debug_log())) {
+        $this->_log_debug_log();
+
+        return false;
+    }
+
+    private function _log_debug_log(): void
+    {
+        if (($debugging_log = $this->smtp_library->debug_log())) {
             $debugging_str = '';
             foreach ($debugging_log as $cmd_arr) {
                 $debugging_str .= $cmd_arr['cmd']."\n".$cmd_arr['response']."\n";
@@ -823,15 +826,6 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
             PHS_Logger::error('Detailed log:'."\n".$debugging_str, self::LOG_CHANNEL);
         }
-
-        return false;
-    }
-
-    private function _get_smtp_library() : ?PHS_Smtp
-    {
-        $this->smtp_library ??= PHS_Smtp::get_instance();
-
-        return $this->smtp_library;
     }
 
     private function _send_email_smtp(array $hook_args) : array
@@ -851,14 +845,6 @@ class PHS_Plugin_Emails extends PHS_Plugin
             return $hook_args;
         }
 
-        if (!($smtp_library = PHS_Smtp::get_instance())) {
-            $this->set_error_if_not_set(self::ERR_LIBRARY, $this->_pt('Error loading SMTP library.'));
-
-            $hook_args['hook_errors'] = self::arr_set_error(self::ERR_SEND, $this->_pt('Error loading SMTP library.'));
-
-            return $hook_args;
-        }
-
         if (!is_array($hook_args['route_settings'])) {
             $smtp_settings = [];
         } else {
@@ -874,9 +860,9 @@ class PHS_Plugin_Emails extends PHS_Plugin
             return $hook_args;
         }
 
-        $smtp_library->settings($smtp_settings);
+        $this->smtp_library->settings($smtp_settings);
 
-        $email_settings = [
+        $this->smtp_library->email_details([
             'headers'       => $hook_args['internal_vars']['full_headers'],
             'to_name'       => (!empty($hook_args['to_name']) ? $hook_args['to_name'] : ''),
             'to_email'      => $hook_args['to'],
@@ -889,32 +875,23 @@ class PHS_Plugin_Emails extends PHS_Plugin
             'body_html'     => $hook_args['email_html_body'],
             'body_txt'      => $hook_args['email_text_body'],
             'body_full'     => $hook_args['full_body'],
-        ];
+        ]);
 
-        $smtp_library->email_details($email_settings);
-
-        if ($smtp_library->send()) {
+        if ($this->smtp_library->send()) {
             $hook_args['send_result'] = true;
 
             if ($this->should_log_success_emails()) {
-                $this->_log_success_email($smtp_library->get_last_email_details());
+                $this->_log_success_email($this->smtp_library->get_last_email_details());
             }
         } else {
             $hook_args['send_result'] = false;
 
             $hook_args['hook_errors'] = self::arr_set_error(self::ERR_SEND, $this->_pt('Error sending email using SMTP library.'));
 
-            $this->copy_or_set_error($smtp_library,
+            $this->copy_or_set_error($this->smtp_library,
                 self::ERR_SEND, $this->_pt('Error sending email using SMTP library.'));
 
-            if (($debugging_log = $smtp_library->debug_log())) {
-                $debugging_str = '';
-                foreach ($debugging_log as $cmd_arr) {
-                    $debugging_str .= $cmd_arr['cmd']."\n".$cmd_arr['response']."\n";
-                }
-
-                PHS_Logger::error('Detailed log:'."\n".$debugging_str, self::LOG_CHANNEL);
-            }
+            $this->_log_debug_log();
         }
 
         return $hook_args;

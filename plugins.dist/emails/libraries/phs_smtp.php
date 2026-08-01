@@ -62,7 +62,7 @@ class PHS_Smtp extends PHS_Library
         = [self::ENCRYPTION_NONE, self::ENCRYPTION_SSL, self::ENCRYPTION_TLS];
 
     /**
-     * @param false|array $params
+     * @inheritdoc
      */
     public function __construct($params = false)
     {
@@ -108,19 +108,10 @@ class PHS_Smtp extends PHS_Library
         return $this->debug_log;
     }
 
-    /**
-     * @param null|array $params
-     *
-     * @return null|array
-     */
-    public function settings(?array $params = null) : ?array
+    public function settings(?array $params = null) : array
     {
         if ($params === null) {
             return $this->smtp_settings;
-        }
-
-        if (empty($params) || !is_array($params)) {
-            return null;
         }
 
         foreach ($params as $key => $val) {
@@ -136,19 +127,10 @@ class PHS_Smtp extends PHS_Library
         return $this->smtp_settings;
     }
 
-    /**
-     * @param null|array $params
-     *
-     * @return null|array
-     */
-    public function email_details(?array $params = null) : ?array
+    public function email_details(?array $params = null) : array
     {
         if ($params === null) {
             return $this->email_settings;
-        }
-
-        if (empty($params) || !is_array($params)) {
-            return null;
         }
 
         foreach ($params as $key => $val) {
@@ -163,13 +145,11 @@ class PHS_Smtp extends PHS_Library
         return $this->email_settings;
     }
 
-    public function send(?array $params = null) : bool
+    public function send(array $params = []) : bool
     {
         $this->reset_error();
 
         $this->_reset_email_details();
-
-        $params ??= [];
 
         $this->debug_log = [];
 
@@ -410,7 +390,7 @@ class PHS_Smtp extends PHS_Library
             return false;
         }
 
-        if ($smtp_settings === false) {
+        if ($smtp_settings === null) {
             $smtp_settings = $this->settings();
         }
 
@@ -419,7 +399,7 @@ class PHS_Smtp extends PHS_Library
         }
 
         if ($smtp_settings['smtp_authentication'] === self::AUTH_AUTO_DETECT) {
-            $detected_auth_method = false;
+            $detected_auth_method = null;
             if (preg_match('/^250\-?AUTH.*\b('.self::AUTH_CRAM_SHA1.')(?=\b|$)/mSU', $response)) {
                 $detected_auth_method = self::AUTH_CRAM_SHA1;
             } elseif (preg_match('/^250\-?AUTH.*\b('.self::AUTH_CRAM_MD5.')(?=\b|$)/mSU', $response)) {
@@ -504,13 +484,7 @@ class PHS_Smtp extends PHS_Library
             return false;
         }
 
-        $stream_url = '';
-        if ($smtp_settings['smtp_encryption'] === self::ENCRYPTION_SSL) {
-            $stream_url .= 'ssl';
-        } else {
-            $stream_url .= 'tcp';
-        }
-
+        $stream_url = $smtp_settings['smtp_encryption'] === self::ENCRYPTION_SSL ? 'ssl' : 'tcp';
         $stream_url .= '://'.$smtp_settings['smtp_host'].':'.$smtp_settings['smtp_port'];
 
         $this->_email_details(['server' => $stream_url]);
