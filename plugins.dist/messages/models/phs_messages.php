@@ -9,6 +9,7 @@ use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Line_params;
 use phs\libraries\PHS_Record_data;
+use phs\system\core\libraries\PHS_Email;
 use phs\system\core\models\PHS_Model_Roles;
 use phs\plugins\messages\PHS_Plugin_Messages;
 use phs\system\core\attributes\PHS_Dependency;
@@ -1873,23 +1874,22 @@ class PHS_Model_Messages extends PHS_Model
                     $lang = self::$_accounts_model->get_account_language($author_arr) ?: self::get_default_language();
 
                     // send confirmation email...
-                    $hook_args = [];
-                    $hook_args['force_language'] = $lang;
-                    $hook_args['template'] = self::$_messages_plugin->email_template_resource_from_file('message_author', $lang);
-                    $hook_args['to'] = $author_arr['email'];
-                    $hook_args['to_name'] = $author_arr['nick'];
-                    $hook_args['subject'] = $this->_pt('Internal message sent', $lang).': '.$message_arr['subject'];
-                    $hook_args['email_vars'] = [
-                        'author_nick'     => $author_arr['nick'],
-                        'message_date'    => $message_date,
-                        'message_subject' => $message_arr['subject'],
-                        'message_body'    => ((!empty($settings_arr['include_body']) && !empty($message_body)) ? strip_tags($message_body['body']) : false),
-                        'message_link'    => PHS::url(['p' => 'messages', 'a' => 'view_message'], ['muid' => $mu_details_arr['id']]),
-                        'contact_us_link' => PHS::url(['a' => 'contact_us']),
-                    ];
+                    $email_obj
+                        = PHS_Email::get_instance()
+                            ?->force_language($lang)
+                            ->to($author_arr['email'], $author_arr['nick'])
+                            ->template('message_author', self::$_messages_plugin)
+                            ->subject($this->_pt('Internal message sent', $lang).': '.$message_arr['subject'])
+                            ->email_variables([
+                                'author_nick'     => $author_arr['nick'],
+                                'message_date'    => $message_date,
+                                'message_subject' => $message_arr['subject'],
+                                'message_body'    => ((!empty($settings_arr['include_body']) && !empty($message_body)) ? strip_tags($message_body['body']) : false),
+                                'message_link'    => PHS::url(['p' => 'messages', 'a' => 'view_message'], ['muid' => $mu_details_arr['id']]),
+                                'contact_us_link' => PHS::url(['a' => 'contact_us']),
+                            ]);
 
-                    if (($hook_results = PHS_Hooks::trigger_email($hook_args)) === null
-                     || (is_array($hook_results) && !empty($hook_results['send_result']))) {
+                    if ($email_obj?->send()) {
                         $email_sent_to_author = true;
                     }
                 }
@@ -1943,24 +1943,25 @@ class PHS_Model_Messages extends PHS_Model
                     $lang = self::$_accounts_model->get_account_language($account_arr) ?: self::get_default_language();
 
                     // send confirmation email...
-                    $hook_args = [];
-                    $hook_args['force_language'] = $lang;
-                    $hook_args['template'] = self::$_messages_plugin->email_template_resource_from_file('message_destination', $lang);
-                    $hook_args['to'] = $account_arr['email'];
-                    $hook_args['to_name'] = $account_arr['nick'];
-                    $hook_args['subject'] = $this->_pt('New internal message', $lang).': '.$message_arr['subject'];
-                    $hook_args['email_vars'] = [
-                        'destination_nick' => $account_arr['nick'],
-                        'author_handle'    => $author_handle,
-                        'message_date'     => $message_date,
-                        'message_subject'  => $message_arr['subject'],
-                        'message_body'     => ((!empty($settings_arr['include_body']) && !empty($message_body)) ? strip_tags($message_body['body']) : false),
-                        'message_link'     => PHS::url(['p' => 'messages', 'a' => 'view_message'], ['muid' => $mu_details_arr['id']]),
-                        'contact_us_link'  => PHS::url(['a' => 'contact_us']),
-                    ];
+                    $email_obj
+                        = PHS_Email::get_instance()
+                            ?->force_language($lang)
+                            ->to($account_arr['email'], $account_arr['nick'])
+                            ->template('message_destination', self::$_messages_plugin)
+                            ->subject($this->_pt('New internal message', $lang).': '.$message_arr['subject'])
+                            ->email_variables([
+                                'destination_nick' => $account_arr['nick'],
+                                'author_handle'    => $author_handle,
+                                'message_date'     => $message_date,
+                                'message_subject'  => $message_arr['subject'],
+                                'message_body'     => ((!empty($settings_arr['include_body']) && !empty($message_body))
+                                    ? strip_tags($message_body['body'])
+                                    : false),
+                                'message_link'    => PHS::url(['p' => 'messages', 'a' => 'view_message'], ['muid' => $mu_details_arr['id']]),
+                                'contact_us_link' => PHS::url(['a' => 'contact_us']),
+                            ]);
 
-                    if (($hook_results = PHS_Hooks::trigger_email($hook_args)) === null
-                     || (is_array($hook_results) && !empty($hook_results['send_result']))) {
+                    if ($email_obj?->send()) {
                         $email_sent_to_destination = true;
                     }
                 }

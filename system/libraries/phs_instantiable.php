@@ -25,7 +25,6 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
 
     private array $instance_details = [];
 
-    /** @var null|PHS_Plugin */
     private ?PHS_Plugin $_parent_plugin = null;
 
     protected static array $instances_details = [];
@@ -68,8 +67,7 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
             return null;
         }
 
-        // cover null or false
-        if (empty($plugin_obj)) {
+        if (!$plugin_obj) {
             return $this->_parent_plugin;
         }
 
@@ -835,7 +833,7 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
             case self::INSTANCE_TYPE_VIEW:
 
                 if (stripos($class, 'phs_view_') !== 0
-                 && strtolower($class) !== 'phs_view') {
+                    && strtolower($class) !== 'phs_view') {
                     self::st_set_error(self::ERR_INSTANCE, self::_t('Class name is not a framework view.'));
 
                     return null;

@@ -201,7 +201,7 @@ class Client
      * @var bool
      */
     protected $verifySSLCerts;
-    
+
     /**
      * @var bool
      */
@@ -217,13 +217,13 @@ class Client
     /**
      * Initialize the client.
      *
-     * @param string $host           the base url (e.g. https://api.sendgrid.com)
-     * @param array  $headers        global request headers
-     * @param string $version        api version (configurable) - this is specific to the SendGrid API
-     * @param array  $path           holds the segments of the url path
-     * @param array  $curlOptions    extra options to set during curl initialization
-     * @param bool   $retryOnLimit   set default retry on limit flag
-     * @param bool   $verifySSLCerts set default verify certificates flag
+     * @param string $host           The base url (e.g. https://api.sendgrid.com)
+     * @param array  $headers        Global request headers
+     * @param string $version        Api version (configurable) - this is specific to the SendGrid API
+     * @param array  $path           Holds the segments of the url path
+     * @param array  $curlOptions    Extra options to set during curl initialization
+     * @param bool   $retryOnLimit   Set default retry on limit flag
+     * @param bool   $verifySSLCerts Set default verify certificates flag
      */
     public function __construct(
         $host,
@@ -251,6 +251,20 @@ class Client
     public function getHost()
     {
         return $this->host;
+    }
+
+    /**
+     * Set host
+     *
+     * @param string $host
+     *
+     * @return Client
+     */
+    public function setHost(string $host)
+    {
+        $this->host = $host;
+
+        return $this;
     }
 
     /**
@@ -346,13 +360,16 @@ class Client
      *
      * @param array $queryParams an array of all the query parameters
      *
+     * Nested arrays will resolve to multiple instances of the same parameter
+     *
      * @return string
      */
     private function buildUrl($queryParams = null)
     {
         $path = '/' . implode('/', $this->path);
         if (isset($queryParams)) {
-            $path .= '?' . http_build_query($queryParams);
+            // Regex replaces `[0]=`, `[1]=`, etc. with `=`.
+            $path .= '?' . preg_replace('/%5B(?:\d|[1-9]\d+)%5D=/', '=', http_build_query($queryParams));
         }
 
         return sprintf('%s%s%s', $this->host, $this->version ?: '', $path);
@@ -363,7 +380,7 @@ class Client
      * this function does not mutate any private variables.
      *
      * @param string $method
-     * @param array  $body
+     * @param $body
      * @param array  $headers
      *
      * @return array
@@ -512,7 +529,7 @@ class Client
             return $this->retryRequest($responseHeaders, $method, $url, $body, $headers);
         }
 
-        curl_close($channel);
+        @curl_close($channel);
 
         return $response;
     }

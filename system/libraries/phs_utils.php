@@ -578,37 +578,17 @@ class PHS_Utils extends PHS_Language
         return $found_files;
     }
 
-    /**
-     * @param string $directory
-     * @param bool|array $params
-     *
-     * @return bool
-     */
-    public static function rmdir_tree($directory, $params = false)
+    public static function rmdir_tree(string $directory, array $params = []) : bool
     {
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if (!isset($params['recursive'])) {
-            $params['recursive'] = true;
-        }
+        $params['recursive'] = !isset($params['recursive']) || !empty($params['recursive']);
 
         // Delete directory only if there are no files, symlinks or directories in it
-        if (!isset($params['only_if_empty'])) {
-            $params['only_if_empty'] = false;
-        } else {
-            $params['only_if_empty'] = (!empty($params['only_if_empty']));
-        }
+        $params['only_if_empty'] = !empty($params['only_if_empty']);
 
         // Delete directory only if there are no files or symlinks
         // !!! NOTE: If glob() returns empty directories before any files or symlinks those empty directories will be deleted
         // util we find a file or symlink. This functionality will not check for file existence first in dir tree!!!
-        if (!isset($params['only_if_no_files'])) {
-            $params['only_if_no_files'] = false;
-        } else {
-            $params['only_if_no_files'] = (!empty($params['only_if_no_files']));
-        }
+        $params['only_if_no_files'] = !empty($params['only_if_no_files']);
 
         $directory = rtrim($directory, '/\\');
 
@@ -623,12 +603,12 @@ class PHS_Utils extends PHS_Language
                     continue;
                 }
 
-                if (!empty($params['only_if_empty'])) {
+                if ($params['only_if_empty']) {
                     return false;
                 }
 
                 if (@is_file($filename) || @is_link($filename)) {
-                    if (!empty($params['only_if_no_files'])) {
+                    if ($params['only_if_no_files']) {
                         return false;
                     }
 
@@ -636,7 +616,7 @@ class PHS_Utils extends PHS_Language
                     continue;
                 }
 
-                if (!empty($params['recursive']) && @is_dir($filename)) {
+                if ($params['recursive'] && @is_dir($filename)) {
                     if (!self::rmdir_tree($filename, $params)) {
                         $got_errors = true;
                     }
@@ -648,7 +628,7 @@ class PHS_Utils extends PHS_Language
 
         $return_val = @rmdir($directory);
 
-        if (empty($return_val) && !empty($got_errors)) {
+        if (!$return_val && $got_errors) {
             return false;
         }
 

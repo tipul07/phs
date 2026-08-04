@@ -146,10 +146,8 @@ class PHS_Scope_Web extends PHS_Scope
             $view_params = [];
             $view_params['action_obj'] = $action_obj;
             $view_params['controller_obj'] = $controller_obj;
-            $view_params['parent_plugin_obj'] = $action_obj->get_plugin_instance();
-            $view_params['plugin'] = $action_obj->instance_plugin_name();
-            $view_params['template_data'] = (!empty($action_result['action_data']) ? $action_result['action_data'] : false);
-            $view_params['as_singleton'] = false;
+            $view_params['plugin_obj'] = $action_obj->get_plugin_instance();
+            $view_params['template_data'] = $action_result['action_data'] ?? null;
 
             if (!($view_obj = PHS_View::init_view($action_result['page_template'], $view_params))) {
                 echo self::st_get_error_message(self::_t('Error instantiating view object.'));

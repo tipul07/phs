@@ -1937,8 +1937,11 @@ final class PHS extends PHS_Registry
      *
      * @return null|PHS_View
      */
-    public static function spawn_view_in_context(string | array $route_arr, string | array $template, array $template_data = []) : ?PHS_View
-    {
+    public static function spawn_view_in_context(
+        string | array $route_arr,
+        string | array $template,
+        array $template_data = []
+    ) : ?PHS_View {
         self::st_reset_error();
 
         $plugin_obj = null;
@@ -1957,12 +1960,14 @@ final class PHS extends PHS_Registry
         $view_params = [];
         $view_params['action_obj'] = $action_obj;
         $view_params['controller_obj'] = $controller_obj;
-        $view_params['parent_plugin_obj'] = $plugin_obj;
-        $view_params['plugin'] = $plugin_obj?->instance_plugin_name();
+        $view_params['plugin_obj'] = $plugin_obj;
         $view_params['template_data'] = $template_data;
 
         if (!($view_obj = PHS_View::init_view($template, $view_params))) {
-            self::st_set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Error instantiating view in provided context.'));
+            self::st_set_error_if_not_set(
+                self::ERR_PARAMETERS,
+                self::_t('Error instantiating view in provided context.')
+            );
 
             return null;
         }
@@ -2287,6 +2292,7 @@ final class PHS extends PHS_Registry
             $class_name = 'PHS_View_'.ucfirst(strtolower($view_class));
         } else {
             $class_name = 'PHS_View';
+            $plugin = null;
         }
 
         if ($plugin === PHS_Instantiable::CORE_PLUGIN) {

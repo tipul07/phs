@@ -85,10 +85,7 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
         $hook_args['template'] = $notifications_template;
 
         $view_params = [];
-        $view_params['action_obj'] = false;
-        $view_params['controller_obj'] = false;
-        $view_params['parent_plugin_obj'] = $this;
-        $view_params['plugin'] = 'cookie_notice';
+        $view_params['plugin_obj'] = $this;
         $view_params['template_data'] = [
             'rejection_url' => $settings_arr['rejection_url'] ?? '',
             'read_more_url' => $settings_arr['read_more_url'] ?? '',

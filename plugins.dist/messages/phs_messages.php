@@ -10,7 +10,9 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Model_Mysqli;
 use phs\system\core\views\PHS_View;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\messages\models\PHS_Model_Messages;
 use phs\system\core\events\layout\PHS_Event_Layout;
 use phs\plugins\accounts\models\PHS_Model_Accounts_details;
 use phs\system\core\events\accounts\PHS_Event_Accounts_info_template;
@@ -35,10 +37,16 @@ class PHS_Plugin_Messages extends PHS_Plugin
         ROLEU_SET_TYPE_IN_COMPOSE = 'phs_messages_type_in_compose',
         ROLEU_VIEW_ALL_MESSAGES = 'phs_messages_view_all_messages', ROLEU_CAN_REPLY_TO_ALL = 'phs_messages_can_reply_to_all';
 
+    #[PHS_Dependency]
+    private ?PHS_Model_Accounts_details $accounts_details_model = null;
+
+    #[PHS_Dependency]
+    private ?PHS_Model_Accounts $accounts_model = null;
+
     /**
      * @inheritdoc
      */
-    public function get_settings_structure()
+    public function get_settings_structure() : array
     {
         return [
             // default template
@@ -168,7 +176,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
         }
 
         if (!($settings_arr = $this->get_plugin_settings())
-         || empty($settings_arr['summary_template'])) {
+            || empty($settings_arr['summary_template'])) {
             $this->set_error(self::ERR_TEMPLATE, $this->_pt('Couldn\'t load summary template from plugin settings.'));
 
             return false;
@@ -182,16 +190,15 @@ class PHS_Plugin_Messages extends PHS_Plugin
         if (!($summary_template = PHS_View::validate_template_resource($settings_arr['summary_template']))) {
             $this->set_error(self::ERR_TEMPLATE, $this->_pt('Failed validating messages summary template file.'));
 
-            $hook_args['hook_errors'] = self::validate_array($this->get_error(), PHS_Error::default_error_array());
+            $hook_args['hook_errors'] = $this->get_error();
 
             return $hook_args;
         }
 
-        /** @var models\PHS_Model_Messages $messages_model */
-        if (!($messages_model = PHS::load_model('messages', 'messages'))) {
+        if (!($messages_model = PHS_Model_Messages::get_instance())) {
             $this->set_error(self::ERR_TEMPLATE, $this->_pt('Failed loading messages model.'));
 
-            $hook_args['hook_errors'] = self::validate_array($this->get_error(), PHS_Error::default_error_array());
+            $hook_args['hook_errors'] = $this->get_error();
 
             return $hook_args;
         }
@@ -209,11 +216,11 @@ class PHS_Plugin_Messages extends PHS_Plugin
         $hook_args['template'] = $summary_template;
 
         if (($hook_args['messages_list'] = $messages_model->get_summary_listing($hook_args, $current_user)) === false) {
-            if ($messages_model->has_error()) {
-                $this->copy_error($messages_model, self::ERR_TEMPLATE);
-            } else {
-                $this->set_error(self::ERR_TEMPLATE, $this->_pt('Error obtaining summary list of messages.'));
-            }
+            $this->copy_or_set_error(
+                $messages_model,
+                self::ERR_TEMPLATE,
+                $this->_pt('Error obtaining summary list of messages.')
+            );
 
             $hook_args['hook_errors'] = self::validate_array($this->get_error(), PHS_Error::default_error_array());
 
@@ -225,10 +232,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
         }
 
         $view_params = [];
-        $view_params['action_obj'] = false;
-        $view_params['controller_obj'] = false;
-        $view_params['parent_plugin_obj'] = $this;
-        $view_params['plugin'] = $this->instance_plugin_name();
+        $view_params['plugin_obj'] = $this;
         $view_params['template_data'] = [
             'summary_container_id' => $hook_args['summary_container_id'],
             'messages_new'         => $hook_args['messages_new'],
@@ -247,11 +251,11 @@ class PHS_Plugin_Messages extends PHS_Plugin
         }
 
         if (($hook_args['summary_buffer'] = $view_obj->render()) === null) {
-            if ($view_obj->has_error()) {
-                $this->copy_error($view_obj);
-            } else {
-                $this->set_error(self::ERR_RENDER, $this->_pt('Error rendering template [%s].', $view_obj->get_template()));
-            }
+            $this->copy_or_set_error(
+                $view_obj,
+                self::ERR_RENDER,
+                $this->_pt('Error rendering template [%s].', $view_obj->get_template())
+            );
 
             return false;
         }
@@ -272,9 +276,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
     {
         $hook_args = self::validate_array($hook_args, PHS_Hooks::default_buffer_hook_args());
 
-        $data = [];
-
-        $hook_args['buffer'] = $this->quick_render_template_for_buffer('main_menu_member', $data);
+        $hook_args['buffer'] = $this->quick_render_template_for_buffer('main_menu_member');
 
         return $hook_args;
     }
@@ -339,17 +341,13 @@ class PHS_Plugin_Messages extends PHS_Plugin
 
         $account_arr = $hook_args['account_data'];
 
-        /** @var PHS_Model_Accounts_details $accounts_details_model */
-        /** @var PHS_Model_Accounts $accounts_model */
-        if (($accounts_details_model = PHS_Model_Accounts_details::get_instance())
-         && ($accounts_model = PHS_Model_Accounts::get_instance())
-         && $accounts_details_model->check_column_exists(self::UD_COLUMN_MSG_HANDLER, ['table_name' => 'users_details'])
-         && ($user_details_arr = $accounts_model->get_account_details($account_arr))
-         && !empty($user_details_arr[self::UD_COLUMN_MSG_HANDLER])) {
+        if ($this->accounts_details_model->check_column_exists(self::UD_COLUMN_MSG_HANDLER, ['table_name' => 'users_details'])
+            && ($user_details_arr = $this->accounts_model->get_account_details($account_arr))
+            && !empty($user_details_arr[self::UD_COLUMN_MSG_HANDLER])) {
             $details_arr = [];
             $details_arr[self::UD_COLUMN_MSG_HANDLER] = $account_arr['nick'];
 
-            if (($new_account_arr = $accounts_model->update_user_details($account_arr, $details_arr))) {
+            if (($new_account_arr = $this->accounts_model->update_user_details($account_arr, $details_arr))) {
                 $account_arr = $new_account_arr;
             }
 
@@ -368,10 +366,8 @@ class PHS_Plugin_Messages extends PHS_Plugin
     {
         $hook_args = self::validate_array($hook_args, PHS_Hooks::default_user_registration_roles_hook_args());
 
-        /** @var PHS_Model_Accounts $accounts_model */
-        if (!($accounts_model = PHS_Model_Accounts::get_instance())
-         || empty($hook_args['account_data'])
-         || !($account_arr = $accounts_model->data_to_array($hook_args['account_data']))) {
+        if (empty($hook_args['account_data'])
+            || !($account_arr = $this->accounts_model->data_to_array($hook_args['account_data']))) {
             return $hook_args;
         }
 
@@ -379,9 +375,9 @@ class PHS_Plugin_Messages extends PHS_Plugin
             $hook_args['roles_arr'] = [];
         }
 
-        if ($accounts_model->acc_is_admin($account_arr)) {
+        if ($this->accounts_model->acc_is_admin($account_arr)) {
             $hook_args['roles_arr'][] = self::ROLE_MESSAGE_ADMIN;
-        } elseif ($accounts_model->acc_is_operator($account_arr)) {
+        } elseif ($this->accounts_model->acc_is_operator($account_arr)) {
             $hook_args['roles_arr'][] = self::ROLE_MESSAGE_ALL;
         } else {
             $hook_args['roles_arr'][] = self::ROLE_MESSAGE_WRITER;
@@ -399,18 +395,15 @@ class PHS_Plugin_Messages extends PHS_Plugin
     {
         $hook_args = self::validate_array($hook_args, PHS_Hooks::default_user_account_fields_hook_args());
 
-        /** @var PHS_Model_Accounts $accounts_model */
         if (empty($hook_args['account_data'])
-         || !($accounts_model = PHS_Model_Accounts::get_instance())
-         || !($accounts_details_model = PHS_Model_Accounts_details::get_instance())
-         || !($account_arr = $accounts_model->data_to_array($hook_args['account_data']))) {
+            || !($account_arr = $this->accounts_model->data_to_array($hook_args['account_data']))) {
             return $hook_args;
         }
 
         $account_details_arr = false;
         if (empty($hook_args['account_details_data'])) {
             $hook_args['account_details_data'] = false;
-        } elseif (!($account_details_arr = $accounts_details_model->data_to_array($hook_args['account_details_data']))) {
+        } elseif (!($account_details_arr = $this->accounts_details_model->data_to_array($hook_args['account_details_data']))) {
             return $hook_args;
         }
 
@@ -435,10 +428,8 @@ class PHS_Plugin_Messages extends PHS_Plugin
     {
         $hook_args = self::validate_array($hook_args, PHS_Hooks::default_user_account_hook_args());
 
-        /** @var PHS_Model_Accounts $accounts_model */
         if (empty($hook_args['account_data'])
-         || !($accounts_model = PHS_Model_Accounts::get_instance())
-         || !($account_arr = $accounts_model->data_to_array($hook_args['account_data']))) {
+         || !($account_arr = $this->accounts_model->data_to_array($hook_args['account_data']))) {
             return $hook_args;
         }
 
@@ -448,7 +439,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
                 $hook_args['account_details_data'] = [];
             }
 
-            if (!($updated_account_arr = $accounts_model->update_user_details($account_arr, $hook_args['account_details_data']))) {
+            if (!($updated_account_arr = $this->accounts_model->update_user_details($account_arr, $hook_args['account_details_data']))) {
                 return $hook_args;
             }
 
@@ -465,45 +456,36 @@ class PHS_Plugin_Messages extends PHS_Plugin
     {
         $this->reset_error();
 
-        /** @var PHS_Model_Accounts_details $accounts_details_model */
-        /** @var PHS_Model_Accounts $accounts_model */
-        if (!($accounts_details_model = PHS::load_model('accounts_details', 'accounts'))
-         || !($accounts_model = PHS::load_model('accounts', 'accounts'))) {
-            $this->set_error(self::ERR_INSTALL, $this->_pt('Error instantiating accounts details model.'));
-
-            return false;
-        }
-
         $flow_params = ['table_name' => 'users_details'];
-        if (!$accounts_details_model->check_column_exists(self::UD_COLUMN_MSG_HANDLER, $flow_params)) {
+        if (!$this->accounts_details_model->check_column_exists(self::UD_COLUMN_MSG_HANDLER, $flow_params)) {
             $field_arr = self::get_msg_handler_field_definition();
 
             $column_params = ['after_column' => 'id'];
-            if (!$accounts_details_model->alter_table_add_column(self::UD_COLUMN_MSG_HANDLER, $field_arr, $flow_params, $column_params)) {
+            if (!$this->accounts_details_model->alter_table_add_column(self::UD_COLUMN_MSG_HANDLER, $field_arr, $flow_params, $column_params)) {
                 $this->set_error(self::ERR_INSTALL, $this->_pt('Error altering user_details table.'));
 
                 return false;
             }
         }
 
-        if (($users_flow_params = $accounts_model->fetch_default_flow_params(['table_name' => 'users']))) {
+        if (($users_flow_params = $this->accounts_model->fetch_default_flow_params(['table_name' => 'users']))) {
             $list_arr = $users_flow_params;
-            $list_arr['fields']['status'] = ['check' => '!=', 'value' => $accounts_model::STATUS_DELETED];
+            $list_arr['fields']['status'] = ['check' => '!=', 'value' => $this->accounts_model::STATUS_DELETED];
 
-            if (($users_list = $accounts_model->get_list($list_arr))
+            if (($users_list = $this->accounts_model->get_list($list_arr))
              && is_array($users_list)) {
                 foreach ($users_list as $user_id => $user_arr) {
-                    if (!($user_details = $accounts_model->get_account_details($user_arr))
+                    if (!($user_details = $this->accounts_model->get_account_details($user_arr))
                      || empty($user_details[self::UD_COLUMN_MSG_HANDLER])) {
                         $details_arr = [];
                         $details_arr[self::UD_COLUMN_MSG_HANDLER] = $user_arr['nick'];
 
-                        $accounts_model->update_user_details($user_arr, $details_arr);
+                        $this->accounts_model->update_user_details($user_arr, $details_arr);
                     }
 
-                    if ($accounts_model->acc_is_admin($user_arr)) {
+                    if ($this->accounts_model->acc_is_admin($user_arr)) {
                         $roles_arr = [self::ROLE_MESSAGE_ADMIN];
-                    } elseif ($accounts_model->acc_is_operator($user_arr)) {
+                    } elseif ($this->accounts_model->acc_is_operator($user_arr)) {
                         $roles_arr = [self::ROLE_MESSAGE_ALL];
                     } else {
                         $roles_arr = [self::ROLE_MESSAGE_WRITER];
@@ -521,18 +503,11 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return true;
     }
 
-    protected function custom_uninstall()
+    protected function custom_uninstall() : bool
     {
-        /** @var PHS_Model_Accounts_details $accounts_details_model */
-        if (!($accounts_details_model = PHS_Model_Accounts_details::get_instance())) {
-            $this->set_error(self::ERR_INSTALL, $this->_pt('Error instantiating accounts details model.'));
-
-            return false;
-        }
-
         $flow_params = ['table_name' => 'users_details'];
 
-        if (!$accounts_details_model->alter_table_drop_column(self::UD_COLUMN_MSG_HANDLER, $flow_params)) {
+        if (!$this->accounts_details_model->alter_table_drop_column(self::UD_COLUMN_MSG_HANDLER, $flow_params)) {
             $this->set_error(self::ERR_UNINSTALL, $this->_pt('Error altering user_details table.'));
 
             return false;

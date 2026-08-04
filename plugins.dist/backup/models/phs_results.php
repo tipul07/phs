@@ -144,32 +144,24 @@ class PHS_Model_Results extends PHS_Model
         return $record_arr;
     }
 
-    /**
-     * @param int|array $record_data
-     * @param bool|array $params
-     *
-     * @return bool
-     */
-    public function act_delete($record_data, $params = false)
+    public function act_delete(int | array | PHS_Record_data $record_data, array $params = []) : bool
     {
         $this->reset_error();
 
-        if (empty($record_data)
-         || !($record_arr = $this->data_to_array($record_data))) {
+        if (!$record_data
+            || !($record_arr = $this->data_to_array($record_data))) {
             $this->set_error(self::ERR_DELETE, $this->_pt('Backup result details not found in database.'));
 
             return false;
-        }
-
-        if (empty($params) || !is_array($params)) {
-            $params = [];
         }
 
         if (!$this->unlink_all_result_files_for_result($record_arr, ['update_result' => false])) {
             return false;
         }
 
-        PHS_Utils::rmdir_tree($record_arr['run_dir'], ['recursive' => true]);
+        if (!empty($record_arr['run_dir'])) {
+            PHS_Utils::rmdir_tree($record_arr['run_dir'], ['recursive' => true]);
+        }
 
         return $this->hard_delete($record_arr);
     }

@@ -7,12 +7,13 @@ use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
+use phs\system\core\libraries\PHS_Email;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Action_Verify_email_bg extends PHS_Action
 {
-    public const ERR_UNKNOWN_ACCOUNT = 40000, ERR_SEND_EMAIL = 40001;
+    public const ERR_UNKNOWN_ACCOUNT = 40000;
 
     /**
      * @inheritdoc
@@ -42,34 +43,23 @@ class PHS_Action_Verify_email_bg extends PHS_Action
 
         $lang = $accounts_model->get_account_language($account_arr) ?: self::get_default_language();
 
-        $hook_args = [];
-        $hook_args['force_language'] = $lang;
-        $hook_args['template'] = $accounts_plugin->email_template_resource_from_file('verify_email', $lang);
-        $hook_args['to'] = $account_arr['email'];
-        $hook_args['to_name'] = $account_arr['nick'];
-        $hook_args['subject'] = $this->_pt('Verify Email', $lang);
-        $hook_args['email_vars'] = [
-            'nick'            => $account_arr['nick'],
-            'activation_link' => $accounts_plugin->get_confirmation_link($account_arr, $accounts_plugin::CONF_REASON_EMAIL),
-            'contact_us_link' => PHS::url(['a' => 'contact_us']),
-        ];
+        $email_obj
+            = PHS_Email::get_instance()
+                ?->force_language($lang)
+                ->template('verify_email', $accounts_plugin)
+                ->to($account_arr['email'], $account_arr['nick'])
+                ->subject($this->_pt('Verify Email', $lang))
+                ->email_variables([
+                    'nick'            => $account_arr['nick'],
+                    'activation_link' => $accounts_plugin->get_confirmation_link($account_arr, $accounts_plugin::CONF_REASON_EMAIL),
+                    'contact_us_link' => PHS::url(['a' => 'contact_us']),
+                ]);
 
-        if (($hook_results = PHS_Hooks::trigger_email($hook_args)) === null) {
-            return self::default_action_result();
-        }
-
-        if (empty($hook_results['send_result'])) {
-            $this->copy_or_set_static_error(
-                self::ERR_SEND_EMAIL,
-                $this->_pt('Error sending verify email message to %s.', $account_arr['email'])
-            );
-
+        if (!$email_obj?->send()) {
             PHS_Logger::error(
-                'Error sending forgot password email: '.$this->get_simple_error_message(),
+                'Error sending verify email: '.$email_obj?->get_simple_error_message() ?? 'Unknown error.',
                 PHS_Logger::TYPE_DEBUG
             );
-
-            $this->reset_error();
         }
 
         return self::default_action_result();

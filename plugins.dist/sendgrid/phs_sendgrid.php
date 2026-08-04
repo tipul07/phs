@@ -8,8 +8,11 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
-use phs\system\core\views\PHS_View;
+use phs\system\core\libraries\PHS_Email;
+use phs\system\core\views\PHS_View_email;
 use phs\plugins\sendgrid\libraries\PHS_Sendgrid;
+use phs\system\core\events\emails\PHS_Event_Emails_send;
+use phs\system\core\events\emails\PHS_Event_Emails_settings;
 
 class PHS_Plugin_Sendgrid extends PHS_Plugin
 {
@@ -36,17 +39,18 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
                 'display_hint' => 'What template should be used when sending emails',
                 'type'         => PHS_Params::T_ASIS,
                 'input_type'   => self::INPUT_TYPE_TEMPLATE,
-                'default'      => $this->template_resource_from_file('template_emails'),
+                'default'      => $this->email_template_resource_from_file('template_emails'),
             ],
             'email_vars' => [
                 'display_name' => 'Emails variables',
                 'display_hint' => 'These variables will be available in email template',
                 'input_type'   => self::INPUT_TYPE_KEY_VAL_ARRAY,
                 'default'      => [
-                    'site_name'    => PHS_SITE_NAME,
-                    'from_name'    => PHS_SITE_NAME,
-                    'from_email'   => 'office@'.PHS_DOMAIN,
-                    'from_noreply' => 'noreply@'.PHS_DOMAIN,
+                    'site_name'         => PHS_SITE_NAME,
+                    'from_name'         => PHS_SITE_NAME,
+                    'from_email'        => 'office@'.PHS_DOMAIN,
+                    'from_noreply'      => 'noreply@'.PHS_DOMAIN,
+                    'from_noreply_name' => PHS_SITE_NAME,
                 ],
             ],
             'sendgrid_api_key' => [
@@ -71,6 +75,23 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         ];
     }
 
+    public function get_sendgrid_api_key() : string
+    {
+        return $this->get_plugin_settings()['sendgrid_api_key'] ?? '';
+    }
+
+    public function get_max_attachment_size() : int
+    {
+        return (int)($this->get_plugin_settings()['max_attachment_size'] ?? 0);
+    }
+
+    public function get_email_vars() : array
+    {
+        $email_vars = $this->get_plugin_settings()['email_vars'] ?? [];
+
+        return is_array($email_vars) ? $email_vars : [];
+    }
+
     public function display_test_sending_emails($params) : ?string
     {
         $params = self::validate_array($params, self::default_custom_renderer_params());
@@ -82,52 +103,34 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         $testing_error = '';
         $testing_success = false;
 
-        if (!($test_email_sending_email = PHS_Params::_pg('test_email_sending_email', PHS_Params::T_EMAIL))) {
-            $test_email_sending_email = '';
-        }
-        if (!($do_test_email_sending_submit = PHS_Params::_p('do_test_email_sending_submit'))) {
-            $do_test_email_sending_submit = false;
-        }
+        $test_email_sending_email = PHS_Params::_pg('test_email_sending_email', PHS_Params::T_EMAIL) ?: '';
 
-        if (!empty($do_test_email_sending_submit)) {
-            if (empty($test_email_sending_email)
-             || !PHS_Params::check_type($test_email_sending_email, PHS_Params::T_EMAIL)) {
-                $testing_error .= ($testing_error !== '' ? '<br/>' : '').$this->_pt('Please provide a valid email address.');
+        if (PHS_Params::_p('do_test_email_sending_submit')) {
+            if (!$test_email_sending_email
+                || !PHS_Params::check_type($test_email_sending_email, PHS_Params::T_EMAIL)) {
+                $testing_error = $this->_pt('Please provide a valid email address.');
             } else {
-                $previous_error = self::st_stack_error();
-                self::st_reset_error();
+                $email_obj
+                    = PHS_Email::get_instance()
+                        ?->to($test_email_sending_email, self::_t('Site test email'))
+                        ->subject('Site test email')
+                        ->full_body(
+                            'Hello,<br/>'."\n"
+                            .'<br/>'."\n"
+                            .'This is a test email sent from '.PHS_SITE_NAME.' ('.PHS::url().')<br/>'."\n"
+                            .'<br/>'."\n"
+                            .'<strong>Note</strong>: this email is sent using SendGrid plugin ('.$this->instance_plugin_name().' v'.$this->get_plugin_version().')<br/>'
+                            .'<br/>'."\n"
+                            .'Best wishes,<br/>'."\n"
+                            .PHS_SITE_NAME.' team<br/>'."\n"
+                        );
 
-                $hook_args = [];
-                $hook_args['subject'] = 'Site test email';
-                $hook_args['to'] = $test_email_sending_email;
-                $hook_args['to_name'] = self::_t('Site test email');
-                $hook_args['body_buffer'] = 'Hello,<br/>'."\n"
-                    .'<br/>'."\n"
-                    .'This is a test email sent from '.PHS_SITE_NAME.' ('.PHS::url().')<br/>'."\n"
-                    .'<br/>'."\n"
-                    .'<strong>Note</strong>: this email is sent using SendGrid plugin ('.$this->instance_plugin_name().' v'.$this->get_plugin_version().')<br/>'."\n"
-                    .'<br/>'."\n"
-                    .'Best wishes,<br/>'."\n"
-                    .PHS_SITE_NAME.' team<br/>'."\n";
-
-                if (!($hook_results = PHS_Hooks::trigger_email($hook_args))
-                 || !is_array($hook_results)
-                 || empty($hook_results['send_result'])) {
-                    if (empty($hook_results)
-                     && self::st_has_error()) {
-                        $testing_error .= ($testing_error !== '' ? '<br/>' : '').self::st_get_error_message();
-                    } elseif (!empty($hook_results)
-                    && !empty($hook_results['hook_errors']) && is_array($hook_results['hook_errors'])
-                    && self::arr_has_error($hook_results['hook_errors'])) {
-                        $testing_error .= ($testing_error !== '' ? '<br/>' : '').self::arr_get_error_message($hook_results['hook_errors']);
-                    } else {
-                        $testing_error .= ($testing_error !== '' ? '<br/>' : '').$this->_pt('Error sending email to provided email address.');
-                    }
-                } else {
+                if ($email_obj?->send()) {
                     $testing_success = true;
+                } else {
+                    $testing_error = $email_obj?->get_simple_error_message()
+                                     ?? $this->_pt('Error sending email to provided email address.');
                 }
-
-                self::st_restore_errors($previous_error);
             }
         }
 
@@ -159,7 +162,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         $template_params = [];
         $template_params['theme_relative_dirs'] = [PHS_EMAILS_DIRS];
 
-        if (!($email_main_template = PHS_View::validate_template_resource($settings_arr['template_main'], $template_params))) {
+        if (!($email_main_template = PHS_View_email::validate_template_resource($settings_arr['template_main'], $template_params))) {
             $this->set_error(self::ERR_TEMPLATE, $this->_pt('Failed validating main email template file.'));
 
             PHS_Logger::error('Failed validating main email template file.', self::LOG_CHANNEL);
@@ -171,7 +174,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
 
         if (empty($hook_args['body_buffer'])
             && (empty($hook_args['template'])
-                || !($email_template = PHS_View::validate_template_resource($hook_args['template'], $template_params))
+                || !($email_template = PHS_View_email::validate_template_resource($hook_args['template'], $template_params))
             )) {
             $this->copy_or_set_static_error(self::ERR_TEMPLATE, $this->_pt('Failed validating email template file.'));
 
@@ -207,32 +210,28 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         }
 
         $view_params = [];
-        $view_params['action_obj'] = false;
-        $view_params['controller_obj'] = false;
-        $view_params['parent_plugin_obj'] = $this;
-        $view_params['plugin'] = $this->instance_plugin_name();
+        $view_params['plugin_obj'] = $this;
         $view_params['template_data'] = [
             'hook_args'     => $hook_args,
             'email_content' => '',
         ];
 
+        $email_template_obj = null;
         if (!empty($hook_args['body_buffer'])) {
             $email_content_buffer = $hook_args['body_buffer'];
         } elseif (empty($email_template)
-                  || !($email_template_obj = PHS_View::init_view($email_template, $view_params))
+                  || !($email_template_obj = PHS_View_email::init_view($email_template, $view_params))
                   || !($email_content_buffer = $email_template_obj->render(force_language: $hook_args['force_language'] ?? null))) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
-            } elseif (!empty($email_template_obj) && $email_template_obj->has_error()) {
+            } elseif ($email_template_obj !== null && $email_template_obj->has_error()) {
                 $this->copy_error($email_template_obj);
             }
 
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_TEMPLATE, $this->_pt('Rendering template %s resulted in empty buffer.',
-                    (!empty($email_template_obj) ? $email_template_obj->get_template() : '(???)')));
-            }
+            $this->set_error_if_not_set(self::ERR_TEMPLATE, $this->_pt('Rendering template %s resulted in empty buffer.',
+                $email_template_obj?->get_template() ?: '(???)'));
 
-            PHS_Logger::error('Email template render error ['.$this->get_error_message().'].', self::LOG_CHANNEL);
+            PHS_Logger::error('Email template render error ['.$this->get_simple_error_message().'].', self::LOG_CHANNEL);
 
             $hook_args['hook_errors'] = self::arr_set_error(self::ERR_TEMPLATE, $this->_pt('Rendering template resulted in empty buffer.'));
 
@@ -241,20 +240,18 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
 
         $view_params['template_data']['email_content'] = $email_content_buffer;
 
-        if (!($main_template_obj = PHS_View::init_view($email_main_template, $view_params))
+        if (!($main_template_obj = PHS_View_email::init_view($email_main_template, $view_params))
             || !($email_html_body = $main_template_obj->render(force_language: $hook_args['force_language'] ?? null))) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
-            } elseif (!empty($main_template_obj) && $main_template_obj->has_error()) {
+            } elseif ($main_template_obj !== null && $main_template_obj->has_error()) {
                 $this->copy_error($main_template_obj);
             }
 
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_TEMPLATE, $this->_pt('Rendering template %s resulted in empty buffer.',
-                    ($main_template_obj ? $main_template_obj->get_template() : '(???)')));
-            }
+            $this->set_error_if_not_set(self::ERR_TEMPLATE, $this->_pt('Rendering template %s resulted in empty buffer.',
+                ($main_template_obj ? $main_template_obj->get_template() : '(???)')));
 
-            PHS_Logger::error('Email main template render error ['.$this->get_error_message().'].', self::LOG_CHANNEL);
+            PHS_Logger::error('Email main template render error ['.$this->get_simple_error_message().'].', self::LOG_CHANNEL);
 
             $hook_args['hook_errors'] = self::arr_set_error(self::ERR_TEMPLATE, $this->_pt('Rendering main template resulted in empty buffer.'));
 
@@ -446,7 +443,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
                     $http_code = 0;
                 }
 
-                $this->set_error(self::ERR_SEND, $this->_pt('Error sending email with erro code %s.', $http_code));
+                $this->set_error(self::ERR_SEND, $this->_pt('Error sending email with error code %s.', $http_code));
 
                 PHS_Logger::error('ERROR ['.$this->get_simple_error_message().']', self::LOG_CHANNEL);
 
@@ -466,6 +463,135 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         $hook_args['send_result'] = true;
 
         return $hook_args;
+    }
+
+    public function listen_email_settings(PHS_Event_Emails_settings $event_obj) : bool
+    {
+        $event_obj->set_output([
+            'email_vars'          => $this->get_email_vars(),
+            'max_attachment_size' => $this->get_max_attachment_size(),
+        ]);
+
+        return true;
+    }
+
+    public function listen_email_send(PHS_Event_Emails_send $event_obj) : bool
+    {
+        if (!($is_success = $this->_send_from_event($event_obj->get_input()))) {
+            $this->set_error_if_not_set(self::ERR_SEND, $this->_pt('Couldn\'t send email.'));
+        }
+
+        $event_obj->set_output([
+            'send_result'  => $is_success,
+            'result_error' => $is_success ? null : $this->get_error(),
+        ]);
+
+        return true;
+    }
+
+    private function _send_from_event(array $event_input) : bool
+    {
+        $this->reset_error();
+
+        if (!($sendgrid_api_key = $this->get_sendgrid_api_key())) {
+            $this->set_error(self::ERR_SETTINGS, $this->_pt('Invalid SendGrid settings.'));
+
+            return false;
+        }
+
+        if (!$this->_get_sendgrid_library()
+            || !($email_obj = $this->sendgrid_library->get_sendgrid_instance())) {
+            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading SendGrid library.'));
+
+            return false;
+        }
+
+        if (empty($event_input['to'])
+            || !PHS_Params::check_type($event_input['to'], PHS_Params::T_EMAIL)) {
+            $this->set_error(self::ERR_SEND, $this->_pt('Destination is not an email.'));
+
+            return false;
+        }
+
+        if (empty($event_input['email_html_body']) && empty($event_input['email_text_body'])) {
+            $this->set_error(self::ERR_SEND, $this->_pt('Email body is empty.'));
+
+            return false;
+        }
+
+        $predefined_headers = [];
+        $predefined_headers['X-Sender'] = '<'.$event_input['from_email'].'>';
+        $predefined_headers['Return-Path'] = '<'.$event_input['from_email'].'>';
+        $predefined_headers['X-Mailer'] = 'PHP (PHS-MAILER-'.$this->get_plugin_version().')';
+        if (!empty($event_input['with_priority'])) {
+            $predefined_headers['X-Priority'] = '1';
+        }
+        $predefined_headers['X-Script-Time'] = (string)time();
+
+        $final_headers_arr = $predefined_headers;
+        if (!empty($event_input['custom_headers']) && is_array($event_input['custom_headers'])) {
+            foreach ($event_input['custom_headers'] as $key => $value) {
+                $final_headers_arr[$key] = $value;
+            }
+        }
+
+        $attachments = [];
+        if (!empty($event_input['attachments']) && is_array($event_input['attachments'])) {
+            foreach ($event_input['attachments'] as $file_details) {
+                if (empty($file_details['file_base64_buffer'])) {
+                    continue;
+                }
+
+                $attachments[] = [
+                    $file_details['file_base64_buffer'],
+                    $file_details['content_type'],
+                    $file_details['file_name'],
+                    $file_details['content_disposition'],
+                ];
+            }
+        }
+
+        try {
+            $email_obj->addTo($event_input['to'], $event_input['to_name'] ?? '');
+            $email_obj->setFrom($event_input['from_email'], $event_input['from_name']);
+            $email_obj->setReplyTo($event_input['reply_email'], $event_input['reply_name']);
+            $email_obj->setSubject($event_input['subject']);
+            $email_obj->addHeaders($final_headers_arr);
+
+            if (!empty($event_input['email_html_body'])) {
+                $email_obj->addContent('text/html', $event_input['email_html_body']);
+            }
+            if (!empty($event_input['email_text_body'])) {
+                $email_obj->addContent('text/plain', $event_input['email_text_body']);
+            }
+
+            if ($attachments) {
+                $email_obj->addAttachments($attachments);
+            }
+
+            $sendgrid = new SendGrid($sendgrid_api_key);
+            if (!($response = $sendgrid->send($email_obj))
+                || !($http_code = $response->statusCode())
+                || ($http_code !== 202 && $http_code !== 200)) {
+                if (empty($http_code)) {
+                    $http_code = 0;
+                }
+
+                $this->set_error(self::ERR_SEND, $this->_pt('Error sending email with error code %s.', $http_code));
+
+                PHS_Logger::error('ERROR ['.$this->get_simple_error_message().']', self::LOG_CHANNEL);
+
+                return false;
+            }
+        } catch (Exception $e) {
+            $this->set_error(self::ERR_SEND, $this->_pt('Error sending email with exception.'));
+
+            PHS_Logger::error('ERROR sending email ['.$e->getMessage().']', self::LOG_CHANNEL);
+
+            return false;
+        }
+
+        return true;
     }
 
     private function _get_sendgrid_library() : ?PHS_Sendgrid

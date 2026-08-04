@@ -7,8 +7,12 @@ use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
-use phs\system\core\views\PHS_View;
+use phs\system\core\libraries\PHS_Email;
+use phs\system\core\views\PHS_View_email;
 use phs\plugins\emails\libraries\PHS_Smtp;
+use phs\system\core\attributes\PHS_Dependency;
+use phs\system\core\events\emails\PHS_Event_Emails_send;
+use phs\system\core\events\emails\PHS_Event_Emails_settings;
 
 class PHS_Plugin_Emails extends PHS_Plugin
 {
@@ -20,6 +24,9 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
     public const LOG_CHANNEL = 'emails.log';
 
+    public const MAIN_TEMPLATE = 'template_emails';
+
+    #[PHS_Dependency]
     private ?PHS_Smtp $smtp_library = null;
 
     public static string $MAIL_AUTH_KEY = 'XMailAuth';
@@ -39,17 +46,18 @@ class PHS_Plugin_Emails extends PHS_Plugin
                         'display_hint' => 'What template should be used when sending emails',
                         'type'         => PHS_Params::T_ASIS,
                         'input_type'   => self::INPUT_TYPE_TEMPLATE,
-                        'default'      => $this->template_resource_from_file('template_emails'),
+                        'default'      => $this->email_template_resource_from_file(self::MAIN_TEMPLATE),
                     ],
                     'email_vars' => [
                         'display_name' => 'Emails variables',
                         'display_hint' => 'These variables will be available in email template',
                         'input_type'   => self::INPUT_TYPE_KEY_VAL_ARRAY,
                         'default'      => [
-                            'site_name'    => PHS_SITE_NAME,
-                            'from_name'    => PHS_SITE_NAME,
-                            'from_email'   => 'office@'.PHS_DOMAIN,
-                            'from_noreply' => 'noreply@'.PHS_DOMAIN,
+                            'site_name'         => PHS_SITE_NAME,
+                            'from_name'         => PHS_SITE_NAME,
+                            'from_email'        => 'office@'.PHS_DOMAIN,
+                            'from_noreply'      => 'noreply@'.PHS_DOMAIN,
+                            'from_noreply_name' => PHS_SITE_NAME,
                         ],
                     ],
                     'routes' => [
@@ -91,6 +99,18 @@ class PHS_Plugin_Emails extends PHS_Plugin
     public function should_log_success_emails() : bool
     {
         return (bool)($this->get_plugin_settings()['log_success_emails'] ?? false);
+    }
+
+    public function get_max_attachment_size() : int
+    {
+        return (int)($this->get_plugin_settings()['max_attachment_size'] ?? 0);
+    }
+
+    public function get_email_vars() : array
+    {
+        $email_vars = $this->get_plugin_settings()['email_vars'] ?? [];
+
+        return is_array($email_vars) ? $email_vars : [];
     }
 
     public function save_settings_routes(array $params) : ?array
@@ -193,7 +213,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         $data_arr = [];
         $data_arr['email_routes'] = $email_routes;
-        $data_arr['smtp_library'] = $this->_get_smtp_library();
+        $data_arr['smtp_library'] = $this->smtp_library;
 
         return $this->quick_render_template_for_buffer('routes_settings', $data_arr);
     }
@@ -206,9 +226,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             return '';
         }
 
-        if (!($current_settings = $this->get_plugin_settings())) {
-            $current_settings = [];
-        }
+        $current_settings = $this->get_plugin_settings();
 
         $default_route = [];
         if (!empty($current_settings['routes'])
@@ -220,51 +238,33 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $testing_error = '';
         $testing_success = false;
 
-        if (!($test_email_sending_email = PHS_Params::_pg('test_email_sending_email', PHS_Params::T_EMAIL))) {
-            $test_email_sending_email = '';
-        }
-        if (!($do_test_email_sending_submit = PHS_Params::_p('do_test_email_sending_submit'))) {
-            $do_test_email_sending_submit = false;
-        }
+        $test_email_sending_email = PHS_Params::_pg('test_email_sending_email', PHS_Params::T_EMAIL) ?: '';
 
-        if (!empty($do_test_email_sending_submit)) {
-            if (empty($test_email_sending_email)
-             || !PHS_Params::check_type($test_email_sending_email, PHS_Params::T_EMAIL)) {
-                $testing_error .= ($testing_error !== '' ? '<br/>' : '').$this->_pt('Please provide a valid email address.');
+        if (PHS_Params::_p('do_test_email_sending_submit')) {
+            if (!$test_email_sending_email
+                || !PHS_Params::check_type($test_email_sending_email, PHS_Params::T_EMAIL)) {
+                $testing_error = $this->_pt('Please provide a valid email address.');
             } else {
-                $previous_error = self::st_stack_error();
-                self::st_reset_error();
+                $email_obj
+                    = PHS_Email::get_instance()
+                        ?->to($test_email_sending_email, self::_t('Site test email'))
+                        ->subject('Site test email')
+                        ->full_body(
+                            'Hello,<br/>'."\n"
+                            .'<br/>'."\n"
+                            .'This is a test email sent from '.PHS_SITE_NAME.' ('.PHS::url().')<br/>'."\n"
+                            .'<br/>'."\n"
+                            .'<strong>Note</strong>: this email is sent using SMTP plugin ('.$this->instance_plugin_name().' v'.$this->get_plugin_version().')<br/>'.'Best wishes,<br/>'."\n"
+                            .'<br/>'."\n"
+                            .PHS_SITE_NAME.' team<br/>'."\n"
+                        );
 
-                $hook_args = [];
-                $hook_args['subject'] = 'Site test email';
-                $hook_args['to'] = $test_email_sending_email;
-                $hook_args['to_name'] = self::_t('Site test email');
-                $hook_args['body_buffer'] = 'Hello,<br/>'."\n"
-                    .'<br/>'."\n"
-                    .'This is a test email sent from '.PHS_SITE_NAME.' ('.PHS::url().')<br/>'."\n"
-                    .'<br/>'."\n"
-                    .'<strong>Note</strong>: this email is sent using SMTP plugin ('.$this->instance_plugin_name().' v'.$this->get_plugin_version().')<br/>'.'Best wishes,<br/>'."\n"
-                    .'<br/>'."\n"
-                    .PHS_SITE_NAME.' team<br/>'."\n";
-
-                if (!($hook_results = PHS_Hooks::trigger_email($hook_args))
-                 || !is_array($hook_results)
-                 || empty($hook_results['send_result'])) {
-                    if (empty($hook_results)
-                     && self::st_has_error()) {
-                        $testing_error .= ($testing_error !== '' ? '<br/>' : '').self::st_get_error_message();
-                    } elseif (!empty($hook_results)
-                    && !empty($hook_results['hook_errors']) && is_array($hook_results['hook_errors'])
-                    && self::arr_has_error($hook_results['hook_errors'])) {
-                        $testing_error .= ($testing_error !== '' ? '<br/>' : '').self::arr_get_error_message($hook_results['hook_errors']);
-                    } else {
-                        $testing_error .= ($testing_error !== '' ? '<br/>' : '').$this->_pt('Error sending email to provided email address.');
-                    }
-                } else {
+                if ($email_obj?->send()) {
                     $testing_success = true;
+                } else {
+                    $testing_error .= $email_obj?->get_simple_error_message()
+                                     ?? $this->_pt('Error sending email to provided email address.');
                 }
-
-                self::st_restore_errors($previous_error);
             }
         }
 
@@ -273,7 +273,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $data_arr['test_email_sending_success'] = $testing_success;
         $data_arr['test_email_sending_email'] = $test_email_sending_email;
         $data_arr['default_route'] = $default_route;
-        $data_arr['smtp_library'] = $this->_get_smtp_library();
+        $data_arr['smtp_library'] = $this->smtp_library;
 
         return $this->quick_render_template_for_buffer('test_email_sending', $data_arr);
     }
@@ -342,7 +342,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         $template_params = [];
         $template_params['theme_relative_dirs'] = [PHS_EMAILS_DIRS];
 
-        if (!($email_main_template = PHS_View::validate_template_resource($settings_arr['template_main'], $template_params))) {
+        if (!($email_main_template = PHS_View_email::validate_template_resource($settings_arr['template_main'], $template_params))) {
             $this->set_error(self::ERR_TEMPLATE, $this->_pt('Failed validating main email template file.'));
 
             PHS_Logger::error('Failed validating main email template file.', self::LOG_CHANNEL);
@@ -354,7 +354,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         if (empty($hook_args['body_buffer'])
             && (empty($hook_args['template'])
-            || !($email_template = PHS_View::validate_template_resource($hook_args['template'], $template_params))
+            || !($email_template = PHS_View_email::validate_template_resource($hook_args['template'], $template_params))
             )) {
             $this->copy_or_set_static_error(self::ERR_TEMPLATE, $this->_pt('Failed validating email template file.'));
 
@@ -406,10 +406,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         }
 
         $view_params = [];
-        $view_params['action_obj'] = null;
-        $view_params['controller_obj'] = null;
-        $view_params['parent_plugin_obj'] = $this;
-        $view_params['plugin'] = $this->instance_plugin_name();
+        $view_params['plugin_obj'] = $this;
         $view_params['template_data'] = [
             'hook_args'     => $hook_args,
             'email_content' => '',
@@ -419,7 +416,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         if (!empty($hook_args['body_buffer'])) {
             $email_content_buffer = $hook_args['body_buffer'];
         } elseif (empty($email_template)
-                  || !($email_template_obj = PHS_View::init_view($email_template, $view_params))
+                  || !($email_template_obj = PHS_View_email::init_view($email_template, $view_params))
                   || !($email_content_buffer = $email_template_obj->render(force_language: $hook_args['force_language'] ?? null))) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
@@ -430,7 +427,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             $this->set_error_if_not_set(self::ERR_TEMPLATE, $this->_pt('Rendering template %s resulted in empty buffer.',
                 $email_template_obj?->get_template() ?: '(???)'));
 
-            PHS_Logger::error('Email template render error ['.$this->get_error_message().'].', self::LOG_CHANNEL);
+            PHS_Logger::error('Email template render error ['.$this->get_simple_error_message().'].', self::LOG_CHANNEL);
 
             $hook_args['hook_errors'] = self::arr_set_error(self::ERR_TEMPLATE, $this->_pt('Rendering template resulted in empty buffer.'));
 
@@ -439,7 +436,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
 
         $view_params['template_data']['email_content'] = $email_content_buffer;
 
-        if (!($main_template_obj = PHS_View::init_view($email_main_template, $view_params))
+        if (!($main_template_obj = PHS_View_email::init_view($email_main_template, $view_params))
             || !($email_html_body = $main_template_obj->render(force_language: $hook_args['force_language'] ?? null))) {
             if (self::st_has_error()) {
                 $this->copy_static_error();
@@ -450,7 +447,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
             $this->set_error_if_not_set(self::ERR_TEMPLATE, $this->_pt('Rendering template %s resulted in empty buffer.',
                 ($main_template_obj ? $main_template_obj->get_template() : '(???)')));
 
-            PHS_Logger::error('Email main template render error ['.$this->get_error_message().'].', self::LOG_CHANNEL);
+            PHS_Logger::error('Email main template render error ['.$this->get_simple_error_message().'].', self::LOG_CHANNEL);
 
             $hook_args['hook_errors'] = self::arr_set_error(self::ERR_TEMPLATE, $this->_pt('Rendering main template resulted in empty buffer.'));
 
@@ -659,11 +656,157 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $hook_args;
     }
 
-    private function _get_smtp_library() : ?PHS_Smtp
+    public function listen_email_settings(PHS_Event_Emails_settings $event_obj) : bool
     {
-        $this->smtp_library ??= PHS_Smtp::get_instance();
+        $event_obj->set_output([
+            'email_vars'          => $this->get_email_vars(),
+            'max_attachment_size' => $this->get_max_attachment_size(),
+        ]);
 
-        return $this->smtp_library;
+        return true;
+    }
+
+    public function listen_email_send(PHS_Event_Emails_send $event_obj) : bool
+    {
+        if (!($is_success = $this->_send_from_event($event_obj->get_input()))) {
+            $this->set_error_if_not_set(self::ERR_SEND, $this->_pt('Couldn\'t send email.'));
+        }
+
+        $event_obj->set_output([
+            'send_result'  => $is_success,
+            'result_error' => $is_success ? null : $this->get_error(),
+        ]);
+
+        return true;
+    }
+
+    private function _send_from_event(array $event_input) : bool
+    {
+        $this->reset_error();
+
+        if (!($route_settings = $this->get_smtp_route_settings(self::DEFAULT_ROUTE))
+            || (!empty($route_settings['smtp_pass'])
+                && !($route_settings['smtp_pass'] = PHS_Crypt::quick_decode($route_settings['smtp_pass'])))) {
+            $this->set_error(self::ERR_SETTINGS, $this->_pt('Invalid SMTP route settings.'));
+
+            return false;
+        }
+
+        if (empty($event_input['to'])
+            || !PHS_Params::check_type($event_input['to'], PHS_Params::T_EMAIL)) {
+            $this->set_error(self::ERR_SEND, $this->_pt('Destination is not an email.'));
+
+            return false;
+        }
+
+        if (empty($event_input['email_html_body']) && empty($event_input['email_text_body'])) {
+            $this->set_error(self::ERR_SEND, $this->_pt('Email body is empty.'));
+
+            return false;
+        }
+
+        // set multipart boundary
+        $hash = md5(microtime());
+        $mime_boundary = '==MULTIPART_BOUNDARY_'.$hash;
+        $mime_boundary_header = chr(34).$mime_boundary.chr(34);
+
+        $predefined_headers = [];
+        $predefined_headers['From'] = $event_input['from_name'].' <'.$event_input['from_email'].'>';
+        $predefined_headers['X-Sender'] = '<'.$event_input['from_email'].'>';
+        $predefined_headers['Return-Path'] = '<'.$event_input['from_email'].'>';
+        $predefined_headers['Reply-To'] = $event_input['reply_name'].' <'.$event_input['reply_email'].'>';
+        $predefined_headers['X-Mailer'] = 'PHP (PHS-MAILER-'.$this->get_plugin_version().')';
+        if (!empty($event_input['with_priority'])) {
+            $predefined_headers['X-Priority'] = '1';
+        }
+        $predefined_headers['MIME-Version'] = '1.0';
+        $predefined_headers['Content-Type'] = 'multipart/alternative; boundary='.$mime_boundary_header;
+        $predefined_headers['Content-Transfer-Encoding'] = '7bit';
+        $predefined_headers['X-Script-Time'] = time();
+
+        if (null !== ($mail_id = PHS_Crypt::quick_encode(self::mail_auth_key().':'.time()))) {
+            // for single emails it's ok, but when sending multiple emails it might take too much time
+            $predefined_headers['X-Mail-ID'] = $mail_id;
+        } else {
+            $predefined_headers['X-SMail-ID'] = md5(self::mail_auth_key().':'.time());
+        }
+
+        $final_headers_arr = $predefined_headers;
+        if (!empty($event_input['custom_headers']) && is_array($event_input['custom_headers'])) {
+            foreach ($event_input['custom_headers'] as $key => $value) {
+                $final_headers_arr[$key] = $value;
+            }
+        }
+
+        $full_body = 'This is a multi-part message in MIME format.'."\n\n"
+                     .'--'.$mime_boundary."\n"
+                     .'Content-Type: text/plain; charset=UTF-8'."\n"
+                     .'Content-Transfer-Encoding: 7bit'."\n\n"
+                     .$event_input['email_text_body']."\n\n"
+                     .'--'.$mime_boundary."\n"
+                     .'Content-Type: text/html; charset=UTF-8'."\n"
+                     .'Content-Transfer-Encoding: 7bit'."\n\n"
+                     .$event_input['email_html_body']."\n\n";
+
+        if (!empty($event_input['attachments']) && is_array($event_input['attachments'])) {
+            foreach ($event_input['attachments'] as $file_details) {
+                if (empty($file_details['file_base64_buffer'])) {
+                    continue;
+                }
+
+                $full_body .= '--'.$mime_boundary."\n"
+                              .'Content-Type: '.$file_details['content_type'].';'."\n\t".' name="'.$file_details['file_name'].'"'."\n"
+                              .'Content-Transfer-Encoding: '.$file_details['transfer_encoding']."\n"
+                              .'Content-Disposition: '.$file_details['content_disposition'].';'."\n\t".' filename="'.$file_details['file_name'].'"'."\n\n"
+                              .chunk_split($file_details['file_base64_buffer']);
+            }
+
+            $full_body .= '--'.$mime_boundary."--\n\n";
+        }
+
+        $this->smtp_library->settings($route_settings);
+
+        $this->smtp_library->email_details([
+            'headers'       => $final_headers_arr,
+            'to_name'       => $event_input['to_name'] ?? '',
+            'to_email'      => $event_input['to'],
+            'reply_to'      => $event_input['reply_email'],
+            'reply_name'    => $event_input['reply_name'],
+            'from_name'     => $event_input['from_name'],
+            'from_email'    => $event_input['from_email'],
+            'subject'       => $event_input['subject'],
+            'mime_boundary' => $mime_boundary,
+            'body_html'     => $event_input['email_html_body'],
+            'body_txt'      => $event_input['email_text_body'],
+            'body_full'     => $full_body,
+        ]);
+
+        if ($this->smtp_library->send()) {
+            if ($this->should_log_success_emails()) {
+                $this->_log_success_email($this->smtp_library->get_last_email_details());
+            }
+
+            return true;
+        }
+
+        $this->copy_or_set_error($this->smtp_library,
+            self::ERR_SEND, $this->_pt('Error sending email using SMTP library.'));
+
+        $this->_log_debug_log();
+
+        return false;
+    }
+
+    private function _log_debug_log() : void
+    {
+        if (($debugging_log = $this->smtp_library->debug_log())) {
+            $debugging_str = '';
+            foreach ($debugging_log as $cmd_arr) {
+                $debugging_str .= $cmd_arr['cmd']."\n".$cmd_arr['response']."\n";
+            }
+
+            PHS_Logger::error('Detailed log:'."\n".$debugging_str, self::LOG_CHANNEL);
+        }
     }
 
     private function _send_email_smtp(array $hook_args) : array
@@ -683,14 +826,6 @@ class PHS_Plugin_Emails extends PHS_Plugin
             return $hook_args;
         }
 
-        if (!($smtp_library = PHS_Smtp::get_instance())) {
-            $this->set_error_if_not_set(self::ERR_LIBRARY, $this->_pt('Error loading SMTP library.'));
-
-            $hook_args['hook_errors'] = self::arr_set_error(self::ERR_SEND, $this->_pt('Error loading SMTP library.'));
-
-            return $hook_args;
-        }
-
         if (!is_array($hook_args['route_settings'])) {
             $smtp_settings = [];
         } else {
@@ -706,9 +841,9 @@ class PHS_Plugin_Emails extends PHS_Plugin
             return $hook_args;
         }
 
-        $smtp_library->settings($smtp_settings);
+        $this->smtp_library->settings($smtp_settings);
 
-        $email_settings = [
+        $this->smtp_library->email_details([
             'headers'       => $hook_args['internal_vars']['full_headers'],
             'to_name'       => (!empty($hook_args['to_name']) ? $hook_args['to_name'] : ''),
             'to_email'      => $hook_args['to'],
@@ -721,32 +856,23 @@ class PHS_Plugin_Emails extends PHS_Plugin
             'body_html'     => $hook_args['email_html_body'],
             'body_txt'      => $hook_args['email_text_body'],
             'body_full'     => $hook_args['full_body'],
-        ];
+        ]);
 
-        $smtp_library->email_details($email_settings);
-
-        if ($smtp_library->send()) {
+        if ($this->smtp_library->send()) {
             $hook_args['send_result'] = true;
 
             if ($this->should_log_success_emails()) {
-                $this->_log_success_email($smtp_library->get_last_email_details());
+                $this->_log_success_email($this->smtp_library->get_last_email_details());
             }
         } else {
             $hook_args['send_result'] = false;
 
             $hook_args['hook_errors'] = self::arr_set_error(self::ERR_SEND, $this->_pt('Error sending email using SMTP library.'));
 
-            $this->copy_or_set_error($smtp_library,
+            $this->copy_or_set_error($this->smtp_library,
                 self::ERR_SEND, $this->_pt('Error sending email using SMTP library.'));
 
-            if (($debugging_log = $smtp_library->debug_log())) {
-                $debugging_str = '';
-                foreach ($debugging_log as $cmd_arr) {
-                    $debugging_str .= $cmd_arr['cmd']."\n".$cmd_arr['response']."\n";
-                }
-
-                PHS_Logger::error('Detailed log:'."\n".$debugging_str, self::LOG_CHANNEL);
-            }
+            $this->_log_debug_log();
         }
 
         return $hook_args;
