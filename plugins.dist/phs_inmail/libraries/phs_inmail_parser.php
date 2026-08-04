@@ -18,12 +18,6 @@ class PHS_Inmail_parser extends PHS_Library
     {
         $this->reset_error();
 
-        if (!$this->_inmail_plugin->is_inmail_enabled()) {
-            $this->set_error(self::ERR_SETTINGS, $this->_pt('Incoming email is not enabled.'));
-
-            return false;
-        }
-
         if (!($mime_lib = PHS_Mime_parser::get_instance(as_singleton: true))) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
@@ -38,12 +32,6 @@ class PHS_Inmail_parser extends PHS_Library
     public function check_incoming_email_from_file(string $file) : bool
     {
         $this->reset_error();
-
-        if (!$this->_inmail_plugin->is_inmail_enabled()) {
-            $this->set_error(self::ERR_SETTINGS, $this->_pt('Incoming email is not enabled.'));
-
-            return false;
-        }
 
         if (!($mime_lib = PHS_Mime_parser::get_instance(as_singleton: true))) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
@@ -65,7 +53,8 @@ class PHS_Inmail_parser extends PHS_Library
     {
         if (!$this->_check_incoming_email_conditions($mime_lib)
             || null === ($attachments_arr = $this->_convert_attachments_to_files($mime_lib))) {
-            PHS_Logger::warning('Mail didn\'t meet required conditions or failed extracting attachments.', $this->_inmail_plugin::LOG_CHANNEL);
+            PHS_Logger::warning('Mail didn\'t meet required conditions or failed extracting attachments.',
+                $this->_inmail_plugin::LOG_CHANNEL);
 
             return false;
         }
@@ -146,6 +135,12 @@ class PHS_Inmail_parser extends PHS_Library
                                     .$parsing_id.', attachment #'.$attachment_id.', path ['.$filepath.'].',
                     $this->_inmail_plugin::LOG_CHANNEL
                 );
+
+                foreach ($return_arr['files'] as $file) {
+                    if (!empty($file['file_path'])) {
+                        @unlink($file['file_path']);
+                    }
+                }
 
                 $this->set_error(self::ERR_FUNCTIONALITY,
                     $this->_pt('Error writing email attachment file.'));
@@ -228,6 +223,10 @@ class PHS_Inmail_parser extends PHS_Library
            && null !== ($cond = $this->_check_email_list($from_emails, $logic_condition,
                fn(string $email) => $mime_lib->email_from_contains_email($email))
            )) {
+            if (!$cond) {
+                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Failed FROM condition.'));
+            }
+
             return $cond;
         }
 
@@ -235,6 +234,10 @@ class PHS_Inmail_parser extends PHS_Library
            && null !== ($cond = $this->_check_email_list($to_emails, $logic_condition,
                fn(string $email) => $mime_lib->email_to_contains_email($email))
            )) {
+            if (!$cond) {
+                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Failed TO condition.'));
+            }
+
             return $cond;
         }
 
@@ -242,6 +245,10 @@ class PHS_Inmail_parser extends PHS_Library
            && null !== ($cond = $this->_check_email_list($cc_emails, $logic_condition,
                fn(string $email) => $mime_lib->email_cc_contains_email($email))
            )) {
+            if (!$cond) {
+                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Failed CC condition.'));
+            }
+
             return $cond;
         }
 
@@ -249,6 +256,10 @@ class PHS_Inmail_parser extends PHS_Library
            && null !== ($cond = $this->_check_email_list($bcc_emails, $logic_condition,
                fn(string $email) => $mime_lib->email_bcc_contains_email($email))
            )) {
+            if (!$cond) {
+                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Failed BCC condition.'));
+            }
+
             return $cond;
         }
 
@@ -257,6 +268,10 @@ class PHS_Inmail_parser extends PHS_Library
                       && @preg_match('/'.$subject_regex.'/i', $subject);
 
             if (null !== ($cond = $this->_check_condition_result_with_logic_condition($result, $logic_condition))) {
+                if (!$cond) {
+                    $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Failed SUBJECT condition.'));
+                }
+
                 return $cond;
             }
         }
@@ -265,6 +280,10 @@ class PHS_Inmail_parser extends PHS_Library
             $result = $has_attachment && $mime_lib->has_attachments();
 
             if (null !== ($cond = $this->_check_condition_result_with_logic_condition($result, $logic_condition))) {
+                if (!$cond) {
+                    $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Failed arrachments condition.'));
+                }
+
                 return $cond;
             }
         }
