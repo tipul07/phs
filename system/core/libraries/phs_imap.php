@@ -2,9 +2,9 @@
 namespace phs\system\core\libraries;
 
 use phs\libraries\PHS_Logger;
-use phs\libraries\PHS_Library;
+use phs\libraries\PHS_Library_instantiable;
 
-class PHS_Imap extends PHS_Library
+class PHS_Library_Imap extends PHS_Library_instantiable
 {
     public const PORT_SSL = 993, PORT_NON_SSL = 143;
 

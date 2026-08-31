@@ -111,7 +111,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
                 $testing_error = $this->_pt('Please provide a valid email address.');
             } else {
                 $email_obj
-                    = PHS_Email::get_instance()
+                    = phs_email()
                         ?->to($test_email_sending_email, self::_t('Site test email'))
                         ->subject('Site test email')
                         ->full_body(

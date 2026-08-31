@@ -266,7 +266,6 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         }
 
         // Low level hook for plugin settings keys that should be obfuscated (allows only keys that are not present in plugin settings)
-        /** @var PHS_Event_Plugin_settings $event_obj */
         if (($event_obj = PHS_Event_Plugin_settings::trigger([
             'tenant_id'    => $tenant_id,
             'instance_id'  => $instance_id,

@@ -729,7 +729,7 @@ class PHS_Error
      *
      * @return array|false|\stdClass|string
      */
-    public static function var_dump(mixed $var, array $params = [])
+    public static function var_dump(mixed $var, array $params = []) : mixed
     {
         $params['level'] ??= 0;
         $params['max_level'] ??= 3;

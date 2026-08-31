@@ -3,12 +3,12 @@ namespace phs\system\core\libraries;
 
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
-use phs\libraries\PHS_Library;
 use phs\system\core\views\PHS_View_email;
+use phs\libraries\PHS_Library_instantiable;
 use phs\system\core\events\emails\PHS_Event_Emails_send;
 use phs\system\core\events\emails\PHS_Event_Emails_settings;
 
-class PHS_Email extends PHS_Library
+class PHS_Library_Email extends PHS_Library_instantiable
 {
     public const ERR_ATTACHMENTS = 40000, ERR_SEND = 40001, ERR_TEMPLATE = 40002;
 
@@ -124,7 +124,7 @@ class PHS_Email extends PHS_Library
         return $this;
     }
 
-    public function force_language(string $force_language) : self
+    public function force_language(?string $force_language) : self
     {
         $this->_force_language = $force_language;
 
@@ -364,8 +364,8 @@ class PHS_Email extends PHS_Library
             return false;
         }
 
-        $email_text_body = strip_tags(preg_replace("/[\r\n]+/", "\n",
-            str_ireplace(['<p>', '</p>'], "\n", preg_replace('/\<br(\s*)?\/?\>/i', "\n", $email_html_body))));
+        $email_text_body = str_replace("\n\n\n", "\n\n", strip_tags(preg_replace("/[\r\n]+/", "\n",
+            str_ireplace(['<p>', '</p>'], "\n", preg_replace('/\<br(\s*)?\/?\>/i', "\n", $email_html_body)))));
 
         if (!($event_obj = PHS_Event_Emails_send::trigger([
             'force_language' => $this->_force_language,

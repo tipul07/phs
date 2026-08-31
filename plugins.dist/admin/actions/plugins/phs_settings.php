@@ -3,12 +3,8 @@ namespace phs\plugins\admin\actions\plugins;
 
 use phs\PHS;
 use phs\PHS_Scope;
-use phs\PHS_Crypt;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
-use phs\libraries\PHS_Plugin;
-use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
 use phs\libraries\PHS_Has_db_settings;
 use phs\plugins\admin\PHS_Plugin_Admin;
@@ -154,15 +150,14 @@ class PHS_Action_Settings extends PHS_Action
                     return action_redirect(['p' => 'admin', 'a' => 'settings', 'ad' => 'plugins'], $args);
                 }
 
-                if ($instance_obj->has_error()) {
-                    PHS_Notifications::add_error_notice($instance_obj->get_error_message());
-                } else {
-                    PHS_Notifications::add_error_notice($this->_pt('Error saving settings in database. Please try again.'));
-                }
+                PHS_Notifications::add_error_notice(
+                    $instance_obj->get_simple_error_message(
+                        $this->_pt('Error saving settings in database. Please try again.'))
+                );
             }
         }
 
-        $data = [
+        return $this->quick_render_template('plugins/settings', [
             'back_page' => $back_page,
             'tenant_id' => $tenant_id,
             'pid' => $pid,
@@ -173,8 +168,6 @@ class PHS_Action_Settings extends PHS_Action
             'tenants_model' => $tenants_model,
             'plugins_model' => $plugins_model,
             'admin_plugin' => $admin_plugin,
-        ];
-
-        return $this->quick_render_template('plugins/settings', $data);
+        ]);
     }
 }

@@ -16,6 +16,7 @@ use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Record_data;
 use phs\libraries\PHS_Model_Core_base;
+use phs\system\core\libraries\PHS_Library_Email;
 use phs\system\core\libraries\PHS_Migrations_manager;
 use phs\system\core\libraries\PHS_Requests_queue_manager;
 
@@ -25,6 +26,11 @@ function phs_version() : string
 }
 
 // region Helper functions
+function phs_email() : ?PHS_Library_Email
+{
+    return PHS_Library_Email::get_instance();
+}
+
 function action_request_login(array $action_result = []) : array
 {
     $action_result = $action_result ?: PHS_Action::default_action_result();
@@ -287,6 +293,9 @@ function phs_init_before_bootstrap() : bool
     }
     if (!defined('PHS_CORE_GRAPHQL_DIR')) {
         define('PHS_CORE_GRAPHQL_DIR', PHS_CORE_DIR.'graphql/');
+    }
+    if (!defined('PHS_CORE_LIBRARY_DIR')) {
+        define('PHS_CORE_LIBRARY_DIR', PHS_CORE_DIR.'libraries/');
     }
     if (!defined('PHS_CORE_PLUGIN_DIR')) {
         define('PHS_CORE_PLUGIN_DIR', PHS_CORE_DIR.'plugins/');

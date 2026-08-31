@@ -216,11 +216,6 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         self::scan_for_language_files($languages_dir);
     }
 
-    /**
-     * @param bool $slash_ended
-     *
-     * @return string
-     */
     final public function get_plugin_libraries_www(bool $slash_ended = true) : string
     {
         if ($this->instance_is_core()
@@ -231,15 +226,11 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $prefix.self::LIBRARIES_DIR.($slash_ended ? '/' : '');
     }
 
-    /**
-     * @param bool $slash_ended
-     * @return bool|string
-     */
-    final public function get_plugin_libraries_path($slash_ended = true)
+    final public function get_plugin_libraries_path(bool $slash_ended = true) : string
     {
         if ($this->instance_is_core()
-         || !($prefix = $this->instance_plugin_path())) {
-            return false;
+            || !($prefix = $this->instance_plugin_path())) {
+            return '';
         }
 
         return $prefix.self::LIBRARIES_DIR.($slash_ended ? '/' : '');
@@ -302,10 +293,10 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         if ($params['as_singleton']
-            && !empty($this->_libraries_instances[$library_file])) {
-            $this->_libraries_instances[$library_file]->reset_error();
+            && ($instance_obj = self::get_instance_for_full_class_with_namespace($params['full_class_name']))) {
+            $instance_obj->reset_error();
 
-            return $this->_libraries_instances[$library_file];
+            return $instance_obj;
         }
 
         if (!($file_path = $this->load_library_file($library_file, $params['path_in_lib_dir']))) {
@@ -381,7 +372,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         if (!empty($params['as_singleton'])) {
-            $this->_libraries_instances[$library_file] = $library_instance;
+            self::set_instance_for_full_class_with_namespace($params['full_class_name'], $library_instance);
         }
 
         return $library_instance;

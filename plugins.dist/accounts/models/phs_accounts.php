@@ -481,6 +481,15 @@ class PHS_Model_Accounts extends PHS_Model
         return $accounts_details_arr;
     }
 
+    public function get_full_account_name(null | bool | int | array | PHS_Record_data $account_data) : ?string
+    {
+        if (!($account_details = $this->get_account_details($account_data))) {
+            return null;
+        }
+
+        return $this->_account_details_model->get_full_account_name($account_details);
+    }
+
     final public function get_levels(null | bool | string $lang = false) : array
     {
         static $levels_arr = [];

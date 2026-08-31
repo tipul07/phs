@@ -37,7 +37,7 @@ class PHS_Action_Forgot_password_bg extends PHS_Action
         $lang = $accounts_model->get_account_language($account_arr) ?: self::get_default_language();
 
         $email_obj
-            = PHS_Email::get_instance()
+            = phs_email()
                 ?->force_language($lang)
                 ->to($account_arr['email'], $account_arr['nick'])
                 ->template('forgot', $accounts_plugin)

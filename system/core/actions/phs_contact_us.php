@@ -81,7 +81,7 @@ class PHS_Action_Contact_us extends PHS_Action
             }
 
             $email_obj
-                = PHS_Email::get_instance()
+                = phs_email()
                     ?->template('contact_us')
                     ->from($email, self::_t('Site Contact'))
                     ->subject(self::_t('Contact Us: %s', $subject))

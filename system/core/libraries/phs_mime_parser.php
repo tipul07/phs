@@ -1,10 +1,10 @@
 <?php
 namespace phs\system\core\libraries;
 
-use phs\libraries\PHS_Library;
 use phs\libraries\PHS_Mime_part;
+use phs\libraries\PHS_Library_instantiable;
 
-class PHS_Mime_parser extends PHS_Library
+class PHS_Library_Mime_parser extends PHS_Library_instantiable
 {
     public const ERR_INPUT_BUFFER = 1;
 

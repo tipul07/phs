@@ -1206,7 +1206,7 @@ class PHS_Paginator extends PHS_Registry
         }
 
         if (empty($params['exporter_library'])
-            && !($params['exporter_library'] = PHS_Paginator_exporter_csv::get_instance($params['exporter_library_params']))) {
+            && !($params['exporter_library'] = PHS_Paginator_exporter_csv::get_instance(init_params: $params['exporter_library_params']))) {
             $this->copy_or_set_static_error(self::ERR_FUNCTIONALITY, self::_t('Error loading default CSV export library.'));
 
             return null;

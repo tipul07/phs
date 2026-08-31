@@ -5,8 +5,8 @@ use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Library;
 use phs\system\core\attributes\PHS_Dependency;
-use phs\system\core\libraries\PHS_Mime_parser;
 use phs\plugins\phs_inmail\PHS_Plugin_Phs_inmail;
+use phs\system\core\libraries\PHS_Library_Mime_parser;
 use phs\plugins\phs_inmail\events\PHS_Event_Inmail_new;
 
 class PHS_Inmail_parser extends PHS_Library
@@ -18,7 +18,7 @@ class PHS_Inmail_parser extends PHS_Library
     {
         $this->reset_error();
 
-        if (!($mime_lib = PHS_Mime_parser::get_instance(as_singleton: true))) {
+        if (!($mime_lib = PHS_Library_Mime_parser::get_instance(as_singleton: true))) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
@@ -33,7 +33,7 @@ class PHS_Inmail_parser extends PHS_Library
     {
         $this->reset_error();
 
-        if (!($mime_lib = PHS_Mime_parser::get_instance(as_singleton: true))) {
+        if (!($mime_lib = PHS_Library_Mime_parser::get_instance(as_singleton: true))) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
@@ -49,7 +49,7 @@ class PHS_Inmail_parser extends PHS_Library
         return $this->_check_incoming_email($mime_lib);
     }
 
-    private function _check_incoming_email(PHS_Mime_parser $mime_lib) : bool
+    private function _check_incoming_email(PHS_Library_Mime_parser $mime_lib) : bool
     {
         if (!$this->_check_incoming_email_conditions($mime_lib)
             || null === ($attachments_arr = $this->_convert_attachments_to_files($mime_lib))) {
@@ -82,7 +82,7 @@ class PHS_Inmail_parser extends PHS_Library
         return true;
     }
 
-    private function _convert_attachments_to_files(PHS_Mime_parser $mime_lib) : ?array
+    private function _convert_attachments_to_files(PHS_Library_Mime_parser $mime_lib) : ?array
     {
         if (!($attachments_arr = $mime_lib->get_email_attachments())) {
             return [];
@@ -174,7 +174,7 @@ class PHS_Inmail_parser extends PHS_Library
         return strtolower($file_ext);
     }
 
-    private function _prepare_attachments_dir(PHS_Mime_parser $mime_lib) : ?string
+    private function _prepare_attachments_dir(PHS_Library_Mime_parser $mime_lib) : ?string
     {
         $inmail_dir = $this->_inmail_plugin->get_inmail_dir(false);
 
@@ -199,7 +199,7 @@ class PHS_Inmail_parser extends PHS_Library
         return $event_dir;
     }
 
-    private function _check_incoming_email_conditions(PHS_Mime_parser $mime_lib) : bool
+    private function _check_incoming_email_conditions(PHS_Library_Mime_parser $mime_lib) : bool
     {
         $logic_condition = $this->_inmail_plugin->get_logic_condition();
 

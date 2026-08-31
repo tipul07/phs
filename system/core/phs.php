@@ -2046,7 +2046,8 @@ final class PHS extends PHS_Registry
         if (@class_exists($class_name, false)
             || (
                 !($library_details = PHS_Library::extract_details_from_full_namespace_name($class_name))
-                && (!($instantiable_details = PHS_Instantiable::extract_details_from_full_namespace_name($class_name))
+                && (
+                    !($instantiable_details = PHS_Instantiable::extract_details_from_full_namespace_name($class_name))
                     || empty($instantiable_details['instance_type'])
                     || $instantiable_details['instance_type'] === PHS_Instantiable::INSTANCE_TYPE_UNDEFINED
                 )
@@ -2057,7 +2058,7 @@ final class PHS extends PHS_Registry
 
         $load_result = null;
         if ($instantiable_details) {
-            $load_result = PHS_Instantiable::get_instance(true, $class_name);
+            $load_result = PHS_Instantiable::load_instance_file($class_name);
         } elseif (!empty($library_details['plugin'])) {
             $load_result = ($plugin_obj = self::load_plugin($library_details['plugin']))
                            && !empty($library_details['library_file'])
@@ -2070,7 +2071,6 @@ final class PHS extends PHS_Registry
             // class/file cannot be loaded, so we create an undefined instatiable...
             $newclass = new class extends PHS_Undefined_instantiable {
             };
-
             @class_alias(@get_class($newclass), $class_name);
         }
     }
@@ -2110,8 +2110,10 @@ final class PHS extends PHS_Registry
         }
 
         if ($params['as_singleton']
-            && !empty(self::$_core_libraries_instances[$library_file])) {
-            return self::$_core_libraries_instances[$library_file];
+            && ($instance_obj = PHS_Instantiable::get_instance_for_full_class_with_namespace($params['full_class_name']))) {
+            $instance_obj->reset_error();
+
+            return $instance_obj;
         }
 
         if (!($file_path = self::load_core_library_file($library_file, $params['path_in_lib_dir']))) {
@@ -2170,8 +2172,11 @@ final class PHS extends PHS_Registry
         }
 
         if ($params['as_singleton']) {
-            self::$_core_libraries_instances[$library_file] = $library_instance;
+            PHS_Instantiable::set_instance_for_full_class_with_namespace($params['full_class_name'], $library_instance);
         }
+        // if ($params['as_singleton']) {
+        //     self::$_core_libraries_instances[$library_file] = $library_instance;
+        // }
 
         return $library_instance;
     }
@@ -2244,7 +2249,7 @@ final class PHS extends PHS_Registry
 
         if (!($model_name = PHS_Instantiable::safe_escape_class_name($model))) {
             self::st_set_error(self::ERR_LOAD_MODEL, self::_t('Couldn\'t load model %s from plugin %s.',
-                $model, (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
+                $model, $plugin ?: PHS_Instantiable::CORE_PLUGIN));
 
             return null;
         }
@@ -2359,11 +2364,7 @@ final class PHS extends PHS_Registry
     {
         self::st_reset_error();
 
-        if (!is_string($action_dir)) {
-            $action_dir = '';
-        } else {
-            $action_dir = trim(trim($action_dir), '/\\');
-        }
+        $action_dir = !is_string($action_dir) ? '' : trim(trim($action_dir), '/\\');
 
         if (!($action_name = PHS_Instantiable::safe_escape_class_name($action))) {
             self::st_set_error(self::ERR_LOAD_ACTION,
@@ -2414,31 +2415,27 @@ final class PHS extends PHS_Registry
         return $instance_obj;
     }
 
-    public static function load_contract(string $contract, $plugin = false, string $contract_dir = '') : ?PHS_Contract
+    public static function load_contract(string $contract, ?string $plugin = null, string $contract_dir = '') : ?PHS_Contract
     {
         self::st_reset_error();
 
-        if (!is_string($contract_dir)) {
-            $contract_dir = '';
-        } else {
-            $contract_dir = trim(trim($contract_dir), '/\\');
-        }
+        $contract_dir = !is_string($contract_dir) ? '' : trim(trim($contract_dir), '/\\');
 
         if (!($contract_name = PHS_Instantiable::safe_escape_class_name($contract))) {
             self::st_set_error(self::ERR_LOAD_CONTRACT,
                 self::_t('Couldn\'t load contract %s from plugin %s.',
                     ($contract_dir !== '' ? $contract_dir.'/' : '').$contract,
-                    (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
+                    $plugin ?: PHS_Instantiable::CORE_PLUGIN));
 
             return null;
         }
 
         if ('' !== $contract_dir
-         && !($contract_dir = PHS_Instantiable::safe_escape_instance_subdir($contract_dir))) {
+            && !($contract_dir = PHS_Instantiable::safe_escape_instance_subdir($contract_dir))) {
             self::st_set_error(self::ERR_LOAD_CONTRACT,
                 self::_t('Couldn\'t load contract %s from plugin %s.',
                     $contract_dir.'/'.$contract,
-                    (empty($plugin) ? PHS_Instantiable::CORE_PLUGIN : $plugin)));
+                    $plugin ?: PHS_Instantiable::CORE_PLUGIN));
 
             return null;
         }
@@ -2446,7 +2443,7 @@ final class PHS extends PHS_Registry
         $class_name = 'PHS_Contract_'.ucfirst(strtolower($contract_name));
 
         if ($plugin === PHS_Instantiable::CORE_PLUGIN) {
-            $plugin = false;
+            $plugin = null;
         }
 
         // From this point on, $contract_dir is a system path...
@@ -2616,6 +2613,7 @@ final class PHS extends PHS_Registry
 
         $class_name = 'PHS_Plugin_'.ucfirst(strtolower($plugin_safe_name));
 
+        /** @var PHS_Plugin $instance_obj */
         if (!($instance_obj = PHS_Instantiable::get_instance_for_loads($class_name, $plugin_name,
             PHS_Instantiable::INSTANCE_TYPE_PLUGIN))) {
             self::st_set_error_if_not_set(self::ERR_LOAD_PLUGIN,

@@ -303,11 +303,6 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
             && in_array($callback_details['callback_id'], $this->event_listeners_ids, true);
     }
 
-    /**
-     * @param null|string $key
-     *
-     * @return null|mixed
-     */
     public function get_input(?string $key = null) : mixed
     {
         if ($key === null) {

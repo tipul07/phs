@@ -119,10 +119,11 @@ class PHS_Scope_Web extends PHS_Scope
 
             $result_headers['X-Powered-By'] = 'PHS-'.PHS_VERSION;
 
-            if (($security_plugin = PHS_Plugin_Phs_security::get_instance())
-               && $security_plugin->security_headers_are_enabled()
-               && ($headers_lib = Phs_security_headers::get_instance())
-               && ($headers_arr = $headers_lib->get_security_headers_for_response())) {
+            if (!($security_plugin = PHS_Plugin_Phs_security::get_instance())
+               || !($headers_lib = Phs_security_headers::get_instance())) {
+                self::st_reset_error();
+            } elseif ($security_plugin->security_headers_are_enabled()
+                     && ($headers_arr = $headers_lib->get_security_headers_for_response())) {
                 $result_headers = self::merge_array_assoc($result_headers, $headers_arr);
             }
 
