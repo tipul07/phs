@@ -3,13 +3,13 @@ namespace phs\plugins\phs_inmail\libraries;
 
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Logger;
-use phs\libraries\PHS_Library;
+use phs\libraries\PHS_Library_instantiable;
 use phs\system\core\attributes\PHS_Dependency;
 use phs\plugins\phs_inmail\PHS_Plugin_Phs_inmail;
 use phs\system\core\libraries\PHS_Library_Mime_parser;
 use phs\plugins\phs_inmail\events\PHS_Event_Inmail_new;
 
-class PHS_Inmail_parser extends PHS_Library
+class PHS_Library_Inmail_parser extends PHS_Library_instantiable
 {
     #[PHS_Dependency]
     private ?PHS_Plugin_Phs_inmail $_inmail_plugin = null;

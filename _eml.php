@@ -11,8 +11,7 @@ include_once 'main.php';
 use phs\PHS;
 use phs\libraries\PHS_Logger;
 use phs\plugins\phs_inmail\PHS_Plugin_Phs_inmail;
-use phs\plugins\phs_inmail\events\PHS_Event_Inmail_new;
-use phs\plugins\phs_inmail\libraries\PHS_Inmail_parser;
+use phs\plugins\phs_inmail\libraries\PHS_Library_Inmail_parser;
 
 if (!($inmail_plugin = PHS_Plugin_Phs_inmail::get_instance())
    || !$inmail_plugin->plugin_active()
@@ -20,7 +19,7 @@ if (!($inmail_plugin = PHS_Plugin_Phs_inmail::get_instance())
     exit(254);
 }
 
-if (!($inmail_lib = PHS_Inmail_parser::get_instance())) {
+if (!($inmail_lib = PHS_Library_Inmail_parser::get_instance())) {
     PHS_Logger::error('Error loading required resources.', $inmail_plugin::LOG_CHANNEL);
 
     exit(254);
