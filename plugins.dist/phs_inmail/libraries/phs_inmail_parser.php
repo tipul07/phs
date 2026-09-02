@@ -18,7 +18,7 @@ class PHS_Library_Inmail_parser extends PHS_Library_instantiable
     {
         $this->reset_error();
 
-        if (!($mime_lib = PHS_Library_Mime_parser::get_instance(as_singleton: true))) {
+        if (!($mime_lib = PHS_Library_Mime_parser::get_instance(false))) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
@@ -33,7 +33,7 @@ class PHS_Library_Inmail_parser extends PHS_Library_instantiable
     {
         $this->reset_error();
 
-        if (!($mime_lib = PHS_Library_Mime_parser::get_instance(as_singleton: true))) {
+        if (!($mime_lib = PHS_Library_Mime_parser::get_instance(false))) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
 
             return false;
@@ -63,6 +63,7 @@ class PHS_Library_Inmail_parser extends PHS_Library_instantiable
 
         if (!PHS_Event_Inmail_new::trigger(
             [
+                'from'             => $mime_lib->get_email_from_as_recipients(),
                 'to_list'          => $mime_lib->get_email_to_as_recipients(),
                 'cc_list'          => $mime_lib->get_email_cc_as_recipients(),
                 'bcc_list'         => $mime_lib->get_email_bcc_as_recipients(),

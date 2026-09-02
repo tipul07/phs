@@ -584,7 +584,7 @@ class PHS_Language_Container extends PHS_Error
      * Converts a given file to a UTF-8 encoded content.
      *
      * @param string $file ablsolute path of file which should be converted to UTF-8 encoding
-     * @param null|array $params Method parameters allows to overwrite UTF-8 encoded file name
+     * @param array $params Method parameters allows to overwrite UTF-8 encoded file name
      *
      * @return null|string Returns absolute path of UTF-8 encoded file
      */

@@ -269,7 +269,10 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
             return [];
         }
 
-        return $this->_get_email_attachments_from_parts($parts);
+        $matches = [];
+        $this->_get_email_attachments_from_parts($parts, $matches);
+
+        return $matches;
     }
 
     public function has_attachments() : bool
@@ -370,23 +373,19 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
 
     /**
      * @param array<PHS_Mime_part> $parts
-     *
-     * @return array
+     * @param array $matches
      */
-    private function _get_email_attachments_from_parts(array $parts) : array
+    private function _get_email_attachments_from_parts(array $parts, array &$matches) : void
     {
-        $return_arr = [];
         foreach ($parts as $part) {
             if ($part->is_attachment()) {
-                $return_arr[] = $part->get_attachment_details();
+                $matches[] = $part->get_attachment_details();
             }
 
             if ($part->has_parts()) {
-                $return_arr = array_merge($return_arr, $this->_get_email_attachments_from_parts($part->get_parts()));
+                $this->_get_email_attachments_from_parts($part->get_parts(), $matches);
             }
         }
-
-        return $return_arr;
     }
 
     private function _get_line_from_file(bool $advance = true) : ?string

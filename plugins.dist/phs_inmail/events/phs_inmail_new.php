@@ -22,6 +22,7 @@ class PHS_Event_Inmail_new extends PHS_Event
     protected function _input_parameters() : array
     {
         return [
+            'from'             => [],
             'to_list'          => [],
             'cc_list'          => [],
             'bcc_list'         => [],
