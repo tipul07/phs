@@ -216,6 +216,7 @@ abstract class PHS_Contract extends PHS_Instantiable
 
         $outside_data ??= [];
 
+        $params['lvl'] = (int)($params['lvl'] ?? 0);
         $params['force_level'] = (int)($params['force_level'] ?? 0);
         $params['force_import_if_not_found'] = !empty($params['force_import_if_not_found']);
 
@@ -230,7 +231,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         $this->_source_data = $this->_processing_data = $outside_data;
 
         $parsing_params = [];
-        $parsing_params['lvl'] = $params['force_level'];
+        $parsing_params['lvl'] = $params['force_level'] ?: $params['lvl'];
         $parsing_params['force_import_if_not_found'] = $params['force_import_if_not_found'];
         $parsing_params['pre_processing_params'] = $params['pre_processing_params'];
         $parsing_params['post_processing_params'] = $params['post_processing_params'];
