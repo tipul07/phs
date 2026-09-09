@@ -234,6 +234,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         $parsing_params['force_import_if_not_found'] = $params['force_import_if_not_found'];
         $parsing_params['pre_processing_params'] = $params['pre_processing_params'];
         $parsing_params['post_processing_params'] = $params['post_processing_params'];
+        $parsing_params['max_data_recursive_lvl'] = (int)($params['max_data_recursive_lvl'] ?? 0);
 
         $this->_resulting_data = [];
         if (null === ($_resulting_data = $this->_parse_data_from_outside_source($this->_definition_arr, $outside_data, $parsing_params))) {
