@@ -27,3 +27,7 @@ Successfully sent test email.,Am trimis emailul de test cu succes.
 To email,Către emailul
 To what email should we send test email,Către ce email să se trimită emailul de test
 Send test email,Trimite email de test
+Error sending email with error code %s.,Eroare la trimiterea emailului cu codul de eroare %s.
+Couldn't send email.,Nu s-a putut trimite email-ul.
+Invalid SendGrid settings.,Setări SendGrid nevalide.
+Error sending email with exception.,Eroare la trimiterea emailului cu excepție.

@@ -219,6 +219,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         $params['lvl'] = (int)($params['lvl'] ?? 0);
         $params['force_level'] = (int)($params['force_level'] ?? 0);
         $params['force_import_if_not_found'] = !empty($params['force_import_if_not_found']);
+        $params['max_data_recursive_lvl'] = (int)($params['max_data_recursive_lvl'] ?? 0);
 
         if (empty($params['pre_processing_params']) || !is_array($params['pre_processing_params'])) {
             $params['pre_processing_params'] = [];
@@ -235,18 +236,22 @@ abstract class PHS_Contract extends PHS_Instantiable
         $parsing_params['force_import_if_not_found'] = $params['force_import_if_not_found'];
         $parsing_params['pre_processing_params'] = $params['pre_processing_params'];
         $parsing_params['post_processing_params'] = $params['post_processing_params'];
-        $parsing_params['max_data_recursive_lvl'] = (int)($params['max_data_recursive_lvl'] ?? 0);
+        $parsing_params['max_data_recursive_lvl'] = $params['max_data_recursive_lvl'];
 
         $this->_resulting_data = [];
-        if (null === ($_resulting_data = $this->_parse_data_from_outside_source($this->_definition_arr, $outside_data, $parsing_params))) {
+        if (null === ($_resulting_data
+                = $this->_parse_data_from_outside_source($this->_definition_arr, $outside_data, $parsing_params))
+            && $this->has_error()) {
             $this->_data_was_parsed = true;
-
-            $this->set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Error while parsing data from outside source.'));
 
             return null;
         }
 
-        $this->_resulting_data = $_resulting_data ?: [];
+        if ($_resulting_data === null) {
+            $this->_resulting_data = null;
+        } else {
+            $this->_resulting_data = $_resulting_data ?: [];
+        }
 
         $this->_data_was_parsed = true;
 
@@ -269,6 +274,10 @@ abstract class PHS_Contract extends PHS_Instantiable
 
         if (!$this->_make_sure_we_have_definition()) {
             return null;
+        }
+
+        if (($new_params = $this->_before_parsing_from_inside_source_starts($inside_data, $params))) {
+            $params = $new_params;
         }
 
         $inside_data ??= [];
@@ -298,10 +307,11 @@ abstract class PHS_Contract extends PHS_Instantiable
 
         $this->_resulting_data = [];
 
-        $this->_data_was_parsed = true;
         if ((null === ($_resulting_data
                     = $this->_parse_data_from_inside_source($this->_definition_arr, $inside_data, $params)))
             && $this->has_error()) {
+            $this->_data_was_parsed = true;
+
             return null;
         }
 
@@ -310,6 +320,8 @@ abstract class PHS_Contract extends PHS_Instantiable
         } else {
             $this->_resulting_data = $_resulting_data ?: [];
         }
+
+        $this->_data_was_parsed = true;
 
         return $this->_resulting_data;
     }
@@ -419,6 +431,22 @@ abstract class PHS_Contract extends PHS_Instantiable
     public function valid_data_key(int $data_key, null | bool | string $lang = null) : ?array
     {
         return $this->get_data_keys($lang)[$data_key] ?? null;
+    }
+
+    /**
+     * Override this method if you want to execute something before paring data from inside source. (eg. setup caching)
+     * For caching, you can set data_cache key in $params with a list of (id => record) pairs for models used in this contract.
+     * This will reduce number of queries to database. This method can be used in _list contracts to cache data used in
+     * contract from list for all records in a single query.
+     *
+     * @param null|array $inside_data_arr
+     * @param array $params
+     *
+     * @return array
+     */
+    protected function _before_parsing_from_inside_source_starts(?array $inside_data_arr, array $params = []) : array
+    {
+        return $params;
     }
 
     /**
@@ -766,7 +794,7 @@ abstract class PHS_Contract extends PHS_Instantiable
 
         $this->_processing_data = $outside_data;
 
-        if (null === ($new_outside_data = $this->pre_processing_from_inside_source($outside_data, $params['pre_processing_params'], $params))) {
+        if (null === ($new_outside_data = $this->pre_processing_from_outside_source($outside_data, $params['pre_processing_params'], $params))) {
             // in case validation fails, return null and if there is an error set, it will be propagated...
             return null;
         }
@@ -823,7 +851,8 @@ abstract class PHS_Contract extends PHS_Instantiable
 
                     if (!empty($node_arr['recurring_scalar_node'])) {
                         // Recurring scalar value...
-                        if (null === ($result_item = PHS_Params::set_type($outside_item, $node_arr['type'], $node_arr['type_extra'] ?? [] ?: []))) {
+                        if (null === ($result_item = PHS_Params::set_type($outside_item, $node_arr['type'],
+                            $node_arr['type_extra'] ?? [] ?: []))) {
                             continue;
                         }
                     } elseif (!empty($node_arr['nodes']) && is_array($node_arr['nodes'])) {
@@ -850,12 +879,12 @@ abstract class PHS_Contract extends PHS_Instantiable
                         continue;
                     }
 
-                    $inside_knti = PHS_Params::set_type($recurring_items_no, $node_arr['recurring_key_type'],
+                    $outside_knti = PHS_Params::set_type($recurring_items_no, $node_arr['recurring_key_type'],
                         $node_arr['recurring_key_type_extra'] ?? [] ?: []);
 
                     $recurring_items_no++;
 
-                    $return_arr[$node_arr['inside_key']][$inside_knti] = $result_item;
+                    $return_arr[$node_arr['inside_key']][$outside_knti] = $result_item;
 
                     if (!empty($node_arr['recurring_max_items'])
                         && $recurring_items_no >= $node_arr['recurring_max_items']) {
