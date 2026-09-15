@@ -4,9 +4,10 @@
 use phs\PHS;
 use phs\PHS_Tenants;
 use phs\libraries\PHS_Plugin;
+use phs\system\core\libraries\PHS_Library_Ui_translations;
 
 /** @var \phs\plugins\admin\PHS_Plugin_Admin $admin_plugin */
-/** @var \phs\system\core\libraries\PHS_Ui_translations $ui_translations */
+/** @var PHS_Library_Ui_translations $ui_translations */
 if (!($admin_plugin = $this->view_var('admin_plugin'))
     || !($ui_translations = $this->view_var('ui_translations'))
 ) {

@@ -33,13 +33,14 @@ include_once PHS_LIBRARIES_DIR.'phs_registry.php';
 // Make sure we can use maintenance things anytime
 include_once PHS_CORE_DIR.'phs_maintenance.php';
 include_once PHS_LIBRARIES_DIR.'phs_has_dependencies.php';
-include_once PHS_LIBRARIES_DIR.'phs_library.php';
 include_once PHS_LIBRARIES_DIR.'phs_roles.php';
 include_once PHS_LIBRARIES_DIR.'phs_instantiable.php';
 include_once PHS_LIBRARIES_DIR.'phs_undefined_instantiable.php';
 include_once PHS_LIBRARIES_DIR.'phs_has_db_settings.php';
 include_once PHS_LIBRARIES_DIR.'phs_has_db_registry.php';
 include_once PHS_LIBRARIES_DIR.'phs_plugin.php';
+include_once PHS_LIBRARIES_DIR.'phs_library.php';
+include_once PHS_LIBRARIES_DIR.'phs_library_instantiable.php';
 include_once PHS_LIBRARIES_DIR.'phs_record_data.php';
 include_once PHS_LIBRARIES_DIR.'phs_relation.php';
 include_once PHS_LIBRARIES_DIR.'phs_relation_result.php';
@@ -199,14 +200,12 @@ if (PHS::st_debugging_mode()) {
 }
 
 //
-
 // Register class autoloader
 //
 
 @spl_autoload_register([PHS::class, 'spl_autoload_register'], true, true);
 
 //
-
 // Default database settings
 //
 
@@ -287,18 +286,9 @@ if (defined('PHS_IN_WEB_UPDATE_SCRIPT') && defined('PHS_INSTALLING_FLOW')
     exit;
 }
 
-//
-
 // Init database settings
-
 // We don't create a connection with database server yet
-//
-
 include_once PHS_SYSTEM_DIR.'database_init.php';
-//
-
-// END Init database settings
-//
 
 const PHS_FULL_PATH_WWW = PHS_DOMAIN.(PHS_PORT !== '' ? ':' : '').PHS_PORT.'/'.PHS_DOMAIN_PATH;
 

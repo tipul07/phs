@@ -73,15 +73,16 @@ foreach ($filters_arr as $filter_details) {
         $field_value = $filter_details['default'];
     }
 
+    $field_value_arr = [];
     if (is_array($field_value)) {
+        $field_value_arr = $field_value;
         $field_value = implode(',', $field_value);
     }
 
     $field_value_display = $field_value;
 
-    ?>
-                <fieldset class="paginator_filter col-xs-12 col-md-6 col-lg-3">
-                    <label for="<?php echo $field_id; ?>"><?php
+    ?><fieldset class="paginator_filter col-xs-12 col-md-6 col-lg-3">
+    <label for="<?php echo $field_id; ?>"><?php
 
             echo $filter_details['display_name'];
 
@@ -95,11 +96,11 @@ foreach ($filters_arr as $filter_details) {
     }
 
     ?> <a href="javascript:void(0)"
-                              onclick="this.blur();clear_filter_value( '<?php echo $field_id; ?>', '<?php echo $this::_e($default_value, '\''); ?>', <?php echo !empty($filter_details['autocomplete']) ? 'true' : 'false'; ?> )"
-                            <i class="fa fa-times-circle" title="<?php echo $this->_pt('Clear filter'); ?>"></i></a> <?php
+          onclick="this.blur();clear_filter_value( '<?php echo $field_id; ?>', '<?php echo $this::_e($default_value, '\''); ?>', <?php echo !empty($filter_details['autocomplete']) ? 'true' : 'false'; ?> )">
+            <i class="fa fa-times-circle" title="<?php echo $this->_pt('Clear filter'); ?>"></i></a> <?php
 
     ?></label>
-                    <div class="paginator_input"><?php
+    <div class="paginator_input"><?php
 
     if (!empty($filter_details['autocomplete'])) {
         /** @var \phs\libraries\PHS_Action_Autocomplete $ac_action */
@@ -149,15 +150,27 @@ foreach ($filters_arr as $filter_details) {
 
         $phs_first_ac_autocomplete_action = $ac_action;
     } elseif (!empty($filter_details['values_arr']) && is_array($filter_details['values_arr'])) {
-        ?><select id="<?php echo $field_id; ?>" name="<?php echo $field_name; ?>" class="chosen-select <?php echo $filter_details['extra_classes']; ?>"
-                                  style="<?php echo $filter_details['extra_style']; ?>"><?php
+        $is_multiselect = !empty($filter_details['is_multiselect']);
+        ?><select id="<?php echo $field_id; ?>" name="<?php echo $field_name.($is_multiselect ? '[]' : ''); ?>"
+        <?php echo $is_multiselect ? 'multiple' : ''; ?>
+        <?php echo !empty($field_placeholder) ? 'placeholder="'.form_str($field_placeholder).'"' : ''; ?>
+                  class="chosen-select <?php echo $filter_details['extra_classes']; ?>"
+                  style="<?php echo $filter_details['extra_style']; ?>"><?php
 
+        $field_value_display = '';
         foreach ($filter_details['values_arr'] as $key => $val) {
-            if ($field_value == $key) {
-                $field_value_display = $val;
-            }
+            $is_selected = false;
+            if ($field_value == $key
+                || ($is_multiselect && $field_value_arr && in_array($key, $field_value_arr, false))) {
+                $is_selected = true;
 
-            ?><option value="<?php echo $key; ?>" <?php echo $field_value == $key ? 'selected="selected"' : ''; ?>><?php echo $val; ?></option><?php
+                if (!$is_multiselect) {
+                    $field_value_display = $val;
+                } else {
+                    $field_value_display .= ($field_value_display !== '' ? ', ' : '').$val;
+                }
+            }
+            ?><option value="<?php echo $key; ?>" <?php echo $is_selected ? 'selected="selected"' : ''; ?>><?php echo $val; ?></option><?php
         }
 
         ?></select><?php

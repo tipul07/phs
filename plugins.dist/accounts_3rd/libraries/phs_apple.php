@@ -4,8 +4,8 @@ namespace phs\plugins\accounts_3rd\libraries;
 use phs\PHS;
 use phs\libraries\PHS_utils;
 use phs\libraries\PHS_Logger;
-use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Library;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\plugins\accounts_3rd\PHS_Plugin_Accounts_3rd;
 
 class Apple extends PHS_Library
@@ -16,10 +16,10 @@ class Apple extends PHS_Library
 
     public const ERR_API_INIT = 1;
 
-    /** @var bool|PHS_Plugin_Accounts_3rd */
-    private $_accounts_3rd_plugin = false;
+    #[PHS_Dependency]
+    private ?PHS_Plugin_Accounts_3rd $_accounts_3rd_plugin = null;
 
-    private $_settings_arr = [
+    private array $_settings_arr = [
         'client_id'          => '',
         'team_id'            => '',
         'key_id'             => '',
@@ -27,30 +27,25 @@ class Apple extends PHS_Library
         'return_url'         => '',
     ];
 
-    /**
-     * @param false|array $params
-     *
-     * @return bool
-     */
-    public function prepare_instance_for_login($params = false)
+    public function prepare_instance_for_login(array $params = [])
     {
         return $this->_prepare_instance(self::ACTION_LOGIN, $params);
     }
 
     /**
-     * @param false|array $params
+     * @param array $params
      *
      * @return false|\Google\Client
      */
-    public function prepare_instance_for_register($params = false)
+    public function prepare_instance_for_register(array $params = [])
     {
         return $this->_prepare_instance(self::ACTION_REGISTER, $params);
     }
 
-    public function get_url($action, $state = '', $scope = 'name email')
+    public function get_url(string $action, string $state = '', string $scope = 'name email') : string
     {
         if (!$this->_prepare_instance($action)) {
-            return false;
+            return '';
         }
 
         $args = [
@@ -73,16 +68,14 @@ class Apple extends PHS_Library
      *
      * @return false|array
      */
-    public function get_account_details_by_code($apple_code, $action, $params = false)
+    public function get_account_details_by_code(string $apple_code, string $action, array $params = [])
     {
         if (!$this->_load_dependencies()) {
             return false;
         }
 
         if (!($response = $this->_check_code_with_apple($apple_code, $action, $params))) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_API_INIT, $this->_pt('Error verifying token with Apple. Please try again.'));
-            }
+            $this->set_error_if_not_set(self::ERR_API_INIT, $this->_pt('Error verifying token with Apple. Please try again.'));
 
             return false;
         }
@@ -115,9 +108,9 @@ class Apple extends PHS_Library
      *
      * @return array|bool
      */
-    protected function do_api_call($full_url, $post_arr, $params = false)
+    protected function do_api_call($full_url, array $post_arr, $params = false)
     {
-        if (empty($full_url)) {
+        if (!$full_url) {
             $this->set_error(self::ERR_API_INIT, $this->_pt('Please provide full URL for Apple 3rd party service.'));
 
             return false;
@@ -269,13 +262,6 @@ class Apple extends PHS_Library
     {
         $this->reset_error();
 
-        if (empty($this->_accounts_3rd_plugin)
-            && !($this->_accounts_3rd_plugin = PHS_Plugin_Accounts_3rd::get_instance())) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Couldn\'t load accounts 3rd party plugin instance.'));
-
-            return false;
-        }
-
         if (!($settings_arr = $this->_accounts_3rd_plugin->get_plugin_settings())
             || empty($settings_arr['enable_3rd_party'])
             || empty($settings_arr['enable_apple'])) {
@@ -310,9 +296,7 @@ class Apple extends PHS_Library
             return false;
         }
 
-        $accounts_3rd_plugin = $this->_accounts_3rd_plugin;
-
-        if (!($settings_arr = $accounts_3rd_plugin->get_plugin_settings())
+        if (!($settings_arr = $this->_accounts_3rd_plugin->get_plugin_settings())
          || empty($settings_arr['apple_client_id']) || empty($settings_arr['apple_team_id'])
          || empty($settings_arr['apple_key_id']) || empty($settings_arr['apple_authentication_key'])) {
             $this->set_error(self::ERR_SETTINGS, $this->_pt('Error obtaining Apple 3rd party service settings.'));
@@ -357,13 +341,11 @@ class Apple extends PHS_Library
      *
      * @return false|array
      */
-    private function _check_code_with_apple($apple_code, $action, $params = false)
+    private function _check_code_with_apple(string $apple_code, string $action, array $params = [])
     {
         if (!$this->_load_dependencies()) {
             return false;
         }
-
-        $accounts_3rd_plugin = $this->_accounts_3rd_plugin;
 
         if (empty($apple_code) || !is_string($apple_code)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Please provide an Apple verification code.'));
@@ -393,7 +375,7 @@ class Apple extends PHS_Library
                 }
             }
 
-            PHS_Logger::error('[APPLE] Error fetching access token: '.(!empty($error_msg) ? $error_msg : 'N/A'), $accounts_3rd_plugin::LOG_ERR_CHANNEL);
+            PHS_Logger::error('[APPLE] Error fetching access token: '.(!empty($error_msg) ? $error_msg : 'N/A'), $this->_accounts_3rd_plugin::LOG_ERR_CHANNEL);
 
             if (!$this->has_error()) {
                 $this->set_error(self::ERR_FUNCTIONALITY,
@@ -408,7 +390,7 @@ class Apple extends PHS_Library
             var_dump($response);
             $buf = ob_get_clean();
 
-            PHS_Logger::debug('[APPLE] Response: '.$buf, $accounts_3rd_plugin::LOG_CHANNEL);
+            PHS_Logger::debug('[APPLE] Response: '.$buf, $this->_accounts_3rd_plugin::LOG_CHANNEL);
         }
 
         return $response;
@@ -421,26 +403,22 @@ class Apple extends PHS_Library
      *
      * @return false|array
      */
-    private function _get_account_details_from_token_id($token_id, $action, $params = false)
+    private function _get_account_details_from_token_id($token_id, $action, $params = false) : ?array
     {
         if (!$this->_load_dependencies()) {
-            return false;
+            return null;
         }
-
-        $accounts_3rd_plugin = $this->_accounts_3rd_plugin;
 
         if (empty($token_id) || !is_string($token_id)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Please provide an Apple verification code.'));
 
-            return false;
+            return null;
         }
 
         if (!$this->_prepare_instance($action, $params)) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error preparing Apple services for action %s.', $action));
-            }
+            $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Error preparing Apple services for action %s.', $action));
 
-            return false;
+            return null;
         }
 
         if (empty($token_id)
@@ -457,11 +435,11 @@ class Apple extends PHS_Library
             $buf = ob_get_clean();
 
             PHS_Logger::error('[APPLE] Error decoding token: '.(!empty($error_msg) ? $error_msg : 'N/A')."\n"
-                              .'Payload: '.$buf, $accounts_3rd_plugin::LOG_ERR_CHANNEL);
+                              .'Payload: '.$buf, $this->_accounts_3rd_plugin::LOG_ERR_CHANNEL);
 
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t decode Apple token ID.'));
 
-            return false;
+            return null;
         }
 
         $return_arr = [
@@ -526,10 +504,8 @@ class Apple extends PHS_Library
         ];
 
         if (!($api_response = $this->do_api_call('https://appleid.apple.com/auth/token', $post_arr))
-         || empty($api_response['response_json'])) {
-            if (!$this->has_error()) {
-                $this->set_error(self::ERR_API_INIT, $this->_pt('Error sending request to Apple services.'));
-            }
+            || empty($api_response['response_json'])) {
+            $this->set_error_if_not_set(self::ERR_API_INIT, $this->_pt('Error sending request to Apple services.'));
 
             return false;
         }

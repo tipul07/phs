@@ -1206,7 +1206,7 @@ class PHS_Paginator extends PHS_Registry
         }
 
         if (empty($params['exporter_library'])
-            && !($params['exporter_library'] = PHS_Paginator_exporter_csv::get_instance($params['exporter_library_params']))) {
+            && !($params['exporter_library'] = PHS_Paginator_exporter_csv::get_instance(init_params: $params['exporter_library_params']))) {
             $this->copy_or_set_static_error(self::ERR_FUNCTIONALITY, self::_t('Error loading default CSV export library.'));
 
             return null;
@@ -1624,7 +1624,11 @@ class PHS_Paginator extends PHS_Registry
             if (empty($filter_arr['record_field'])) {
                 if (!empty($filter_arr['raw_query'])) {
                     if (str_contains($filter_arr['raw_query'], '%s')) {
-                        $filter_arr['raw_query'] = self::sprintf_all($filter_arr['raw_query'], $scope_arr[$filter_arr['var_name']]);
+                        $var_str = is_array($scope_arr[$filter_arr['var_name']])
+                            ? implode(',', $scope_arr[$filter_arr['var_name']])
+                            : $scope_arr[$filter_arr['var_name']];
+
+                        $filter_arr['raw_query'] = self::sprintf_all($filter_arr['raw_query'], $var_str);
                     }
 
                     $list_arr['fields'][] = ['raw' => $filter_arr['raw_query']];
@@ -2172,42 +2176,42 @@ class PHS_Paginator extends PHS_Registry
             return;
         }
 
-        if (!($flow_params_arr = $this->flow_params())) {
-            $flow_params_arr = $this->default_flow_params();
-        }
+        $flow_params_arr = $this->flow_params() ?: $this->default_flow_params();
 
         // Allow filters even on hidden columns
         $columns_arr = $this->get_columns() ?: [];
 
         foreach ($filters_arr as $filter_details) {
             if (empty($filter_details['var_name'])
-             || (empty($filter_details['record_field']) && empty($filter_details['switch_filter']) && empty($filter_details['raw_query']))) {
+                || (empty($filter_details['record_field']) && empty($filter_details['switch_filter']) && empty($filter_details['raw_query']))) {
                 continue;
             }
 
-            $this->_originals[$filter_details['var_name']] = PHS_Params::_pg($flow_params_arr['form_prefix'].$filter_details['var_name'],
+            $this->_originals[$filter_details['var_name']] = PHS_Params::_pg(
+                $flow_params_arr['form_prefix'].$filter_details['var_name'],
                 PHS_Params::T_ASIS,
-                ['trim_before' => (!empty($filter_details['trim_before']))]);
+                ['trim_before' => (!empty($filter_details['trim_before']))]
+            );
 
-            if (!empty($new_filter['autocomplete'])) {
+            if (!empty($filter_details['autocomplete'])) {
                 $this->_originals[$filter_details['var_name'].'_phs_ac_name'] = PHS_Params::_pg($flow_params_arr['form_prefix'].$filter_details['var_name'].'_phs_ac_name', PHS_Params::T_NOHTML);
             }
 
             if ($this->_originals[$filter_details['var_name']] !== null) {
                 // Accept arrays to be passed as comma separated values...
                 if ($filter_details['type'] === PHS_Params::T_ARRAY
-                 && is_string($this->_originals[$filter_details['var_name']])
-                 && $this->_originals[$filter_details['var_name']] !== '') {
+                    && is_string($this->_originals[$filter_details['var_name']])
+                    && $this->_originals[$filter_details['var_name']] !== '') {
                     $value_type = PHS_Params::T_ASIS;
                     if (!empty($filter_details['extra_type']) && is_array($filter_details['extra_type'])
-                    && !empty($filter_details['extra_type']['type'])
-                    && PHS_Params::valid_type($filter_details['extra_type']['type'])) {
+                        && !empty($filter_details['extra_type']['type'])
+                        && PHS_Params::valid_type($filter_details['extra_type']['type'])) {
                         $value_type = $filter_details['extra_type']['type'];
                     }
 
                     $scope_val = [];
                     if (($parts_arr = explode(',', $this->_originals[$filter_details['var_name']]))
-                    && is_array($parts_arr)) {
+                        && is_array($parts_arr)) {
                         foreach ($parts_arr as $part) {
                             $scope_val[] = PHS_Params::set_type($part, $value_type);
                         }
@@ -2222,7 +2226,7 @@ class PHS_Paginator extends PHS_Registry
                     && $scope_val !== $filter_details['default']) {
                     $this->_scope[$filter_details['var_name']] = $scope_val;
                     $ac_var_name = $filter_details['var_name'].'_phs_ac_name';
-                    if (!empty($new_filter['autocomplete'])
+                    if (!empty($filter_details['autocomplete'])
                         && isset($this->_originals[$ac_var_name])) {
                         $this->_scope[$ac_var_name] = $this->_originals[$ac_var_name];
                     }
@@ -2264,7 +2268,7 @@ class PHS_Paginator extends PHS_Registry
 
         // Extract pagination vars...
         if (($pagination_params = $this->pagination_params())
-        && is_array($pagination_params)) {
+            && is_array($pagination_params)) {
             if (!empty($pagination_params['page_var_name'])) {
                 // Reset page number if filters were submitted...
                 if (PHS_Params::_p($flow_params_arr['form_prefix'].'filters_submit')) {
@@ -2403,7 +2407,8 @@ class PHS_Paginator extends PHS_Registry
             'extra_type'                => [],
             'default'                   => null,
             'display_default_as_filter' => false,
-            'values_arr'                => false,
+            'values_arr'                => [],
+            'is_multiselect'            => false,
             'extra_style'               => '',
             'extra_classes'             => '',
             // In case there are more filters using a single field how should these be linked logically in sql

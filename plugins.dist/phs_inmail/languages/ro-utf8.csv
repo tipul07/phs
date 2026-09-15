@@ -16,7 +16,7 @@ What logic operand should be used for all conditions below,Ce operand logic ar t
 FROM contains,DE CONTINE
 A comma separated emails. If ONE of the emails is found in FROM field this condition is true,"O serie de adrese de email separate prin virgulă. Dacă UNA dintre adresele de email este găsită în câmpul DE LA, această condiție este adevărată."
 TO contains,TO conține
-A comma separated emails. If ONE of the emails is found in TO field this condition is true,"O listă de adrese de email separate prin virgulă. Dacă UNA dintre adresele de email este găsită în câmpul DESTINATAR, această condiție este adevărată."
+A comma separated emails. If ONE of the emails is found in TO field this condition is true,"O serie de adrese de email separate prin virgulă. Dacă UNA dintre adresele de email este găsită în câmpul DESTINATAR, această condiție este adevărată"
 CC contains,CC conține
 A comma separated emails. If ONE of the emails is found in CC field this condition is true,"O serie de adrese de email separate prin virgulă. Dacă UNA dintre adresele de email este găsită în câmpul CC, această condiție este adevărată"
 BCC contains,BCC conține
@@ -32,3 +32,9 @@ Error triggering incoming email event.,Eroare la declanșarea evenimentului de e
 Error writing email attachment file.,Eroare la scrierea fișierului atașat emailului.
 Inmail directory is not writeable.,Directorul Inmail nu poate fi scris.
 Error creating inmail attachments directory.,Eroare la crearea directorului de atașamente inmail.
+Failed FROM condition.,Condiția FROM a eșuat.
+Failed TO condition.,Eșuare la condiționare.
+Failed CC condition.,Condiție CC eșuată.
+Failed BCC condition.,Condiție BCC eșuată.
+Failed SUBJECT condition.,Condiția SUBIECTULUI a eșuat.
+Failed arrachments condition.,Condiție de eșuare a atașărilor.

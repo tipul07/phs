@@ -2,9 +2,9 @@
 namespace phs\system\core\libraries;
 
 use phs\libraries\PHS_Logger;
-use phs\libraries\PHS_Library;
+use phs\libraries\PHS_Library_instantiable;
 
-class PHS_Imap extends PHS_Library
+class PHS_Library_Imap extends PHS_Library_instantiable
 {
     public const PORT_SSL = 993, PORT_NON_SSL = 143;
 
@@ -106,7 +106,11 @@ class PHS_Imap extends PHS_Library
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, self::_t('Could not perform fetch.'));
 
             if ($this->_logger) {
-                PHS_Logger::warning('Could not fetch uid '.$uid.': '.$this->get_simple_error_message(), $this->_logger);
+                PHS_Logger::warning(
+                    'Could not fetch uid '.$uid.': '
+                    .$this->get_simple_error_message('Unknown error'),
+                    $this->_logger
+                );
             }
 
             return null;
@@ -120,7 +124,10 @@ class PHS_Imap extends PHS_Library
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Could not fetch data for uid %s.', $uid));
 
             if ($this->_logger) {
-                PHS_Logger::warning('Could not fetch data for uid '.$uid.': '.$this->get_simple_error_message(), $this->_logger);
+                PHS_Logger::warning(
+                    'Could not fetch data for uid '.$uid.': '.$this->get_simple_error_message('Unknown error'),
+                    $this->_logger
+                );
             }
 
             return null;
@@ -158,7 +165,10 @@ class PHS_Imap extends PHS_Library
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, self::_t('Could not perform search.'));
 
             if ($this->_logger) {
-                PHS_Logger::warning('Could not perform search: '.$this->get_simple_error_message(), $this->_logger);
+                PHS_Logger::warning(
+                    'Could not perform search: '.$this->get_simple_error_message('Unknown error'),
+                    $this->_logger
+                );
             }
 
             return null;
@@ -198,7 +208,10 @@ class PHS_Imap extends PHS_Library
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, self::_t('Could not select folder on IMAP host.'));
 
             if ($this->_logger) {
-                PHS_Logger::warning('Select folder error: '.$this->get_simple_error_message(), $this->_logger);
+                PHS_Logger::warning(
+                    'Select folder error: '.$this->get_simple_error_message('Unknown error'),
+                    $this->_logger
+                );
             }
 
             return false;
@@ -218,8 +231,11 @@ class PHS_Imap extends PHS_Library
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, self::_t('Could not login to IMAP host.'));
 
             if ($this->_logger) {
-                PHS_Logger::error('Login error: '.$this->get_simple_error_message()
-                                    .' Server response: '.$this->get_last_response(), $this->_logger);
+                PHS_Logger::error(
+                    'Login error: '.$this->get_simple_error_message('Unknown error')
+                    .' Server response: '.$this->get_last_response(),
+                    $this->_logger
+                );
             }
 
             return false;
@@ -243,7 +259,10 @@ class PHS_Imap extends PHS_Library
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, self::_t('Could not perform logout.'));
 
             if ($this->_logger) {
-                PHS_Logger::warning('Could not logout: '.$this->get_simple_error_message(), $this->_logger);
+                PHS_Logger::warning(
+                    'Could not logout: '.$this->get_simple_error_message('Unknown error'),
+                    $this->_logger
+                );
             }
 
             return false;

@@ -44,7 +44,7 @@ class PHS_Action_Verify_email_bg extends PHS_Action
         $lang = $accounts_model->get_account_language($account_arr) ?: self::get_default_language();
 
         $email_obj
-            = PHS_Email::get_instance()
+            = phs_email()
                 ?->force_language($lang)
                 ->template('verify_email', $accounts_plugin)
                 ->to($account_arr['email'], $account_arr['nick'])

@@ -12,7 +12,7 @@ Operator,Operator
 Account not found in database.,Contul nu a fost găsit în baza de date.
 Cancel,Anulare
 Error obtaining products import export directory path.,Eroare la obţinerea căii către directorul de import export pentru produse.
-Invalid flow parameters.,Parametrii fluxului sunt nevalizi.
+Invalid flow parameters.,Parametrii fluxului sunt invalizi.
 Inactive,Inactiv
 Deleted,Şters
 Nothing to export.,Nimic de exportat.
@@ -50,18 +50,18 @@ Password decryption enabled,Decriptarea parolei activă
 "If NOT ticked, system will not use internal encryption/decryption for passwords, so passwords cannot be decrypted anymore.","Dacă NU e bifat, sistemul nu va folosi criptarea/decriptarea internă pentru parole, deci parolele nu vor mai putea fi decriptate."
 Accounts will have to setup a password at first login.,Conturile vor trebui să își configureze o parolă la prima autentificare.
 Password policy (if not provided),Politica de parolă (dacă nu este furnizată)
-"When password is not provided at registration, we can generate one or ask user to setup a password at first login. If <em>Password decryption enabled</em> is NOT ticked, user will be asked to setup a password anyway.","Când parola nu este furnizată la înregistrare, putem genera una sau putem cere utilizatorului să configureze o parolă la prima autentificare. Dacă opțiunea <em>Decodificare parolă activată</em> NU este bifată, utilizatorul va fi oricum rugat să configureze o parolă."
+"When password is not provided at registration, we can generate one or ask user to setup a password at first login. If <em>Password decryption enabled</em> is NOT ticked, user will be asked to setup a password anyway.","Când parola nu este furnizată la înregistrare, putem genera una sau putem cere utilizatorului să configureze o parolă la prima autentificare. Dacă opțiunea <em>Decodare parolă activată</em> NU este bifată, utilizatorul va fi oricum rugat să configureze o parolă."
 Minimum password length,Lungimea minimă a parolei
 Password reg-exp,Expresie regulată pentru parolă
-"If provided, all passwords have to pass this regular expression. Previous created accounts will not be affected by this. Please use / as preg_match delimiter.","Dacă este furnizat, toate parolele trebuie să treacă de această expresie regulată. Conturile create anterior nu vor fi afectate de aceasta. Vă rugăm să folosiți / ca delimitator preg_match."
+"If provided, all passwords have to pass this regular expression. Previous created accounts will not be affected by this. Please use / as preg_match delimiter.","Dacă este furnizat, toate parolele trebuie să treacă prin această expresie regulată. Conturile create anterior nu vor fi afectate de aceasta. Vă rugăm să utilizați / ca delimitator preg_match."
 Password explanation,Explicație a parolei
-"Explain password rules (if required) in a friendly text (eg. Password should contain lower and upper chars, with at least one digit, etc) This will pass translation as string to be available in other languages.","Explicați regulile pentru parole (dacă este necesar) într-un text prietenos (de exemplu, Parola ar trebui să conțină caractere mici și mari, cu cel puțin o cifră, etc) Acest lucru va trece traducerea ca șir pentru a fi disponibil în alte limbi."
+"Explain password rules (if required) in a friendly text (eg. Password should contain lower and upper chars, with at least one digit, etc) This will pass translation as string to be available in other languages.","Explicați regulile parolei (dacă este necesar) într-un text prietenos (de exemplu, Parola ar trebui să conțină caractere mici și mari, cu cel puțin o cifră, etc) Acest lucru va trece traducerea ca șir pentru a fi disponibilă în alte limbi."
 Password salt length,Lungimea sarii parolei
 Each account uses it's own password salt. (Google salt for more details),Fiecare cont folosește propria sa saramură de parolă. (Caută „saramură” pe Google pentru mai multe detalii)
 Expire passwords days,Expirați zilele parolelor
 After how many days should passwords expire (0 - no expiration),După câte zile ar trebui să expire parolele (0 - fără expirare)
 Old passwords history,Istoricul vechilor parole
-"When changing password, keep a history of older passwords and don't allow using an old one as the new password. (0 - no history)","La schimbarea parolei, păstrați un istoric al parolelor anterioare și nu permiteți utilizarea unei parole vechi ca nouă parolă. (0 - fără istoric)"
+"When changing password, keep a history of older passwords and don't allow using an old one as the new password. (0 - no history)","La schimbarea parolei, păstrați un istoric al parolelor anterioare și nu permiteți utilizarea uneia vechi ca noua parolă. (0 - fără istoric)"
 Block expired accounts time,Blocare conturi expirate timp
 "After how many hours to force user to change account password by redirecting to change password page. (0 - right away, -1 - don't block, only alerts)","După câte ore să forțezi utilizatorul să-și schimbe parola de cont redirecționându-l către pagina de schimbare a parolei. (0 - imediat, -1 - fără blocare, doar alerte)"
 Announce password change,Anunțați schimbarea parolei
@@ -70,7 +70,7 @@ Account Session Settings,Setări sesiune cont
 Settings related to account session rules.,Setări legate de regulile sesiunii contului.
 Session lifetime (long) mins,Durata de viață a sesiunii (lung) minute
 "After how many minutes should session expire if user ticked \""Remember Me\"" checkbox","După câte minute ar trebui să expire sesiunea dacă utilizatorul a bifat caseta \""Ține-mă minte\"
-Session lifetime (short) mins,Durata sesiunii (scurtă) minute
+Session lifetime (short) mins,Durata de viață a sesiunii (scurtă) minute
 "After how many minutes should session expire if user DIDN'T tick \""Remember Me\"" checkbox","După câte minute ar trebui să expire sesiunea dacă utilizatorul NU a bifat caseta \""Ține-mă minte\"
 Account Security Settings,Setări de Securitate Contului
 Settings related to account security audit policies.,Setări legate de politicile de audit al securității contului.
@@ -87,9 +87,9 @@ Settings related to account lockout policy.,Setări legate de politica de blocar
 Account lockout enabled?,Blocarea contului este activată?
 Is account lockout enabled on this platform,Este blocarea contului activă pe această platformă
 Lockout after failed logins,Blocare după încercări eșuate de autentificare
-After how many failed logins should system lockout the account,După câte încercări eșuate de autentificare ar trebui să blocheze sistemul contul
+After how many failed logins should system lockout the account,După câte încercări eșuate de conectare ar trebui să blocheze sistemul contul
 Lockout interval (minutes),Interval de blocare (minute)
-How many minutes should platform lock the account,Câte minute ar trebui să blocheze platforma contul
+How many minutes should platform lock the account,Câte minute ar trebui platforma să blocheze contul
 Two Factor Authentication Settings,Setări Autentificare Doi Factori
 Settings related to two factor authentication feature.,Setări referitoare la funcția de autentificare cu doi factori.
 Account 2FA policy,Politică Cont TFA
@@ -100,7 +100,7 @@ What 2FA policy should be applied on this platform,Ce politică de autentificare
 Comma separated account IDs or nicknames which will always skip 2FA flow.,ID-urile conturilor sau pseudonimele separate prin virgulă care vor sări întotdeauna peste fluxul de autentificare cu doi factori.
 2FA session length (hours),Durata sesiunii 2FA (ore)
 How many hours should 2FA not be required on current session. 0 means forever,Câte ore ar trebui să nu fie necesară autentificarea în doi pași în sesiunea curentă. 0 înseamnă pentru totdeauna
-Remember device length (hours),Reține lungimea dispozitivului (ore)
+Remember device length (hours),Amintește-ți lungimea dispozitivului (ore)
 How many hours should 2FA not be required on current device. 0 means disable this option,Câte ore ar trebui să nu fie necesară autentificarea în doi pași pe dispozitivul curent. 0 înseamnă dezactivarea acestei opțiuni.
 2FA Issuer,Emițător 2FA
 How should this platform appear in Google Authenticator as name,Cum ar trebui să apară această platformă în Google Authenticator ca nume
@@ -259,7 +259,7 @@ Recovery Code,Cod de Recuperare
 Check Recovery Code,Verificați codul de recuperare
 Cancel Recovery Check,Anulare verificare cod recuperare
 You didn't set up yet Two Factor Authentication for your account.,Nu ați configurat încă Autentificarea cu doi factori pentru contul dvs.
-"In order to strengthen your account security, it is recommended that you set up Two-Factor Authentication.","Pentru a-ți întări securitatea contului, se recomandă să activezi Autentificarea în Două Pași."
+"In order to strengthen your account security, it is recommended that you set up Two-Factor Authentication.","Pentru a-ți întări securitatea contului, se recomandă să configurezi Autentificarea în Două Pași."
 What Two-Factor Authentication (TFA) means?,Ce înseamnă Autentificarea cu Două Factori (TFA)?
 Setup Two Factor Authentication,Configurare Autentificare În Doi Factori
 "In case you didn't download your recovery codes yet, you still can, by providing a two factor authentication verification code first.","În cazul în care nu v-ați descărcat încă codurile de recuperare, încă mai puteți, furnizând mai întâi un cod de verificare prin autentificare cu doi factori."
@@ -287,7 +287,7 @@ Once you submit this form you will receive an email with instructions.,"Odată c
 Submit,Trimite
 You are setting up a password for account %s.,Setare parolă pentru contul %s.
 Set password,Setează parolă
-Error un-linking old tenants from account.,Eroare la dezlegarea vechilor chiriași de pe cont.
+Error un-linking old tenants from account.,Eroare la delinkarea vechilor chiriași de pe cont.
 Error linking all tenants to account.,Eroare la conectarea tuturor chiriașilor la cont.
 Error obtaining tenants count for the account.,Eroare la obținerea numărului de chiriași pentru cont.
 Error updating multi-tenant details for account.,Eroare la actualizarea detaliilor multi-locatar pentru cont.
@@ -379,3 +379,5 @@ Account doesn't have two factor authentication enabled.,Contul nu are activată 
 Error obtaining two factor authentication details.,Eroare în obținerea detaliilor de autentificare cu doi factori.
 "After how many minutes should session expire if user ticked ""Remember Me"" checkbox","După câte minute ar trebui să expire sesiunea dacă utilizatorul a bifat caseta ""Ține-mă minte"""
 "After how many minutes should session expire if user DIDN'T tick ""Remember Me"" checkbox","După câte minute ar trebui să expire sesiunea dacă utilizatorul NU a bifat caseta ""Ține-mă minte"""
+"After how many minutes should session expire if user ticked \\""Remember Me\\"" checkbox","După câte minute ar trebui să expire sesiunea dacă utilizatorul a bifat caseta \\""Ține-mă minte\\"
+"After how many minutes should session expire if user DIDN'T tick \\""Remember Me\\"" checkbox","După câte minute ar trebui să expire sesiunea dacă utilizatorul NU a bifat caseta \\""Ține-mă minte\\"

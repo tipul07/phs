@@ -1875,7 +1875,7 @@ class PHS_Model_Messages extends PHS_Model
 
                     // send confirmation email...
                     $email_obj
-                        = PHS_Email::get_instance()
+                        = phs_email()
                             ?->force_language($lang)
                             ->to($author_arr['email'], $author_arr['nick'])
                             ->template('message_author', self::$_messages_plugin)
@@ -1944,7 +1944,7 @@ class PHS_Model_Messages extends PHS_Model
 
                     // send confirmation email...
                     $email_obj
-                        = PHS_Email::get_instance()
+                        = phs_email()
                             ?->force_language($lang)
                             ->to($account_arr['email'], $account_arr['nick'])
                             ->template('message_destination', self::$_messages_plugin)

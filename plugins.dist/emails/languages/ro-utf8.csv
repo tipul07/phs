@@ -42,3 +42,5 @@ Route,Rută
 What hostname should be reported to SMTP server,Ce hostname trebuie raportat către serverul de SMTP
 SMTP server used to send emails,Serverul de SMTP folosit pentru trimiterea emalurilor
 Test will be done using route %s. Be sure to save settings before testing.,Testul va fi efectuat folosind ruta %s. Asigurați-vă că salvați setările înainte de a testa.
+Couldn't send email.,Nu s-a putut trimite email-ul.
+Invalid SMTP route settings.,Setări de rutare SMTP nevalide.

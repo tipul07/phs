@@ -1,6 +1,8 @@
 <?php
 namespace phs\libraries;
 
+use Throwable;
+
 class PHS_Mime_part
 {
     public const H_FROM = 'From', H_TO = 'To', H_CC = 'Cc', H_BCC = 'Bcc', H_SUBJECT = 'Subject', H_DATE = 'Date',
@@ -11,6 +13,8 @@ class PHS_Mime_part
     private const TYPE_TEXT_PLAIN = 'text/plain', TYPE_TEXT_HTML = 'text/html';
 
     private const CONTENT_DISPOSITION_INLINE = 'inline', CONTENT_DISPOSITION_ATTACHMENT = 'attachment';
+
+    private const DEFAULT_OUTPUT_CHARSET = 'UTF-8';
 
     // Headers' values
     private array $_hval_arr = [];
@@ -322,7 +326,7 @@ class PHS_Mime_part
         }
 
         if ($this->_content) {
-            $this->_content = PHS_Mime_charset::convert($this->_content, $this->get_part_charset());
+            $this->_content = PHS_Mime_charset::convert($this->_content, $this->get_part_charset(), self::DEFAULT_OUTPUT_CHARSET);
         }
     }
 
@@ -408,10 +412,32 @@ class PHS_Mime_part
     private function _convert_for_transfer_encoding(string $content, string $encoding) : string
     {
         return match ($encoding) {
-            default            => $content,
+            default            => $this->_convert_to_utf8($content),
             'base64'           => base64_decode($content),
-            'quoted-printable' => quoted_printable_decode($content),
+            'quoted-printable' => $this->_convert_to_utf8(quoted_printable_decode($content)),
         };
+    }
+
+    private function _convert_to_utf8(string $content) : string
+    {
+        try {
+            $charset = $this->_detect_charset($content);
+
+            if (@function_exists('iconv')) {
+                return @iconv($charset, 'UTF-8//TRANSLIT', $content);
+            }
+
+            return @mb_convert_encoding($content, 'UTF-8', $charset);
+        } catch (Throwable $e) {
+            return $content;
+        }
+    }
+
+    private function _detect_charset(string $content) : string
+    {
+        return @mb_detect_encoding($content, array_filter(
+            [$this->get_part_charset(), self::DEFAULT_OUTPUT_CHARSET, 'UTF-8', 'Windows-1252', 'ISO-8859-1', 'ISO-8859-5', 'ISO-8859-15']
+        ), false) ?: self::DEFAULT_OUTPUT_CHARSET;
     }
 
     private function _default_part_settings() : array
@@ -504,7 +530,7 @@ class PHS_Mime_part
 
     private function _extract_transfer_encoding(string $kval) : void
     {
-        $this->_settings['transfer_encoding'] = trim($kval);
+        $this->_settings['transfer_encoding'] = strtolower(trim($kval));
     }
 
     public static function parse_recipients(?string $str) : array

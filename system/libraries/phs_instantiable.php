@@ -13,7 +13,8 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
     public const INSTANCE_TYPE_UNDEFINED = 'undefined',
         INSTANCE_TYPE_PLUGIN = 'plugin', INSTANCE_TYPE_MODEL = 'model', INSTANCE_TYPE_CONTROLLER = 'controller',
         INSTANCE_TYPE_ACTION = 'action', INSTANCE_TYPE_VIEW = 'view', INSTANCE_TYPE_SCOPE = 'scope',
-        INSTANCE_TYPE_CONTRACT = 'contract', INSTANCE_TYPE_EVENT = 'event', INSTANCE_TYPE_GRAPHQL = 'graphql';
+        INSTANCE_TYPE_CONTRACT = 'contract', INSTANCE_TYPE_EVENT = 'event', INSTANCE_TYPE_GRAPHQL = 'graphql',
+        INSTANCE_TYPE_LIBRARY = 'library';
 
     public const CORE_PLUGIN = 'core', TEMPLATES_DIR = 'templates', LANGUAGES_DIR = 'languages', MIGRATIONS_DIR = 'migrations', GRAPHQL_DIR = 'graphql',
         THEMES_PLUGINS_TEMPLATES_DIR = 'plugins',
@@ -41,19 +42,21 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
         self::INSTANCE_TYPE_CONTRACT   => ['title' => 'Contract', 'dir_name' => 'contracts', 'phs_loader_method' => 'load_contract'],
         self::INSTANCE_TYPE_EVENT      => ['title' => 'Event', 'dir_name' => 'events', 'phs_loader_method' => 'load_event'],
         self::INSTANCE_TYPE_GRAPHQL    => ['title' => 'GraphQL Type', 'dir_name' => self::GRAPHQL_DIR.'/types', 'phs_loader_method' => 'load_graphql_type'],
+        self::INSTANCE_TYPE_LIBRARY    => ['title' => 'Library', 'dir_name' => 'libraries', 'phs_loader_method' => 'load_library'],
     ];
 
     /**
      * PHS_Instantiable constructor.
      *
      * @param array $instance_details
+     * @param null|bool $as_singleton
      */
-    private function __construct(array $instance_details = [])
+    private function __construct(array $instance_details = [], ?bool $as_singleton = null)
     {
         parent::__construct();
         $this->_do_construct($instance_details);
 
-        $this->_check_dependencies_properties();
+        $this->_check_dependencies_properties($as_singleton ?? static::instances_as_singletons());
     }
 
     /**
@@ -465,6 +468,16 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
         $this->instance_details = $details_arr;
     }
 
+    /**
+     * Overwrite this method if you don't want the library to be loaded always as singleton
+     *
+     * @return bool
+     */
+    public static function instances_as_singletons() : bool
+    {
+        return true;
+    }
+
     public static function get_instance_types() : array
     {
         return self::$INSTANCE_TYPES_ARR;
@@ -669,13 +682,13 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
         }
 
         $return_arr = self::empty_instance_details();
-        $return_arr['loader_method'] = $instance_type_details['phs_loader_method'] ?? false;
+        $return_arr['loader_method'] = $instance_type_details['phs_loader_method'] ?? null;
         $return_arr['plugin_name'] = $plugin_name;
         $return_arr['instance_type'] = $instance_type;
         $return_arr['instance_type_accepts_subdirs'] = $instance_type_accepts_subdirs;
         $return_arr['instance_subdir'] = $subdir_path;
         $return_arr['instance_class'] = $class;
-        $return_arr['instance_namespace'] = '\\phs\\';
+        $return_arr['instance_namespace'] = 'phs\\';
 
         if ($plugin_name === self::CORE_PLUGIN) {
             $return_arr['instance_namespace'] .= 'system\\core\\';
@@ -830,6 +843,31 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
                 }
                 break;
 
+            case self::INSTANCE_TYPE_LIBRARY:
+
+                if (stripos($class, 'phs_library_') !== 0) {
+                    self::st_set_error(self::ERR_INSTANCE, self::_t('Class name is not a framework library type.'));
+
+                    return null;
+                }
+
+                $return_arr['instance_name'] = trim(substr($class, 11), '_');
+
+                if (empty($return_arr['instance_name'])) {
+                    self::st_set_error(self::ERR_INSTANCE, self::_t('Class name is not a framework library type.'));
+
+                    return null;
+                }
+
+                if ($plugin_name === self::CORE_PLUGIN) {
+                    $return_arr['instance_path'] = PHS_CORE_LIBRARY_DIR;
+                } else {
+                    $return_arr['plugin_www'] = PHS_PLUGINS_WWW.$plugin_name.'/';
+                    $return_arr['plugin_path'] = PHS_PLUGINS_DIR.$plugin_name.'/';
+                    $return_arr['instance_path'] = PHS_PLUGINS_DIR.$plugin_name.'/'.$instance_type_dir.'/';
+                }
+                break;
+
             case self::INSTANCE_TYPE_VIEW:
 
                 if (stripos($class, 'phs_view_') !== 0
@@ -965,7 +1003,7 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
     {
         return [
             self::INSTANCE_TYPE_ACTION, self::INSTANCE_TYPE_CONTRACT,
-            self::INSTANCE_TYPE_EVENT, self::INSTANCE_TYPE_GRAPHQL,
+            self::INSTANCE_TYPE_EVENT, self::INSTANCE_TYPE_GRAPHQL, self::INSTANCE_TYPE_LIBRARY,
         ];
     }
 
@@ -1063,6 +1101,8 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
     {
         self::st_reset_error();
 
+        $class_with_namespace = ltrim($class_with_namespace, '\\');
+
         if (!$class_with_namespace
             || !($class_namespace_path = explode('\\', $class_with_namespace))) {
             self::st_set_error(self::ERR_CLASS_NAME, self::_t('Seems like class name doesn\'t contain namespace.'));
@@ -1126,12 +1166,17 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
             $full_class_name = static::class;
         }
 
+        $full_class_name = ltrim($full_class_name, '\\');
+
+        if ($as_singleton
+           && ($obj = self::get_instance_for_full_class_with_namespace($full_class_name))) {
+            return $obj;
+        }
+
         if (!$full_class_name
-         || !($details = self::extract_details_from_full_namespace_name($full_class_name))
-         || empty($details['class_name']) || empty($details['plugin_name']) || empty($details['instance_type'])
-         || !($instance_details = self::get_instance_details($details['class_name'], $details['plugin_name'], $details['instance_type'], $details['instance_subdir']))
-         || empty($instance_details['loader_method'])
-         || !@method_exists(PHS::class, $instance_details['loader_method'])) {
+            || !($details = self::extract_details_from_full_namespace_name($full_class_name))
+            || empty($details['class_name']) || empty($details['plugin_name']) || empty($details['instance_type'])
+            || !($instance_details = self::get_instance_details($details['class_name'], $details['plugin_name'], $details['instance_type'], $details['instance_subdir']))) {
             self::st_set_error_if_not_set(self::ERR_CLASS_NAME, self::_t('Cannot extract required information to instantiate class.'));
 
             return null;
@@ -1143,19 +1188,37 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
             return null;
         }
 
-        $loader_method = $instance_details['loader_method'];
+        $instance_type = $details['instance_type'];
+        $plugin_name = $instance_details['plugin_name'] ?? '-';
+        $class_name = $details['class_name'];
+        $instance_subdir = !is_string($details['instance_subdir'])
+            ? ''
+            : trim(trim(str_replace('/', '_', $details['instance_subdir'])), '/\\');
 
-        /** @var null|PHS_Instantiable $obj */
-        if ($details['instance_type'] === self::INSTANCE_TYPE_PLUGIN) {
-            $obj = PHS::$loader_method($details['plugin_name']);
-        } elseif ($details['instance_type'] === self::INSTANCE_TYPE_VIEW) {
-            $obj = PHS::$loader_method($instance_details['instance_name'], $details['plugin_name'], $as_singleton);
-        } elseif (!empty($instance_details['instance_type_accepts_subdirs'])) {
-            $obj = PHS::$loader_method($instance_details['instance_name'], $details['plugin_name'],
-                str_replace('/', '_', $details['instance_subdir']));
-        } else {
-            $obj = PHS::$loader_method($instance_details['instance_name'], $details['plugin_name']);
+        if (($instance_type === self::INSTANCE_TYPE_PLUGIN
+             && $plugin_name === self::CORE_PLUGIN)
+            || !self::safe_escape_class_name($plugin_name)) {
+            self::st_set_error(
+                self::ERR_INSTANCE_CLASS,
+                self::_t('Invalid instance plugin name %s.', $plugin_name)
+            );
+
+            return null;
         }
+
+        if ('' !== $instance_subdir
+            && (!$instance_details['instance_type_accepts_subdirs']
+                || !($instance_subdir = self::safe_escape_instance_subdir($instance_subdir)))) {
+            self::st_set_error(
+                self::ERR_INSTANCE_CLASS,
+                self::_t('Couldn\'t load %s %s from plugin %s.',
+                    $instance_type, $instance_subdir.'/'.$class_name, $plugin_name)
+            );
+
+            return null;
+        }
+
+        $obj = self::instantiate_full_class($as_singleton, $full_class_name);
 
         $has_dependency_errors = false;
         if (!$obj
@@ -1173,18 +1236,81 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
         return $obj;
     }
 
+    final public static function load_instance_file(?string $full_class_name = null) : ?array
+    {
+        self::st_reset_error();
+
+        if (!$full_class_name) {
+            $full_class_name = static::class;
+        }
+
+        $full_class_name = ltrim($full_class_name, '\\');
+
+        if (!$full_class_name
+            || !($class_details = self::extract_details_from_full_namespace_name($full_class_name))) {
+            self::st_set_error_if_not_set(self::ERR_CLASS_NAME, self::_t('Cannot extract required information to load class file.'));
+
+            return null;
+        }
+
+        $class_name = $class_details['class_name'] ?? '';
+        $plugin_name = $class_details['plugin_name'] ?? '';
+        $instance_type = $class_details['instance_type'] ?? '';
+        $instance_subdir = $class_details['instance_subdir'] ?? '';
+
+        if (!($instance_details = self::get_instance_details($class_name, $plugin_name, $instance_type, $instance_subdir))
+            || empty($instance_details['instance_id'])) {
+            return null;
+        }
+
+        if (@class_exists($instance_details['instance_full_class'], false)) {
+            return $instance_details;
+        }
+
+        $instance_file_path = $instance_details['instance_path'].$instance_details['instance_file_name'];
+        if (!@file_exists($instance_file_path)) {
+            if (PHS::st_debugging_mode()) {
+                self::st_set_error(self::ERR_INSTANCE_CLASS,
+                    self::_t('Couldn\'t load instance file for class %s from plugin %s.', $class_name,
+                        $instance_details['plugin_name']));
+            } else {
+                self::st_set_error(self::ERR_INSTANCE_CLASS, self::_t('Couldn\'t obtain required instance.'));
+            }
+
+            return null;
+        }
+
+        ob_start();
+        include_once $instance_file_path;
+        ob_end_clean();
+
+        if (!@class_exists($instance_details['instance_full_class'], false)) {
+            if (PHS::st_debugging_mode()) {
+                self::st_set_error(self::ERR_INSTANCE_CLASS,
+                    self::_t('Class %s not defined in %s file.', $instance_details['instance_full_class'],
+                        $instance_details['instance_file_name']));
+            } else {
+                self::st_set_error(self::ERR_INSTANCE_CLASS, self::_t('Couldn\'t obtain required instance after loading file.'));
+            }
+
+            return null;
+        }
+
+        return $instance_details;
+    }
+
     final public static function get_instance_for_loads(
         ?string $class_name = null,
         ?string $plugin_name = null,
         ?string $instance_type = null,
-        bool $singleton = true,
+        bool $as_singleton = true,
         // As file system path
         string $instance_subdir = ''
     ) : ?static {
         self::st_reset_error();
 
         if ($class_name === null) {
-            if (!($class_details = self::extract_details_from_full_namespace_name(@static::class))) {
+            if (!($class_details = self::extract_details_from_full_namespace_name(static::class))) {
                 return null;
             }
 
@@ -1199,49 +1325,31 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
             return null;
         }
 
-        if (!@class_exists($instance_details['instance_full_class'], false)) {
-            $instance_file_path = $instance_details['instance_path'].$instance_details['instance_file_name'];
-            if (!@file_exists($instance_file_path)) {
-                if (PHS::st_debugging_mode()) {
-                    self::st_set_error(self::ERR_INSTANCE_CLASS,
-                        self::_t('Couldn\'t load instance file for class %s from plugin %s.', $class_name,
-                            $instance_details['plugin_name']));
-                } else {
-                    self::st_set_error(self::ERR_INSTANCE_CLASS, self::_t('Couldn\'t obtain required instance.'));
-                }
+        return self::instantiate_full_class($as_singleton, $instance_details['instance_full_class']);
+    }
 
-                return null;
-            }
-
-            ob_start();
-            include_once $instance_file_path;
-            ob_end_clean();
-
-            if (!@class_exists($instance_details['instance_full_class'], false)) {
-                if (PHS::st_debugging_mode()) {
-                    self::st_set_error(self::ERR_INSTANCE_CLASS,
-                        self::_t('Class %s not defined in %s file.', $instance_details['instance_full_class'],
-                            $instance_details['instance_file_name']));
-                } else {
-                    self::st_set_error(self::ERR_INSTANCE_CLASS, self::_t('Couldn\'t obtain required instance after loading file.'));
-                }
-
-                return null;
-            }
+    final public static function instantiate_full_class(bool $as_singleton = true, ?string $full_class_name = null) : ?static
+    {
+        if (!$full_class_name) {
+            $full_class_name = static::class;
         }
 
-        $instance_class = $instance_details['instance_full_class'];
+        $full_class_name = ltrim($full_class_name, '\\');
 
-        if ($singleton
-            && ($instance_obj = self::_get_instance_for_full_class_with_namespace($instance_class))) {
+        if ($as_singleton
+            && ($instance_obj = self::get_instance_for_full_class_with_namespace($full_class_name))) {
             $instance_obj->reset_error();
 
             return $instance_obj;
         }
 
+        if (!($instance_details = self::load_instance_file($full_class_name))) {
+            return null;
+        }
+
         try {
             // Check if class is abstract...
-            if (($is_abstract = new ReflectionClass($instance_class))
+            if (($is_abstract = new ReflectionClass($full_class_name))
                 && $is_abstract->isAbstract()) {
                 self::st_set_error(self::ERR_INSTANCE_CLASS,
                     self::_t('Error instantiating abstract class %s.',
@@ -1253,7 +1361,7 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
         }
 
         /** @var PHS_Instantiable $instance_obj */
-        if (!($instance_obj = new $instance_class($instance_details))) {
+        if (!($instance_obj = new $full_class_name($instance_details))) {
             self::st_set_error(self::ERR_INSTANCE_CLASS,
                 self::_t('Error instantiating class %s from %s file.',
                     $instance_details['instance_full_class'], $instance_details['instance_file_name']));
@@ -1300,8 +1408,8 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
             return null;
         }
 
-        if ($singleton) {
-            self::_set_instance_for_full_class_with_namespace($instance_class, $instance_obj);
+        if ($as_singleton) {
+            self::set_instance_for_full_class_with_namespace($full_class_name, $instance_obj);
         }
 
         return $instance_obj;

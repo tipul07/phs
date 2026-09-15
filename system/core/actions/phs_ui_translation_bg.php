@@ -6,7 +6,7 @@ use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\plugins\admin\PHS_Plugin_Admin;
-use phs\system\core\libraries\PHS_Ui_translations;
+use phs\system\core\libraries\PHS_Library_Ui_translations;
 
 class PHS_Action_Ui_translation_bg extends PHS_Action
 {
@@ -19,7 +19,7 @@ class PHS_Action_Ui_translation_bg extends PHS_Action
     {
         if (!($params = PHS_Bg_jobs::get_current_job_parameters())
             || !($admin_plugin = PHS_Plugin_Admin::get_instance())
-            || !($translations_lib = PHS_Ui_translations::get_instance())
+            || !($translations_lib = PHS_Library_Ui_translations::get_instance())
         ) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Invalid request sent to background job.'));
 

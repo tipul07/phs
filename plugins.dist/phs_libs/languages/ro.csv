@@ -23,5 +23,5 @@ Error obtaining temporary upload directory path.,Eroare la obținerea căii dire
 Default theme in admin,Tema implicită în panoul de administrare
 Should framework use default theme in admin section?,Ar trebui ca framework-ul să folosească tema implicită în secțiunea de administrare?
 Current theme as default,Tema curentă ca implicită
-"If using default theme in admin section, should we set current theme as default (helps with loading resources from current theme if needed in admin interface)","Dacă se folosește tema implicită în secțiunea de administrare, ar trebui să setăm tema curentă ca implicită (ajută la încărcarea resurselor din tema curentă, dacă este nevoie, în interfața de administrare)"
+"If using default theme in admin section, should we set current theme as default (helps with loading resources from current theme if needed in admin interface)","Dacă se utilizează tema implicită în secțiunea de administrare, ar trebui să setăm tema curentă ca implicită (ajută la încărcarea resurselor din tema curentă, dacă este nevoie, în interfața de administrare)"
 QR code directory is not a directory or is not writeable.,Directorul codului QR nu este un director sau nu poate fi scris.

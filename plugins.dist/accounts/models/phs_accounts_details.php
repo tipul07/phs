@@ -2,6 +2,7 @@
 namespace phs\plugins\accounts\models;
 
 use phs\libraries\PHS_Model;
+use phs\libraries\PHS_Record_data;
 
 class PHS_Model_Accounts_details extends PHS_Model
 {
@@ -88,6 +89,15 @@ class PHS_Model_Accounts_details extends PHS_Model
         }
 
         return $return_arr;
+    }
+
+    public function get_full_account_name(int | array | PHS_Record_data $account_details) : ?string
+    {
+        if (!($details_arr = $this->data_to_array($account_details))) {
+            return null;
+        }
+
+        return trim(($details_arr['title'] ?? '').' '.($details_arr['fname'] ?? '').' '.($details_arr['lname'] ?? ''));
     }
 
     protected function _relations_definition() : void

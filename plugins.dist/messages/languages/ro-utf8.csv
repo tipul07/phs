@@ -22,7 +22,7 @@ You cannot follow up this message.,Nu puteți urmări acest mesaj.
 Message details saved in database.,Detaliile mesajului au fost salvate în baza de date.
 Error sending message. Please try again.,Eroare la trimiterea mesajului. Vă rugăm să încercați din nou.
 View Message,Vizualizare mesaj
-Couldn't load messages plugin.,Plugin-ul de mesaje nu a putut fi încărcat.
+Couldn't load messages plugin.,Pluginul de mesaje nu a putut fi încărcat.
 Couldn't load message details.,Detaliile mesajului nu au putut fi încărcate.
 Couldn't load thread of message.,Nu am putut încărca firul de discuţie al mesajului.
 Message doesn't require additional work.,Mesajul nu necesită muncă suplimentară.
@@ -84,7 +84,7 @@ Comma separated user nicknames or emails,Nume de utilizator sau adrese de email 
 Comma separated messaging handlers,Manipulatoare de mesaje separate prin virgulă
 Message subject...,Subiect de mesaj...
 Destination cannot reply,Destinaţia nu poate răspunde
-Destination will not be able to reply to this message.,Destinația nu va putea răspunde la acest mesaj.
+Destination will not be able to reply to this message.,Destinația nu va putea să răspundă la acest mesaj.
 Body,Conţinut
 Message body...,Conținutul mesajului...
 Send Message,Trimite Mesaj
@@ -118,7 +118,7 @@ Invalid message type.,Tip de mesaj invalid.
 Users ids list not provided for message destination.,Lista de identificatori ai utilizatorilor nu a fost furnizată pentru destinația mesajului.
 No users match destination you provided.,Nu există utilizatori care să corespundă destinației pe care ați furnizat-o.
 User list not provided for message destination.,Lista utilizatorilor nu a fost furnizată pentru destinația mesajului.
-No message handlers match destination you provided.,Nu există manipulatoare de mesaje care se potrivesc cu destinația pe care ați furnizat-o.
+No message handlers match destination you provided.,Nu există manipulatoare de mesaje care să se potrivească cu destinația pe care ați furnizat-o.
 User level not provided for message destination.,Nivelul utilizatorului nu a fost furnizat pentru destinația mesajului.
 Role not provided for message destination.,Rolul nu a fost furnizat pentru destinația mesajului.
 Role not found in database for message destination.,Rolul nu a fost găsit în baza de date pentru destinația mesajului.

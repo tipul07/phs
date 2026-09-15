@@ -1,7 +1,6 @@
 <?php
 namespace phs\libraries;
 
-// ! All plugin libraries should extend this class
 use phs\PHS;
 
 abstract class PHS_Library extends PHS_Has_dependencies
@@ -13,7 +12,7 @@ abstract class PHS_Library extends PHS_Has_dependencies
     public function __construct()
     {
         parent::__construct();
-        $this->_check_dependencies_properties();
+        $this->_check_dependencies_properties(static::instances_as_singletons());
     }
 
     public function set_library_location_paths(array $paths) : array
@@ -97,15 +96,29 @@ abstract class PHS_Library extends PHS_Has_dependencies
         ];
     }
 
-    public static function get_instance(array $init_params = [], ?bool $as_singleton = null, bool $force = false) : ?static
-    {
-        if (!($library_details = self::extract_details_from_full_namespace_name(static::class))) {
+    public static function get_instance(
+        array $init_params = [],
+        ?bool $as_singleton = null,
+        ?string $full_class_name = null
+    ) : ?static {
+        if (!$full_class_name) {
+            $full_class_name = static::class;
+        }
+
+        if ($as_singleton
+           && ($obj = self::get_instance_for_full_class_with_namespace($full_class_name))) {
+            return $obj;
+        }
+
+        $full_class_name = ltrim($full_class_name, '\\');
+
+        if (!($library_details = self::extract_details_from_full_namespace_name($full_class_name))) {
             return null;
         }
 
         if (!$library_details['plugin']) {
             return PHS::load_core_library_by_classname(
-                static::class,
+                $full_class_name,
                 [
                     'init_params'  => $init_params,
                     'as_singleton' => $as_singleton ?? static::instances_as_singletons(),
@@ -124,7 +137,7 @@ abstract class PHS_Library extends PHS_Has_dependencies
 
         if (!($library_obj = $plugin_obj->load_library($library_details['library_file'],
             [
-                'full_class_name' => static::class,
+                'full_class_name' => $full_class_name,
                 'init_params'     => $init_params,
                 'as_singleton'    => $as_singleton ?? static::instances_as_singletons(),
                 'path_in_lib_dir' => $library_details['path_in_lib_dir'],
@@ -156,11 +169,12 @@ abstract class PHS_Library extends PHS_Has_dependencies
     public static function extract_details_from_full_namespace_name(string $class_with_namespace) : ?array
     {
         if (!($namespace_parts = explode('\\', ltrim($class_with_namespace, '\\')))
-           || !($library_name = array_pop($namespace_parts))
-           || ($namespace_parts[0] ?? '') !== 'phs'
-           || !($plugin_name = ($namespace_parts[2] ?? ''))
-           || ($namespace_parts[3] ?? '') !== 'libraries'
-           || !in_array(($namespace_parts[1] ?? ''), ['plugins', 'system'], true)
+            || ($namespace_parts[0] ?? '') !== 'phs'
+            || !($library_name = array_pop($namespace_parts))
+            || str_starts_with(strtolower($library_name), 'phs_library')
+            || !($plugin_name = ($namespace_parts[2] ?? ''))
+            || ($namespace_parts[3] ?? '') !== 'libraries'
+            || !in_array(($namespace_parts[1] ?? ''), ['plugins', 'system'], true)
         ) {
             return null;
         }
@@ -175,7 +189,7 @@ abstract class PHS_Library extends PHS_Has_dependencies
         $library_file = strtolower($library_name);
 
         return [
-            'plugin'          => $plugin_name === 'core' ? null : $plugin_name,
+            'plugin'          => $plugin_name === PHS_Instantiable::CORE_PLUGIN ? null : $plugin_name,
             'library_name'    => $library_name,
             'library_file'    => (!str_starts_with($library_file, 'phs_') ? 'phs_' : '').$library_file,
             'path_in_lib_dir' => $path_in_lib_dir,

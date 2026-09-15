@@ -63,7 +63,7 @@ Email,Email
 Ok,Ok
 Created by,Creat de
 Please provide a valid payload for translation.,Vă rugăm să furnizați o încărcătură validă pentru traducere.
-Please valid languages for translation.,Vă rugăm să validați limbile pentru traducere.
+Please valid languages for translation.,Vă rugăm să specificați limbile valide pentru traducere.
 Error obtaining prompt for OpenAI request.,Eroare la obținerea solicitării pentru cererea OpenAI.
 Error sending request to OpenAI API.,Eroare la trimiterea cererii către API-ul OpenAI.
 Invalid OpenAI response.,Răspuns OpenAI invalid.
@@ -84,7 +84,7 @@ API settings,Setări API
 Default theme in admin,Tema implicită în panoul de administrare
 Should framework use default theme in admin section?,Ar trebui ca framework-ul să folosească tema implicită în secțiunea de administrare?
 Current theme as default,Tema curentă ca implicită
-"If using default theme in admin section, should we set current theme as default (helps with loading resources from current theme if needed in admin interface)","Dacă se folosește tema implicită în secțiunea de administrare, ar trebui să setăm tema curentă ca implicită (ajută la încărcarea resurselor din tema curentă, dacă este nevoie, în interfața de administrare)"
+"If using default theme in admin section, should we set current theme as default (helps with loading resources from current theme if needed in admin interface)","Dacă se utilizează tema implicită în secțiunea de administrare, ar trebui să setăm tema curentă ca implicită (ajută la încărcarea resurselor din tema curentă, dacă este nevoie, în interfața de administrare)"
 Language,Limbă
 Close,Închide
 seconds,secunde
@@ -148,11 +148,11 @@ Is platform accepting CORS calls? Usually front-end applications from other doma
 CORS Origin,CORS Origine
 "Comma separated domains from which platform accepts CORS calls. * - accept from all, empty - platform will send as origin what was sent in request (Access-Control-Allow-Origin)","Domenii separate prin virgulă din care platforma acceptă apeluri CORS. * - acceptă de la toate, gol - platforma va trimite ca origine ceea ce a fost trimis în cerere (Access-Control-Allow-Origin)"
 CORS Methods,Metode CORS
-"Comma separated HTTP methods which platform accepts for CORS calls. * - accept all methods, empty - doesn't respond with this header (Access-Control-Allow-Methods)","Metodele HTTP acceptate de platformă pentru apelurile CORS, separate prin virgulă. * - acceptă toate metodele, gol - nu răspunde cu acest antet (Access-Control-Allow-Methods)"
+"Comma separated HTTP methods which platform accepts for CORS calls. * - accept all methods, empty - doesn't respond with this header (Access-Control-Allow-Methods)","Metodele HTTP separate prin virgulă pe care platforma le acceptă pentru apelurile CORS. * - acceptă toate metodele, gol - nu răspunde cu acest antet (Access-Control-Allow-Methods)"
 CORS Headers,Antete CORS
 "Comma separated HTTP headers which platform accepts for CORS calls. * - accept all headers, empty - doesn't respond with this header (Access-Control-Allow-Headers)","Antetele HTTP separate prin virgulă pe care platforma le acceptă pentru apelurile CORS. * - acceptă toate antetele, gol - nu răspunde cu acest antet (Access-Control-Allow-Headers)"
 CORS Max Age (seconds),Durata maximă a CORS (în secunde)
-Preflight requests can be cached. This represents how much time should a client cache OPTIONS response. -1 - do not send this header (Access-Control-Max-Age),Cererile de prelucrare preliminară pot fi memorate în cache. Acest lucru reprezintă cât timp ar trebui să memoreze clientul răspunsul OPTIONS în cache. -1 - nu trimiteți acest antet (Access-Control-Max-Age)
+Preflight requests can be cached. This represents how much time should a client cache OPTIONS response. -1 - do not send this header (Access-Control-Max-Age),Cererile de prelucrare preliminară pot fi memorate în cache. Acest lucru reprezintă cât timp ar trebui să memoreze un client răspunsul OPTIONS în cache. -1 - nu trimiteți acest antet (Access-Control-Max-Age)
 Settings related to REST API calls made to this platform.,Setări legate de apelurile API REST efectuate către această platformă.
 Allow API calls,Permite apelurile API
 Are API calls allowed to this platform?,Sunt permise apelurile API către această platformă?
@@ -207,7 +207,7 @@ Edit Role,Editează Rol
 Invalid role...,Rol necunoscut...
 Role details saved.,Detaliile rolului salvate in baza de date.
 Role details saved...,Detalii rol salvate...
-Add Tenant,Adăugare chiriaș
+Add Tenant,Adăugați chiriaș
 Tenant details saved...,Detaliile chiriașului au fost salvate...
 Manage Tenant's Plugins,Gestionați modulele de extensie ale chiriașului
 Selected plugins activated with success.,Modulele selectate au fost activate cu succes.
@@ -216,7 +216,7 @@ Default,Implicit
 Not Installed,Nu e instalat
 Provided tenant is invalid.,Chiriașul furnizat este invalid.
 Please provide a list of plugins.,Vă rugăm să furnizați o listă de module.
-Error obtaining a list of framework plugins.,Eroare la obținerea unei liste de module plugin pentru framework.
+Error obtaining a list of framework plugins.,Eroare la obținerea unei liste de module suplimentare ale cadrului de lucru.
 Cannot change status for plugin %s.,Nu se poate schimba statusul pentru pluginul %s.
 Error inactivating plugin %s on tenant %s.,Eroare la inactivarea plugin-ului %s pentru tenantul %s.
 Error activating plugin %s on tenant %s.,Eroare la activarea plugin-ului %s pentru tenantul %s.
@@ -237,7 +237,7 @@ Identifier,Identificator
 Required tenants activated with success.,Locatarii necesari au fost activați cu succes.
 Activating selected tenants failed. Please try again.,Activarea chiriașilor selectați a eșuat. Vă rugăm să încercați din nou.
 Failed activating all selected tenants. Tenants which failed activation are still selected. Please try again.,Activarea tuturor chiriașilor selectați a eșuat. Chiriașii care nu au putut fi activați rămân selectați. Vă rugăm să încercați din nou.
-Required tenants inactivated with success.,Chiriașii obligatorii au fost inactivați cu succes.
+Required tenants inactivated with success.,Locatarii necesari au fost inactivați cu succes.
 Inactivating selected tenants failed. Please try again.,Dezactivarea chiriașilor selectați a eșuat. Vă rugăm să încercați din nou.
 Failed inactivating all selected tenants. Tenants which failed inactivation are still selected. Please try again.,Eșuare la dezactivarea tuturor chiriașilor selectați. Chiriașii care au eșuat în inactivare sunt încă selectați. Vă rugăm să încercați din nou.
 Required tenants deleted with success.,Locatarii necesari au fost șterși cu succes.
@@ -283,13 +283,13 @@ HTTP Code,Cod HTTP
 API Monitoring Record Request,Cerere Monitorizare API
 API Monitoring Record Response,Răspuns Monitorizare API
 API Monitoring Error Message,Mesaj de Eroare Monitorizare API
-Import Plugin Settings,Importați Setările Modulului
+Import Plugin Settings,Importați setările modulului
 Error decoding settings JSON string. Please try again.,Eroare la decodificarea șirului JSON de setări. Vă rugăm să încercați din nou.
 Error while importing the settings. Please try again.,Eroare la importarea setărilor. Vă rugăm să încercați din nou.
 Plugin Settings,Setări Pluginuri
 Error initializing plugin settings page.,Eroare la inițializarea paginii cu setările de plugin.
 Settings saved in database.,Setările salvate in baza de date.
-Cannot save settings. Unknown instance.,Nu se pot salva setările. Instanță necunoscută.
+Cannot save settings. Unknown instance.,Nu se poate salva setările. Instanță necunoscută.
 Error saving settings in database. Please try again.,Eroare la salvarea setărilor în baza de date. Vă rugăm să încercați din nou.
 Plugin ID is invalid or plugin was not found.,ID-ul modulului este invalid sau modulul nu a fost găsit.
 Plugins List,Listă de Pluginuri
@@ -316,7 +316,7 @@ Couldn't instantiate plugin.,Nu s-a putut instanția modulul.
 Plugin activated with success.,Plugin activat cu succes.
 Activating plugin failed. Please try again.,Activarea plugin-ului a eșuat. Vă rugăm să încercați din nou.
 Cannot install plugin. Invalid plugin ID.,Nu se poate instala modulul. ID-ul modulului este invalid.
-Plugin inactivated with success.,Plugin dezactivat cu succes.
+Plugin inactivated with success.,Pluginul a fost dezactivat cu succes.
 Inactivating plugin failed. Please try again.,Dezactivarea plugin-ului a eșuat. Vă rugăm să încercați din nou.
 Cannot inactivate plugin. Invalid plugin ID.,Nu se poate inactiva modulul. ID-ul modulului este invalid.
 Plugin upgraded with success.,Modulul a fost actualizat cu succes.
@@ -349,7 +349,7 @@ Min. 64 characters,Min. 64 caractere
 "This crypt key will be used to encrypt plugins settings. Once you obtain the export file, make sure you keep this crypt key safe. It will be used when importing settings on other platforms. If you loose it, you will not be able to import any settings from exported file.","Această cheie de criptare va fi utilizată pentru a cripta setările pluginurilor. După ce obțineți fișierul de export, asigurați-vă că păstrați această cheie de criptare în siguranță. Aceasta va fi utilizată atunci când importați setările pe alte platforme. Dacă o pierdeți, nu veți mai putea importa nicio setare din fișierul exportat."
 You can generate safe crypt keys here: %s,Puteţi genera chei de criptare sigure aici: %s
 Export Settings,Exportă Setările
-Provided plugin is not a multi-tenant plugin. Data will be saved on default tenant.,Pluginul furnizat nu este un plugin multi-locatar. Datele vor fi salvate pe locatarul implicit.
+Provided plugin is not a multi-tenant plugin. Data will be saved on default tenant.,Plugin-ul furnizat nu este un plugin multi-locatar. Datele vor fi salvate pe locatarul implicit.
 Registry data saved in database.,Detaliile regiștrilor salvate în baza de date.
 Error saving registry data. Please try again.,Eroare la salvarea detaliilor regiștrilor în baza de date. Încercați din nou.
 Migration not found in database.,Migrarea nu a fost găsită in baza de date.
@@ -410,11 +410,11 @@ All records containing this value at route field,Toate înregistrările care con
 Next run,Lansarea următoare
 Last action,Ultima acțiune
 Required agent jobs activated with success.,Sarcinile agentului necesare au fost activate cu succes.
-Activating selected agent jobs failed. Please try again.,Activarea joburilor agentului selectat a eșuat. Vă rugăm să încercați din nou.
+Activating selected agent jobs failed. Please try again.,Activarea joburilor de agent selectate a eșuat. Vă rugăm să încercați din nou.
 Failed activating all selected agent jobs. Agent jobs which failed activation are still selected. Please try again.,Activarea tuturor joburilor de agent selectate a eșuat. Joburile de agent care au eșuat la activare sunt încă selectate. Vă rugăm să încercați din nou.
-Required agent jobs inactivated with success.,Joburile agentului necesare au fost inactivate cu succes.
+Required agent jobs inactivated with success.,Joburile agentului necesare au fost dezactivate cu succes.
 Inactivating selected agent jobs failed. Please try again.,Dezactivarea joburilor agentului selectat a eșuat. Vă rugăm să încercați din nou.
-Failed inactivating all selected agent jobs. Agent jobs which failed inactivation are still selected. Please try again.,Eșuare la dezactivarea tuturor joburilor de agent selectate. Joburile de agent care au eșuat în dezactivare sunt încă selectate. Vă rugăm să încercați din nou.
+Failed inactivating all selected agent jobs. Agent jobs which failed inactivation are still selected. Please try again.,Eșuare la dezactivarea tuturor joburilor de agent selectate. Joburile de agent care au eșuat în inactivare sunt încă selectate. Vă rugăm să încercați din nou.
 Required agent jobs deleted with success.,Joburile agentului necesare au fost șterse cu succes.
 Deleting selected agent jobs failed. Please try again.,Ștergerea joburilor agentului selectate a eșuat. Vă rugăm să încercați din nou.
 Failed deleting all selected agent jobs. Agent jobs which failed deletion are still selected. Please try again.,Ștergerea tuturor joburilor de agent selectate a eșuat. Joburile de agent care nu au putut fi șterse rămân selectate. Vă rugăm să încercați din nou.
@@ -444,7 +444,7 @@ Are you sure you want to activate this agent job?,Sunteți sigur că doriți să
 Are you sure you want to inactivate this agent job?,Sunteți sigur că doriți să inactivați această sarcină a agentului?
 NOTE: This agent job is part of a plugin. If you delete it plugin might not function normally.,"NOTĂ: Acest job al agentului face parte dintr-un plugin. Dacă îl ștergeți, pluginul s-ar putea să nu funcționeze normal."
 Are you sure you want to continue?,Sunteți sigur că doriţi să continuaţi?
-Are you sure you want to DELETE this agent job?,Sunteți sigur că doriți să ștergeți această sarcină de agent?
+Are you sure you want to DELETE this agent job?,Sunteți sigur că doriți să ștergeți această sarcină a agentului?
 NOTE: Job is still running! You should run this job only if you know what you'r doing!!!,NOTĂ: Job-ul încă rulează! Ar trebui să rulezi acest job doar dacă știi ce faci!!!
 Are you sure you want to manually run this agent job?,Sunteți sigur că doriți să rulați manual această sarcină a agentului?
 Please select agent jobs you want to activate first.,Vă rugăm să selectați mai întâi joburile agentului pe care doriți să le activați.
@@ -452,7 +452,7 @@ Are you sure you want to activate %s agent jobs?,Sunteți sigur că doriți să 
 Please select agent jobs you want to inactivate first.,Vă rugăm să selectați mai întâi locurile de muncă ale agenților pe care doriți să le inactivați.
 Are you sure you want to inactivate %s agent jobs?,Sunteți sigur că doriți să inactivați %s joburi de agenți?
 Please select agent jobs you want to delete first.,Vă rugăm să selectați mai întâi locurile de muncă ale agenților pe care doriți să le ștergeți.
-Are you sure you want to DELETE %s agent jobs?,Sunteți sigur că doriți să ștergeți %s joburi de agent?
+Are you sure you want to DELETE %s agent jobs?,Sunteți sigur că doriți să ștergeți %s joburi de agenți?
 Add Role,Adaugă Rol
 Plugins' Integrity,Integritatea modulelor
 Couldn't load plugins model.,Nu s-au putut încărca modelele de pluginuri.
@@ -477,10 +477,10 @@ Simulate Web,Simulare WEB
 ??,??
 Required API keys activated with success.,Cheia API a fost activată cu succes.
 Activating selected API keys failed. Please try again.,Activarea cheilor API selectate a eșuat. Vă rugăm să încercați din nou.
-Failed activating all selected API keys. API keys which failed activation are still selected. Please try again.,Activarea tuturor cheilor API selectate a eșuat. Cheile API care nu au putut fi activate rămân selectate. Vă rugăm să încercați din nou.
+Failed activating all selected API keys. API keys which failed activation are still selected. Please try again.,Activarea tuturor cheilor API selectate a eșuat. Cheile API care au eșuat în activare sunt încă selectate. Vă rugăm să încercați din nou.
 Required API keys inactivated with success.,Cheile API necesare au fost dezactivate cu succes.
 Inactivating selected API keys failed. Please try again.,Dezactivarea cheilor API selectate a eșuat. Vă rugăm să încercați din nou.
-Failed inactivating all selected API keys. API keys which failed inactivation are still selected. Please try again.,Eșuare la dezactivarea tuturor cheilor API selectate. Cheile API care au eșuat la dezactivare sunt încă selectate. Vă rugăm să încercați din nou.
+Failed inactivating all selected API keys. API keys which failed inactivation are still selected. Please try again.,Eșuare la dezactivarea tuturor cheilor API selectate. Cheile API care au eșuat în inactivare sunt încă selectate. Vă rugăm să încercați din nou.
 Required API keys deleted with success.,Cheile API necesare au fost șterse cu succes.
 Deleting selected API keys failed. Please try again.,Ștergerea cheilor API selectate a eșuat. Vă rugăm să încercați din nou.
 Failed deleting all selected API keys. API keys which failed deletion are still selected. Please try again.,Ștergerea tuturor cheilor API selectate a eșuat. Cheile API care nu au putut fi șterse rămân selectate. Vă rugăm să încercați din nou.
@@ -503,7 +503,7 @@ Delete API key,Şterge cheia API
 Are you sure you want to activate this API key?,Sunteți sigur că doriți să activați această cheie API?
 Are you sure you want to inactivate this API key?,Sunteți sigur că doriți să inactivați această cheie API?
 Are you sure you want to DELETE this API key?,Sunteți sigur că doriți să ștergeți această cheie API?
-Please select API keys you want to activate first.,Vă rugăm să selectați mai întâi cheile API pe care doriți să le activați.
+Please select API keys you want to activate first.,Vă rugăm să selectați cheile API pe care doriți să le activați mai întâi.
 Are you sure you want to activate %s API keys?,Sunteți sigur că doriți să activați cheile API %s?
 Please select API keys you want to inactivate first.,Vă rugăm să selectați mai întâi cheile API pe care doriți să le inactivați.
 Are you sure you want to inactivate %s API keys?,Sunteți sigur că doriți să inactivați cheile API %s?
@@ -520,7 +520,7 @@ Activating selected roles failed. Please try again.,Activarea rolurilor selectat
 Failed activating all selected roles. Roles which failed activation are still selected. Please try again.,Activarea tuturor rolurilor selectate a eșuat. Rolurile care nu au putut fi activate rămân selectate. Vă rugăm să încercați din nou.
 Required roles inactivated with success.,Rolurile necesare au fost inactivate cu succes.
 Inactivating selected roles failed. Please try again.,Dezactivarea rolurilor selectate a eșuat. Vă rugăm să încercați din nou.
-Failed inactivating all selected roles. Roles which failed inactivation are still selected. Please try again.,Eșuare la dezactivarea tuturor rolurilor selectate. Rolurile care au eșuat în inactivare sunt încă selectate. Vă rugăm să încercați din nou.
+Failed inactivating all selected roles. Roles which failed inactivation are still selected. Please try again.,Eșuare la dezactivarea tuturor rolurilor selectate. Rolurile care au eșuat în dezactivare sunt încă selectate. Vă rugăm să încercați din nou.
 Required roles deleted with success.,Rolurile necesare au fost șterse cu succes.
 Deleting selected roles failed. Please try again.,Ștergerea rolurilor selectate a eșuat. Vă rugăm să încercați din nou.
 Failed deleting all selected roles. Roles which failed deletion are still selected. Please try again.,Ștergerea tuturor rolurilor selectate a eșuat. Rolurile care nu au putut fi șterse rămân selectate. Vă rugăm să încercați din nou.
@@ -596,14 +596,14 @@ Retention,Retenție
 Required data retention policies launched with success.,Politici obligatorii de reținere a datelor lansate cu succes.
 Launching selected data retention policies failed. Please try again.,Lansarea politicilor selectate de reținere a datelor a eșuat. Vă rugăm să încercați din nou.
 Failed launched all selected data retention policies. Data retention policies which failed launching are still selected. Please try again.,Lansarea tuturor politicilor de reținere a datelor selectate a eșuat. Politicile de reținere a datelor care au eșuat la lansare sunt încă selectate. Vă rugăm să încercați din nou.
-Required data retention policies activated with success.,Politici obligatorii de reținere a datelor activate cu succes.
+Required data retention policies activated with success.,Politici de reținere a datelor obligatorii activate cu succes.
 Activating selected data retention policies failed. Please try again.,Activarea politicilor selectate de reținere a datelor a eșuat. Vă rugăm să încercați din nou.
 Failed activating all selected data retention policies. Data retention policies which failed activation are still selected. Please try again.,Nu s-au putut activa toate politicile de reținere a datelor selectate. Politicile de reținere a datelor care nu au putut fi activate rămân încă selectate. Vă rugăm să încercați din nou.
 Required data retention policies inactivated with success.,Politici de reținere a datelor obligatorii inactivate cu succes.
 Inactivating selected data retention policies failed. Please try again.,Dezactivarea politicilor selectate de reținere a datelor a eșuat. Vă rugăm să încercați din nou.
 Failed inactivating all selected data retention policies. Data retention policies which failed inactivation are still selected. Please try again.,Eșuare la dezactivarea tuturor politicilor de reținere a datelor selectate. Politicile de reținere a datelor care au eșuat în dezactivare sunt încă selectate. Vă rugăm să încercați din nou.
 Required data retention policies deleted with success.,Politica de reținere a datelor necesare ștearsă cu succes.
-Deleting selected data retention policies failed. Please try again.,Ștergerea politicilor de reținere a datelor selectate a eșuat. Vă rugăm să încercați din nou.
+Deleting selected data retention policies failed. Please try again.,Ștergerea politicilor selectate de reținere a datelor a eșuat. Vă rugăm să încercați din nou.
 Failed deleting all selected data retention policies. Data retention policies which failed deletion are still selected. Please try again.,Ștergerea tuturor politicilor de reținere a datelor selectate a eșuat. Politicile de reținere a datelor care nu au putut fi șterse rămân selectate. Vă rugăm să încercați din nou.
 Data retention policy activated with success.,Politica de reținere a datelor activată cu succes.
 Activating data retention policy failed. Please try again.,Activarea politicii de reținere a datelor a eșuat. Vă rugăm să încercați din nou.
@@ -620,7 +620,7 @@ Inactivate data retention policy,Dezactivați politica de reținere a datelor
 Run data retention policy,Executați politica de reținere a datelor
 Delete data retention policy,Ștergeți politica de reținere a datelor
 Are you sure you want to activate this data retention policy?,Sunteți sigur că doriți să activați această politică de reținere a datelor?
-Are you sure you want to inactivate this data retention policy?,Sunteți sigur că doriți să inactivați această politică de reținere a datelor?
+Are you sure you want to inactivate this data retention policy?,Sunteți sigur că doriți să dezactivați această politică de reținere a datelor?
 Are you sure you want to run this data retention policy?,Sunteți sigur că doriți să rulați această politică de reținere a datelor?
 Are you sure you want to DELETE this data retention policy?,Sunteți sigur că doriți să ȘTERGEȚI această politică de reținere a datelor?
 Please select data retention policies you want to activate first.,Vă rugăm să selectați politicile de reținere a datelor pe care doriți să le activați mai întâi.
@@ -673,7 +673,7 @@ Failed resetting account locking for all selected accounts. Accounts for which a
 Required accounts activated with success.,Conturile necesare au fost activate cu succes.
 Activating selected accounts failed. Please try again.,Activarea conturilor selectate a eșuat. Vă rugăm să încercați din nou.
 Failed activating all selected accounts. Accounts which failed activation are still selected. Please try again.,Activarea tuturor conturilor selectate a eșuat. Conturile care nu au putut fi activate rămân selectate. Vă rugăm să încercați din nou.
-Required accounts inactivated with success.,Conturile necesare au fost dezactivate cu succes.
+Required accounts inactivated with success.,Conturile necesare au fost inactivate cu succes.
 Inactivating selected accounts failed. Please try again.,Dezactivarea conturilor selectate a eșuat. Vă rugăm să încercați din nou.
 Failed inactivating all selected accounts. Accounts which failed inactivation are still selected. Please try again.,Eșuare la dezactivarea tuturor conturilor selectate. Conturile care au eșuat la dezactivare sunt încă selectate. Vă rugăm să încercați din nou.
 Required accounts deleted with success.,Conturile necesare au fost șterse cu succes.
@@ -723,7 +723,7 @@ Please select accounts you want to activate first.,Vă rugăm să selectați con
 Are you sure you want to activate %s accounts?,Sunteți sigur că doriți să activați %s conturi?
 Please select accounts you want to inactivate first.,Vă rugăm să selectați mai întâi conturile pe care doriți să le inactivați.
 Are you sure you want to inactivate %s accounts?,Sunteți sigur că doriți să inactivați %s conturi?
-Please select accounts you want to delete first.,Va rugăm să selectați mai întâi conturile pe care doriți să le ștergeți.
+Please select accounts you want to delete first.,Vă rugăm să selectați mai întâi conturile pe care doriți să le ștergeți.
 Are you sure you want to DELETE %s accounts?,Sunteți sigur că doriți să ștergeți %s conturi?
 Please select accounts you want to reset locking for first.,Vă rugăm să selectați mai întâi conturile pentru care doriți să resetați blocarea.
 Are you sure you want to reset locking for %s accounts?,Sunteți sigur că doriți să resetați blocarea pentru %s conturi?
@@ -764,7 +764,7 @@ Last HTTP Call Error,Ultima eroare HTTP
 Resume HTTP call,Rezumați apelul HTTP
 Pause HTTP call,Pauză apel HTTP
 Resend HTTP call,Reîncercați apelul HTTP
-View HTTP call settings,Vizualizați setările apelului HTTP
+View HTTP call settings,Vizualizați setările apelurilor HTTP
 Delete HTTP call,Şterge cererea HTTP
 Payload updated with success.,Payload actualizat cu succes.
 Error updating payload. Please try again.,Eroare la actualizarea încărcăturii. Vă rugăm să încercați din nou.
@@ -773,7 +773,7 @@ HTTP call not found in database.,Apelul HTTP nu a fost găsit în baza de date.
 HTTP call running in a background job with success.,Apelul HTTP rulează într-un job în fundal cu succes.
 Retrying HTTP call failed. Please try again.,Reîncercarea apelului HTTP a eșuat. Vă rugăm să încercați din nou.
 HTTP call paused with success.,Apelul HTTP a fost oprit cu succes.
-Pausing HTTP call failed. Please try again.,Pauzarea apelului HTTP a eșuat. Vă rugăm să încercați din nou.
+Pausing HTTP call failed. Please try again.,Întreruperea apelului HTTP a eșuat. Vă rugăm să încercați din nou.
 HTTP call un-paused with success.,Apelul HTTP a fost repornit cu succes.
 Un-pausing HTTP call failed. Please try again.,Repornirea apelului HTTP a eșuat. Vă rugăm să încercați din nou.
 HTTP call deleted with success.,Apelul HTTP a fost șters cu succes.
@@ -783,7 +783,7 @@ Pausing selected HTTP calls failed. Please try again.,Întreruperea apelurilor H
 Failed pausing all selected HTTP calls. HTTP calls which failed pausing are still selected. Please try again.,Eșuare la întreruperea tuturor apelurilor HTTP selectate. Apelurile HTTP care au eșuat la întrerupere rămân încă selectate. Vă rugăm să încercați din nou.
 Required HTTP calls un-paused with success.,Apelurile HTTP necesare au fost repornite cu succes.
 Un-pausing selected HTTP calls failed. Please try again.,Repornirea apelurilor HTTP selectate a eșuat. Vă rugăm să încercați din nou.
-Failed un-pausing all selected HTTP calls. HTTP calls which failed un-pausing are still selected. Please try again.,Eșuare la repornirea tuturor apelurilor HTTP selectate. Apelurile HTTP care au eșuat la repornire rămân încă selectate. Vă rugăm să încercați din nou.
+Failed un-pausing all selected HTTP calls. HTTP calls which failed un-pausing are still selected. Please try again.,Nu s-a reușit repornirea tuturor apelurilor HTTP selectate. Apelurile HTTP care nu au putut fi repornite rămân încă selectate. Vă rugăm să încercați din nou.
 Required HTTP calls deleted with success.,Apelurile HTTP necesare au fost șterse cu succes.
 Deleting selected HTTP calls failed. Please try again.,Ștergerea apelurilor HTTP selectate a eșuat. Vă rugăm să încercați din nou.
 Failed deleting all selected HTTP calls. HTTP calls which failed deletion are still selected. Please try again.,Eșuare la ștergerea tuturor apelurilor HTTP selectate. Apelurile HTTP care nu au putut fi șterse rămân încă selectate. Vă rugăm să încercați din nou.
@@ -806,10 +806,10 @@ Regenerate PO File,Regenerați fișierul PO
 For language,Pentru limbaj
 Select language,Selectare limbă
 Update PO file,Actualizare fișier PO
-Translate PO File,Traduceți fișierul PO
-Translate language,Traduceți limbajul
+Translate PO File,Traducere fișier PO
+Translate language,Traducere limbaj
 Translate PO file,Traduceți fișierul PO
-PO file,Fișier PO
+PO file,Fișierul PO
 Total translations,Traduceri totale
 Already translated,Deja tradus
 AI Translation,Traducere AI
@@ -835,8 +835,8 @@ No running translation task found.,Nu s-a găsit nicio sarcină de traducere în
 Sending stop request...,Trimitere cerere de oprire...
 Error sending stop request. Please try again.,Eroare la trimiterea cererii de oprire. Vă rugăm să încercați din nou.
 Stop request sent to background task. Refresh PO file details to see the status.,Cererea de oprire a fost trimisă către sarcina din fundal. Reîmprospătați detaliile fișierului PO pentru a vedea starea.
-Translating PO file...,Se traduce fișierul PO...
-PO translation task launched with success in background job.,Sarcina de traducere PO a fost lansată cu succes într-un job în fundal.
+Translating PO file...,
+PO translation task launched with success in background job.,Task-ul de traducere PO a fost lansat cu succes într-un job în background.
 "You can check the progress by clicking the <i class=\""fa fa-info\""></i> icon for provided language.","Puteți verifica progresul făcând clic pe iconița <i class=\""fa fa-info\""></i> pentru limba furnizată."
 Choose tenant,Selectați chiriașul
 "Current platform doesn't support multi-tenant setup. All changes will be done on a \""Default\"" tenant.",Platformul curent nu suportă configurarea multi-locatar. Toate modificările vor fi făcute pe un locatar „Implicit”.
@@ -855,7 +855,7 @@ Settings for plugin %s on tenant %s.,Setări pentru modulul %s pe chiriașul %s.
 Settings value,Valoare setări
 No settings yet...,Nici o setare încă...
 "First, select pluins from the list.","Mai întâi, selectați modulele din listă."
-Are you sure you want to ACTIVATE %s plugins for selected tenant?,Sunteți sigur că doriți să ACTIVAȚI %s modulele pentru chiriașul selectat?
+Are you sure you want to ACTIVATE %s plugins for selected tenant?,Sunteți sigur că doriți să ACTIVAȚI %s module pentru chiriașul selectat?
 Refreshing the page...,Reîmprospătarea paginii...
 Are you sure you want to INACTIVATE %s plugins for selected tenant?,Sunteți sigur că doriți să DEZACTIVAȚI %s module pentru chiriașul selectat?
 "First, select plugins from the list.","Mai întâi, selectați modulele din listă."
@@ -863,7 +863,7 @@ Error obtaining form data. Please try again.,Eroare la obținerea datelor formul
 Please select plugin for which you want to see registry data.,Vă rugăm să selectați modulul pentru care doriți să vizualizați datele din registrul.
 Error obtaining plugin registry data. Please try again.,Eroare la obținerea datelor registrelor plugin-urilor. Vă rugăm să încercați din nou.
 %s registry for %s tenant,Registrul %s pentru chiriașul %s
-Please select plugin for which you want to see settings.,Va rugăm să selectați modulul pentru care doriți să vizualizați setările.
+Please select plugin for which you want to see settings.,Vă rugăm să selectați modulul pentru care doriți să vizualizați setările.
 Error obtaining plugin settings. Please try again.,Eroare la obținerea setărilor modulului. Vă rugăm să încercați din nou.
 %s settings for %s tenant,Setări %s pentru chiriașul %s
 Friendly tenant name,Numele chiriașului prietenos
@@ -876,7 +876,7 @@ Default tenant?,Chiriaș implicit?
 "If no tenant can be selected from the request, use this tenant as default","Dacă nu poate fi selectat niciun chiriaș din cerere, folosiți acest chiriaș ca implicit"
 Default Theme,Tema predefinită
 Current Theme,Tema curentă
-Themes Cascade,Cascadă de teme
+Themes Cascade,Cascadă de Tematici
 Move up,Deplasare în sus
 Move down,Deplasare în jos
 No theme selected yet.,Nu este selectată nici o temă încă.
@@ -905,7 +905,7 @@ Only models with settings,Doar modele cu setări
 Import Settings,Importare setări
 Plugin settings imported with success.,Setările modulului au fost importate cu succes.
 There were errors while importing plugin settings. Please try again.,Au apărut erori în timpul importării setărilor plugin-ului. Vă rugăm să încercați din nou.
-Import information is also available in maintenance.log file.,Informațiile de import sunt de asemenea disponibile în fișierul maintenance.log.
+Import information is also available in maintenance.log file.,Informațiile de import sunt disponibile și în fișierul maintenance.log.
 Finish,Finalizare
 This plugin is not a multi-tenant plugin! Settings will be same for all tenants.,Acest modul nu este un modul multi-locatar! Setările vor fi aceleași pentru toți locatarii.
 Select tenant,Selectați chiriașul
@@ -920,7 +920,7 @@ Selected module doesn't have any settings.,Modulul selectat nu are niciun setăr
 Save settings,Salvare setări
 Are you sure you want to cancel changes in plugin settings?,Sunteți sigur că doriți să anulați modificările în setările modulului?
 [Non-editable],[Non-editabil]
-Use custom tenant value,Utilizați valoarea personalizată a chiriașului
+Use custom tenant value,Utilizați valoarea tenant personalizată
 Main settings value,Valoare setare principală
 Empty string value,Valoare string gol
 Default value,Valoare predefinită
@@ -929,9 +929,9 @@ Not a key-value array...,Nu este un tablou cheie-valoare...
 Template file,Fișier șablon
 From paths,Din căi
 Values array should be provided,Ar trebui furnizat un șir de valori
-This plugin is not a multi-tenant plugin! Registry data will be same for all tenants.,Acest modul nu este un modul multi-locatar! Datele din registru vor fi aceleași pentru toți locatarii.
+This plugin is not a multi-tenant plugin! Registry data will be same for all tenants.,Acest modul nu este un modul multi-locatar! Datele din registrul vor fi aceleași pentru toți locatarii.
 Are you sure you want to cancel changes in plugin registry data?,Sunteți sigur că doriți să anulați modificările în datele registrelor plugin-ului?
-Delete record data,Ștergeți datele înregistrării
+Delete record data,Șterge datele înregistrării
 Add registry value,Adăugați valoarea registru
 Save registry data,Salvați datele din registru
 Are you sure you want to remove this registry data?,Sunteți sigur că doriți să eliminați aceste date din registru?
@@ -945,7 +945,7 @@ Controller,Controler
 Action,Acţiune
 Handler should be unique as it will identify agent job.,Handler ar trebui să fie unic deoarece va identifica sarcina agentului.
 Job parameters,Parametrii locului de muncă
-This is a JSON string which will be decoded and passed as parameter to job execute method.,Acesta este un șir JSON care va fi decodat și transmis ca parametru metodei execute a job-ului.
+This is a JSON string which will be decoded and passed as parameter to job execute method.,Acesta este un șir JSON care va fi decodat și transmis ca parametru metodei de executare a jobului.
 Running interval,Interval de rulare
 Once how many seconds should this job run. Minimum interval depends on interval set for _agent.php script to run in crontab.,Odată la câte secunde ar trebui să ruleze această sarcină. Intervalul minim depinde de intervalul setat pentru scriptul _agent.php să ruleze în crontab.
 Run asynchronous,Rulare asincronă
@@ -971,7 +971,7 @@ Add API key,Adaugă cheie API
 Leave empty to autogenerate.,Lăsaţi gol pentru auto-generare.
 Role Units,Unități de rol
 Manually added,Adăugat manual
-"Slug should be unique. Once role is defined, you cannot change this slug.","Slug-ul ar trebui să fie unic. Odată ce rolul este definit, nu puteți schimba acest slug."
+"Slug should be unique. Once role is defined, you cannot change this slug.","Slug-ul trebuie să fie unic. Odată ce rolul este definit, nu puteți schimba acest slug."
 Add role,Adaugă rol
 Welcome...,Bine aţi venit...
 You are in admin section of %s site.,Ești în secțiunea de administrare a site-ului %s.
@@ -995,7 +995,7 @@ Didn't find a valid value in plugins list to check integrity.,Nu s-a găsit o va
 DONE,GATA
 Import User Accounts,Importă Conturile de Utilizator
 Import file,Fişier de import
-This should be a JSON file exported using Export options from accounts management page.,Acesta ar trebui să fie un fișier JSON exportat folosind opțiunile de export de pe pagina de gestionare a conturilor.
+This should be a JSON file exported using Export options from accounts management page.,Acesta ar trebui să fie un fișier JSON exportat folosind opțiunile de Export din pagina de gestionare a conturilor.
 Current maximum upload file size %s.,Dimensiune maximă pentru upload de fişier %s.
 Import options,Opţiuni de import
 "Create non-existing accounts (if email is not found in database, create a new account)","Creează conturi inexistente (dacă adresa de email nu este găsită în baza de date, creează un cont nou)"
@@ -1017,7 +1017,7 @@ Locked,Blocat
 Multi-tenancy,Multi-locatar
 Multi-tenancy enabled,Multi-tenanță activată
 Multi-tenant account,Cont multi-locatar
-Account tenants,Locatarii contului
+Account tenants,Locatari de cont
 Unknown tenant,Chiriaș necunoscut
 Edit User Account,Editare Cont
 Roles,Roluri
@@ -1052,7 +1052,7 @@ Download file,Ia fişierul
 Displaying last %s lines from %s file.,Afişare ultimele %s linii din fişierul %s.
 Log file returned empty buffer.,Fişierul de log a returnat un string gol.
 Platform Tenants,Locatarii platformei
-List Tenants,Listare chiriași
+List Tenants,Listează chiriașii
 Accounts Management,Management Conturi
 Add Account,Adăugă Cont
 Manage Accounts,Administrează Conturi
@@ -1060,10 +1060,10 @@ Roles Management,Management Roluri
 Manage Roles,Administrează Roluri
 Plugins Management,Managementul modulelor
 List Plugins,Listă Pluginuri
-Tenant Plugin Management,Gestionarea modulului de chiriaș
+Tenant Plugin Management,Gestionarea plugin-ului pentru chiriaș
 Plugins Migrations,Migrări ale modulelor
 List Migrations,Listare Migrații
-List Agent Jobs,Listare Job-uri Agent
+List Agent Jobs,Listează Job-uri ale Agenta
 API Settings,Setări API
 List API Keys,Listează cheile API
 API Monitoring Report,Raport de monitorizare a API-urilor
@@ -1088,4 +1088,7 @@ Checking translations...,Verificarea traducerilor...
 Error obtaining translations check result. Please try again.,Eroare la obținerea rezultatului verificării traducerilor. Vă rugăm să încercați din nou.
 Translation Results,Rezultatele traducerii
 "You can check the progress by clicking the <i class=""fa fa-info""></i> icon for provided language.","Puteți verifica progresul făcând clic pe iconița <i class=""fa fa-info""></i> pentru limba furnizată."
-"Current platform doesn't support multi-tenant setup. All changes will be done on a ""Default"" tenant.","Platformul curent nu suportă configurarea multi-locatar. Toate modificările vor fi făcute pe un locatar „Implicit”."
+"Current platform doesn't support multi-tenant setup. All changes will be done on a ""Default"" tenant.",Platformul curent nu suportă configurarea multi-locatar. Toate modificările vor fi făcute pe un locatar „Implicit”.
+Account details not found in database.,Detaliile contului nu au fost găsite în baza de date.
+"Current platform doesn't support multi-tenant setup. All changes will be done on a \\""Default\\"" tenant.",Platformul curent nu suportă configurarea multi-locatar. Toate modificările vor fi făcute pe un locatar „Implicit”.
+"You can check the progress by clicking the <i class=\\""fa fa-info\\""></i> icon for provided language.","Puteți verifica progresul făcând clic pe iconița <i class=\\""fa fa-info\\""></i> pentru limba furnizată."

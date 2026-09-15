@@ -3,18 +3,10 @@ namespace phs\libraries;
 
 // When we are asked to display a listing of items to an external party,
 // we can "chain" a normal contract with PHS_Contract_list to export lists
-// in same format. All we have to provide is structure of each item in the list
-// by returning item contract (e.g. PHS_Contract_item::get_contract_data_definition) in
-// PHS_Contract_list::get_contract_data_list_definition call
+// in same format. All we have to provide is a contract from which the nodes will be taken or
+// override PHS_Contract_list::get_contract_data_list_definition to provide some nodes
 abstract class PHS_Contract_list extends PHS_Contract
 {
-    /**
-     * Returns an array containing item node definition in the list
-     * @return null|array
-     * @see \phs\libraries\PHS_Contract::_get_contract_node_definition()
-     */
-    abstract public function get_contract_data_list_definition() : ?array;
-
     /**
      * If nodes in list are defined in a contract, return contract instance here
      * @return null|PHS_Contract
@@ -25,10 +17,22 @@ abstract class PHS_Contract_list extends PHS_Contract
     }
 
     /**
+     * Returns an array containing item node definition in the list (only if different from provided contract - if any)
+     * @return null|array
+     * @see \phs\libraries\PHS_Contract::_get_contract_node_definition()
+     */
+    public function get_contract_data_list_definition() : ?array
+    {
+        return $this->get_list_node_contract()?->get_contract_data_definition();
+    }
+
+    /**
      * @inheritdoc
      */
     public function get_contract_data_definition() : ?array
     {
+        $contract_obj = $this->get_list_node_contract();
+
         return [
             'total_count' => [
                 'title'       => 'Total items count',
@@ -50,8 +54,8 @@ abstract class PHS_Contract_list extends PHS_Contract
                 'recurring_key_type'  => PHS_Params::T_INT,
                 'recurring_node'      => true,
                 'key_type'            => self::FROM_INSIDE,
-                'nodes_from_contract' => $this->get_list_node_contract(),
-                'nodes'               => $this->get_contract_data_list_definition(),
+                'nodes_from_contract' => $contract_obj,
+                'nodes'               => $contract_obj ? [] : $this->get_contract_data_list_definition(),
             ],
         ];
     }

@@ -3,14 +3,14 @@ namespace phs\system\core\libraries;
 
 use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Logger;
-use phs\libraries\PHS_Library;
 use phs\libraries\PHS_Po_format;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\traits\PHS_Model_Trait_statuses;
+use phs\libraries\PHS_Library_instantiable;
 use phs\system\core\attributes\PHS_Dependency;
 use phs\plugins\admin\libraries\PHS_Ai_translations;
 
-class PHS_Ui_translations extends PHS_Library
+class PHS_Library_Ui_translations extends PHS_Library_instantiable
 {
     use PHS_Model_Trait_statuses;
 

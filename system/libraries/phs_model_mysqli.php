@@ -2273,7 +2273,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
                 $field_val['check'] = trim($field_val['check']);
                 if ($field_val['raw_value'] !== false) {
                     $check_value = $field_val['raw_value'];
-                } elseif (in_array(strtolower($field_val['check']), ['in', 'is', 'between'])) {
+                } elseif (in_array(strtolower($field_val['check']), ['in', 'not in', 'is', 'between'])) {
                     $check_value = $field_val['value'];
                 } elseif (!is_array($field_val['value'])) {
                     $check_value = '\''.db_escape($field_val['value'], $db_connection).'\'';

@@ -13,8 +13,8 @@ use phs\libraries\PHS_Api_action;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\attributes\PHS_Dependency;
-use phs\system\core\libraries\PHS_Ui_translations;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\system\core\libraries\PHS_Library_Ui_translations;
 
 class PHS_Action_Ui_translations extends PHS_Api_action
 {
@@ -25,7 +25,7 @@ class PHS_Action_Ui_translations extends PHS_Api_action
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
     #[PHS_Dependency]
-    private ?PHS_Ui_translations $_ui_translations = null;
+    private ?PHS_Library_Ui_translations $_ui_translations = null;
 
     #[PHS_Dependency]
     private ?PHS_Model_Accounts $_accounts_model = null;

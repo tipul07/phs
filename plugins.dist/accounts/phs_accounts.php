@@ -12,10 +12,8 @@ use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Record_data;
-use phs\system\core\libraries\PHS_Email;
 use phs\system\core\models\PHS_Model_Roles;
 use phs\system\core\attributes\PHS_Dependency;
-use phs\system\core\libraries\PHS_Ui_translations;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts_details;
 use phs\system\core\events\plugins\PHS_Event_Plugin_settings_saved;
@@ -1518,7 +1516,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             ?: $this->_accounts_model::OBFUSCATED_PASSWORD;
 
         $email_obj
-            = PHS_Email::get_instance()
+            = phs_email()
                 ?->force_language($lang)
                 ->to($account_arr['email'], $account_arr['nick'])
                 ->template('confirmation', $this)
@@ -1572,7 +1570,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         $lang = $this->_accounts_model->get_account_language($account_arr) ?: self::get_default_language();
 
         $email_obj
-            = PHS_Email::get_instance()
+            = phs_email()
                 ?->force_language($lang)
                 ->to($account_arr['email'], $account_arr['nick'])
                 ->template('password_setup', $this)
