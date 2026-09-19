@@ -16,6 +16,8 @@ class PHS_Plugin_Backup extends PHS_Plugin
 {
     public const ERR_LOCATION_DOESNT_EXIST = 1, ERR_LOCATION_NOT_DIR = 2;
 
+    public const K_SETTINGS_LOCATION = 'location';
+
     public const DIRNAME_IN_UPLOADS = '_backups';
 
     public const LOG_CHANNEL = 'backups.log';
@@ -70,16 +72,12 @@ class PHS_Plugin_Backup extends PHS_Plugin
     public function get_settings_structure() : array
     {
         @ob_start();
-        if (!($mysql_dump_path = @system('which mysqldump'))) {
-            $mysql_dump_path = 'mysqldump';
-        }
-        if (!($zip_path = @system('which zip'))) {
-            $zip_path = 'zip';
-        }
+        $mysql_dump_path = @system('which mysqldump') ?: 'mysqldump';
+        $zip_path = @system('which zip') ?: 'zip';
         @ob_end_clean();
 
         return [
-            'location' => [
+            self::K_SETTINGS_LOCATION => [
                 'display_name'           => $this->_pt('Default backups location'),
                 'display_hint'           => $this->_pt('A writable directory where backup files will be generated. If path is not absolute, it will be relative to framework uploads dir (%s).', PHS_UPLOADS_DIR),
                 'type'                   => PHS_Params::T_NOHTML,
@@ -103,6 +101,11 @@ class PHS_Plugin_Backup extends PHS_Plugin
                 'only_main_tenant_value' => true,
             ],
         ];
+    }
+
+    public function get_backups_location() : string
+    {
+        return $this->get_plugin_settings()[self::K_SETTINGS_LOCATION] ?? '';
     }
 
     public function plugin_settings_render_location(array $params) : string
@@ -155,7 +158,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
         if (empty($params['field_name'])
          || empty($params['form_data']) || !is_array($params['form_data'])
-         || $params['field_name'] !== 'location') {
+         || $params['field_name'] !== self::K_SETTINGS_LOCATION) {
             return null;
         }
 
@@ -172,7 +175,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
             $default_value = self::DIRNAME_IN_UPLOADS;
         }
 
-        if (!isset($params['form_data']['location'])) {
+        if (!isset($params['form_data'][self::K_SETTINGS_LOCATION])) {
             if ($old_value !== null) {
                 return $old_value;
             }
@@ -180,11 +183,11 @@ class PHS_Plugin_Backup extends PHS_Plugin
             return $default_value;
         }
 
-        if (empty($params['form_data']['location'])) {
-            $params['form_data']['location'] = '';
+        if (empty($params['form_data'][self::K_SETTINGS_LOCATION])) {
+            $params['form_data'][self::K_SETTINGS_LOCATION] = '';
         }
 
-        $new_value = $params['form_data']['location'];
+        $new_value = $params['form_data'][self::K_SETTINGS_LOCATION];
 
         if ($new_value === $old_value) {
             return $new_value;
@@ -251,7 +254,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
 
                 return null;
             }
-        } elseif (!($location_details = $this->resolve_directory_location($this->get_plugin_settings()['location'] ?? ''))) {
+        } elseif (!($location_details = $this->resolve_directory_location($this->get_backups_location()))) {
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t resolve backup location.'));
 
             return null;

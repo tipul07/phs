@@ -53,15 +53,11 @@ if (($messages_plugin = PHS_Plugin_Messages::get_instance())) {
         ['chained_hook' => true, 'stop_chain' => false, 'priority' => 10, ]
     );
 
-    PHS::register_hook(
-        PHS_Hooks::H_MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_IN,
-        [$messages_plugin, 'trigger_after_main_menu_logged_in'],
-        PHS_Hooks::default_buffer_hook_args(),
-        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 10, ]
-    );
-
     PHS_Event_Layout::listen([$messages_plugin, 'listen_after_main_menu_admin'],
         PHS_Event_Layout::ADMIN_TEMPLATE_AFTER_MAIN_MENU);
+
+    PHS_Event_Layout::listen([$messages_plugin, 'listen_main_menu_logged_in'],
+        PHS_Event_Layout::MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_IN);
 
     PHS_Event_Accounts_info_template::listen_for_buffer(
         [$messages_plugin, 'listen_account_info_template'], ['priority' => -1]

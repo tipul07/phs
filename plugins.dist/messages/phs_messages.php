@@ -267,23 +267,16 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return $hook_args;
     }
 
-    /**
-     * @param bool|array $hook_args
-     *
-     * @return array
-     */
-    public function trigger_after_main_menu_logged_in($hook_args = false)
-    {
-        $hook_args = self::validate_array($hook_args, PHS_Hooks::default_buffer_hook_args());
-
-        $hook_args['buffer'] = $this->quick_render_template_for_buffer('main_menu_member');
-
-        return $hook_args;
-    }
-
     public function listen_after_main_menu_admin(PHS_Event_Layout $event_obj) : bool
     {
         $event_obj->append_to_buffer($this->quick_render_template_for_buffer('main_menu_admin') ?? '');
+
+        return true;
+    }
+
+    public function listen_main_menu_logged_in(PHS_Event_Layout $event_obj) : bool
+    {
+        $event_obj->append_to_buffer($this->quick_render_template_for_buffer('main_menu_member') ?? '');
 
         return true;
     }
@@ -400,7 +393,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
             return $hook_args;
         }
 
-        $account_details_arr = false;
+        $account_details_arr = null;
         if (empty($hook_args['account_details_data'])) {
             $hook_args['account_details_data'] = false;
         } elseif (!($account_details_arr = $this->accounts_details_model->data_to_array($hook_args['account_details_data']))) {
@@ -411,8 +404,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
             $hook_args['account_details_fields'] = [];
         }
 
-        if (empty($account_details_arr) || !is_array($account_details_arr)
-         || empty($account_details_arr[self::UD_COLUMN_MSG_HANDLER])) {
+        if (empty($account_details_arr[self::UD_COLUMN_MSG_HANDLER])) {
             $hook_args['account_details_fields'][self::UD_COLUMN_MSG_HANDLER] = $account_arr['nick'];
         }
 
@@ -433,8 +425,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
             return $hook_args;
         }
 
-        if (empty($hook_args['account_details_data']) || !is_array($hook_args['account_details_data'])
-         || empty($hook_args['account_details_data'][self::UD_COLUMN_MSG_HANDLER])) {
+        if (empty($hook_args['account_details_data'][self::UD_COLUMN_MSG_HANDLER])) {
             if (empty($hook_args['account_details_data']) || !is_array($hook_args['account_details_data'])) {
                 $hook_args['account_details_data'] = [];
             }

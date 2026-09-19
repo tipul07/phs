@@ -4,7 +4,6 @@ namespace phs\system\core\events\layout;
 use Closure;
 use phs\libraries\PHS_Hooks;
 use phs\system\core\views\PHS_View;
-use phs\system\core\events\accounts\PHS_Event_Accounts_info_template;
 
 class PHS_Event_Layout extends PHS_Event_Layout_buffer
 {

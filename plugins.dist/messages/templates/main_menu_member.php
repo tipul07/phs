@@ -2,9 +2,9 @@
 /** @var \phs\system\core\views\PHS_View $this */
 
 use phs\PHS;
+use phs\plugins\messages\PHS_Plugin_Messages;
 
-/** @var \phs\plugins\messages\PHS_Plugin_Messages $plugin_obj */
-if (!($plugin_obj = $this->get_plugin_instance())) {
+if (!($plugin_obj = PHS_Plugin_Messages::get_instance())) {
     return $this->_pt('Couldn\'t get parent plugin object.');
 }
 

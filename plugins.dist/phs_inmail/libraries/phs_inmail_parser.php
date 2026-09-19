@@ -282,7 +282,7 @@ class PHS_Library_Inmail_parser extends PHS_Library_instantiable
 
             if (null !== ($cond = $this->_check_condition_result_with_logic_condition($result, $logic_condition))) {
                 if (!$cond) {
-                    $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Failed arrachments condition.'));
+                    $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Failed attachments condition.'));
                 }
 
                 return $cond;
