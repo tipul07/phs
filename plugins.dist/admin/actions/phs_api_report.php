@@ -9,7 +9,9 @@ use phs\libraries\PHS_Action_Generic_list;
 use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\models\PHS_Model_Api_monitor;
 
-/** @property PHS_Model_Api_monitor $_paginator_model */
+/**
+ * @property PHS_Model_Api_monitor $_paginator_model
+ */
 class PHS_Action_Api_report extends PHS_Action_Generic_list
 {
     #[PHS_Dependency]

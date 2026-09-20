@@ -89,6 +89,16 @@ function action_ajax_response(
     return $action_result;
 }
 
+function key_val_array_to_javascript_array(array $arr) : array
+{
+    $return_arr = [];
+    foreach ($arr as $id => $text) {
+        $return_arr[] = ['id' => (int)$id, 'label' => $text];
+    }
+
+    return $return_arr;
+}
+
 /**
  * @param string|array $role_units
  * @param null|array $roles_params
@@ -189,7 +199,9 @@ function encode_to_utf8(string $str) : string
 {
     if (@function_exists('mb_convert_encoding')) {
         try {
-            return ($conv = @mb_convert_encoding($str, 'UTF-8')) === false ? '' : $conv;
+            if (false !== ($conv = @mb_convert_encoding($str, 'UTF-8'))) {
+                return $conv;
+            }
         } catch (Exception) {
         }
     }
@@ -774,13 +786,7 @@ function make_sure_is_filename(string $str) : string
         $str);
 }
 
-/**
- * @param string|mixed $str
- * @param bool|array $params
- *
- * @return int
- */
-function seconds_passed($str, $params = false) : int
+function seconds_passed($str, array $params = []) : int
 {
     return time() - parse_db_date($str, $params);
 }
@@ -804,45 +810,29 @@ function validate_db_date_array(array $date_arr) : bool
     );
 }
 
-/**
- * @param string $date
- *
- * @return bool
- */
 function empty_t_date(string $date) : bool
 {
     return empty($date) || $date === DATETIME_T_EMPTY || $date === PHS_Model_Core_base::DATE_EMPTY;
 }
 
-/**
- * @param string $date
- * @param bool|array $params
- *
- * @return array|bool
- */
-function is_t_date($date, $params = false)
+function is_t_date($date, array $params = []) : ?array
 {
     if (is_string($date)) {
         $date = trim($date);
     }
 
     if (empty($date)
-     || !is_string($date)
-     || strpos($date, 'T') === false) {
-        return false;
+        || !is_string($date)) {
+        return null;
     }
 
     if (empty_t_date($date)) {
         return [0, 0, 0, 0, 0, 0];
     }
 
-    if (empty($params) || !is_array($params)) {
-        $params = [];
-    }
-
     $params['validate_intervals'] = (!isset($params['validate_intervals']) || !empty($params['validate_intervals']));
 
-    if (strpos($date, 'T') !== false) {
+    if (str_contains($date, 'T')) {
         $d = explode('T', $date);
         $date_ = explode('-', $d[0]);
         $time_ = explode(':', $d[1], 3);
@@ -852,13 +842,12 @@ function is_t_date($date, $params = false)
     }
 
     for ($i = 0; $i < 3; $i++) {
-        if (!isset($date_[$i])
-         || !isset($time_[$i])) {
-            return false;
+        if (!isset($date_[$i], $time_[$i])) {
+            return null;
         }
 
         if ($i === 2
-         && !empty($time_[$i])) {
+            && !empty($time_[$i])) {
             // try removing any timezone at the end of format...
             $time_[$i] = substr($time_[$i], 0, 2);
         }
@@ -869,25 +858,15 @@ function is_t_date($date, $params = false)
 
     $result_arr = array_merge($date_, $time_);
     if (!empty($params['validate_intervals'])
-     && !validate_db_date_array($result_arr)) {
-        return false;
+        && !validate_db_date_array($result_arr)) {
+        return null;
     }
 
     return $result_arr;
 }
 
-/**
- * @param string|array $date
- * @param bool|array $params
- *
- * @return false|int
- */
-function parse_t_date($date, $params = false)
+function parse_t_date(array | string $date, array $params = []) : int
 {
-    if (empty($params) || !is_array($params)) {
-        $params = [];
-    }
-
     $params['validate_intervals'] = (!isset($params['validate_intervals']) || !empty($params['validate_intervals']));
 
     if (!isset($params['offset_seconds']) && !isset($params['offset_hours'])) {
@@ -896,13 +875,11 @@ function parse_t_date($date, $params = false)
         // offset in seconds...
         if (isset($params['offset_seconds'])) {
             $params['offset_seconds'] = (int)$params['offset_seconds'];
-        } else {
+        } elseif (empty($params['offset_hours'])) {
             // offset in hours...
-            if (empty($params['offset_hours'])) {
-                $params['offset_seconds'] = 0;
-            } else {
-                $params['offset_seconds'] = (int)$params['offset_hours'] * 3600;
-            }
+            $params['offset_seconds'] = 0;
+        } else {
+            $params['offset_seconds'] = (int)$params['offset_hours'] * 3600;
         }
 
         $params['offset_seconds'] = @date('Z') - $params['offset_seconds'];
@@ -920,7 +897,7 @@ function parse_t_date($date, $params = false)
         $date_arr = $date;
 
         if (!empty($params['validate_intervals'])
-         && !validate_db_date_array($date_arr)) {
+            && !validate_db_date_array($date_arr)) {
             return 0;
         }
     } elseif (is_string($date)) {
@@ -931,13 +908,14 @@ function parse_t_date($date, $params = false)
         return 0;
     }
 
-    return @mktime($date_arr[3], $date_arr[4], $date_arr[5], $date_arr[1], $date_arr[2], $date_arr[0]) + $params['offset_seconds'];
+    return (@mktime($date_arr[3], $date_arr[4], $date_arr[5], $date_arr[1], $date_arr[2], $date_arr[0]) ?: 0)
+           + $params['offset_seconds'];
 }
 
 function is_db_date(?string $date, array $params = []) : ?array
 {
     $date = trim($date ?? '');
-    if (empty($date)
+    if (!$date
         || !str_contains($date, '-')) {
         return null;
     }
@@ -979,19 +957,9 @@ function is_db_date(?string $date, array $params = []) : ?array
     return $result_arr;
 }
 
-/**
- * @param string|array $date
- * @param false|array $params
- *
- * @return int
- */
-function parse_db_date($date, $params = false) : int
+function parse_db_date(null | string | array $date, array $params = []) : int
 {
-    if (empty($params) || !is_array($params)) {
-        $params = [];
-    }
-
-    $params['validate_intervals'] = (!isset($params['validate_intervals']) || !empty($params['validate_intervals']));
+    $params['validate_intervals'] = !isset($params['validate_intervals']) || !empty($params['validate_intervals']);
 
     if (is_array($date)) {
         for ($i = 0; $i < 6; $i++) {
@@ -1016,11 +984,7 @@ function parse_db_date($date, $params = false) : int
         return 0;
     }
 
-    if (false === ($ret_val = @mktime($date_arr[3], $date_arr[4], $date_arr[5], $date_arr[1], $date_arr[2], $date_arr[0]))) {
-        $ret_val = 0;
-    }
-
-    return $ret_val;
+    return @mktime($date_arr[3], $date_arr[4], $date_arr[5], $date_arr[1], $date_arr[2], $date_arr[0]) ?: 0;
 }
 
 function empty_db_date(?string $date) : bool

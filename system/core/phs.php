@@ -280,9 +280,8 @@ final class PHS extends PHS_Registry
                 return true;
             }
 
-            if (is_string($key)
-                && array_key_exists($key, $current_settings)) {
-                return $current_settings[$key];
+            if (is_string($key)) {
+                return $current_settings[$key] ?? null;
             }
 
             return null;

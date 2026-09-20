@@ -11,7 +11,9 @@ use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\models\PHS_Model_Api_keys;
 use phs\plugins\accounts\models\PHS_Model_Accounts_tenants;
 
-/** @property null|false|PHS_Model_Api_keys $_paginator_model */
+/**
+ * @property null|false|PHS_Model_Api_keys $_paginator_model
+ */
 class PHS_Action_List extends PHS_Action_Generic_list
 {
     #[PHS_Dependency]

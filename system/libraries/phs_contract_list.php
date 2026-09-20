@@ -19,7 +19,7 @@ abstract class PHS_Contract_list extends PHS_Contract
     /**
      * Returns an array containing item node definition in the list (only if different from provided contract - if any)
      * @return null|array
-     * @see \phs\libraries\PHS_Contract::_get_contract_node_definition()
+     * @see PHS_Contract::_get_contract_node_definition()
      */
     public function get_contract_data_list_definition() : ?array
     {

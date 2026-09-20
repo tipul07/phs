@@ -60,7 +60,7 @@ abstract class PHS_Api_base extends PHS_Registry
 
     /**
      * Just method name which should be defined in $this when calling
-     * @see \phs\PHS_Api_base::_api_authentication_failed()
+     * @see PHS_Api_base::_api_authentication_failed()
      */
     protected static array $AUTH_METHODS_CALLBACKS = [
         // Just method name which should be defined in $this when calling
@@ -1143,10 +1143,10 @@ abstract class PHS_Api_base extends PHS_Registry
     public static function framework_error_code_to_http_code(int $error_code) : int
     {
         return match ($error_code) {
-            self::ERR_OK => self::H_CODE_OK,
+            self::ERR_OK                                                                                              => self::H_CODE_OK,
             PHS::ERR_ROUTE, self::ERR_RUN_ROUTE_NOT_ALLOWED, self::ERR_RUN_ROUTE_NOT_FOUND, self::ERR_RUN_ROUTE_ERROR => self::H_CODE_NOT_FOUND,
-            self::ERR_PARAMETERS => self::H_CODE_BAD_REQUEST,
-            default              => self::H_CODE_INTERNAL_SERVER_ERROR,
+            self::ERR_PARAMETERS                                                                                      => self::H_CODE_BAD_REQUEST,
+            default                                                                                                   => self::H_CODE_INTERNAL_SERVER_ERROR,
         };
     }
 

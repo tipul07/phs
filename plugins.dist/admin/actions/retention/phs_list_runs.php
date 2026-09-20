@@ -11,7 +11,9 @@ use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\admin\libraries\Phs_Data_retention;
 use phs\system\core\models\PHS_Model_Data_retention;
 
-/** @property PHS_Model_Data_retention $_paginator_model */
+/**
+ * @property PHS_Model_Data_retention $_paginator_model
+ */
 class PHS_Action_List_runs extends PHS_Action_Generic_list
 {
     #[PHS_Dependency]

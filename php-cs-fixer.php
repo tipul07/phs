@@ -260,9 +260,11 @@ $finder = Finder::create()
     ->ignoreDotFiles(true)
     ->ignoreVCS(true);
 
+$ncpu = substr_count((string)(@file_get_contents('/proc/cpuinfo') ?: ''), "\nprocessor") + 1;
+
 return (new Config())
     ->setFinder($finder)
     ->setRules($rules)
     ->setRiskyAllowed(true)
-    ->setParallelConfig(new ParallelConfig(8, 20, 600)) // ONLY for when running in console without cache
+    ->setParallelConfig(new ParallelConfig($ncpu, 20, 600)) // ONLY for when running in console without cache
     ->setUsingCache(true);

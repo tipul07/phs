@@ -1,5 +1,6 @@
 *
-!_phs_base
+!_phs_base/ractive/*
+!_phs_base/alpine/*
 !phs_reactjs
 !default.dist
 !phs_vue

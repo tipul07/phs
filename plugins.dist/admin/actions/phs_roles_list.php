@@ -11,7 +11,9 @@ use phs\system\core\models\PHS_Model_Roles;
 use phs\system\core\attributes\PHS_Dependency;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 
-/** @property PHS_Model_Roles $_paginator_model */
+/**
+ * @property PHS_Model_Roles $_paginator_model
+ */
 class PHS_Action_Roles_list extends PHS_Action_Generic_list
 {
     #[PHS_Dependency]

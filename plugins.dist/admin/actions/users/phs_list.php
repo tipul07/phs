@@ -13,7 +13,9 @@ use phs\system\core\attributes\PHS_Dependency;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts_tenants;
 
-/** @property PHS_Model_Accounts $_paginator_model */
+/**
+ * @property PHS_Model_Accounts $_paginator_model
+ */
 class PHS_Action_List extends PHS_Action_Generic_list
 {
     #[PHS_Dependency]

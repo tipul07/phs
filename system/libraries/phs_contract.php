@@ -46,7 +46,7 @@ abstract class PHS_Contract extends PHS_Instantiable
     /**
      * Returns an array with data nodes definition
      * @return null|array
-     * @see \phs\libraries\PHS_Contract::_get_contract_node_definition()
+     * @see PHS_Contract::_get_contract_node_definition()
      */
     abstract public function get_contract_data_definition() : ?array;
 

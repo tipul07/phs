@@ -115,7 +115,7 @@ class PHS_Step_1 extends PHS_Step
                     'PHS_DEFAULT_SSL_PORT'      => $phs_ssl_port,
                     'PHS_DEFAULT_DOMAIN_PATH'   => $phs_domain_path,
 
-                    ['block_comment'          => 'Session definition'],
+                    ['block_comment' => 'Session definition'],
                     'PHS_DEFAULT_SESSION_DIR' => [
                         'raw' => 'PHS_PATH.\'sess/\'',
                     ],
@@ -133,7 +133,7 @@ class PHS_Step_1 extends PHS_Step
                         'raw' => 'false',
                     ],
 
-                    ['block_comment'         => 'Misc dirs...'],
+                    ['block_comment' => 'Misc dirs...'],
                     'PHS_FRAMEWORK_LOGS_DIR' => [
                         'raw' => 'PHS_PATH.\'system/logs/\'',
                     ],
