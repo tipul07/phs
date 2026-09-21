@@ -352,7 +352,7 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
                 }
 
                 if(success) {
-                    if ($.isFunction(success)) {
+                    if (typeof success === "function") {
                         success(result_response, status, ajax_obj, data);
                     } else if (typeof failure === "string") {
                         eval(success + "( result_response, status, ajax_obj, data )");
@@ -381,7 +381,7 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
                 }
 
                 if(failure) {
-                    if ($.isFunction(failure)) {
+                    if (typeof failure === "function") {
                         failure(ajax_obj, status, error_exception);
                     } else if (typeof failure === "string") {
                         eval(failure + "( ajax_obj, status, error_exception )");
