@@ -27,13 +27,24 @@ abstract class PHS_Contract_list extends PHS_Contract
     }
 
     /**
+     * Override this method if you want to change the default maximum number of records that can be returned in a list.
+     * If null is returned, default limit will be applied.
+     *
+     * @return int|null
+     */
+    protected function _list_maximum_records() : ?int
+    {
+        return null;
+    }
+
+    /**
      * @inheritdoc
      */
     public function get_contract_data_definition() : ?array
     {
         $contract_obj = $this->get_list_node_contract();
 
-        return [
+        $return_arr = [
             'total_count' => [
                 'title'       => 'Total items count',
                 'description' => 'Total items resulted when we query database with provided filters',
@@ -58,5 +69,11 @@ abstract class PHS_Contract_list extends PHS_Contract
                 'nodes'               => $contract_obj ? [] : $this->get_contract_data_list_definition(),
             ],
         ];
+
+        if(($max_regords = $this->_list_maximum_records()) !== null) {
+            $return_arr['list']['recurring_max_items'] = $max_regords;
+        }
+
+        return $return_arr;
     }
 }
