@@ -373,11 +373,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
 
     public function validate_and_set_input(array $input) : void
     {
-        if (!($input = $this->_validate_event_input($input))) {
-            $input = [];
-        }
-
-        $this->_set_input($input);
+        $this->_set_input($this->_validate_event_input($input) ?: []);
     }
 
     /**
@@ -626,9 +622,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
 
     private function _generate_hook_args_for_hook() : array
     {
-        if (!($io_args = $this->get_input())) {
-            $io_args = [];
-        }
+        $io_args = $this->get_input() ?: [];
 
         if (($output_arr = $this->get_output())) {
             $default_output_arr = $this->_output_parameters();
@@ -699,7 +693,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
 
     private function _validate_event_input(array $input = []) : array
     {
-        if (empty($input)) {
+        if (!$input) {
             return $this->_input_parameters();
         }
 
@@ -708,7 +702,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
 
     private function _validate_event_output(array $output = []) : array
     {
-        if (empty($output)) {
+        if (!$output) {
             return $this->_output_parameters();
         }
 

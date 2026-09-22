@@ -1,14 +1,17 @@
 <?php
 
-use phs\PHS;
 use phs\PHS_Api;
-use phs\libraries\PHS_Hooks;
 use phs\plugins\remote_phs\PHS_Plugin_Remote_phs;
 use phs\system\core\events\layout\PHS_Event_Layout;
+use phs\system\core\events\accounts\PHS_Event_Accounts_registration_roles;
 
 if (($remote_phs_plugin = PHS_Plugin_Remote_phs::get_instance())) {
     PHS_Event_Layout::listen([$remote_phs_plugin, 'listen_after_left_menu_admin'],
         PHS_Event_Layout::ADMIN_TEMPLATE_AFTER_LEFT_MENU);
+
+    PHS_Event_Accounts_registration_roles::listen(
+        [$remote_phs_plugin, 'listen_accounts_registration_roles']
+    );
 
     if ($remote_phs_plugin->is_remote_enabled()) {
         PHS_Api::register_api_route([
@@ -59,11 +62,4 @@ if (($remote_phs_plugin = PHS_Plugin_Remote_phs::get_instance())) {
         ]
         );
     }
-
-    PHS::register_hook(
-        PHS_Hooks::H_USER_REGISTRATION_ROLES,
-        [$remote_phs_plugin, 'trigger_assign_registration_roles'],
-        PHS_Hooks::default_user_registration_roles_hook_args(),
-        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 10, ]
-    );
 }

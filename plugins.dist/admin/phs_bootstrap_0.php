@@ -17,6 +17,7 @@ if (($admin_plugin = PHS_Plugin_Admin::get_instance())) {
 
     if ($admin_plugin->use_default_theme_in_admin()) {
         // Set "default" as current theme for admin section
-        PHS_Event_Template::listen([$admin_plugin, 'listen_web_template_rendering'], PHS_Event_Template::GENERIC);
+        PHS_Event_Template::listen([$admin_plugin, 'listen_web_template_rendering'],
+            PHS_Event_Template::GENERIC);
     }
 }

@@ -11,6 +11,7 @@ use phs\plugins\backup\models\PHS_Model_Rules;
 use phs\plugins\backup\models\PHS_Model_Results;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\system\core\events\layout\PHS_Event_Layout;
+use phs\system\core\events\accounts\PHS_Event_Accounts_registration_roles;
 
 class PHS_Plugin_Backup extends PHS_Plugin
 {
@@ -704,32 +705,23 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return true;
     }
 
-    /**
-     * @param false|array $hook_args
-     *
-     * @return array
-     */
-    public function trigger_assign_registration_roles($hook_args = false)
+    public function listen_accounts_registration_roles(PHS_Event_Accounts_registration_roles $event_obj) : bool
     {
-        $hook_args = self::validate_array($hook_args, PHS_Hooks::default_user_registration_roles_hook_args());
-
-        if (empty($hook_args['account_data'])
-         || !($accounts_model = PHS_Model_Accounts::get_instance())
-         || !($account_arr = $accounts_model->data_to_array($hook_args['account_data']))) {
-            return $hook_args;
+        if (!($account_arr = $event_obj->get_input('account_data'))
+            || !($accounts_model = PHS_Model_Accounts::get_instance())) {
+            return false;
         }
 
-        if (empty($hook_args['roles_arr'])) {
-            $hook_args['roles_arr'] = [];
-        }
-
+        $roles_arr = [];
         if ($accounts_model->acc_is_admin($account_arr)) {
-            $hook_args['roles_arr'][] = self::ROLE_BACKUP_MANAGER;
+            $roles_arr[] = self::ROLE_BACKUP_MANAGER;
         } elseif ($accounts_model->acc_is_operator($account_arr)) {
-            $hook_args['roles_arr'][] = self::ROLE_BACKUP_OPERATOR;
+            $roles_arr[] = self::ROLE_BACKUP_OPERATOR;
         }
 
-        return $hook_args;
+        $event_obj->add_roles($roles_arr);
+
+        return true;
     }
 
     protected function custom_after_install()

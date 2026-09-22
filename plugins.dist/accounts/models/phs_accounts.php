@@ -17,6 +17,7 @@ use phs\system\core\models\PHS_Model_Roles;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\events\accounts\PHS_Event_Accounts_generate_password;
+use phs\system\core\events\accounts\PHS_Event_Accounts_registration_roles;
 use phs\system\core\events\accounts\PHS_Event_Accounts_password_encryption;
 
 class PHS_Model_Accounts extends PHS_Model
@@ -1977,13 +1978,8 @@ class PHS_Model_Accounts extends PHS_Model
                 $roles_arr = [PHS_Roles::ROLE_MEMBER];
             }
 
-            $hook_args = PHS_Hooks::default_user_registration_roles_hook_args();
-            $hook_args['roles_arr'] = $roles_arr;
-            $hook_args['account_data'] = $insert_arr;
-
-            if (($extra_roles_arr = PHS::trigger_hooks(PHS_Hooks::H_USER_REGISTRATION_ROLES, $hook_args))
-                && !empty($extra_roles_arr['roles_arr'])) {
-                $roles_arr = self::array_merge_unique_values($extra_roles_arr['roles_arr'], $roles_arr);
+            if (($new_roles_arr = PHS_Event_Accounts_registration_roles::roles_for_account($insert_arr, $roles_arr))) {
+                $roles_arr = $new_roles_arr;
             }
         }
 
@@ -1995,7 +1991,7 @@ class PHS_Model_Accounts extends PHS_Model
             }
         }
 
-        if (!empty($roles_arr)) {
+        if ($roles_arr) {
             PHS_Roles::link_roles_to_user($insert_arr, $roles_arr);
         }
 

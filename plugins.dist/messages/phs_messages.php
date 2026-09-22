@@ -16,6 +16,7 @@ use phs\plugins\messages\models\PHS_Model_Messages;
 use phs\system\core\events\layout\PHS_Event_Layout;
 use phs\plugins\accounts\models\PHS_Model_Accounts_details;
 use phs\system\core\events\accounts\PHS_Event_Accounts_info_template;
+use phs\system\core\events\accounts\PHS_Event_Accounts_registration_roles;
 
 class PHS_Plugin_Messages extends PHS_Plugin
 {
@@ -290,6 +291,26 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return true;
     }
 
+    public function listen_accounts_registration_roles(PHS_Event_Accounts_registration_roles $event_obj) : bool
+    {
+        if (!($account_arr = $event_obj->get_input('account_data'))) {
+            return false;
+        }
+
+        $roles_arr = [];
+        if ($this->accounts_model->acc_is_admin($account_arr)) {
+            $roles_arr[] = self::ROLE_MESSAGE_ADMIN;
+        } elseif ($this->accounts_model->acc_is_operator($account_arr)) {
+            $roles_arr[] = self::ROLE_MESSAGE_ALL;
+        } else {
+            $roles_arr[] = self::ROLE_MESSAGE_WRITER;
+        }
+
+        $event_obj->add_roles($roles_arr);
+
+        return true;
+    }
+
     /**
      * @param bool|array $hook_args
      *
@@ -345,35 +366,6 @@ class PHS_Plugin_Messages extends PHS_Plugin
             }
 
             $hook_args['account_data'] = $account_arr;
-        }
-
-        return $hook_args;
-    }
-
-    /**
-     * @param bool|array $hook_args
-     *
-     * @return array|bool
-     */
-    public function trigger_assign_registration_roles($hook_args = false)
-    {
-        $hook_args = self::validate_array($hook_args, PHS_Hooks::default_user_registration_roles_hook_args());
-
-        if (empty($hook_args['account_data'])
-            || !($account_arr = $this->accounts_model->data_to_array($hook_args['account_data']))) {
-            return $hook_args;
-        }
-
-        if (empty($hook_args['roles_arr'])) {
-            $hook_args['roles_arr'] = [];
-        }
-
-        if ($this->accounts_model->acc_is_admin($account_arr)) {
-            $hook_args['roles_arr'][] = self::ROLE_MESSAGE_ADMIN;
-        } elseif ($this->accounts_model->acc_is_operator($account_arr)) {
-            $hook_args['roles_arr'][] = self::ROLE_MESSAGE_ALL;
-        } else {
-            $hook_args['roles_arr'][] = self::ROLE_MESSAGE_WRITER;
         }
 
         return $hook_args;
