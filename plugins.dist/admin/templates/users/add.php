@@ -47,7 +47,7 @@ $current_user = PHS::user_logged_in();
             <h3><?php echo $this->_pt('Add User Account'); ?></h3>
         </section>
 
-        <div class="form-group row">
+        <div class="row mb-2">
             <label for="nick" class="col-sm-2 col-form-label"><?php echo $this->_pt('Username'); ?></label>
             <div class="col-sm-10">
                 <input type="text" id="nick" name="nick" class="form-control"
@@ -56,7 +56,7 @@ $current_user = PHS::user_logged_in();
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="row mb-2">
             <label for="pass" class="col-sm-2 col-form-label"><?php echo $this->_pt('Password'); ?></label>
             <div class="col-sm-10">
                 <input type="password" id="pass" name="pass" class="form-control" autocomplete="pass"
@@ -91,7 +91,7 @@ echo ' '
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="row mb-2">
             <label for="email" class="col-sm-2 col-form-label"><?php echo $this->_pt('Email'); ?></label>
             <div class="col-sm-10">
                 <input type="text" id="email" name="email" class="form-control" autocomplete="email"
@@ -100,7 +100,7 @@ echo ' '
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="row mb-2">
             <label for="level" class="col-sm-2 col-form-label"><?php echo $this->_pt('Level'); ?></label>
             <div class="col-sm-10">
                 <select name="level" id="level" class="chosen-select-nosearch" style="min-width:260px;">
@@ -119,7 +119,7 @@ foreach ($user_levels as $key => $level_details) {
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="row mb-2">
             <label for="account_current_roles" class="col-sm-2 col-form-label"><?php echo $this->_pt('Roles'); ?></label>
             <div class="col-sm-10">
                 <div id="account_current_roles"></div>
@@ -132,7 +132,7 @@ foreach ($user_levels as $key => $level_details) {
         <?php
         if ($is_multi_tenant) {
             ?>
-            <div class="form-group row">
+            <div class="row mb-2">
                 <label for="account_current_tenants" class="col-sm-2 col-form-label"><?php echo $this->_pt('Tenants'); ?></label>
                 <div class="col-sm-10">
                     <div id="account_current_tenants"></div>
@@ -142,7 +142,7 @@ foreach ($user_levels as $key => $level_details) {
             </div>
         <?php } ?>
 
-        <div class="form-group row">
+        <div class="row mb-2">
             <label for="title" class="col-sm-2 col-form-label"><?php echo $this->_pt('Title'); ?></label>
             <div class="col-sm-10">
                 <input type="text" id="title" name="title" class="form-control"
@@ -152,7 +152,7 @@ foreach ($user_levels as $key => $level_details) {
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="row mb-2">
             <label for="fname" class="col-sm-2 col-form-label"><?php echo $this->_pt('First Name'); ?></label>
             <div class="col-sm-10">
                 <input type="text" id="fname" name="fname" class="form-control" autocomplete="fname"
@@ -160,7 +160,7 @@ foreach ($user_levels as $key => $level_details) {
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="row mb-2">
             <label for="lname" class="col-sm-2 col-form-label"><?php echo $this->_pt('Last Name'); ?></label>
             <div class="col-sm-10">
                 <input type="text" id="lname" name="lname" class="form-control" autocomplete="lname"
@@ -168,7 +168,7 @@ foreach ($user_levels as $key => $level_details) {
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="row mb-2">
             <label for="phone" class="col-sm-2 col-form-label"><?php echo $this->_pt('Phone Number'); ?></label>
             <div class="col-sm-10">
                 <input type="text" id="phone" name="phone" class="form-control" autocomplete="phone"
@@ -176,7 +176,7 @@ foreach ($user_levels as $key => $level_details) {
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="row mb-2">
             <label for="company" class="col-sm-2 col-form-label"><?php echo $this->_pt('Company'); ?></label>
             <div class="col-sm-10">
                 <input type="text" id="company" name="company" class="form-control" autocomplete="company"
@@ -184,10 +184,12 @@ foreach ($user_levels as $key => $level_details) {
             </div>
         </div>
 
-        <div class="form-group row">
-            <input type="submit" id="do_submit" name="do_submit"
-                   class="btn btn-primary submit-protection ignore_hidden_required"
-                   value="<?php echo $this->_pt('Create Account'); ?>" />
+        <div class="row mb-2">
+            <div class="col">
+                <input type="submit" id="do_submit" name="do_submit"
+                       class="btn btn-primary submit-protection ignore_hidden_required"
+                       value="<?php echo $this->_pt('Create Account'); ?>" />
+            </div>
         </div>
 
     </div>
