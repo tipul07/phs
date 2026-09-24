@@ -101,14 +101,14 @@ $api_obj->set_api_credentials();
 PHS_Api::incoming_monitoring_record(PHS_Model_Api_monitor::api_incoming_request_started());
 
 if (!($action_result = $api_obj->run_route())) {
-    $error_msg = $api_obj->get_simple_error_message(PHS_Api::_t('Error running API request.'));
-    $http_code = PHS_Api_base::framework_error_code_to_http_code($api_obj->get_error_code());
+    $framework_error_code = $api_obj->get_error_code();
+    $error_msg = 'Error running API route: Framework code: '.$framework_error_code.', '
+                 .$api_obj->get_simple_error_message(PHS_Api::_t('Error running API request.'));
+    $http_code = PHS_Api_base::framework_error_code_to_http_code($framework_error_code);
 
-    PHS_Logger::error('Error running API route: ['.$error_msg.']', PHS_Logger::TYPE_API);
+    PHS_Logger::error($error_msg, PHS_Logger::TYPE_API);
 
-    PHS_Model_Api_monitor::api_incoming_request_error(
-        $http_code, 'Error running API route: '.$error_msg
-    );
+    PHS_Model_Api_monitor::api_incoming_request_error($http_code, $error_msg);
 
     PHS_Api::http_header_response($http_code, $error_msg);
 

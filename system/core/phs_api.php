@@ -60,7 +60,6 @@ class PHS_Api extends PHS_Api_base
 
         $this->api_flow_value('original_api_route_tokens', $final_api_route_tokens);
 
-        /** @var PHS_Event_Api_route_tokens $event_obj */
         if (($event_obj = PHS_Event_Api_route_tokens::trigger([
             'api_instance' => $this, 'route_tokens' => $final_api_route_tokens,
         ]))
@@ -123,18 +122,12 @@ class PHS_Api extends PHS_Api_base
         }
 
         if (($authentication_failed = $this->_api_route_authentication_failed($api_route, $phs_route))) {
-            $this->set_error_if_not_set(self::ERR_RUN_ROUTE, self::_t('Authentication failed.'));
+            $this->set_error(
+                self::ERR_AUTHENTICATION,
+                $authentication_failed['error_msg'] ?? self::_t('Authentication failed.')
+            );
 
-            $http_code = $authentication_failed['http_code'] ?? self::H_CODE_UNAUTHORIZED;
-            $error_msg = $authentication_failed['error_msg'] ?? self::_t('Authentication failed.');
-
-            if (!$this->send_header_response($http_code, $error_msg)) {
-                return false;
-            }
-
-            PHS_Model_Api_monitor::api_incoming_request_error($http_code, $error_msg);
-
-            exit;
+            return false;
         }
 
         if (!$this->_before_route_run()) {
@@ -231,9 +224,7 @@ class PHS_Api extends PHS_Api_base
 
         if (empty($api_route) || $no_authentication_callback) {
             if (($authentication_failed = $this->_api_authentication_failed(null, !empty($api_route['authentication_is_optional'])))) {
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_RUN_ROUTE, self::_t('Authentication failed.'));
-                }
+                $this->set_error(self::ERR_AUTHENTICATION, self::_t('Authentication failed.'));
 
                 return $authentication_failed;
             }
@@ -272,9 +263,7 @@ class PHS_Api extends PHS_Api_base
 
             if (($result = @$auth_callback($callback_params)) === null
                 || $result === false) {
-                if (!$this->has_error()) {
-                    $this->set_error(self::ERR_AUTHENTICATION, self::_t('Authentication failed.'));
-                }
+                $this->set_error(self::ERR_AUTHENTICATION, self::_t('Authentication failed.'));
 
                 return [
                     'http_code' => self::H_CODE_UNAUTHORIZED,

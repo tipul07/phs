@@ -1144,6 +1144,7 @@ abstract class PHS_Api_base extends PHS_Registry
     {
         return match ($error_code) {
             self::ERR_OK => self::H_CODE_OK,
+            self::ERR_RIGHTS, self::ERR_AUTHENTICATION => self::H_CODE_UNAUTHORIZED,
             PHS::ERR_ROUTE, self::ERR_RUN_ROUTE_NOT_ALLOWED, self::ERR_RUN_ROUTE_NOT_FOUND, self::ERR_RUN_ROUTE_ERROR => self::H_CODE_NOT_FOUND,
             self::ERR_PARAMETERS => self::H_CODE_BAD_REQUEST,
             default              => self::H_CODE_INTERNAL_SERVER_ERROR,

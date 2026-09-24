@@ -1853,10 +1853,12 @@ final class PHS extends PHS_Registry
                     self::ERR_RUN_ROUTE_NOT_FOUND,
                     self::_t('Couldn\'t obtain controller instance for %s.', $route_details[self::ROUTE_CONTROLLER])
                 );
+
+                self::st_change_error_code(self::ERR_RUN_ROUTE_NOT_FOUND);
             } else {
                 self::st_set_error(
                     self::ERR_RUN_ROUTE_NOT_FOUND,
-                    self::_t('Couldn\'t obtain controller instance for %s.', $route_details[self::ROUTE_CONTROLLER])
+                    self::_t('Couldn\'t obtain controller instance.')
                 );
             }
         } elseif (!($action_result = $controller_obj->run_action($route_details[self::ROUTE_ACTION], null, $route_details[self::ROUTE_ACTION_DIR]))) {
@@ -1884,7 +1886,7 @@ final class PHS extends PHS_Registry
 
                 PHS_Logger::critical($error_msg, PHS_Logger::TYPE_DEF_DEBUG);
 
-                echo 'Error spawining scope.';
+                echo 'Error spawning scope.';
                 exit;
             }
 
@@ -1894,8 +1896,9 @@ final class PHS extends PHS_Registry
         // Don't display technical stuff to end-user...
         if (!self::st_debugging_mode()
             && self::arr_has_error($controller_error_arr)) {
-            $controller_error_arr = self::arr_change_error_code_and_message($controller_error_arr,
-                self::ERR_RUN_ROUTE_ERROR, self::_t('Error serving request.'));
+            $controller_error_arr = self::arr_change_error_message(
+                $controller_error_arr, self::_t('Error serving request.')
+            );
         }
 
         if ($action_result
@@ -1917,6 +1920,10 @@ final class PHS extends PHS_Registry
 
             if ($error_msg) {
                 PHS_Logger::critical($error_msg, PHS_Logger::TYPE_DEBUG);
+            }
+
+            if (self::arr_has_error($controller_error_arr)) {
+                self::st_copy_error_from_array($controller_error_arr);
             }
 
             return null;

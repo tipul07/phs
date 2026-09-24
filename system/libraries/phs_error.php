@@ -22,7 +22,7 @@ class PHS_Error
     private string $error_msg;
 
     // ! Contains only error message
-    private string $error_simple_msg = '';
+    private string $error_simple_msg;
 
     // ! Contains a debugging error message
     private string $error_debug_msg;
@@ -53,6 +53,7 @@ class PHS_Error
 
         $this->error_no = $error_no;
         $this->error_msg = $error_msg;
+        $this->error_simple_msg = $error_msg;
         $this->error_debug_msg = $error_debug_msg;
 
         // Make sure we inherit debugging mode from static call...
@@ -180,40 +181,6 @@ class PHS_Error
         return $this->get_error();
     }
 
-    /**
-     * @param string $error_msg
-     * @param string $error_debug_msg
-     *
-     * @return array
-     */
-    public function st_change_error_message(string $error_msg, string $error_debug_msg = '') : array
-    {
-        return self::get_error_static_instance()->change_error_message($error_msg, $error_debug_msg);
-    }
-
-    /**
-     * @param int $error_no
-     *
-     * @return array
-     */
-    public function st_change_error_code(int $error_no) : array
-    {
-        return self::get_error_static_instance()->change_error_code($error_no);
-    }
-
-    /**
-     * @param int $error_code
-     * @param string $error_msg
-     * @param string $error_debug_msg
-     *
-     * @return array
-     */
-    public function st_change_error_code_and_message(int $error_code, string $error_msg, string $error_debug_msg = '') : array
-    {
-        return self::get_error_static_instance()->change_error_code_and_message($error_code, $error_msg, $error_debug_msg);
-    }
-
-    // ! Add a warning message
     /**
      * Add a warning message for a specified tag or as general warning.
      * Also, method will make a backtrace of this call and present all
@@ -443,7 +410,7 @@ class PHS_Error
             return;
         }
 
-        $this->copy_static_error($error_no);
+        $this->copy_static_error();
     }
 
     public function stack_all_errors() : array
@@ -653,6 +620,21 @@ class PHS_Error
         $this->suppress_backtrace = !empty($mode);
 
         return $this->suppress_backtrace;
+    }
+
+    public static function st_change_error_message(string $error_msg, string $error_debug_msg = '') : array
+    {
+        return self::get_error_static_instance()->change_error_message($error_msg, $error_debug_msg);
+    }
+
+    public static function st_change_error_code(int $error_no) : array
+    {
+        return self::get_error_static_instance()->change_error_code($error_no);
+    }
+
+    public static function st_change_error_code_and_message(int $error_code, string $error_msg, string $error_debug_msg = '') : array
+    {
+        return self::get_error_static_instance()->change_error_code_and_message($error_code, $error_msg, $error_debug_msg);
     }
 
     /**

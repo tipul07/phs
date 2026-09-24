@@ -20,22 +20,6 @@ class PHS_Scope_Api extends PHS_Scope
      */
     public function process_action_result($action_result, ?array $static_error_arr = [])
     {
-        // We have already an error from flow before initiating scope class
-        if ($static_error_arr
-            && self::arr_has_error($static_error_arr)) {
-            $http_code = PHS_Api_base::framework_error_code_to_http_code(
-                self::arr_get_error_code($static_error_arr, self::ERR_FRAMEWORK));
-
-            PHS_Model_Api_monitor::api_incoming_request_error(
-                $http_code,
-                'Error in API action result: '.self::arr_get_simple_error_message($static_error_arr)
-            );
-
-            PHS_Api_base::http_header_response($http_code, self::arr_get_simple_error_message($static_error_arr));
-
-            exit;
-        }
-
         $api_obj = PHS_Api::global_api_instance() ?: null;
 
         // send custom headers as we will echo page content here...
@@ -79,6 +63,27 @@ class PHS_Scope_Api extends PHS_Scope
 
             if (!($lowercase_api_headers = $api_obj->response_headers(false))) {
                 $lowercase_api_headers = [];
+            }
+        }
+
+        // We have already an error from flow before initiating scope class
+        if ($static_error_arr
+            && self::arr_has_error($static_error_arr)) {
+            $http_code = PHS_Api_base::framework_error_code_to_http_code(
+                self::arr_get_error_code($static_error_arr, self::ERR_FRAMEWORK));
+
+            PHS_Model_Api_monitor::api_incoming_request_error(
+                $http_code,
+                'Error in API action result: '.self::arr_get_simple_error_message($static_error_arr)
+            );
+
+            PHS_Api_base::http_header_response($http_code, self::arr_get_simple_error_message($static_error_arr));
+
+            if (($action_result['api_buffer'] ?? '') === ''
+               && empty($action_result['api_json_result_array'])
+               && empty($action_result['ajax_result'])) {
+                $action_result['api_json_result_array'] = [];
+                $action_result['api_json_result_array']['response_status'] = null;
             }
         }
 
@@ -128,12 +133,14 @@ class PHS_Scope_Api extends PHS_Scope
                 $errors_arr = PHS_Notifications::notifications_errors();
             }
 
-            if (($new_json_response = $api_obj->create_response_envelope($json_array, $errors_arr))) {
+            if (null !== ($new_json_response = $api_obj->create_response_envelope($json_array, $errors_arr))) {
                 $json_array = $new_json_response;
             }
 
             // we assume Content-Type header was set by action
-            $action_result['api_buffer'] = @json_encode($json_array);
+            if ($json_array) {
+                $action_result['api_buffer'] = @json_encode($json_array);
+            }
         }
 
         if ($action_result['api_buffer'] !== '') {
