@@ -90,7 +90,7 @@ class PHS_Api extends PHS_Api_base
             }
 
             if (!($phs_route = PHS::parse_route(implode('/', $final_api_route_tokens), true))) {
-                $this->copy_or_set_static_error(self::ERR_RUN_ROUTE_NOT_FOUND,
+                $this->set_error(self::ERR_RUN_ROUTE_NOT_FOUND,
                     self::_t('Couldn\'t parse provided API route into a framework route.'));
 
                 return false;
