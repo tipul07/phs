@@ -3,6 +3,7 @@ namespace phs\system\core\scopes;
 
 use phs\PHS;
 use phs\PHS_Scope;
+use phs\PHS_Api_base;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
@@ -139,6 +140,13 @@ class PHS_Scope_Web extends PHS_Scope
         }
 
         if (self::arr_has_error($static_error_arr)) {
+            PHS_Api_base::http_header_response(
+                PHS_Api_base::framework_error_code_to_http_code(
+                    self::arr_get_error_code($static_error_arr, self::ERR_FUNCTIONALITY)
+                ),
+                self::arr_get_simple_error_message($static_error_arr)
+            );
+
             echo self::arr_get_simple_error_message($static_error_arr);
         } elseif (!$action_obj
                   || empty($action_result['page_template'])) {
