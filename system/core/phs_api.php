@@ -42,13 +42,13 @@ class PHS_Api extends PHS_Api_base
         $this->reset_error();
 
         if (!PHS_Scope::current_scope(PHS_Scope::SCOPE_API)) {
-            $this->set_error(self::ERR_RUN_ROUTE, self::_t('Error preparing API environment.'));
+            $this->set_error(self::ERR_RUN_ROUTE_NOT_ALLOWED, self::_t('Error preparing API environment.'));
 
             return false;
         }
 
         if (null === ($final_api_route_tokens = self::tokenize_api_route($this->get_api_route()))) {
-            $this->set_error(self::ERR_RUN_ROUTE, self::_t('Couldn\'t parse provided API route.'));
+            $this->set_error(self::ERR_RUN_ROUTE_NOT_ALLOWED, self::_t('Couldn\'t parse provided API route.'));
 
             return false;
         }
@@ -68,7 +68,7 @@ class PHS_Api extends PHS_Api_base
            && is_array($route_tokens)
            && !($final_api_route_tokens = self::_validate_tokenized_api_route($route_tokens))
         ) {
-            $this->set_error(self::ERR_RUN_ROUTE, self::_t('Invalid API route tokens obtained from plugins.'));
+            $this->set_error(self::ERR_RUN_ROUTE_NOT_FOUND, self::_t('Invalid API route tokens obtained from plugins.'));
 
             return false;
         }
@@ -90,7 +90,7 @@ class PHS_Api extends PHS_Api_base
             }
 
             if (!($phs_route = PHS::parse_route(implode('/', $final_api_route_tokens), true))) {
-                $this->copy_or_set_static_error(self::ERR_RUN_ROUTE,
+                $this->copy_or_set_static_error(self::ERR_RUN_ROUTE_NOT_FOUND,
                     self::_t('Couldn\'t parse provided API route into a framework route.'));
 
                 return false;
