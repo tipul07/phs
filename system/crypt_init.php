@@ -6,6 +6,10 @@ if (!defined('PHS_VERSION')) {
 
 use phs\PHS_Crypt;
 
+if (defined('PHS_CRYPT_SODIUM_KEY')) {
+    PHS_Crypt::sodium_key(PHS_CRYPT_SODIUM_KEY);
+}
+
 if (defined('PHS_CRYPT_KEY')) {
     PHS_Crypt::crypting_key(PHS_CRYPT_KEY);
 }

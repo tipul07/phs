@@ -1,14 +1,12 @@
 <?php
 namespace phs\libraries;
 
-// ! @version 1.33
-
 class PHS_Encdec extends PHS_Language
 {
     // Default crypting keys
     // this array must have max 34 elements!!! and all elements must have same length
     // ONCE YOU START ENCODING STRINGS WITH A SET OF INTERNAL KEYS DON'T CHANGE THEM
-    private $internal_keys = [
+    private array $internal_keys = [
         '7105adad1f765d1066756cbb9b14664a',
         '164785354dd2a185fd5f6ba0a751c9b6',
         '7f637c2c12939c635757b78248cc1576',
@@ -45,50 +43,36 @@ class PHS_Encdec extends PHS_Language
         'a3f60905c42e9bebb39a671ad5cef5d0',
     ];
 
-    private $internal_keys_count,
+    private int $internal_keys_count;
 
-        $internal_keys_len;
+    private int $internal_keys_len;
 
-    private $private_key,
+    private string $private_key;
 
-        $encoded_private_key,
+    private string $encoded_private_key;
 
-        $encoded_private_key_len;
+    private int $encoded_private_key_len;
 
-    /**
-     *  If strings passed to this class are multi-byte strings use base64 encoding to preserve them as multi-byte strings...
-     *
-     * @var
-     * @since     0.3
-     */
-    private $use_base64_encode;
+    private bool $use_base64_encode;
 
-    /**
-     * @param string $priv_key
-     * @param bool $use_base64
-     * @param false|array $internal_keys
-     */
-    public function __construct($priv_key, $use_base64 = true, $internal_keys = false)
+    public function __construct(string $priv_key, bool $use_base64 = true, array $internal_keys = [])
     {
         parent::__construct();
 
-        if (!is_string($priv_key)
-         || $priv_key === '') {
+        if ($priv_key === '') {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Private key is empty.'));
 
             return;
         }
 
-        if ($internal_keys !== false && is_array($internal_keys)) {
-            if (!$this->set_internal_keys($internal_keys)) {
-                $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid internal keys.'));
+        if ($internal_keys
+            && !$this->set_internal_keys($internal_keys)) {
+            $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid internal keys.'));
 
-                return;
-            }
+            return;
         }
 
-        // Force error if no internal keys are provided
-        elseif ($this->_check_internal_keys() === false) {
+        if (!$this->_check_internal_keys()) {
             return;
         }
 
@@ -98,17 +82,8 @@ class PHS_Encdec extends PHS_Language
         $this->use_base64_encode = $use_base64;
     }
 
-    /**
-     * @param array $keys_array
-     *
-     * @return bool
-     */
-    public function set_internal_keys($keys_array)
+    public function set_internal_keys(array $keys_array) : bool
     {
-        if (!is_array($keys_array)) {
-            return false;
-        }
-
         $this->internal_keys = $keys_array;
         $this->internal_keys_count = count($this->internal_keys);
 
@@ -126,8 +101,7 @@ class PHS_Encdec extends PHS_Language
             $str = (string)$str;
         }
 
-        if ($this->use_base64_encode !== false
-            && $str !== '') {
+        if ($this->use_base64_encode && $str !== '') {
             $str = @base64_encode($str);
         }
 
@@ -277,9 +251,7 @@ class PHS_Encdec extends PHS_Language
     {
         $this->reset_error();
 
-        if (empty($this->internal_keys)
-            || !is_array($this->internal_keys)
-            || !isset($this->internal_keys[0])) {
+        if (!isset($this->internal_keys[0])) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Internal keys array is invalid!'));
 
             return false;

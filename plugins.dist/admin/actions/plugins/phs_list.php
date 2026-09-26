@@ -2,6 +2,7 @@
 namespace phs\plugins\admin\actions\plugins;
 
 use phs\PHS;
+use phs\PHS_Crypt;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
@@ -344,8 +345,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return true;
                 }
 
-                if (!($crypt_key = PHS_Params::_p('crypt_key', PHS_Params::T_NOHTML))) {
-                    $this->set_error(self::ERR_PARAMETERS, $this->_pt('Crypting key not provided.'));
+                if (!($crypt_key = PHS_Params::_p('crypt_key', PHS_Params::T_NOHTML))
+                    || !PHS_Crypt::validate_sodium_key($crypt_key)) {
+                    $this->set_error(self::ERR_PARAMETERS, $this->_pt('Sodium crypting key not provided.'));
 
                     return false;
                 }
@@ -384,8 +386,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
                     return false;
                 }
 
-                if (!($crypt_key = PHS_Params::_p('crypt_key', PHS_Params::T_NOHTML))) {
-                    $this->set_error(self::ERR_PARAMETERS, $this->_pt('Crypting key not provided.'));
+                if (!($crypt_key = PHS_Params::_p('crypt_key', PHS_Params::T_NOHTML))
+                    || !PHS_Crypt::validate_sodium_key($crypt_key)) {
+                    $this->set_error(self::ERR_PARAMETERS, $this->_pt('Sodium crypting key not provided.'));
 
                     return false;
                 }
@@ -982,15 +985,19 @@ class PHS_Action_List extends PHS_Action_Generic_list
             container_obj.hide();
         }
 
-        let crypt_key_text = "";
+        <?php
+        $default_sodium_key = PHS_Crypt::generate_sodium_key();
+        $default_sodium_key_len = strlen($default_sodium_key);
+        ?>
+        let crypt_key_text = "<?php echo $default_sodium_key?>";
         function submit_plugins_export_functionality()
         {
             if( crypt_key_text.length === 0 ) {
                 alert( "<?php echo $this->_pte('Please provide a crypting key.'); ?>" );
                 return false;
             }
-            if( crypt_key_text.length < 64 ) {
-                alert( "<?php echo $this->_pt('Crypting key length should be at least 64 characters length. Current length is %s characters.', '" + crypt_key_text.length + "'); ?>" );
+            if( crypt_key_text.length !== <?php echo $default_sodium_key_len?> ) {
+                alert( "<?php echo $this->_pt('Crypting key length should be %s characters length. Current length is %s characters.', SODIUM_CRYPTO_SECRETBOX_KEYBYTES, '" + crypt_key_text.length + "'); ?>" );
                 return false;
             }
 
@@ -1018,26 +1025,18 @@ class PHS_Action_List extends PHS_Action_Generic_list
         </script>
         <div style="display: none;" id="phs_export_plugins_settings_container">
         <div class="mb-3">
-            <label for="phs_export_plugin_settings_crypt_key" class="form-label"><?php echo $this->_pt('Crypt Key'); ?></label>
+            <label for="phs_export_plugin_settings_crypt_key" class="form-label"><?php echo $this->_pt('Sodium Crypt Key (hexa)'); ?></label>
             <input name="crypt_key" id="phs_export_plugin_settings_crypt_key" class="form-control"
-                   type="text" value="" aria-describedby="phs_crypt_key_help"
+                   type="text" value="<?php echo $default_sodium_key?>" aria-describedby="phs_crypt_key_help"
                    onchange="crypt_key_text = $(this).val().trim()"
-                   placeholder="<?php echo form_str($this->_pt('Please provide a crypting key')); ?>" />
-            <div id="phs_crypt_key_help" class="form-text"><?php echo $this->_pt('Min. 64 characters'); ?></div>
+                   placeholder="<?php echo form_str($this->_pt('Please provide a sodium crypting key')); ?>" />
+            <div id="phs_crypt_key_help" class="form-text"><?php echo $this->_pt('Sodium crypt key is %s characters long', $default_sodium_key_len); ?></div>
         </div>
         <div class="p-2">
             <?php
             // Keep this text in one string to be exported in language file in one string
             echo '<strong>'.$this->_pt('Note').'</strong>: ';
         echo $this->_pt('This crypt key will be used to encrypt plugins settings. Once you obtain the export file, make sure you keep this crypt key safe. It will be used when importing settings on other platforms. If you loose it, you will not be able to import any settings from exported file.');
-        ?>
-        </div>
-        <div class="p-2">
-            <?php
-        $generation_url = 'https://passwordsgenerator.net/?length=128&symbols=0&numbers=1&lowercase=1&uppercase=1&similar=1&ambiguous=0&client=1&autoselect=1';
-        // Keep this text in one string to be exported in language file in one string
-        echo $this->_pt('You can generate safe crypt keys here: %s',
-            '<a href="'.$generation_url.'" target="_blank">passwordsgenerator.net</a>');
         ?>
         </div>
         <div class="export_actions">

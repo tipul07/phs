@@ -39,7 +39,7 @@ $is_multi_tenant = PHS::is_multi_tenant();
             <?php
             if ($is_multi_tenant) {
                 ?>
-                <div class="form-group row">
+                <div class="row mb-2">
                     <label for="tenant_id" class="col-sm-2 col-form-label"><?php echo $this->_pt('For tenant'); ?></label>
                     <div class="col-sm-10">
                         <select name="tenant_id" id="tenant_id" class="chosen-select" style="width:100%;">
@@ -58,16 +58,16 @@ $is_multi_tenant = PHS::is_multi_tenant();
                 </div>
             <?php } ?>
 
-            <div class="form-group row">
-                <label for="crypt_key" class="col-sm-2 col-form-label"><?php echo $this->_pt('Crypt Key'); ?></label>
+            <div class="row mb-2">
+                <label for="crypt_key" class="col-sm-2 col-form-label"><?php echo $this->_pt('Sodium Crypt Key'); ?></label>
                 <div class="col-sm-10">
                     <input type="text" id="crypt_key" name="crypt_key" class="form-control"
                            value="<?php echo form_str($this->view_var('crypt_key')); ?>" />
-                    <small class="text-muted"><?php echo $this->_pt('Crypt key used when settings were exported'); ?></small>
+                    <small class="text-muted"><?php echo $this->_pt('Sodium crypt key used when settings were exported'); ?></small>
                 </div>
             </div>
 
-            <div class="form-group row">
+            <div class="row mb-2">
                 <label for="settings_json" class="col-sm-2 col-form-label"><?php echo $this->_pt('Crypted Settings'); ?></label>
                 <div class="col-sm-10">
         <textarea id="settings_json" name="settings_json" class="form-control"
@@ -76,10 +76,12 @@ $is_multi_tenant = PHS::is_multi_tenant();
                 </div>
             </div>
 
-            <div class="form-group row">
-                <input type="submit" id="do_validate" name="do_validate"
-                       class="btn btn-primary submit-protection ignore_hidden_required"
-                       value="<?php echo $this->_pte('Validate Settings'); ?>" />
+            <div class="row mb-2">
+                <div class="col">
+                    <input type="submit" id="do_validate" name="do_validate"
+                           class="btn btn-primary submit-protection ignore_hidden_required"
+                           value="<?php echo $this->_pte('Validate Settings'); ?>" />
+                </div>
             </div>
 
         </div>
@@ -96,12 +98,12 @@ $is_multi_tenant = PHS::is_multi_tenant();
                 <h3><?php echo $this->_pt('Import Plugin Settings'); ?></h3>
             </section>
 
-            <div class="form-group row">
+            <div class="row mb-2">
                 <label class="col-sm-2 col-form-label"><?php echo $this->_pt('Source Platform'); ?></label>
                 <div class="col-sm-10"><?php echo $decoded_settings_arr['source_name'] ?? $this->_pt('N/A')?></div>
             </div>
 
-            <div class="form-group row">
+            <div class="row mb-2">
                 <label class="col-sm-2 col-form-label"><?php echo $this->_pt('Source URL'); ?></label>
                 <div class="col-sm-10"><?php echo $decoded_settings_arr['source_url'] ?? $this->_pt('N/A')?></div>
             </div>
@@ -109,11 +111,11 @@ $is_multi_tenant = PHS::is_multi_tenant();
 
             if( empty($decoded_settings_arr['settings']) || !is_array($decoded_settings_arr['settings'])) {
                 ?>
-                <div class="form-group row">
+                <div class="row mb-2">
                     <p class="p-5 col-12 text-center"><?php echo $this->_pt('Seems linke provided import JSON doesn\'t contain any settings to be imported.')?></p>
                 </div>
 
-                <div class="form-group row">
+                <div class="row mb-2">
                     <a class="btn btn-primary submit-protection"
                        href="<?php echo PHS::url(['p' => 'admin', 'a' => 'import', 'ad' => 'plugins']); ?>"
                     ><?php echo $this->_pte('Try again'); ?></a>
@@ -121,7 +123,7 @@ $is_multi_tenant = PHS::is_multi_tenant();
                 <?php
             } else {
                 ?>
-                <div class="form-group row">
+                <div class="row mb-2">
                     <p class="col-12 text-center"><?php echo $this->_pt('Pick the settings you want to import from te table below.')?></p>
                     <p class="col-12 text-center font-weight-bold"><?php echo $this->_pt('If you don\'t select any plugin, system will import all plugin settings presented in this table.')?></p>
                 </div>
@@ -186,10 +188,12 @@ $is_multi_tenant = PHS::is_multi_tenant();
                     ?>
                 </table>
 
-                <div class="form-group row">
-                    <input type="submit" id="do_import" name="do_import"
-                           class="btn btn-primary submit-protection ignore_hidden_required"
-                           value="<?php echo $this->_pte('Import Settings'); ?>" />
+                <div class="row mb-2">
+                    <div class="col">
+                        <input type="submit" id="do_import" name="do_import"
+                               class="btn btn-primary submit-protection ignore_hidden_required"
+                               value="<?php echo $this->_pte('Import Settings'); ?>" />
+                    </div>
                 </div>
                 <?php
             }
@@ -223,18 +227,20 @@ $is_multi_tenant = PHS::is_multi_tenant();
             <?php
             if($result_buffer) {
                 ?>
-                <div class="form-group row">
+                <div class="row mb-2">
                     <pre style="width:100%;height:800px;background-color:black;color:lightgrey;font-size:12px;overflow:auto;"><?php echo $result_buffer?></pre>
                 </div>
-                <div class='form-group row'><small><?php echo $this->_pt('Import information is also available in maintenance.log file.')?></small></div>
+                <div class='row mb-2'><small><?php echo $this->_pt('Import information is also available in maintenance.log file.')?></small></div>
                 <?php
             }
             ?>
 
-            <div class="form-group row">
-                <a class="btn btn-primary submit-protection"
-                   href="<?php echo PHS::url(['p' => 'admin', 'a' => 'import', 'ad' => 'plugins']); ?>"
-                ><?php echo $this->_pte('Finish'); ?></a>
+            <div class="row mb-2">
+                <div class="col">
+                    <a class="btn btn-primary submit-protection"
+                       href="<?php echo PHS::url(['p' => 'admin', 'a' => 'import', 'ad' => 'plugins']); ?>"
+                    ><?php echo $this->_pte('Finish'); ?></a>
+                </div>
             </div>
         </div>
         <?php

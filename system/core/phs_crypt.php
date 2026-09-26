@@ -1,27 +1,57 @@
 <?php
 namespace phs;
 
+use Exception;
 use phs\libraries\PHS_Encdec;
+use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Language;
-
-// ! @version 1.10
 
 class PHS_Crypt extends PHS_Language
 {
-    public const CRYPT_EXPORT_VERSION = 1;
+    public const CRYPT_EXPORT_VERSION = 2;
 
-    private static $internal_keys = [];
+    public const V2_CHAR = '_';
 
-    private static $crypt_key = '';
+    private static array $internal_keys = [];
 
-    /**
-     * @param bool|string $key
-     *
-     * @return bool|string
-     */
-    public static function crypting_key($key = false)
+    private static string $crypt_key = '';
+
+    // Binary sodium key
+    private static string $_sodium_key = '';
+
+    public static function sodium_key(?string $key = null) : ?string
     {
-        if ($key === false) {
+        if ($key === null) {
+            return self::_sodium_key_bin2hex(self::$_sodium_key);
+        }
+
+        if (!($binkey = self::_sodium_key_hex2bin($key))) {
+            return null;
+        }
+
+        self::$_sodium_key = $binkey;
+
+        return self::$_sodium_key;
+    }
+
+    public static function generate_sodium_key() : ?string
+    {
+        try {
+            return @sodium_bin2hex(@sodium_crypto_auth_keygen());
+        } catch (Exception) {
+        }
+
+        return null;
+    }
+
+    public static function validate_sodium_key(string $key) : bool
+    {
+        return self::_sodium_key_hex2bin($key) !== null;
+    }
+
+    public static function crypting_key(?string $key = null) : string
+    {
+        if ($key === null) {
             return self::$crypt_key;
         }
 
@@ -30,22 +60,14 @@ class PHS_Crypt extends PHS_Language
         return self::$crypt_key;
     }
 
-    /**
-     * @return array
-     */
-    public static function get_internal_keys()
+    public static function get_internal_keys() : array
     {
         return self::$internal_keys;
     }
 
-    /**
-     * @param array $keys_arr
-     *
-     * @return bool
-     */
-    public static function set_internal_keys($keys_arr = [])
+    public static function set_internal_keys(array $keys_arr = []) : bool
     {
-        if (empty($keys_arr) || !is_array($keys_arr)) {
+        if (!$keys_arr) {
             return false;
         }
 
@@ -54,8 +76,17 @@ class PHS_Crypt extends PHS_Language
         return true;
     }
 
-    public static function quick_encode($str, array $params = []) : ?string
+    public static function quick_encode(?string $str, array $params = []) : ?string
     {
+        if ($str === null || $str === '') {
+            return '';
+        }
+
+        if (self::$_sodium_key
+           && ($enc_string = self::_sodium_encrypt($str, self::$_sodium_key))) {
+            return self::V2_CHAR.$enc_string;
+        }
+
         if (!($enc_dec = self::_create_encdec_instance($params))) {
             return null;
         }
@@ -63,10 +94,22 @@ class PHS_Crypt extends PHS_Language
         return $enc_dec->encrypt($str);
     }
 
-    public static function quick_decode($str, array $params = []) : ?string
+    public static function quick_decode(?string $str, array $params = []) : ?string
     {
-        if (!is_string($str)
-           || !($enc_dec = self::_create_encdec_instance($params))) {
+        if ($str === null || $str === '') {
+            return $str;
+        }
+
+        if (str_starts_with($str, self::V2_CHAR)) {
+            if (!self::$_sodium_key
+               || !($decoded = self::_sodium_decrypt(substr($str, strlen(self::V2_CHAR)), self::$_sodium_key))) {
+                return null;
+            }
+
+            return $decoded;
+        }
+
+        if (!($enc_dec = self::_create_encdec_instance($params))) {
             return null;
         }
 
@@ -87,10 +130,17 @@ class PHS_Crypt extends PHS_Language
     {
         self::st_reset_error();
 
-        if (empty($crypting_key)) {
-            self::st_set_error(self::ERR_PARAMETERS, self::_t('Crypting internal keys not provided.'));
+        if (!$crypting_key) {
+            self::st_set_error(self::ERR_PARAMETERS, self::_t('Crypting internal key not provided.'));
 
             return null;
+        }
+
+        if (($bin_key = self::_sodium_key_hex2bin($crypting_key))) {
+            return [
+                'version' => self::CRYPT_EXPORT_VERSION,
+                'data'    => self::_sodium_encrypt($buf, $bin_key),
+            ];
         }
 
         $params['crypting_key'] = $crypting_key;
@@ -105,7 +155,7 @@ class PHS_Crypt extends PHS_Language
         }
 
         return [
-            'version' => self::CRYPT_EXPORT_VERSION,
+            'version' => 1,
             'ik'      => $params['internal_keys'],
             'data'    => $enc_buf,
         ];
@@ -115,9 +165,9 @@ class PHS_Crypt extends PHS_Language
     {
         self::st_reset_error();
 
-        if (empty($json_str)
-         || !($json_arr = @json_decode($json_str, true))
-         || !is_array($json_arr)) {
+        if (!$json_str
+            || !($json_arr = @json_decode($json_str, true))
+            || !is_array($json_arr)) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Error encrypting buffer.'));
 
             return null;
@@ -130,10 +180,22 @@ class PHS_Crypt extends PHS_Language
     {
         self::st_reset_error();
 
-        if (empty($crypting_key)) {
+        if (!$crypting_key) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Crypting key not provided.'));
 
             return null;
+        }
+
+        if (($export_arr['version'] ?? 0) >= 2) {
+            if (empty($export_arr['data'])
+                || !($bin_key = self::_sodium_key_hex2bin($crypting_key))
+                || !($dec_buf = self::_sodium_decrypt($export_arr['data'], $bin_key))) {
+                self::st_set_error(self::ERR_PARAMETERS, self::_t('Error decrypting buffer.'));
+
+                return null;
+            }
+
+            return $dec_buf;
         }
 
         if (empty($export_arr['ik']) || !is_array($export_arr['ik'])) {
@@ -297,5 +359,80 @@ class PHS_Crypt extends PHS_Language
         }
 
         return $enc_dec;
+    }
+
+    private static function _sodium_encrypt(?string $str, string $key) : ?string
+    {
+        if ($str === null || $str === '') {
+            return '';
+        }
+
+        if (strlen($key) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
+            return null;
+        }
+
+        try {
+            $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+            $ciphertext = sodium_crypto_secretbox($str, $nonce, $key);
+        } catch (Exception $e) {
+            PHS_Logger::error('Error encrypting using sodium: '.$e->getMessage(), PHS_Logger::TYPE_DEBUG);
+
+            return null;
+        }
+
+        // nonce is not secret and can be stored/transmitted with ciphertext
+        return base64_encode($nonce.$ciphertext);
+    }
+
+    private static function _sodium_decrypt(?string $str, string $key) : ?string
+    {
+        if ($str === null || $str === '') {
+            return '';
+        }
+
+        if (strlen($key) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES
+            || !($data = base64_decode($str, true))
+            || strlen($data) < SODIUM_CRYPTO_SECRETBOX_NONCEBYTES) {
+            return null;
+        }
+
+        $nonce = substr($data, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $ciphertext = substr($data, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+
+        try {
+            return sodium_crypto_secretbox_open($ciphertext, $nonce, $key);
+        } catch (Exception) {
+            PHS_Logger::error('Error decrypting using sodium: '.$e->getMessage(), PHS_Logger::TYPE_DEBUG);
+
+            return null;
+        }
+    }
+
+    private static function _sodium_key_hex2bin(string $key) : ?string
+    {
+        if (!$key) {
+            return null;
+        }
+
+        try {
+            return @sodium_hex2bin($key);
+        } catch (Exception) {
+        }
+
+        return null;
+    }
+
+    private static function _sodium_key_bin2hex(string $key) : ?string
+    {
+        if ($key === '') {
+            return '';
+        }
+
+        try {
+            return @sodium_hex2bin($key);
+        } catch (Exception) {
+        }
+
+        return null;
     }
 }

@@ -115,6 +115,7 @@ if( !defined( 'PHS_THEME' ) ) {
 }
 
 // Default crypting keys...
+define( 'PHS_DEFAULT_CRYPT_SODIUM_KEY', '{{PHS_CRYPT_SODIUM_KEY}}' );
 define( 'PHS_DEFAULT_CRYPT_KEY', '{{PHS_CRYPT_KEY}}' );
 global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 // You should use _new_crypt_keys.php script to generate new crypting internal keys before using platform.

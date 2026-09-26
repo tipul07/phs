@@ -3,90 +3,78 @@ namespace phs\setup\libraries;
 
 class PHS_Setup_layout extends PHS_Setup_view
 {
-    private $common_data = [];
+    private array $common_data;
 
-    private $errors_arr = [];
+    private array $errors_arr = [];
 
-    private $success_arr = [];
+    private array $success_arr = [];
 
-    private $notices_arr = [];
+    private array $notices_arr = [];
 
-    /** @var bool|PHS_Setup_layout */
-    private static $layout_instance_obj = false;
+    private static ?self $layout_instance_obj = null;
 
     public function __construct()
     {
         parent::__construct();
 
-        if (@class_exists('\\phs\\setup\\libraries\\PHS_Setup', false)) {
+        if (@class_exists(PHS_Setup::class, false)) {
             $this->common_data = [
                 'phs_setup_obj' => PHS_Setup::get_instance(),
             ];
         } else {
             $this->common_data = [
-                'phs_setup_obj' => false,
+                'phs_setup_obj' => null,
             ];
         }
     }
 
-    public function has_error_msgs()
+    public function has_error_msgs() : bool
     {
         return !empty($this->errors_arr);
     }
 
-    public function has_success_msgs()
+    public function has_success_msgs() : bool
     {
         return !empty($this->errors_arr);
     }
 
-    public function has_notices_msgs()
+    public function has_notices_msgs() : bool
     {
         return !empty($this->notices_arr);
     }
 
-    public function reset_error_msgs()
+    public function reset_error_msgs() : void
     {
         $this->errors_arr = [];
     }
 
-    public function add_error_msg($msg)
+    public function add_error_msg(string $msg) : void
     {
         $this->errors_arr[] = $msg;
     }
 
-    public function reset_success_msgs()
+    public function reset_success_msgs() : void
     {
         $this->success_arr = [];
     }
 
-    public function add_success_msg($msg)
+    public function add_success_msg(string $msg) : void
     {
         $this->success_arr[] = $msg;
     }
 
-    public function reset_notice_msgs()
+    public function reset_notice_msgs() : void
     {
         $this->notices_arr = [];
     }
 
-    public function add_notice_msg($msg)
+    public function add_notice_msg(string $msg) : void
     {
         $this->notices_arr[] = $msg;
     }
 
-    /**
-     * @param string $template
-     * @param false|array $data
-     * @param bool $include_main_template
-     *
-     * @return false|string
-     */
-    public function render($template, $data = false, $include_main_template = false)
+    public function render(string $template, array $data = [], bool $include_main_template = false) : string
     {
-        if (empty($data) || !is_array($data)) {
-            $data = [];
-        }
-
         $this->set_context($this->common_data);
 
         // make errors available in template too
@@ -103,11 +91,9 @@ class PHS_Setup_layout extends PHS_Setup_view
             }
         }
 
-        if (!($template_buf = $this->render_view($template, $data))) {
-            $template_buf = '';
-        }
+        $template_buf = $this->render_view($template, $data) ?: '';
 
-        if (empty($include_main_template)) {
+        if (!$include_main_template) {
             return $template_buf;
         }
 
@@ -116,42 +102,26 @@ class PHS_Setup_layout extends PHS_Setup_view
 
         $this->set_context($main_template_data);
 
-        if (!($page_buf = $this->render_view('template_main'))) {
-            $page_buf = '';
-        }
-
-        return $page_buf;
+        return $this->render_view('template_main') ?: '';
     }
 
-    public function get_common_data($key = false)
+    public function get_common_data(?string $key = null) : mixed
     {
         if ($key === false) {
             return $this->common_data;
         }
 
-        if (array_key_exists($key, $this->common_data)) {
-            return $this->common_data[$key];
-        }
-
-        return null;
+        return $this->common_data[$key] ?? null;
     }
 
-    public function set_full_common_data($arr, $merge = false)
+    public function set_full_common_data(array $arr, bool $merge = false) : void
     {
-        if (!is_array($arr)) {
-            return false;
-        }
-
-        if (empty($merge)) {
-            $this->common_data = $arr;
-        } else {
-            $this->common_data = PHS_Setup_utils::merge_array_assoc($this->common_data, $arr);
-        }
-
-        return true;
+        $this->common_data = !$merge
+            ? $arr
+            : PHS_Setup_utils::merge_array_assoc($this->common_data, $arr);
     }
 
-    public function set_common_data($key, $val = null)
+    public function set_common_data(string | array $key, mixed $val = null) : bool
     {
         if ($val === null) {
             if (!is_array($key)) {
@@ -178,9 +148,9 @@ class PHS_Setup_layout extends PHS_Setup_view
         return true;
     }
 
-    public static function get_instance()
+    public static function get_instance() : self
     {
-        if (self::$layout_instance_obj !== false) {
+        if (self::$layout_instance_obj !== null) {
             return self::$layout_instance_obj;
         }
 
