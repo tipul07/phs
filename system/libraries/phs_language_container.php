@@ -787,9 +787,9 @@ class PHS_Language_Container extends PHS_Error
 
     public static function st_get_defined_languages_as_key_val() : array
     {
-        return array_map(static function ($lang_arr) {
-            return ($lang_arr['title'] ?? '').
-                   (!empty($lang_arr['title_local']) ? ' ('.$lang_arr['title_local'].')' : '');
+        return array_map(static function($lang_arr) {
+            return ($lang_arr['title'] ?? '')
+                   .(!empty($lang_arr['title_local']) ? ' ('.$lang_arr['title_local'].')' : '');
         }, self::$DEFINED_LANGUAGES);
     }
 

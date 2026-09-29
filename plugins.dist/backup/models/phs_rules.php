@@ -815,7 +815,7 @@ class PHS_Model_Rules extends PHS_Model
 
         if (!($bg_job = PHS_Bg_jobs::run(
             ['plugin' => 'backup', 'controller' => 'index_bg', 'action' => 'finish_backup_script_bg'],
-            ['result_id' => $result_arr['id']],
+            ['result_id'      => $result_arr['id']],
             ['return_command' => true]
         ))
          || empty($bg_job['cmd'])) {

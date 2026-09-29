@@ -222,8 +222,8 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
 
         return match ($field_definition['type']) {
             PHS_Model_Mysqli::FTYPE_TINYINT, PHS_Model_Mysqli::FTYPE_SMALLINT, PHS_Model_Mysqli::FTYPE_MEDIUMINT, PHS_Model_Mysqli::FTYPE_INT, PHS_Model_Mysqli::FTYPE_BIGINT => self::int(),
-            PHS_Model_Mysqli::FTYPE_DECIMAL, PHS_Model_Mysqli::FTYPE_FLOAT, PHS_Model_Mysqli::FTYPE_DOUBLE, PHS_Model_Mysqli::FTYPE_REAL                                      => self::float(),
-            default                                                                                                                                                           => self::string(),
+            PHS_Model_Mysqli::FTYPE_DECIMAL, PHS_Model_Mysqli::FTYPE_FLOAT, PHS_Model_Mysqli::FTYPE_DOUBLE, PHS_Model_Mysqli::FTYPE_REAL => self::float(),
+            default => self::string(),
         };
     }
 }
