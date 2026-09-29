@@ -107,7 +107,7 @@ foreach ($filters_arr as $filter_details) {
         $ac_action = $filter_details['autocomplete']['action'];
 
         if (empty($filter_details['autocomplete']['display_data_format'])) {
-            $filter_details['autocomplete']['display_data_format'] = false;
+            $filter_details['autocomplete']['display_data_format'] = null;
         }
 
         if (!empty($scope_arr[$filter_details['var_name'].'_phs_ac_name'])) {

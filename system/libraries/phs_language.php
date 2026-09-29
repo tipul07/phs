@@ -77,6 +77,11 @@ class PHS_Language extends PHS_Error
         return self::language_container()->get_defined_languages();
     }
 
+    public static function get_defined_languages_as_key_val() : array
+    {
+        return self::language_container()->get_defined_languages_as_key_val();
+    }
+
     public static function get_defined_language(string $lang) : ?array
     {
         return self::language_container()->get_defined_language($lang);

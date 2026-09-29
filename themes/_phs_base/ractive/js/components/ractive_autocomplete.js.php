@@ -17,11 +17,11 @@ if (!@file_exists($check_main_dir.'/main.php')) {
 include $check_main_dir.'/main.php';
 
 ?>
-var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
+const PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
 
     template: '#PHS_RActive_autocomplete_inputs',
 
-    data: function() {
+    data: function () {
         return {
             // Inputs settings
             id_input_id: 'PHS_RActive_autocomplete_id',
@@ -71,17 +71,18 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
 
     observe: {
         'text_input_value': {
-            handler( newval, oldval ) {
-                if( this.get( "text_is_readonly" )
-                 && this.get( "id_input_value" ) === 0 )
+            handler(newval, oldval) {
+                if (this.get("text_is_readonly")
+                    && this.get("id_input_value") === 0) {
                     return;
+                }
 
-                if( newval === "" ) {
+                if (newval === "") {
                     this.do_reset_inputs();
                     return;
                 }
 
-                this.start_search( newval );
+                this.start_search(newval);
             },
             defer: true
         }
@@ -89,28 +90,30 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
 
     on: {
         // Default event when clicking show all icon. Handle "PHSAutocomplete.event_show_all_results_custom" event for custom functionality
-        // with a function which returns false to stop default behaviour when clicking "Show all" icon.
-        "event_show_all_results": function( context ) {
+        // with a function which returns false to stop default behavior when clicking "Show all" icon.
+        "event_show_all_results": function (context) {
 
-            var showing_all_records = this.get( "showing_all_records" );
-            if( showing_all_records )
+            const showing_all_records = this.get("showing_all_records");
+            if (showing_all_records) {
                 return;
+            }
 
-            var show_filtered_items = this.get( "show_filtered_items" );
-            if( show_filtered_items )
+            const show_filtered_items = this.get("show_filtered_items");
+            if (show_filtered_items) {
                 this.hide_filtered_items();
+            }
 
-            this.set( "showing_all_records", true )
+            this.set("showing_all_records", true)
 
-            this.get_items_by_term( "" );
+            this.get_items_by_term("");
         }
     },
 
-    hide_filtered_items: function() {
-        this.set( { "show_filtered_items": false, "showing_all_records": false } );
+    hide_filtered_items: function () {
+        this.set({"show_filtered_items": false, "showing_all_records": false});
     },
 
-    select_item: function( id, input_value, item_obj ) {
+    select_item: function (id, input_value, item_obj) {
         this.set({
             "text_is_readonly": true,
             "id_input_value": id,
@@ -119,51 +122,52 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
         this.hide_filtered_items();
 
         // Trigger select item event
-        this.fire( "event_select_item", {}, item_obj );
+        this.fire("event_select_item", {}, item_obj);
     },
 
-    start_search: function( term ) {
+    start_search: function (term) {
 
-        this.fire( "event_start_search", term );
+        this.fire("event_start_search", term);
 
         this.start_loading_animation();
 
-        this.set( "filtered_items", this.get_items_by_term( term ) );
+        this.set("filtered_items", this.get_items_by_term(term));
     },
 
-    stop_search: function() {
+    stop_search: function () {
 
-        this.fire( "event_stop_search", term );
+        this.fire("event_stop_search", term);
 
         this.stop_loading_animation();
     },
 
-    get_items_by_term: function( term ) {
-        var items_arr = [];
-        var ajax_phs_route = this.get( "ajax_phs_route" );
-        if( ajax_phs_route !== "" ) {
+    get_items_by_term: function (term) {
+        let items_arr = [];
+        const ajax_phs_route = this.get("ajax_phs_route");
+        if (ajax_phs_route !== "") {
             // Source is an AJAX query
-            this.query_for_items_by_term( term );
+            this.query_for_items_by_term(term);
         } else {
             // Source is a provided array
-            var source_arr = this.get( "source_data" );
+            const source_arr = this.get("source_data");
 
-            if( $.isArray( source_arr )
-             && source_arr.length > 0 ) {
-                items_arr = $.grep( source_arr, function( value ) {
-                    if( typeof value !== "object"
-                     || !value.hasOwnProperty( "id" )
-                     || !value.hasOwnProperty( "listing_title" )
-                     || !value.hasOwnProperty( "input_title" ) )
+            if ($.isArray(source_arr)
+                && source_arr.length > 0) {
+                items_arr = $.grep(source_arr, function (value) {
+                    if (typeof value !== "object"
+                        || !value.hasOwnProperty("id")
+                        || !value.hasOwnProperty("listing_title")
+                        || !value.hasOwnProperty("input_title")) {
                         return false;
+                    }
 
-                    if( !value.hasOwnProperty( "listing_title_html" ) )
+                    if (!value.hasOwnProperty("listing_title_html"))
                         value["listing_title_html"] = value["listing_title"];
 
-                    if( term.length === 0 )
+                    if (term.length === 0)
                         return true;
 
-                    return (-1 !== value["listing_title"].toLowerCase().indexOf( term ));
+                    return (-1 !== value["listing_title"].toLowerCase().indexOf(term));
                 });
             }
 
@@ -177,40 +181,43 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
         return items_arr;
     },
 
-    query_for_items_by_term: function( term ) {
-        var ajax_phs_route = this.get( "ajax_phs_route" );
-        if( ajax_phs_route === "" )
+    query_for_items_by_term: function (term) {
+        const ajax_phs_route = this.get("ajax_phs_route");
+        if (ajax_phs_route === "") {
             return;
+        }
 
-        var q_param = this.get( "ajax_term_param" );
-        var limit_param = this.get( "ajax_limit_param" );
-        var limit_value = this.get( "ajax_items_limit" );
+        const q_param = this.get("ajax_term_param");
+        const limit_param = this.get("ajax_limit_param");
+        const limit_value = this.get("ajax_items_limit");
 
-        var query_data = this.get( "ajax_extra_params" );
+        const query_data = this.get("ajax_extra_params");
         query_data[q_param] = term;
         query_data[limit_param] = limit_value;
 
-        var inner_this = this;
+        const inner_this = this;
         this.read_data(
             ajax_phs_route,
             query_data,
-            function( data, status, ajax_obj ) {
+            function (data, status, ajax_obj) {
 
                 inner_this.stop_loading_animation();
 
-                if( typeof data !== "object"
-                 || typeof data.response !== "object"
-                 || typeof data.response.items !== "object" )
+                if (typeof data !== "object"
+                    || typeof data.response !== "object"
+                    || typeof data.response.items !== "object") {
                     return;
+                }
 
-                if( typeof data.response.total_items === "undefined" )
+                if (typeof data.response.total_items === "undefined") {
                     data.response.total_items = $(data.response.items).length;
+                }
 
-                inner_this.set( "total_items_count", data.response.total_items );
-                inner_this.set( "filtered_items", data.response.items );
-                inner_this.set( "show_filtered_items", true );
+                inner_this.set("total_items_count", data.response.total_items);
+                inner_this.set("filtered_items", data.response.items);
+                inner_this.set("show_filtered_items", true);
             },
-            function() {
+            function () {
                 inner_this.stop_loading_animation();
             }, {
                 queue_request: true,
@@ -221,39 +228,38 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
         );
     },
 
-    start_loading_animation: function() {
-        var new_classes = this.get( "text_input_css_classes" );
-        if( -1 === $.inArray( "phs_ractive_autocomplete_loading", new_classes ) )
-        {
-            new_classes.push( "phs_ractive_autocomplete_loading" );
-            this.set( "text_input_css_classes", new_classes );
+    start_loading_animation: function () {
+        const new_classes = this.get("text_input_css_classes");
+        if (-1 === $.inArray("phs_ractive_autocomplete_loading", new_classes)) {
+            new_classes.push("phs_ractive_autocomplete_loading");
+            this.set("text_input_css_classes", new_classes);
         }
     },
 
-    stop_loading_animation: function() {
-        var new_classes = this.get( "text_input_css_classes" );
+    stop_loading_animation: function () {
+        let new_classes = this.get("text_input_css_classes");
 
-        var value_found = false;
-        new_classes = $.grep( new_classes, function(value){
-            var ret_val = (value !== "phs_ractive_autocomplete_loading");
-            if( !ret_val )
+        let value_found = false;
+        new_classes = $.grep(new_classes, function (value) {
+            const ret_val = (value !== "phs_ractive_autocomplete_loading");
+            if (!ret_val)
                 value_found = true;
             return ret_val;
         });
 
-        if( value_found )
-            this.set( "text_input_css_classes", new_classes );
+        if (value_found)
+            this.set("text_input_css_classes", new_classes);
     },
 
-    hide_me: function() {
-        this.set( "hide_component", true );
+    hide_me: function () {
+        this.set("hide_component", true);
     },
 
-    show_me: function() {
-        this.set( "hide_component", false );
+    show_me: function () {
+        this.set("hide_component", false);
     },
 
-    do_reset_inputs: function() {
+    do_reset_inputs: function () {
         this.stop_loading_animation();
         this.set({
             id_input_value: 0,
@@ -262,7 +268,7 @@ var PHS_RActive_autocomplete = PHS_RActive_autocomplete || PHS_RActive.extend({
             show_filtered_items: false
         });
 
-        this.fire( "event_reset_inputs" );
+        this.fire("event_reset_inputs");
     }
 });
 

@@ -7,13 +7,13 @@ use phs\PHS_Scope;
 abstract class PHS_Action_Autocomplete extends PHS_Action
 {
     private array $autocomplete_params = [
-        // Data to be used when we have a single record to be displayed (eg. when user selected one record)
-        'data' => false,
+        // Data to be used when we have a single record to be displayed (e.g. when user selected one record)
+        'data' => [],
 
-        // This is where autocomplete will make AJAX call (eg. array( 'p' => 'plugin', 'c' => 'controller', 'a' => 'action' )
-        'route_arr' => false,
+        // This is where autocomplete will make AJAX call (e.g. array( 'p' => 'plugin', 'c' => 'controller', 'a' => 'action' )
+        'route_arr' => [],
         // An array with parameters to be sent to autocomplete action along with autocomplete predefined parameters (if required)
-        'route_params_arr' => false,
+        'route_params_arr' => [],
 
         'id_id'     => 'phs_autocomplete_id_id',
         'id_name'   => 'phs_autocomplete_id_name',
@@ -58,7 +58,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
      * If method returns false, any notifications (e.g. PHS_Notifications::add_error_notice()) should be done inside child class
      * @return bool|array
      */
-    abstract public function before_execute();
+    abstract public function before_execute(): bool|array;
 
     /**
      * This is the actual method which should return list of records to be rendered in autocomplete input
@@ -68,22 +68,26 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
      * value key value will be displayed in text input to end-user once an item is selected from autocomplete list should be plain text
      * @return array[]{ id: int|string, label: string, value: string }
      */
-    abstract public function get_results_for_ajax_call();
+    abstract public function get_results_for_ajax_call(): array;
 
     /**
      * This method should render given data as specified by $format and $as_html parameters.
      * This method is used when another script should present selected data to end-user in order to keep data formatting same
      * in aotocomplete list and when presenting selected input after submit
      *
-     * @param false|array $data Data to be formatted, if this is false
-     * @param false|string $format What format should be used when rendering data (if any)
+     * @param null|int|array|PHS_Record_data $data Data to be formatted, if this is null
+     * @param null|string $format What format should be used when rendering data (if any)
      * @param bool $as_html Tells if formatted data should be in HTML or not
      *
      * @return string
      */
-    abstract public function format_data($data = false, $format = false, $as_html = true);
+    abstract public function format_data(
+        null|int|array|PHS_Record_data $data = null,
+        ?string $format = null,
+        bool $as_html = true
+    ): string;
 
-    public function allowed_scopes()
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_AJAX];
     }
@@ -91,26 +95,26 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
     /**
      * This method is called from action/view where autocomplete is needed and sets where AJAX call will be sent when requiring autocomplete functionality
      * @param array $route_arr
-     * @param null|array $route_params_arr
+     * @param array $route_params_arr
      */
-    public function set_ajax_route(array $route_arr, ?array $route_params_arr = null) : void
+    public function set_ajax_route(array $route_arr, array $route_params_arr = []) : void
     {
         $route_arr = PHS::validate_route_from_parts($route_arr, true);
 
         $this->autocomplete_params([
             'route_arr'        => $route_arr,
-            'route_params_arr' => $route_params_arr ?? [],
+            'route_params_arr' => $route_params_arr,
         ]);
     }
 
     /**
      * Returns value sent in GET or POST for id input
-     * @return null|mixed
+     * @return null|string
      */
-    public function get_id_input_value()
+    public function get_id_input_value(): ?string
     {
         if (!($id_name = $this->autocomplete_params('id_name'))
-         || null === ($id_val = PHS_Params::_pg($id_name))) {
+            || null === ($id_val = PHS_Params::_pg($id_name, PHS_Params::T_NOHTML))) {
             return null;
         }
 
@@ -119,16 +123,16 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
 
     /**
      * Returns value sent in GET or POST for text input
-     * @return null|mixed
+     * @return null|string
      */
-    public function get_text_input_value()
+    public function get_text_input_value(): ?string
     {
         if (!($text_name = $this->autocomplete_params('text_name'))
-         || null === ($text_val = PHS_Params::_pg($text_name))) {
+            || null === ($text_val = PHS_Params::_pg($text_name))) {
             return null;
         }
 
-        return $text_val;
+        return is_scalar($text_val) ? (string)$text_val : '';
     }
 
     /**
@@ -137,20 +141,15 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
     public function execute()
     {
         if (true !== ($before_action = $this->before_execute())) {
-            if (empty($before_action)
-             || !is_array($before_action)) {
+            if (!$before_action || !is_array($before_action)) {
                 return self::default_action_result();
             }
 
             return $before_action;
         }
 
-        if (null === ($term = PHS_Params::_g('term', PHS_Params::T_REMSQL_CHARS))) {
-            $term = '';
-        }
-        if (null !== ($_f = PHS_Params::_g('_f', PHS_Params::T_NOHTML))) {
-            $_f = '';
-        }
+        $term = PHS_Params::_g('term', PHS_Params::T_REMSQL_CHARS) ?? '';
+        $_f = PHS_Params::_g('_f', PHS_Params::T_NOHTML) ?? '';
 
         $this->autocomplete_params([
             'search_term' => $term,
@@ -182,7 +181,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
         return $this->send_ajax_response($ajax_result);
     }
 
-    public function autocomplete_params(null | string | array $key = null, mixed $val = null)
+    public function autocomplete_params(null | string | array $key = null, mixed $val = null): mixed
     {
         if ($key === null) {
             return $this->autocomplete_params;
@@ -191,7 +190,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
         if ($val === null) {
             if (!is_array($key)) {
                 if (is_scalar($key)
-                 && array_key_exists($key, $this->autocomplete_params)) {
+                    && array_key_exists($key, $this->autocomplete_params)) {
                     return $this->autocomplete_params[$key];
                 }
 
@@ -200,8 +199,8 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
 
             foreach ($key as $kkey => $kval) {
                 if (!is_scalar($kkey)
-                 || !array_key_exists($kkey, $this->autocomplete_params)
-                 || in_array($key, ['route_arr', 'route_params_arr'], true)) {
+                    || !array_key_exists($kkey, $this->autocomplete_params)
+                    || in_array($key, ['route_arr', 'route_params_arr'], true)) {
                     continue;
                 }
 
@@ -212,8 +211,8 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
         }
 
         if (!is_scalar($key)
-         || !array_key_exists($key, $this->autocomplete_params)
-         || in_array($key, ['route_arr', 'route_params_arr'], true)) {
+            || !array_key_exists($key, $this->autocomplete_params)
+            || in_array($key, ['route_arr', 'route_params_arr'], true)) {
             return null;
         }
 
@@ -222,29 +221,15 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
         return true;
     }
 
-    /**
-     * @param false|array $data
-     *
-     * @return string
-     */
-    public function js_all_functionality($data)
+    public function js_all_functionality(array $data = []): string
     {
         return $this->js_generic_functionality($data).$this->js_autocomplete_functionality($data);
     }
 
-    /**
-     * @param false|array $data
-     *
-     * @return string
-     */
-    public function js_generic_functionality($data = false)
+    public function js_generic_functionality(array $data = []): string
     {
-        if (empty($data) || !is_array($data)) {
-            $data = [];
-        }
-
         if (($params_arr = $this->autocomplete_params())
-         && is_array($params_arr)) {
+            && is_array($params_arr)) {
             foreach ($params_arr as $key => $val) {
                 $data[$key] = $val;
             }
@@ -254,20 +239,11 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
             return '<!-- Couldn\'t obtain PHS autocomplete generic JS functionality: '.$this->get_simple_error_message().' -->';
         }
 
-        return !empty($action_result['buffer']) ? $action_result['buffer'] : '';
+        return $action_result['buffer'] ?? '';
     }
 
-    /**
-     * @param false|array $data
-     *
-     * @return string
-     */
-    public function js_autocomplete_functionality($data = false)
+    public function js_autocomplete_functionality(array $data = []): string
     {
-        if (empty($data) || !is_array($data)) {
-            $data = [];
-        }
-
         if (($params_arr = $this->autocomplete_params())
          && is_array($params_arr)) {
             foreach ($params_arr as $key => $val) {
@@ -279,20 +255,11 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
             return '<!-- Couldn\'t obtain PHS autocomplete JS functionality: '.$this->get_simple_error_message().' -->';
         }
 
-        return !empty($action_result['buffer']) ? $action_result['buffer'] : '';
+        return $action_result['buffer'] ?? '';
     }
 
-    /**
-     * @param false|array $data
-     *
-     * @return string
-     */
-    public function autocomplete_inputs($data)
+    public function autocomplete_inputs(array $data = []): string
     {
-        if (empty($data) || !is_array($data)) {
-            $data = [];
-        }
-
         if (($params_arr = $this->autocomplete_params())
          && is_array($params_arr)) {
             foreach ($params_arr as $key => $val) {
@@ -304,23 +271,12 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
             return '<!-- Couldn\'t obtain PHS autocomplete inputs: '.$this->get_simple_error_message().' -->';
         }
 
-        return !empty($action_result['buffer']) ? $action_result['buffer'] : '';
+        return $action_result['buffer'] ?? '';
     }
 
-    /**
-     * @param string $str
-     * @param string $term
-     *
-     * @return string
-     */
-    protected function _highlight_data($str, $term)
+    protected function _highlight_data(string $str, string $term): string
     {
-        if (!is_string($str)) {
-            return '';
-        }
-
-        if (empty($term)
-         || !is_string($term)) {
+        if (!$term) {
             return $str;
         }
 

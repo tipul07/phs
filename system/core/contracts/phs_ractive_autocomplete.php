@@ -2,22 +2,18 @@
 namespace phs\system\core\contracts;
 
 use phs\libraries\PHS_Contract;
+use phs\system\core\attributes\PHS_Dependency;
 
 class PHS_Contract_Ractive_autocomplete extends PHS_Contract
 {
+    #[PHS_Dependency]
+    private ?PHS_Contract_Autocomplete $_autocomplete_contract = null;
+
     /**
      * @inheritdoc
      */
     public function get_contract_data_definition() : ?array
     {
-        $this->reset_error();
-
-        if (!($autocomplete_contract = PHS_Contract_Autocomplete::get_instance())) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return null;
-        }
-
-        return $autocomplete_contract->get_contract_data_definition();
+        return $this->_autocomplete_contract->get_contract_data_definition();
     }
 }

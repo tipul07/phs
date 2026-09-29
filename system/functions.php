@@ -512,14 +512,12 @@ function db_query($query, $connection = false)
 
     if (!($qid = $db_instance->query($query, $connection))) {
         if ($db_instance->display_errors()) {
-            $error = $db_instance->get_error();
-            echo $error['display_error'];
+            echo $db_instance->get_error_message();
         }
 
         if ($db_instance->has_error()
-         && ($db_instance->get_error_code() === $db_instance::ERR_CONNECT
-                || $db_instance->get_error_code() === $db_instance::ERR_DATABASE
-         )) {
+            && in_array($db_instance->get_error_code(),
+                [$db_instance::ERR_CONNECT, $db_instance::ERR_DATABASE], true)) {
             return false;
         }
 
@@ -568,8 +566,7 @@ function db_test_connection($connection = false)
 
     if (!$db_instance->test_connection($connection)) {
         if ($db_instance->display_errors()) {
-            $error = $db_instance->get_error();
-            echo $error['display_error'];
+            echo $db_instance->get_error_message();
         }
 
         return false;
@@ -713,24 +710,12 @@ function db_connection_identifier($connection)
 
 function db_prefix($connection = false) : string
 {
-    if (!($db_settings = db_settings($connection))
-     || !is_array($db_settings)
-     || empty($db_settings['prefix'])) {
-        return '';
-    }
-
-    return $db_settings['prefix'];
+    return db_settings($connection)['prefix'] ?? '';
 }
 
 function db_database($connection = false) : string
 {
-    if (!($db_settings = db_settings($connection))
-     || !is_array($db_settings)
-     || empty($db_settings['database'])) {
-        return '';
-    }
-
-    return $db_settings['database'];
+    return db_settings($connection)['database'] ?? '';
 }
 
 function db_dump($dump_params, $connection = false)
@@ -744,12 +729,11 @@ function db_dump($dump_params, $connection = false)
     }
 
     if (!($dump_result = $db_instance->dump_database($dump_params))) {
-        if ($db_instance->has_error()) {
-            PHS_Db::st_copy_error($db_instance);
-        } else {
-            PHS_Db::st_set_error(PHS_Db::ERR_DATABASE,
-                PHS_Db::_t('Error obtaining dump commands from driver instance.'));
-        }
+        PHS_Db::st_copy_or_set_error(
+            $db_instance,
+            PHS_Db::ERR_DATABASE,
+            PHS_Db::_t('Error obtaining dump commands from driver instance.')
+        );
 
         return false;
     }
