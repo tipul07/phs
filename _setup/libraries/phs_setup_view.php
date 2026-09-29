@@ -5,29 +5,15 @@ use phs\libraries\PHS_Registry;
 
 class PHS_Setup_view extends PHS_Registry
 {
-    private $data = [];
+    private string $template_file = '';
 
-    /** @var bool|string */
-    private $template_file = false;
+    private static ?string $templates_www = null;
 
-    /** @var bool|string */
-    private static $templates_www = false;
+    private static string $templates_dir = '';
 
-    /** @var bool|string */
-    private static $templates_dir = false;
-
-    /**
-     * @param string $template
-     * @param false|array $data
-     *
-     * @return false|string
-     */
-    public function render_view($template, $data = false)
+    public function render_view(string $template, array $data = []) : string
     {
-        if ($data !== false
-         && is_array($data)) {
-            $this->set_context($data);
-        }
+        $this->set_context($data);
 
         // Quick fallback...
         if (!($templates_path = self::get_templates_dir())) {
@@ -47,17 +33,17 @@ class PHS_Setup_view extends PHS_Registry
         @ob_start();
         include $templates_path.$template.'.php';
 
-        return @ob_get_clean();
+        return @ob_get_clean() ?: '';
     }
 
-    public function get_resource_url($resource)
+    public function get_resource_url($resource) : string
     {
         return self::get_templates_www().$resource;
     }
 
-    public static function set_templates_www($www_path = false)
+    public static function set_templates_www(?string $www_path = null) : ?string
     {
-        if ($www_path === false) {
+        if ($www_path === null) {
             return self::$templates_www;
         }
 
@@ -66,22 +52,22 @@ class PHS_Setup_view extends PHS_Registry
         return self::$templates_www;
     }
 
-    public static function get_templates_www($slash_ended = true)
+    public static function get_templates_www(bool $slash_ended = true) : string
     {
-        if (self::$templates_www === false) {
+        if (self::$templates_www === null) {
             return 'templates'.($slash_ended ? '/' : '');
         }
 
-        if (empty(self::$templates_www)) {
+        if (!self::$templates_www) {
             return '';
         }
 
         return self::$templates_www.($slash_ended ? '/' : '');
     }
 
-    public static function set_templates_dir($dir_path = false)
+    public static function set_templates_dir(?string $dir_path = null) : string
     {
-        if ($dir_path === false) {
+        if ($dir_path === null) {
             return self::$templates_dir;
         }
 
@@ -90,13 +76,9 @@ class PHS_Setup_view extends PHS_Registry
         return self::$templates_dir;
     }
 
-    public static function get_templates_dir($slash_ended = true)
+    public static function get_templates_dir(bool $slash_ended = true) : string
     {
-        if (self::$templates_dir === false) {
-            return false;
-        }
-
-        if (empty(self::$templates_dir)) {
+        if (!self::$templates_dir) {
             return '';
         }
 

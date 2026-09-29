@@ -93,11 +93,10 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         }
 
         if (!empty($status_arr['status']) && !empty($status_arr['last_update'])
-            && $this->valid_status($status_arr['status'])) {
-            $last_update_seconds = seconds_passed($status_arr['last_update']);
+            && $this->valid_status($status_arr['status'])
+            && seconds_passed($status_arr['last_update']) < self::SECONDS_STARTED_RETRY) {
             // conditions to stop starting a new assets import
-            if ($last_update_seconds < self::SECONDS_STARTED_RETRY
-                && $this->status_is_just_started($status_arr)) {
+            if ($this->status_is_just_started($status_arr)) {
                 $this->set_error(
                     self::ERR_FUNCTIONALITY,
                     self::_t('There is already an task running. You should wait %s secods before retry starting a new translation task.',
@@ -107,8 +106,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
                 return null;
             }
 
-            if ($status_arr['status'] === self::STATUS_RUNNING
-                && $last_update_seconds < self::SECONDS_RUNNING_RETRY) {
+            if ($this->status_is_running($status_arr)) {
                 $this->set_error(
                     self::ERR_FUNCTIONALITY,
                     self::_t('You should wait %s secods before retry starting a new translation task while another task is still running.',
@@ -120,7 +118,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         }
 
         if (!($po_obj = $this->get_po_instance())
-           || !$po_obj->parse_details_from_po_file_by_language($lang)) {
+            || !$po_obj->parse_details_from_po_file_by_language($lang)) {
             $this->set_error_if_not_set(self::ERR_FUNCTIONALITY,
                 self::_t('Error obtaining parsing PO file for language %s.', $lang));
 
@@ -456,45 +454,57 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
 
     public function status_is_finished(array $status_arr) : bool
     {
-        $status_arr = self::validate_array($status_arr, $this->get_status_structure());
+        if (empty($status_arr['status'])) {
+            $status_arr = self::validate_array($status_arr, $this->get_status_structure());
+        }
 
-        return in_array($status_arr['status'],
+        return in_array((int)$status_arr['status'],
             [self::STATUS_FINISHED, self::STATUS_ERROR, self::STATUS_FORCE_STOPPED], true);
     }
 
     public function status_is_running(array $status_arr) : bool
     {
-        $status_arr = self::validate_array($status_arr, $this->get_status_structure());
+        if (empty($status_arr['status'])) {
+            $status_arr = self::validate_array($status_arr, $this->get_status_structure());
+        }
 
-        return $status_arr['status'] === self::STATUS_RUNNING;
+        return (int)$status_arr['status'] === self::STATUS_RUNNING;
     }
 
     public function status_is_just_started(array $status_arr) : bool
     {
-        $status_arr = self::validate_array($status_arr, $this->get_status_structure());
+        if (empty($status_arr['status'])) {
+            $status_arr = self::validate_array($status_arr, $this->get_status_structure());
+        }
 
-        return $status_arr['status'] === self::STATUS_STARTING;
+        return (int)$status_arr['status'] === self::STATUS_STARTING;
     }
 
     public function status_is_success(array $status_arr) : bool
     {
-        $status_arr = self::validate_array($status_arr, $this->get_status_structure());
+        if (empty($status_arr['status'])) {
+            $status_arr = self::validate_array($status_arr, $this->get_status_structure());
+        }
 
-        return $status_arr['status'] === self::STATUS_FINISHED;
+        return (int)$status_arr['status'] === self::STATUS_FINISHED;
     }
 
     public function status_is_error(array $status_arr) : bool
     {
-        $status_arr = self::validate_array($status_arr, $this->get_status_structure());
+        if (empty($status_arr['status'])) {
+            $status_arr = self::validate_array($status_arr, $this->get_status_structure());
+        }
 
-        return $status_arr['status'] === self::STATUS_ERROR;
+        return (int)$status_arr['status'] === self::STATUS_ERROR;
     }
 
     public function status_is_force_stopped(array $status_arr) : bool
     {
-        $status_arr = self::validate_array($status_arr, $this->get_status_structure());
+        if (empty($status_arr['status'])) {
+            $status_arr = self::validate_array($status_arr, $this->get_status_structure());
+        }
 
-        return $status_arr['status'] === self::STATUS_FORCE_STOPPED;
+        return (int)$status_arr['status'] === self::STATUS_FORCE_STOPPED;
     }
 
     private function _translate_po_unit(array $po_unit, string $lang) : ?string

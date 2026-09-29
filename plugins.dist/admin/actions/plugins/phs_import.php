@@ -38,8 +38,7 @@ class PHS_Action_Import extends PHS_Action
 
         $is_multi_tenant = PHS::is_multi_tenant();
 
-        /** @var PHS_Plugin_Admin $admin_plugin */
-        /** @var PHS_Model_Tenants $tenants_model */
+        $tenants_model = null;
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
             || !($plugin_settings_lib = Phs_Plugin_settings::get_instance())
             || ($is_multi_tenant
@@ -58,6 +57,7 @@ class PHS_Action_Import extends PHS_Action
 
         $all_tenants_arr = [];
         if ($is_multi_tenant
+            && $tenants_model
             && !($all_tenants_arr = $tenants_model->get_all_tenants())) {
             $all_tenants_arr = [];
         }
@@ -103,24 +103,22 @@ class PHS_Action_Import extends PHS_Action
             }
         }
 
-        $data = [
-            'foobar'        => $foobar,
-            'tenant_id'        => $tenant_id,
-            'settings_json'            => $settings_json,
-            'crypt_key'          => $crypt_key,
+        return $this->quick_render_template('plugins/import', [
+            'foobar' => $foobar,
+            'tenant_id' => $tenant_id,
+            'settings_json' => $settings_json,
+            'crypt_key' => $crypt_key,
 
-            'decoded_settings_arr'          => $decoded_settings_arr,
-            'selected_plugins'          => $selected_plugins,
+            'decoded_settings_arr' => $decoded_settings_arr,
+            'selected_plugins' => $selected_plugins,
 
-            'result_buffer'          => $this->result_buffer,
-            'import_with_success'          => $import_with_success,
+            'result_buffer' => $this->result_buffer,
+            'import_with_success' => $import_with_success,
 
             'all_tenants_arr' => $all_tenants_arr,
 
             'do_import' => $do_import,
-        ];
-
-        return $this->quick_render_template('plugins/import', $data);
+        ]);
     }
 
     public function maintenance_injection(string $msg): void

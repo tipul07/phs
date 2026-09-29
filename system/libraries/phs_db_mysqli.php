@@ -165,7 +165,7 @@ class PHS_Db_mysqli extends PHS_Db_class
         try {
             $this->connection_id[$connection_name]
                 = @mysqli_connect($host, $conn_settings['user'], $conn_settings['password'],
-                    $conn_settings['database'], $conn_settings['port']);
+                    $conn_settings['database'], (int)$conn_settings['port']);
         } catch (\Exception $e) {
             $this->connection_id[$connection_name] = null;
         }

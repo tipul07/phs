@@ -195,6 +195,11 @@ function http_call(
 }
 // endregion Helper functions
 
+function is_hex_string(string $str) : bool
+{
+    return trim($str, '0..9A..Fa..f') === '';
+}
+
 function encode_to_utf8(string $str) : string
 {
     if (@function_exists('mb_convert_encoding')) {

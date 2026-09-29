@@ -655,7 +655,8 @@ final class PHS extends PHS_Registry
 
             'PHS_THEME' => 'PHS_DEFAULT_THEME',
 
-            'PHS_CRYPT_KEY' => 'PHS_DEFAULT_CRYPT_KEY',
+            'PHS_CRYPT_KEY'        => 'PHS_DEFAULT_CRYPT_KEY',
+            'PHS_CRYPT_SODIUM_KEY' => 'PHS_DEFAULT_CRYPT_SODIUM_KEY',
 
             'PHS_DB_CONNECTION' => 'PHS_DB_DEFAULT_CONNECTION',
 

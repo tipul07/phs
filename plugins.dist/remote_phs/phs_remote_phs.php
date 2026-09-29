@@ -1,7 +1,6 @@
 <?php
 namespace phs\plugins\remote_phs;
 
-use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Record_data;

@@ -2,15 +2,26 @@
 /** @var phs\setup\libraries\PHS_Setup_view $this */
 $this->set_context('page_title', $this->_pt('Step 4'));
 
-if (!($phs_crypt_key = $this->get_context('phs_crypt_key'))) {
-    $phs_crypt_key = '';
-}
-if (!($phs_crypt_internal_keys_arr = $this->get_context('phs_crypt_internal_keys_arr'))) {
-    $phs_crypt_internal_keys_arr = [];
-}
+$phs_crypt_sodium_key = $this->get_context('phs_crypt_sodium_key') ?: '';
+$phs_show_v1 = $this->get_context('phs_show_v1') ?: '';
+$phs_crypt_key = $this->get_context('phs_crypt_key') ?: '';
+$phs_crypt_internal_keys_arr = $this->get_context('phs_crypt_internal_keys_arr') ?: [];
 ?>
 <form id="phs_setup_step4" name="phs_setup_step4" method="post">
 <input type="hidden" name="foobar" value="1" />
+<fieldset class="form-group">
+    <label for="phs_crypt_sodium_key"><?php echo $this->_pt('Sodium Crypting Key'); ?></label>
+    <div class="lineform_line">
+        <input type="text" id="phs_crypt_sodium_key" name="phs_crypt_sodium_key" class="form-control" value="<?php echo form_str($phs_crypt_sodium_key); ?>" style="width: 350px;" /><br/>
+        <small><?php echo $this->_pt('This is new version of crypting which is more secure than the old one. It is recommended that you use only Solium crypting.'); ?></small>
+    </div>
+</fieldset>
+
+<div id="phs_old_crypting_toggler" style="display: <?php echo $phs_show_v1 ? 'none' : 'block'; ?>;width: 100%; margin: auto; text-align: center; padding: 10px; font-weight: bold;">
+    <a href="javascript:void(0)" onclick="do_activate_v1_crypting()">I know the risks and I want to activate PHS v1 crypting method.</a>
+</div>
+
+<div style="display: <?php echo !$phs_show_v1 ? 'none' : 'block'; ?>" id="phs_old_crypting">
 <fieldset class="form-group">
     <label for="phs_crypt_key"><?php echo $this->_pt('Crypting Key'); ?></label>
     <div class="lineform_line">
@@ -40,20 +51,40 @@ if (!($phs_crypt_internal_keys_arr = $this->get_context('phs_crypt_internal_keys
 
 <fieldset>
     <div class="lineform_line">
-        <input type="hidden" name="do_generate_keys" value="0" />
-        <input type="button" id="do_generate_keys_btn" name="do_generate_keys_btn"
-               class="btn btn-primary submit-protection" value="<?php echo $this->_pte('Generate keys'); ?>" onclick="do_generate_new_keys()" />
-        <input type="submit" id="do_submit" name="do_submit" class="btn btn-primary submit-protection ignore_hidden_required"
+        <input type="hidden" name="phs_show_v1" value="0" />
+    </div>
+</fieldset>
+</div>
+
+<fieldset>
+    <div class='lineform_line'>
+        <input type='hidden' name='do_generate_keys' value='0' />
+        <input type='button' id='do_generate_keys_btn' name='do_generate_keys_btn'
+               class='btn btn-primary submit-protection' value="<?php echo $this->_pte('Generate keys'); ?>"
+               onclick='do_generate_new_keys()' />
+        <input type='submit' id='do_submit' name='do_submit'
+               class='btn btn-primary submit-protection ignore_hidden_required'
                value="<?php echo $this->_pte('Continue'); ?>" />
     </div>
 </fieldset>
 
+
 </form>
 <script type="text/javascript">
+function do_activate_v1_crypting()
+{
+    const toggler = document.getElementById('phs_old_crypting_toggler');
+    const old_crypting = document.getElementById('phs_old_crypting');
+
+    toggler.style.display = "none";
+    old_crypting.style.display = "block";
+    document.phs_setup_step4.phs_show_v1.value = 1;
+}
 function do_generate_new_keys()
 {
-    if( !confirm( "<?php echo $this->_pte('Are you sure you want to generate new Crypto Internal Keys Array?'); ?>" ) )
+    if( !confirm( "<?php echo $this->_pte('Are you sure you want to generate new Crypto Internal Keys Array?'); ?>" ) ) {
         return false;
+    }
 
     document.phs_setup_step4.do_generate_keys.value = 1;
     document.phs_setup_step4.submit();

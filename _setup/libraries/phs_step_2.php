@@ -8,7 +8,7 @@ class PHS_Step_2 extends PHS_Step
 {
     public const ERR_CREATE_CONNECTION = 1, ERR_DB_CONNECTION = 2;
 
-    public function step_details()
+    public function step_details() : array
     {
         return [
             'title'       => 'Database Setup',
@@ -16,12 +16,12 @@ class PHS_Step_2 extends PHS_Step
         ];
     }
 
-    public function get_config_file()
+    public function get_config_file() : string
     {
         return 'database_setup.php';
     }
 
-    public function step_config_passed()
+    public function step_config_passed() : bool
     {
         if (!$this->load_current_configuration()) {
             return false;
@@ -100,7 +100,7 @@ class PHS_Step_2 extends PHS_Step
         return $connection_name;
     }
 
-    public function load_current_configuration()
+    public function load_current_configuration() : bool
     {
         if ($this->config_file_loaded()) {
             return true;
@@ -120,17 +120,8 @@ class PHS_Step_2 extends PHS_Step
         return true;
     }
 
-    /**
-     * @param false|array $data
-     *
-     * @return false|string
-     */
-    protected function render_step_interface($data = false)
+    protected function render_step_interface(array $data = []) : string
     {
-        if (empty($data) || !is_array($data)) {
-            $data = [];
-        }
-
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
         $phs_db_hostname = PHS_Params::_p('phs_db_hostname', PHS_Params::T_NOHTML);
         $phs_db_username = PHS_Params::_p('phs_db_username', PHS_Params::T_NOHTML);

@@ -5,10 +5,9 @@ use phs\libraries\PHS_Registry;
 
 abstract class PHS_Step extends PHS_Registry
 {
-    /** @var bool|PHS_Setup */
-    private $setup_obj = false;
+    private ?PHS_Setup $setup_obj = null;
 
-    private $config_file_loaded = false;
+    private bool $config_file_loaded = false;
 
     public function __construct($setup_inst = false)
     {
@@ -17,30 +16,30 @@ abstract class PHS_Step extends PHS_Registry
         $this->setup_instance($setup_inst);
     }
 
-    abstract public function step_details();
+    abstract public function step_details() : array;
 
-    abstract public function get_config_file();
+    abstract public function get_config_file() : string;
 
-    abstract public function step_config_passed();
+    abstract public function step_config_passed() : bool;
 
-    abstract public function load_current_configuration();
+    abstract public function load_current_configuration() : bool;
 
-    abstract protected function render_step_interface($data = false);
+    abstract protected function render_step_interface(array $data = []) : string;
 
-    public function config_file_loaded($loaded = null)
+    public function config_file_loaded(?bool $loaded = null) : bool
     {
         if ($loaded === null) {
             return $this->config_file_loaded;
         }
 
-        $this->config_file_loaded = (!empty($loaded));
+        $this->config_file_loaded = $loaded;
 
         return $this->config_file_loaded;
     }
 
-    public function setup_instance($setup_inst = false)
+    public function setup_instance(?PHS_Setup $setup_inst = null) : ?PHS_Setup
     {
-        if ($setup_inst === false) {
+        if ($setup_inst === null) {
             return $this->setup_obj;
         }
 
@@ -49,20 +48,9 @@ abstract class PHS_Step extends PHS_Registry
         return $this->setup_obj;
     }
 
-    /**
-     * @param false|array $data
-     *
-     * @return false|string
-     */
-    public function render($data = false)
+    public function render(array $data = []) : string
     {
-        if (empty($data) || !is_array($data)) {
-            $data = [];
-        }
-
-        if (!($step_interface_buf = $this->render_step_interface($data))) {
-            $step_interface_buf = '';
-        }
+        $step_interface_buf = $this->render_step_interface($data) ?: '';
 
         $data['step_interface_buf'] = $step_interface_buf;
         $data['step_instance'] = $this;
@@ -70,56 +58,56 @@ abstract class PHS_Step extends PHS_Registry
         return PHS_Setup_layout::get_instance()->render('template_steps', $data, true);
     }
 
-    public function has_success_msgs()
+    public function has_success_msgs() : bool
     {
         return PHS_Setup_layout::get_instance()->has_success_msgs();
     }
 
-    public function has_error_msgs()
+    public function has_error_msgs() : bool
     {
         return PHS_Setup_layout::get_instance()->has_error_msgs();
     }
 
-    public function has_notice_msgs()
+    public function has_notice_msgs() : bool
     {
         return PHS_Setup_layout::get_instance()->has_notices_msgs();
     }
 
-    public function reset_success_msgs()
+    public function reset_success_msgs() : void
     {
-        return PHS_Setup_layout::get_instance()->reset_success_msgs();
+        PHS_Setup_layout::get_instance()->reset_success_msgs();
     }
 
-    public function reset_error_msgs()
+    public function reset_error_msgs() : void
     {
-        return PHS_Setup_layout::get_instance()->reset_error_msgs();
+        PHS_Setup_layout::get_instance()->reset_error_msgs();
     }
 
-    public function reset_notice_msgs()
+    public function reset_notice_msgs() : void
     {
-        return PHS_Setup_layout::get_instance()->reset_notice_msgs();
+        PHS_Setup_layout::get_instance()->reset_notice_msgs();
     }
 
-    public function add_success_msg($msg)
+    public function add_success_msg(string $msg) : void
     {
-        return PHS_Setup_layout::get_instance()->add_success_msg($msg);
+        PHS_Setup_layout::get_instance()->add_success_msg($msg);
     }
 
-    public function add_error_msg($msg)
+    public function add_error_msg(string $msg) : void
     {
-        return PHS_Setup_layout::get_instance()->add_error_msg($msg);
+        PHS_Setup_layout::get_instance()->add_error_msg($msg);
     }
 
-    public function add_notice_msg($msg)
+    public function add_notice_msg(string $msg) : void
     {
-        return PHS_Setup_layout::get_instance()->add_notice_msg($msg);
+        PHS_Setup_layout::get_instance()->add_notice_msg($msg);
     }
 
-    protected function save_step_config_file($params)
+    protected function save_step_config_file(array $params) : bool
     {
         $this->reset_error();
 
-        if (empty($params) || !is_array($params)) {
+        if (!$params) {
             $this->set_error(self::ERR_PARAMETERS, 'Invalid parameters sent to save config file method.');
 
             return false;
@@ -232,16 +220,15 @@ abstract class PHS_Step extends PHS_Registry
 
         @fwrite($fil, "\n\n");
 
-        @fclose($fil);
         @fflush($fil);
+        @fclose($fil);
 
         return true;
     }
 
-    private function _save_common_config_line_details_before($fil, $line_arr)
+    private function _save_common_config_line_details_before($fil, array $line_arr) : bool
     {
-        if (empty($fil)
-         || empty($line_arr) || !is_array($line_arr)) {
+        if (empty($fil) || !$line_arr) {
             return false;
         }
 

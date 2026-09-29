@@ -1,12 +1,9 @@
 <?php
 namespace phs\setup\libraries;
 
-use phs\PHS_Db;
-use phs\libraries\PHS_Params;
-
 class PHS_Step_finish extends PHS_Step
 {
-    public function step_details()
+    public function step_details() : array
     {
         return [
             'title'       => 'Framework Setup Completed',
@@ -14,32 +11,23 @@ class PHS_Step_finish extends PHS_Step
         ];
     }
 
-    public function get_config_file()
+    public function get_config_file() : string
     {
         return 'main_finish.php';
     }
 
-    public function step_config_passed()
+    public function step_config_passed() : bool
     {
         return false;
     }
 
-    public function load_current_configuration()
+    public function load_current_configuration() : bool
     {
         return true;
     }
 
-    /**
-     * @param false|array $data
-     *
-     * @return false|string
-     */
-    protected function render_step_interface($data = false)
+    protected function render_step_interface(array $data = []) : string
     {
-        if (empty($data) || !is_array($data)) {
-            $data = [];
-        }
-
         return PHS_Setup_layout::get_instance()->render('step_finish', $data);
     }
 }
