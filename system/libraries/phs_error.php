@@ -47,7 +47,7 @@ class PHS_Error
         int $error_no = self::ERR_OK,
         string $error_msg = '',
         string $error_debug_msg = '',
-        bool $static_instance = false
+        bool $static_instance = false,
     ) {
         $error_msg = trim($error_msg);
 
@@ -69,7 +69,7 @@ class PHS_Error
      *
      * @return bool
      */
-    public function throw_error() : bool
+    public function throw_error(): bool
     {
         if ($this->error_no === self::ERR_OK) {
             return false;
@@ -91,7 +91,7 @@ class PHS_Error
      *
      * @return bool True if there is an error, false if no error
      **/
-    public function has_error() : bool
+    public function has_error(): bool
     {
         return $this->error_no !== self::ERR_OK;
     }
@@ -102,7 +102,7 @@ class PHS_Error
      * @param null|string $tag Check if we have warnings for provided tag (false by default)
      * @return int Return warnings number (for specified tag or as total)
      **/
-    public function has_warnings(?string $tag = null) : int
+    public function has_warnings(?string $tag = null): int
     {
         if ($tag === null) {
             return $this->warnings_no;
@@ -122,7 +122,7 @@ class PHS_Error
      * @param string $error_msg Error message
      * @param string $error_debug_msg Debugging error message
      */
-    public function set_error(int $error_no, string $error_msg, string $error_debug_msg = '') : void
+    public function set_error(int $error_no, string $error_msg, string $error_debug_msg = ''): void
     {
         if (!($arr = self::arr_set_error($error_no, $error_msg, $error_debug_msg))) {
             $arr = self::default_error_array();
@@ -134,7 +134,7 @@ class PHS_Error
         $this->error_msg = $arr['error_msg'];
     }
 
-    public function set_error_if_not_set(int $error_no, string $error_msg, string $error_debug_msg = '') : void
+    public function set_error_if_not_set(int $error_no, string $error_msg, string $error_debug_msg = ''): void
     {
         if ($this->has_error()) {
             return;
@@ -149,7 +149,7 @@ class PHS_Error
      *
      * @return array
      */
-    public function change_error_message(string $error_msg, string $error_debug_msg = '') : array
+    public function change_error_message(string $error_msg, string $error_debug_msg = ''): array
     {
         if (empty($error_debug_msg)) {
             $error_debug_msg = $error_msg;
@@ -166,14 +166,14 @@ class PHS_Error
      *
      * @return array
      */
-    public function change_error_code(int $error_no) : array
+    public function change_error_code(int $error_no): array
     {
         $this->error_no = $error_no;
 
         return $this->get_error();
     }
 
-    public function change_error_code_and_message(int $error_code, string $error_msg, string $error_debug_msg = '') : array
+    public function change_error_code_and_message(int $error_code, string $error_msg, string $error_debug_msg = ''): array
     {
         $this->change_error_code($error_code);
         $this->change_error_message($error_msg, $error_debug_msg);
@@ -190,7 +190,7 @@ class PHS_Error
      * @param null|string $tag string Add warning for a specific tag (default null).
      *                         If this is not provided, warning will be added as general warning.
      **/
-    public function add_warning(string $warning, ?string $tag = null) : void
+    public function add_warning(string $warning, ?string $tag = null): void
     {
         if (empty($this->warnings_arr[self::WARNING_NOTAG])) {
             $this->warnings_arr[self::WARNING_NOTAG] = [];
@@ -224,7 +224,7 @@ class PHS_Error
      * @param null|string $tag string Remove warnings of specific tag or all warnings. (default false)
      * @return int Returns number of warnings left after removing required warnings
      **/
-    public function reset_warnings(?string $tag = null) : int
+    public function reset_warnings(?string $tag = null): int
     {
         if ($tag !== null) {
             if (isset($this->warnings_arr[$tag]) && is_array($this->warnings_arr[$tag])) {
@@ -246,7 +246,7 @@ class PHS_Error
     /**
      * Reset instance error
      */
-    public function reset_error() : void
+    public function reset_error(): void
     {
         $this->error_no = self::ERR_OK;
         $this->error_msg = '';
@@ -260,7 +260,7 @@ class PHS_Error
      *
      * @return array Array with indexes 'error_no' for error code and 'error_msg' for error message
      **/
-    public function get_error() : array
+    public function get_error(): array
     {
         $return_arr = self::default_error_array();
 
@@ -282,7 +282,7 @@ class PHS_Error
      * @param string $default_message
      * @return string Returns error message
      */
-    public function get_error_message(string $default_message = '') : string
+    public function get_error_message(string $default_message = ''): string
     {
         if ($this->debugging_mode()) {
             $error_msg = $this->error_debug_msg;
@@ -297,7 +297,7 @@ class PHS_Error
      * @param string $default_message
      * @return string Returns full error message
      */
-    public function get_full_error_message(string $default_message = '') : string
+    public function get_full_error_message(string $default_message = ''): string
     {
         return $this->error_msg !== '' ? $this->error_msg : $default_message;
     }
@@ -306,7 +306,7 @@ class PHS_Error
      * @param string $default_message
      * @return string Always returns short version error message
      */
-    public function get_simple_error_message(string $default_message = '') : string
+    public function get_simple_error_message(string $default_message = ''): string
     {
         return $this->error_simple_msg !== '' ? $this->error_simple_msg : $default_message;
     }
@@ -315,7 +315,7 @@ class PHS_Error
      * @param int $default_code
      * @return int Returns error code
      */
-    public function get_error_code(int $default_code = self::ERR_OK) : int
+    public function get_error_code(int $default_code = self::ERR_OK): int
     {
         return $this->error_no !== self::ERR_OK ? $this->error_no : $default_code;
     }
@@ -328,7 +328,7 @@ class PHS_Error
      *
      * @return bool
      */
-    public function copy_error(?self $obj, ?int $force_error_code = null) : bool
+    public function copy_error(?self $obj, ?int $force_error_code = null): bool
     {
         if ($obj === null
             || !($error_arr = $obj->get_error())) {
@@ -347,7 +347,7 @@ class PHS_Error
         return true;
     }
 
-    public function copy_or_set_error(?self $obj, int $error_no, string $error_msg, string $error_debug_msg = '') : void
+    public function copy_or_set_error(?self $obj, int $error_no, string $error_msg, string $error_debug_msg = ''): void
     {
         if ($obj === null
             || !$obj->has_error()) {
@@ -367,7 +367,7 @@ class PHS_Error
      *
      * @return bool
      */
-    public function copy_error_from_array(array $error_arr, ?int $force_error_code = null) : bool
+    public function copy_error_from_array(array $error_arr, ?int $force_error_code = null): bool
     {
         if (!isset($error_arr['error_no']) || !isset($error_arr['error_msg'])
             || !isset($error_arr['error_simple_msg']) || !isset($error_arr['error_debug_msg'])) {
@@ -386,7 +386,7 @@ class PHS_Error
         return true;
     }
 
-    public function copy_or_set_error_from_array(array $error_arr, int $error_no, string $error_msg, string $error_debug_msg = '') : void
+    public function copy_or_set_error_from_array(array $error_arr, int $error_no, string $error_msg, string $error_debug_msg = ''): void
     {
         if (!self::arr_has_error($error_arr)) {
             $this->set_error($error_no, $error_msg, $error_debug_msg);
@@ -397,12 +397,12 @@ class PHS_Error
         $this->copy_error_from_array($error_arr, $error_no);
     }
 
-    public function copy_static_error(?int $force_error_code = null) : bool
+    public function copy_static_error(?int $force_error_code = null): bool
     {
         return $this->copy_error(self::get_error_static_instance(), $force_error_code);
     }
 
-    public function copy_or_set_static_error(int $error_no, string $error_msg, string $error_debug_msg = '') : void
+    public function copy_or_set_static_error(int $error_no, string $error_msg, string $error_debug_msg = ''): void
     {
         if (!self::st_has_error()) {
             $this->set_error($error_no, $error_msg, $error_debug_msg);
@@ -413,22 +413,22 @@ class PHS_Error
         $this->copy_static_error();
     }
 
-    public function stack_all_errors() : array
+    public function stack_all_errors(): array
     {
         return array_merge(
             $this->stack_error(),
-            self::st_stack_error()
+            self::st_stack_error(),
         );
     }
 
-    public function stack_error() : array
+    public function stack_error(): array
     {
         return [
             'instance_error' => $this->get_error(),
         ];
     }
 
-    public function restore_errors($errors_arr) : void
+    public function restore_errors($errors_arr): void
     {
         if (!empty($errors_arr['instance_error'])
         && ($instance_errors = self::validate_error_arr($errors_arr['instance_error']))) {
@@ -450,7 +450,7 @@ class PHS_Error
      *
      * @return null|array Return array of warnings (all or for specified tag) or false if no warnings
      **/
-    public function get_warnings(bool $simple_messages = true, ?string $tag = null) : ?array
+    public function get_warnings(bool $simple_messages = true, ?string $tag = null): ?array
     {
         if (empty($this->warnings_arr)
          || ($tag !== null && !isset($this->warnings_arr[$tag]))) {
@@ -488,7 +488,7 @@ class PHS_Error
      *
      * @return array Return array of all warnings
      **/
-    public function get_all_warnings(bool $simple_messages = true) : array
+    public function get_all_warnings(bool $simple_messages = true): array
     {
         if (empty($this->warnings_arr)) {
             return [];
@@ -522,7 +522,7 @@ class PHS_Error
      *
      * @return string Method will return a string representing function/method calls.
      */
-    public function debug_call_backtrace(int $lvl = 0, ?int $limit = null) : string
+    public function debug_call_backtrace(int $lvl = 0, ?int $limit = null): string
     {
         if ($this->suppress_backtrace()) {
             return '';
@@ -589,7 +589,7 @@ class PHS_Error
      *
      * @return bool
      */
-    public function throw_errors(?bool $mode = null) : bool
+    public function throw_errors(?bool $mode = null): bool
     {
         if ($mode === null) {
             return $this->throw_errors;
@@ -600,7 +600,7 @@ class PHS_Error
         return $this->throw_errors;
     }
 
-    public function debugging_mode(?bool $mode = null) : bool
+    public function debugging_mode(?bool $mode = null): bool
     {
         if ($mode === null) {
             return $this->debugging_mode;
@@ -611,7 +611,7 @@ class PHS_Error
         return $this->debugging_mode;
     }
 
-    public function suppress_backtrace(?bool $mode = null) : bool
+    public function suppress_backtrace(?bool $mode = null): bool
     {
         if ($mode === null) {
             return $this->suppress_backtrace;
@@ -622,17 +622,17 @@ class PHS_Error
         return $this->suppress_backtrace;
     }
 
-    public static function st_change_error_message(string $error_msg, string $error_debug_msg = '') : array
+    public static function st_change_error_message(string $error_msg, string $error_debug_msg = ''): array
     {
         return self::get_error_static_instance()->change_error_message($error_msg, $error_debug_msg);
     }
 
-    public static function st_change_error_code(int $error_no) : array
+    public static function st_change_error_code(int $error_no): array
     {
         return self::get_error_static_instance()->change_error_code($error_no);
     }
 
-    public static function st_change_error_code_and_message(int $error_code, string $error_msg, string $error_debug_msg = '') : array
+    public static function st_change_error_code_and_message(int $error_code, string $error_msg, string $error_debug_msg = ''): array
     {
         return self::get_error_static_instance()->change_error_code_and_message($error_code, $error_msg, $error_debug_msg);
     }
@@ -640,17 +640,17 @@ class PHS_Error
     /**
      * @return bool
      */
-    public static function st_throw_error() : bool
+    public static function st_throw_error(): bool
     {
         return self::get_error_static_instance()->throw_error();
     }
 
-    public static function st_has_error() : bool
+    public static function st_has_error(): bool
     {
         return self::get_error_static_instance()->has_error();
     }
 
-    public static function validate_error_arr($err_arr) : array
+    public static function validate_error_arr($err_arr): array
     {
         if (empty($err_arr) || !is_array($err_arr)) {
             $err_arr = [];
@@ -662,19 +662,19 @@ class PHS_Error
         return $return_arr;
     }
 
-    public static function arr_has_error($err_arr) : bool
+    public static function arr_has_error($err_arr): bool
     {
         $err_arr = self::validate_error_arr($err_arr);
 
         return $err_arr['error_no'] !== self::ERR_OK;
     }
 
-    public static function st_has_warnings(?string $tag = null) : int
+    public static function st_has_warnings(?string $tag = null): int
     {
         return self::get_error_static_instance()->has_warnings($tag);
     }
 
-    public static function mixed_to_string($value) : string
+    public static function mixed_to_string($value): string
     {
         if (is_bool($value)) {
             return '('.gettype($value).') ['.($value ? 'true' : 'false').']';
@@ -711,7 +711,7 @@ class PHS_Error
      *
      * @return array|false|\stdClass|string
      */
-    public static function var_dump(mixed $var, array $params = []) : mixed
+    public static function var_dump(mixed $var, array $params = []): mixed
     {
         $params['level'] ??= 0;
         $params['max_level'] ??= 3;
@@ -778,7 +778,7 @@ class PHS_Error
      * @param string $error_debug_msg Error message
      * @return array
      **/
-    public static function arr_set_error(int $error_no, string $error_msg, string $error_debug_msg = '') : array
+    public static function arr_set_error(int $error_no, string $error_msg, string $error_debug_msg = ''): array
     {
         $backtrace = self::st_debug_call_backtrace();
 
@@ -804,7 +804,7 @@ class PHS_Error
         return $error_arr;
     }
 
-    public static function arr_set_error_if_not_set(array $error_arr, int $error_no, string $error_msg, string $error_debug_msg = '') : array
+    public static function arr_set_error_if_not_set(array $error_arr, int $error_no, string $error_msg, string $error_debug_msg = ''): array
     {
         if (self::arr_has_error($error_arr)) {
             return $error_arr;
@@ -818,12 +818,12 @@ class PHS_Error
      * @param string $error_msg
      * @param string $error_debug_msg
      */
-    public static function st_set_error(int $error_no, string $error_msg, string $error_debug_msg = '') : void
+    public static function st_set_error(int $error_no, string $error_msg, string $error_debug_msg = ''): void
     {
         self::get_error_static_instance()->set_error($error_no, $error_msg, $error_debug_msg);
     }
 
-    public static function st_set_error_if_not_set(int $error_no, string $error_msg, string $error_debug_msg = '') : void
+    public static function st_set_error_if_not_set(int $error_no, string $error_msg, string $error_debug_msg = ''): void
     {
         if (self::st_has_error()) {
             return;
@@ -836,7 +836,7 @@ class PHS_Error
      * @param string $warning
      * @param null|string $tag
      */
-    public static function st_add_warning(string $warning, ?string $tag = null) : void
+    public static function st_add_warning(string $warning, ?string $tag = null): void
     {
         self::get_error_static_instance()->add_warning($warning, $tag);
     }
@@ -846,7 +846,7 @@ class PHS_Error
      *
      * @return int
      */
-    public static function st_reset_warnings(?string $tag = null) : int
+    public static function st_reset_warnings(?string $tag = null): int
     {
         return self::get_error_static_instance()->reset_warnings($tag);
     }
@@ -854,7 +854,7 @@ class PHS_Error
     /**
      * Reset error of static instance
      */
-    public static function st_reset_error() : void
+    public static function st_reset_error(): void
     {
         self::get_error_static_instance()->reset_error();
     }
@@ -863,7 +863,7 @@ class PHS_Error
      * @param array $err_arr
      * @return array
      */
-    public static function arr_reset_error($err_arr) : array
+    public static function arr_reset_error($err_arr): array
     {
         if (empty($err_arr) || !is_array($err_arr)) {
             $err_arr = [];
@@ -872,7 +872,7 @@ class PHS_Error
         return array_merge($err_arr, self::default_error_array());
     }
 
-    public static function arr_merge_errors(array $errors_arr) : array
+    public static function arr_merge_errors(array $errors_arr): array
     {
         $error_msg = '';
         $error_code = self::ERR_OK;
@@ -894,7 +894,7 @@ class PHS_Error
     /**
      * @return array Returns default error array structure with default values (no error)
      */
-    public static function default_error_array() : array
+    public static function default_error_array(): array
     {
         return [
             'error_no'         => self::ERR_OK,
@@ -905,17 +905,17 @@ class PHS_Error
         ];
     }
 
-    public static function st_copy_error_from_array(array $error_arr, ?int $force_error_code = null) : bool
+    public static function st_copy_error_from_array(array $error_arr, ?int $force_error_code = null): bool
     {
         return self::get_error_static_instance()->copy_error_from_array($error_arr, $force_error_code);
     }
 
-    public static function st_copy_error($obj, ?int $force_error_code = null) : bool
+    public static function st_copy_error($obj, ?int $force_error_code = null): bool
     {
         return self::get_error_static_instance()->copy_error($obj, $force_error_code);
     }
 
-    public static function st_copy_or_set_error(?self $obj, int $error_no, string $error_msg, string $error_debug_msg = '') : bool
+    public static function st_copy_or_set_error(?self $obj, int $error_no, string $error_msg, string $error_debug_msg = ''): bool
     {
         if ($obj === null
             || !$obj->has_error()) {
@@ -927,34 +927,34 @@ class PHS_Error
         return self::st_copy_error($obj, $error_no);
     }
 
-    public static function st_get_error_code(int $default_code = self::ERR_OK) : int
+    public static function st_get_error_code(int $default_code = self::ERR_OK): int
     {
         return self::get_error_static_instance()->get_error_code($default_code);
     }
 
-    public static function st_get_error_message(string $default_message = '') : string
+    public static function st_get_error_message(string $default_message = ''): string
     {
         return self::get_error_static_instance()->get_error_message($default_message);
     }
 
-    public static function st_get_full_error_message(string $default_message = '') : string
+    public static function st_get_full_error_message(string $default_message = ''): string
     {
         return self::get_error_static_instance()->get_full_error_message($default_message);
     }
 
-    public static function st_get_simple_error_message(string $default_message = '') : string
+    public static function st_get_simple_error_message(string $default_message = ''): string
     {
         return self::get_error_static_instance()->get_simple_error_message($default_message);
     }
 
-    public static function arr_get_error_code($err_arr, int $default_code = self::ERR_OK) : int
+    public static function arr_get_error_code($err_arr, int $default_code = self::ERR_OK): int
     {
         $err_arr = self::validate_error_arr($err_arr);
 
         return $err_arr['error_no'] !== self::ERR_OK ? $err_arr['error_no'] : $default_code;
     }
 
-    public static function arr_get_error_message($err_arr, string $default_message = '') : string
+    public static function arr_get_error_message($err_arr, string $default_message = ''): string
     {
         $err_arr = self::validate_error_arr($err_arr);
 
@@ -967,21 +967,21 @@ class PHS_Error
         return $error_msg !== '' ? $error_msg : $default_message;
     }
 
-    public static function arr_get_full_error_message($err_arr, string $default_message = '') : string
+    public static function arr_get_full_error_message($err_arr, string $default_message = ''): string
     {
         $err_arr = self::validate_error_arr($err_arr);
 
         return $err_arr['error_msg'] !== '' ? $err_arr['error_msg'] : $default_message;
     }
 
-    public static function arr_get_simple_error_message($err_arr, string $default_message = '') : string
+    public static function arr_get_simple_error_message($err_arr, string $default_message = ''): string
     {
         $err_arr = self::validate_error_arr($err_arr);
 
         return $err_arr['error_simple_msg'] !== '' ? $err_arr['error_simple_msg'] : $default_message;
     }
 
-    public static function arr_change_error_message($err_arr, string $error_msg, string $error_debug_msg = '') : array
+    public static function arr_change_error_message($err_arr, string $error_msg, string $error_debug_msg = ''): array
     {
         $err_arr = self::validate_error_arr($err_arr);
 
@@ -995,7 +995,7 @@ class PHS_Error
         return $err_arr;
     }
 
-    public static function arr_change_error_code($err_arr, int $error_code) : array
+    public static function arr_change_error_code($err_arr, int $error_code): array
     {
         $err_arr = self::validate_error_arr($err_arr);
 
@@ -1004,12 +1004,12 @@ class PHS_Error
         return $err_arr;
     }
 
-    public static function arr_change_error_code_and_message($err_arr, int $error_code, string $error_msg, string $error_debug_msg = '') : array
+    public static function arr_change_error_code_and_message($err_arr, int $error_code, string $error_msg, string $error_debug_msg = ''): array
     {
         return self::arr_change_error_message(self::arr_change_error_code($err_arr, $error_code), $error_msg, $error_debug_msg);
     }
 
-    public static function arr_merge_error_to_array($source_error_arr, $error_arr) : array
+    public static function arr_merge_error_to_array($source_error_arr, $error_arr): array
     {
         $source_error_arr = self::validate_error_arr($source_error_arr);
         $error_arr = self::validate_error_arr($error_arr);
@@ -1028,7 +1028,7 @@ class PHS_Error
         return $source_error_arr;
     }
 
-    public static function arr_append_error_to_array($error_arr, $error_msg, ?int $error_code = null) : ?array
+    public static function arr_append_error_to_array($error_arr, $error_msg, ?int $error_code = null): ?array
     {
         if (empty($error_msg)) {
             return null;
@@ -1045,7 +1045,7 @@ class PHS_Error
         return self::arr_merge_error_to_array($error_arr, $append_error_arr);
     }
 
-    public static function arr_copy_error(?self $obj, ?int $force_error_code = null) : ?array
+    public static function arr_copy_error(?self $obj, ?int $force_error_code = null): ?array
     {
         if ($obj === null
             || !$obj->has_error()) {
@@ -1055,7 +1055,7 @@ class PHS_Error
         return $obj->get_error();
     }
 
-    public static function arr_copy_or_set_error(?self $obj, int $error_no, string $error_msg, string $error_debug_msg = '') : ?array
+    public static function arr_copy_or_set_error(?self $obj, int $error_no, string $error_msg, string $error_debug_msg = ''): ?array
     {
         if ($obj === null
             || !$obj->has_error()) {
@@ -1065,14 +1065,14 @@ class PHS_Error
         return $obj->get_error();
     }
 
-    public static function st_stack_error() : array
+    public static function st_stack_error(): array
     {
         return [
             'static_error' => self::st_get_error(),
         ];
     }
 
-    public static function st_restore_errors($errors_arr) : void
+    public static function st_restore_errors($errors_arr): void
     {
         if (!empty($errors_arr['static_error'])
             && ($static_errors = self::validate_error_arr($errors_arr['static_error']))) {
@@ -1080,7 +1080,7 @@ class PHS_Error
         }
     }
 
-    public static function st_get_error() : array
+    public static function st_get_error(): array
     {
         return self::get_error_static_instance()->get_error();
     }
@@ -1091,12 +1091,12 @@ class PHS_Error
      *
      * @return null|array
      */
-    public static function st_get_warnings(bool $simple_messages = true, ?string $tag = null) : ?array
+    public static function st_get_warnings(bool $simple_messages = true, ?string $tag = null): ?array
     {
         return self::get_error_static_instance()->get_warnings($simple_messages, $tag);
     }
 
-    public static function st_get_all_warnings($simple_messages = true) : array
+    public static function st_get_all_warnings($simple_messages = true): array
     {
         return self::get_error_static_instance()->get_all_warnings($simple_messages);
     }
@@ -1108,27 +1108,27 @@ class PHS_Error
      *
      * @return string Method will return a string representing function/method calls.
      */
-    public static function st_debug_call_backtrace(int $lvl = 0) : string
+    public static function st_debug_call_backtrace(int $lvl = 0): string
     {
         return self::get_error_static_instance()->debug_call_backtrace($lvl);
     }
 
-    public static function st_throw_errors(?bool $mode = null) : bool
+    public static function st_throw_errors(?bool $mode = null): bool
     {
         return self::get_error_static_instance()->throw_errors($mode);
     }
 
-    public static function st_debugging_mode(?bool $mode = null) : bool
+    public static function st_debugging_mode(?bool $mode = null): bool
     {
         return self::get_error_static_instance()->debugging_mode($mode);
     }
 
-    public static function st_suppress_backtrace(?bool $mode = null) : bool
+    public static function st_suppress_backtrace(?bool $mode = null): bool
     {
         return self::get_error_static_instance()->suppress_backtrace($mode);
     }
 
-    public static function trigger_critical_error(string $error_msg) : void
+    public static function trigger_critical_error(string $error_msg): void
     {
         if (@class_exists(PHS_Logger::class, false)) {
             PHS_Logger::critical($error_msg, PHS_Logger::TYPE_DEBUG);
@@ -1141,7 +1141,7 @@ class PHS_Error
     /**
      * @return PHS_Error
      */
-    public static function get_error_static_instance() : self
+    public static function get_error_static_instance(): self
     {
         static $error_instance = null;
 

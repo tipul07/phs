@@ -16,17 +16,17 @@ abstract class PHS_Step extends PHS_Registry
         $this->setup_instance($setup_inst);
     }
 
-    abstract public function step_details() : array;
+    abstract public function step_details(): array;
 
-    abstract public function get_config_file() : string;
+    abstract public function get_config_file(): string;
 
-    abstract public function step_config_passed() : bool;
+    abstract public function step_config_passed(): bool;
 
-    abstract public function load_current_configuration() : bool;
+    abstract public function load_current_configuration(): bool;
 
-    abstract protected function render_step_interface(array $data = []) : string;
+    abstract protected function render_step_interface(array $data = []): string;
 
-    public function config_file_loaded(?bool $loaded = null) : bool
+    public function config_file_loaded(?bool $loaded = null): bool
     {
         if ($loaded === null) {
             return $this->config_file_loaded;
@@ -37,7 +37,7 @@ abstract class PHS_Step extends PHS_Registry
         return $this->config_file_loaded;
     }
 
-    public function setup_instance(?PHS_Setup $setup_inst = null) : ?PHS_Setup
+    public function setup_instance(?PHS_Setup $setup_inst = null): ?PHS_Setup
     {
         if ($setup_inst === null) {
             return $this->setup_obj;
@@ -48,7 +48,7 @@ abstract class PHS_Step extends PHS_Registry
         return $this->setup_obj;
     }
 
-    public function render(array $data = []) : string
+    public function render(array $data = []): string
     {
         $step_interface_buf = $this->render_step_interface($data) ?: '';
 
@@ -58,52 +58,52 @@ abstract class PHS_Step extends PHS_Registry
         return PHS_Setup_layout::get_instance()->render('template_steps', $data, true);
     }
 
-    public function has_success_msgs() : bool
+    public function has_success_msgs(): bool
     {
         return PHS_Setup_layout::get_instance()->has_success_msgs();
     }
 
-    public function has_error_msgs() : bool
+    public function has_error_msgs(): bool
     {
         return PHS_Setup_layout::get_instance()->has_error_msgs();
     }
 
-    public function has_notice_msgs() : bool
+    public function has_notice_msgs(): bool
     {
         return PHS_Setup_layout::get_instance()->has_notices_msgs();
     }
 
-    public function reset_success_msgs() : void
+    public function reset_success_msgs(): void
     {
         PHS_Setup_layout::get_instance()->reset_success_msgs();
     }
 
-    public function reset_error_msgs() : void
+    public function reset_error_msgs(): void
     {
         PHS_Setup_layout::get_instance()->reset_error_msgs();
     }
 
-    public function reset_notice_msgs() : void
+    public function reset_notice_msgs(): void
     {
         PHS_Setup_layout::get_instance()->reset_notice_msgs();
     }
 
-    public function add_success_msg(string $msg) : void
+    public function add_success_msg(string $msg): void
     {
         PHS_Setup_layout::get_instance()->add_success_msg($msg);
     }
 
-    public function add_error_msg(string $msg) : void
+    public function add_error_msg(string $msg): void
     {
         PHS_Setup_layout::get_instance()->add_error_msg($msg);
     }
 
-    public function add_notice_msg(string $msg) : void
+    public function add_notice_msg(string $msg): void
     {
         PHS_Setup_layout::get_instance()->add_notice_msg($msg);
     }
 
-    protected function save_step_config_file(array $params) : bool
+    protected function save_step_config_file(array $params): bool
     {
         $this->reset_error();
 
@@ -226,7 +226,7 @@ abstract class PHS_Step extends PHS_Registry
         return true;
     }
 
-    private function _save_common_config_line_details_before($fil, array $line_arr) : bool
+    private function _save_common_config_line_details_before($fil, array $line_arr): bool
     {
         if (empty($fil) || !$line_arr) {
             return false;

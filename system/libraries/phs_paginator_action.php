@@ -27,44 +27,44 @@ abstract class PHS_Action_Generic_list extends PHS_Action
      * @return null|array Returns an array with flow_parameters, bulk_actions, filters_arr and columns_arr keys
      *                    containing arrays with definitions for paginator class
      */
-    abstract public function load_paginator_params() : ?array;
+    abstract public function load_paginator_params(): ?array;
 
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
 
-    public function manage_action(array $action) : null | bool | array
+    public function manage_action(array $action): null | bool | array
     {
         return $this->_paginator->default_action_params();
     }
 
     // Backwards compatibility
-    public function load_depencies() : bool
+    public function load_depencies(): bool
     {
         return $this->_load_dependencies();
     }
 
-    public function get_internal_actions() : array
+    public function get_internal_actions(): array
     {
         return [self::ACTION_EXPORT_SELECTED, self::ACTION_EXPORT_ALL, self::ACTION_DOWNLOAD_EXPORT,
             self::ACTION_RESET_EXPORT, self::ACTION_CANCEL_EXPORT];
     }
 
-    public function is_internal_bulk_action(array $action) : bool
+    public function is_internal_bulk_action(array $action): bool
     {
         return !empty($action['action'])
                && in_array($action['action'], $this->get_internal_actions(), true);
     }
 
     // Do any actions required immediately after paginator was instantiated
-    public function we_have_paginator() : bool
+    public function we_have_paginator(): bool
     {
         return true;
     }
 
     // Do any actions required after paginator was instantiated and initialized (eg. columns, filters, model and bulk actions were set)
-    public function we_initialized_paginator() : bool
+    public function we_initialized_paginator(): bool
     {
         return true;
     }
@@ -72,7 +72,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     /**
      * @return null|array Should return false if execution should continue or an array with an action result which should be returned by execute() method
      */
-    public function should_stop_execution() : ?array
+    public function should_stop_execution(): ?array
     {
         return null;
     }
@@ -85,7 +85,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
      *
      * @return array
      */
-    public function insert_columns_arr(array $current_columns_arr, array | string $where, array $new_columns_arr) : array
+    public function insert_columns_arr(array $current_columns_arr, array | string $where, array $new_columns_arr): array
     {
         if (!$new_columns_arr) {
             return $current_columns_arr ?: [];
@@ -149,12 +149,12 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         return $columns_arr;
     }
 
-    public function get_paginator() : ?PHS_Paginator
+    public function get_paginator(): ?PHS_Paginator
     {
         return $this->_paginator;
     }
 
-    public function initialize_paginator(array $scope_arr, array $pagination_params) : ?PHS_Paginator
+    public function initialize_paginator(array $scope_arr, array $pagination_params): ?PHS_Paginator
     {
         $this->reset_error();
 
@@ -219,7 +219,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
                     }
                 } elseif (!empty($pagination_action_result['action'])) {
                     $pagination_action_result = self::validate_array(
-                        $pagination_action_result, $this->_paginator->default_action_params()
+                        $pagination_action_result, $this->_paginator->default_action_params(),
                     );
 
                     $url_params = [
@@ -272,7 +272,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         return $this->quick_render_template('paginator_default_template', $data);
     }
 
-    public function default_manage_action(array $action) : null | bool | array
+    public function default_manage_action(array $action): null | bool | array
     {
         if (empty($action['action'])
             || !($action_arr = $this->_paginator->get_actions($action['action'])
@@ -284,15 +284,15 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         if (!empty($action['action_result'])) {
             if ($action['action_result'] === 'success') {
                 PHS_Notifications::add_success_notice(
-                    $action_arr['texts']['action_success'] ?? self::_t('Selected action run with success.')
+                    $action_arr['texts']['action_success'] ?? self::_t('Selected action run with success.'),
                 );
             } elseif ($action['action_result'] === 'failed') {
                 PHS_Notifications::add_error_notice(
-                    $action_arr['texts']['action_failed'] ?? self::_t('Selected action failed running.')
+                    $action_arr['texts']['action_failed'] ?? self::_t('Selected action failed running.'),
                 );
             } elseif ($action['action_result'] === 'failed_some') {
                 PHS_Notifications::add_error_notice(
-                    $action_arr['texts']['action_failed_some'] ?? self::_t('Failed running selected action for all provided records. Records for which action failed are still selected. Please try again.')
+                    $action_arr['texts']['action_failed_some'] ?? self::_t('Failed running selected action for all provided records. Records for which action failed are still selected. Please try again.'),
                 );
             }
 
@@ -323,7 +323,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         return $action_result_params;
     }
 
-    public function _default_display_actions(array $render_params) : ?string
+    public function _default_display_actions(array $render_params): ?string
     {
         if (!($actions_arr = $this->_paginator->get_actions())
            || !$this->_paginator->is_cell_rendering_for_html($render_params)) {
@@ -348,7 +348,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
     /**
      * @return bool true if all depencies were loaded successfully, false if any error (set_error should be used to pass error message)
      */
-    protected function _load_dependencies() : bool
+    protected function _load_dependencies(): bool
     {
         if ($this->_paginator_model_class === null
            || (!$this->_paginator_model
@@ -361,7 +361,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         return true;
     }
 
-    protected function _bootstrap_paginator() : bool | array
+    protected function _bootstrap_paginator(): bool | array
     {
         $this->reset_error();
 
@@ -452,7 +452,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         return $init_went_ok;
     }
 
-    protected function _manage_paginator_action(array $action) : null | bool | array
+    protected function _manage_paginator_action(array $action): null | bool | array
     {
         $this->reset_error();
 
@@ -528,7 +528,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         };
     }
 
-    protected function _download_export_action(array $action) : bool | array
+    protected function _download_export_action(array $action): bool | array
     {
         $action_result = $this->_paginator->generate_action_result($action);
 
@@ -542,7 +542,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         return $action_result;
     }
 
-    protected function _reset_export_action(array $action) : bool | array
+    protected function _reset_export_action(array $action): bool | array
     {
         $action_result = $this->_paginator->generate_action_result($action);
 
@@ -556,7 +556,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         return $action_result;
     }
 
-    protected function _cancel_export_action(array $action) : bool | array
+    protected function _cancel_export_action(array $action): bool | array
     {
         $action_result = $this->_paginator->generate_action_result($action);
 
@@ -570,7 +570,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         return $action_result;
     }
 
-    protected function _manage_action_export_all(array $action, array $export_params) : bool | array
+    protected function _manage_action_export_all(array $action, array $export_params): bool | array
     {
         $action = $action ?: [];
         $action['action'] = self::ACTION_EXPORT_ALL;
@@ -611,7 +611,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         return $action_result;
     }
 
-    protected function _export_selected_action(array $action, array $export_params) : bool | array
+    protected function _export_selected_action(array $action, array $export_params): bool | array
     {
         $action = $action ?: [];
         $action['action'] = self::ACTION_EXPORT_SELECTED;
@@ -685,7 +685,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         return $action_result;
     }
 
-    protected function _launch_bulk_export_action_in_background(array $action, array $export_params) : bool | array
+    protected function _launch_bulk_export_action_in_background(array $action, array $export_params): bool | array
     {
         $action_result = $this->_paginator->generate_action_result($action);
         $action_result['action_result'] = 'success';
@@ -699,7 +699,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         return $action_result;
     }
 
-    protected function _launch_bulk_action_in_background(array $action) : bool | array
+    protected function _launch_bulk_action_in_background(array $action): bool | array
     {
         if (!empty($action['action_result'])) {
             if ($action['action_result'] === 'success') {
@@ -730,7 +730,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             if (($admin_plugin = PHS_Plugin_Admin::get_instance())) {
                 PHS_Logger::error($this->_pt('Failed launching action in background: %s',
                     self::st_get_simple_error_message('Unknown error.')),
-                    $admin_plugin::LOG_PAGINATOR
+                    $admin_plugin::LOG_PAGINATOR,
                 );
             }
         }
@@ -738,7 +738,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         return $action_result;
     }
 
-    protected function default_paginator_params() : array
+    protected function default_paginator_params(): array
     {
         return [
             'base_url'        => '',
@@ -766,7 +766,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         ];
     }
 
-    private function _manage_bulk_action(array $action_arr) : ?array
+    private function _manage_bulk_action(array $action_arr): ?array
     {
         $action_result_params = $this->_paginator->default_action_params();
 
@@ -782,7 +782,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
 
         if (!($callback = $action_arr['callbacks']['action'] ?? null)) {
             PHS_Notifications::add_error_notice(
-                self::_t('No callback function provided for action %s.', $action_arr['action'] ?? 'N/A')
+                self::_t('No callback function provided for action %s.', $action_arr['action'] ?? 'N/A'),
             );
 
             return null;
@@ -820,7 +820,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         return $action_result_params;
     }
 
-    private function _validate_paginator_params(array $paginator_params) : array
+    private function _validate_paginator_params(array $paginator_params): array
     {
         $paginator_params = self::validate_array_recursive($paginator_params, $this->default_paginator_params());
 

@@ -124,7 +124,7 @@ class PHS_Api extends PHS_Api_base
         if (($authentication_failed = $this->_api_route_authentication_failed($api_route, $phs_route))) {
             $this->set_error(
                 self::ERR_AUTHENTICATION,
-                $authentication_failed['error_msg'] ?? self::_t('Authentication failed.')
+                $authentication_failed['error_msg'] ?? self::_t('Authentication failed.'),
             );
 
             return false;
@@ -155,12 +155,12 @@ class PHS_Api extends PHS_Api_base
     /**
      * @inheritdoc
      */
-    public function create_response_envelope(array $response_arr, ?array $errors_arr = null) : ?array
+    public function create_response_envelope(array $response_arr, ?array $errors_arr = null): ?array
     {
         return $this->default_response_envelope($response_arr, $errors_arr);
     }
 
-    protected function _before_route_run() : bool
+    protected function _before_route_run(): bool
     {
         if ($this->is_web_simulation()) {
             PHS_Scope::emulated_scope(PHS_Scope::SCOPE_WEB);
@@ -183,7 +183,7 @@ class PHS_Api extends PHS_Api_base
         return true;
     }
 
-    protected function _after_route_run() : bool
+    protected function _after_route_run(): bool
     {
         if ($this->is_web_simulation()) {
             PHS_Scope::emulated_scope(0);
@@ -202,7 +202,7 @@ class PHS_Api extends PHS_Api_base
      *
      * @return ?array
      */
-    protected function _api_route_authentication_failed(?array $api_route, ?array $phs_route) : ?array
+    protected function _api_route_authentication_failed(?array $api_route, ?array $phs_route): ?array
     {
         $this->reset_error();
 
@@ -280,7 +280,7 @@ class PHS_Api extends PHS_Api_base
      *
      * @return null|PHS_Api_base
      */
-    final public static function api_factory(?array $init_query_params = null) : ?PHS_Api_base
+    final public static function api_factory(?array $init_query_params = null): ?PHS_Api_base
     {
         self::st_reset_error();
 
@@ -321,12 +321,12 @@ class PHS_Api extends PHS_Api_base
         return $api_obj;
     }
 
-    public static function get_api_routes() : array
+    public static function get_api_routes(): array
     {
         return self::$_api_routes;
     }
 
-    public static function tokenize_api_route($route_str) : ?array
+    public static function tokenize_api_route($route_str): ?array
     {
         if (!is_string($route_str)) {
             return null;
@@ -348,7 +348,7 @@ class PHS_Api extends PHS_Api_base
         return $route_tokens;
     }
 
-    public static function default_api_route_node() : array
+    public static function default_api_route_node(): array
     {
         return [
             'exact_match'       => '', // (array or string) spare a regexp check if we want something static
@@ -371,7 +371,7 @@ class PHS_Api extends PHS_Api_base
         ];
     }
 
-    public static function default_api_route_structure() : array
+    public static function default_api_route_structure(): array
     {
         $route_structure = self::default_api_route_params();
         $route_structure['api_route'] = [];
@@ -380,7 +380,7 @@ class PHS_Api extends PHS_Api_base
         return $route_structure;
     }
 
-    public static function default_api_route_params() : array
+    public static function default_api_route_params(): array
     {
         return [
             'method' => 'get',
@@ -415,7 +415,7 @@ class PHS_Api extends PHS_Api_base
         ];
     }
 
-    public static function normalize_api_route_api_nodes($api_route_nodes) : array
+    public static function normalize_api_route_api_nodes($api_route_nodes): array
     {
         if (empty($api_route_nodes) || !is_array($api_route_nodes)) {
             return [];
@@ -437,7 +437,7 @@ class PHS_Api extends PHS_Api_base
      *
      * @return bool true on success or false on error
      */
-    public static function register_api_route(array $api_route_parts, array $phs_route, ?array $route_params = null) : bool
+    public static function register_api_route(array $api_route_parts, array $phs_route, ?array $route_params = null): bool
     {
         self::st_reset_error();
 
@@ -483,7 +483,7 @@ class PHS_Api extends PHS_Api_base
      *
      * @return null|PHS_Api_base Return request API instance or false if none set
      */
-    public static function global_api_instance(?PHS_Api_base $api_obj = null) : ?PHS_Api_base
+    public static function global_api_instance(?PHS_Api_base $api_obj = null): ?PHS_Api_base
     {
         self::st_reset_error();
 
@@ -506,12 +506,12 @@ class PHS_Api extends PHS_Api_base
     /**
      * @return null|PHS_Api_base Return request API instance or false if none set
      */
-    public static function last_api_instance() : ?PHS_Api_base
+    public static function last_api_instance(): ?PHS_Api_base
     {
         return self::$_last_api_obj;
     }
 
-    protected static function _validate_tokenized_api_route(array $route_arr) : ?array
+    protected static function _validate_tokenized_api_route(array $route_arr): ?array
     {
         $validated_route = [];
         foreach ($route_arr as $part) {
@@ -535,7 +535,7 @@ class PHS_Api extends PHS_Api_base
      */
     protected static function _check_route_for_tokenized_api_route(
         array $api_route, ?array $tokenized_request_route = null,
-        string $method = 'get', bool $skip_validations = false) : ?array
+        string $method = 'get', bool $skip_validations = false): ?array
     {
         if (empty($skip_validations)
          && (!($api_route = self::_normalize_api_route($api_route))
@@ -664,7 +664,7 @@ class PHS_Api extends PHS_Api_base
      *
      * @return null|array
      */
-    protected static function _get_phs_route_from_api_route_tokens(?array $tokenized_api_route = null, string $method = 'get') : ?array
+    protected static function _get_phs_route_from_api_route_tokens(?array $tokenized_api_route = null, string $method = 'get'): ?array
     {
         self::st_reset_error();
 
@@ -697,7 +697,7 @@ class PHS_Api extends PHS_Api_base
         return null;
     }
 
-    protected static function _normalize_api_route($api_route) : array
+    protected static function _normalize_api_route($api_route): array
     {
         $default_api_route_structure = self::default_api_route_structure();
         if (empty($api_route) || !is_array($api_route)) {

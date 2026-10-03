@@ -25,12 +25,12 @@ class Phs_Data_retention extends PHS_Library
     #[PHS_Dependency]
     private ?PHS_Model_Retention_mock $_retention_mock_model = null;
 
-    public function get_data_retention_table_name_from_table(string $table_name) : string
+    public function get_data_retention_table_name_from_table(string $table_name): string
     {
         return $table_name.self::TABLES_SUFFIX;
     }
 
-    public function run_data_retention(int | array $retention_data, array $job_extra = []) : bool
+    public function run_data_retention(int | array $retention_data, array $job_extra = []): bool
     {
         $this->reset_error();
 
@@ -45,7 +45,7 @@ class Phs_Data_retention extends PHS_Library
         return $this->run_data_retention_for_list([$retention_arr], $job_extra);
     }
 
-    public function run_data_retention_for_list(array $retention_list, array $job_extra = []) : bool
+    public function run_data_retention_for_list(array $retention_list, array $job_extra = []): bool
     {
         $this->reset_error();
 
@@ -81,7 +81,7 @@ class Phs_Data_retention extends PHS_Library
         return true;
     }
 
-    public function run_data_retention_for_list_bg(array $retention_list) : ?array
+    public function run_data_retention_for_list_bg(array $retention_list): ?array
     {
         $this->reset_error();
 
@@ -139,7 +139,7 @@ class Phs_Data_retention extends PHS_Library
         return $return_arr;
     }
 
-    public function run_data_retention_bg(int | array $retention_data) : ?array
+    public function run_data_retention_bg(int | array $retention_data): ?array
     {
         $this->reset_error();
 
@@ -163,7 +163,7 @@ class Phs_Data_retention extends PHS_Library
         return $migration_result;
     }
 
-    private function _check_retention_requirements(int | array $retention_data) : bool
+    private function _check_retention_requirements(int | array $retention_data): bool
     {
         $this->reset_error();
 
@@ -193,7 +193,7 @@ class Phs_Data_retention extends PHS_Library
         return true;
     }
 
-    private function _check_retention_requirements_for_existing_table(array $retention_arr) : bool
+    private function _check_retention_requirements_for_existing_table(array $retention_arr): bool
     {
         /** @var PHS_Plugin $plugin_obj */
         /** @var PHS_Model $model_obj */
@@ -221,7 +221,7 @@ class Phs_Data_retention extends PHS_Library
         return true;
     }
 
-    private function _check_retention_requirements_for_destination_table(array $retention_arr) : bool
+    private function _check_retention_requirements_for_destination_table(array $retention_arr): bool
     {
         $this->reset_error();
 
@@ -249,7 +249,7 @@ class Phs_Data_retention extends PHS_Library
         return true;
     }
 
-    private function _do_retention_migration(int | array $retention_data) : ?array
+    private function _do_retention_migration(int | array $retention_data): ?array
     {
         $this->reset_error();
 

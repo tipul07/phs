@@ -11,7 +11,7 @@ use phs\system\core\models\PHS_Model_Request_queue;
 
 class PHS_Action_Runs_ajax extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_AJAX];
     }

@@ -58,7 +58,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
      * If method returns false, any notifications (e.g. PHS_Notifications::add_error_notice()) should be done inside child class
      * @return bool|array
      */
-    abstract public function before_execute() : bool | array;
+    abstract public function before_execute(): bool | array;
 
     /**
      * This is the actual method which should return list of records to be rendered in autocomplete input
@@ -68,7 +68,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
      * value key value will be displayed in text input to end-user once an item is selected from autocomplete list should be plain text
      * @return array[]{ id: int|string, label: string, value: string }
      */
-    abstract public function get_results_for_ajax_call() : array;
+    abstract public function get_results_for_ajax_call(): array;
 
     /**
      * This method should render given data as specified by $format and $as_html parameters.
@@ -84,10 +84,10 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
     abstract public function format_data(
         null | int | array | PHS_Record_data $data = null,
         ?string $format = null,
-        bool $as_html = true
-    ) : string;
+        bool $as_html = true,
+    ): string;
 
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_AJAX];
     }
@@ -97,7 +97,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
      * @param array $route_arr
      * @param array $route_params_arr
      */
-    public function set_ajax_route(array $route_arr, array $route_params_arr = []) : void
+    public function set_ajax_route(array $route_arr, array $route_params_arr = []): void
     {
         $route_arr = PHS::validate_route_from_parts($route_arr, true);
 
@@ -111,7 +111,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
      * Returns value sent in GET or POST for id input
      * @return null|string
      */
-    public function get_id_input_value() : ?string
+    public function get_id_input_value(): ?string
     {
         if (!($id_name = $this->autocomplete_params('id_name'))
             || null === ($id_val = PHS_Params::_pg($id_name, PHS_Params::T_NOHTML))) {
@@ -125,7 +125,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
      * Returns value sent in GET or POST for text input
      * @return null|string
      */
-    public function get_text_input_value() : ?string
+    public function get_text_input_value(): ?string
     {
         if (!($text_name = $this->autocomplete_params('text_name'))
             || null === ($text_val = PHS_Params::_pg($text_name))) {
@@ -181,7 +181,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
         return $this->send_ajax_response($ajax_result);
     }
 
-    public function autocomplete_params(null | string | array $key = null, mixed $val = null) : mixed
+    public function autocomplete_params(null | string | array $key = null, mixed $val = null): mixed
     {
         if ($key === null) {
             return $this->autocomplete_params;
@@ -221,12 +221,12 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
         return true;
     }
 
-    public function js_all_functionality(array $data = []) : string
+    public function js_all_functionality(array $data = []): string
     {
         return $this->js_generic_functionality($data).$this->js_autocomplete_functionality($data);
     }
 
-    public function js_generic_functionality(array $data = []) : string
+    public function js_generic_functionality(array $data = []): string
     {
         if (($params_arr = $this->autocomplete_params())
             && is_array($params_arr)) {
@@ -242,7 +242,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
         return $action_result['buffer'] ?? '';
     }
 
-    public function js_autocomplete_functionality(array $data = []) : string
+    public function js_autocomplete_functionality(array $data = []): string
     {
         if (($params_arr = $this->autocomplete_params())
          && is_array($params_arr)) {
@@ -258,7 +258,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
         return $action_result['buffer'] ?? '';
     }
 
-    public function autocomplete_inputs(array $data = []) : string
+    public function autocomplete_inputs(array $data = []): string
     {
         if (($params_arr = $this->autocomplete_params())
          && is_array($params_arr)) {
@@ -274,7 +274,7 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
         return $action_result['buffer'] ?? '';
     }
 
-    protected function _highlight_data(string $str, string $term) : string
+    protected function _highlight_data(string $str, string $term): string
     {
         if (!$term) {
             return $str;

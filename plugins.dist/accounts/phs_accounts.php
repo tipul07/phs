@@ -65,7 +65,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         $accounts_levels_arr = $this->_accounts_model->get_levels_as_key_val() ?: [];
 
@@ -318,102 +318,102 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         ];
     }
 
-    public function should_announce_pass_change() : bool
+    public function should_announce_pass_change(): bool
     {
         return (bool)($this->get_plugin_settings()['announce_pass_change'] ?? true);
     }
 
-    public function account_requires_activation() : bool
+    public function account_requires_activation(): bool
     {
         return (bool)($this->get_plugin_settings()['account_requires_activation'] ?? false);
     }
 
-    public function no_nickname_only_email() : bool
+    public function no_nickname_only_email(): bool
     {
         return (bool)($this->get_plugin_settings()['no_nickname_only_email'] ?? false);
     }
 
-    public function replace_nick_with_email() : bool
+    public function replace_nick_with_email(): bool
     {
         return (bool)($this->get_plugin_settings()['replace_nick_with_email'] ?? false);
     }
 
-    public function tfa_policy_is_off() : bool
+    public function tfa_policy_is_off(): bool
     {
         return (int)($this->get_plugin_settings()['2fa_policy'] ?? 0) === self::TFA_POLICY_OFF;
     }
 
-    public function tfa_policy_is_optional() : bool
+    public function tfa_policy_is_optional(): bool
     {
         return (int)($this->get_plugin_settings()['2fa_policy'] ?? 0) === self::TFA_POLICY_OPTIONAL;
     }
 
-    public function tfa_policy_is_enforced() : bool
+    public function tfa_policy_is_enforced(): bool
     {
         return (int)($this->get_plugin_settings()['2fa_policy'] ?? 0) === self::TFA_POLICY_ENFORCED;
     }
 
-    public function tfa_remember_device_length() : int
+    public function tfa_remember_device_length(): int
     {
         return (int)($this->get_plugin_settings()['2fa_remember_device_length'] ?? 0);
     }
 
-    public function lockout_is_enabled() : bool
+    public function lockout_is_enabled(): bool
     {
         return (bool)($this->get_plugin_settings()['lockout_enabled'] ?? false);
     }
 
-    public function should_log_account_creation() : bool
+    public function should_log_account_creation(): bool
     {
         return (bool)($this->get_plugin_settings()['log_account_creation'] ?? false);
     }
 
-    public function should_log_account_logins() : bool
+    public function should_log_account_logins(): bool
     {
         return (bool)($this->get_plugin_settings()['log_account_logins'] ?? false);
     }
 
-    public function should_log_password_changes() : bool
+    public function should_log_password_changes(): bool
     {
         return (bool)($this->get_plugin_settings()['log_password_changes'] ?? false);
     }
 
-    public function should_log_roles_changes() : bool
+    public function should_log_roles_changes(): bool
     {
         return (bool)($this->get_plugin_settings()['log_roles_changes'] ?? false);
     }
 
-    public function is_password_decryption_enabled() : bool
+    public function is_password_decryption_enabled(): bool
     {
         return (bool)($this->get_plugin_settings()['password_decryption_enabled'] ?? false);
     }
 
-    public function settings_password_is_mandatory() : bool
+    public function settings_password_is_mandatory(): bool
     {
         return (int)($this->get_plugin_settings()['registration_password_policy'] ?? 0) === self::PASS_POLICY_MANDATORY;
     }
 
-    public function settings_generate_pass_if_not_present() : bool
+    public function settings_generate_pass_if_not_present(): bool
     {
         return (int)($this->get_plugin_settings()['registration_password_policy'] ?? 0) === self::PASS_POLICY_GENERATE;
     }
 
-    public function settings_setup_pass_at_login_if_not_present() : bool
+    public function settings_setup_pass_at_login_if_not_present(): bool
     {
         return (int)($this->get_plugin_settings()['registration_password_policy'] ?? 0) === self::PASS_POLICY_SETUP;
     }
 
-    public function should_setup_password_at_first_login() : bool
+    public function should_setup_password_at_first_login(): bool
     {
         return $this->settings_setup_pass_at_login_if_not_present();
     }
 
-    public function registration_password_mandatory() : bool
+    public function registration_password_mandatory(): bool
     {
         return !$this->settings_generate_pass_if_not_present() && !$this->should_setup_password_at_first_login();
     }
 
-    public function registration_email_mandatory() : bool
+    public function registration_email_mandatory(): bool
     {
         return (bool)($this->get_plugin_settings()['email_mandatory'] ?? false);
     }
@@ -422,7 +422,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      * This method should not set any errors as it runs independent of user actions...
      * @return bool
      */
-    public function resolve_idler_sessions() : bool
+    public function resolve_idler_sessions(): bool
     {
         $prev_errors = $this->stack_all_errors();
 
@@ -456,7 +456,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return true;
     }
 
-    public function define_login_source(string $key, array $details) : ?bool
+    public function define_login_source(string $key, array $details): ?bool
     {
         $this->reset_error();
 
@@ -469,7 +469,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return true;
     }
 
-    public function do_logout_subaccount() : bool
+    public function do_logout_subaccount(): bool
     {
         if (!($db_details = $this->get_current_user_db_details())
             || empty($db_details['session_db_data']['id'])
@@ -487,7 +487,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return true;
     }
 
-    public function do_logout() : bool
+    public function do_logout(): bool
     {
         $this->reset_error();
 
@@ -524,7 +524,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return true;
     }
 
-    public function generate_bearer_token_for_account(int | array | PHS_Record_data $account_data) : ?array
+    public function generate_bearer_token_for_account(int | array | PHS_Record_data $account_data): ?array
     {
         $this->reset_error();
 
@@ -547,7 +547,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         ];
     }
 
-    public function decode_bearer_token(string $token) : ?array
+    public function decode_bearer_token(string $token): ?array
     {
         $this->reset_error();
 
@@ -566,7 +566,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         ];
     }
 
-    public function do_login(int | array | PHS_Record_data $account_data, array $params = []) : ?array
+    public function do_login(int | array | PHS_Record_data $account_data, array $params = []): ?array
     {
         $this->reset_error();
 
@@ -617,7 +617,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $onuser_arr;
     }
 
-    public function get_confirmation_params(int | array | PHS_Record_data $account_data, ?string $reason = null, ?array $params = null) : ?array
+    public function get_confirmation_params(int | array | PHS_Record_data $account_data, ?string $reason = null, ?array $params = null): ?array
     {
         $this->reset_error();
 
@@ -667,7 +667,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         ];
     }
 
-    public function decode_confirmation_param(string $param_str) : ?array
+    public function decode_confirmation_param(string $param_str): ?array
     {
         $this->reset_error();
 
@@ -706,7 +706,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /**
      * @return array
      */
-    public function confirmation_reasons() : array
+    public function confirmation_reasons(): array
     {
         // key-value pair of reson name and success message...
         return [
@@ -732,7 +732,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $reasons_arr[$reason];
     }
 
-    public function get_confirmation_link(int | array | PHS_Record_data $account_data, ?string $reason = null, array $params = []) : ?string
+    public function get_confirmation_link(int | array | PHS_Record_data $account_data, ?string $reason = null, array $params = []): ?string
     {
         $this->reset_error();
 
@@ -757,7 +757,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return PHS::url(['p' => 'accounts', 'a' => 'activation'], [self::PARAM_CONFIRMATION => $confirmation_parts['confirmation_param']]);
     }
 
-    public function do_confirmation_reason(int | array | PHS_Record_data $account_data, string $reason) : ?array
+    public function do_confirmation_reason(int | array | PHS_Record_data $account_data, string $reason): ?array
     {
         $this->reset_error();
 
@@ -843,7 +843,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         ];
     }
 
-    public function get_empty_account_structure() : array
+    public function get_empty_account_structure(): array
     {
         static $empty_structure = null;
 
@@ -871,7 +871,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      *
      * @return array
      */
-    public function get_account_structure($hook_args = false) : array
+    public function get_account_structure($hook_args = false): array
     {
         $hook_args = self::validate_array($hook_args, PHS_Hooks::default_account_structure_hook_args());
 
@@ -899,7 +899,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $hook_args;
     }
 
-    public function get_current_user_db_details($hook_args = false) : array
+    public function get_current_user_db_details($hook_args = false): array
     {
         static $check_result = false;
 
@@ -989,7 +989,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      *
      * @return bool
      */
-    public function listen_plugin_settings_saved(PHS_Event_Plugin_settings_saved $event_obj) : bool
+    public function listen_plugin_settings_saved(PHS_Event_Plugin_settings_saved $event_obj): bool
     {
         // Check if accounts plugin settings were saved...
         if (!($input_arr = $event_obj->get_input())
@@ -1015,7 +1015,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
     /**
      * @return array
      */
-    public function get_guest_roles_and_role_units() : array
+    public function get_guest_roles_and_role_units(): array
     {
         static $resulting_roles = null;
 
@@ -1046,7 +1046,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $resulting_roles;
     }
 
-    public function import_accounts_from_json_file(string $json_file, array $params = []) : ?array
+    public function import_accounts_from_json_file(string $json_file, array $params = []): ?array
     {
         $this->reset_error();
 
@@ -1070,7 +1070,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $this->import_accounts_from_json_array($file_arr, $params);
     }
 
-    public function import_accounts_from_json_array(array $json_arr, array $params = []) : ?array
+    public function import_accounts_from_json_array(array $json_arr, array $params = []): ?array
     {
         if (!($a_flow = $this->_accounts_model->fetch_default_flow_params(['table_name' => 'users']))
             || !($roles_model = PHS_Model_Roles::get_instance())) {
@@ -1267,7 +1267,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $return_arr;
     }
 
-    public function export_account_ids(array $account_ids = [], array $export_params = []) : bool
+    public function export_account_ids(array $account_ids = [], array $export_params = []): bool
     {
         if (empty($export_params['export_file_dir'])) {
             $export_params['export_file_dir'] = '';
@@ -1337,7 +1337,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return true;
     }
 
-    public function export_account_ids_to_json(array $account_ids = []) : string
+    public function export_account_ids_to_json(array $account_ids = []): string
     {
         if (!($accounts_arr = $this->export_account_ids_to_array($account_ids))
          || !($accounts_json = @json_encode($accounts_arr))) {
@@ -1347,7 +1347,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $accounts_json;
     }
 
-    public function export_account_ids_to_array(array $account_ids = []) : array
+    public function export_account_ids_to_array(array $account_ids = []): array
     {
         if (!($qid = $this->_get_accounts_qid($account_ids))) {
             return [];
@@ -1372,7 +1372,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $return_arr;
     }
 
-    public function default_export_accounts_wrapper() : array
+    public function default_export_accounts_wrapper(): array
     {
         return [
             'version'       => 1,
@@ -1382,7 +1382,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         ];
     }
 
-    public function default_export_array_for_account_data() : ?array
+    public function default_export_array_for_account_data(): ?array
     {
         // "hardcoded" data...
         if (!($user_details = $this->_accounts_details_model->get_empty_data())) {
@@ -1418,7 +1418,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
      *
      * @return null|array
      */
-    public function populate_export_data_from_account_array(array $account_arr) : ?array
+    public function populate_export_data_from_account_array(array $account_arr): ?array
     {
         if (empty($account_arr)) {
             return null;
@@ -1476,7 +1476,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $export_structure;
     }
 
-    public function get_accounts_import_dir(bool $slash_ended = true) : string
+    public function get_accounts_import_dir(bool $slash_ended = true): string
     {
         $dir = PHS_UPLOADS_DIR;
 
@@ -1487,7 +1487,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $dir.self::ACCOUNTS_IMPORT_DIR.(!empty($slash_ended) ? '/' : '');
     }
 
-    public function get_accounts_import_www(bool $slash_ended = true) : string
+    public function get_accounts_import_www(bool $slash_ended = true): string
     {
         $dir = PHS_UPLOADS_WWW;
 
@@ -1498,7 +1498,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $dir.self::ACCOUNTS_IMPORT_DIR.(!empty($slash_ended) ? '/' : '');
     }
 
-    public function send_account_confirmation_email(int | array | PHS_Record_data $account_data) : bool
+    public function send_account_confirmation_email(int | array | PHS_Record_data $account_data): bool
     {
         $this->reset_error();
 
@@ -1548,7 +1548,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return true;
     }
 
-    public function send_account_password_setup(int | array | PHS_Record_data $account_data) : bool
+    public function send_account_password_setup(int | array | PHS_Record_data $account_data): bool
     {
         $this->reset_error();
 
@@ -1585,7 +1585,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
             $this->copy_or_set_error(
                 $email_obj,
                 self::ERR_FUNCTIONALITY,
-                $this->_pt('Error sending confirmation email to %s.', $account_arr['email'])
+                $this->_pt('Error sending confirmation email to %s.', $account_arr['email']),
             );
 
             return false;
@@ -1707,7 +1707,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return true;
     }
 
-    private function _get_current_session_data(array $params = []) : ?array
+    private function _get_current_session_data(array $params = []): ?array
     {
         static $online_db_details = null;
 
@@ -1784,7 +1784,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return $qid;
     }
 
-    private function _create_required_directories() : bool
+    private function _create_required_directories(): bool
     {
         $this->reset_error();
 
@@ -1808,7 +1808,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return true;
     }
 
-    public static function session_key(?string $key = null) : string
+    public static function session_key(?string $key = null): string
     {
         if ($key === null) {
             return self::$_session_key;
@@ -1819,7 +1819,7 @@ class PHS_Plugin_Accounts extends PHS_Plugin
         return self::$_session_key;
     }
 
-    public static function valid_export_to($export_to) : bool
+    public static function valid_export_to($export_to): bool
     {
         return !empty($export_to)
                 && in_array($export_to, [self::EXPORT_TO_FILE, self::EXPORT_TO_OUTPUT, self::EXPORT_TO_BROWSER], true);

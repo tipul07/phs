@@ -13,6 +13,6 @@ if (!PHS_Session::init()) {
     PHS_Session::trigger_critical_error(
         PHS_Session::st_has_error()
             ? PHS_Session::st_get_simple_error_message()
-            : 'Error initializing session.'
+            : 'Error initializing session.',
     );
 }

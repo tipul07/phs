@@ -16,7 +16,7 @@ class PHS_Action_Settings extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_TFA_SETTINGS, ];
     }
@@ -26,7 +26,7 @@ class PHS_Action_Settings extends PHS_Action
      *
      * @return array If empty array, action is allowed in all scopes...
      */
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB];
     }

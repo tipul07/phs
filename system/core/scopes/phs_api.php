@@ -10,7 +10,7 @@ use phs\system\core\models\PHS_Model_Api_monitor;
 
 class PHS_Scope_Api extends PHS_Scope
 {
-    public function get_scope_type() : int
+    public function get_scope_type(): int
     {
         return self::SCOPE_API;
     }
@@ -33,7 +33,7 @@ class PHS_Scope_Api extends PHS_Scope
                 && !$api_obj->api_user_account_id()) {
                 PHS_Model_Api_monitor::api_incoming_request_error(
                     PHS_Api_base::H_CODE_UNAUTHORIZED,
-                    'Request not authorized.'
+                    'Request not authorized.',
                 );
                 PHS_Api::http_header_response(PHS_Api_base::H_CODE_UNAUTHORIZED);
                 exit;
@@ -74,7 +74,7 @@ class PHS_Scope_Api extends PHS_Scope
 
             PHS_Model_Api_monitor::api_incoming_request_error(
                 $http_code,
-                'Error in API action result: '.self::arr_get_simple_error_message($static_error_arr)
+                'Error in API action result: '.self::arr_get_simple_error_message($static_error_arr),
             );
 
             PHS_Api_base::http_header_response($http_code, self::arr_get_simple_error_message($static_error_arr));

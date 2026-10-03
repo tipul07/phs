@@ -7,17 +7,17 @@ class PHS_Model_Foobar_mongo extends PHS_Model_Mongo
 {
     public const ERR_DB_JOB = 10000;
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.0.0';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['testcol'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'testcol';
     }
@@ -25,7 +25,7 @@ class PHS_Model_Foobar_mongo extends PHS_Model_Mongo
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;

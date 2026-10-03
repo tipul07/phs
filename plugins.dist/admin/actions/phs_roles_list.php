@@ -22,7 +22,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function should_stop_execution() : ?array
+    public function should_stop_execution(): ?array
     {
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -42,7 +42,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function load_paginator_params() : ?array
+    public function load_paginator_params(): ?array
     {
         PHS::page_settings('page_title', $this->_pt('Roles List'));
 
@@ -176,7 +176,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    public function manage_action(array $action) : null | bool | array
+    public function manage_action(array $action): null | bool | array
     {
         $this->reset_error();
 
@@ -481,7 +481,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_role_name(array $params) : string
+    public function display_role_name(array $params): string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
             return '';
@@ -491,7 +491,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
                .(!empty($params['record']['description']) ? '<br/><small>'.$params['record']['description'].'</small>' : '');
     }
 
-    public function display_actions(array $params) : ?string
+    public function display_actions(array $params): ?string
     {
         if (!$this->_paginator->is_cell_rendering_for_html($params)
             || !$this->_admin_plugin->can_admin_manage_roles()) {
@@ -538,7 +538,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
         return ob_get_clean() ?: '';
     }
 
-    public function after_table_callback(array $params) : string
+    public function after_table_callback(array $params): string
     {
         static $js_functionality = false;
 
@@ -661,7 +661,7 @@ class PHS_Action_Roles_list extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    protected function _load_dependencies() : bool
+    protected function _load_dependencies(): bool
     {
         if (!$this->_paginator_model
             && !($this->_paginator_model = PHS_Model_Roles::get_instance())) {

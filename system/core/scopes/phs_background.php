@@ -8,7 +8,7 @@ use phs\libraries\PHS_Notifications;
 
 class PHS_Scope_Background extends PHS_Scope
 {
-    public function get_scope_type() : int
+    public function get_scope_type(): int
     {
         return self::SCOPE_BACKGROUND;
     }

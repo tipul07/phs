@@ -28,7 +28,7 @@ class PHS_Utils extends PHS_Language
      * @param string|int|float $num2
      * @return int
      */
-    public static function numeric_string_compare($num1, $num2) : int
+    public static function numeric_string_compare($num1, $num2): int
     {
         if (!is_string($num1)) {
             $num1 = (string)$num1;
@@ -178,7 +178,7 @@ class PHS_Utils extends PHS_Language
      * @param int $pid Process id
      * @return array|false
      */
-    public static function get_process_details(int $pid) : ?array
+    public static function get_process_details(int $pid): ?array
     {
         if (empty($pid)
          || !@is_dir('/proc')
@@ -233,7 +233,7 @@ class PHS_Utils extends PHS_Language
         return $return_arr;
     }
 
-    public static function pretty_date_html(?string $date, array $params = []) : string
+    public static function pretty_date_html(?string $date, array $params = []): string
     {
         $params['date_format'] ??= null;
 
@@ -259,7 +259,7 @@ class PHS_Utils extends PHS_Language
         return '<span title="'.self::_t($lang_index, self::parse_period($seconds_ago, ['only_big_part' => true])).'">'.$date_str.'</span>';
     }
 
-    public static function parse_period(int $seconds_span, array $params = []) : string
+    public static function parse_period(int $seconds_span, array $params = []): string
     {
         $params['only_big_part'] = !empty($params['only_big_part']);
         $params['big_part_if_zero'] = !empty($params['big_part_if_zero']);
@@ -439,7 +439,7 @@ class PHS_Utils extends PHS_Language
         return $return_arr;
     }
 
-    public static function mkdir_tree(string | array $segments, array $params = []) : bool
+    public static function mkdir_tree(string | array $segments, array $params = []): bool
     {
         self::st_reset_error();
 
@@ -498,7 +498,7 @@ class PHS_Utils extends PHS_Language
         return true;
     }
 
-    public static function get_files_recursive(string $directory, array $params = []) : array
+    public static function get_files_recursive(string $directory, array $params = []): array
     {
         if (str_ends_with($directory, '/')) {
             $directory = substr($directory, 0, -1);
@@ -578,7 +578,7 @@ class PHS_Utils extends PHS_Language
         return $found_files;
     }
 
-    public static function rmdir_tree(string $directory, array $params = []) : bool
+    public static function rmdir_tree(string $directory, array $params = []): bool
     {
         $params['recursive'] = !isset($params['recursive']) || !empty($params['recursive']);
 
@@ -635,7 +635,7 @@ class PHS_Utils extends PHS_Language
         return $return_val;
     }
 
-    public static function mimetype(string $file, array $params = []) : ?string
+    public static function mimetype(string $file, array $params = []): ?string
     {
         $params['virtual_file'] = !empty($params['virtual_file']);
 
@@ -677,7 +677,7 @@ class PHS_Utils extends PHS_Language
         return $file_mime_type;
     }
 
-    public static function guess_mimetype_by_filename(string $file) : ?string
+    public static function guess_mimetype_by_filename(string $file): ?string
     {
         $file_ext = '';
         if (($file_dots_arr = explode('.', $file))
@@ -690,7 +690,7 @@ class PHS_Utils extends PHS_Language
             : null;
     }
 
-    public static function extension_to_mimetype_array() : array
+    public static function extension_to_mimetype_array(): array
     {
         return [
             'js'   => 'text/javascript',
@@ -752,12 +752,12 @@ class PHS_Utils extends PHS_Language
         ];
     }
 
-    public static function guess_mimetype_by_extension(string $extension) : ?string
+    public static function guess_mimetype_by_extension(string $extension): ?string
     {
         return self::extension_to_mimetype_array()[strtolower($extension)] ?? null;
     }
 
-    public static function mimetype_to_extension(string $mimetype) : ?string
+    public static function mimetype_to_extension(string $mimetype): ?string
     {
         $mimetype = strtolower($mimetype);
         foreach (self::extension_to_mimetype_array() as $_ext => $_mime) {
@@ -769,7 +769,7 @@ class PHS_Utils extends PHS_Language
         return null;
     }
 
-    public static function mypathinfo($str) : array
+    public static function mypathinfo($str): array
     {
         $ret = [];
         $ret['dirname'] = '';
@@ -811,7 +811,7 @@ class PHS_Utils extends PHS_Language
      *
      * @return array Array with parts of parsed URL
      */
-    public static function myparse_url(string $str) : array
+    public static function myparse_url(string $str): array
     {
         $ret = [];
         $ret['user'] = '';
@@ -925,7 +925,7 @@ class PHS_Utils extends PHS_Language
         return $ret;
     }
 
-    public static function rebuild_url(array $url_parts) : string
+    public static function rebuild_url(array $url_parts): string
     {
         if (!$url_parts) {
             return '';
@@ -1296,7 +1296,7 @@ class PHS_Utils extends PHS_Language
         return $response;
     }
 
-    public static function obfuscate_authorization_header_from_string(string $headers) : string
+    public static function obfuscate_authorization_header_from_string(string $headers): string
     {
         if (preg_match('/^(Authorization)\s*:\s*?(.*)\s*$/miU', $headers, $matches)) {
             $auth_str = explode(' ', $matches[2] ?? '', 2);
@@ -1305,7 +1305,7 @@ class PHS_Utils extends PHS_Language
                 ($matches[1] ?? 'Authorization').': '
                 .(!empty($auth_str[1]) ? $auth_str[0].' ' : '')
                 .'(Obfuscated_authorization)',
-                $headers
+                $headers,
             );
         }
 
@@ -1620,7 +1620,7 @@ class PHS_Utils extends PHS_Language
      *
      * @return string Converted string
      */
-    public static function csv_column(string $str, string $delimiter = ',', string $enclosure = '"', string $escape = '"') : string
+    public static function csv_column(string $str, string $delimiter = ',', string $enclosure = '"', string $escape = '"'): string
     {
         if (str_contains($str, $enclosure)
             || str_contains($str, $delimiter)) {
@@ -1640,7 +1640,7 @@ class PHS_Utils extends PHS_Language
      *
      * @return string Returns a CSV string line based on provided columns array
      */
-    public static function csv_line(array $line_arr, string $line_delimiter = "\n", string $delimiter = ',', string $enclosure = '"', string $escape = '"') : string
+    public static function csv_line(array $line_arr, string $line_delimiter = "\n", string $delimiter = ',', string $enclosure = '"', string $escape = '"'): string
     {
         if (empty($line_arr)) {
             return '';
@@ -1715,13 +1715,13 @@ class PHS_Utils extends PHS_Language
         return $count;
     }
 
-    public static function arrays_are_same(array $arr1, array $arr2, bool $skip_nulls = false) : bool
+    public static function arrays_are_same(array $arr1, array $arr2, bool $skip_nulls = false): bool
     {
         return !self::array_diff_assoc_recursive($arr1, $arr2, $skip_nulls)
                && !self::array_diff_assoc_recursive($arr2, $arr1, $skip_nulls);
     }
 
-    public static function array_diff_assoc_recursive(array $arr1, array $arr2, bool $skip_nulls = false) : ?array
+    public static function array_diff_assoc_recursive(array $arr1, array $arr2, bool $skip_nulls = false): ?array
     {
         $diff_arr = [];
         foreach ($arr2 as $key => $val) {

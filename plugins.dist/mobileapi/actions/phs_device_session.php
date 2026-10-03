@@ -11,7 +11,7 @@ use phs\plugins\mobileapi\models\PHS_Model_Api_online;
 
 class PHS_Action_Device_session extends PHS_Api_action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_API];
     }
@@ -43,7 +43,7 @@ class PHS_Action_Device_session extends PHS_Api_action
         }
 
         return $this->send_api_success(
-            $mobile_plugin->export_data_account_and_session(null, $session_arr)
+            $mobile_plugin->export_data_account_and_session(null, $session_arr),
         );
     }
 }

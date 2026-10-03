@@ -8,7 +8,7 @@ abstract class PHS_Controller_Admin extends PHS_Controller
     /**
      * @inheritdoc
      */
-    public function should_request_have_logged_in_user() : bool
+    public function should_request_have_logged_in_user(): bool
     {
         return true;
     }

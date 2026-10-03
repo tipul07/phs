@@ -14,7 +14,7 @@ interface PHS_Event_interface
      *
      * @return null|static
      */
-    public static function listen(callable | array | string | Closure $callback, string $event_prefix = '', array $options = []) : ?self;
+    public static function listen(callable | array | string | Closure $callback, string $event_prefix = '', array $options = []): ?self;
 
     /**
      * Listen for event triggers. The listener will be launched in a background job.
@@ -26,7 +26,7 @@ interface PHS_Event_interface
      *
      * @return null|static
      */
-    public static function listen_in_background(callable | array | string $callback, string $event_prefix = '', array $options = []) : ?self;
+    public static function listen_in_background(callable | array | string $callback, string $event_prefix = '', array $options = []): ?self;
 
     /**
      * This is the function which should be used when triggering any event
@@ -37,5 +37,5 @@ interface PHS_Event_interface
      *
      * @return null|static
      */
-    public static function trigger(array $input = [], string $event_prefix = '', array $params = []) : ?self;
+    public static function trigger(array $input = [], string $event_prefix = '', array $params = []): ?self;
 }

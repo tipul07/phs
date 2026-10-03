@@ -11,7 +11,7 @@ use phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains;
 
 class PHS_Action_Log_info_ajax extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_AJAX];
     }

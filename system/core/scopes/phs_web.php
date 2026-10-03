@@ -18,7 +18,7 @@ use phs\plugins\phs_security\libraries\Phs_security_headers;
 
 class PHS_Scope_Web extends PHS_Scope
 {
-    public function get_scope_type() : int
+    public function get_scope_type(): int
     {
         return self::SCOPE_WEB;
     }
@@ -60,7 +60,7 @@ class PHS_Scope_Web extends PHS_Scope
                 PHS_Notifications::add_warning_notice(
                     $this->_pt('Your password expired %s ago. For security reasons, please <a href="%s">change your password</a>.',
                         PHS_Utils::parse_period($expiration_arr['expired_for_seconds']),
-                        PHS::url(['p' => 'accounts', 'a' => 'change_password'], ['password_expired' => 1]))
+                        PHS::url(['p' => 'accounts', 'a' => 'change_password'], ['password_expired' => 1])),
                 );
             }
 
@@ -74,7 +74,7 @@ class PHS_Scope_Web extends PHS_Scope
         if (!empty($action_result['request_login'])) {
             $action_result['redirect_to_url'] = PHS::url(
                 ['p' => 'accounts', 'a' => 'login'],
-                ['back_page' => !empty($action_result['redirect_to_url']) ? $action_result['redirect_to_url'] : PHS::current_url()]
+                ['back_page' => !empty($action_result['redirect_to_url']) ? $action_result['redirect_to_url'] : PHS::current_url()],
             );
         }
 
@@ -142,9 +142,9 @@ class PHS_Scope_Web extends PHS_Scope
         if (self::arr_has_error($static_error_arr)) {
             PHS_Api_base::http_header_response(
                 PHS_Api_base::framework_error_code_to_http_code(
-                    self::arr_get_error_code($static_error_arr, self::ERR_FUNCTIONALITY)
+                    self::arr_get_error_code($static_error_arr, self::ERR_FUNCTIONALITY),
                 ),
-                self::arr_get_simple_error_message($static_error_arr)
+                self::arr_get_simple_error_message($static_error_arr),
             );
 
             echo self::arr_get_simple_error_message($static_error_arr);
@@ -194,7 +194,7 @@ class PHS_Scope_Web extends PHS_Scope
         return true;
     }
 
-    private function _password_expired_for_current_account() : ?array
+    private function _password_expired_for_current_account(): ?array
     {
         if (!($expiration_arr = PHS::current_user_password_expiration())
             || empty($expiration_arr['is_expired'])
@@ -207,7 +207,7 @@ class PHS_Scope_Web extends PHS_Scope
         return $expiration_arr;
     }
 
-    private function _update_tfa_device_cookie_if_required() : void
+    private function _update_tfa_device_cookie_if_required(): void
     {
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
             || $accounts_plugin->tfa_policy_is_off()
@@ -224,7 +224,7 @@ class PHS_Scope_Web extends PHS_Scope
         $tfa_model->mark_device_as_tfa_valid();
     }
 
-    private function _should_redirect_to_tfa_flow() : bool
+    private function _should_redirect_to_tfa_flow(): bool
     {
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
             || !($accounts_model = PHS_Model_Accounts::get_instance())
@@ -261,7 +261,7 @@ class PHS_Scope_Web extends PHS_Scope
                 && $tfa_model->is_setup_completed($tfa_arr['tfa_data']));
     }
 
-    private function _should_setup_tfa_for_account() : bool
+    private function _should_setup_tfa_for_account(): bool
     {
         return ($tfa_model = PHS_Model_Accounts_tfa::get_instance())
                && PHS::user_logged_in()

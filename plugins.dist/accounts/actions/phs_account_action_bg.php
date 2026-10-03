@@ -11,7 +11,7 @@ class PHS_Action_Account_action_bg extends PHS_Action
 {
     public const ERR_UNKNOWN_ACCOUNT = 1, ERR_TRIGGER = 2;
 
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_BACKGROUND];
     }
@@ -35,7 +35,7 @@ class PHS_Action_Account_action_bg extends PHS_Action
         if (!PHS_Hooks::trigger_account_action($hook_args)) {
             $this->copy_or_set_static_error(
                 self::ERR_TRIGGER,
-                $this->_pt('Error triggering account action in background for account #%s (%s).', $account_arr['id'], $account_arr['nick'])
+                $this->_pt('Error triggering account action in background for account #%s (%s).', $account_arr['id'], $account_arr['nick']),
             );
 
             return null;

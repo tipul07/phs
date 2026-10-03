@@ -23,12 +23,12 @@ class Mailchimp extends PHS_Library
         $this->reset_api_params();
     }
 
-    public function get_member_hash($email) : string
+    public function get_member_hash($email): string
     {
         return md5(strtolower($email));
     }
 
-    public function get_default_api_settings() : array
+    public function get_default_api_settings(): array
     {
         return [
             'base_url'  => 'api.mailchimp.com/3.0/',
@@ -37,7 +37,7 @@ class Mailchimp extends PHS_Library
         ];
     }
 
-    public function get_default_api_params() : array
+    public function get_default_api_params(): array
     {
         return [
             'rest_url' => '',
@@ -47,12 +47,12 @@ class Mailchimp extends PHS_Library
         ];
     }
 
-    public function reset_api_settings() : void
+    public function reset_api_settings(): void
     {
         $this->_api_settings = $this->get_default_api_settings();
     }
 
-    public function reset_api_params() : void
+    public function reset_api_params(): void
     {
         $this->_api_params = $this->get_default_api_params();
     }
@@ -100,7 +100,7 @@ class Mailchimp extends PHS_Library
         return $this->_api_params;
     }
 
-    public function can_connect() : bool
+    public function can_connect(): bool
     {
         return !empty($this->_api_settings['dc_server']) && !empty($this->_api_settings['api_key']);
     }

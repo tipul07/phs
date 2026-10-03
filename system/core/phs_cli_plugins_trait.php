@@ -16,7 +16,7 @@ trait PHS_Cli_plugins_trait
     /** @var null|PHS_Model_Plugins */
     protected ?PHS_Model_Plugins $_plugins_model = null;
 
-    public function get_plugins_as_dirs() : ?array
+    public function get_plugins_as_dirs(): ?array
     {
         if (!($plugins_model = $this->_get_plugins_model())) {
             return null;
@@ -35,7 +35,7 @@ trait PHS_Cli_plugins_trait
         return $plugins_arr;
     }
 
-    protected function _gather_plugin_info(string $plugin_name) : array
+    protected function _gather_plugin_info(string $plugin_name): array
     {
         $plugin_info = self::_get_default_plugin_info_definition();
 
@@ -122,7 +122,7 @@ trait PHS_Cli_plugins_trait
      *
      * @return bool
      */
-    protected function _echo_plugin_details(string $plugin_name, ?array $plugin_info = null) : bool
+    protected function _echo_plugin_details(string $plugin_name, ?array $plugin_info = null): bool
     {
         if (empty($plugin_info)
             && !($plugin_info = $this->_gather_plugin_info($plugin_name))) {
@@ -145,7 +145,7 @@ trait PHS_Cli_plugins_trait
                       .self::_t('Core plugin').': '.(!empty($plugin_info['is_core']) ? $yes_str : $no_str).', '
                       .self::_t('Distribution plugin').': '.(!empty($plugin_info['is_distribution']) ? $yes_str : $no_str).', '
                       .self::_t('Is installed').': '.(!empty($plugin_info['is_installed']) ? $yes_str : $no_str).', '
-                      .self::_t('Is active').': '.(!empty($plugin_info['is_active']) ? $yes_str : $no_str).'.'
+                      .self::_t('Is active').': '.(!empty($plugin_info['is_active']) ? $yes_str : $no_str).'.',
         );
 
         $this->_echo(self::_t('Models').':');
@@ -155,7 +155,7 @@ trait PHS_Cli_plugins_trait
             foreach ($plugin_info['models'] as $model_arr) {
                 $this->_echo('  - '.$this->cli_color($model_arr['name'], 'green').' ('.$model_arr['driver'].', v'.$model_arr['version'].'), '
                               .self::_t('Main table').': '.$model_arr['main_table'].', '
-                              .self::_t('Tables').': '.@implode(', ', $model_arr['tables'])
+                              .self::_t('Tables').': '.@implode(', ', $model_arr['tables']),
                 );
             }
         }
@@ -173,7 +173,7 @@ trait PHS_Cli_plugins_trait
 
                 $this->_echo('  - '.$this->cli_color($job_arr['title'], 'green').', '
                               .self::_t('Route').': '.$route_str.', '
-                              .self::_t('Runs once %ss', $job_arr['timed_seconds'])
+                              .self::_t('Runs once %ss', $job_arr['timed_seconds']),
                 );
             }
         }
@@ -181,7 +181,7 @@ trait PHS_Cli_plugins_trait
         return true;
     }
 
-    protected function _get_plugins_model() : ?PHS_Model_Plugins
+    protected function _get_plugins_model(): ?PHS_Model_Plugins
     {
         if (!$this->_load_plugins_model()) {
             return null;
@@ -190,7 +190,7 @@ trait PHS_Cli_plugins_trait
         return $this->_plugins_model;
     }
 
-    private function _load_plugins_model() : bool
+    private function _load_plugins_model(): bool
     {
         $this->reset_error();
 
@@ -204,7 +204,7 @@ trait PHS_Cli_plugins_trait
         return true;
     }
 
-    protected static function _get_default_model_info_definition() : array
+    protected static function _get_default_model_info_definition(): array
     {
         return [
             'name'       => '',
@@ -215,7 +215,7 @@ trait PHS_Cli_plugins_trait
         ];
     }
 
-    protected static function _get_default_plugin_info_definition() : array
+    protected static function _get_default_plugin_info_definition(): array
     {
         return [
             'is_core'         => false,

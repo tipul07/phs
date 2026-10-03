@@ -21,7 +21,7 @@ class PHS_Action_Edit extends PHS_Action
      *
      * @return array If empty array, action is allowed in all scopes...
      */
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
@@ -29,7 +29,7 @@ class PHS_Action_Edit extends PHS_Action
     /**
      * @return array|bool
      */
-    public function execute() : ?array
+    public function execute(): ?array
     {
         PHS::page_settings('page_title', $this->_pt('Edit Data Retention Policy'));
 
@@ -202,7 +202,7 @@ class PHS_Action_Edit extends PHS_Action
         return $this->quick_render_template('retention/edit', $data);
     }
 
-    private function _get_models_for_plugin(?PHS_Plugin $plugin_obj) : array
+    private function _get_models_for_plugin(?PHS_Plugin $plugin_obj): array
     {
         return $plugin_obj ? $plugin_obj->get_models() : PHS::get_core_models();
     }

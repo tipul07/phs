@@ -9,6 +9,6 @@ if (($cookie_notice_plugin = PHS_Plugin_Cookie_notice::get_instance())) {
         PHS_Hooks::H_COOKIE_NOTICE_DISPLAY,
         [$cookie_notice_plugin, 'get_cookie_notice_hook_args'],
         PHS_Hooks::default_buffer_hook_args(),
-        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 10, ]
+        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 10, ],
     );
 }

@@ -23,7 +23,7 @@ class PHS_Event_Template extends PHS_Event_Template_details
      *
      * @return null|array{"action_result": ?array, "page_template": string, "page_template_args": ?array}
      */
-    public static function template(string $template, string $default_template, ?array $template_args = null, ?array $action_result = null) : ?array
+    public static function template(string $template, string $default_template, ?array $template_args = null, ?array $action_result = null): ?array
     {
         $event_params = [];
         if (!empty(self::OLD_HOOKS[$template])) {

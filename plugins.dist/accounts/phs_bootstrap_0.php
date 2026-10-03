@@ -34,7 +34,7 @@ if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
             'method'                  => 'post',
             'name'                    => 'Login using bearer authentication',
             'description'             => 'Login using API calls with bearer authentication in headers',
-        ]
+        ],
     );
 
     // POST /users/logout/token Logout an account using bearer token
@@ -55,7 +55,7 @@ if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
             'method'                  => 'get',
             'name'                    => 'Logout using bearer authentication',
             'description'             => 'Logout using API calls with bearer authentication in headers',
-        ]
+        ],
     );
 
     // GET /users/session Get account details
@@ -75,21 +75,21 @@ if (($accounts_plugin = PHS_Plugin_Accounts::get_instance())) {
             'method'                  => 'get',
             'name'                    => 'Session details using bearer authentication',
             'description'             => 'Get logged in user session details using API calls with bearer authentication in headers',
-        ]
+        ],
     );
 
     PHS::register_hook(
         PHS_Hooks::H_USER_DB_DETAILS,
         [$accounts_plugin, 'get_current_user_db_details'],
         PHS_Hooks::default_user_db_details_hook_args(),
-        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 0, ]
+        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 0, ],
     );
 
     PHS::register_hook(
         PHS_Hooks::H_USER_ACCOUNT_STRUCTURE,
         [$accounts_plugin, 'get_account_structure'],
         PHS_Hooks::default_account_structure_hook_args(),
-        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 0, ]
+        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 0, ],
     );
 
     // Check if new plugin settings say that we should turn password encryption/decryption off

@@ -24,7 +24,7 @@ class PHS_Action_Apple_login extends PHS_Api_action
     /**
      * @inheritdoc
      */
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_LOGIN];
     }
@@ -34,7 +34,7 @@ class PHS_Action_Apple_login extends PHS_Api_action
      *
      * @return array If empty array, action is allowed in all scopes...
      */
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_API];
     }
@@ -142,7 +142,7 @@ class PHS_Action_Apple_login extends PHS_Api_action
         $session_arr = $new_session_arr;
 
         return $this->send_api_success(
-            $mobile_plugin->export_data_account_and_session($account_arr, $session_arr)
+            $mobile_plugin->export_data_account_and_session($account_arr, $session_arr),
         );
     }
 }

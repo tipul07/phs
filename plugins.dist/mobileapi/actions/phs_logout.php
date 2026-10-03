@@ -11,12 +11,12 @@ use phs\plugins\mobileapi\models\PHS_Model_Api_online;
 
 class PHS_Action_Logout extends PHS_Api_action
 {
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_LOGOUT];
     }
 
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_API];
     }
@@ -43,7 +43,7 @@ class PHS_Action_Logout extends PHS_Api_action
         }
 
         return $this->send_api_success(
-            $mobile_plugin->export_data_account_and_session($session_data['account_arr'], $session_data['session_arr'])
+            $mobile_plugin->export_data_account_and_session($session_data['account_arr'], $session_data['session_arr']),
         );
     }
 }

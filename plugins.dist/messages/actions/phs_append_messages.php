@@ -13,7 +13,7 @@ use phs\plugins\messages\models\PHS_Model_Messages;
 
 class PHS_Action_Append_messages extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_AJAX];
     }

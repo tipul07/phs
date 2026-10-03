@@ -60,60 +60,60 @@ class PHS_Model_Plugins extends PHS_Model
     // Cached directory rows
     private static array $dir_plugins = [];
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.3.0';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['plugins', 'plugins_registry', 'plugins_tenants'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'plugins';
     }
 
-    public function active_status(int $status) : bool
+    public function active_status(int $status): bool
     {
         return $status === self::STATUS_ACTIVE;
     }
 
-    public function inactive_status(int $status) : bool
+    public function inactive_status(int $status): bool
     {
         return in_array($status, [self::STATUS_INSTALLED, self::STATUS_INACTIVE], true);
     }
 
-    public function is_active(int | array | PHS_Record_data $plugin_data) : bool
+    public function is_active(int | array | PHS_Record_data $plugin_data): bool
     {
         return $plugin_data
                && ($plugin_arr = $this->data_to_array($plugin_data))
                && (int)$plugin_arr['status'] === self::STATUS_ACTIVE;
     }
 
-    public function is_inactive(int | array | PHS_Record_data $plugin_data) : bool
+    public function is_inactive(int | array | PHS_Record_data $plugin_data): bool
     {
         return $plugin_data
                && ($plugin_arr = $this->data_to_array($plugin_data))
                && $this->inactive_status($plugin_arr['status']);
     }
 
-    public function is_status_inactive(int | array | PHS_Record_data $plugin_data) : bool
+    public function is_status_inactive(int | array | PHS_Record_data $plugin_data): bool
     {
         return $plugin_data
                && ($plugin_arr = $this->data_to_array($plugin_data))
                && (int)$plugin_arr['status'] === self::STATUS_INACTIVE;
     }
 
-    public function is_installed(int | array | PHS_Record_data $plugin_data) : bool
+    public function is_installed(int | array | PHS_Record_data $plugin_data): bool
     {
         return $plugin_data
                && ($plugin_arr = $this->data_to_array($plugin_data))
                && (int)$plugin_arr['status'] === self::STATUS_INSTALLED;
     }
 
-    public function is_active_on_tenant(string $instance_id, int $tenant_id) : bool
+    public function is_active_on_tenant(string $instance_id, int $tenant_id): bool
     {
         return $instance_id
                && ($record_arr = $this->get_details_fields(
@@ -123,7 +123,7 @@ class PHS_Model_Plugins extends PHS_Model
                && (int)$record_arr['status'] === self::STATUS_ACTIVE;
     }
 
-    public function is_inactive_on_tenant(string $instance_id, int $tenant_id) : bool
+    public function is_inactive_on_tenant(string $instance_id, int $tenant_id): bool
     {
         return $instance_id
                && ($record_arr = $this->get_details_fields(
@@ -133,7 +133,7 @@ class PHS_Model_Plugins extends PHS_Model
                && $this->inactive_status($record_arr['status']);
     }
 
-    public function is_status_inactive_on_tenant(string $instance_id, int $tenant_id) : bool
+    public function is_status_inactive_on_tenant(string $instance_id, int $tenant_id): bool
     {
         return $instance_id
                && ($record_arr = $this->get_details_fields(
@@ -143,7 +143,7 @@ class PHS_Model_Plugins extends PHS_Model
                && (int)$record_arr['status'] === self::STATUS_INACTIVE;
     }
 
-    public function get_status_of_tenant(string $instance_id, int $tenant_id) : int
+    public function get_status_of_tenant(string $instance_id, int $tenant_id): int
     {
         if ($instance_id
             && ($record_arr = $this->get_details_fields(
@@ -156,7 +156,7 @@ class PHS_Model_Plugins extends PHS_Model
         return 0;
     }
 
-    public function save_plugins_db_settings(?string $instance_id, array $settings_arr, int $tenant_id = 0, array $update_params = []) : ?array
+    public function save_plugins_db_settings(?string $instance_id, array $settings_arr, int $tenant_id = 0, array $update_params = []): ?array
     {
         if ($tenant_id === 0) {
             return $this->_save_plugins_db_main_settings($instance_id, $settings_arr, $update_params);
@@ -169,7 +169,7 @@ class PHS_Model_Plugins extends PHS_Model
         string $instance_id,
         int $tenant_id = 0,
         bool $force = false,
-    ) : array {
+    ): array {
         $this->reset_error();
 
         $main_settings = $this->_get_plugins_db_main_settings($instance_id, $force) ?: [];
@@ -183,7 +183,7 @@ class PHS_Model_Plugins extends PHS_Model
         return self::merge_array_assoc_existing($main_settings, $tenant_settings);
     }
 
-    public function save_plugins_db_registry(array $registry_arr, string $instance_id, int $tenant_id = 0) : ?array
+    public function save_plugins_db_registry(array $registry_arr, string $instance_id, int $tenant_id = 0): ?array
     {
         $this->reset_error();
 
@@ -218,7 +218,7 @@ class PHS_Model_Plugins extends PHS_Model
         return self::$plugin_registry[$tenant_id][$instance_id];
     }
 
-    public function get_plugins_db_registry(string $instance_id, int $tenant_id, bool $force = false) : ?array
+    public function get_plugins_db_registry(string $instance_id, int $tenant_id, bool $force = false): ?array
     {
         $this->reset_error();
 
@@ -249,7 +249,7 @@ class PHS_Model_Plugins extends PHS_Model
         return self::$plugin_registry[$tenant_id][$instance_id];
     }
 
-    public function get_all_plugin_names_from_dir() : ?array
+    public function get_all_plugin_names_from_dir(): ?array
     {
         $this->reset_error();
 
@@ -274,7 +274,7 @@ class PHS_Model_Plugins extends PHS_Model
         return $return_arr;
     }
 
-    public function get_all_records_for_paginator() : array
+    public function get_all_records_for_paginator(): array
     {
         $records_arr = [];
 
@@ -295,7 +295,7 @@ class PHS_Model_Plugins extends PHS_Model
         return $records_arr;
     }
 
-    public function get_record_details_from_name_for_paginator(string $plugin_name) : ?array
+    public function get_record_details_from_name_for_paginator(string $plugin_name): ?array
     {
         if (!($plugin_instance = PHS::load_plugin($plugin_name))) {
             return null;
@@ -304,7 +304,7 @@ class PHS_Model_Plugins extends PHS_Model
         return $this->get_record_details_from_instance_for_paginator($plugin_instance);
     }
 
-    public function get_record_details_from_instance_for_paginator(PHS_Plugin $plugin_instance) : ?array
+    public function get_record_details_from_instance_for_paginator(PHS_Plugin $plugin_instance): ?array
     {
         if (!($plugin_info_arr = $plugin_instance->get_plugin_info())) {
             return null;
@@ -340,7 +340,7 @@ class PHS_Model_Plugins extends PHS_Model
      *
      * @return null|array<string, PHS_Plugin> False on error or array with plugin name as key and plugin instance as value
      */
-    public function cache_all_dir_details(bool $force = false) : ?array
+    public function cache_all_dir_details(bool $force = false): ?array
     {
         $this->reset_error();
 
@@ -374,21 +374,21 @@ class PHS_Model_Plugins extends PHS_Model
         return self::$dir_plugins;
     }
 
-    public function plugin_name_is_instantiable(string $plugin_name) : ?PHS_Plugin
+    public function plugin_name_is_instantiable(string $plugin_name): ?PHS_Plugin
     {
         $this->cache_all_dir_details();
 
         return self::$dir_plugins[$plugin_name] ?? null;
     }
 
-    public function get_all_db_details(bool $force = false) : array
+    public function get_all_db_details(bool $force = false): array
     {
         $this->_cache_all_db_details($force);
 
         return empty(self::$db_plugins) ? [] : self::$db_plugins;
     }
 
-    public function get_all_active_plugin_records(bool $force = false) : array
+    public function get_all_active_plugin_records(bool $force = false): array
     {
         $this->reset_error();
 
@@ -409,14 +409,14 @@ class PHS_Model_Plugins extends PHS_Model
         return $return_arr;
     }
 
-    public function get_all_active_plugins(bool $force = false) : array
+    public function get_all_active_plugins(bool $force = false): array
     {
         $this->_cache_all_db_details($force);
 
         return self::$db_plugin_active_plugins;
     }
 
-    public function get_all_plugins(bool $force = false) : array
+    public function get_all_plugins(bool $force = false): array
     {
         $this->_cache_all_db_details($force);
 
@@ -430,7 +430,7 @@ class PHS_Model_Plugins extends PHS_Model
      *
      * @return string Plugin name or empty string if not found
      */
-    public function get_plugin_name_by_slug(string $slug) : string
+    public function get_plugin_name_by_slug(string $slug): string
     {
         if (($all_plugins = $this->get_all_plugins())
          && !empty($all_plugins[$slug])
@@ -442,7 +442,7 @@ class PHS_Model_Plugins extends PHS_Model
         return '';
     }
 
-    public function cache_all_db_registry_details(bool $force = false) : bool
+    public function cache_all_db_registry_details(bool $force = false): bool
     {
         $this->reset_error();
 
@@ -474,7 +474,7 @@ class PHS_Model_Plugins extends PHS_Model
         return true;
     }
 
-    public function get_plugins_db_main_details(?string $instance_id = null, bool $force = false) : ?array
+    public function get_plugins_db_main_details(?string $instance_id = null, bool $force = false): ?array
     {
         $this->reset_error();
 
@@ -518,7 +518,7 @@ class PHS_Model_Plugins extends PHS_Model
         return $db_details;
     }
 
-    public function get_plugins_db_tenant_details(?string $instance_id = null, int $tenant_id = 0, bool $force = false) : ?array
+    public function get_plugins_db_tenant_details(?string $instance_id = null, int $tenant_id = 0, bool $force = false): ?array
     {
         $this->reset_error();
 
@@ -543,27 +543,27 @@ class PHS_Model_Plugins extends PHS_Model
         return null;
     }
 
-    public function act_activate(string $instance_id) : ?array
+    public function act_activate(string $instance_id): ?array
     {
         return $this->_update_db_details($instance_id, ['status' => self::STATUS_ACTIVE]);
     }
 
-    public function act_inactivate(string $instance_id) : ?array
+    public function act_inactivate(string $instance_id): ?array
     {
         return $this->_update_db_details($instance_id, ['status' => self::STATUS_INACTIVE]);
     }
 
-    public function act_activate_on_tenant(string $instance_id, int $tenant_id) : ?array
+    public function act_activate_on_tenant(string $instance_id, int $tenant_id): ?array
     {
         return $this->_update_db_tenant_details($instance_id, ['status' => self::STATUS_ACTIVE], $tenant_id);
     }
 
-    public function act_inactivate_on_tenant(string $instance_id, int $tenant_id) : ?array
+    public function act_inactivate_on_tenant(string $instance_id, int $tenant_id): ?array
     {
         return $this->_update_db_tenant_details($instance_id, ['status' => self::STATUS_INACTIVE], $tenant_id);
     }
 
-    public function install_record($instance_id, $plugin, $plugin_name, $type, $is_core, $def_settings, $version) : ?array
+    public function install_record($instance_id, $plugin, $plugin_name, $type, $is_core, $def_settings, $version): ?array
     {
         $plugin_details = [];
         $plugin_details['plugin'] = $plugin;
@@ -577,7 +577,7 @@ class PHS_Model_Plugins extends PHS_Model
         return $this->_update_db_details($instance_id, $plugin_details);
     }
 
-    public function update_record(string $instance_id, string $plugin_name, bool $is_core, string $version) : ?array
+    public function update_record(string $instance_id, string $plugin_name, bool $is_core, string $version): ?array
     {
         $plugin_details = [];
         $plugin_details['plugin_name'] = $plugin_name;
@@ -587,7 +587,7 @@ class PHS_Model_Plugins extends PHS_Model
         return $this->_update_db_details($instance_id, $plugin_details);
     }
 
-    public function delete_db_registry(string $instance_id, int $tenant_id) : bool
+    public function delete_db_registry(string $instance_id, int $tenant_id): bool
     {
         $this->reset_error();
 
@@ -627,7 +627,7 @@ class PHS_Model_Plugins extends PHS_Model
         return true;
     }
 
-    public function delete_all_db_registry(string $instance_id) : bool
+    public function delete_all_db_registry(string $instance_id): bool
     {
         $this->reset_error();
 
@@ -658,7 +658,7 @@ class PHS_Model_Plugins extends PHS_Model
         return true;
     }
 
-    public function get_db_registry(string $instance_id, int $tenant_id = 0, bool $force = false) : ?array
+    public function get_db_registry(string $instance_id, int $tenant_id = 0, bool $force = false): ?array
     {
         $this->reset_error();
 
@@ -695,7 +695,7 @@ class PHS_Model_Plugins extends PHS_Model
         return $db_details;
     }
 
-    final public function check_install_plugins_db() : bool
+    final public function check_install_plugins_db(): bool
     {
         static $check_result = null;
 
@@ -727,7 +727,7 @@ class PHS_Model_Plugins extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         // $params should be flow parameters...
         if (empty($params['table_name'])) {
@@ -891,12 +891,12 @@ class PHS_Model_Plugins extends PHS_Model
         return $return_arr;
     }
 
-    public function get_tenants_ids_for_plugin_name(string $plugin_name) : array
+    public function get_tenants_ids_for_plugin_name(string $plugin_name): array
     {
         return $this->get_tenants_ids_by_plugin_name()[$plugin_name] ?? [];
     }
 
-    public function get_tenants_ids_by_plugin_name() : ?array
+    public function get_tenants_ids_by_plugin_name(): ?array
     {
         static $tenant_ids_by_plugin_name = null;
 
@@ -934,7 +934,7 @@ class PHS_Model_Plugins extends PHS_Model
         string $instance_id,
         int $tenant_id,
         bool $force = false,
-    ) : ?array {
+    ): ?array {
         $this->reset_error();
 
         if (!PHS::is_multi_tenant()) {
@@ -964,7 +964,7 @@ class PHS_Model_Plugins extends PHS_Model
         return self::$plugin_tenant_settings[$tenant_id][$instance_id];
     }
 
-    protected function _do_construct(array $instance_details = []) : void
+    protected function _do_construct(array $instance_details = []): void
     {
         parent::_do_construct($instance_details);
 
@@ -974,7 +974,7 @@ class PHS_Model_Plugins extends PHS_Model
         $this->_reset_plugin_registry_cache();
     }
 
-    protected function _update_db_details(string $instance_id, array $fields_arr, int $tenant_id = 0) : ?array
+    protected function _update_db_details(string $instance_id, array $fields_arr, int $tenant_id = 0): ?array
     {
         if ($tenant_id === 0) {
             return $this->_update_db_main_details($instance_id, $fields_arr);
@@ -1158,7 +1158,7 @@ class PHS_Model_Plugins extends PHS_Model
         return $params;
     }
 
-    private function _populate_plugins_db_registry_from_event(string $instance_id, int $tenant_id, array $registry_arr) : array
+    private function _populate_plugins_db_registry_from_event(string $instance_id, int $tenant_id, array $registry_arr): array
     {
         if (($event_obj = PHS_Event_Plugin_registry::trigger([
             'instance_id'  => $instance_id,
@@ -1256,7 +1256,7 @@ class PHS_Model_Plugins extends PHS_Model
         ];
     }
 
-    private function _save_plugins_db_main_settings(?string $instance_id, array $settings_arr, array $update_params = []) : ?array
+    private function _save_plugins_db_main_settings(?string $instance_id, array $settings_arr, array $update_params = []): ?array
     {
         $this->reset_error();
 
@@ -1297,7 +1297,7 @@ class PHS_Model_Plugins extends PHS_Model
         return $this->_get_plugins_db_main_settings($instance_id, true) ?: [];
     }
 
-    private function _save_plugins_db_tenant_settings(?string $instance_id, array $settings_arr, int $tenant_id) : ?array
+    private function _save_plugins_db_tenant_settings(?string $instance_id, array $settings_arr, int $tenant_id): ?array
     {
         $this->reset_error();
 
@@ -1339,7 +1339,7 @@ class PHS_Model_Plugins extends PHS_Model
     private function _get_plugins_db_main_settings(
         string $instance_id,
         bool $force = false,
-    ) : ?array {
+    ): ?array {
         $this->reset_error();
 
         if (!empty($force)
@@ -1362,7 +1362,7 @@ class PHS_Model_Plugins extends PHS_Model
         return self::$plugin_settings[$instance_id];
     }
 
-    private function _get_core_record_for_paginator() : array
+    private function _get_core_record_for_paginator(): array
     {
         $core_details = PHS_Plugin::core_plugin_details_fields();
 
@@ -1389,7 +1389,7 @@ class PHS_Model_Plugins extends PHS_Model
         return $record_arr;
     }
 
-    private function _update_db_main_details(string $instance_id, array $fields_arr) : ?array
+    private function _update_db_main_details(string $instance_id, array $fields_arr): ?array
     {
         $this->reset_error();
 
@@ -1475,7 +1475,7 @@ class PHS_Model_Plugins extends PHS_Model
         ];
     }
 
-    private function _update_db_tenant_details(string $instance_id, array $fields_arr, int $tenant_id) : ?array
+    private function _update_db_tenant_details(string $instance_id, array $fields_arr, int $tenant_id): ?array
     {
         $this->reset_error();
 
@@ -1575,7 +1575,7 @@ class PHS_Model_Plugins extends PHS_Model
         ];
     }
 
-    private function _cache_all_db_details(bool $force = false) : bool
+    private function _cache_all_db_details(bool $force = false): bool
     {
         if (!$this->_cache_default_db_main_details($force)
                 || (PHS::is_multi_tenant() && !$this->_cache_tenants_db_details($force))) {
@@ -1587,7 +1587,7 @@ class PHS_Model_Plugins extends PHS_Model
         return true;
     }
 
-    private function _cache_tenants_db_details(bool $force = false) : bool
+    private function _cache_tenants_db_details(bool $force = false): bool
     {
         $this->reset_error();
 
@@ -1630,7 +1630,7 @@ class PHS_Model_Plugins extends PHS_Model
         return true;
     }
 
-    private function _cache_default_db_details(bool $force = false) : bool
+    private function _cache_default_db_details(bool $force = false): bool
     {
         $this->reset_error();
 
@@ -1679,7 +1679,7 @@ class PHS_Model_Plugins extends PHS_Model
         return true;
     }
 
-    private function _cache_default_db_main_details(bool $force = false) : bool
+    private function _cache_default_db_main_details(bool $force = false): bool
     {
         $this->reset_error();
 
@@ -1733,7 +1733,7 @@ class PHS_Model_Plugins extends PHS_Model
      *
      * @return null|string
      */
-    private function _encode_settings_field($settings) : ?string
+    private function _encode_settings_field($settings): ?string
     {
         if (is_array($settings)) {
             $settings = PHS_Line_params::to_string($settings);
@@ -1746,7 +1746,7 @@ class PHS_Model_Plugins extends PHS_Model
         return $settings;
     }
 
-    private function _decode_settings_field(string | array $settings) : array
+    private function _decode_settings_field(string | array $settings): array
     {
         if (is_array($settings)) {
             return $settings;
@@ -1766,7 +1766,7 @@ class PHS_Model_Plugins extends PHS_Model
      *
      * @return null|string
      */
-    private function _encode_registry_field($registry) : ?string
+    private function _encode_registry_field($registry): ?string
     {
         if (is_array($registry)) {
             $registry = PHS_Line_params::to_string($registry);
@@ -1784,7 +1784,7 @@ class PHS_Model_Plugins extends PHS_Model
      *
      * @return array
      */
-    private function _decode_registry_field($registry) : array
+    private function _decode_registry_field($registry): array
     {
         if (is_array($registry)) {
             return $registry;
@@ -1799,43 +1799,43 @@ class PHS_Model_Plugins extends PHS_Model
         return $registry;
     }
 
-    private function _reset_plugin_settings_cache() : void
+    private function _reset_plugin_settings_cache(): void
     {
         self::$plugin_settings = [];
     }
 
-    private function _reset_db_plugin_cache() : void
+    private function _reset_db_plugin_cache(): void
     {
         self::$db_plugins = [];
         self::$db_plugin_plugins = [];
         self::$db_plugin_active_plugins = [];
     }
 
-    private function _reset_tenants_db_plugin_cache() : void
+    private function _reset_tenants_db_plugin_cache(): void
     {
         self::$db_tenant_plugins = null;
         self::$db_plugin_tenant_plugins = [];
         self::$db_plugin_active_tenant_plugins = [];
     }
 
-    private function _reset_all_plugin_cache() : void
+    private function _reset_all_plugin_cache(): void
     {
         $this->_reset_db_plugin_cache();
         $this->_reset_tenants_db_plugin_cache();
     }
 
-    private function _reset_all_plugin_registry_cache() : void
+    private function _reset_all_plugin_registry_cache(): void
     {
         $this->_reset_plugin_registry_cache();
         $this->_reset_db_registry_cache();
     }
 
-    private function _reset_plugin_registry_cache() : void
+    private function _reset_plugin_registry_cache(): void
     {
         self::$plugin_registry = [];
     }
 
-    private function _reset_db_registry_cache() : void
+    private function _reset_db_registry_cache(): void
     {
         self::$db_registry = [];
     }

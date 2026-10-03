@@ -33,7 +33,7 @@ foreach ($languages_arr as $lang_key => $lang_details) {
         PHS_Language::trigger_critical_error(
             PHS_Language::st_has_error()
                 ? PHS_Language::st_get_simple_error_message()
-                : 'Error defining required languages.'
+                : 'Error defining required languages.',
         );
     }
 }

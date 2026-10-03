@@ -30,7 +30,7 @@ class PHS_Action_Add extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
@@ -164,7 +164,7 @@ class PHS_Action_Add extends PHS_Action
 
             PHS_Notifications::add_error_notice(
                 $this->_apikeys_model->get_simple_error_message(
-                    $this->_pt('Error saving details to database. Please try again.'))
+                    $this->_pt('Error saving details to database. Please try again.')),
             );
         }
 

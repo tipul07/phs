@@ -15,7 +15,7 @@ abstract class PHS_Library extends PHS_Has_dependencies
         $this->_check_dependencies_properties(static::instances_as_singletons());
     }
 
-    public function set_library_location_paths(array $paths) : array
+    public function set_library_location_paths(array $paths): array
     {
         $this->_location_paths = self::validate_array($paths, self::get_library_default_location_paths());
 
@@ -32,12 +32,12 @@ abstract class PHS_Library extends PHS_Has_dependencies
         return $this->_location_paths;
     }
 
-    public function get_library_location_paths() : array
+    public function get_library_location_paths(): array
     {
         return $this->_location_paths;
     }
 
-    final public function parent_plugin(?PHS_Plugin $plugin_obj = null) : ?PHS_Plugin
+    final public function parent_plugin(?PHS_Plugin $plugin_obj = null): ?PHS_Plugin
     {
         if ($plugin_obj === null) {
             return $this->_parent_plugin;
@@ -57,12 +57,12 @@ abstract class PHS_Library extends PHS_Has_dependencies
      *
      * @return null|PHS_Plugin
      */
-    final public function get_plugin_instance() : ?PHS_Plugin
+    final public function get_plugin_instance(): ?PHS_Plugin
     {
         return $this->_parent_plugin;
     }
 
-    public function get_plugin_settings() : array
+    public function get_plugin_settings(): array
     {
         if (!($plugin_obj = $this->get_plugin_instance())) {
             return [];
@@ -71,7 +71,7 @@ abstract class PHS_Library extends PHS_Has_dependencies
         return $plugin_obj->get_db_settings() ?: $plugin_obj->get_default_settings();
     }
 
-    final public function quick_render_template_for_buffer(string $template, array $template_data = []) : ?string
+    final public function quick_render_template_for_buffer(string $template, array $template_data = []): ?string
     {
         return $this->get_plugin_instance()
             ?->quick_render_template_for_buffer($template, $template_data) ?? '';
@@ -82,12 +82,12 @@ abstract class PHS_Library extends PHS_Has_dependencies
      *
      * @return bool
      */
-    public static function instances_as_singletons() : bool
+    public static function instances_as_singletons(): bool
     {
         return true;
     }
 
-    public static function get_library_default_location_paths() : array
+    public static function get_library_default_location_paths(): array
     {
         return [
             'library_file' => '',
@@ -99,8 +99,8 @@ abstract class PHS_Library extends PHS_Has_dependencies
     public static function get_instance(
         array $init_params = [],
         ?bool $as_singleton = null,
-        ?string $full_class_name = null
-    ) : ?static {
+        ?string $full_class_name = null,
+    ): ?static {
         if (!$full_class_name) {
             $full_class_name = static::class;
         }
@@ -122,14 +122,14 @@ abstract class PHS_Library extends PHS_Has_dependencies
                 [
                     'init_params'  => $init_params,
                     'as_singleton' => $as_singleton ?? static::instances_as_singletons(),
-                ]
+                ],
             );
         }
 
         if (!($plugin_obj = PHS::load_plugin($library_details['plugin']))) {
             self::st_set_error_if_not_set(
                 self::ERR_FUNCTIONALITY,
-                self::_t('Couldn\'t load library from plugin [%s]', $library_details['plugin'])
+                self::_t('Couldn\'t load library from plugin [%s]', $library_details['plugin']),
             );
 
             return null;
@@ -149,7 +149,7 @@ abstract class PHS_Library extends PHS_Has_dependencies
                     'Error loading library '.$library_details['library_name'].' from plugin '
                     .$library_details['plugin'].': '
                     .($library_obj?->get_simple_error_message('Unknown error') ?? 'Unknown error'),
-                    PHS_Logger::TYPE_DEBUG
+                    PHS_Logger::TYPE_DEBUG,
                 );
             }
 
@@ -157,7 +157,7 @@ abstract class PHS_Library extends PHS_Has_dependencies
                 $plugin_obj,
                 self::ERR_FUNCTIONALITY,
                 self::_t('Couldn\'t load library [%s] from plugin [%s]',
-                    $library_details['library_name'], $library_details['plugin'])
+                    $library_details['library_name'], $library_details['plugin']),
             );
 
             return null;
@@ -166,7 +166,7 @@ abstract class PHS_Library extends PHS_Has_dependencies
         return $library_obj;
     }
 
-    public static function extract_details_from_full_namespace_name(string $class_with_namespace) : ?array
+    public static function extract_details_from_full_namespace_name(string $class_with_namespace): ?array
     {
         if (!($namespace_parts = explode('\\', ltrim($class_with_namespace, '\\')))
             || ($namespace_parts[0] ?? '') !== 'phs'
@@ -196,7 +196,7 @@ abstract class PHS_Library extends PHS_Has_dependencies
         ];
     }
 
-    public static function is_core_library(?string $library_class = null) : bool
+    public static function is_core_library(?string $library_class = null): bool
     {
         $library_class ??= static::class;
 

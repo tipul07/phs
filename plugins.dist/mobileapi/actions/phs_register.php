@@ -14,12 +14,12 @@ class PHS_Action_Register extends PHS_Api_action
 {
     public const ERR_MODEL_DATA = 1, ERR_REGISTRATION = 2;
 
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_REGISTER];
     }
 
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_API];
     }

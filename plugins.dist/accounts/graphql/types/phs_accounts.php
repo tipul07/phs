@@ -7,12 +7,12 @@ use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Graphql_Accounts extends PHS_Graphql_Type
 {
-    public function get_model_flow_params() : array
+    public function get_model_flow_params(): array
     {
         return ['table_name' => 'users'];
     }
 
-    public function get_type_fields() : array
+    public function get_type_fields(): array
     {
         return [
             'id'               => self::id(),
@@ -76,17 +76,17 @@ class PHS_Graphql_Accounts extends PHS_Graphql_Type
         ];
     }
 
-    public static function get_model_class() : ?string
+    public static function get_model_class(): ?string
     {
         return PHS_Model_Accounts::class;
     }
 
-    public static function get_type_name() : string
+    public static function get_type_name(): string
     {
         return 'account';
     }
 
-    public static function get_type_description() : string
+    public static function get_type_description(): string
     {
         return 'Platform account';
     }

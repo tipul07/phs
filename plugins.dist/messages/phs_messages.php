@@ -47,7 +47,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             // default template
@@ -82,7 +82,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_roles_definition() : array
+    public function get_roles_definition(): array
     {
         $return_arr = [
             self::ROLE_MESSAGE_READER => [
@@ -220,7 +220,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
             $this->copy_or_set_error(
                 $messages_model,
                 self::ERR_TEMPLATE,
-                $this->_pt('Error obtaining summary list of messages.')
+                $this->_pt('Error obtaining summary list of messages.'),
             );
 
             $hook_args['hook_errors'] = self::validate_array($this->get_error(), PHS_Error::default_error_array());
@@ -255,7 +255,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
             $this->copy_or_set_error(
                 $view_obj,
                 self::ERR_RENDER,
-                $this->_pt('Error rendering template [%s].', $view_obj->get_template())
+                $this->_pt('Error rendering template [%s].', $view_obj->get_template()),
             );
 
             return false;
@@ -268,30 +268,30 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return $hook_args;
     }
 
-    public function listen_after_main_menu_admin(PHS_Event_Layout $event_obj) : bool
+    public function listen_after_main_menu_admin(PHS_Event_Layout $event_obj): bool
     {
         $event_obj->append_to_buffer($this->quick_render_template_for_buffer('main_menu_admin') ?? '');
 
         return true;
     }
 
-    public function listen_main_menu_logged_in(PHS_Event_Layout $event_obj) : bool
+    public function listen_main_menu_logged_in(PHS_Event_Layout $event_obj): bool
     {
         $event_obj->append_to_buffer($this->quick_render_template_for_buffer('main_menu_member') ?? '');
 
         return true;
     }
 
-    public function listen_account_info_template(PHS_Event_Accounts_info_template $event_obj) : bool
+    public function listen_account_info_template(PHS_Event_Accounts_info_template $event_obj): bool
     {
         $event_obj->append_to_buffer(
-            $this->quick_render_template_for_buffer('account_info', $event_obj->get_buffer_data_input()) ?? ''
+            $this->quick_render_template_for_buffer('account_info', $event_obj->get_buffer_data_input()) ?? '',
         );
 
         return true;
     }
 
-    public function listen_accounts_registration_roles(PHS_Event_Accounts_registration_roles $event_obj) : bool
+    public function listen_accounts_registration_roles(PHS_Event_Accounts_registration_roles $event_obj): bool
     {
         if (!($account_arr = $event_obj->get_input('account_data'))) {
             return false;
@@ -486,7 +486,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return true;
     }
 
-    protected function custom_uninstall() : bool
+    protected function custom_uninstall(): bool
     {
         $flow_params = ['table_name' => 'users_details'];
 
@@ -499,7 +499,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return true;
     }
 
-    public static function get_msg_handler_field_definition() : array
+    public static function get_msg_handler_field_definition(): array
     {
         return [
             'type'     => PHS_Model_Mysqli::FTYPE_VARCHAR,

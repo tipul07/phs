@@ -14,7 +14,7 @@ class PHS_Action_Forgot_password_bg extends PHS_Action
 {
     public const ERR_UNKNOWN_ACCOUNT = 40000;
 
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_BACKGROUND];
     }
@@ -52,7 +52,7 @@ class PHS_Action_Forgot_password_bg extends PHS_Action
         if (!$email_obj?->send()) {
             PHS_Logger::error(
                 'Error sending forgot password email: '.$email_obj?->get_simple_error_message() ?? 'Unknown error.',
-                PHS_Logger::TYPE_DEBUG
+                PHS_Logger::TYPE_DEBUG,
             );
         }
 

@@ -9,22 +9,22 @@ class PHS_Model_Bg_jobs extends PHS_Model
 {
     public const ERR_DB_JOB = 10000;
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.0.2';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['bg_jobs'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'bg_jobs';
     }
 
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             'minutes_to_stall' => [
@@ -36,7 +36,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
         ];
     }
 
-    public function refresh_job(int | array | PHS_Record_data $job_data) : null | array | PHS_Record_data
+    public function refresh_job(int | array | PHS_Record_data $job_data): null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -67,7 +67,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
         return $new_job_arr;
     }
 
-    public function job_error_stop(int | array $job_data, array $params) : ?array
+    public function job_error_stop(int | array $job_data, array $params): ?array
     {
         $this->reset_error();
 
@@ -94,7 +94,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
         return $new_job_arr;
     }
 
-    public function get_stalling_minutes() : int
+    public function get_stalling_minutes(): int
     {
         static $stalling_minutes = null;
 
@@ -107,7 +107,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
         return $stalling_minutes;
     }
 
-    public function get_job_seconds_since_last_action(int | array $job_data) : ?int
+    public function get_job_seconds_since_last_action(int | array $job_data): ?int
     {
         $this->reset_error();
 
@@ -121,7 +121,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
         return !empty($job_arr['last_action']) ? seconds_passed($job_arr['last_action']) : 0;
     }
 
-    public function job_is_stalling(int | array $job_data) : ?bool
+    public function job_is_stalling(int | array $job_data): ?bool
     {
         $this->reset_error();
 
@@ -137,7 +137,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
                && floor($this->get_job_seconds_since_last_action($job_arr) / 60) >= $minutes_to_stall;
     }
 
-    public function job_is_running(int | array $job_data) : bool
+    public function job_is_running(int | array $job_data): bool
     {
         return !empty($job_data)
                && ($job_arr = $this->data_to_array($job_data))
@@ -147,7 +147,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;
@@ -212,7 +212,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
         return $return_arr;
     }
 
-    protected function get_insert_prepare_params_bg_jobs(array $params) : ?array
+    protected function get_insert_prepare_params_bg_jobs(array $params): ?array
     {
         if (empty($params['fields']['route'])) {
             $this->set_error(self::ERR_INSERT, self::_t('Please provide a route.'));
@@ -241,7 +241,7 @@ class PHS_Model_Bg_jobs extends PHS_Model
         return $params;
     }
 
-    protected function get_edit_prepare_params_bg_jobs(array $existing_data, array $params) : ?array
+    protected function get_edit_prepare_params_bg_jobs(array $existing_data, array $params): ?array
     {
         // Update last_action field on any edit's we do...
         if (empty($params['fields']['last_action'])) {

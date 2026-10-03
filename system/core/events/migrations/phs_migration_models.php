@@ -12,7 +12,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
     public const EP_BEFORE_MISSING = 'before_missing', EP_AFTER_MISSING = 'after_missing',
         EP_BEFORE_UPDATE = 'before_update', EP_AFTER_UPDATE = 'after_update';
 
-    protected function _input_parameters() : array
+    protected function _input_parameters(): array
     {
         return array_merge(parent::_input_parameters(), [
             'model_instance_id' => '',
@@ -31,7 +31,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
-    ) : ?self {
+    ): ?self {
         if (!$model_obj) {
             return null;
         }
@@ -39,7 +39,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         return self::trigger(
             self::_generate_event_input($model_obj, $table_name, $old_version, $new_version, $is_dry_update, $is_forced),
             $model_obj::class.'::'.self::EP_BEFORE_MISSING.'::'.$table_name,
-            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
+            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false],
         );
     }
 
@@ -50,7 +50,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
-    ) : ?self {
+    ): ?self {
         if (!$model_obj) {
             return null;
         }
@@ -58,7 +58,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         return self::trigger(
             self::_generate_event_input($model_obj, $table_name, $old_version, $new_version, $is_dry_update, $is_forced),
             $model_obj::class.'::'.self::EP_AFTER_MISSING.'::'.$table_name,
-            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
+            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false],
         );
     }
 
@@ -69,7 +69,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
-    ) : ?self {
+    ): ?self {
         if (!$model_obj) {
             return null;
         }
@@ -77,7 +77,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         return self::trigger(
             self::_generate_event_input($model_obj, $table_name, $old_version, $new_version, $is_dry_update, $is_forced),
             $model_obj::class.'::'.self::EP_BEFORE_UPDATE.'::'.$table_name,
-            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
+            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false],
         );
     }
 
@@ -88,7 +88,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
-    ) : ?self {
+    ): ?self {
         if (!$model_obj) {
             return null;
         }
@@ -96,7 +96,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         return self::trigger(
             self::_generate_event_input($model_obj, $table_name, $old_version, $new_version, $is_dry_update, $is_forced),
             $model_obj::class.'::'.self::EP_AFTER_UPDATE.'::'.$table_name,
-            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
+            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false],
         );
     }
     // endregion Triggers
@@ -106,12 +106,12 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         callable | array | string | Closure $callback,
         string $model_class,
         string $table_name = '',
-        int $priority = 10
-    ) : ?self {
+        int $priority = 10,
+    ): ?self {
         return self::listen(
             $callback,
             $model_class.'::'.self::EP_BEFORE_MISSING.'::'.$table_name,
-            ['priority' => $priority]
+            ['priority' => $priority],
         );
     }
 
@@ -119,12 +119,12 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         callable | array | string | Closure $callback,
         string $model_class,
         string $table_name = '',
-        int $priority = 10
-    ) : ?self {
+        int $priority = 10,
+    ): ?self {
         return self::listen(
             $callback,
             $model_class.'::'.self::EP_AFTER_MISSING.'::'.$table_name,
-            ['priority' => $priority]
+            ['priority' => $priority],
         );
     }
 
@@ -132,12 +132,12 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         callable | array | string | Closure $callback,
         string $model_class,
         string $table_name,
-        int $priority = 10
-    ) : ?self {
+        int $priority = 10,
+    ): ?self {
         return self::listen(
             $callback,
             $model_class.'::'.self::EP_BEFORE_UPDATE.'::'.$table_name,
-            ['priority' => $priority]
+            ['priority' => $priority],
         );
     }
 
@@ -145,12 +145,12 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         callable | array | string | Closure $callback,
         string $model_class,
         string $table_name,
-        int $priority = 10
-    ) : ?self {
+        int $priority = 10,
+    ): ?self {
         return self::listen(
             $callback,
             $model_class.'::'.self::EP_AFTER_UPDATE.'::'.$table_name,
-            ['priority' => $priority]
+            ['priority' => $priority],
         );
     }
     // endregion Listeners
@@ -162,7 +162,7 @@ class PHS_Event_Migration_models extends PHS_Event_Migration
         ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
-    ) : array {
+    ): array {
         /** @var null|PHS_Plugin $plugin_obj */
         $plugin_obj = $model_obj->get_plugin_instance();
 

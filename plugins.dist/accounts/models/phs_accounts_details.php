@@ -6,17 +6,17 @@ use phs\libraries\PHS_Record_data;
 
 class PHS_Model_Accounts_details extends PHS_Model
 {
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.0.3';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['users_details'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'users_details';
     }
@@ -24,7 +24,7 @@ class PHS_Model_Accounts_details extends PHS_Model
     /**
      * @inheritdoc
      */
-    public function dynamic_table_structure() : bool
+    public function dynamic_table_structure(): bool
     {
         return true;
     }
@@ -32,7 +32,7 @@ class PHS_Model_Accounts_details extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;
@@ -91,7 +91,7 @@ class PHS_Model_Accounts_details extends PHS_Model
         return $return_arr;
     }
 
-    public function get_full_account_name(int | array | PHS_Record_data $account_details) : ?string
+    public function get_full_account_name(int | array | PHS_Record_data $account_details): ?string
     {
         if (!($details_arr = $this->data_to_array($account_details))) {
             return null;
@@ -100,10 +100,10 @@ class PHS_Model_Accounts_details extends PHS_Model
         return trim(($details_arr['title'] ?? '').' '.($details_arr['fname'] ?? '').' '.($details_arr['lname'] ?? ''));
     }
 
-    protected function _relations_definition() : void
+    protected function _relations_definition(): void
     {
         $this->relation_one_to_one('account',
-            PHS_Model_Accounts::class, 'uid'
+            PHS_Model_Accounts::class, 'uid',
         );
     }
 

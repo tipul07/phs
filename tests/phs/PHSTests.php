@@ -20,7 +20,7 @@ class PHSTests extends PHS_Cli
 
     public const DIR_BEHAT = 'behat', DIR_PHPUNIT = 'phpunit';
 
-    public function get_app_dir() : string
+    public function get_app_dir(): string
     {
         return __DIR__.'/';
     }
@@ -32,7 +32,7 @@ class PHSTests extends PHS_Cli
      *
      * @return string
      */
-    public function get_behat_dir(bool $slash_ended = true) : string
+    public function get_behat_dir(bool $slash_ended = true): string
     {
         return PHS_TESTS_DIR.self::DIR_BEHAT.($slash_ended ? '/' : '');
     }
@@ -45,7 +45,7 @@ class PHSTests extends PHS_Cli
      *
      * @return string
      */
-    public function get_behat_features_dir(bool $slash_ended = true) : string
+    public function get_behat_features_dir(bool $slash_ended = true): string
     {
         return PHS_TESTS_DIR.self::DIR_BEHAT.'/features'.($slash_ended ? '/' : '');
     }
@@ -58,7 +58,7 @@ class PHSTests extends PHS_Cli
      *
      * @return string
      */
-    public function get_behat_contexts_dir(bool $slash_ended = true) : string
+    public function get_behat_contexts_dir(bool $slash_ended = true): string
     {
         return PHS_TESTS_DIR.self::DIR_BEHAT.'/contexts'.($slash_ended ? '/' : '');
     }
@@ -71,7 +71,7 @@ class PHSTests extends PHS_Cli
      *
      * @return string
      */
-    public function get_behat_config_dir(bool $slash_ended = true) : string
+    public function get_behat_config_dir(bool $slash_ended = true): string
     {
         return PHS_TESTS_DIR.self::DIR_BEHAT.'/config'.($slash_ended ? '/' : '');
     }
@@ -81,7 +81,7 @@ class PHSTests extends PHS_Cli
      *
      * @return string
      */
-    public function get_behat_plugins_config_file() : string
+    public function get_behat_plugins_config_file(): string
     {
         return PHS_TESTS_DIR.self::DIR_BEHAT.'/plugins.yml';
     }
@@ -93,12 +93,12 @@ class PHSTests extends PHS_Cli
      *
      * @return string
      */
-    public function get_phpunit_dir(bool $slash_ended = true) : string
+    public function get_phpunit_dir(bool $slash_ended = true): string
     {
         return PHS_TESTS_DIR.self::DIR_PHPUNIT.($slash_ended ? '/' : '');
     }
 
-    public function cmd_list_behat_suites() : bool
+    public function cmd_list_behat_suites(): bool
     {
         $this->reset_error();
 
@@ -140,7 +140,7 @@ class PHSTests extends PHS_Cli
         return true;
     }
 
-    public function cmd_plugin_action() : bool
+    public function cmd_plugin_action(): bool
     {
         if (null === ($plugins_dirs_arr = $this->get_plugins_as_dirs())) {
             $this->_echo_error(self::_t('Couldn\'t obtain plugins list: %s', $this->get_simple_error_message()));
@@ -203,7 +203,7 @@ class PHSTests extends PHS_Cli
         return true;
     }
 
-    public function cmd_list_plugins() : bool
+    public function cmd_list_plugins(): bool
     {
         if (null === ($plugins_dirs_arr = $this->get_plugins_as_dirs())) {
             $this->_echo_error(self::_t('Couldn\'t obtain plugins list: %s', $this->get_simple_error_message()));
@@ -288,12 +288,12 @@ class PHSTests extends PHS_Cli
         return true;
     }
 
-    protected function _get_app_options_definition() : array
+    protected function _get_app_options_definition(): array
     {
         return [];
     }
 
-    protected function _get_app_commands_definition() : array
+    protected function _get_app_commands_definition(): array
     {
         return [
             'plugins' => [
@@ -338,7 +338,7 @@ class PHSTests extends PHS_Cli
     //
     // region Environment initialization
     //
-    protected function _init_app() : bool
+    protected function _init_app(): bool
     {
         $this->reset_error();
 
@@ -484,7 +484,7 @@ class PHSTests extends PHS_Cli
      *
      * @return array
      */
-    protected function get_behat_yaml_configuration_as_array(string $behat_profile = 'default') : array
+    protected function get_behat_yaml_configuration_as_array(string $behat_profile = 'default'): array
     {
         try {
             $configuration_loader = new ConfigurationLoader('BEHAT_PARAMS', PHS_TESTS_DIR.'behat.yml');
@@ -499,7 +499,7 @@ class PHSTests extends PHS_Cli
         return $configs_arr;
     }
 
-    protected function _echo_plugin_details_for_tests(string $plugin_name) : bool
+    protected function _echo_plugin_details_for_tests(string $plugin_name): bool
     {
         if (!($plugin_info = $this->_gather_plugin_test_info($plugin_name))
          || !$this->_echo_plugin_details($plugin_name, $plugin_info)) {
@@ -521,7 +521,7 @@ class PHSTests extends PHS_Cli
                           .(!empty($plugin_info['behat']['is_installable']) ? $this->cli_color($yes_str, 'green') : $this->cli_color($no_str, 'red'))
                           .', '
                           .self::_t('INSTALLED for Behat tests').': '
-                          .(!empty($plugin_info['behat']['is_installed']) ? $this->cli_color($yes_str, 'green') : $this->cli_color($no_str, 'red'))
+                          .(!empty($plugin_info['behat']['is_installed']) ? $this->cli_color($yes_str, 'green') : $this->cli_color($no_str, 'red')),
             );
 
             $available_str = '  '.self::_t('Feature files').': ';
@@ -570,7 +570,7 @@ class PHSTests extends PHS_Cli
      *
      * @return bool|array
      */
-    protected function _get_behat_plugin_stats(string $plugin_name, $plugin_obj = false) : ?array
+    protected function _get_behat_plugin_stats(string $plugin_name, $plugin_obj = false): ?array
     {
         $this->reset_error();
 
@@ -619,7 +619,7 @@ class PHSTests extends PHS_Cli
      *
      * @return bool
      */
-    private function _install_behat_tests_for_plugin(string $plugin_name, ?PHS_Plugin $plugin_obj = null) : bool
+    private function _install_behat_tests_for_plugin(string $plugin_name, ?PHS_Plugin $plugin_obj = null): bool
     {
         $this->reset_error();
 
@@ -789,7 +789,7 @@ class PHSTests extends PHS_Cli
      *
      * @return bool
      */
-    private function _uninstall_behat_tests_for_plugin(string $plugin_name, ?PHS_Plugin $plugin_obj = null) : bool
+    private function _uninstall_behat_tests_for_plugin(string $plugin_name, ?PHS_Plugin $plugin_obj = null): bool
     {
         $this->reset_error();
 
@@ -884,7 +884,7 @@ class PHSTests extends PHS_Cli
         return $behat_config_file;
     }
 
-    private function _get_plugin_destination_behat_config_file($plugin_name) : string
+    private function _get_plugin_destination_behat_config_file($plugin_name): string
     {
         $this->reset_error();
 
@@ -896,7 +896,7 @@ class PHSTests extends PHS_Cli
         return $behat_config_dir.'/'.$plugin_name.'.yml';
     }
 
-    private function _get_plugin_destination_features_directory($plugin_name, $slash_ended = true) : string
+    private function _get_plugin_destination_features_directory($plugin_name, $slash_ended = true): string
     {
         $this->reset_error();
 
@@ -908,7 +908,7 @@ class PHSTests extends PHS_Cli
         return $behat_features_dir.'/'.$plugin_name.($slash_ended ? '/' : '');
     }
 
-    private function _get_plugin_destination_contexts_directory($plugin_name, $slash_ended = true) : string
+    private function _get_plugin_destination_contexts_directory($plugin_name, $slash_ended = true): string
     {
         $this->reset_error();
 
@@ -986,7 +986,7 @@ class PHSTests extends PHS_Cli
         return $files_arr;
     }
 
-    private function _gather_plugin_test_info(string $plugin_name) : array
+    private function _gather_plugin_test_info(string $plugin_name): array
     {
         $plugin_info = [];
         if (($basic_plugin_info = $this->_gather_plugin_info($plugin_name))) {
@@ -1004,7 +1004,7 @@ class PHSTests extends PHS_Cli
         return $plugin_info;
     }
 
-    protected static function _get_default_behat_plugin_stats() : array
+    protected static function _get_default_behat_plugin_stats(): array
     {
         return [
             // If we have a behat.yml file in {plugin_name}/tests/behat dir of plugin, it means we can install this plugin in behat tests
@@ -1019,18 +1019,18 @@ class PHSTests extends PHS_Cli
         ];
     }
 
-    protected static function _get_default_plugin_info_definition_for_tests() : array
+    protected static function _get_default_plugin_info_definition_for_tests(): array
     {
         return self::validate_array(self::_get_default_plugin_info_definition(),
             [
                 // Tests details
                 'behat'   => false,
                 'phpunit' => false,
-            ]
+            ],
         );
     }
 
-    private static function _get_plugin_command_actions() : array
+    private static function _get_plugin_command_actions(): array
     {
         return ['info', 'behat_enable', 'behat_disable', 'phpunit_enable', 'phpunit_disable', 'enable_all', 'disable_all'];
     }

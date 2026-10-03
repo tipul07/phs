@@ -19,7 +19,7 @@ class PHS_Crypt extends PHS_Language
     // Binary sodium key
     private static string $_sodium_key = '';
 
-    public static function sodium_key(?string $key = null) : ?string
+    public static function sodium_key(?string $key = null): ?string
     {
         if ($key === null) {
             return self::_sodium_key_bin2hex(self::$_sodium_key);
@@ -34,7 +34,7 @@ class PHS_Crypt extends PHS_Language
         return self::$_sodium_key;
     }
 
-    public static function generate_sodium_key() : ?string
+    public static function generate_sodium_key(): ?string
     {
         try {
             return @sodium_bin2hex(@sodium_crypto_auth_keygen());
@@ -44,12 +44,12 @@ class PHS_Crypt extends PHS_Language
         return null;
     }
 
-    public static function validate_sodium_key(string $key) : bool
+    public static function validate_sodium_key(string $key): bool
     {
         return self::_sodium_key_hex2bin($key) !== null;
     }
 
-    public static function crypting_key(?string $key = null) : string
+    public static function crypting_key(?string $key = null): string
     {
         if ($key === null) {
             return self::$crypt_key;
@@ -60,12 +60,12 @@ class PHS_Crypt extends PHS_Language
         return self::$crypt_key;
     }
 
-    public static function get_internal_keys() : array
+    public static function get_internal_keys(): array
     {
         return self::$internal_keys;
     }
 
-    public static function set_internal_keys(array $keys_arr = []) : bool
+    public static function set_internal_keys(array $keys_arr = []): bool
     {
         if (!$keys_arr) {
             return false;
@@ -76,7 +76,7 @@ class PHS_Crypt extends PHS_Language
         return true;
     }
 
-    public static function quick_encode(?string $str, array $params = []) : ?string
+    public static function quick_encode(?string $str, array $params = []): ?string
     {
         if ($str === null || $str === '') {
             return '';
@@ -94,7 +94,7 @@ class PHS_Crypt extends PHS_Language
         return $enc_dec->encrypt($str);
     }
 
-    public static function quick_decode(?string $str, array $params = []) : ?string
+    public static function quick_decode(?string $str, array $params = []): ?string
     {
         if ($str === null || $str === '') {
             return $str;
@@ -116,7 +116,7 @@ class PHS_Crypt extends PHS_Language
         return $enc_dec->decrypt($str);
     }
 
-    public static function quick_encode_buffer_for_export_as_json(string $buf, string $crypting_key, array $params = []) : ?string
+    public static function quick_encode_buffer_for_export_as_json(string $buf, string $crypting_key, array $params = []): ?string
     {
         if (!($json_arr = self::quick_encode_buffer_for_export_as_array($buf, $crypting_key, $params))
             || !($json_buf = @json_encode($json_arr))) {
@@ -126,7 +126,7 @@ class PHS_Crypt extends PHS_Language
         return $json_buf;
     }
 
-    public static function quick_encode_buffer_for_export_as_array(string $buf, string $crypting_key, array $params = []) : ?array
+    public static function quick_encode_buffer_for_export_as_array(string $buf, string $crypting_key, array $params = []): ?array
     {
         self::st_reset_error();
 
@@ -161,7 +161,7 @@ class PHS_Crypt extends PHS_Language
         ];
     }
 
-    public static function quick_decode_from_export_json_string(string $json_str, string $crypting_key, array $params = []) : ?string
+    public static function quick_decode_from_export_json_string(string $json_str, string $crypting_key, array $params = []): ?string
     {
         self::st_reset_error();
 
@@ -176,7 +176,7 @@ class PHS_Crypt extends PHS_Language
         return self::quick_decode_from_export_array($json_arr, $crypting_key, $params);
     }
 
-    public static function quick_decode_from_export_array(array $export_arr, string $crypting_key, array $params = []) : ?string
+    public static function quick_decode_from_export_array(array $export_arr, string $crypting_key, array $params = []): ?string
     {
         self::st_reset_error();
 
@@ -223,7 +223,7 @@ class PHS_Crypt extends PHS_Language
      *
      * @return string
      */
-    public static function generate_crypt_key(int $len = 128) : string
+    public static function generate_crypt_key(int $len = 128): string
     {
         return self::generate_random_string($len);
     }
@@ -233,7 +233,7 @@ class PHS_Crypt extends PHS_Language
      *
      * @return array
      */
-    public static function generate_crypt_internal_keys() : array
+    public static function generate_crypt_internal_keys(): array
     {
         $return_arr = [];
         for ($i = 0; $i < 34; $i++) {
@@ -243,7 +243,7 @@ class PHS_Crypt extends PHS_Language
         return $return_arr;
     }
 
-    public static function generate_random_string(int $len = 128, ?array $params = null) : string
+    public static function generate_random_string(int $len = 128, ?array $params = null): string
     {
         if (empty($params)) {
             $params = [];
@@ -341,7 +341,7 @@ class PHS_Crypt extends PHS_Language
         return $ret;
     }
 
-    private static function _create_encdec_instance(array $params = []) : ?PHS_Encdec
+    private static function _create_encdec_instance(array $params = []): ?PHS_Encdec
     {
         $params['use_base64'] = !isset($params['use_base64']) || !empty($params['use_base64']);
 
@@ -361,7 +361,7 @@ class PHS_Crypt extends PHS_Language
         return $enc_dec;
     }
 
-    private static function _sodium_encrypt(?string $str, string $key) : ?string
+    private static function _sodium_encrypt(?string $str, string $key): ?string
     {
         if ($str === null || $str === '') {
             return '';
@@ -384,7 +384,7 @@ class PHS_Crypt extends PHS_Language
         return base64_encode($nonce.$ciphertext);
     }
 
-    private static function _sodium_decrypt(?string $str, string $key) : ?string
+    private static function _sodium_decrypt(?string $str, string $key): ?string
     {
         if ($str === null || $str === '') {
             return '';
@@ -408,7 +408,7 @@ class PHS_Crypt extends PHS_Language
         }
     }
 
-    private static function _sodium_key_hex2bin(string $key) : ?string
+    private static function _sodium_key_hex2bin(string $key): ?string
     {
         if (!$key) {
             return null;
@@ -422,7 +422,7 @@ class PHS_Crypt extends PHS_Language
         return null;
     }
 
-    private static function _sodium_key_bin2hex(string $key) : ?string
+    private static function _sodium_key_bin2hex(string $key): ?string
     {
         if ($key === '') {
             return '';

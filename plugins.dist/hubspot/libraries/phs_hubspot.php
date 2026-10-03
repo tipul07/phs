@@ -789,7 +789,7 @@ class PHS_Hubspot extends PHS_Library
         return $response['json_response_arr'];
     }
 
-    protected function _extract_api_info() : bool
+    protected function _extract_api_info(): bool
     {
         if (!($settings_arr = $this->_hubspot_plugin->get_plugin_settings())) {
             $this->set_error(self::ERR_SETTINGS, $this->_pt('Couldn\'t obtain HubSpot plugin settings.'));
@@ -816,7 +816,7 @@ class PHS_Hubspot extends PHS_Library
         return true;
     }
 
-    protected function _can_connect() : bool
+    protected function _can_connect(): bool
     {
         return !empty($this->_api_settings['base_url']) && !empty($this->_api_settings['api_key']);
     }

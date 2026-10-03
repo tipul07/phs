@@ -14,7 +14,7 @@ if (($sendgrid_plugin = PHS_Plugin_Sendgrid::get_instance())) {
         PHS_Hooks::H_EMAIL_INIT,
         [$sendgrid_plugin, 'init_email_hook_args'],
         PHS_Hooks::default_init_email_hook_args(),
-        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 10, ]
+        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 10, ],
     );
 
     PHS_Event_Emails_settings::listen([$sendgrid_plugin, 'listen_email_settings']);

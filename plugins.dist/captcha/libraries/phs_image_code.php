@@ -85,7 +85,7 @@ class PHS_Image_code extends PHS_Library
         }
     }
 
-    public function set_code_timeout(?int $seconds = null) : int
+    public function set_code_timeout(?int $seconds = null): int
     {
         if ($seconds === null) {
             return $this->code_timeout;
@@ -96,12 +96,12 @@ class PHS_Image_code extends PHS_Library
         return $seconds;
     }
 
-    public function regenerate_public_code() : void
+    public function regenerate_public_code(): void
     {
         $this->public_code = $this->_generate_public_code();
     }
 
-    public function refresh_public_code() : bool
+    public function refresh_public_code(): bool
     {
         if (!($my_public_code = $this->_decode_public_code())) {
             return false;
@@ -112,18 +112,18 @@ class PHS_Image_code extends PHS_Library
         return true;
     }
 
-    public function valid_public_code() : bool
+    public function valid_public_code(): bool
     {
         return ($my_public_code = $this->_decode_public_code())
                && time() - $this->code_timeout < $my_public_code['time'];
     }
 
-    public function get_public_code() : string
+    public function get_public_code(): string
     {
         return $this->public_code;
     }
 
-    public function set_public_code(string $code) : bool
+    public function set_public_code(string $code): bool
     {
         $old_code = $this->public_code;
         $this->public_code = $code;
@@ -137,7 +137,7 @@ class PHS_Image_code extends PHS_Library
         return true;
     }
 
-    public function output_format(?int $format = null) : int
+    public function output_format(?int $format = null): int
     {
         if ($format === null) {
             return $this->output_type;
@@ -148,7 +148,7 @@ class PHS_Image_code extends PHS_Library
         return $format;
     }
 
-    public function char_numbers(?int $char_number = null) : int
+    public function char_numbers(?int $char_number = null): int
     {
         if ($char_number === null) {
             return $this->character_number;
@@ -159,7 +159,7 @@ class PHS_Image_code extends PHS_Library
         return $char_number;
     }
 
-    public function generate_image_code() : string
+    public function generate_image_code(): string
     {
         if ($this->has_error()) {
             return '';
@@ -186,7 +186,7 @@ class PHS_Image_code extends PHS_Library
         return $ret;
     }
 
-    public function check_input(string $input) : bool
+    public function check_input(string $input): bool
     {
         if ($this->has_error()
          || !$this->valid_public_code()) {
@@ -196,7 +196,7 @@ class PHS_Image_code extends PHS_Library
         return strtolower($input) === strtolower($this->generate_image_code());
     }
 
-    public function generate_image(int $imgw, int $imgh, string $font_file = '', int $font_size = 0) : void
+    public function generate_image(int $imgw, int $imgh, string $font_file = '', int $font_size = 0): void
     {
         if ($this->has_error()) {
             return;
@@ -337,7 +337,7 @@ class PHS_Image_code extends PHS_Library
         imagedestroy($im);
     }
 
-    public function create_nottf_charimg($im, $angle, $x, $y, $char, $colors, $letter_w, $letter_h) : bool
+    public function create_nottf_charimg($im, $angle, $x, $y, $char, $colors, $letter_w, $letter_h): bool
     {
         $percent = 2; // how much to 'zoom' the letter (2 = 200%)
         if (!($chimg = @imagecreatetruecolor($letter_w, $letter_h))) {
@@ -372,12 +372,12 @@ class PHS_Image_code extends PHS_Library
         return true;
     }
 
-    private function _generate_public_code() : string
+    private function _generate_public_code(): string
     {
         return base_convert(time(), 10, 35).':'.md5(uniqid(mt_rand(), true));
     }
 
-    private function _decode_public_code() : ?array
+    private function _decode_public_code(): ?array
     {
         if (empty($this->public_code) || !str_contains($this->public_code, ':')
          || !($result_arr = explode(':', $this->public_code, 2))

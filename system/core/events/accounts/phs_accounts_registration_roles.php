@@ -12,20 +12,20 @@ class PHS_Event_Accounts_registration_roles extends PHS_Event
     /**
      * @inheritdoc
      */
-    public function supports_background_listeners() : bool
+    public function supports_background_listeners(): bool
     {
         return false;
     }
 
-    public function add_roles(array $roles_arr) : void
+    public function add_roles(array $roles_arr): void
     {
         $this->set_output('roles_arr',
             self::array_merge_unique_values(
-                $this->get_output('roles_arr') ?: [], $roles_arr)
+                $this->get_output('roles_arr') ?: [], $roles_arr),
         );
     }
 
-    protected function _input_parameters() : array
+    protected function _input_parameters(): array
     {
         return [
             'account_data' => null,
@@ -33,7 +33,7 @@ class PHS_Event_Accounts_registration_roles extends PHS_Event
         ];
     }
 
-    protected function _output_parameters() : array
+    protected function _output_parameters(): array
     {
         return [
             'account_data' => null,
@@ -51,8 +51,8 @@ class PHS_Event_Accounts_registration_roles extends PHS_Event
      */
     public static function roles_for_account(
         int | array | PHS_Record_data $account_data,
-        array $roles_arr = []
-    ) : array {
+        array $roles_arr = [],
+    ): array {
         if (!$account_data
             || !($accounts_model = PHS_Model_Accounts::get_instance())
             || !($account_arr = $accounts_model->data_to_array($account_data))

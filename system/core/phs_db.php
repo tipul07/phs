@@ -40,7 +40,7 @@ final class PHS_Db extends PHS_Registry
     /**
      * @return string[]
      */
-    public static function known_db_drivers() : array
+    public static function known_db_drivers(): array
     {
         return self::$KNOWN_DB_DRIVERS;
     }
@@ -63,7 +63,7 @@ final class PHS_Db extends PHS_Registry
     /**
      * @return array
      */
-    public static function get_default_db_connection_settings_arr() : array
+    public static function get_default_db_connection_settings_arr(): array
     {
         return [
             'driver'       => self::DB_DRIVER_MYSQLI,
@@ -86,7 +86,7 @@ final class PHS_Db extends PHS_Registry
      *
      * @return null|array
      */
-    public static function validate_db_connection_settings(array $settings_arr) : ?array
+    public static function validate_db_connection_settings(array $settings_arr): ?array
     {
         self::st_reset_error();
         if (empty($settings_arr)
@@ -102,7 +102,7 @@ final class PHS_Db extends PHS_Registry
          || !self::valid_db_driver($settings_arr['driver'])) {
             self::st_set_error(self::ERR_DATABASE,
                 self::_t('Invalid database driver'),
-                'Invalid database driver ('.$settings_arr['driver'].'), valid drivers ('.implode(', ', self::$KNOWN_DB_DRIVERS).').'
+                'Invalid database driver ('.$settings_arr['driver'].'), valid drivers ('.implode(', ', self::$KNOWN_DB_DRIVERS).').',
             );
 
             return null;
@@ -181,7 +181,7 @@ final class PHS_Db extends PHS_Registry
      *
      * @return bool
      */
-    public static function check_db_fields_boundaries(?bool $check = null) : bool
+    public static function check_db_fields_boundaries(?bool $check = null): bool
     {
         if ($check === null) {
             return self::$check_db_fields_boundaries;
@@ -200,7 +200,7 @@ final class PHS_Db extends PHS_Registry
      *
      * @return bool
      */
-    public static function dry_update(?bool $dry_run = null) : bool
+    public static function dry_update(?bool $dry_run = null): bool
     {
         if ($dry_run === null) {
             return self::$dry_update;
@@ -211,7 +211,7 @@ final class PHS_Db extends PHS_Registry
         return self::$dry_update;
     }
 
-    public static function dry_update_output($str) : void
+    public static function dry_update_output($str): void
     {
         echo $str."\n";
     }
@@ -251,7 +251,7 @@ final class PHS_Db extends PHS_Registry
         return $return_arr;
     }
 
-    public static function default_db_connection(?string $driver = null, bool | string $connection_name = false) : bool | string
+    public static function default_db_connection(?string $driver = null, bool | string $connection_name = false): bool | string
     {
         if ($driver === null) {
             $driver = self::default_db_driver();
@@ -292,7 +292,7 @@ final class PHS_Db extends PHS_Registry
      *
      * @return null|string
      */
-    public static function default_db_driver(?string $driver = null) : ?string
+    public static function default_db_driver(?string $driver = null): ?string
     {
         if ($driver === null) {
             return self::get_data(self::DB_DEFAULT_DRIVER);
@@ -314,7 +314,7 @@ final class PHS_Db extends PHS_Registry
      *
      * @return bool True if connection exists, false otherwise
      */
-    public static function db_connection_exists($connection_name) : bool
+    public static function db_connection_exists($connection_name): bool
     {
         return ($all_connections = self::get_data(self::DB_SETTINGS))
                 && is_string($connection_name)
@@ -376,7 +376,7 @@ final class PHS_Db extends PHS_Registry
         if (!self::valid_db_driver($driver)) {
             self::st_set_error(self::ERR_DATABASE,
                 self::_t('Invalid database driver'),
-                'Invalid database driver ('.$driver.'), valid drivers ('.implode(', ', self::$KNOWN_DB_DRIVERS).').'
+                'Invalid database driver ('.$driver.'), valid drivers ('.implode(', ', self::$KNOWN_DB_DRIVERS).').',
             );
 
             return false;
@@ -470,7 +470,7 @@ final class PHS_Db extends PHS_Registry
             default:
                 self::st_set_error(self::ERR_DATABASE,
                     self::_t('Database driver is not implemented yet.'),
-                    'Database driver ('.$driver.') is not implemented yet.'
+                    'Database driver ('.$driver.') is not implemented yet.',
                 );
                 break;
         }
@@ -531,7 +531,7 @@ final class PHS_Db extends PHS_Registry
     /**
      * Check what server receives in request
      */
-    public static function init() : void
+    public static function init(): void
     {
         if (self::$inited) {
             return;
@@ -542,7 +542,7 @@ final class PHS_Db extends PHS_Registry
         self::$inited = true;
     }
 
-    public static function get_instance() : ?self
+    public static function get_instance(): ?self
     {
         if (!empty(self::$instance)) {
             return self::$instance;
@@ -553,7 +553,7 @@ final class PHS_Db extends PHS_Registry
         return self::$instance;
     }
 
-    private static function reset_registry() : void
+    private static function reset_registry(): void
     {
         self::set_data(self::DB_SETTINGS, []);
     }

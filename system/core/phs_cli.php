@@ -117,7 +117,7 @@ abstract class PHS_Cli extends PHS_Registry
      * Returns directory where app script is
      * @return string
      */
-    abstract public function get_app_dir() : string;
+    abstract public function get_app_dir(): string;
 
     /**
      * Initializes application before starting command line processing
@@ -125,23 +125,23 @@ abstract class PHS_Cli extends PHS_Registry
      * If any errors should be displayed in console, $this->set_error() method should be used
      * @return bool
      */
-    abstract protected function _init_app() : bool;
+    abstract protected function _init_app(): bool;
 
     /**
      * This method defines command line options which this application expects
      * @return array
      * @see self::
      */
-    abstract protected function _get_app_options_definition() : array;
+    abstract protected function _get_app_options_definition(): array;
 
     /**
      * This method defines command line commands which this application expects
      * @return array
      */
-    abstract protected function _get_app_commands_definition() : array;
+    abstract protected function _get_app_commands_definition(): array;
 
     #[NoReturn]
-    public function run() : void
+    public function run(): void
     {
         if (empty($_SERVER) || !is_array($_SERVER)
             || empty($_SERVER['argc'])
@@ -183,52 +183,52 @@ abstract class PHS_Cli extends PHS_Registry
         $this->_output_result_and_exit();
     }
 
-    public function get_app_name() : string
+    public function get_app_name(): string
     {
         return static::APP_NAME;
     }
 
-    public function get_app_version() : string
+    public function get_app_version(): string
     {
         return static::APP_VERSION;
     }
 
-    public function get_app_description() : string
+    public function get_app_description(): string
     {
         return static::APP_DESCRIPTION;
     }
 
-    public function get_app_options() : array
+    public function get_app_options(): array
     {
         return $this->_options;
     }
 
-    public function get_app_command() : array
+    public function get_app_command(): array
     {
         return $this->_command;
     }
 
-    public function get_app_options_definition() : array
+    public function get_app_options_definition(): array
     {
         return $this->_options_definition;
     }
 
-    public function get_app_commands_definition() : array
+    public function get_app_commands_definition(): array
     {
         return $this->_commands_definition;
     }
 
-    public function get_app_verbosity() : int
+    public function get_app_verbosity(): int
     {
         return $this->_verbose_level;
     }
 
-    public function get_app_cli_script() : string
+    public function get_app_cli_script(): string
     {
         return $this->_cli_script;
     }
 
-    public function get_app_output_colors() : bool
+    public function get_app_output_colors(): bool
     {
         return $this->_output_colors;
     }
@@ -247,7 +247,7 @@ abstract class PHS_Cli extends PHS_Registry
      *
      * @return bool
      */
-    public function cli_option_verbosity($args) : bool
+    public function cli_option_verbosity($args): bool
     {
         if (empty($args) || !is_array($args)
          || !isset($args['value'])) {
@@ -259,7 +259,7 @@ abstract class PHS_Cli extends PHS_Registry
         return true;
     }
 
-    public function set_verbosity(int $v) : void
+    public function set_verbosity(int $v): void
     {
         $this->_verbose_level = $v;
     }
@@ -269,7 +269,7 @@ abstract class PHS_Cli extends PHS_Registry
      *
      * @return bool
      */
-    public function cli_option_output_colors($args) : bool
+    public function cli_option_output_colors($args): bool
     {
         if (empty($args) || !is_array($args)
          || !isset($args['value'])) {
@@ -281,7 +281,7 @@ abstract class PHS_Cli extends PHS_Registry
         return true;
     }
 
-    public function set_output_colors(bool $c) : void
+    public function set_output_colors(bool $c): void
     {
         $this->_output_colors = $c;
     }
@@ -291,7 +291,7 @@ abstract class PHS_Cli extends PHS_Registry
      *
      * @return bool
      */
-    public function cli_option_continous_flush($args) : bool
+    public function cli_option_continous_flush($args): bool
     {
         if (empty($args) || !is_array($args)
          || !isset($args['value'])) {
@@ -303,7 +303,7 @@ abstract class PHS_Cli extends PHS_Registry
         return true;
     }
 
-    public function set_continous_flush(bool $f) : void
+    public function set_continous_flush(bool $f): void
     {
         $this->_continous_flush = $f;
     }
@@ -311,7 +311,7 @@ abstract class PHS_Cli extends PHS_Registry
     /**
      * @return bool
      */
-    public function cli_option_help() : bool
+    public function cli_option_help(): bool
     {
         if (!$this->cli_option_version()) {
             return false;
@@ -362,7 +362,7 @@ abstract class PHS_Cli extends PHS_Registry
     /**
      * @return bool
      */
-    public function cli_option_version() : bool
+    public function cli_option_version(): bool
     {
         $this->_echo($this->get_app_name().' - version '.$this->get_app_version());
         $this->_echo($this->get_app_description());
@@ -376,7 +376,7 @@ abstract class PHS_Cli extends PHS_Registry
      *
      * @return bool
      */
-    public function _echo_error(string $msg, array $params = []) : bool
+    public function _echo_error(string $msg, array $params = []): bool
     {
         return $this->_echo($this->cli_color(self::_t('ERROR'), 'red').': '.$msg, $params);
     }
@@ -387,7 +387,7 @@ abstract class PHS_Cli extends PHS_Registry
      *
      * @return bool
      */
-    public function _echo(string $msg, array $params = []) : bool
+    public function _echo(string $msg, array $params = []): bool
     {
         if (empty($params) || !is_array($params)) {
             $params = [];
@@ -434,7 +434,7 @@ abstract class PHS_Cli extends PHS_Registry
      *
      * @return string
      */
-    public function cli_color(string $str, string $color, string $background = '') : string
+    public function cli_color(string $str, string $color, string $background = ''): string
     {
         if (!$this->get_app_output_colors()) {
             return $str;
@@ -443,7 +443,7 @@ abstract class PHS_Cli extends PHS_Registry
         return self::st_cli_color($str, $color, $background);
     }
 
-    protected function _extract_app_command($argv) : void
+    protected function _extract_app_command($argv): void
     {
         $this->reset_error();
 
@@ -486,7 +486,7 @@ abstract class PHS_Cli extends PHS_Registry
         $this->_extract_command_options();
     }
 
-    protected function _extract_app_and_command_options(array $argv) : array
+    protected function _extract_app_and_command_options(array $argv): array
     {
         $old_verbosity = $this->_verbosity_block(self::VERBOSE_L3);
 
@@ -531,7 +531,7 @@ abstract class PHS_Cli extends PHS_Registry
         return $new_argv;
     }
 
-    protected function _extract_command_options() : void
+    protected function _extract_command_options(): void
     {
         if (!$this->_validate_command_options()
          || empty($this->_command_options)) {
@@ -571,7 +571,7 @@ abstract class PHS_Cli extends PHS_Registry
     }
 
     #[NoReturn]
-    protected function _output_result_and_exit() : void
+    protected function _output_result_and_exit(): void
     {
         if (!$this->_app_result) {
             $this->_reset_app_result();
@@ -593,7 +593,7 @@ abstract class PHS_Cli extends PHS_Registry
         exit($exit_code);
     }
 
-    protected function _flush_output() : void
+    protected function _flush_output(): void
     {
         if (!$this->_app_result) {
             $this->_reset_app_result();
@@ -603,7 +603,7 @@ abstract class PHS_Cli extends PHS_Registry
         $this->_app_result['buffer'] = '';
     }
 
-    protected function _reset_output() : void
+    protected function _reset_output(): void
     {
         if (!$this->_app_result) {
             $this->_reset_app_result();
@@ -612,7 +612,7 @@ abstract class PHS_Cli extends PHS_Registry
         $this->_app_result['buffer'] = '';
     }
 
-    protected function _add_buffer_to_result($buf) : void
+    protected function _add_buffer_to_result($buf): void
     {
         if (!$this->_app_result) {
             $this->_reset_app_result();
@@ -621,7 +621,7 @@ abstract class PHS_Cli extends PHS_Registry
         $this->_app_result['buffer'] .= $buf;
     }
 
-    protected function _had_option_as_command($val = null) : bool
+    protected function _had_option_as_command($val = null): bool
     {
         if (!$this->_app_result) {
             $this->_reset_app_result();
@@ -636,12 +636,12 @@ abstract class PHS_Cli extends PHS_Registry
         return true;
     }
 
-    protected function _reset_app_result() : void
+    protected function _reset_app_result(): void
     {
         $this->_app_result = self::get_app_result_definition();
     }
 
-    protected function _process_app_options_on_init() : void
+    protected function _process_app_options_on_init(): void
     {
         // Start processing each parameter based on priority
         if (!empty($this->_options)) {
@@ -668,7 +668,7 @@ abstract class PHS_Cli extends PHS_Registry
         }
     }
 
-    protected function _process_app_options_on_run() : void
+    protected function _process_app_options_on_run(): void
     {
         // Start processing options that have callbacks for run() method
         if (empty($this->_options)) {
@@ -697,7 +697,7 @@ abstract class PHS_Cli extends PHS_Registry
         }
     }
 
-    protected function _default_app_commands() : array
+    protected function _default_app_commands(): array
     {
         return [
             'help' => [
@@ -707,7 +707,7 @@ abstract class PHS_Cli extends PHS_Registry
         ];
     }
 
-    protected function _default_app_options() : array
+    protected function _default_app_options(): array
     {
         return [
             'verbosity' => [
@@ -750,7 +750,7 @@ abstract class PHS_Cli extends PHS_Registry
      * @param null|int $lvl
      * @return null|int
      */
-    protected function _verbosity_block(?int $lvl = null) : ?int
+    protected function _verbosity_block(?int $lvl = null): ?int
     {
         if ($lvl === null) {
             return $this->_block_verbose;
@@ -770,7 +770,7 @@ abstract class PHS_Cli extends PHS_Registry
      *
      * @return bool
      */
-    protected function _continous_flush(?bool $flush = null) : bool
+    protected function _continous_flush(?bool $flush = null): bool
     {
         if ($flush === null) {
             return $this->_continous_flush;
@@ -802,7 +802,7 @@ abstract class PHS_Cli extends PHS_Registry
      *
      * @return string
      */
-    protected function _get_argument_chained(?array $args_arr = null) : string
+    protected function _get_argument_chained(?array $args_arr = null): string
     {
         static $arguments = [];
 
@@ -820,7 +820,7 @@ abstract class PHS_Cli extends PHS_Registry
         return $args_result['arg'];
     }
 
-    private function _extract_option_from_argument(string $arg) : ?array
+    private function _extract_option_from_argument(string $arg): ?array
     {
         if (empty($arg)) {
             return null;
@@ -851,7 +851,7 @@ abstract class PHS_Cli extends PHS_Registry
         return $return_arr;
     }
 
-    private function _get_option_value_as_type_from_string(?string $value) : mixed
+    private function _get_option_value_as_type_from_string(?string $value): mixed
     {
         if ($value === null || $value === 'null') {
             return null;
@@ -927,7 +927,7 @@ abstract class PHS_Cli extends PHS_Registry
         return $this->_options_definition;
     }
 
-    private function _validate_command_options() : bool
+    private function _validate_command_options(): bool
     {
         if (empty($this->_command)
             || empty($this->_command['options_definition'])
@@ -986,7 +986,7 @@ abstract class PHS_Cli extends PHS_Registry
      *
      * @return null|array
      */
-    private function _validate_app_commands(array $app_commands) : bool
+    private function _validate_app_commands(array $app_commands): bool
     {
         $this->reset_error();
 
@@ -1027,7 +1027,7 @@ abstract class PHS_Cli extends PHS_Registry
         return true;
     }
 
-    public static function get_app_result_definition() : array
+    public static function get_app_result_definition(): array
     {
         return [
             // Buffer that will be displayed as result
@@ -1037,7 +1037,7 @@ abstract class PHS_Cli extends PHS_Registry
         ];
     }
 
-    public static function get_app_command_node_definition() : array
+    public static function get_app_command_node_definition(): array
     {
         return [
             // Description used when building --help option
@@ -1051,7 +1051,7 @@ abstract class PHS_Cli extends PHS_Registry
         ];
     }
 
-    public static function get_app_selected_command_definition() : array
+    public static function get_app_selected_command_definition(): array
     {
         return self::validate_array([
             // Keep command name in selected command array
@@ -1063,7 +1063,7 @@ abstract class PHS_Cli extends PHS_Registry
         ], self::get_app_command_node_definition());
     }
 
-    public static function get_option_node_definition() : array
+    public static function get_option_node_definition(): array
     {
         return [
             // short parameter passed in cli line (eg. -u)
@@ -1083,7 +1083,7 @@ abstract class PHS_Cli extends PHS_Registry
         ];
     }
 
-    public static function get_command_line_option_node_definition() : array
+    public static function get_command_line_option_node_definition(): array
     {
         return [
             // Tells if parameter passed to application was short version or not (eg. -u=5 or --user=5)
@@ -1101,7 +1101,7 @@ abstract class PHS_Cli extends PHS_Registry
     /**
      * @return bool
      */
-    public static function running_in_cli() : bool
+    public static function running_in_cli(): bool
     {
         return PHP_SAPI === 'cli';
     }
@@ -1115,7 +1115,7 @@ abstract class PHS_Cli extends PHS_Registry
      *
      * @return string
      */
-    public static function st_cli_color(string $str, string $color, string $background = '') : string
+    public static function st_cli_color(string $str, string $color, string $background = ''): string
     {
         $colors_arr = self::get_cli_colors_definition();
 
@@ -1140,7 +1140,7 @@ abstract class PHS_Cli extends PHS_Registry
         return $colored_str;
     }
 
-    public static function get_cli_colors_definition() : array
+    public static function get_cli_colors_definition(): array
     {
         return [
             'color' => [
@@ -1179,7 +1179,7 @@ abstract class PHS_Cli extends PHS_Registry
      *
      * @return null|PHS_Cli
      */
-    public static function get_instance(?string $app_class_name = null) : ?static
+    public static function get_instance(?string $app_class_name = null): ?static
     {
         if ($app_class_name === null
             && !($app_class_name = static::class)) {
@@ -1213,7 +1213,7 @@ abstract class PHS_Cli extends PHS_Registry
      *
      * @return null|array
      */
-    protected static function _get_one_argument(array $args_arr) : ?array
+    protected static function _get_one_argument(array $args_arr): ?array
     {
         if (empty($args_arr)
             || null === ($first_arg = @array_shift($args_arr))

@@ -42,7 +42,7 @@ class Apple extends PHS_Library
         return $this->_prepare_instance(self::ACTION_REGISTER, $params);
     }
 
-    public function get_url(string $action, string $state = '', string $scope = 'name email') : string
+    public function get_url(string $action, string $state = '', string $scope = 'name email'): string
     {
         if (!$this->_prepare_instance($action)) {
             return '';
@@ -258,7 +258,7 @@ class Apple extends PHS_Library
         return $api_response;
     }
 
-    private function _load_dependencies() : bool
+    private function _load_dependencies(): bool
     {
         $this->reset_error();
 
@@ -403,7 +403,7 @@ class Apple extends PHS_Library
      *
      * @return false|array
      */
-    private function _get_account_details_from_token_id($token_id, $action, $params = false) : ?array
+    private function _get_account_details_from_token_id($token_id, $action, $params = false): ?array
     {
         if (!$this->_load_dependencies()) {
             return null;

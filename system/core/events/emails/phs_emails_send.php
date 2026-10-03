@@ -5,12 +5,12 @@ use phs\libraries\PHS_Event;
 
 class PHS_Event_Emails_send extends PHS_Event
 {
-    public function is_success() : bool
+    public function is_success(): bool
     {
         return (bool)($this->get_output('send_result') ?? false);
     }
 
-    public function result_error() : ?array
+    public function result_error(): ?array
     {
         $result_error = $this->get_output('result_error') ?: null;
 
@@ -20,12 +20,12 @@ class PHS_Event_Emails_send extends PHS_Event
     /**
      * @inheritdoc
      */
-    public function supports_background_listeners() : bool
+    public function supports_background_listeners(): bool
     {
         return false;
     }
 
-    protected function _input_parameters() : array
+    protected function _input_parameters(): array
     {
         return [
             'force_language' => null,
@@ -46,7 +46,7 @@ class PHS_Event_Emails_send extends PHS_Event
         ];
     }
 
-    protected function _output_parameters() : array
+    protected function _output_parameters(): array
     {
         return [
             'send_result'  => false,

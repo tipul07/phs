@@ -9,7 +9,7 @@ class PHS_Contract_Autocomplete extends PHS_Contract
     /**
      * @inheritdoc
      */
-    public function get_contract_data_definition() : ?array
+    public function get_contract_data_definition(): ?array
     {
         return [
             'items' => [

@@ -14,7 +14,7 @@ class PHS_Library_Inmail_parser extends PHS_Library_instantiable
     #[PHS_Dependency]
     private ?PHS_Plugin_Phs_inmail $_inmail_plugin = null;
 
-    public function check_incoming_email_from_buffer(string $buf) : bool
+    public function check_incoming_email_from_buffer(string $buf): bool
     {
         $this->reset_error();
 
@@ -29,7 +29,7 @@ class PHS_Library_Inmail_parser extends PHS_Library_instantiable
         return $this->_check_incoming_email($mime_lib);
     }
 
-    public function check_incoming_email_from_file(string $file) : bool
+    public function check_incoming_email_from_file(string $file): bool
     {
         $this->reset_error();
 
@@ -49,7 +49,7 @@ class PHS_Library_Inmail_parser extends PHS_Library_instantiable
         return $this->_check_incoming_email($mime_lib);
     }
 
-    private function _check_incoming_email(PHS_Library_Mime_parser $mime_lib) : bool
+    private function _check_incoming_email(PHS_Library_Mime_parser $mime_lib): bool
     {
         if (!$this->_check_incoming_email_conditions($mime_lib)
             || null === ($attachments_arr = $this->_convert_attachments_to_files($mime_lib))) {
@@ -73,7 +73,7 @@ class PHS_Library_Inmail_parser extends PHS_Library_instantiable
                 'attachment_files' => $attachments_arr['files'] ?? [],
                 'attachments_dir'  => $attachments_arr['directory'] ?? '',
                 'mime_obj'         => $mime_lib,
-            ]
+            ],
         )) {
             $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error triggering incoming email event.'));
 
@@ -83,7 +83,7 @@ class PHS_Library_Inmail_parser extends PHS_Library_instantiable
         return true;
     }
 
-    private function _convert_attachments_to_files(PHS_Library_Mime_parser $mime_lib) : ?array
+    private function _convert_attachments_to_files(PHS_Library_Mime_parser $mime_lib): ?array
     {
         if (!($attachments_arr = $mime_lib->get_email_attachments())) {
             return [];
@@ -111,7 +111,7 @@ class PHS_Library_Inmail_parser extends PHS_Library_instantiable
                 PHS_Logger::warning(
                     'Couldn\'t obtain attachment file extension for inmail #'
                     .$parsing_id.', attachment #'.$attachment_id.'.',
-                    $this->_inmail_plugin::LOG_CHANNEL
+                    $this->_inmail_plugin::LOG_CHANNEL,
                 );
 
                 continue;
@@ -121,7 +121,7 @@ class PHS_Library_Inmail_parser extends PHS_Library_instantiable
                && !in_array($ext, $accepted_extensions, true)) {
                 PHS_Logger::warning('Attachment file extension ['.$ext.'] is not accepted for inmail #'
                                     .$parsing_id.', attachment #'.$attachment_id.'.',
-                    $this->_inmail_plugin::LOG_CHANNEL
+                    $this->_inmail_plugin::LOG_CHANNEL,
                 );
 
                 continue;
@@ -134,7 +134,7 @@ class PHS_Library_Inmail_parser extends PHS_Library_instantiable
             if (!@file_put_contents($filepath, $attachment['content'])) {
                 PHS_Logger::warning('Error writing attachment file for inmail #'
                                     .$parsing_id.', attachment #'.$attachment_id.', path ['.$filepath.'].',
-                    $this->_inmail_plugin::LOG_CHANNEL
+                    $this->_inmail_plugin::LOG_CHANNEL,
                 );
 
                 foreach ($return_arr['files'] as $file) {
@@ -160,7 +160,7 @@ class PHS_Library_Inmail_parser extends PHS_Library_instantiable
         return $return_arr;
     }
 
-    private function _get_attachment_extension(array $attachment) : string
+    private function _get_attachment_extension(array $attachment): string
     {
         $file_ext = '';
         if (!empty($attachment['filename'])) {
@@ -175,7 +175,7 @@ class PHS_Library_Inmail_parser extends PHS_Library_instantiable
         return strtolower($file_ext);
     }
 
-    private function _prepare_attachments_dir(PHS_Library_Mime_parser $mime_lib) : ?string
+    private function _prepare_attachments_dir(PHS_Library_Mime_parser $mime_lib): ?string
     {
         $inmail_dir = $this->_inmail_plugin->get_inmail_dir(false);
 
@@ -200,7 +200,7 @@ class PHS_Library_Inmail_parser extends PHS_Library_instantiable
         return $event_dir;
     }
 
-    private function _check_incoming_email_conditions(PHS_Library_Mime_parser $mime_lib) : bool
+    private function _check_incoming_email_conditions(PHS_Library_Mime_parser $mime_lib): bool
     {
         $logic_condition = $this->_inmail_plugin->get_logic_condition();
 
@@ -292,7 +292,7 @@ class PHS_Library_Inmail_parser extends PHS_Library_instantiable
         return true;
     }
 
-    private function _check_email_list(array $emails_arr, string $logic_condition, callable $callback) : ?bool
+    private function _check_email_list(array $emails_arr, string $logic_condition, callable $callback): ?bool
     {
         $cond = false;
         foreach ($emails_arr as $email) {
@@ -307,7 +307,7 @@ class PHS_Library_Inmail_parser extends PHS_Library_instantiable
         return $this->_check_condition_result_with_logic_condition($cond, $logic_condition);
     }
 
-    private function _check_condition_result_with_logic_condition(bool $result, string $logic_condition) : ?bool
+    private function _check_condition_result_with_logic_condition(bool $result, string $logic_condition): ?bool
     {
         if ($result) {
             if ($logic_condition === $this->_inmail_plugin::COND_OR) {

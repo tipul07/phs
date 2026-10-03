@@ -22,7 +22,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function should_stop_execution() : ?array
+    public function should_stop_execution(): ?array
     {
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -43,7 +43,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function load_paginator_params() : ?array
+    public function load_paginator_params(): ?array
     {
         PHS::page_settings('page_title', $this->_pt('HTTP Calls'));
 
@@ -280,7 +280,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    public function display_url(array $params) : ?string
+    public function display_url(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
             return null;
@@ -297,7 +297,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return '<a href="'.$params['preset_content'].'" target="_blank">'.$params['preset_content'].'</a>';
     }
 
-    public function display_payload_details(array $params) : ?string
+    public function display_payload_details(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])
          || !($record_arr = $this->_paginator_model->data_to_array($params['record']))) {
@@ -334,7 +334,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function display_httpcall_runs(array $params) : ?string
+    public function display_httpcall_runs(array $params): ?string
     {
         if (empty($params['record']['id'])) {
             return null;
@@ -378,7 +378,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function display_is_final(array $params) : ?string
+    public function display_is_final(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])
             || !($record_arr = $this->_paginator_model->data_to_array($params['record']))) {
@@ -420,7 +420,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $params['preset_content'].@ob_get_clean();
     }
 
-    public function display_actions(array $params) : ?string
+    public function display_actions(array $params): ?string
     {
         if (!$this->_paginator->is_cell_rendering_for_html($params)
             || !$this->_admin_plugin->can_admin_manage_http_calls()) {
@@ -490,7 +490,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function manage_action(array $action) : null | bool | array
+    public function manage_action(array $action): null | bool | array
     {
         $this->reset_error();
 
@@ -844,7 +844,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function after_table_callback(array $params) : ?string
+    public function after_table_callback(array $params): ?string
     {
         static $js_functionality = false;
 
@@ -1131,7 +1131,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function after_full_list_callback($params) : ?string
+    public function after_full_list_callback($params): ?string
     {
         ob_start();
         ?>
@@ -1196,7 +1196,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    protected function _load_dependencies() : bool
+    protected function _load_dependencies(): bool
     {
         if (!$this->_paginator_model
             && !($this->_paginator_model = PHS_Model_Request_queue::get_instance())) {

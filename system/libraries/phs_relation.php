@@ -33,7 +33,7 @@ class PHS_Relation
         $this->options = PHS_Registry::validate_array($this->options, $this->_default_options_array());
     }
 
-    public function load_relation_result(mixed $key_value, PHS_Record_data $for_record_data) : ?PHS_Relation_result
+    public function load_relation_result(mixed $key_value, PHS_Record_data $for_record_data): ?PHS_Relation_result
     {
         $this->_load_models();
 
@@ -46,7 +46,7 @@ class PHS_Relation
         return new PHS_Relation_result(
             for_record_data: $for_record_data,
             relation: $this,
-            read_fn: $this->read_fn ?? function(mixed $read_value, int $offset = 0, int $limit = 0) : null | array | PHS_Record_data {
+            read_fn: $this->read_fn ?? function(mixed $read_value, int $offset = 0, int $limit = 0): null | array | PHS_Record_data {
                 $result = match ($this->get_type()) {
                     self::ONE_TO_ONE         => $this->_get_one_to_one_record($read_value),
                     self::REVERSE_ONE_TO_ONE => $this->_get_reverse_one_to_one_record($read_value),
@@ -92,69 +92,69 @@ class PHS_Relation
         );
     }
 
-    public function get_type() : int
+    public function get_type(): int
     {
         return $this->type;
     }
 
-    public function get_key() : string
+    public function get_key(): string
     {
         return $this->key;
     }
 
-    public function get_dest_key() : string
+    public function get_dest_key(): string
     {
         return $this->dest_key;
     }
 
-    public function get_link_key() : string
+    public function get_link_key(): string
     {
         return $this->link_key;
     }
 
-    public function get_reverse_key() : string
+    public function get_reverse_key(): string
     {
         return $this->reverse_key;
     }
 
-    public function get_link_dest_key() : string
+    public function get_link_dest_key(): string
     {
         return $this->link_dest_key;
     }
 
-    public function get_filter_fn() : ?Closure
+    public function get_filter_fn(): ?Closure
     {
         return $this->filter_fn;
     }
 
-    public function get_source_flow() : ?array
+    public function get_source_flow(): ?array
     {
         return $this->source_flow;
     }
 
-    public function get_source_key() : string
+    public function get_source_key(): string
     {
         return $this->source_key;
     }
 
-    public function get_source_model() : ?PHS_Model_Core_base
+    public function get_source_model(): ?PHS_Model_Core_base
     {
         return $this->source_model;
     }
 
-    public function get_record_data_relation_key() : string
+    public function get_record_data_relation_key(): string
     {
         return $this->get_source_key()
             ?: $this->get_source_model()?->get_primary_key($this->get_source_flow())
                 ?: '';
     }
 
-    protected function _get_one_to_one_record(mixed $key_value) : ?PHS_Record_data
+    protected function _get_one_to_one_record(mixed $key_value): ?PHS_Record_data
     {
         return $this->dest_model_obj->data_to_record_data($key_value, $this->dest_flow_arr);
     }
 
-    protected function _get_reverse_one_to_one_record(mixed $key_value) : ?PHS_Record_data
+    protected function _get_reverse_one_to_one_record(mixed $key_value): ?PHS_Record_data
     {
         if (!($reverse_key = $this->get_reverse_key())) {
             return null;
@@ -171,7 +171,7 @@ class PHS_Relation
         return $this->dest_model_obj->record_data_from_array($data_arr, $this->dest_flow_arr ?? []);
     }
 
-    protected function _get_one_to_many_records(mixed $key_value, int $offset = 0, int $limit = 0) : array
+    protected function _get_one_to_many_records(mixed $key_value, int $offset = 0, int $limit = 0): array
     {
         if (!($dest_key = $this->get_dest_key())) {
             return [];
@@ -187,7 +187,7 @@ class PHS_Relation
         return $this->dest_model_obj->get_list($list_arr) ?: [];
     }
 
-    protected function _get_many_to_many_records(mixed $key_value, int $offset = 0, int $limit = 0) : array
+    protected function _get_many_to_many_records(mixed $key_value, int $offset = 0, int $limit = 0): array
     {
         if (!$this->dest_model_obj
             || !$this->link_model_obj
@@ -214,7 +214,7 @@ class PHS_Relation
         return $this->dest_model_obj->get_list($list_arr) ?: [];
     }
 
-    private function _load_models() : void
+    private function _load_models(): void
     {
         if (!$this->dest_model_obj) {
             $this->dest_model_obj = $this->dest_model_class !== ''
@@ -229,7 +229,7 @@ class PHS_Relation
         }
     }
 
-    private function _load_models_by_class_name(string $class_name) : ?PHS_Model_Core_base
+    private function _load_models_by_class_name(string $class_name): ?PHS_Model_Core_base
     {
         if (empty($class_name)) {
             return null;
@@ -243,7 +243,7 @@ class PHS_Relation
         return $loaded_model;
     }
 
-    private function _fix_limit(int $limit) : int
+    private function _fix_limit(int $limit): int
     {
         if ($limit <= 0) {
             $limit = $this->read_limit <= 0
@@ -254,12 +254,12 @@ class PHS_Relation
         return $limit;
     }
 
-    private function _get_options_value(string $key) : mixed
+    private function _get_options_value(string $key): mixed
     {
         return $this->options[$key] ?? null;
     }
 
-    private function _default_options_array() : array
+    private function _default_options_array(): array
     {
         return [
             'merge_relation_results' => false,

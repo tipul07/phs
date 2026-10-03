@@ -18,7 +18,7 @@ class PHS_Action_Login extends PHS_Api_action
     /**
      * @inheritdoc
      */
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_LOGIN];
     }
@@ -111,7 +111,7 @@ class PHS_Action_Login extends PHS_Api_action
                 return $this->send_api_error(
                     PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR,
                     $accounts_model::ERR_LOGIN,
-                    $this->_pt('Error generating bearer token.')
+                    $this->_pt('Error generating bearer token.'),
                 );
             }
 
@@ -122,7 +122,7 @@ class PHS_Action_Login extends PHS_Api_action
             return $this->send_api_error(
                 PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR,
                 $accounts_model::ERR_LOGIN,
-                $accounts_plugin->get_simple_error_message($this->_pt('Error logging in. Please try again.'))
+                $accounts_plugin->get_simple_error_message($this->_pt('Error logging in. Please try again.')),
             );
         }
 

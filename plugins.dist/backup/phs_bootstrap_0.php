@@ -12,6 +12,6 @@ if (($backup_plugin = PHS_Plugin_Backup::get_instance())) {
         PHS_Event_Layout::ADMIN_TEMPLATE_AFTER_LEFT_MENU);
 
     PHS_Event_Accounts_registration_roles::listen(
-        [$backup_plugin, 'listen_accounts_registration_roles']
+        [$backup_plugin, 'listen_accounts_registration_roles'],
     );
 }

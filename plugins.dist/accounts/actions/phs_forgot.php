@@ -18,12 +18,12 @@ class PHS_Action_Forgot extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_FORGOT_PASSWORD];
     }
 
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
@@ -82,7 +82,7 @@ class PHS_Action_Forgot extends PHS_Action
                 if (!PHS_Bg_jobs::run(['p' => 'accounts', 'a' => 'forgot_password_bg', 'c' => 'index_bg'], ['uid' => $account_arr['id']])) {
                     PHS_Notifications::add_error_notice(
                         self::st_get_simple_error_message(
-                            $this->_pt('Error sending forgot password email. Please try again.'))
+                            $this->_pt('Error sending forgot password email. Please try again.')),
                     );
                 }
 

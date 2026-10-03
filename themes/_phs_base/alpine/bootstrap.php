@@ -4,7 +4,7 @@
 use phs\system\core\views\PHS_View;
 
 if (!@function_exists('phs_base_alpine_theme_bootstrap')) {
-    function phs_base_alpine_theme_bootstrap(PHS_View $fthis) : void
+    function phs_base_alpine_theme_bootstrap(PHS_View $fthis): void
     {
         static $theme_bootstraped = false;
 

@@ -76,7 +76,7 @@ class PHS_Event_Layout extends PHS_Event_Layout_buffer
         self::MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_OUT  => [PHS_Hooks::H_MAIN_TEMPLATE_AFTER_MAIN_MENU_LOGGED_OUT],
     ];
 
-    public static function get_buffer(string $area = '', array $input_arr = [], array $params = []) : string
+    public static function get_buffer(string $area = '', array $input_arr = [], array $params = []): string
     {
         if (!empty(static::OLD_HOOKS[$area])) {
             $params['old_hooks'] = static::OLD_HOOKS[$area];
@@ -91,7 +91,7 @@ class PHS_Event_Layout extends PHS_Event_Layout_buffer
     }
 
     // !! This should be use only with a child class
-    public static function listen_for_buffer(callable | array | string | Closure $callback, array $options = []) : ?self
+    public static function listen_for_buffer(callable | array | string | Closure $callback, array $options = []): ?self
     {
         if (static::class === self::class) {
             self::st_set_error(self::ERR_LISTEN, self::_t('Cannot listen for buffer in base class %s.', self::class));
@@ -103,7 +103,7 @@ class PHS_Event_Layout extends PHS_Event_Layout_buffer
     }
 
     // !! This should be use only with a child class
-    public static function buffer(PHS_View $view_obj, array $template_data = [], array $params = []) : string
+    public static function buffer(PHS_View $view_obj, array $template_data = [], array $params = []): string
     {
         if (static::class === self::class) {
             return self::_t('Cannot ask for buffer in base class %s.', self::class);
@@ -115,7 +115,7 @@ class PHS_Event_Layout extends PHS_Event_Layout_buffer
                 'view_obj'    => $view_obj,
                 'buffer_data' => $template_data,
             ],
-            $params
+            $params,
         );
     }
 }

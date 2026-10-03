@@ -9,6 +9,6 @@ if (($notifications_plugin = PHS_Plugin_Notifications::get_instance())) {
         PHS_Hooks::H_NOTIFICATIONS_DISPLAY,
         [$notifications_plugin, 'get_notifications_hook_args'],
         PHS_Hooks::default_notifications_hook_args(),
-        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 10, ]
+        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 10, ],
     );
 }

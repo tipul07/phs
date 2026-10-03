@@ -15,7 +15,7 @@ class PHS_Ajax extends PHS_Registry
 
     private static int $_ajax_checksum_timeout = 86400; // checksum will fail after one day...
 
-    public static function checksum_timeout(?int $timeout = null) : int
+    public static function checksum_timeout(?int $timeout = null): int
     {
         if ($timeout === null) {
             return self::$_ajax_checksum_timeout;
@@ -26,7 +26,7 @@ class PHS_Ajax extends PHS_Registry
         return self::$_ajax_checksum_timeout;
     }
 
-    public static function url(null | bool | array $route_arr = null, null | bool | array $args = null, null | bool | array $extra = null) : string
+    public static function url(null | bool | array $route_arr = null, null | bool | array $args = null, null | bool | array $extra = null): string
     {
         $extra = $extra ?: [];
         $extra['for_scope'] = PHS_Scope::SCOPE_AJAX;
@@ -34,7 +34,7 @@ class PHS_Ajax extends PHS_Registry
         return PHS::url($route_arr ?: [], self::get_ajax_validation_params($args ?: []), $extra);
     }
 
-    public static function get_ajax_validation_params(array $args = []) : array
+    public static function get_ajax_validation_params(array $args = []): array
     {
         $args[self::PARAM_PUB_KEY] = time() - self::TIME_OFFSET;
         $args[self::PARAM_CHECK_SUM] = md5($args[self::PARAM_PUB_KEY].':'.PHS_Crypt::crypting_key());
@@ -42,7 +42,7 @@ class PHS_Ajax extends PHS_Registry
         return $args;
     }
 
-    public static function validate_input() : bool
+    public static function validate_input(): bool
     {
         if (!($pub_key = PHS_Params::_g(self::PARAM_PUB_KEY, PHS_Params::T_INT))
             || !($check_sum = PHS_Params::_g(self::PARAM_CHECK_SUM, PHS_Params::T_NOHTML))) {
@@ -67,7 +67,7 @@ class PHS_Ajax extends PHS_Registry
         return true;
     }
 
-    public static function run_route() : bool | array
+    public static function run_route(): bool | array
     {
         self::st_reset_error();
 

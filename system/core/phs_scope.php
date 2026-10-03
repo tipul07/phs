@@ -92,7 +92,7 @@ abstract class PHS_Scope extends PHS_Instantiable
     /**
      * @return int
      */
-    abstract public function get_scope_type() : int;
+    abstract public function get_scope_type(): int;
 
     /**
      * @param false|array $action_result
@@ -102,7 +102,7 @@ abstract class PHS_Scope extends PHS_Instantiable
      */
     abstract public function process_action_result($action_result, ?array $static_error_arr = []);
 
-    final public function instance_type() : string
+    final public function instance_type(): string
     {
         return self::INSTANCE_TYPE_SCOPE;
     }
@@ -110,8 +110,8 @@ abstract class PHS_Scope extends PHS_Instantiable
     public function generate_response(
         $action_result,
         ?array $end_user_error_arr = null,
-        ?array $technical_error_arr = null
-    ) : array {
+        ?array $technical_error_arr = null,
+    ): array {
         $this->reset_error();
 
         if (!$action_result) {
@@ -148,12 +148,12 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $action_result;
     }
 
-    public static function get_scopes() : array
+    public static function get_scopes(): array
     {
         return self::$SCOPES_ARR;
     }
 
-    public static function valid_scope(int $scope) : array
+    public static function valid_scope(int $scope): array
     {
         if (!($scopes_arr = self::get_scopes())) {
             return [];
@@ -162,7 +162,7 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $scopes_arr[$scope] ?? [];
     }
 
-    public static function valid_constant_scope(string $const_scope) : int
+    public static function valid_constant_scope(string $const_scope): int
     {
         $const_scope = strtolower(trim($const_scope));
         if (!($scopes_arr = self::get_scopes())) {
@@ -179,7 +179,7 @@ abstract class PHS_Scope extends PHS_Instantiable
         return 0;
     }
 
-    public static function default_scope_params() : array
+    public static function default_scope_params(): array
     {
         return [
             'title'          => '',
@@ -190,7 +190,7 @@ abstract class PHS_Scope extends PHS_Instantiable
         ];
     }
 
-    public static function register_scope(array $scope_params) : ?array
+    public static function register_scope(array $scope_params): ?array
     {
         self::st_reset_error();
 
@@ -215,7 +215,7 @@ abstract class PHS_Scope extends PHS_Instantiable
         return ['scope_key' => $scope_key, 'scope_params' => $scope_params];
     }
 
-    public static function default_scope(?int $scope = null) : int
+    public static function default_scope(?int $scope = null): int
     {
         if ($scope === null) {
             if (!($default_scope = self::get_data(self::DEFAULT_SCOPE_KEY))) {
@@ -236,7 +236,7 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $scope;
     }
 
-    public static function current_scope(?int $scope = null) : int
+    public static function current_scope(?int $scope = null): int
     {
         if ($scope === null) {
             if (!($current_scope = self::get_data(self::SCOPE_FLOW_KEY))) {
@@ -255,12 +255,12 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $scope;
     }
 
-    public static function current_scope_is_set() : bool
+    public static function current_scope_is_set(): bool
     {
         return (bool)self::get_data(self::SCOPE_FLOW_KEY);
     }
 
-    public static function emulated_scope(?int $scope = null) : ?int
+    public static function emulated_scope(?int $scope = null): ?int
     {
         if ($scope === null) {
             if (!($emulated_scope = self::get_data(self::SCOPE_EMULATION_FLOW_KEY))) {
@@ -280,7 +280,7 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $scope;
     }
 
-    public static function spawn_scope_instance(?int $scope = null) : ?self
+    public static function spawn_scope_instance(?int $scope = null): ?self
     {
         if ($scope === null) {
             $scope = self::current_scope();
@@ -297,7 +297,7 @@ abstract class PHS_Scope extends PHS_Instantiable
         return $scope_instance;
     }
 
-    public static function get_scope_instance() : ?self
+    public static function get_scope_instance(): ?self
     {
         static $one_scope = null;
 

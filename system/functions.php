@@ -20,18 +20,18 @@ use phs\system\core\libraries\PHS_Library_Email;
 use phs\system\core\libraries\PHS_Migrations_manager;
 use phs\system\core\libraries\PHS_Requests_queue_manager;
 
-function phs_version() : string
+function phs_version(): string
 {
     return '1.3.1.0';
 }
 
 // region Helper functions
-function phs_email() : ?PHS_Library_Email
+function phs_email(): ?PHS_Library_Email
 {
     return PHS_Library_Email::get_instance();
 }
 
-function action_request_login(array $action_result = []) : array
+function action_request_login(array $action_result = []): array
 {
     $action_result = $action_result ?: PHS_Action::default_action_result();
     $action_result['request_login'] = true;
@@ -39,17 +39,17 @@ function action_request_login(array $action_result = []) : array
     return $action_result;
 }
 
-function action_should_request_login(array $action_result) : bool
+function action_should_request_login(array $action_result): bool
 {
     return !empty($action_result['request_login']);
 }
 
-function action_should_redirect(array $action_result) : bool
+function action_should_redirect(array $action_result): bool
 {
     return !empty($action_result['redirect_to_url']);
 }
 
-function action_redirect(array | string $path = '', ?array $args = null, ?array $extra = null) : array
+function action_redirect(array | string $path = '', ?array $args = null, ?array $extra = null): array
 {
     $action_result = PHS_Action::default_action_result();
     if (is_string($path)) {
@@ -69,8 +69,8 @@ function action_ajax_response(
     ?string $ajax_buffer = null,
     ?array $custom_headers = null,
     ?bool $request_login = null,
-    array $action_result = []
-) : array {
+    array $action_result = [],
+): array {
     $action_result = $action_result ?: PHS_Action::default_action_result();
 
     if ($ajax_arr !== null) {
@@ -89,7 +89,7 @@ function action_ajax_response(
     return $action_result;
 }
 
-function key_val_array_to_javascript_array(array $arr) : array
+function key_val_array_to_javascript_array(array $arr): array
 {
     $return_arr = [];
     foreach ($arr as $id => $text) {
@@ -106,17 +106,17 @@ function key_val_array_to_javascript_array(array $arr) : array
  *
  * @return bool
  */
-function can($role_units, ?array $roles_params = null, $account_structure = null) : bool
+function can($role_units, ?array $roles_params = null, $account_structure = null): bool
 {
     return (bool)PHS_Roles::user_has_role_units(get_account_structure($account_structure), $role_units, $roles_params);
 }
 
-function has_role(string | array $roles, null | bool | int | array | PHS_Record_data $account_structure = null, array $roles_params = []) : bool
+function has_role(string | array $roles, null | bool | int | array | PHS_Record_data $account_structure = null, array $roles_params = []): bool
 {
     return (bool)PHS_Roles::user_has_role(get_account_structure($account_structure), $roles, $roles_params);
 }
 
-function get_account_structure(null | bool | int | array | PHS_Record_data $account_structure = null) : null | array | PHS_Record_data
+function get_account_structure(null | bool | int | array | PHS_Record_data $account_structure = null): null | array | PHS_Record_data
 {
     static $current_structure = null;
 
@@ -133,7 +133,7 @@ function get_account_structure(null | bool | int | array | PHS_Record_data $acco
     return $account_structure;
 }
 
-function migrations_manager() : ?PHS_Migrations_manager
+function migrations_manager(): ?PHS_Migrations_manager
 {
     PHS::st_reset_error();
 
@@ -147,7 +147,7 @@ function migrations_manager() : ?PHS_Migrations_manager
     return $manager;
 }
 
-function requests_queue_manager() : ?PHS_Requests_queue_manager
+function requests_queue_manager(): ?PHS_Requests_queue_manager
 {
     PHS::st_reset_error();
 
@@ -167,7 +167,7 @@ function http_call(
     null | array | string $payload = null,
     ?array $settings = null,
     array $params = [],
-) : ?array {
+): ?array {
     if (!($rq_manager = requests_queue_manager())) {
         return null;
     }
@@ -195,12 +195,12 @@ function http_call(
 }
 // endregion Helper functions
 
-function is_hex_string(string $str) : bool
+function is_hex_string(string $str): bool
 {
     return trim($str, '0..9A..Fa..f') === '';
 }
 
-function encode_to_utf8(string $str) : string
+function encode_to_utf8(string $str): string
 {
     if (@function_exists('mb_convert_encoding')) {
         try {
@@ -218,7 +218,7 @@ function encode_to_utf8(string $str) : string
     return $str;
 }
 
-function phs_init_before_bootstrap() : bool
+function phs_init_before_bootstrap(): bool
 {
     static $did_definitions = null;
 
@@ -353,7 +353,7 @@ function phs_init_before_bootstrap() : bool
 /**
  * @return string
  */
-function generate_guid() : string
+function generate_guid(): string
 {
     try {
         return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x', random_int(0, 65535), random_int(0, 65535),
@@ -366,12 +366,12 @@ function generate_guid() : string
     }
 }
 
-function is_guid(string $guid) : bool
+function is_guid(string $guid): bool
 {
     return PHS_Params::check_type($guid, PHS_Params::T_GUID);
 }
 
-function validate_ip(string $ip) : string
+function validate_ip(string $ip): string
 {
     if (!($ip = trim($ip))) {
         return '';
@@ -401,7 +401,7 @@ function validate_ip(string $ip) : string
     return $parsed_ip;
 }
 
-function request_ip() : string
+function request_ip(): string
 {
     $guessed_ip = '';
     // CloudFlare proxy
@@ -532,7 +532,7 @@ function db_query($query, $connection = false)
     return $qid;
 }
 
-function db_close($connection = false) : bool
+function db_close($connection = false): bool
 {
     if (!($db_instance = PHS_Db::db($connection))) {
         if (PHS_Db::st_debugging_mode()) {
@@ -589,7 +589,7 @@ function db_last_error($connection = false)
     return $db_instance->get_error();
 }
 
-function db_fetch_assoc($qid, $connection = false) : ?array
+function db_fetch_assoc($qid, $connection = false): ?array
 {
     if (!($db_instance = PHS_Db::db($connection))) {
         if (PHS_Db::st_debugging_mode()) {
@@ -614,7 +614,7 @@ function db_fetch_assoc($qid, $connection = false) : ?array
  *
  * @return int
  */
-function db_num_rows($qid, $connection = false) : int
+function db_num_rows($qid, $connection = false): int
 {
     if (!($db_instance = PHS_Db::db($connection))) {
         if (PHS_Db::st_debugging_mode()) {
@@ -633,7 +633,7 @@ function db_num_rows($qid, $connection = false) : int
     return $db_instance->num_rows($qid);
 }
 
-function db_query_count($connection = false) : int
+function db_query_count($connection = false): int
 {
     if (!($db_instance = PHS_Db::db($connection))) {
         return 0;
@@ -651,7 +651,7 @@ function db_affected_rows($connection = false)
     return $db_instance->affected_rows();
 }
 
-function db_quick_insert($table_name, $insert_arr, $connection = false, $params = false) : string
+function db_quick_insert($table_name, $insert_arr, $connection = false, $params = false): string
 {
     if (!($db_instance = PHS_Db::db($connection))) {
         return '';
@@ -660,7 +660,7 @@ function db_quick_insert($table_name, $insert_arr, $connection = false, $params 
     return $db_instance->quick_insert($table_name, $insert_arr, $connection, $params);
 }
 
-function db_quick_edit($table_name, $edit_arr, $connection = false, $params = false) : string
+function db_quick_edit($table_name, $edit_arr, $connection = false, $params = false): string
 {
     if (!($db_instance = PHS_Db::db($connection))) {
         return '';
@@ -713,12 +713,12 @@ function db_connection_identifier($connection)
     return $connection_identifier;
 }
 
-function db_prefix($connection = false) : string
+function db_prefix($connection = false): string
 {
     return db_settings($connection)['prefix'] ?? '';
 }
 
-function db_database($connection = false) : string
+function db_database($connection = false): string
 {
     return db_settings($connection)['database'] ?? '';
 }
@@ -737,7 +737,7 @@ function db_dump($dump_params, $connection = false)
         PHS_Db::st_copy_or_set_error(
             $db_instance,
             PHS_Db::ERR_DATABASE,
-            PHS_Db::_t('Error obtaining dump commands from driver instance.')
+            PHS_Db::_t('Error obtaining dump commands from driver instance.'),
         );
 
         return false;
@@ -749,7 +749,7 @@ function db_dump($dump_params, $connection = false)
 // endregion Database related functions
 //
 
-function form_str($str) : string
+function form_str($str): string
 {
     if (!is_scalar($str) || (string)$str === '') {
         return '';
@@ -758,7 +758,7 @@ function form_str($str) : string
     return str_replace('"', '&quot;', $str);
 }
 
-function textarea_str($str) : string
+function textarea_str($str): string
 {
     if (!is_scalar($str) || (string)$str === '') {
         return '';
@@ -767,7 +767,7 @@ function textarea_str($str) : string
     return str_replace(['<', '>'], ['&lt;', '&gt;'], $str);
 }
 
-function make_sure_is_filename(string $str) : string
+function make_sure_is_filename(string $str): string
 {
     return str_replace(
         ['..', '/', '\\', '~', '<', '>', '|', '`', '*', '&', ],
@@ -775,12 +775,12 @@ function make_sure_is_filename(string $str) : string
         $str);
 }
 
-function seconds_passed($str, array $params = []) : int
+function seconds_passed($str, array $params = []): int
 {
     return time() - parse_db_date($str, $params);
 }
 
-function validate_db_date_array(array $date_arr) : bool
+function validate_db_date_array(array $date_arr): bool
 {
     for ($i = 0; $i < 6; $i++) {
         if (!isset($date_arr[$i])) {
@@ -799,12 +799,12 @@ function validate_db_date_array(array $date_arr) : bool
     );
 }
 
-function empty_t_date(string $date) : bool
+function empty_t_date(string $date): bool
 {
     return empty($date) || $date === DATETIME_T_EMPTY || $date === PHS_Model_Core_base::DATE_EMPTY;
 }
 
-function is_t_date($date, array $params = []) : ?array
+function is_t_date($date, array $params = []): ?array
 {
     if (is_string($date)) {
         $date = trim($date);
@@ -854,7 +854,7 @@ function is_t_date($date, array $params = []) : ?array
     return $result_arr;
 }
 
-function parse_t_date(array | string $date, array $params = []) : int
+function parse_t_date(array | string $date, array $params = []): int
 {
     $params['validate_intervals'] = (!isset($params['validate_intervals']) || !empty($params['validate_intervals']));
 
@@ -901,7 +901,7 @@ function parse_t_date(array | string $date, array $params = []) : int
            + $params['offset_seconds'];
 }
 
-function is_db_date(?string $date, array $params = []) : ?array
+function is_db_date(?string $date, array $params = []): ?array
 {
     $date = trim($date ?? '');
     if (!$date
@@ -946,7 +946,7 @@ function is_db_date(?string $date, array $params = []) : ?array
     return $result_arr;
 }
 
-function parse_db_date(null | string | array $date, array $params = []) : int
+function parse_db_date(null | string | array $date, array $params = []): int
 {
     $params['validate_intervals'] = !isset($params['validate_intervals']) || !empty($params['validate_intervals']);
 
@@ -976,12 +976,12 @@ function parse_db_date(null | string | array $date, array $params = []) : int
     return @mktime($date_arr[3], $date_arr[4], $date_arr[5], $date_arr[1], $date_arr[2], $date_arr[0]) ?: 0;
 }
 
-function empty_db_date(?string $date) : bool
+function empty_db_date(?string $date): bool
 {
     return empty($date) || $date === PHS_Model_Core_base::DATETIME_EMPTY || $date === PHS_Model_Core_base::DATE_EMPTY;
 }
 
-function validate_db_date(?string $date, ?string $format = null) : ?string
+function validate_db_date(?string $date, ?string $format = null): ?string
 {
     if (empty_db_date($date)) {
         return null;
@@ -999,7 +999,7 @@ function validate_db_date(?string $date, ?string $format = null) : ?string
  *
  * @return string
  */
-function prepare_data($str) : string
+function prepare_data($str): string
 {
     if (!is_scalar($str) || (string)$str === '') {
         return '';
@@ -1008,7 +1008,7 @@ function prepare_data($str) : string
     return str_replace('\'', '\\\'', str_replace('\\\'', '\'', $str));
 }
 
-function http_pretty_date(?string $date, array $params = []) : string
+function http_pretty_date(?string $date, array $params = []): string
 {
     $params['date_format'] ??= null;
 
@@ -1037,7 +1037,7 @@ function http_pretty_date(?string $date, array $params = []) : string
  *
  * @return string
  */
-function safe_url($url) : string
+function safe_url($url): string
 {
     if (!is_scalar($url) || (string)$url === '') {
         return '';
@@ -1051,7 +1051,7 @@ function safe_url($url) : string
  *
  * @return string
  */
-function from_safe_url($url) : string
+function from_safe_url($url): string
 {
     if (!is_scalar($url) || (string)$url === '') {
         return '';
@@ -1065,7 +1065,7 @@ function from_safe_url($url) : string
  * @param array $arr
  * @param array $params
  */
-function array_to_query_string(array $arr, array $params = []) : string
+function array_to_query_string(array $arr, array $params = []): string
 {
     if (!$arr) {
         return '';
@@ -1105,7 +1105,7 @@ function array_to_query_string(array $arr, array $params = []) : string
  *
  * @return string
  */
-function add_url_params($str, $params) : string
+function add_url_params($str, $params): string
 {
     if (!is_scalar($str) || (string)$str === '') {
         $str = '';
@@ -1140,7 +1140,7 @@ function add_url_params($str, $params) : string
  *
  * @return string
  */
-function exclude_params($str, $params) : string
+function exclude_params($str, $params): string
 {
     if (!is_scalar($str) || (string)$str === '') {
         return '';
@@ -1208,7 +1208,7 @@ function exclude_params($str, $params) : string
     return $script.$params_res.$anchor;
 }
 
-function format_filesize(int $files) : string
+function format_filesize(int $files): string
 {
     if ($files >= 1073741824) {
         return (round($files / 1073741824 * 100) / 100).'GB';

@@ -22,7 +22,7 @@ class PHS_Api_graphql extends PHS_Api_base
         }
     }
 
-    final public function run_route(array $extra = []) : ?array
+    final public function run_route(array $extra = []): ?array
     {
         $this->reset_error();
 
@@ -49,7 +49,7 @@ class PHS_Api_graphql extends PHS_Api_base
         return $request_response;
     }
 
-    final public function process_result(array $result) : bool
+    final public function process_result(array $result): bool
     {
         self::st_reset_error();
 
@@ -68,7 +68,7 @@ class PHS_Api_graphql extends PHS_Api_base
     /**
      * @return bool Returns true if custom authentication is ok or false if authentication failed
      */
-    protected function _check_api_authentication() : bool
+    protected function _check_api_authentication(): bool
     {
         $this->reset_error();
 
@@ -77,7 +77,7 @@ class PHS_Api_graphql extends PHS_Api_base
 
             if (!$this->send_header_response(
                 $authentication_failed['http_code'] ?? self::H_CODE_UNAUTHORIZED,
-                $authentication_failed['error_msg'] ?? self::_t('Authentication failed.')
+                $authentication_failed['error_msg'] ?? self::_t('Authentication failed.'),
             )) {
                 return false;
             }
@@ -88,7 +88,7 @@ class PHS_Api_graphql extends PHS_Api_base
         return true;
     }
 
-    final public static function framework_allows_graphql_calls() : bool
+    final public static function framework_allows_graphql_calls(): bool
     {
         static $allow_graphql_calls = null;
 
@@ -101,7 +101,7 @@ class PHS_Api_graphql extends PHS_Api_base
         return $allow_graphql_calls;
     }
 
-    final public static function api_factory(array $init_query_params = []) : ?self
+    final public static function api_factory(array $init_query_params = []): ?self
     {
         self::st_reset_error();
 

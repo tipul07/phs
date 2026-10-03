@@ -28,52 +28,52 @@ class PHS_Setup_layout extends PHS_Setup_view
         }
     }
 
-    public function has_error_msgs() : bool
+    public function has_error_msgs(): bool
     {
         return !empty($this->errors_arr);
     }
 
-    public function has_success_msgs() : bool
+    public function has_success_msgs(): bool
     {
         return !empty($this->errors_arr);
     }
 
-    public function has_notices_msgs() : bool
+    public function has_notices_msgs(): bool
     {
         return !empty($this->notices_arr);
     }
 
-    public function reset_error_msgs() : void
+    public function reset_error_msgs(): void
     {
         $this->errors_arr = [];
     }
 
-    public function add_error_msg(string $msg) : void
+    public function add_error_msg(string $msg): void
     {
         $this->errors_arr[] = $msg;
     }
 
-    public function reset_success_msgs() : void
+    public function reset_success_msgs(): void
     {
         $this->success_arr = [];
     }
 
-    public function add_success_msg(string $msg) : void
+    public function add_success_msg(string $msg): void
     {
         $this->success_arr[] = $msg;
     }
 
-    public function reset_notice_msgs() : void
+    public function reset_notice_msgs(): void
     {
         $this->notices_arr = [];
     }
 
-    public function add_notice_msg(string $msg) : void
+    public function add_notice_msg(string $msg): void
     {
         $this->notices_arr[] = $msg;
     }
 
-    public function render(string $template, array $data = [], bool $include_main_template = false) : string
+    public function render(string $template, array $data = [], bool $include_main_template = false): string
     {
         $this->set_context($this->common_data);
 
@@ -105,7 +105,7 @@ class PHS_Setup_layout extends PHS_Setup_view
         return $this->render_view('template_main') ?: '';
     }
 
-    public function get_common_data(?string $key = null) : mixed
+    public function get_common_data(?string $key = null): mixed
     {
         if ($key === false) {
             return $this->common_data;
@@ -114,14 +114,14 @@ class PHS_Setup_layout extends PHS_Setup_view
         return $this->common_data[$key] ?? null;
     }
 
-    public function set_full_common_data(array $arr, bool $merge = false) : void
+    public function set_full_common_data(array $arr, bool $merge = false): void
     {
         $this->common_data = !$merge
             ? $arr
             : PHS_Setup_utils::merge_array_assoc($this->common_data, $arr);
     }
 
-    public function set_common_data(string | array $key, mixed $val = null) : bool
+    public function set_common_data(string | array $key, mixed $val = null): bool
     {
         if ($val === null) {
             if (!is_array($key)) {
@@ -148,7 +148,7 @@ class PHS_Setup_layout extends PHS_Setup_view
         return true;
     }
 
-    public static function get_instance() : self
+    public static function get_instance(): self
     {
         if (self::$layout_instance_obj !== null) {
             return self::$layout_instance_obj;

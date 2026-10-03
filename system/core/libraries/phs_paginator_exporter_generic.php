@@ -29,7 +29,7 @@ class PHS_Paginator_exporter_generic extends PHS_Paginator_exporter_library
     /**
      * @inheritdoc
      */
-    public function start_output() : bool
+    public function start_output(): bool
     {
         if (($callback = $this->_callbacks['start_output_before'])
            && !$callback($this)) {
@@ -49,7 +49,7 @@ class PHS_Paginator_exporter_generic extends PHS_Paginator_exporter_library
     /**
      * @inheritdoc
      */
-    public function record_to_buffer(array $record_data, ?array $params = null) : string
+    public function record_to_buffer(array $record_data, ?array $params = null): string
     {
         return !($callback = $this->_callbacks['record_to_buffer'])
                || !($buf = $callback($this, $record_data, $params))
@@ -60,7 +60,7 @@ class PHS_Paginator_exporter_generic extends PHS_Paginator_exporter_library
     /**
      * @inheritdoc
      */
-    public function record_to_output(array $record_data) : bool
+    public function record_to_output(array $record_data): bool
     {
         if (($callback = $this->_callbacks['record_to_output_before'])) {
             if (!($new_record_data = $callback($this, $record_data))) {
@@ -83,7 +83,7 @@ class PHS_Paginator_exporter_generic extends PHS_Paginator_exporter_library
     /**
      * @inheritdoc
      */
-    public function record_error(?array $record_data, string $error_buf) : void
+    public function record_error(?array $record_data, string $error_buf): void
     {
         if (($callback = $this->_callbacks['record_error_before'])) {
             $callback($this, $record_data, $error_buf);
@@ -99,7 +99,7 @@ class PHS_Paginator_exporter_generic extends PHS_Paginator_exporter_library
     /**
      * @inheritdoc
      */
-    public function finish_output() : bool
+    public function finish_output(): bool
     {
         if (($callback = $this->_callbacks['finish_output_before'])
            && !$callback($this)) {
@@ -116,7 +116,7 @@ class PHS_Paginator_exporter_generic extends PHS_Paginator_exporter_library
         return $result;
     }
 
-    private function _set_callbacks(array $callbacks) : void
+    private function _set_callbacks(array $callbacks): void
     {
         foreach ($this->_callbacks as $callback_name => $callback_value) {
             if (isset($callbacks[$callback_name]) && @is_callable($callbacks[$callback_name])) {

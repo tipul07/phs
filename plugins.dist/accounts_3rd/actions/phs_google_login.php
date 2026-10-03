@@ -21,7 +21,7 @@ class PHS_Action_Google_login extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_REGISTER, self::ACT_ROLE_LOGIN];
     }
@@ -29,7 +29,7 @@ class PHS_Action_Google_login extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB];
     }

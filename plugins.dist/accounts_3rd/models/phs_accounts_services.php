@@ -14,22 +14,22 @@ class PHS_Model_Accounts_services extends PHS_Model
         self::SERVICE_FACEBOOK => ['title' => 'Facebook'],
     ];
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.0.3';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['users_services'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'users_services';
     }
 
-    public function get_services(null | bool | string $lang = false) : array
+    public function get_services(null | bool | string $lang = false): array
     {
         static $services_arr = [];
 
@@ -51,7 +51,7 @@ class PHS_Model_Accounts_services extends PHS_Model
         return $result_arr;
     }
 
-    public function get_services_as_key_val(null | bool | string $lang = false) : array
+    public function get_services_as_key_val(null | bool | string $lang = false): array
     {
         static $services_key_val_arr = null;
 
@@ -78,14 +78,14 @@ class PHS_Model_Accounts_services extends PHS_Model
         return $key_val_arr;
     }
 
-    public function valid_service(int $service, null | bool | string $lang = false) : ?array
+    public function valid_service(int $service, null | bool | string $lang = false): ?array
     {
         $all_services = $this->get_services($lang);
 
         return $all_services[$service] ?? null;
     }
 
-    public function user_is_linked_with_service(int $user_id, int $service_id) : ?array
+    public function user_is_linked_with_service(int $user_id, int $service_id): ?array
     {
         $this->reset_error();
 
@@ -102,11 +102,11 @@ class PHS_Model_Accounts_services extends PHS_Model
 
         return $this->get_details_fields(
             ['user_id' => $user_id, 'service_id' => $service_id],
-            $this->fetch_default_flow_params(['table_name' => 'users_services'])
+            $this->fetch_default_flow_params(['table_name' => 'users_services']),
         ) ?: null;
     }
 
-    public function link_user_with_service(int $user_id, int $service_id, ?string $account_details = null) : ?array
+    public function link_user_with_service(int $user_id, int $service_id, ?string $account_details = null): ?array
     {
         $this->reset_error();
 
@@ -137,7 +137,7 @@ class PHS_Model_Accounts_services extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;

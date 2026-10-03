@@ -33,19 +33,19 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
      *
      * @return string
      */
-    abstract public function record_to_buffer(array $record_data, ?array $params = null) : string;
+    abstract public function record_to_buffer(array $record_data, ?array $params = null): string;
 
-    public function is_export_to_file() : bool
+    public function is_export_to_file(): bool
     {
         return $this->export_registry('export_to') === self::EXPORT_TO_FILE;
     }
 
-    public function is_export_to_output() : bool
+    public function is_export_to_output(): bool
     {
         return $this->export_registry('export_to') === self::EXPORT_TO_OUTPUT;
     }
 
-    public function is_export_to_browser() : bool
+    public function is_export_to_browser(): bool
     {
         return $this->export_registry('export_to') === self::EXPORT_TO_BROWSER;
     }
@@ -58,7 +58,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
      *
      * @return bool
      */
-    public function start_output() : bool
+    public function start_output(): bool
     {
         if (!($export_registry = $this->export_registry())) {
             $export_registry = $this->default_export_registry();
@@ -156,7 +156,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
      * @param array $record_data Record array to be sent to output
      * @return bool
      */
-    public function record_to_output(array $record_data) : bool
+    public function record_to_output(array $record_data): bool
     {
         if (!isset($record_data['record_buffer'])) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Bad record data to export.'));
@@ -205,7 +205,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
      *  Flush file handler and close it, put closing tags for XML, enclose all records as an object for JSON, etc
      *  You can override this method in child class in case you want to export to other sources or you want to change way this exports to output...
      */
-    public function finish_output() : bool
+    public function finish_output(): bool
     {
         if (!($export_registry = $this->export_registry())
             || empty($export_registry['export_to'])
@@ -246,11 +246,11 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
      * @param null|array $record_data Record which triggered the error
      * @param string $error_buf Error message
      */
-    public function record_error(?array $record_data, string $error_buf) : void
+    public function record_error(?array $record_data, string $error_buf): void
     {
     }
 
-    public function paginator_obj(?PHS_Paginator $paginator_obj = null) : ?PHS_Paginator
+    public function paginator_obj(?PHS_Paginator $paginator_obj = null): ?PHS_Paginator
     {
         if ($paginator_obj === null) {
             return $this->_paginator_obj;
@@ -270,7 +270,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
      *
      * @return array Returns an array with default export settings...
      */
-    public function default_export_registry() : array
+    public function default_export_registry(): array
     {
         return [
             // To what encoding should we export (if false it will not do any encodings)
@@ -296,12 +296,12 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
         ];
     }
 
-    public function reset_export_registry() : void
+    public function reset_export_registry(): void
     {
         $this->_export_registry = $this->default_export_registry();
     }
 
-    public function export_registry(null | array | string $key = null, mixed $val = null) : mixed
+    public function export_registry(null | array | string $key = null, mixed $val = null): mixed
     {
         if ($key === null && $val === null) {
             return $this->_export_registry;
@@ -334,7 +334,7 @@ abstract class PHS_Paginator_exporter_library extends PHS_Library
         return null;
     }
 
-    public static function valid_export_to(int $export_to) : bool
+    public static function valid_export_to(int $export_to): bool
     {
         return !empty($export_to)
                && in_array($export_to, [self::EXPORT_TO_FILE, self::EXPORT_TO_OUTPUT, self::EXPORT_TO_BROWSER], true);

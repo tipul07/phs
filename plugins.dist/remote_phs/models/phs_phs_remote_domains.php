@@ -52,17 +52,17 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         self::SOURCE_PROGRAMMATICALLY => ['title' => 'Programmatically'],
     ];
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.0.6';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['phs_remote_domains', 'phs_remote_logs'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'phs_remote_domains';
     }
@@ -661,7 +661,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         return $domain_arr;
     }
 
-    public function get_default_communication_message_arr() : array
+    public function get_default_communication_message_arr(): array
     {
         return [
             // What route should run
@@ -682,7 +682,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         ];
     }
 
-    public function validate_communication_message(array $msg) : ?array
+    public function validate_communication_message(array $msg): ?array
     {
         $this->reset_error();
 
@@ -703,7 +703,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         return $msg;
     }
 
-    public function get_default_connection_settings_arr() : array
+    public function get_default_connection_settings_arr(): array
     {
         return [
             'crypt_key'           => '',
@@ -730,7 +730,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         return PHS_Crypt::quick_encode(@json_encode($settings_arr));
     }
 
-    public function decode_connection_settings(int | array | PHS_Record_data $domain_data) : ?array
+    public function decode_connection_settings(int | array | PHS_Record_data $domain_data): ?array
     {
         $this->reset_error();
 
@@ -801,7 +801,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         return $encoded_data;
     }
 
-    public function quick_decode(int | array | PHS_Record_data $domain_data, string $str) : ?string
+    public function quick_decode(int | array | PHS_Record_data $domain_data, string $str): ?string
     {
         $this->reset_error();
 
@@ -835,7 +835,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         return $decoded_data;
     }
 
-    public function get_domain_by_handler(string $domain_handler) : null | array | PHS_Record_data
+    public function get_domain_by_handler(string $domain_handler): null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -847,7 +847,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         return $domain_arr;
     }
 
-    public function send_request_to_domain_handler(string $domain_handler, array $message_arr) : ?array
+    public function send_request_to_domain_handler(string $domain_handler, array $message_arr): ?array
     {
         $this->reset_error();
 
@@ -861,7 +861,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
         return $this->send_request_to_domain($domain_arr, $message_arr);
     }
 
-    public function send_request_to_domain(int | array | PHS_Record_data $domain_data, array $raw_message_arr) : ?array
+    public function send_request_to_domain(int | array | PHS_Record_data $domain_data, array $raw_message_arr): ?array
     {
         $this->reset_error();
 
@@ -1179,7 +1179,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;
@@ -2069,7 +2069,7 @@ class PHS_Model_Phs_remote_domains extends PHS_Model
     /**
      * This function is never used. Its purpose is to have translations for strings which are not translated in used methods
      */
-    private function _never_used_only_for_translation() : void
+    private function _never_used_only_for_translation(): void
     {
         $this->_pt('Not Connected');
         $this->_pt('Waiting Connection');

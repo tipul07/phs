@@ -20,7 +20,7 @@ abstract class PHS_Api_action extends PHS_Action
     /**
      * @return null|PHS_Api_base
      */
-    public function get_action_api_instance() : ?PHS_Api_base
+    public function get_action_api_instance(): ?PHS_Api_base
     {
         if (!$this->api_obj
             && PHS_Scope::current_scope() === PHS_Scope::SCOPE_API) {
@@ -87,7 +87,7 @@ abstract class PHS_Api_action extends PHS_Action
                 if (!empty($response_data['http_code_is_error'])) {
                     PHS_Model_Api_monitor::api_incoming_request_error($response_data['http_code'],
                         (!empty($response_data['error']['code']) ? $response_data['error']['code'].': ' : '')
-                        .($response_data['error']['message'] ?? 'Unknown error.')
+                        .($response_data['error']['message'] ?? 'Unknown error.'),
                     );
                 } else {
                     PHS_Model_Api_monitor::api_incoming_request_success($response_data['http_code']);
@@ -157,7 +157,7 @@ abstract class PHS_Api_action extends PHS_Action
         $payload_arr,
         int $http_code = PHS_Api_base::H_CODE_OK,
         ?array $action_result_defaults = null,
-        ?array $extra_arr = null
+        ?array $extra_arr = null,
     ) {
         if (!PHS_Api::valid_http_code($http_code)) {
             $http_code = PHS_Api_base::H_CODE_OK;
@@ -175,7 +175,7 @@ abstract class PHS_Api_action extends PHS_Action
         return $this->send_api_response($response_params, $action_result_defaults);
     }
 
-    public function get_request_body() : ?array
+    public function get_request_body(): ?array
     {
         return PHS_Api_base::get_request_body_as_json_array();
     }
@@ -194,8 +194,8 @@ abstract class PHS_Api_action extends PHS_Action
         int $type = PHS_Params::T_ASIS,
         mixed $default = null,
         array $type_extra = [],
-        string $order = 'bpg'
-    ) : mixed {
+        string $order = 'bpg',
+    ): mixed {
         if ($order === '') {
             return $default;
         }
@@ -242,7 +242,7 @@ abstract class PHS_Api_action extends PHS_Action
     /**
      * @return array{force_scope:false|int, api_obj:null|PHS_Api, response_data:null|array, only_response_data_node:bool, http_code_is_error:bool, http_code:int, error: array{code: int, message:string}}
      */
-    public static function default_api_response() : array
+    public static function default_api_response(): array
     {
         return [
             // Scope ID if you want to force a scope

@@ -39,7 +39,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    public function get_model_driver() : string
+    public function get_model_driver(): string
     {
         return PHS_Db::DB_DRIVER_MONGO;
     }
@@ -57,7 +57,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
      *
      * (override the method if not `_id`)
      */
-    public function get_primary_key(null | bool | array $params = []) : string
+    public function get_primary_key(null | bool | array $params = []): string
     {
         return '_id';
     }
@@ -67,7 +67,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
      *
      * Default primary key a hash, override this method if otherwise
      */
-    public function prepare_primary_key(int | string $id, null | bool | array $params = []) : int | string
+    public function prepare_primary_key(int | string $id, null | bool | array $params = []): int | string
     {
         return trim($id);
     }
@@ -75,7 +75,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    public function get_field_types() : array
+    public function get_field_types(): array
     {
         return self::$FTYPE_ARR;
     }
@@ -313,7 +313,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         return true;
     }
 
-    public function create_table_extra_indexes_from_array(array $indexes_array, $flow_params = false) : bool
+    public function create_table_extra_indexes_from_array(array $indexes_array, $flow_params = false): bool
     {
         $this->reset_error();
 
@@ -735,7 +735,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_details_for_model(int | string $id, null | bool | array $params = []) : ?array
+    protected function _get_details_for_model(int | string $id, null | bool | array $params = []): ?array
     {
         $this->reset_error();
 
@@ -786,7 +786,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_details_fields_for_model(array $constrain_arr, null | bool | array $params = []) : ?array
+    protected function _get_details_fields_for_model(array $constrain_arr, null | bool | array $params = []): ?array
     {
         if (!($params = $this->fetch_default_flow_params($params))
             || !($common_arr = $this->get_details_common($constrain_arr, $params))
@@ -831,7 +831,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _check_table_exists_for_model(null | bool | array $flow_params = [], bool $force = false) : bool
+    protected function _check_table_exists_for_model(null | bool | array $flow_params = [], bool $force = false): bool
     {
         $this->reset_error();
 
@@ -865,7 +865,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         && array_key_exists($flow_table_name, self::$tables_arr[$my_driver]));
     }
 
-    protected function _install_table_for_model(array $flow_params) : bool
+    protected function _install_table_for_model(array $flow_params): bool
     {
         $this->reset_error();
 
@@ -948,7 +948,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         return true;
     }
 
-    protected function _update_table_for_model(array $flow_params) : bool
+    protected function _update_table_for_model(array $flow_params): bool
     {
         $this->reset_error();
 
@@ -1211,7 +1211,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         return true;
     }
 
-    protected function _install_missing_table_for_model(array $flow_params) : bool
+    protected function _install_missing_table_for_model(array $flow_params): bool
     {
         return $this->_install_table_for_model($flow_params);
     }
@@ -1219,7 +1219,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _uninstall_table_for_model(null | bool | array $flow_params) : bool
+    protected function _uninstall_table_for_model(null | bool | array $flow_params): bool
     {
         $this->reset_error();
 
@@ -1242,7 +1242,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_table_definition_for_model_from_database(null | bool | array $flow_params = [], bool $force = false) : ?array
+    protected function _get_table_definition_for_model_from_database(null | bool | array $flow_params = [], bool $force = false): ?array
     {
         $this->reset_error();
 
@@ -1309,7 +1309,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _hard_delete_for_model(array | PHS_Record_data $existing_data, null | bool | array $params = []) : bool
+    protected function _hard_delete_for_model(array | PHS_Record_data $existing_data, null | bool | array $params = []): bool
     {
         self::st_reset_error();
         $this->reset_error();
@@ -1341,7 +1341,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _default_table_details_arr() : array
+    protected function _default_table_details_arr(): array
     {
         return [];
     }
@@ -1349,7 +1349,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _default_table_extra_index_arr() : array
+    protected function _default_table_extra_index_arr(): array
     {
         return [
             'unique' => false,
@@ -1360,7 +1360,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _validate_field(array $field_arr) : ?array
+    protected function _validate_field(array $field_arr): ?array
     {
         $field_arr = self::validate_array_to_new_array($field_arr, self::_default_field_arr());
 
@@ -1389,7 +1389,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _validate_field_value(mixed $value, string $field_name, array $field_details) : mixed
+    protected function _validate_field_value(mixed $value, string $field_name, array $field_details): mixed
     {
         $this->reset_error();
 
@@ -1893,7 +1893,7 @@ abstract class PHS_Model_Mongo extends PHS_Model_Core_base
         );
     }
 
-    private function _table_details_changed(array $details1_arr, array $details2_arr) : ?array
+    private function _table_details_changed(array $details1_arr, array $details2_arr): ?array
     {
         $default_table_details = $this->_default_table_details_arr();
 

@@ -12,12 +12,12 @@ use phs\plugins\mobileapi\models\PHS_Model_Api_online;
 
 class PHS_Action_Login extends PHS_Api_action
 {
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_LOGIN];
     }
 
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_API];
     }

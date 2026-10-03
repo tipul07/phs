@@ -31,22 +31,22 @@ class PHS_Model_Api_online extends PHS_Model
         ],
     ];
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.1.0';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['mobileapi_online', 'mobileapi_devices'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'mobileapi_online';
     }
 
-    public function valid_source(string $source) : ?array
+    public function valid_source(string $source): ?array
     {
         return self::$_sources_arr[$source] ?? null;
     }
@@ -57,7 +57,7 @@ class PHS_Model_Api_online extends PHS_Model
      *
      * @return bool true on success, false on error
      */
-    public function define_source(string $source, array $source_arr) : bool
+    public function define_source(string $source, array $source_arr): bool
     {
         if (empty($source) || empty($source_arr)) {
             return false;
@@ -73,7 +73,7 @@ class PHS_Model_Api_online extends PHS_Model
         return true;
     }
 
-    public function get_sources(null | bool | string $lang = null, bool $force = false) : array
+    public function get_sources(null | bool | string $lang = null, bool $force = false): array
     {
         static $sources_arr = [];
 
@@ -95,7 +95,7 @@ class PHS_Model_Api_online extends PHS_Model
         return $result_arr;
     }
 
-    final public function get_sources_as_key_val(null | bool | string $lang = null, bool $force = false) : array
+    final public function get_sources_as_key_val(null | bool | string $lang = null, bool $force = false): array
     {
         static $sources_key_val_arr = [];
 
@@ -123,7 +123,7 @@ class PHS_Model_Api_online extends PHS_Model
         return $key_val_arr;
     }
 
-    final public function get_device_types(null | bool | string $lang = null) : array
+    final public function get_device_types(null | bool | string $lang = null): array
     {
         static $device_types = [];
 
@@ -146,7 +146,7 @@ class PHS_Model_Api_online extends PHS_Model
         return $result_arr;
     }
 
-    final public function get_device_types_as_key_val(null | bool | string $lang = null) : array
+    final public function get_device_types_as_key_val(null | bool | string $lang = null): array
     {
         static $device_types_key_val_arr = [];
 
@@ -173,7 +173,7 @@ class PHS_Model_Api_online extends PHS_Model
         return $key_val_arr;
     }
 
-    public function valid_device_type(int $type, null | bool | string $lang = null) : ?array
+    public function valid_device_type(int $type, null | bool | string $lang = null): ?array
     {
         $all_device_types = $this->get_device_types($lang);
         if (empty($type)
@@ -184,7 +184,7 @@ class PHS_Model_Api_online extends PHS_Model
         return $all_device_types[$type];
     }
 
-    public function act_delete(int | array $record_data) : bool
+    public function act_delete(int | array $record_data): bool
     {
         $this->reset_error();
 
@@ -198,12 +198,12 @@ class PHS_Model_Api_online extends PHS_Model
         return $this->hard_delete($record_arr, ['table_name' => 'mobileapi_online']);
     }
 
-    public function generate_api_key() : string
+    public function generate_api_key(): string
     {
         return md5(uniqid(mt_rand(), true));
     }
 
-    public function generate_api_secret() : string
+    public function generate_api_secret(): string
     {
         return md5(uniqid(mt_rand(), true));
     }
@@ -1050,7 +1050,7 @@ class PHS_Model_Api_online extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;
@@ -1223,7 +1223,7 @@ class PHS_Model_Api_online extends PHS_Model
         return $params;
     }
 
-    protected function insert_after_mobileapi_online(array $insert_arr, array $params) : ?array
+    protected function insert_after_mobileapi_online(array $insert_arr, array $params): ?array
     {
         if (!empty($params[self::DEVICE_KEY]) && is_array($params[self::DEVICE_KEY])) {
             // Update contact address
@@ -1366,14 +1366,14 @@ class PHS_Model_Api_online extends PHS_Model
         return $params;
     }
 
-    public static function default_source_definition() : array
+    public static function default_source_definition(): array
     {
         return [
             'title' => '',
         ];
     }
 
-    public static function get_api_data_session_fields() : array
+    public static function get_api_data_session_fields(): array
     {
         /** @var PHS_Plugin_Mobileapi $mobileapi_plugin */
         if (!($mobileapi_plugin = PHS_Plugin_Mobileapi::get_instance())) {
@@ -1416,7 +1416,7 @@ class PHS_Model_Api_online extends PHS_Model
         ];
     }
 
-    public static function get_api_data_device_fields() : array
+    public static function get_api_data_device_fields(): array
     {
         /** @var PHS_Plugin_Mobileapi $mobileapi_plugin */
         if (!($mobileapi_plugin = PHS_Plugin_Mobileapi::get_instance())) {

@@ -7,7 +7,7 @@ namespace phs\traits;
  */
 trait PHS_Model_Trait_statuses
 {
-    public function get_statuses(null | bool | string $lang = false) : array
+    public function get_statuses(null | bool | string $lang = false): array
     {
         static $statuses_arr = [];
 
@@ -29,7 +29,7 @@ trait PHS_Model_Trait_statuses
         return $result_arr;
     }
 
-    public function get_statuses_as_key_val(null | bool | string $lang = false) : array
+    public function get_statuses_as_key_val(null | bool | string $lang = false): array
     {
         static $statuses_key_val_arr = null;
 
@@ -56,14 +56,14 @@ trait PHS_Model_Trait_statuses
         return $key_val_arr;
     }
 
-    public function valid_status(?int $status, null | bool | string $lang = false) : ?array
+    public function valid_status(?int $status, null | bool | string $lang = false): ?array
     {
         $all_statuses = $this->get_statuses($lang);
 
         return $all_statuses[$status] ?? null;
     }
 
-    public function get_status_title(?int $status, null | bool | string $lang = false) : ?string
+    public function get_status_title(?int $status, null | bool | string $lang = false): ?string
     {
         return ($status_arr = $this->valid_status($status, $lang))
             ? ($status_arr['title'] ?? null)

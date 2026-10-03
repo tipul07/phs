@@ -21,12 +21,12 @@ class PHS_Language extends PHS_Error
     /** @var null|PHS_Language_Container */
     private static ?PHS_Language_Container $lang_callable_obj = null;
 
-    public function _pte(string $index, string $ch = '"') : string
+    public function _pte(string $index, string $ch = '"'): string
     {
         return self::_e($this->_pt($index), $ch);
     }
 
-    public function _pt(string $index) : string
+    public function _pt(string $index): string
     {
         /** @var PHS_Plugin|PHS_Library $this */
         if ((!($this instanceof PHS_Instantiable) && !($this instanceof PHS_Library))
@@ -43,7 +43,7 @@ class PHS_Language extends PHS_Error
         return $result;
     }
 
-    public static function language_container() : PHS_Language_Container
+    public static function language_container(): PHS_Language_Container
     {
         if (empty(self::$lang_callable_obj)) {
             self::$lang_callable_obj = new PHS_Language_Container();
@@ -52,87 +52,87 @@ class PHS_Language extends PHS_Error
         return self::$lang_callable_obj;
     }
 
-    public static function get_utf8_conversion_enabled() : bool
+    public static function get_utf8_conversion_enabled(): bool
     {
         return self::language_container()->get_utf8_conversion_enabled();
     }
 
-    public static function set_utf8_conversion(bool $enabled) : bool
+    public static function set_utf8_conversion(bool $enabled): bool
     {
         return self::language_container()->set_utf8_conversion($enabled);
     }
 
-    public static function get_multi_language_enabled() : bool
+    public static function get_multi_language_enabled(): bool
     {
         return self::language_container()->get_multi_language_enabled();
     }
 
-    public static function set_multi_language(bool $enabled) : bool
+    public static function set_multi_language(bool $enabled): bool
     {
         return self::language_container()->set_multi_language($enabled);
     }
 
-    public static function get_defined_languages() : array
+    public static function get_defined_languages(): array
     {
         return self::language_container()->get_defined_languages();
     }
 
-    public static function get_defined_languages_as_key_val() : array
+    public static function get_defined_languages_as_key_val(): array
     {
         return self::language_container()->get_defined_languages_as_key_val();
     }
 
-    public static function get_defined_language(string $lang) : ?array
+    public static function get_defined_language(string $lang): ?array
     {
         return self::language_container()->get_defined_language($lang);
     }
 
-    public static function get_current_language_key(string $key) : mixed
+    public static function get_current_language_key(string $key): mixed
     {
         return self::language_container()->get_current_language_key($key);
     }
 
-    public static function get_default_language() : string
+    public static function get_default_language(): string
     {
         return self::language_container()->get_default_language();
     }
 
-    public static function get_current_language() : string
+    public static function get_current_language(): string
     {
         return self::language_container()->get_current_language();
     }
 
-    public static function set_current_language(string $lang) : ?string
+    public static function set_current_language(string $lang): ?string
     {
         return self::language_container()->set_current_language($lang);
     }
 
-    public static function set_default_language(string $lang) : ?string
+    public static function set_default_language(string $lang): ?string
     {
         return self::language_container()->set_default_language($lang);
     }
 
-    public static function add_language_files(string $lang, array $files_arr) : bool
+    public static function add_language_files(string $lang, array $files_arr): bool
     {
         return self::language_container()->add_language_files($lang, $files_arr);
     }
 
-    public static function scan_for_language_files(string $dir) : bool
+    public static function scan_for_language_files(string $dir): bool
     {
         return self::language_container()->scan_for_language_files($dir);
     }
 
-    public static function force_reload_language_files(string $lang) : bool
+    public static function force_reload_language_files(string $lang): bool
     {
         return self::language_container()->force_reload_language_files($lang);
     }
 
-    public static function valid_language($lang) : string
+    public static function valid_language($lang): string
     {
         return self::language_container()->valid_language($lang);
     }
 
-    public static function define_language(string $lang, array $lang_params) : bool
+    public static function define_language(string $lang, array $lang_params): bool
     {
         if (!self::language_container()->define_language($lang, $lang_params)) {
             self::st_copy_error(self::language_container());
@@ -143,7 +143,7 @@ class PHS_Language extends PHS_Error
         return true;
     }
 
-    public static function get_language_file_lines(string $file, string $lang) : ?array
+    public static function get_language_file_lines(string $file, string $lang): ?array
     {
         self::st_reset_error();
 
@@ -162,7 +162,7 @@ class PHS_Language extends PHS_Error
         return $return_arr;
     }
 
-    public static function load_language_file(string $file, string $lang, bool $force = false) : bool
+    public static function load_language_file(string $file, string $lang, bool $force = false): bool
     {
         self::st_reset_error();
 
@@ -179,31 +179,31 @@ class PHS_Language extends PHS_Error
         return true;
     }
 
-    public static function get_language_file_header_arr() : array
+    public static function get_language_file_header_arr(): array
     {
         return self::language_container()->get_language_file_header_arr();
     }
 
-    public static function get_language_file_header_str() : string
+    public static function get_language_file_header_str(): string
     {
         return self::language_container()->get_language_file_header_str();
     }
 
-    public static function lang_files_csv_settings(?array $settings = null) : array
+    public static function lang_files_csv_settings(?array $settings = null): array
     {
         $lang_container = self::language_container();
 
         return $lang_container::lang_files_csv_settings($settings);
     }
 
-    public static function default_lang_files_csv_settings() : array
+    public static function default_lang_files_csv_settings(): array
     {
         $lang_container = self::language_container();
 
         return $lang_container::default_lang_files_csv_settings();
     }
 
-    public static function st_pt(string $index) : string
+    public static function st_pt(string $index): string
     {
         if (!($called_class = @static::class)
          || !($clean_class_name = ltrim($called_class, '\\'))
@@ -225,7 +225,7 @@ class PHS_Language extends PHS_Error
      *
      * @return string Translated string
      */
-    public static function _t($index) : string
+    public static function _t($index): string
     {
         if (is_array($index)) {
             $arg_list = $index;
@@ -256,7 +256,7 @@ class PHS_Language extends PHS_Error
      *
      * @return string Translated and escaped string
      */
-    public static function _te(string $index, string $ch = '"') : string
+    public static function _te(string $index, string $ch = '"'): string
     {
         return self::_e(self::_t($index), $ch);
     }
@@ -269,7 +269,7 @@ class PHS_Language extends PHS_Error
      *
      * @return string
      */
-    public static function _e(string $str, string $ch = '"') : string
+    public static function _e(string $str, string $ch = '"'): string
     {
         return str_replace($ch, ($ch === '\'' ? '\\\'' : '\\"'), $str);
     }
@@ -283,7 +283,7 @@ class PHS_Language extends PHS_Error
      *
      * @return string Translated text
      */
-    public static function _tl(string $index, string $lang) : string
+    public static function _tl(string $index, string $lang): string
     {
         $numargs = func_num_args();
         $arg_list = func_get_args();

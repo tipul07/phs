@@ -82,7 +82,7 @@ class PHS_Encdec extends PHS_Language
         $this->use_base64_encode = $use_base64;
     }
 
-    public function set_internal_keys(array $keys_array) : bool
+    public function set_internal_keys(array $keys_array): bool
     {
         $this->internal_keys = $keys_array;
         $this->internal_keys_count = count($this->internal_keys);
@@ -90,7 +90,7 @@ class PHS_Encdec extends PHS_Language
         return $this->_check_internal_keys();
     }
 
-    public function encrypt($str) : string
+    public function encrypt($str): string
     {
         if (!is_scalar($str)
             || $this->has_error()) {
@@ -164,7 +164,7 @@ class PHS_Encdec extends PHS_Language
         return strtoupper($encrypted_str);
     }
 
-    public function decrypt(string $decstr) : ?string
+    public function decrypt(string $decstr): ?string
     {
         if (!$decstr
             || $this->has_error()) {
@@ -247,7 +247,7 @@ class PHS_Encdec extends PHS_Language
         return $decoded_txt;
     }
 
-    private function _check_internal_keys() : bool
+    private function _check_internal_keys(): bool
     {
         $this->reset_error();
 

@@ -10,7 +10,7 @@ if (($remote_phs_plugin = PHS_Plugin_Remote_phs::get_instance())) {
         PHS_Event_Layout::ADMIN_TEMPLATE_AFTER_LEFT_MENU);
 
     PHS_Event_Accounts_registration_roles::listen(
-        [$remote_phs_plugin, 'listen_accounts_registration_roles']
+        [$remote_phs_plugin, 'listen_accounts_registration_roles'],
     );
 
     if ($remote_phs_plugin->is_remote_enabled()) {
@@ -27,7 +27,7 @@ if (($remote_phs_plugin = PHS_Plugin_Remote_phs::get_instance())) {
             'method'                  => 'post',
             'name'                    => 'Perform a ping',
             'description'             => 'Send a ping request to a 3rd party PHS platform to see if connection is alive',
-        ]
+        ],
         );
 
         PHS_Api::register_api_route([
@@ -43,7 +43,7 @@ if (($remote_phs_plugin = PHS_Plugin_Remote_phs::get_instance())) {
             'method'                  => 'post',
             'name'                    => 'Connect with 3rd PHS platform',
             'description'             => 'Send a request to a 3rd party PHS platform to connect',
-        ]
+        ],
         );
 
         PHS_Api::register_api_route([
@@ -59,7 +59,7 @@ if (($remote_phs_plugin = PHS_Plugin_Remote_phs::get_instance())) {
             'method'                  => 'post',
             'name'                    => 'Confirm connection with 3rd PHS platform',
             'description'             => 'Send a request to a 3rd party PHS platform to confirm a connection',
-        ]
+        ],
         );
     }
 }

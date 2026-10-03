@@ -17,7 +17,7 @@ class PHS_Action_Plugins_integrity extends PHS_Action
 {
     public const HOOK_LOG_ACTIONS = 'phs_system_logs_actions';
 
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
@@ -101,7 +101,7 @@ class PHS_Action_Plugins_integrity extends PHS_Action
         return $this->quick_render_template('plugins_integrity', $data);
     }
 
-    private function check_plugin(string $plugin_name) : string
+    private function check_plugin(string $plugin_name): string
     {
         $controllers_arr = PHS::get_plugin_scripts_from_dir($plugin_name, PHS_Instantiable::INSTANCE_TYPE_CONTROLLER) ?: [];
         $actions_arr = PHS::get_plugin_scripts_from_dir($plugin_name, PHS_Instantiable::INSTANCE_TYPE_ACTION) ?: [];
@@ -382,7 +382,7 @@ class PHS_Action_Plugins_integrity extends PHS_Action
             $script_params,
             [
                 'return_buffer' => true,
-            ]
+            ],
         ))) {
             return false;
         }

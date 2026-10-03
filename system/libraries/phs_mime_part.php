@@ -37,57 +37,57 @@ class PHS_Mime_part
         $this->_settings['outer_boundary'] = $_outer_boundary;
     }
 
-    public function get_headers() : array
+    public function get_headers(): array
     {
         return $this->_hval_arr;
     }
 
-    public function get_header_from() : ?string
+    public function get_header_from(): ?string
     {
         return $this->get_header_by_key(self::H_FROM);
     }
 
-    public function get_header_to() : ?string
+    public function get_header_to(): ?string
     {
         return $this->get_header_by_key(self::H_TO);
     }
 
-    public function get_header_cc() : ?string
+    public function get_header_cc(): ?string
     {
         return $this->get_header_by_key(self::H_CC);
     }
 
-    public function get_header_bcc() : ?string
+    public function get_header_bcc(): ?string
     {
         return $this->get_header_by_key(self::H_BCC);
     }
 
-    public function get_header_delivered_to() : ?string
+    public function get_header_delivered_to(): ?string
     {
         return $this->get_header_by_key(self::H_DELIVERED_TO);
     }
 
-    public function get_header_reply_to() : ?string
+    public function get_header_reply_to(): ?string
     {
         return $this->get_header_by_key(self::H_REPLY_TO);
     }
 
-    public function get_header_return_path() : ?string
+    public function get_header_return_path(): ?string
     {
         return $this->get_header_by_key(self::H_RETURN_PATH);
     }
 
-    public function get_header_subject() : ?string
+    public function get_header_subject(): ?string
     {
         return $this->get_header_by_key(self::H_SUBJECT);
     }
 
-    public function get_header_mime_version() : ?string
+    public function get_header_mime_version(): ?string
     {
         return $this->get_header_by_key(self::H_MIME_VERSION);
     }
 
-    public function is_valid_email() : bool
+    public function is_valid_email(): bool
     {
         return $this->get_header_mime_version() !== null
                && $this->get_header_subject() !== null
@@ -95,12 +95,12 @@ class PHS_Mime_part
                && ($this->get_part_boundary() || $this->get_encoded_content());
     }
 
-    public function get_header_by_key(string $hkey) : ?string
+    public function get_header_by_key(string $hkey): ?string
     {
         return $this->_hval_arr[$hkey] ?? null;
     }
 
-    public function get_settings() : array
+    public function get_settings(): array
     {
         return $this->_settings;
     }
@@ -108,29 +108,29 @@ class PHS_Mime_part
     /**
      * @return array<PHS_Mime_part>
      */
-    public function get_parts() : array
+    public function get_parts(): array
     {
         return $this->_parts_arr;
     }
 
-    public function has_parts() : bool
+    public function has_parts(): bool
     {
         return (bool)$this->_parts_arr;
     }
 
-    public function get_content() : ?string
+    public function get_content(): ?string
     {
         return $this->_content
             ? $this->_convert_for_transfer_encoding($this->_content, $this->get_part_transfer_encoding())
             : null;
     }
 
-    public function get_encoded_content() : ?string
+    public function get_encoded_content(): ?string
     {
         return $this->_content;
     }
 
-    public function get_predefined_headers() : array
+    public function get_predefined_headers(): array
     {
         return [
             self::H_FROM, self::H_TO, self::H_CC, self::H_BCC, self::H_SUBJECT, self::H_DATE,
@@ -140,7 +140,7 @@ class PHS_Mime_part
         ];
     }
 
-    public function parse_parts() : bool
+    public function parse_parts(): bool
     {
         if (!$this->_line_feeder_callback) {
             return false;
@@ -154,67 +154,67 @@ class PHS_Mime_part
         return true;
     }
 
-    public function get_part_boundary() : ?string
+    public function get_part_boundary(): ?string
     {
         return $this->_settings['boundary'] ?? null;
     }
 
-    public function get_part_content_type() : ?string
+    public function get_part_content_type(): ?string
     {
         return $this->_settings['content_type'] ?? null;
     }
 
-    public function get_part_content_disposition() : ?string
+    public function get_part_content_disposition(): ?string
     {
         return $this->_settings['content_disposition'] ?? null;
     }
 
-    public function get_part_outer_boundary() : ?string
+    public function get_part_outer_boundary(): ?string
     {
         return $this->_settings['outer_boundary'] ?? null;
     }
 
-    public function get_part_charset() : ?string
+    public function get_part_charset(): ?string
     {
         return $this->_settings['charset'] ?? null;
     }
 
-    public function get_part_transfer_encoding() : ?string
+    public function get_part_transfer_encoding(): ?string
     {
         return $this->_settings['transfer_encoding'] ?? null;
     }
 
-    public function get_part_name() : ?string
+    public function get_part_name(): ?string
     {
         return $this->_settings['name'] ?? null;
     }
 
-    public function get_part_filename() : ?string
+    public function get_part_filename(): ?string
     {
         return $this->_settings['filename'] ?? null;
     }
 
-    public function get_part_content_id() : ?string
+    public function get_part_content_id(): ?string
     {
         return $this->_settings['content_id'] ?? null;
     }
 
-    public function get_part_size() : ?string
+    public function get_part_size(): ?string
     {
         return $this->_settings['size'] ?? null;
     }
 
-    public function get_part_creation_date() : ?string
+    public function get_part_creation_date(): ?string
     {
         return $this->_settings['creation_date'] ?? null;
     }
 
-    public function get_part_modification_date() : ?string
+    public function get_part_modification_date(): ?string
     {
         return $this->_settings['modification_date'] ?? null;
     }
 
-    public function get_predefined_header_key(string $hkey) : ?string
+    public function get_predefined_header_key(string $hkey): ?string
     {
         static $lower_predefined_headers = null;
 
@@ -229,23 +229,23 @@ class PHS_Mime_part
             : $predefined_headers[$index];
     }
 
-    public function is_text_plain() : bool
+    public function is_text_plain(): bool
     {
         return $this->get_part_content_type() === self::TYPE_TEXT_PLAIN;
     }
 
-    public function is_text_html() : bool
+    public function is_text_html(): bool
     {
         return $this->get_part_content_type() === self::TYPE_TEXT_HTML;
     }
 
-    public function is_attachment() : bool
+    public function is_attachment(): bool
     {
         return $this->is_disposition_inline()
                || $this->is_disposition_attachment();
     }
 
-    public function get_attachment_details() : array
+    public function get_attachment_details(): array
     {
         if (!$this->is_attachment()) {
             return [];
@@ -262,17 +262,17 @@ class PHS_Mime_part
         ];
     }
 
-    public function is_disposition_inline() : bool
+    public function is_disposition_inline(): bool
     {
         return $this->get_part_content_disposition() === self::CONTENT_DISPOSITION_INLINE;
     }
 
-    public function is_disposition_attachment() : bool
+    public function is_disposition_attachment(): bool
     {
         return $this->get_part_content_disposition() === self::CONTENT_DISPOSITION_ATTACHMENT;
     }
 
-    private function _extract_parts() : void
+    private function _extract_parts(): void
     {
         if (!$this->_line_feeder_callback) {
             return;
@@ -330,7 +330,7 @@ class PHS_Mime_part
         }
     }
 
-    private function _read_headers() : void
+    private function _read_headers(): void
     {
         $this->_hval_arr = [];
         $h_key = '';
@@ -362,7 +362,7 @@ class PHS_Mime_part
         }
     }
 
-    private function _check_predefined_headers() : void
+    private function _check_predefined_headers(): void
     {
         foreach ($this->_hval_arr as $hkey => $hval) {
             if (!($phkey = $this->get_predefined_header_key($hkey))
@@ -374,7 +374,7 @@ class PHS_Mime_part
         }
     }
 
-    private function _add_header(string $key, string $val) : void
+    private function _add_header(string $key, string $val): void
     {
         if (($phkey = $this->get_predefined_header_key($key))) {
             $key = $phkey;
@@ -398,7 +398,7 @@ class PHS_Mime_part
         $this->_hval_arr[$key][] = PHS_Mime_charset::decode_mime_string($val);
     }
 
-    private function _header_extractor(string $hkey) : ?array
+    private function _header_extractor(string $hkey): ?array
     {
         return match ($hkey) {
             default                           => null,
@@ -409,7 +409,7 @@ class PHS_Mime_part
         };
     }
 
-    private function _convert_for_transfer_encoding(string $content, string $encoding) : string
+    private function _convert_for_transfer_encoding(string $content, string $encoding): string
     {
         return match ($encoding) {
             default            => $this->_convert_to_utf8($content),
@@ -418,7 +418,7 @@ class PHS_Mime_part
         };
     }
 
-    private function _convert_to_utf8(string $content) : string
+    private function _convert_to_utf8(string $content): string
     {
         try {
             $charset = $this->_detect_charset($content);
@@ -433,14 +433,14 @@ class PHS_Mime_part
         }
     }
 
-    private function _detect_charset(string $content) : string
+    private function _detect_charset(string $content): string
     {
         return @mb_detect_encoding($content, array_filter(
-            [$this->get_part_charset(), self::DEFAULT_OUTPUT_CHARSET, 'UTF-8', 'Windows-1252', 'ISO-8859-1', 'ISO-8859-5', 'ISO-8859-15']
+            [$this->get_part_charset(), self::DEFAULT_OUTPUT_CHARSET, 'UTF-8', 'Windows-1252', 'ISO-8859-1', 'ISO-8859-5', 'ISO-8859-15'],
         ), false) ?: self::DEFAULT_OUTPUT_CHARSET;
     }
 
-    private function _default_part_settings() : array
+    private function _default_part_settings(): array
     {
         return [
             'outer_boundary'      => '',
@@ -458,7 +458,7 @@ class PHS_Mime_part
         ];
     }
 
-    private function _extract_content_type(string $kval) : void
+    private function _extract_content_type(string $kval): void
     {
         $parts = explode(';', $kval);
         foreach ($parts as $knti => $part) {
@@ -487,7 +487,7 @@ class PHS_Mime_part
         }
     }
 
-    private function _extract_content_disposition(string $kval) : void
+    private function _extract_content_disposition(string $kval): void
     {
         $parts = explode(';', $kval);
         foreach ($parts as $knti => $part) {
@@ -518,22 +518,22 @@ class PHS_Mime_part
         }
     }
 
-    private function _cleanup_filename(string $filename) : string
+    private function _cleanup_filename(string $filename): string
     {
         return str_replace(['..', '/', '\\', '~', ':'], '', $filename);
     }
 
-    private function _extract_content_id(string $kval) : void
+    private function _extract_content_id(string $kval): void
     {
         $this->_settings['content_id'] = trim(trim($kval), '"<>');
     }
 
-    private function _extract_transfer_encoding(string $kval) : void
+    private function _extract_transfer_encoding(string $kval): void
     {
         $this->_settings['transfer_encoding'] = strtolower(trim($kval));
     }
 
-    public static function parse_recipients(?string $str) : array
+    public static function parse_recipients(?string $str): array
     {
         if (!$str) {
             return [];

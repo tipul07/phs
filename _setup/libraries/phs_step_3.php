@@ -8,7 +8,7 @@ class PHS_Step_3 extends PHS_Step
 {
     public const ERR_CREATE_CONNECTION = 1, ERR_DB_CONNECTION = 2;
 
-    public function step_details() : array
+    public function step_details(): array
     {
         return [
             'title'       => 'Site Setup',
@@ -16,17 +16,17 @@ class PHS_Step_3 extends PHS_Step
         ];
     }
 
-    public function get_config_file() : string
+    public function get_config_file(): string
     {
         return 'site_setup.php';
     }
 
-    public function step_config_passed() : bool
+    public function step_config_passed(): bool
     {
         return @file_exists(PHS_SETUP_CONFIG_DIR.$this->get_config_file());
     }
 
-    public function load_current_configuration() : bool
+    public function load_current_configuration(): bool
     {
         if ($this->config_file_loaded()) {
             return true;
@@ -50,7 +50,7 @@ class PHS_Step_3 extends PHS_Step
         return true;
     }
 
-    protected function render_step_interface(array $data = []) : string
+    protected function render_step_interface(array $data = []): string
     {
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
         if (!($phs_timezone_continent = PHS_Params::_p('phs_timezone_continent', PHS_Params::T_NOHTML))) {

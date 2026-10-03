@@ -13,12 +13,12 @@ use phs\plugins\mobileapi\models\PHS_Model_Api_online;
 
 class PHS_Action_Forgot extends PHS_Api_action
 {
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_FORGOT_PASSWORD];
     }
 
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_API];
     }
@@ -43,7 +43,7 @@ class PHS_Action_Forgot extends PHS_Api_action
                 ['email_queued' => true],
                 PHS_Api_base::H_CODE_OK,
                 null,
-                ['only_response_data_node' => true]
+                ['only_response_data_node' => true],
             );
         }
 

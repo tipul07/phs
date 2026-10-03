@@ -16,7 +16,7 @@ class PHS_Plugin_Notifications extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             // default template

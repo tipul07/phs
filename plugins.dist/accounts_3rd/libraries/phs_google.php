@@ -196,7 +196,7 @@ class Google extends PHS_Library
         return $google_account_info;
     }
 
-    private function _load_dependencies() : bool
+    private function _load_dependencies(): bool
     {
         $this->reset_error();
 

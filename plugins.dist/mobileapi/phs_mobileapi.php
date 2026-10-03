@@ -29,7 +29,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             'firebase_settings_group' => [
@@ -369,7 +369,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         return true;
     }
 
-    public function push_notification_to_user(int | array | PHS_Record_data $account_data, array $payload_arr, array $params = []) : ?array
+    public function push_notification_to_user(int | array | PHS_Record_data $account_data, array $payload_arr, array $params = []): ?array
     {
         $this->reset_error();
 
@@ -419,7 +419,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         return $return_arr;
     }
 
-    public function push_notification_to_device(int | array | PHS_Record_data $device_data, array $payload_arr, array $params = []) : ?array
+    public function push_notification_to_device(int | array | PHS_Record_data $device_data, array $payload_arr, array $params = []): ?array
     {
         $this->reset_error();
 
@@ -445,7 +445,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         return $this->push_notification_to_token($device_arr['device_token'], $payload_arr, $params);
     }
 
-    public function push_notification_to_token(string $token_str, array $payload_arr, array $params = []) : ?array
+    public function push_notification_to_token(string $token_str, array $payload_arr, array $params = []): ?array
     {
         $this->reset_error();
 
@@ -512,7 +512,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         return $session_data;
     }
 
-    public static function default_export_account_and_session_hook_args() : array
+    public static function default_export_account_and_session_hook_args(): array
     {
         return PHS_Hooks::hook_args_definition([
             'account_data'        => false,
@@ -521,7 +521,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         ]);
     }
 
-    public static function default_export_account_data_hook_args() : array
+    public static function default_export_account_data_hook_args(): array
     {
         return PHS_Hooks::hook_args_definition([
             'account_data'        => false,
@@ -530,7 +530,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         ]);
     }
 
-    public static function default_import_account_data_hook_args() : array
+    public static function default_import_account_data_hook_args(): array
     {
         return PHS_Hooks::hook_args_definition([
             'account_data' => false,
@@ -542,7 +542,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
      * Standard definition of a data node to be exported as response to a 3rd party request
      * @return array
      */
-    public static function get_default_api_node_details() : array
+    public static function get_default_api_node_details(): array
     {
         return [
             // Key/Index of the node when exporting to outside reuqests
@@ -568,7 +568,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
      * Valid key_type values
      * @return array
      */
-    public static function get_api_node_key_types() : array
+    public static function get_api_node_key_types(): array
     {
         return [self::API_KEY_INPUT, self::API_KEY_OUTPUT, self::API_KEY_BOTH, ];
     }
@@ -577,7 +577,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
      * @param int $type Node type to be checked
      * @return bool
      */
-    public static function valid_api_node_key_type($type) : bool
+    public static function valid_api_node_key_type($type): bool
     {
         return in_array((int)$type, self::get_api_node_key_types(), true);
     }
@@ -587,7 +587,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
      * @param array $definition_arr Array definition to be normalized
      * @return array Normalized array
      */
-    public static function normalize_definition_of_api_nodes($definition_arr) : array
+    public static function normalize_definition_of_api_nodes($definition_arr): array
     {
         if (empty($definition_arr) || !is_array($definition_arr)) {
             return [];
@@ -682,7 +682,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         return $return_arr;
     }
 
-    public static function get_api_data_account_fields() : array
+    public static function get_api_data_account_fields(): array
     {
         return [
             'id' => [
@@ -762,7 +762,7 @@ class PHS_Plugin_Mobileapi extends PHS_Plugin
         ];
     }
 
-    public static function get_api_data_account_details_fields() : array
+    public static function get_api_data_account_details_fields(): array
     {
         return [
             'title' => [

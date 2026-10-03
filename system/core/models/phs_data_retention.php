@@ -35,22 +35,22 @@ class PHS_Model_Data_retention extends PHS_Model
         self::INT_YEARS  => ['title' => 'Years'],
     ];
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.0.1';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['phs_data_retention', 'phs_data_retention_runs'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'phs_data_retention';
     }
 
-    public function get_types(null | bool | string $lang = null) : array
+    public function get_types(null | bool | string $lang = null): array
     {
         static $types_arr = [];
 
@@ -72,7 +72,7 @@ class PHS_Model_Data_retention extends PHS_Model
         return $result_arr;
     }
 
-    public function get_types_as_key_val(null | bool | string $lang = null) : array
+    public function get_types_as_key_val(null | bool | string $lang = null): array
     {
         static $types_key_val_arr = null;
 
@@ -99,7 +99,7 @@ class PHS_Model_Data_retention extends PHS_Model
         return $key_val_arr;
     }
 
-    public function valid_type(int $type, null | bool | string $lang = null) : ?array
+    public function valid_type(int $type, null | bool | string $lang = null): ?array
     {
         $all_types = $this->get_types($lang);
         if (empty($type)
@@ -110,14 +110,14 @@ class PHS_Model_Data_retention extends PHS_Model
         return $all_types[$type];
     }
 
-    public function get_type_title(int $type, null | bool | string $lang = null) : string
+    public function get_type_title(int $type, null | bool | string $lang = null): string
     {
         return ($type_arr = $this->valid_type($type, $lang))
             ? $type_arr['title'] ?? ''
             : '';
     }
 
-    public function get_intervals(null | bool | string $lang = null) : array
+    public function get_intervals(null | bool | string $lang = null): array
     {
         static $intervals_arr = [];
 
@@ -139,7 +139,7 @@ class PHS_Model_Data_retention extends PHS_Model
         return $result_arr;
     }
 
-    public function get_intervals_as_key_val(null | bool | string $lang = null) : array
+    public function get_intervals_as_key_val(null | bool | string $lang = null): array
     {
         static $intervals_key_val_arr = null;
 
@@ -166,7 +166,7 @@ class PHS_Model_Data_retention extends PHS_Model
         return $key_val_arr;
     }
 
-    public function valid_interval(string $interval, null | bool | string $lang = null) : ?array
+    public function valid_interval(string $interval, null | bool | string $lang = null): ?array
     {
         $all_intervals = $this->get_intervals($lang);
         if (empty($interval)
@@ -177,7 +177,7 @@ class PHS_Model_Data_retention extends PHS_Model
         return $all_intervals[$interval];
     }
 
-    public function get_interval_title(string $interval, ?string $lang = null) : string
+    public function get_interval_title(string $interval, ?string $lang = null): string
     {
         return ($interval_arr = $this->valid_interval($interval, $lang))
             ? $interval_arr['title'] ?? ''
@@ -191,7 +191,7 @@ class PHS_Model_Data_retention extends PHS_Model
         bool $also_finish = false,
         ?string $destination_table = null,
         ?string $error = null,
-    ) : ?array {
+    ): ?array {
         $this->reset_error();
 
         if (empty($record_data)
@@ -242,7 +242,7 @@ class PHS_Model_Data_retention extends PHS_Model
         bool $also_finish = false,
         bool | null | string $error = false,
         ?string $destination_table = null,
-    ) : ?array {
+    ): ?array {
         $this->reset_error();
 
         if (empty($run_record)
@@ -283,7 +283,7 @@ class PHS_Model_Data_retention extends PHS_Model
         return $new_record;
     }
 
-    public function parse_retention_interval_from_retention_data(int | array $record_data) : ?array
+    public function parse_retention_interval_from_retention_data(int | array $record_data): ?array
     {
         $this->reset_error();
 
@@ -305,7 +305,7 @@ class PHS_Model_Data_retention extends PHS_Model
         return $interval_arr;
     }
 
-    public function parse_retention_interval(?string $retention) : ?array
+    public function parse_retention_interval(?string $retention): ?array
     {
         $this->reset_error();
 
@@ -324,7 +324,7 @@ class PHS_Model_Data_retention extends PHS_Model
         ];
     }
 
-    public function generate_retention_interval_time(array $retention_data) : string
+    public function generate_retention_interval_time(array $retention_data): string
     {
         if (empty($retention_data['count'])
              || (int)$retention_data['count'] <= 0
@@ -342,7 +342,7 @@ class PHS_Model_Data_retention extends PHS_Model
         return strtotime($strtime);
     }
 
-    public function generate_retention_field(array $retention_data) : string
+    public function generate_retention_field(array $retention_data): string
     {
         if (empty($retention_data['count'])
             || (int)$retention_data['count'] <= 0
@@ -354,28 +354,28 @@ class PHS_Model_Data_retention extends PHS_Model
         return (int)($retention_data['count']).$retention_data['interval'];
     }
 
-    public function is_active(int | array $record_data) : bool
+    public function is_active(int | array $record_data): bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_ACTIVE;
     }
 
-    public function is_inactive(int | array $record_data) : bool
+    public function is_inactive(int | array $record_data): bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_INACTIVE;
     }
 
-    public function is_deleted(int | array $record_data) : bool
+    public function is_deleted(int | array $record_data): bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_DELETED;
     }
 
-    public function act_activate(int | array $record_data) : ?array
+    public function act_activate(int | array $record_data): ?array
     {
         $this->reset_error();
 
@@ -401,7 +401,7 @@ class PHS_Model_Data_retention extends PHS_Model
         return $new_record;
     }
 
-    public function act_inactivate(int | array $record_data) : ?array
+    public function act_inactivate(int | array $record_data): ?array
     {
         $this->reset_error();
 
@@ -427,7 +427,7 @@ class PHS_Model_Data_retention extends PHS_Model
         return $new_record;
     }
 
-    public function act_delete(int | array $record_data) : ?array
+    public function act_delete(int | array $record_data): ?array
     {
         $this->reset_error();
 
@@ -453,7 +453,7 @@ class PHS_Model_Data_retention extends PHS_Model
         return $new_record;
     }
 
-    public function get_model_date_fields(PHS_Model $model_obj, string $table_name) : ?array
+    public function get_model_date_fields(PHS_Model $model_obj, string $table_name): ?array
     {
         $this->reset_error();
 
@@ -478,7 +478,7 @@ class PHS_Model_Data_retention extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;
@@ -697,7 +697,7 @@ class PHS_Model_Data_retention extends PHS_Model
         return $params;
     }
 
-    protected function get_edit_prepare_params_phs_data_retention($existing_data, $params) : ?array
+    protected function get_edit_prepare_params_phs_data_retention($existing_data, $params): ?array
     {
         if (empty($params) || !is_array($params)) {
             return null;

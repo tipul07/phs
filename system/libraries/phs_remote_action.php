@@ -15,7 +15,7 @@ abstract class PHS_Remote_action extends PHS_Api_action
     /**
      * @return null|PHS_Api_base
      */
-    public function get_action_api_instance() : ?PHS_Api_base
+    public function get_action_api_instance(): ?PHS_Api_base
     {
         if (!$this->api_obj
             && PHS_Scope::current_scope() === PHS_Scope::SCOPE_REMOTE) {
@@ -28,7 +28,7 @@ abstract class PHS_Remote_action extends PHS_Api_action
     /**
      * @return null|array
      */
-    public function get_action_remote_domain() : ?array
+    public function get_action_remote_domain(): ?array
     {
         if (!($api_obj = $this->get_action_api_instance())
          || !($domain_arr = $api_obj->api_flow_value('remote_domain'))) {
@@ -38,7 +38,7 @@ abstract class PHS_Remote_action extends PHS_Api_action
         return $domain_arr;
     }
 
-    public function get_request_body() : ?array
+    public function get_request_body(): ?array
     {
         static $json_request = null;
 

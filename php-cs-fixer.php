@@ -22,18 +22,20 @@ $rules = [
             'magic', 'phpunit', ],
         'sort_algorithm' => 'none',
     ],
-    'function_declaration' => [
+    'single_class_element_per_statement' => ['elements' => ['property']],
+    'function_declaration'               => [
         'closure_fn_spacing'       => 'none',
         'closure_function_spacing' => 'none',
     ],
     'type_declaration_spaces' => [
-        'elements' => ['function'],
+        'elements' => ['constant', 'function', 'property'],
     ],
     'method_argument_space' => [
         'keep_multiple_spaces_after_comma' => false,
         'on_multiline'                     => 'ignore',
     ],
     'single_space_around_construct' => [
+        'constructs_preceded_by_a_single_space' => ['as', 'else', 'elseif', 'use_lambda'],
         'constructs_followed_by_a_single_space' => [
             'abstract', 'as', 'attribute', 'break', 'case', 'catch', 'class', 'clone', 'comment', 'const',
             'const_import', 'continue', 'do', 'echo', 'else', 'elseif', 'enum', 'extends', 'final', 'finally',
@@ -48,10 +50,8 @@ $rules = [
     'statement_indentation'       => true,
     'method_chaining_indentation' => true,
     'explicit_string_variable'    => true,
-    'types_spaces'                => [
-        'space' => 'single', 'space_multiple_catch' => 'single',
-    ],
-    'align_multiline_comment' => [
+    'types_spaces'                => ['space' => 'single', 'space_multiple_catch' => 'single'],
+    'align_multiline_comment'     => [
         'comment_type' => 'phpdocs_like',
     ],
     'ternary_to_null_coalescing' => true,
@@ -72,8 +72,9 @@ $rules = [
     'list_syntax'                              => ['syntax' => 'short'],
     'is_null'                                  => true,
     'return_type_declaration'                  => [
-        'space_before' => 'one',
+        'space_before' => 'none',
     ],
+    'nullable_type_declaration'                        => ['syntax' => 'question_mark'],
     'nullable_type_declaration_for_default_null_value' => true,
     'no_superfluous_elseif'                            => true,
     'no_alternative_syntax'                            => ['fix_non_monolithic_code' => true, ],
@@ -95,8 +96,10 @@ $rules = [
     'no_multiple_statements_per_line'   => true,
     'class_reference_name_casing'       => true,
     'array_indentation'                 => true,
+    'no_whitespace_in_empty_array'      => true,
     'array_syntax'                      => ['syntax' => 'short'],
     'blank_line_between_import_groups'  => true,
+    'clean_namespace'                   => true,
     'blank_lines_before_namespace'      => [
         'max_line_breaks' => 1,
         'min_line_breaks' => 1,
@@ -111,7 +114,8 @@ $rules = [
         'functions_opening_brace'                   => 'next_line_unless_newline_at_signature_end',
         'classes_opening_brace'                     => 'next_line_unless_newline_at_signature_end',
         'anonymous_classes_opening_brace'           => 'same_line',
-        'allow_single_line_empty_anonymous_classes' => false,
+        'anonymous_functions_opening_brace'         => 'same_line',
+        'allow_single_line_empty_anonymous_classes' => true,
         'allow_single_line_anonymous_functions'     => true,
     ],
     'cast_spaces'                 => ['space' => 'none'],
@@ -193,17 +197,22 @@ $rules = [
     'no_unneeded_control_parentheses'   => [
         'statements' => ['break', 'clone', 'continue', 'echo_print', 'return', 'switch_case', 'yield'],
     ],
-    'no_unreachable_default_argument_value'         => true,
-    'simplified_if_return'                          => true,
-    'no_useless_return'                             => true,
-    'no_whitespace_before_comma_in_array'           => true,
-    'no_whitespace_in_blank_line'                   => true,
-    'normalize_index_brace'                         => true,
-    'object_operator_without_whitespace'            => true,
-    'ordered_imports'                               => ['sort_algorithm' => 'length', 'imports_order' => ['const', 'class', 'function']],
+    'no_unreachable_default_argument_value' => true,
+    'simplified_if_return'                  => true,
+    'no_useless_return'                     => true,
+    'no_whitespace_before_comma_in_array'   => true,
+    'no_whitespace_in_blank_line'           => true,
+    'normalize_index_brace'                 => true,
+    'object_operator_without_whitespace'    => true,
+    'ordered_imports'                       => [
+        'sort_algorithm' => 'length',
+        'imports_order'  => ['const', 'class', 'function'],
+    ],
     'psr_autoloading'                               => false,
+    'phpdoc_param_order'                            => true,
     'phpdoc_indent'                                 => true,
     'phpdoc_inline_tag_normalizer'                  => true,
+    'phpdoc_no_duplicate_types'                     => true,
     'phpdoc_no_access'                              => true,
     'phpdoc_no_package'                             => true,
     'phpdoc_no_useless_inheritdoc'                  => true,
@@ -220,28 +229,32 @@ $rules = [
     'phpdoc_align'                                  => ['align' => 'left'],
     'phpdoc_line_span'                              => ['property' => 'single', 'const' => 'single', 'method' => 'multi'],
     'phpdoc_order'                                  => ['order' => ['param', 'return', 'throws']],
-    'phpdoc_types_order'                            => ['sort_algorithm' => 'none', 'null_adjustment' => 'always_first'],
-    'phpdoc_var_annotation_correct_order'           => true,
-    'self_accessor'                                 => true,
-    'self_static_accessor'                          => true,
-    'short_scalar_cast'                             => true,
-    'compact_nullable_type_declaration'             => true,
-    'simplified_null_return'                        => false,
-    'single_blank_line_at_eof'                      => true,
-    'single_import_per_statement'                   => true,
-    'single_line_after_imports'                     => true,
-    'single_line_comment_style'                     => [
-        'comment_types' => ['hash'],
+    'phpdoc_types_order'                            => [
+        'sort_algorithm'  => 'none',
+        'null_adjustment' => 'always_first',
     ],
-    'space_after_semicolon'          => true,
-    'standardize_not_equals'         => true,
-    'switch_case_semicolon_to_colon' => true,
-    'switch_case_space'              => true,
-    'ternary_operator_spaces'        => true,
-    'trailing_comma_in_multiline'    => ['elements' => ['arrays']],
-    'trim_array_spaces'              => true,
-    'unary_operator_spaces'          => true,
-    'visibility_required'            => [
+    'phpdoc_var_annotation_correct_order' => true,
+    'self_accessor'                       => true,
+    'self_static_accessor'                => true,
+    'short_scalar_cast'                   => true,
+    'compact_nullable_type_declaration'   => true,
+    'simplified_null_return'              => false,
+    'single_blank_line_at_eof'            => true,
+    'single_import_per_statement'         => true,
+    'single_line_after_imports'           => true,
+    'single_line_comment_style'           => ['comment_types' => ['hash']],
+    'space_after_semicolon'               => true,
+    'standardize_not_equals'              => true,
+    'switch_case_semicolon_to_colon'      => true,
+    'switch_case_space'                   => true,
+    'ternary_operator_spaces'             => true,
+    'trailing_comma_in_multiline'         => [
+        'after_heredoc' => true,
+        'elements'      => ['arguments', 'array_destructuring', 'arrays', 'match', 'parameters'],
+    ],
+    'trim_array_spaces'     => true,
+    'unary_operator_spaces' => true,
+    'modifier_keywords'     => [
         'elements' => ['method', 'property', 'const'],
     ],
     'whitespace_after_comma_in_array' => true,
@@ -263,6 +276,7 @@ $finder = Finder::create()
 $ncpu = substr_count((string)(@file_get_contents('/proc/cpuinfo') ?: ''), "\nprocessor") + 1;
 
 return (new Config())
+    ->setUnsupportedPhpVersionAllowed(true)
     ->setFinder($finder)
     ->setRules($rules)
     ->setRiskyAllowed(true)

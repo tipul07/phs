@@ -17,12 +17,12 @@ class PHS_Action_Registration_email_bg extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_REGISTER];
     }
 
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_BACKGROUND];
     }
@@ -59,7 +59,7 @@ class PHS_Action_Registration_email_bg extends PHS_Action
         if (!$email_obj?->send()) {
             PHS_Logger::error(
                 'Error sending registration email: '.$email_obj?->get_simple_error_message() ?? 'Unknown error.',
-                PHS_Logger::TYPE_DEBUG
+                PHS_Logger::TYPE_DEBUG,
             );
         }
 

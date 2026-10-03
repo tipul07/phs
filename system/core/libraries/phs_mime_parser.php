@@ -26,12 +26,12 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
 
     private ?PHS_Mime_part $_main_part = null;
 
-    public function set_buffer(string $buffer) : void
+    public function set_buffer(string $buffer): void
     {
         $this->_parse_lines_from_buffer($buffer);
     }
 
-    public function set_input_file(string $filename) : bool
+    public function set_input_file(string $filename): bool
     {
         $this->reset_error();
         $this->_reset_lines_arr();
@@ -62,14 +62,14 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
         return true;
     }
 
-    public function get_email_parsing_id() : string
+    public function get_email_parsing_id(): string
     {
         $this->get_main_part();
 
         return $this->_id;
     }
 
-    public function get_main_part() : ?PHS_Mime_part
+    public function get_main_part(): ?PHS_Mime_part
     {
         if (!$this->_main_part) {
             $this->parse_email();
@@ -78,27 +78,27 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
         return $this->_main_part;
     }
 
-    public function get_headers() : array
+    public function get_headers(): array
     {
         return $this->get_main_part()?->get_headers() ?: [];
     }
 
-    public function get_parts() : array
+    public function get_parts(): array
     {
         return $this->get_main_part()?->get_parts() ?: [];
     }
 
-    public function get_email_from() : ?string
+    public function get_email_from(): ?string
     {
         return $this->get_main_part()?->get_header_from();
     }
 
-    public function get_email_from_as_recipients() : array
+    public function get_email_from_as_recipients(): array
     {
         return $this->as_recipients($this->get_email_from());
     }
 
-    public function email_from_contains_email(string $email) : bool
+    public function email_from_contains_email(string $email): bool
     {
         $email = strtolower($email);
         foreach ($this->get_email_from_as_recipients() as $recipient) {
@@ -110,17 +110,17 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
         return false;
     }
 
-    public function get_email_to() : ?string
+    public function get_email_to(): ?string
     {
         return $this->get_main_part()?->get_header_to();
     }
 
-    public function get_email_to_as_recipients() : array
+    public function get_email_to_as_recipients(): array
     {
         return $this->as_recipients($this->get_email_to());
     }
 
-    public function email_to_contains_email(string $email) : bool
+    public function email_to_contains_email(string $email): bool
     {
         $email = strtolower($email);
         foreach ($this->get_email_to_as_recipients() as $recipient) {
@@ -132,17 +132,17 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
         return false;
     }
 
-    public function get_email_cc() : ?string
+    public function get_email_cc(): ?string
     {
         return $this->get_main_part()?->get_header_cc();
     }
 
-    public function get_email_cc_as_recipients() : array
+    public function get_email_cc_as_recipients(): array
     {
         return $this->as_recipients($this->get_email_cc());
     }
 
-    public function email_cc_contains_email(string $email) : bool
+    public function email_cc_contains_email(string $email): bool
     {
         $email = strtolower($email);
         foreach ($this->get_email_cc_as_recipients() as $recipient) {
@@ -154,17 +154,17 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
         return false;
     }
 
-    public function get_email_bcc() : ?string
+    public function get_email_bcc(): ?string
     {
         return $this->get_main_part()?->get_header_bcc();
     }
 
-    public function get_email_bcc_as_recipients() : array
+    public function get_email_bcc_as_recipients(): array
     {
         return $this->as_recipients($this->get_email_bcc());
     }
 
-    public function email_bcc_contains_email(string $email) : bool
+    public function email_bcc_contains_email(string $email): bool
     {
         $email = strtolower($email);
         foreach ($this->get_email_bcc_as_recipients() as $recipient) {
@@ -176,17 +176,17 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
         return false;
     }
 
-    public function get_email_delivered_to() : ?string
+    public function get_email_delivered_to(): ?string
     {
         return $this->get_main_part()?->get_header_delivered_to();
     }
 
-    public function get_email_delivered_to_as_recipients() : array
+    public function get_email_delivered_to_as_recipients(): array
     {
         return $this->as_recipients($this->get_email_delivered_to());
     }
 
-    public function email_delivered_to_contains_email(string $email) : bool
+    public function email_delivered_to_contains_email(string $email): bool
     {
         $email = strtolower($email);
         foreach ($this->get_email_delivered_to_as_recipients() as $recipient) {
@@ -198,37 +198,37 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
         return false;
     }
 
-    public function get_email_reply_to() : ?string
+    public function get_email_reply_to(): ?string
     {
         return $this->get_main_part()?->get_header_reply_to();
     }
 
-    public function get_email_reply_to_as_recipients() : array
+    public function get_email_reply_to_as_recipients(): array
     {
         return $this->as_recipients($this->get_email_reply_to());
     }
 
-    public function as_recipients(?string $str) : array
+    public function as_recipients(?string $str): array
     {
         return PHS_Mime_part::parse_recipients($str);
     }
 
-    public function get_email_subject() : ?string
+    public function get_email_subject(): ?string
     {
         return $this->get_main_part()?->get_header_subject();
     }
 
-    public function get_email_content() : ?string
+    public function get_email_content(): ?string
     {
         return $this->get_main_part()?->get_content() ?: null;
     }
 
-    public function get_email_encoded_content() : ?string
+    public function get_email_encoded_content(): ?string
     {
         return $this->get_main_part()?->get_encoded_content() ?: null;
     }
 
-    public function get_email_html_body() : ?string
+    public function get_email_html_body(): ?string
     {
         if (!($main_part = $this->get_main_part())) {
             return null;
@@ -245,7 +245,7 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
         return $this->_get_email_html_body_from_parts($parts);
     }
 
-    public function get_email_text_body() : ?string
+    public function get_email_text_body(): ?string
     {
         if (!($main_part = $this->get_main_part())) {
             return null;
@@ -262,7 +262,7 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
         return $this->_get_email_text_body_from_parts($parts);
     }
 
-    public function get_email_attachments() : array
+    public function get_email_attachments(): array
     {
         if (!($main_part = $this->get_main_part())
             || !($parts = $main_part->get_parts())) {
@@ -275,17 +275,17 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
         return $matches;
     }
 
-    public function has_attachments() : bool
+    public function has_attachments(): bool
     {
         return (bool)$this->get_email_attachments();
     }
 
-    public function has_parts() : bool
+    public function has_parts(): bool
     {
         return $this->get_main_part()?->has_parts() ?: false;
     }
 
-    public function full_read_filsezise_limit(?int $limit = null) : int
+    public function full_read_filsezise_limit(?int $limit = null): int
     {
         if ($limit !== null) {
             $this->_full_read_filsezise_limit = $limit;
@@ -294,12 +294,12 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
         return $this->_full_read_filsezise_limit;
     }
 
-    public function is_valid_email() : bool
+    public function is_valid_email(): bool
     {
         return $this->get_main_part()?->is_valid_email();
     }
 
-    public function parse_email() : void
+    public function parse_email(): void
     {
         $this->reset_error();
 
@@ -310,7 +310,7 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
         $this->_close_fh();
     }
 
-    public function get_next_line(bool $advance = true) : ?string
+    public function get_next_line(bool $advance = true): ?string
     {
         if ($this->_lines_parsed) {
             if (($this->_lines_arr[$this->_li] ?? null) === null) {
@@ -336,7 +336,7 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
      *
      * @return null|string
      */
-    private function _get_email_html_body_from_parts(array $parts) : ?string
+    private function _get_email_html_body_from_parts(array $parts): ?string
     {
         foreach ($parts as $part) {
             if ($part->is_text_html()) {
@@ -356,7 +356,7 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
      *
      * @return null|string
      */
-    private function _get_email_text_body_from_parts(array $parts) : ?string
+    private function _get_email_text_body_from_parts(array $parts): ?string
     {
         foreach ($parts as $part) {
             if ($part->is_text_plain()) {
@@ -375,7 +375,7 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
      * @param array<PHS_Mime_part> $parts
      * @param array $matches
      */
-    private function _get_email_attachments_from_parts(array $parts, array &$matches) : void
+    private function _get_email_attachments_from_parts(array $parts, array &$matches): void
     {
         foreach ($parts as $part) {
             if ($part->is_attachment()) {
@@ -388,7 +388,7 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
         }
     }
 
-    private function _get_line_from_file(bool $advance = true) : ?string
+    private function _get_line_from_file(bool $advance = true): ?string
     {
         if ($this->_filename === null) {
             return null;
@@ -413,7 +413,7 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
         return $line;
     }
 
-    private function _close_fh() : void
+    private function _close_fh(): void
     {
         if ($this->_fh !== null) {
             @fclose($this->_fh);
@@ -437,14 +437,14 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
         return $this->_fh;
     }
 
-    private function _reset_lines_arr() : void
+    private function _reset_lines_arr(): void
     {
         $this->_lines_arr = [];
         $this->_li = 0;
         $this->_prev_line = null;
     }
 
-    private function _parse_lines_from_buffer(string $buffer) : void
+    private function _parse_lines_from_buffer(string $buffer): void
     {
         $this->_reset_lines_arr();
 
@@ -457,7 +457,7 @@ class PHS_Library_Mime_parser extends PHS_Library_instantiable
         $this->_lines_parsed = true;
     }
 
-    public static function instances_as_singletons() : bool
+    public static function instances_as_singletons(): bool
     {
         return false;
     }

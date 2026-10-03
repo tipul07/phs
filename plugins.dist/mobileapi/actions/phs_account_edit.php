@@ -10,12 +10,12 @@ use phs\plugins\mobileapi\PHS_Plugin_Mobileapi;
 
 class PHS_Action_Account_edit extends PHS_Api_action
 {
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_EDIT_PROFILE];
     }
 
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_API];
     }

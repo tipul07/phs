@@ -11,7 +11,7 @@ use phs\system\core\models\PHS_Model_Tenants;
 
 class PHS_Action_Edit extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
@@ -125,7 +125,7 @@ class PHS_Action_Edit extends PHS_Action
 
             PHS_Notifications::add_error_notice(
                 $tenants_model->get_simple_error_message(
-                    $this->_pt('Error saving details to database. Please try again.'))
+                    $this->_pt('Error saving details to database. Please try again.')),
             );
         }
 

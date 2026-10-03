@@ -8,12 +8,12 @@ class PHS_Event_Log extends PHS_Event
     /**
      * @inheritdoc
      */
-    protected function _auto_trigger_hook_name() : ?string
+    protected function _auto_trigger_hook_name(): ?string
     {
         return 'phs_logger';
     }
 
-    protected function _input_parameters() : array
+    protected function _input_parameters(): array
     {
         return [
             'channel'            => '',
@@ -28,7 +28,7 @@ class PHS_Event_Log extends PHS_Event
         ];
     }
 
-    protected function _output_parameters() : array
+    protected function _output_parameters(): array
     {
         return [
             // Populated if request_ip should be changed

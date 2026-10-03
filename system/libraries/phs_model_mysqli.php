@@ -76,7 +76,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    public function get_model_driver() : string
+    public function get_model_driver(): string
     {
         return PHS_Db::DB_DRIVER_MYSQLI;
     }
@@ -94,7 +94,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * (override the method if not `id`)
      */
-    public function get_primary_key(null | bool | array $params = []) : string
+    public function get_primary_key(null | bool | array $params = []): string
     {
         return 'id';
     }
@@ -104,7 +104,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      * @return int
      *             Default primary key an INT, override this method if otherwise
      */
-    public function prepare_primary_key(int | string $id, null | bool | array $params = []) : int | string
+    public function prepare_primary_key(int | string $id, null | bool | array $params = []): int | string
     {
         return (int)$id;
     }
@@ -112,7 +112,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    public function get_field_types() : array
+    public function get_field_types(): array
     {
         return self::$FTYPE_ARR;
     }
@@ -149,7 +149,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    final public function alter_table_add_column(string $field_name, array $field_details, $flow_params = false, $params = false) : bool
+    final public function alter_table_add_column(string $field_name, array $field_details, $flow_params = false, $params = false): bool
     {
         $this->reset_error();
 
@@ -241,8 +241,8 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         array $field_details,
         $old_field = false,
         $flow_params = false,
-        ?array $params = null
-    ) : bool {
+        ?array $params = null,
+    ): bool {
         $this->reset_error();
 
         $field_details = self::validate_array($field_details, self::_default_field_arr());
@@ -359,7 +359,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    final public function alter_table_drop_column(string $field_name, $flow_params = false) : bool
+    final public function alter_table_drop_column(string $field_name, $flow_params = false): bool
     {
         $this->reset_error();
 
@@ -401,7 +401,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    final public function alter_table_drop_column_index(string $field_name, $flow_params = false) : bool
+    final public function alter_table_drop_column_index(string $field_name, $flow_params = false): bool
     {
         $this->reset_error();
 
@@ -444,7 +444,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    final public function alter_table_add_column_index(string $field_name, array $field_details, $flow_params = false) : bool
+    final public function alter_table_add_column_index(string $field_name, array $field_details, $flow_params = false): bool
     {
         $this->reset_error();
 
@@ -493,7 +493,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    public function create_table_extra_indexes_from_array(array $indexes_array, $flow_params = false) : bool
+    public function create_table_extra_indexes_from_array(array $indexes_array, $flow_params = false): bool
     {
         $this->reset_error();
 
@@ -520,7 +520,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    public function drop_table_index(string $index_name, $flow_params = false) : bool
+    public function drop_table_index(string $index_name, $flow_params = false): bool
     {
         $this->reset_error();
 
@@ -670,7 +670,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         return $insert_arr;
     }
 
-    public function insert_as_record_data(array $params) : ?PHS_Record_data
+    public function insert_as_record_data(array $params): ?PHS_Record_data
     {
         if (!($new_record = $this->insert($params))) {
             $this->set_error_if_not_set(self::ERR_INSERT, self::_t('Error inserting record to the database.'));
@@ -681,7 +681,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         return $this->record_data_from_array($new_record);
     }
 
-    public function record_is_new(array | PHS_Record_data $record_arr) : bool
+    public function record_is_new(array | PHS_Record_data $record_arr): bool
     {
         if ($record_arr instanceof PHS_Record_data) {
             return $record_arr->record_is_new();
@@ -938,7 +938,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         return $params;
     }
 
-    public function get_count(null | bool | array $params = false) : int | array
+    public function get_count(null | bool | array $params = false): int | array
     {
         $this->reset_error();
 
@@ -1040,7 +1040,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_details_for_model(int | string $id, null | bool | array $params = []) : ?array
+    protected function _get_details_for_model(int | string $id, null | bool | array $params = []): ?array
     {
         if (!($params = $this->fetch_default_flow_params($params))) {
             return null;
@@ -1063,7 +1063,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_details_fields_for_model(array $constrain_arr, null | bool | array $params = []) : ?array
+    protected function _get_details_fields_for_model(array $constrain_arr, null | bool | array $params = []): ?array
     {
         if (!($params = $this->fetch_default_flow_params($params))
          || !($common_arr = $this->get_details_common($constrain_arr, $params))
@@ -1097,7 +1097,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _check_table_exists_for_model(null | bool | array $flow_params = [], bool $force = false) : bool
+    protected function _check_table_exists_for_model(null | bool | array $flow_params = [], bool $force = false): bool
     {
         $this->reset_error();
 
@@ -1119,7 +1119,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    protected function _install_table_for_model(array $flow_params) : bool
+    protected function _install_table_for_model(array $flow_params): bool
     {
         $this->reset_error();
 
@@ -1204,7 +1204,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         return true;
     }
 
-    protected function get_previous_field_from_table_definition(string $field, array $definition) : ?array
+    protected function get_previous_field_from_table_definition(string $field, array $definition): ?array
     {
         if (empty($field)
          || !isset($definition[$field])) {
@@ -1238,7 +1238,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    protected function _update_table_for_model(array $flow_params) : bool
+    protected function _update_table_for_model(array $flow_params): bool
     {
         $this->reset_error();
 
@@ -1564,7 +1564,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    protected function _install_missing_table_for_model(array $flow_params) : bool
+    protected function _install_missing_table_for_model(array $flow_params): bool
     {
         return $this->_install_table_for_model($flow_params);
     }
@@ -1572,7 +1572,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _uninstall_table_for_model(null | bool | array $flow_params) : bool
+    protected function _uninstall_table_for_model(null | bool | array $flow_params): bool
     {
         $this->reset_error();
 
@@ -1595,7 +1595,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _get_table_definition_for_model_from_database(null | bool | array $flow_params = [], bool $force = false) : ?array
+    protected function _get_table_definition_for_model_from_database(null | bool | array $flow_params = [], bool $force = false): ?array
     {
         $this->reset_error();
 
@@ -1618,7 +1618,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _hard_delete_for_model(array | PHS_Record_data $existing_data, null | bool | array $params = []) : bool
+    protected function _hard_delete_for_model(array | PHS_Record_data $existing_data, null | bool | array $params = []): bool
     {
         self::st_reset_error();
         $this->reset_error();
@@ -1650,7 +1650,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _default_table_details_arr() : array
+    protected function _default_table_details_arr(): array
     {
         return [
             'engine'  => 'InnoDB',
@@ -1663,7 +1663,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _default_table_extra_index_arr() : array
+    protected function _default_table_extra_index_arr(): array
     {
         return [
             'unique' => false,
@@ -1674,7 +1674,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _validate_field(array $field_arr) : ?array
+    protected function _validate_field(array $field_arr): ?array
     {
         $field_arr = self::validate_array_to_new_array($field_arr, self::_default_field_arr());
 
@@ -1766,7 +1766,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @inheritdoc
      */
-    protected function _validate_field_value(mixed $value, string $field_name, array $field_details) : mixed
+    protected function _validate_field_value(mixed $value, string $field_name, array $field_details): mixed
     {
         $this->reset_error();
 
@@ -2048,7 +2048,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    protected function _create_table_extra_indexes($flow_params) : bool
+    protected function _create_table_extra_indexes($flow_params): bool
     {
         $this->reset_error();
 
@@ -2084,7 +2084,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    protected function drop_table_indexes_from_array(array $indexes_array, $flow_params = false) : bool
+    protected function drop_table_indexes_from_array(array $indexes_array, $flow_params = false): bool
     {
         $this->reset_error();
 
@@ -2107,7 +2107,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     //
     //  region Querying database functionality
     //
-    protected function get_details_common(array $constrain_arr, null | bool | array $params = false) : ?array
+    protected function get_details_common(array $constrain_arr, null | bool | array $params = false): ?array
     {
         if (!($params = $this->fetch_default_flow_params($params))) {
             return null;
@@ -2190,7 +2190,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         return $return_arr;
     }
 
-    protected function _get_query_field_value(string $field_name, mixed $field_val, array $params = []) : string
+    protected function _get_query_field_value(string $field_name, mixed $field_val, array $params = []): string
     {
         if (empty($params['db_connection'])) {
             $params['db_connection'] = false;
@@ -2307,7 +2307,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         return $result_str;
     }
 
-    protected function get_list_common(null | bool | array $params = false) : ?array
+    protected function get_list_common(null | bool | array $params = false): ?array
     {
         $this->reset_error();
 
@@ -2385,7 +2385,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         array $flow_params,
         string $my_driver,
         string $flow_table_name,
-        bool $force = false) : bool
+        bool $force = false): bool
     {
         $this->reset_error();
 
@@ -2411,7 +2411,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         return true;
     }
 
-    private function _get_table_indexes_definition_for_model_from_database($flow_params, $my_driver, $flow_table_name, bool $force = false) : bool
+    private function _get_table_indexes_definition_for_model_from_database($flow_params, $my_driver, $flow_table_name, bool $force = false): bool
     {
         if (!($qid = db_query('SHOW INDEXES FROM `'.$flow_table_name.'`', $flow_params['db_connection']))) {
             $this->set_error(self::ERR_READ_DB_STRUCTURE,
@@ -2488,7 +2488,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    private function _extract_db_structure($flow_params = false, bool $force = false) : bool
+    private function _extract_db_structure($flow_params = false, bool $force = false): bool
     {
         $this->reset_error();
 
@@ -2618,7 +2618,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         return $return_arr;
     }
 
-    private function _parse_mysql_field_result($field_arr) : array
+    private function _parse_mysql_field_result($field_arr): array
     {
         $field_arr = self::validate_array($field_arr, self::_default_mysql_table_field_fields());
         $model_field_arr = self::_default_field_arr();
@@ -2747,7 +2747,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return null|array Returns an array containing mysql statement for provided field and key string (if required) or false on failure
      */
-    private function _get_mysql_field_definition(string $field_name, array $field_details) : ?array
+    private function _get_mysql_field_definition(string $field_name, array $field_details): ?array
     {
         $field_details = self::validate_array($field_details, self::_default_field_arr());
 
@@ -2826,7 +2826,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return bool
      */
-    private function _create_table_extra_index(string $index_name, array $index_arr, $flow_params = false) : bool
+    private function _create_table_extra_index(string $index_name, array $index_arr, $flow_params = false): bool
     {
         $this->reset_error();
 
@@ -2885,7 +2885,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @return array
      */
-    public static function get_count_default_params() : array
+    public static function get_count_default_params(): array
     {
         return [
             'count_field' => '*',
@@ -2904,7 +2904,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @return array
      */
-    public static function get_list_default_params() : array
+    public static function get_list_default_params(): array
     {
         return [
             'get_query_id'             => false,
@@ -2935,7 +2935,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
      *
      * @return string
      */
-    public static function safe_escape(string $str, string $char = '\'') : string
+    public static function safe_escape(string $str, string $char = '\''): string
     {
         return str_replace($char, '\\'.$char, str_replace('\\'.$char, $char, $str));
     }
@@ -2943,12 +2943,12 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
     /**
      * @return array
      */
-    protected static function linkage_db_functions() : array
+    protected static function linkage_db_functions(): array
     {
         return ['and', 'or'];
     }
 
-    private static function _default_mysql_table_field_fields() : array
+    private static function _default_mysql_table_field_fields(): array
     {
         return [
             'Field'      => '',
@@ -2963,7 +2963,7 @@ abstract class PHS_Model_Mysqli extends PHS_Model_Core_base
         ];
     }
 
-    private static function _default_field_arr() : array
+    private static function _default_field_arr(): array
     {
         // if 'default_value' is set in field definition that value will be used for 'default' key
         return [

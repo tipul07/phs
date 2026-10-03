@@ -56,62 +56,62 @@ class PHS_Language_Container extends PHS_Error
         parent::__construct();
     }
 
-    public function get_utf8_conversion_enabled() : bool
+    public function get_utf8_conversion_enabled(): bool
     {
         return self::st_get_utf8_conversion();
     }
 
-    public function set_utf8_conversion($enabled) : bool
+    public function set_utf8_conversion($enabled): bool
     {
         return self::st_set_utf8_conversion($enabled);
     }
 
-    public function get_multi_language_enabled() : bool
+    public function get_multi_language_enabled(): bool
     {
         return self::st_get_multi_language_enabled();
     }
 
-    public function set_multi_language(bool $enabled) : bool
+    public function set_multi_language(bool $enabled): bool
     {
         return self::st_set_multi_language($enabled);
     }
 
-    public function get_current_language_key($key) : mixed
+    public function get_current_language_key($key): mixed
     {
         return self::st_get_current_language_key($key);
     }
 
-    public function get_defined_languages() : array
+    public function get_defined_languages(): array
     {
         return self::st_get_defined_languages();
     }
 
-    public function get_defined_languages_as_key_val() : array
+    public function get_defined_languages_as_key_val(): array
     {
         return self::st_get_defined_languages_as_key_val();
     }
 
-    public function get_default_language() : string
+    public function get_default_language(): string
     {
         return self::st_get_default_language();
     }
 
-    public function get_current_language() : string
+    public function get_current_language(): string
     {
         return self::st_get_current_language();
     }
 
-    public function set_current_language(string $lang) : ?string
+    public function set_current_language(string $lang): ?string
     {
         return self::st_set_current_language($lang);
     }
 
-    public function set_default_language($lang) : ?string
+    public function set_default_language($lang): ?string
     {
         return self::st_set_default_language($lang);
     }
 
-    public function valid_language(?string $lang) : string
+    public function valid_language(?string $lang): string
     {
         return self::st_valid_language($lang);
     }
@@ -123,7 +123,7 @@ class PHS_Language_Container extends PHS_Error
      *
      * @return $this
      */
-    public function reset_language_indexes($lang = false) : self
+    public function reset_language_indexes($lang = false): self
     {
         if ($lang === false) {
             self::$LANGUAGE_INDEXES = [];
@@ -149,7 +149,7 @@ class PHS_Language_Container extends PHS_Error
      *
      * @return bool True if adding language was successful, false otherwise
      */
-    public function define_language(string $lang, array $lang_params) : bool
+    public function define_language(string $lang, array $lang_params): bool
     {
         $this->reset_error();
 
@@ -186,7 +186,7 @@ class PHS_Language_Container extends PHS_Error
         return true;
     }
 
-    public function scan_for_language_files(string $dir) : bool
+    public function scan_for_language_files(string $dir): bool
     {
         if (!self::st_get_multi_language_enabled()) {
             return true;
@@ -210,7 +210,7 @@ class PHS_Language_Container extends PHS_Error
         return true;
     }
 
-    public function force_reload_language_files(string $lang) : bool
+    public function force_reload_language_files(string $lang): bool
     {
         $this->reset_error();
 
@@ -227,7 +227,7 @@ class PHS_Language_Container extends PHS_Error
         return true;
     }
 
-    public function should_reload_language_files(string $lang) : bool
+    public function should_reload_language_files(string $lang): bool
     {
         $this->reset_error();
 
@@ -242,7 +242,7 @@ class PHS_Language_Container extends PHS_Error
         return !empty(self::$_RELOAD_LANGUAGES[$lang]);
     }
 
-    public function add_language_files(string $lang, array $files_arr) : bool
+    public function add_language_files(string $lang, array $files_arr): bool
     {
         $this->reset_error();
 
@@ -283,7 +283,7 @@ class PHS_Language_Container extends PHS_Error
      *
      * @return bool True if loading was with success, false otherwise
      */
-    public function load_language(?string $lang, bool $force = false) : bool
+    public function load_language(?string $lang, bool $force = false): bool
     {
         $this->reset_error();
 
@@ -353,7 +353,7 @@ class PHS_Language_Container extends PHS_Error
                 if (!$this->load_language_file($file, $lang, $force)) {
                     $this->set_error_if_not_set(
                         self::ERR_LANGUAGE_LOAD,
-                        'Error loading file ['.$lang.':'.$file.']'
+                        'Error loading file ['.$lang.':'.$file.']',
                     );
                     $this->_loading_language(false);
 
@@ -375,12 +375,12 @@ class PHS_Language_Container extends PHS_Error
      * Loads a specific CSV file for language $lang. This file is provided in 'files' index of language definition array for provided language
      *
      * @param string $file
-     * @param bool $force Force loading laguange files
      * @param string $lang
+     * @param bool $force Force loading laguange files
      *
      * @return bool
      */
-    public function load_language_file(string $file, string $lang, bool $force = false) : bool
+    public function load_language_file(string $file, string $lang, bool $force = false): bool
     {
         if ((empty($force)
              && !empty(self::$_LOADED_FILES[$lang][$file]))
@@ -405,7 +405,7 @@ class PHS_Language_Container extends PHS_Error
         return true;
     }
 
-    public function get_language_file_header_arr() : array
+    public function get_language_file_header_arr(): array
     {
         return [
             '# !!!!! DON\'T EDIT THIS COLUMN AT ALL !!!!!'                                                        => 'TEXT IN THIS COLUMN SHOULD BE TRANSLATED IN DESIRED LANGUAGE',
@@ -414,7 +414,7 @@ class PHS_Language_Container extends PHS_Error
         ];
     }
 
-    public function get_language_file_header_str() : string
+    public function get_language_file_header_str(): string
     {
         if (!($lines_arr = $this->get_language_file_header_arr())) {
             return '';
@@ -443,7 +443,7 @@ class PHS_Language_Container extends PHS_Error
      *
      * @return null|array Returns parsed lines from language CSV file or false on error
      */
-    public function get_language_file_lines(string $file, string $lang) : ?array
+    public function get_language_file_lines(string $file, string $lang): ?array
     {
         $this->reset_error();
 
@@ -520,7 +520,7 @@ class PHS_Language_Container extends PHS_Error
      * @return string Translated string
      * @see vsprintf
      */
-    public function _t(string $index, array $args = []) : string
+    public function _t(string $index, array $args = []): string
     {
         if (!isset($args[0])
             || !$this->valid_language($args[0])) {
@@ -543,7 +543,7 @@ class PHS_Language_Container extends PHS_Error
      * @return string
      * @see vsprintf
      */
-    public function _tl(string $index, ?string $lang, array $args = []) : string
+    public function _tl(string $index, ?string $lang, array $args = []): string
     {
         $lang = self::st_valid_language($lang);
 
@@ -593,14 +593,14 @@ class PHS_Language_Container extends PHS_Error
      *
      * @return null|string Returns absolute path of UTF-8 encoded file
      */
-    public function convert_to_utf8(string $file, array $params = []) : ?string
+    public function convert_to_utf8(string $file, array $params = []): ?string
     {
         $this->reset_error();
 
         if (!$file || !@file_exists($file)) {
             $this->set_error(
                 self::ERR_LANGUAGE_LOAD,
-                $this->_t('Language file does not exist.')
+                $this->_t('Language file does not exist.'),
             );
 
             return null;
@@ -629,7 +629,7 @@ class PHS_Language_Container extends PHS_Error
 
             $this->set_error(
                 self::ERR_LANGUAGE_LOAD,
-                $this->_t('Cannot find file and iconv binary files.')
+                $this->_t('Cannot find file and iconv binary files.'),
             );
 
             return null;
@@ -670,7 +670,7 @@ class PHS_Language_Container extends PHS_Error
         return $params['utf8_file'];
     }
 
-    private function _loading_language(?bool $loading = null) : bool
+    private function _loading_language(?bool $loading = null): bool
     {
         static $is_loading = false;
 
@@ -683,31 +683,31 @@ class PHS_Language_Container extends PHS_Error
         return $is_loading;
     }
 
-    public static function st_get_utf8_conversion() : bool
+    public static function st_get_utf8_conversion(): bool
     {
         return self::$CONVERT_LANG_FILES_TO_UTF8;
     }
 
-    public static function st_set_utf8_conversion($enabled) : bool
+    public static function st_set_utf8_conversion($enabled): bool
     {
         self::$CONVERT_LANG_FILES_TO_UTF8 = (!empty($enabled));
 
         return self::$CONVERT_LANG_FILES_TO_UTF8;
     }
 
-    public static function st_get_multi_language_enabled() : bool
+    public static function st_get_multi_language_enabled(): bool
     {
         return self::$MULTI_LANGUAGE_ENABLED;
     }
 
-    public static function st_set_multi_language(bool $enabled) : bool
+    public static function st_set_multi_language(bool $enabled): bool
     {
         self::$MULTI_LANGUAGE_ENABLED = (!empty($enabled));
 
         return self::$MULTI_LANGUAGE_ENABLED;
     }
 
-    public static function default_lang_files_csv_settings() : array
+    public static function default_lang_files_csv_settings(): array
     {
         return [
             'line_delimiter'    => PHS_Language::LANG_LINE_DELIMITER,
@@ -717,7 +717,7 @@ class PHS_Language_Container extends PHS_Error
         ];
     }
 
-    public static function lang_files_csv_settings(?array $settings = null) : array
+    public static function lang_files_csv_settings(?array $settings = null): array
     {
         if (empty(self::$csv_settings)) {
             self::$csv_settings = self::default_lang_files_csv_settings();
@@ -736,17 +736,17 @@ class PHS_Language_Container extends PHS_Error
         return self::$csv_settings;
     }
 
-    public static function st_get_default_language() : string
+    public static function st_get_default_language(): string
     {
         return self::$DEFAULT_LANGUAGE;
     }
 
-    public static function st_get_current_language() : string
+    public static function st_get_current_language(): string
     {
         return self::$CURRENT_LANGUAGE;
     }
 
-    public static function st_set_current_language(string $lang) : ?string
+    public static function st_set_current_language(string $lang): ?string
     {
         if (!($lang = self::st_valid_language($lang))) {
             return null;
@@ -757,7 +757,7 @@ class PHS_Language_Container extends PHS_Error
         return self::$CURRENT_LANGUAGE;
     }
 
-    public static function st_set_default_language(string $lang) : ?string
+    public static function st_set_default_language(string $lang): ?string
     {
         if (!($lang = self::st_valid_language($lang))) {
             return null;
@@ -768,7 +768,7 @@ class PHS_Language_Container extends PHS_Error
         return self::$DEFAULT_LANGUAGE;
     }
 
-    public static function st_get_current_language_key(string $key) : mixed
+    public static function st_get_current_language_key(string $key): mixed
     {
         $clang = self::st_get_current_language();
         if (empty($clang)
@@ -780,12 +780,12 @@ class PHS_Language_Container extends PHS_Error
         return self::$DEFINED_LANGUAGES[$clang][$key];
     }
 
-    public static function st_get_defined_languages() : array
+    public static function st_get_defined_languages(): array
     {
         return self::$DEFINED_LANGUAGES;
     }
 
-    public static function st_get_defined_languages_as_key_val() : array
+    public static function st_get_defined_languages_as_key_val(): array
     {
         return array_map(static function($lang_arr) {
             return ($lang_arr['title'] ?? '')
@@ -793,19 +793,19 @@ class PHS_Language_Container extends PHS_Error
         }, self::$DEFINED_LANGUAGES);
     }
 
-    public static function prepare_lang_index(?string $lang) : string
+    public static function prepare_lang_index(?string $lang): string
     {
         return $lang === null ? '' : strtolower(trim($lang));
     }
 
-    public static function st_valid_language(?string $lang) : string
+    public static function st_valid_language(?string $lang): string
     {
         $lang = self::prepare_lang_index($lang);
 
         return isset(self::$DEFINED_LANGUAGES[$lang]) ? $lang : '';
     }
 
-    public static function language_loaded(?string $lang) : bool
+    public static function language_loaded(?string $lang): bool
     {
         if (!self::st_get_multi_language_enabled()) {
             return true;
@@ -816,7 +816,7 @@ class PHS_Language_Container extends PHS_Error
         return isset(self::$LANGUAGE_INDEXES[$lang]);
     }
 
-    public static function get_default_language_structure() : array
+    public static function get_default_language_structure(): array
     {
         return [
             'title'           => '',
@@ -830,7 +830,7 @@ class PHS_Language_Container extends PHS_Error
         ];
     }
 
-    public static function get_defined_language(?string $lang) : ?array
+    public static function get_defined_language(?string $lang): ?array
     {
         if (!($lang = self::st_valid_language($lang))) {
             return null;
@@ -846,7 +846,7 @@ class PHS_Language_Container extends PHS_Error
      *
      * @return string Resulting file name which will hold UTF-8 encoded content of original file
      */
-    public static function get_utf8_file_name(string $file) : string
+    public static function get_utf8_file_name(string $file): string
     {
         $path_info = @pathinfo($file);
 

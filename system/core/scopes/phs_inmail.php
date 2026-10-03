@@ -9,7 +9,7 @@ use phs\plugins\phs_inmail\PHS_Plugin_Phs_inmail;
 
 class PHS_Scope_Inmail extends PHS_Scope
 {
-    public function get_scope_type() : int
+    public function get_scope_type(): int
     {
         return self::SCOPE_INMAIL;
     }
@@ -38,7 +38,7 @@ class PHS_Scope_Inmail extends PHS_Scope
 
             PHS_Logger::notice(
                 ucfirst($notification_type).' notifications:'."\n".implode("\n", $notifications_arr),
-                $inmail_plugin::LOG_CHANNEL
+                $inmail_plugin::LOG_CHANNEL,
             );
         }
 

@@ -8,7 +8,7 @@ class PHS___CLASS_NAME__ extends PHS_Migration
     // ! Change progress step at which migration will do `PHS_Maintenance::output()` calls
     // protected int $_progress_step = 1;
 
-    protected function bootstrap(bool $forced = false) : bool
+    protected function bootstrap(bool $forced = false): bool
     {
         /**
          * Register methods which will be called on required install or update events

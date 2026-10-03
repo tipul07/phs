@@ -14,7 +14,7 @@ use phs\plugins\phs_security\libraries\Phs_security_headers;
 
 class PHS_Scope_Ajax extends PHS_Scope
 {
-    public function get_scope_type() : int
+    public function get_scope_type(): int
     {
         return self::SCOPE_AJAX;
     }
@@ -32,7 +32,7 @@ class PHS_Scope_Ajax extends PHS_Scope
 
             PHS_Model_Api_monitor::api_incoming_request_error(
                 $http_code,
-                'Error in API action result: '.self::arr_get_simple_error_message($static_error_arr)
+                'Error in API action result: '.self::arr_get_simple_error_message($static_error_arr),
             );
 
             PHS_Api_base::http_header_response($http_code, self::arr_get_simple_error_message($static_error_arr));

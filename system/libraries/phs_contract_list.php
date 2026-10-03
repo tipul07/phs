@@ -11,7 +11,7 @@ abstract class PHS_Contract_list extends PHS_Contract
      * If nodes in list are defined in a contract, return contract instance here
      * @return null|PHS_Contract
      */
-    public function get_list_node_contract() : ?PHS_Contract
+    public function get_list_node_contract(): ?PHS_Contract
     {
         return null;
     }
@@ -21,7 +21,7 @@ abstract class PHS_Contract_list extends PHS_Contract
      * @return null|array
      * @see PHS_Contract::_get_contract_node_definition()
      */
-    public function get_contract_data_list_definition() : ?array
+    public function get_contract_data_list_definition(): ?array
     {
         return $this->get_list_node_contract()?->get_contract_data_definition();
     }
@@ -29,7 +29,7 @@ abstract class PHS_Contract_list extends PHS_Contract
     /**
      * @inheritdoc
      */
-    public function get_contract_data_definition() : ?array
+    public function get_contract_data_definition(): ?array
     {
         $contract_obj = $this->get_list_node_contract();
 
@@ -72,7 +72,7 @@ abstract class PHS_Contract_list extends PHS_Contract
      *
      * @return null|int
      */
-    protected function _list_maximum_records() : ?int
+    protected function _list_maximum_records(): ?int
     {
         return null;
     }

@@ -25,37 +25,37 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
     //
     // region is_* and can_* functions
     //
-    public function is_operator(bool | null | int | array | PHS_Record_data $user_data = null) : bool
+    public function is_operator(bool | null | int | array | PHS_Record_data $user_data = null): bool
     {
         return has_role(self::ROLE_OPERATOR, $user_data);
     }
 
-    public function is_manager(bool | null | int | array | PHS_Record_data $user_data = null) : bool
+    public function is_manager(bool | null | int | array | PHS_Record_data $user_data = null): bool
     {
         return has_role(self::ROLE_MANAGER, $user_data);
     }
 
-    public function can_admin_list_domains(bool | null | int | array | PHS_Record_data $user_data = null) : bool
+    public function can_admin_list_domains(bool | null | int | array | PHS_Record_data $user_data = null): bool
     {
         return can(self::ROLEU_ADM_LIST_DOMAINS, account_structure: $user_data);
     }
 
-    public function can_admin_manage_domains(bool | null | int | array | PHS_Record_data $user_data = null) : bool
+    public function can_admin_manage_domains(bool | null | int | array | PHS_Record_data $user_data = null): bool
     {
         return can(self::ROLEU_ADM_MANAGE_DOMAINS, account_structure: $user_data);
     }
 
-    public function can_admin_ping_domains(bool | null | int | array | PHS_Record_data $user_data = null) : bool
+    public function can_admin_ping_domains(bool | null | int | array | PHS_Record_data $user_data = null): bool
     {
         return can(self::ROLEU_ADM_PING_DOMAIN, account_structure: $user_data);
     }
 
-    public function can_admin_list_logs(bool | null | int | array | PHS_Record_data $user_data = null) : bool
+    public function can_admin_list_logs(bool | null | int | array | PHS_Record_data $user_data = null): bool
     {
         return can(self::ROLEU_ADM_LIST_LOGS, account_structure: $user_data);
     }
 
-    public function can_admin_manage_logs(bool | null | int | array | PHS_Record_data $user_data = null) : bool
+    public function can_admin_manage_logs(bool | null | int | array | PHS_Record_data $user_data = null): bool
     {
         return can(self::ROLEU_ADM_MANAGE_LOGS, account_structure: $user_data);
     }
@@ -69,7 +69,7 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_roles_definition() : array
+    public function get_roles_definition(): array
     {
         $return_arr = [];
 
@@ -129,7 +129,7 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             'enable_remotes' => [
@@ -153,34 +153,34 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
         ];
     }
 
-    public function is_remote_enabled() : bool
+    public function is_remote_enabled(): bool
     {
         return (bool)($this->get_plugin_settings()['enable_remotes'] ?? false);
     }
 
-    public function is_remote_calls_enabled() : bool
+    public function is_remote_calls_enabled(): bool
     {
         return (bool)($this->get_plugin_settings()['allow_remote_calls'] ?? false);
     }
 
-    public function is_accepting_remote_calls() : bool
+    public function is_accepting_remote_calls(): bool
     {
         return $this->is_remote_enabled() && $this->is_remote_calls_enabled();
     }
 
-    public function log_all_outgoing_calls() : bool
+    public function log_all_outgoing_calls(): bool
     {
         return (bool)($this->get_plugin_settings()['log_outgoing_calls'] ?? false);
     }
 
-    public function listen_after_left_menu_admin(PHS_Event_Layout $event_obj) : bool
+    public function listen_after_left_menu_admin(PHS_Event_Layout $event_obj): bool
     {
         $event_obj->append_to_buffer($this->quick_render_template_for_buffer('layout/left_menu_admin') ?? '');
 
         return true;
     }
 
-    public function listen_accounts_registration_roles(PHS_Event_Accounts_registration_roles $event_obj) : bool
+    public function listen_accounts_registration_roles(PHS_Event_Accounts_registration_roles $event_obj): bool
     {
         if (!($account_arr = $event_obj->get_input('account_data'))) {
             return false;

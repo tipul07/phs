@@ -13,12 +13,12 @@ class PHS_Registry extends PHS_Language
 
     private static array $data = [];
 
-    public function get_full_context() : array
+    public function get_full_context(): array
     {
         return $this->_context;
     }
 
-    public function get_context(string $key) : mixed
+    public function get_context(string $key): mixed
     {
         return $this->_context[$key] ?? null;
     }
@@ -29,7 +29,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return bool
      */
-    public function set_context($key, mixed $val = null) : bool
+    public function set_context($key, mixed $val = null): bool
     {
         if ($val === null) {
             if (!is_array($key)) {
@@ -63,7 +63,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array Array with first keys from $keys_arr and second set of keys first set of keys from $strings_arr
      */
-    public function extract_array_keys(array $provided_arr, array $keys_arr) : array
+    public function extract_array_keys(array $provided_arr, array $keys_arr): array
     {
         if (empty($provided_arr)) {
             return [];
@@ -102,7 +102,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array Translated array
      */
-    public function translate_array_keys(array $strings_arr, array $keys_arr, null | bool | string $lang = null) : array
+    public function translate_array_keys(array $strings_arr, array $keys_arr, null | bool | string $lang = null): array
     {
         if (!$strings_arr) {
             return [];
@@ -134,17 +134,17 @@ class PHS_Registry extends PHS_Language
         return $strings_arr;
     }
 
-    public static function get_full_data() : array
+    public static function get_full_data(): array
     {
         return self::$data;
     }
 
-    public static function get_data(string $key) : mixed
+    public static function get_data(string $key): mixed
     {
         return self::$data[$key] ?? null;
     }
 
-    public static function set_full_data(array $arr, bool $merge = false) : bool
+    public static function set_full_data(array $arr, bool $merge = false): bool
     {
         if (empty($merge)) {
             self::$data = $arr;
@@ -161,7 +161,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return bool
      */
-    public static function set_data(string | array $key, mixed $val = null) : bool
+    public static function set_data(string | array $key, mixed $val = null): bool
     {
         if ($val === null) {
             if (!is_array($key)) {
@@ -194,7 +194,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return string
      */
-    public static function sprintf_all(string $str, $args) : string
+    public static function sprintf_all(string $str, $args): string
     {
         if (!is_scalar($args) && !is_array($args)) {
             return $str;
@@ -246,7 +246,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array
      */
-    public static function merge_array_assoc($arr1, $arr2) : array
+    public static function merge_array_assoc($arr1, $arr2): array
     {
         if (empty($arr1) || !is_array($arr1)) {
             return is_array($arr2) ? $arr2 : [];
@@ -268,7 +268,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array
      */
-    public static function merge_array_assoc_existing($arr1, $arr2) : array
+    public static function merge_array_assoc_existing($arr1, $arr2): array
     {
         if (empty($arr1) || !is_array($arr1)) {
             return $arr2;
@@ -288,7 +288,7 @@ class PHS_Registry extends PHS_Language
         return $arr1;
     }
 
-    public static function unify_array_insensitive(array $arr1, array $params = []) : array
+    public static function unify_array_insensitive(array $arr1, array $params = []): array
     {
         if (empty($arr1)) {
             return [];
@@ -328,7 +328,7 @@ class PHS_Registry extends PHS_Language
         return $result;
     }
 
-    public static function array_key_exists_insensitive(array $arr1, string $key) : bool
+    public static function array_key_exists_insensitive(array $arr1, string $key): bool
     {
         if (empty($arr1)) {
             return false;
@@ -351,7 +351,7 @@ class PHS_Registry extends PHS_Language
         return false;
     }
 
-    public static function array_replace_value_key_insensitive(array $arr1, string $key, mixed $value) : array
+    public static function array_replace_value_key_insensitive(array $arr1, string $key, mixed $value): array
     {
         if (empty($arr1)) {
             return [];
@@ -385,7 +385,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array
      */
-    public static function array_lowercase_keys(array $arr1, array $params = []) : array
+    public static function array_lowercase_keys(array $arr1, array $params = []): array
     {
         if (empty($arr1)) {
             return [];
@@ -405,7 +405,7 @@ class PHS_Registry extends PHS_Language
         return $new_array;
     }
 
-    public static function merge_array_assoc_insensitive($arr1, $arr2, array $params = []) : array
+    public static function merge_array_assoc_insensitive($arr1, $arr2, array $params = []): array
     {
         if (empty($arr1) || !is_array($arr1)) {
             return is_array($arr2) ? $arr2 : [];
@@ -417,7 +417,7 @@ class PHS_Registry extends PHS_Language
         return self::unify_array_insensitive(self::merge_array_assoc($arr1, $arr2), $params);
     }
 
-    public static function merge_array_assoc_recursive($arr1, $arr2) : array
+    public static function merge_array_assoc_recursive($arr1, $arr2): array
     {
         if (empty($arr1) || !is_array($arr1)) {
             return is_array($arr2) ? $arr2 : [];
@@ -444,7 +444,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array If default array is not an array returns false else validated array is returned
      */
-    public static function validate_array_keys_from_definition($arr, $definition_arr) : array
+    public static function validate_array_keys_from_definition($arr, $definition_arr): array
     {
         if (empty($definition_arr) || !is_array($definition_arr)
          || empty($arr) || !is_array($arr)) {
@@ -470,7 +470,7 @@ class PHS_Registry extends PHS_Language
      * @return array If default array is not an array or is empty, returns original array,
      *               else validated array is returned
      */
-    public static function validate_array($arr, $default_arr) : array
+    public static function validate_array($arr, $default_arr): array
     {
         if (empty($arr) || !is_array($arr)) {
             $arr = [];
@@ -495,7 +495,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array
      */
-    public static function validate_array_recursive($arr, $default_arr) : array
+    public static function validate_array_recursive($arr, $default_arr): array
     {
         if (empty($arr) || !is_array($arr)) {
             $arr = [];
@@ -528,7 +528,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array
      */
-    public static function validate_array_to_new_array($arr, $default_arr) : array
+    public static function validate_array_to_new_array($arr, $default_arr): array
     {
         if (empty($default_arr) || !is_array($default_arr)) {
             return [];
@@ -556,7 +556,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array
      */
-    public static function validate_array_to_new_array_recursive($arr, $default_arr) : array
+    public static function validate_array_to_new_array_recursive($arr, $default_arr): array
     {
         if (empty($default_arr) || !is_array($default_arr)) {
             return [];
@@ -593,7 +593,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array
      */
-    public static function array_merge_unique_values($arr1, $arr2) : array
+    public static function array_merge_unique_values($arr1, $arr2): array
     {
         if (empty($arr1) || !is_array($arr1)) {
             $arr1 = [];
@@ -630,7 +630,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return bool True is arrays hold same values (ignoring position in array)
      */
-    public static function arrays_have_same_values($arr1, $arr2) : bool
+    public static function arrays_have_same_values($arr1, $arr2): bool
     {
         if (!is_array($arr1) || !is_array($arr2)) {
             return false;
@@ -672,7 +672,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return bool True is array has only integers as indexes, false if indexes are something else than integers
      */
-    public static function array_has_numeric_indexes($arr, $params = false) : bool
+    public static function array_has_numeric_indexes($arr, $params = false): bool
     {
         if (empty($arr) || !is_array($arr)) {
             return false;
@@ -712,7 +712,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return string[]
      */
-    public static function extract_strings_from_comma_separated($str, array $params = []) : array
+    public static function extract_strings_from_comma_separated($str, array $params = []): array
     {
         if (!is_string($str)) {
             return [];
@@ -756,7 +756,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array Array of cast integers
      */
-    public static function extract_integers_from_comma_separated($str, array $params = []) : array
+    public static function extract_integers_from_comma_separated($str, array $params = []): array
     {
         if (!is_string($str)) {
             return [];
@@ -789,7 +789,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array
      */
-    public static function extract_integers_from_array($arr) : array
+    public static function extract_integers_from_array($arr): array
     {
         if (empty($arr) || !is_array($arr)) {
             return [];
@@ -818,7 +818,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array
      */
-    public static function extract_strings_from_array($arr, array $params = []) : array
+    public static function extract_strings_from_array($arr, array $params = []): array
     {
         if (empty($arr) || !is_array($arr)) {
             return [];
@@ -866,7 +866,7 @@ class PHS_Registry extends PHS_Language
      *
      * @return array Resulting key-values pairs which are prefixed with provided string
      */
-    public static function extract_keys_with_prefix($arr, string $prefix, array $params = []) : array
+    public static function extract_keys_with_prefix($arr, string $prefix, array $params = []): array
     {
         if (empty($arr) || !is_array($arr)) {
             return [];

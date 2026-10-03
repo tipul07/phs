@@ -18,7 +18,7 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
     public const H_ACCOUNTS_3RD_REGISTER_BUFFER = 'phs_accounts_3rd_register_buffer',
         H_ACCOUNTS_3RD_LOGIN_BUFFER = 'phs_accounts_3rd_login_buffer';
 
-    public function get_settings_keys_to_obfuscate() : array
+    public function get_settings_keys_to_obfuscate(): array
     {
         return ['google_client_id', 'google_client_secret', 'apple_client_id', 'google_mobile_android_client_id', 'google_mobile_ios_client_id'];
     }
@@ -26,7 +26,7 @@ class PHS_Plugin_Accounts_3rd extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         if (!($google_lib = Google::get_instance())) {
             $this->reset_error();

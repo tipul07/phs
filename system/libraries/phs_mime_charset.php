@@ -43,7 +43,7 @@ class PHS_Mime_charset
         'ISO2022JP'     => 'ISO-2022-JP-MS',
     ];
 
-    public static function parse_charset(string $input) : string
+    public static function parse_charset(string $input): string
     {
         static $charsets = [];
 
@@ -96,7 +96,7 @@ class PHS_Mime_charset
         return $result;
     }
 
-    public static function convert(string $str, string $from, ?string $to = null) : string
+    public static function convert(string $str, string $from, ?string $to = null): string
     {
         static $iconv_options;
 
@@ -153,7 +153,7 @@ class PHS_Mime_charset
         return $str;
     }
 
-    public static function decode_mime_string(string $input, ?bool $fallback = null) : string
+    public static function decode_mime_string(string $input, ?bool $fallback = null): string
     {
         $input = preg_replace('/\?=\s+=\?/', '?==?', $input);
 

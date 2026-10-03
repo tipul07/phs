@@ -6,7 +6,7 @@ use phs\libraries\PHS_Params;
 
 class PHS_Step_4 extends PHS_Step
 {
-    public function step_details() : array
+    public function step_details(): array
     {
         return [
             'title'       => $this->_pt('Site Security'),
@@ -14,12 +14,12 @@ class PHS_Step_4 extends PHS_Step
         ];
     }
 
-    public function get_config_file() : string
+    public function get_config_file(): string
     {
         return 'site_security.php';
     }
 
-    public function step_config_passed() : bool
+    public function step_config_passed(): bool
     {
         global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 
@@ -57,7 +57,7 @@ class PHS_Step_4 extends PHS_Step
         return true;
     }
 
-    public function load_current_configuration() : bool
+    public function load_current_configuration(): bool
     {
         if ($this->config_file_loaded()) {
             return true;
@@ -77,7 +77,7 @@ class PHS_Step_4 extends PHS_Step
         return true;
     }
 
-    protected function render_step_interface(array $data = []) : string
+    protected function render_step_interface(array $data = []): string
     {
         $this->reset_error();
 
@@ -204,7 +204,7 @@ class PHS_Step_4 extends PHS_Step
         return PHS_Setup_layout::get_instance()->render('step4', $data);
     }
 
-    private function _generate_crypto_internal_keys_array() : array
+    private function _generate_crypto_internal_keys_array(): array
     {
         $internal_keys_arr = [];
         for ($i = 0; $i < 34; $i++) {
@@ -214,7 +214,7 @@ class PHS_Step_4 extends PHS_Step
         return $internal_keys_arr;
     }
 
-    private function _validate_crypto_internal_keys_array(array $arr) : ?array
+    private function _validate_crypto_internal_keys_array(array $arr): ?array
     {
         $this->reset_error();
 

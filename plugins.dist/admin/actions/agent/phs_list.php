@@ -23,7 +23,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function should_stop_execution() : ?array
+    public function should_stop_execution(): ?array
     {
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -43,7 +43,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function load_paginator_params() : ?array
+    public function load_paginator_params(): ?array
     {
         PHS::page_settings('page_title', $this->_pt('Manage Agent Jobs'));
 
@@ -225,7 +225,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    public function manage_action(array $action) : null | bool | array
+    public function manage_action(array $action): null | bool | array
     {
         $action_result_params = $this->_paginator->default_action_params();
 
@@ -573,12 +573,12 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_hide_id(array $params) : string
+    public function display_hide_id(array $params): string
     {
         return '';
     }
 
-    public function display_job_title(array $params) : ?string
+    public function display_job_title(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])
          || !($agent_job = $this->_paginator_model->data_to_array($params['record']))) {
@@ -615,7 +615,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $params['preset_content'];
     }
 
-    public function display_route_column(array $params) : ?string
+    public function display_route_column(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])
          || !($agent_job = $this->_paginator_model->data_to_array($params['record']))) {
@@ -642,7 +642,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $agent_job['route'].($cell_str !== '' ? '<br/>' : '').$cell_str;
     }
 
-    public function display_timed_seconds(array $params) : ?string
+    public function display_timed_seconds(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])
          || !($agent_job = $this->_paginator_model->data_to_array($params['record']))) {
@@ -668,7 +668,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $cell_str.'<br/><span title="'.self::_e($runs_every_x_str).'">'.$params['record']['timed_seconds'].'s</span>';
     }
 
-    public function display_last_action(array $params) : ?string
+    public function display_last_action(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])
          || !($agent_job = $this->_paginator_model->data_to_array($params['record']))) {
@@ -694,7 +694,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                .'<br/><span title="'.self::_e($this->_pt('Stalling %s', $stalling_minutes_str)).'">'.PHS_Utils::parse_period($stalling_seconds, ['show_period' => PHS_Utils::PERIOD_MINUTES]).'</span>';
     }
 
-    public function display_actions(array $params) : ?string
+    public function display_actions(array $params): ?string
     {
         if (!$this->_paginator->is_cell_rendering_for_html($params)
             || !$this->_admin_plugin->can_admin_manage_agent_jobs()) {
@@ -764,7 +764,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function after_table_callback(array $params) : string
+    public function after_table_callback(array $params): string
     {
         static $js_functionality = false;
 
@@ -925,7 +925,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean() ?: '';
     }
 
-    protected function _load_dependencies() : bool
+    protected function _load_dependencies(): bool
     {
         if (!($this->_paginator_model = PHS_Model_Agent_jobs::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));

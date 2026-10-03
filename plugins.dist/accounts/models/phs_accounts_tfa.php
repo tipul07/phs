@@ -35,22 +35,22 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         'Y', 'Z', '2', '3', '4', '5', '6', '7',
     ];
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.0.2';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['users_tfa'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'users_tfa';
     }
 
-    public function get_code_length() : int
+    public function get_code_length(): int
     {
         return self::CODE_LENGTH;
     }
@@ -60,7 +60,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return bool
      */
-    public function is_setup_completed($tfa_data) : bool
+    public function is_setup_completed($tfa_data): bool
     {
         return ($tfa_arr = $this->data_to_array($tfa_data))
                && !empty($tfa_arr['setup']);
@@ -71,7 +71,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return bool
      */
-    public function is_recovery_code_downloaded($tfa_data) : bool
+    public function is_recovery_code_downloaded($tfa_data): bool
     {
         return ($tfa_arr = $this->data_to_array($tfa_data))
                && !empty($tfa_arr['recovery_downloaded']);
@@ -80,7 +80,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
     /**
      * @return bool
      */
-    public function is_session_tfa_valid() : bool
+    public function is_session_tfa_valid(): bool
     {
         return ($online_arr = PHS::current_user_session())
                && !empty($online_arr['tfa_expiration'])
@@ -90,19 +90,19 @@ class PHS_Model_Accounts_tfa extends PHS_Model
     /**
      * @return bool
      */
-    public function is_device_tfa_valid() : bool
+    public function is_device_tfa_valid(): bool
     {
         return $this->_accounts_plugin->tfa_remember_device_length()
                && ($cookie_value = PHS_Session::get_cookie(self::DEVICE_COOKIE_NAME))
                && $this->_tfa_cookie_is_valid($cookie_value);
     }
 
-    public function should_mark_device_as_tfa_valid() : ?bool
+    public function should_mark_device_as_tfa_valid(): ?bool
     {
         return $this->_accounts_plugin->tfa_remember_device_length();
     }
 
-    public function mark_device_as_tfa_valid() : ?bool
+    public function mark_device_as_tfa_valid(): ?bool
     {
         $this->reset_error();
 
@@ -133,7 +133,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         return true;
     }
 
-    public function validate_tfa_for_session() : ?bool
+    public function validate_tfa_for_session(): ?bool
     {
         $this->reset_error();
 
@@ -169,7 +169,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         return true;
     }
 
-    public function cancel_tfa_setup($tfa_data) : ?bool
+    public function cancel_tfa_setup($tfa_data): ?bool
     {
         $this->reset_error();
 
@@ -199,7 +199,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|array
      */
-    public function finish_tfa_setup($tfa_data) : ?array
+    public function finish_tfa_setup($tfa_data): ?array
     {
         $this->reset_error();
 
@@ -227,7 +227,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|array
      */
-    public function recovery_codes_downloaded_for_tfa($tfa_data) : ?array
+    public function recovery_codes_downloaded_for_tfa($tfa_data): ?array
     {
         $this->reset_error();
 
@@ -257,7 +257,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|bool
      */
-    public function verify_code_for_tfa_data($tfa_data, string $code, ?array $params = null) : ?bool
+    public function verify_code_for_tfa_data($tfa_data, string $code, ?array $params = null): ?bool
     {
         $this->reset_error();
 
@@ -289,7 +289,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|bool
      */
-    public function verify_recovery_code_for_tfa_data($tfa_data, string $code) : ?bool
+    public function verify_recovery_code_for_tfa_data($tfa_data, string $code): ?bool
     {
         $this->reset_error();
 
@@ -313,7 +313,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|string
      */
-    public function generate_secret(int $length = 16) : ?string
+    public function generate_secret(int $length = 16): ?string
     {
         $this->reset_error();
 
@@ -348,7 +348,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return array
      */
-    public function generate_recovery_codes(int $codes_no = 8, int $secret_length = 16) : array
+    public function generate_recovery_codes(int $codes_no = 8, int $secret_length = 16): array
     {
         $result_arr = [];
         for ($i = 0; $i < $codes_no; $i++) {
@@ -363,7 +363,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|array
      */
-    public function get_tfa_for_current_account(bool $force = false) : ?array
+    public function get_tfa_for_current_account(bool $force = false): ?array
     {
         static $tfa_arr = null;
 
@@ -388,7 +388,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|array
      */
-    public function get_tfa_data_for_account($account_data) : ?array
+    public function get_tfa_data_for_account($account_data): ?array
     {
         if (!($account_arr = $this->_accounts_model->data_to_array($account_data))
             || $this->_accounts_model->is_deleted($account_arr)) {
@@ -412,7 +412,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|array
      */
-    public function install_tfa_for_account($account_data) : ?array
+    public function install_tfa_for_account($account_data): ?array
     {
         if (!($tfa_check = $this->get_tfa_data_for_account($account_data))) {
             return null;
@@ -460,7 +460,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|array
      */
-    public function update_tfa_for_account($account_data, array $tfa_fields) : ?array
+    public function update_tfa_for_account($account_data, array $tfa_fields): ?array
     {
         if (!($tfa_check = $this->get_tfa_data_for_account($account_data))) {
             return null;
@@ -531,7 +531,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|array
      */
-    public function get_qr_code_url_for_tfa_setup($account_data, ?array $params = null) : ?array
+    public function get_qr_code_url_for_tfa_setup($account_data, ?array $params = null): ?array
     {
         $this->reset_error();
 
@@ -603,7 +603,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|string
      */
-    public function get_secret($tfa_data) : ?string
+    public function get_secret($tfa_data): ?string
     {
         $this->reset_error();
 
@@ -630,7 +630,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|array
      */
-    public function get_recovery_codes($tfa_data) : ?array
+    public function get_recovery_codes($tfa_data): ?array
     {
         $this->reset_error();
 
@@ -648,7 +648,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         return $result;
     }
 
-    public function download_recovery_codes_file($tfa_data) : ?bool
+    public function download_recovery_codes_file($tfa_data): ?bool
     {
         $this->reset_error();
 
@@ -688,7 +688,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         exit;
     }
 
-    public function get_recovery_codes_download_file_content($tfa_data) : ?string
+    public function get_recovery_codes_download_file_content($tfa_data): ?string
     {
         $this->reset_error();
 
@@ -733,7 +733,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|array
      */
-    public function decode_recovery_field(string $recovery) : ?array
+    public function decode_recovery_field(string $recovery): ?array
     {
         $this->reset_error();
 
@@ -752,7 +752,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;
@@ -800,10 +800,10 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         return $return_arr;
     }
 
-    protected function _relations_definition() : void
+    protected function _relations_definition(): void
     {
         $this->relation_one_to_one('account',
-            PHS_Model_Accounts::class, 'uid', dest_flow: ['table_name' => 'users']
+            PHS_Model_Accounts::class, 'uid', dest_flow: ['table_name' => 'users'],
         );
     }
 
@@ -891,7 +891,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         return $params;
     }
 
-    private function _tfa_cookie_is_valid(string $cookie_value) : ?bool
+    private function _tfa_cookie_is_valid(string $cookie_value): ?bool
     {
         $this->reset_error();
 
@@ -924,7 +924,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         return true;
     }
 
-    private function _decode_tfa_cookie_value(string $cookie_value) : ?array
+    private function _decode_tfa_cookie_value(string $cookie_value): ?array
     {
         $this->reset_error();
 
@@ -951,7 +951,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         ];
     }
 
-    private function _encode_tfa_cookie_value(array $tfa_arr, array $account_arr) : ?string
+    private function _encode_tfa_cookie_value(array $tfa_arr, array $account_arr): ?string
     {
         $this->reset_error();
 
@@ -976,7 +976,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|string
      */
-    private function _get_tfa_otp_url($account_data) : ?string
+    private function _get_tfa_otp_url($account_data): ?string
     {
         $this->reset_error();
 
@@ -1026,7 +1026,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|string
      */
-    private function _encode_recovery_codes(array $recovery_arr) : ?string
+    private function _encode_recovery_codes(array $recovery_arr): ?string
     {
         $this->reset_error();
 
@@ -1046,7 +1046,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return string
      */
-    public static function get_code_from_secret(string $secret, ?float $time_slice = null) : string
+    public static function get_code_from_secret(string $secret, ?float $time_slice = null): string
     {
         if ($time_slice === null) {
             $time_slice = floor(time() / 30);
@@ -1076,7 +1076,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return bool
      */
-    public static function verify_code_with_secret(string $secret, string $code, int $discrepancy = 1, ?float $time_slice = null) : bool
+    public static function verify_code_with_secret(string $secret, string $code, int $discrepancy = 1, ?float $time_slice = null): bool
     {
         if ($time_slice === null) {
             $time_slice = floor(time() / 30);
@@ -1101,7 +1101,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return string
      */
-    private static function _debase32(string $secret) : string
+    private static function _debase32(string $secret): string
     {
         if (empty($secret)) {
             return '';
@@ -1144,7 +1144,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return bool
      */
-    private static function _safe_equal_strings(string $string_one, string $string_two) : bool
+    private static function _safe_equal_strings(string $string_one, string $string_two): bool
     {
         if (@function_exists('hash_equals')) {
             return hash_equals($string_one, $string_two);

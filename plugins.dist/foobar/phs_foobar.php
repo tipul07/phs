@@ -11,7 +11,7 @@ class PHS_Plugin_Foobar extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             'foobar_api_url' => [

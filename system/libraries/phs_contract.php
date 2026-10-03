@@ -48,7 +48,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      * @return null|array
      * @see PHS_Contract::_get_contract_node_definition()
      */
-    abstract public function get_contract_data_definition() : ?array;
+    abstract public function get_contract_data_definition(): ?array;
 
     /**
      * Override this method if you want to pre process data which will be processed from outside source
@@ -64,7 +64,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      *                         null with error means we have an error and should propagate it
      *                         null without error means we will put null on this node
      */
-    public function pre_processing_from_outside_source(array $outside_data_arr, array $params_arr = [], array $extra_arr = []) : null | bool | array
+    public function pre_processing_from_outside_source(array $outside_data_arr, array $params_arr = [], array $extra_arr = []): null | bool | array
     {
         return $outside_data_arr;
     }
@@ -83,7 +83,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      *                          null with error means we have an error and should propagate it
      *                          null without error means we will put null on this node
      */
-    public function pre_processing_from_inside_source(array $inside_data_arr, array $params_arr = [], array $extra_arr = []) : null | bool | array
+    public function pre_processing_from_inside_source(array $inside_data_arr, array $params_arr = [], array $extra_arr = []): null | bool | array
     {
         return $inside_data_arr;
     }
@@ -101,7 +101,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      *               null with error means we have an error and should propagate it
      *               null without error means we will put null or default value on this node
      */
-    public function post_processing_from_outside_source(mixed $result_arr, array $params_arr = [], array $extra_arr = []) : mixed
+    public function post_processing_from_outside_source(mixed $result_arr, array $params_arr = [], array $extra_arr = []): mixed
     {
         return $result_arr;
     }
@@ -119,7 +119,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      *               null with error means we have an error and should propagate it
      *               null without error means we will put null or default value on this node
      */
-    public function post_processing_from_inside_source(mixed $result_arr, array $params_arr = [], array $extra_arr = []) : mixed
+    public function post_processing_from_inside_source(mixed $result_arr, array $params_arr = [], array $extra_arr = []): mixed
     {
         return $result_arr;
     }
@@ -131,7 +131,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      *
      * @return null|PHS_Model
      */
-    public function get_parsing_data_model() : ?PHS_Model
+    public function get_parsing_data_model(): ?PHS_Model
     {
         return null;
     }
@@ -143,17 +143,17 @@ abstract class PHS_Contract extends PHS_Instantiable
      *
      * @return null|array
      */
-    public function get_parsing_data_model_flow() : ?array
+    public function get_parsing_data_model_flow(): ?array
     {
         return null;
     }
 
-    final public function instance_type() : string
+    final public function instance_type(): string
     {
         return self::INSTANCE_TYPE_CONTRACT;
     }
 
-    public function max_recursive_level_for_data_parsing(?int $lvl = null) : int
+    public function max_recursive_level_for_data_parsing(?int $lvl = null): int
     {
         if ($lvl === null) {
             return $this->_recursive_lvl;
@@ -172,7 +172,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      *
      * @return null|array This is actually returning only null, but we want to keep PHP 8.1 compatibility
      */
-    public function set_processing_error(int $error_no, string $error_msg) : ?array
+    public function set_processing_error(int $error_no, string $error_msg): ?array
     {
         $this->set_error($error_no, $error_msg);
 
@@ -184,7 +184,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      * self::$_source_data is not changed by _pre and _post methods, so it is the "original data"
      * @return null|array
      */
-    public function get_source_data() : ?array
+    public function get_source_data(): ?array
     {
         return $this->_source_data;
     }
@@ -194,7 +194,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      * This will also be changed by _pre and _post method calls
      * @return null|array
      */
-    public function get_processing_data() : ?array
+    public function get_processing_data(): ?array
     {
         return $this->_processing_data;
     }
@@ -205,7 +205,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      *
      * @return array|bool
      */
-    public function parse_data_from_outside_source(?array $outside_data = null, array $params = []) : ?array
+    public function parse_data_from_outside_source(?array $outside_data = null, array $params = []): ?array
     {
         $this->reset_error();
         $this->_reset_data();
@@ -267,7 +267,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      *                    null with error if data validation failed
      *                    null with no error if expected value should indeed be null
      */
-    public function parse_data_from_inside_source(?array $inside_data = null, array $params = []) : ?array
+    public function parse_data_from_inside_source(?array $inside_data = null, array $params = []): ?array
     {
         $this->reset_error();
         $this->_reset_data();
@@ -337,7 +337,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      *
      * @return bool
      */
-    public function add_data_to_cache(PHS_Model $model_obj, array $data_arr, null | bool | array $flow_arr = null) : bool
+    public function add_data_to_cache(PHS_Model $model_obj, array $data_arr, null | bool | array $flow_arr = null): bool
     {
         if (!$data_arr
             || !($flow_arr = $model_obj->fetch_default_flow_params($flow_arr))
@@ -359,17 +359,17 @@ abstract class PHS_Contract extends PHS_Instantiable
         return true;
     }
 
-    public function data_is_from_outside() : bool
+    public function data_is_from_outside(): bool
     {
         return $this->_data_type === self::FROM_OUTSIDE;
     }
 
-    public function data_is_from_inside() : bool
+    public function data_is_from_inside(): bool
     {
         return $this->_data_type === self::FROM_INSIDE;
     }
 
-    public function data_was_parsed() : bool
+    public function data_was_parsed(): bool
     {
         return $this->_data_was_parsed;
     }
@@ -378,12 +378,12 @@ abstract class PHS_Contract extends PHS_Instantiable
      * Returns an array of parsed data
      * @return array
      */
-    public function get_resulting_data() : array
+    public function get_resulting_data(): array
     {
         return $this->_resulting_data;
     }
 
-    public function get_data_keys(null | bool | string $lang = null) : array
+    public function get_data_keys(null | bool | string $lang = null): array
     {
         static $keys_arr = [];
 
@@ -401,7 +401,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         return $result_arr;
     }
 
-    public function get_data_keys_as_key_val(null | bool | string $lang = null) : array
+    public function get_data_keys_as_key_val(null | bool | string $lang = null): array
     {
         static $data_keys_key_val_arr = null;
 
@@ -428,7 +428,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         return $key_val_arr;
     }
 
-    public function valid_data_key(int $data_key, null | bool | string $lang = null) : ?array
+    public function valid_data_key(int $data_key, null | bool | string $lang = null): ?array
     {
         return $this->get_data_keys($lang)[$data_key] ?? null;
     }
@@ -444,7 +444,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      *
      * @return array
      */
-    protected function _before_parsing_from_inside_source_starts(?array $inside_data_arr, array $params = []) : array
+    protected function _before_parsing_from_inside_source_starts(?array $inside_data_arr, array $params = []): array
     {
         return $params;
     }
@@ -459,7 +459,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      *
      * @return bool
      */
-    protected function _set_initial_cache_data(array $data_arr) : bool
+    protected function _set_initial_cache_data(array $data_arr): bool
     {
         if (!$data_arr) {
             return false;
@@ -504,7 +504,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      *
      * @return null|array|PHS_Record_data
      */
-    protected function _get_cache_data_for_node(array $node_arr, array $inside_data) : null | array | PHS_Record_data
+    protected function _get_cache_data_for_node(array $node_arr, array $inside_data): null | array | PHS_Record_data
     {
         if (!$node_arr
             || empty($node_arr['data_primary_key'])
@@ -529,7 +529,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      *
      * @return bool
      */
-    protected function _set_cache_data_for_node(array $node_arr, null | array | PHS_Record_data $data_arr) : bool
+    protected function _set_cache_data_for_node(array $node_arr, null | array | PHS_Record_data $data_arr): bool
     {
         /** @var PHS_Model $model_obj */
         if (empty($node_arr) | !is_array($node_arr)
@@ -556,7 +556,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         return true;
     }
 
-    protected function _make_sure_we_have_definition() : bool
+    protected function _make_sure_we_have_definition(): bool
     {
         if ($this->_definition_initialized) {
             return true;
@@ -579,13 +579,13 @@ abstract class PHS_Contract extends PHS_Instantiable
      *
      * @return null|array Normalized definition array, false if we had errors
      */
-    protected function _normalize_definition_of_nodes(?array $definition_arr = null, array $params_arr = []) : ?array
+    protected function _normalize_definition_of_nodes(?array $definition_arr = null, array $params_arr = []): ?array
     {
         if ($definition_arr === null
             && !($definition_arr = $this->get_contract_data_definition())) {
             $this->set_error_if_not_set(
                 self::ERR_PARAMETERS,
-                self::_t('get_contract_data_definition() method should return an array.')
+                self::_t('get_contract_data_definition() method should return an array.'),
             );
 
             return null;
@@ -683,7 +683,7 @@ abstract class PHS_Contract extends PHS_Instantiable
                 $this->set_error(
                     self::ERR_PARAMETERS,
                     self::_t('Node %s in contract definition is set as recurring, '
-                             .'but has no nodes defined as array or a contract.', $int_key)
+                             .'but has no nodes defined as array or a contract.', $int_key),
                 );
 
                 return null;
@@ -700,7 +700,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         return $return_arr;
     }
 
-    private function _get_model_from_node(array $node_arr) : ?PHS_Model
+    private function _get_model_from_node(array $node_arr): ?PHS_Model
     {
         /** @var PHS_Model $model_obj */
         if ((!($model_obj = ($node_arr['data_model_obj'] ?? null))
@@ -714,7 +714,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         return $model_obj;
     }
 
-    private function _get_contract_from_node(array $node_arr) : ?self
+    private function _get_contract_from_node(array $node_arr): ?self
     {
         if (!($contract_obj = ($node_arr['nodes_from_contract'] ?? null))
             || !($contract_obj instanceof self)) {
@@ -724,7 +724,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         return $contract_obj;
     }
 
-    private function _reset_data() : void
+    private function _reset_data(): void
     {
         $this->_source_data = [];
         $this->_resulting_data = [];
@@ -740,7 +740,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      *
      * @return null|array|false array with result, false if we reached a leaf or null (with error set) on error...
      */
-    private function _parse_data_from_outside_source(array $definition_arr, array $outside_data, array $params) : null | bool | array
+    private function _parse_data_from_outside_source(array $definition_arr, array $outside_data, array $params): null | bool | array
     {
         if (!$definition_arr || !$outside_data) {
             if (0 === ($params['lvl'] ?? 0)) {
@@ -986,7 +986,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         return $this->post_processing_from_outside_source($return_arr, $params['post_processing_params'], $params);
     }
 
-    private function _import_default_if_required(array $node_arr, array $params, array &$return_arr) : bool
+    private function _import_default_if_required(array $node_arr, array $params, array &$return_arr): bool
     {
         if (!empty($node_arr['import_if_not_found'])
             || !empty($params['force_import_if_not_found'])) {
@@ -998,7 +998,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         return false;
     }
 
-    private function _non_nodes_related_cache_data_keys() : array
+    private function _non_nodes_related_cache_data_keys(): array
     {
         return [
             // Instance of model to be used to obtain data
@@ -1021,7 +1021,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      *                         null with error set on error,
      *                         null without error set means that we should put null in node...
      */
-    private function _parse_data_from_inside_source(array $definition_arr, array $inside_data, array $params) : null | bool | array
+    private function _parse_data_from_inside_source(array $definition_arr, array $inside_data, array $params): null | bool | array
     {
         if (!$definition_arr || !$inside_data) {
             if (0 === ($params['lvl'] ?? 0)) {
@@ -1291,7 +1291,7 @@ abstract class PHS_Contract extends PHS_Instantiable
         return $this->post_processing_from_inside_source($return_arr, $params['post_processing_params'], $params);
     }
 
-    private function _export_default_if_required(array $node_arr, array $params, array &$return_arr) : bool
+    private function _export_default_if_required(array $node_arr, array $params, array &$return_arr): bool
     {
         if (!empty($node_arr['export_if_not_found'])
             || !empty($params['force_export_if_not_found'])) {
@@ -1307,7 +1307,7 @@ abstract class PHS_Contract extends PHS_Instantiable
      * Standard definition of a data node to be exported as response to a 3rd party request
      * @return array
      */
-    protected static function _get_contract_node_definition() : array
+    protected static function _get_contract_node_definition(): array
     {
         return [
             // Exporting internal data to outside data (input -> output) $internal_source[$node['inside_key']] -> $export[$node['outside_key']]

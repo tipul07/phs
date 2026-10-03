@@ -15,7 +15,7 @@ class PHS_Bg_jobs extends PHS_Registry
 
     public const DATA_JOB_KEY = 'bg_jobs_job_data';
 
-    public static function current_job_data(null | array | PHS_Record_data $job_data = null) : null | array | PHS_Record_data
+    public static function current_job_data(null | array | PHS_Record_data $job_data = null): null | array | PHS_Record_data
     {
         if ($job_data === null) {
             return self::get_data(self::DATA_JOB_KEY);
@@ -26,7 +26,7 @@ class PHS_Bg_jobs extends PHS_Registry
         return $job_data;
     }
 
-    public static function get_current_job_parameters() : array
+    public static function get_current_job_parameters(): array
     {
         if (!($job_arr = self::current_job_data())
             || empty($job_arr['params'])
@@ -37,7 +37,7 @@ class PHS_Bg_jobs extends PHS_Registry
         return $job_params_arr;
     }
 
-    public static function get_stalling_minutes() : int
+    public static function get_stalling_minutes(): int
     {
         static $stalling_minutes = null;
 
@@ -54,7 +54,7 @@ class PHS_Bg_jobs extends PHS_Registry
         return $stalling_minutes;
     }
 
-    public static function refresh_current_job() : ?array
+    public static function refresh_current_job(): ?array
     {
         self::st_reset_error();
 
@@ -85,7 +85,7 @@ class PHS_Bg_jobs extends PHS_Registry
      *
      * @return bool|string|array
      */
-    public static function run(array | string $route, array $params = [], array $extra = []) : bool | string | array
+    public static function run(array | string $route, array $params = [], array $extra = []): bool | string | array
     {
         // We don't use here PHS::route_exists() because route_exists() will instantiate plugin, controller and action and if they have errors
         // launching script will die...
@@ -257,7 +257,7 @@ class PHS_Bg_jobs extends PHS_Registry
         return $result;
     }
 
-    public static function get_job_command(int | array | PHS_Record_data $job_data, array $extra = []) : ?array
+    public static function get_job_command(int | array | PHS_Record_data $job_data, array $extra = []): ?array
     {
         self::st_reset_error();
 
@@ -302,7 +302,7 @@ class PHS_Bg_jobs extends PHS_Registry
         ];
     }
 
-    public static function bg_validate_input(string $input_str) : ?array
+    public static function bg_validate_input(string $input_str): ?array
     {
         if (empty($input_str)
          || !str_contains($input_str, '::')
@@ -335,7 +335,7 @@ class PHS_Bg_jobs extends PHS_Registry
         ];
     }
 
-    public static function bg_run_job(int | array | PHS_Record_data $job_data) : ?array
+    public static function bg_run_job(int | array | PHS_Record_data $job_data): ?array
     {
         self::st_reset_error();
 
@@ -396,7 +396,7 @@ class PHS_Bg_jobs extends PHS_Registry
             $error_arr = $technical_error ?? self::st_get_error();
 
             $bg_jobs_model->job_error_stop($job_arr,
-                ['last_error' => self::arr_get_simple_error_message($error_arr)]
+                ['last_error' => self::arr_get_simple_error_message($error_arr)],
             );
 
             self::st_copy_error_from_array($error_arr);

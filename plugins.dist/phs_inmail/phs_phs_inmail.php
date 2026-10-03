@@ -18,7 +18,7 @@ class PHS_Plugin_Phs_inmail extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         $extensions_arr = [];
         foreach (PHS_Utils::extension_to_mimetype_array() as $extension => $mimetype) {
@@ -104,51 +104,51 @@ class PHS_Plugin_Phs_inmail extends PHS_Plugin
         ];
     }
 
-    public function is_inmail_enabled() : bool
+    public function is_inmail_enabled(): bool
     {
         return (bool)($this->get_plugin_settings()['inmail_enabled'] ?? false);
     }
 
-    public function get_accept_attachments_ext() : array
+    public function get_accept_attachments_ext(): array
     {
         $extenstions_arr = $this->get_plugin_settings()['accept_attachments_ext'] ?? [];
 
         return !is_array($extenstions_arr) ? [] : $extenstions_arr;
     }
 
-    public function get_logic_condition() : string
+    public function get_logic_condition(): string
     {
         $condition = $this->get_plugin_settings()['logic_condition'] ?? self::COND_OR;
 
         return in_array($condition, [self::COND_AND, self::COND_OR], true) ? $condition : self::COND_OR;
     }
 
-    public function get_from_field_emails() : array
+    public function get_from_field_emails(): array
     {
         return $this->_extract_emails_from_comma_separated($this->get_plugin_settings()['from_field_contains'] ?? '');
     }
 
-    public function get_to_field_emails() : array
+    public function get_to_field_emails(): array
     {
         return $this->_extract_emails_from_comma_separated($this->get_plugin_settings()['to_field_contains'] ?? '');
     }
 
-    public function get_cc_field_emails() : array
+    public function get_cc_field_emails(): array
     {
         return $this->_extract_emails_from_comma_separated($this->get_plugin_settings()['cc_field_contains'] ?? '');
     }
 
-    public function get_bcc_field_emails() : array
+    public function get_bcc_field_emails(): array
     {
         return $this->_extract_emails_from_comma_separated($this->get_plugin_settings()['bcc_field_contains'] ?? '');
     }
 
-    public function get_subject_regex() : string
+    public function get_subject_regex(): string
     {
         return $this->get_plugin_settings()['subject_regex'] ?? '';
     }
 
-    public function get_has_attachment() : ?bool
+    public function get_has_attachment(): ?bool
     {
         if (self::ATTACHMENT_IGNORE
            === ($has_attachments = $this->get_plugin_settings()['has_attachments'] ?? self::ATTACHMENT_IGNORE)) {
@@ -158,17 +158,17 @@ class PHS_Plugin_Phs_inmail extends PHS_Plugin
         return $has_attachments === self::ATTACHMENT_YES;
     }
 
-    public function get_inmail_dir(bool $slash_ended = true) : string
+    public function get_inmail_dir(bool $slash_ended = true): string
     {
         return rtrim(PHS_UPLOADS_DIR, '/').'/'.self::INMAIL_DIR.($slash_ended ? '/' : '');
     }
 
-    public function get_inmail_www(bool $slash_ended = true) : string
+    public function get_inmail_www(bool $slash_ended = true): string
     {
         return rtrim(PHS_UPLOADS_WWW, '/').'/'.self::INMAIL_DIR.($slash_ended ? '/' : '');
     }
 
-    protected function custom_activate($plugin_arr) : bool
+    protected function custom_activate($plugin_arr): bool
     {
         if (!$this->_create_required_directories()) {
             return false;
@@ -180,7 +180,7 @@ class PHS_Plugin_Phs_inmail extends PHS_Plugin
         return true;
     }
 
-    protected function custom_update($old_version, $new_version) : bool
+    protected function custom_update($old_version, $new_version): bool
     {
         if (!$this->_create_required_directories()) {
             return false;
@@ -192,7 +192,7 @@ class PHS_Plugin_Phs_inmail extends PHS_Plugin
         return true;
     }
 
-    private function _create_required_directories() : bool
+    private function _create_required_directories(): bool
     {
         $this->reset_error();
 
@@ -213,7 +213,7 @@ class PHS_Plugin_Phs_inmail extends PHS_Plugin
         return true;
     }
 
-    private function _extract_emails_from_comma_separated(string $str) : array
+    private function _extract_emails_from_comma_separated(string $str): array
     {
         if (!$str
            || !($emails_arr = self::extract_strings_from_comma_separated($str, ['to_lowercase' => true]))) {

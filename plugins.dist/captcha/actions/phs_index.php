@@ -9,7 +9,7 @@ use phs\plugins\captcha\PHS_Plugin_Captcha;
 
 class PHS_Action_Index extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }

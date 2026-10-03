@@ -5,7 +5,7 @@ use phs\libraries\PHS_Params;
 
 class PHS_Step_1 extends PHS_Step
 {
-    public function step_details() : array
+    public function step_details(): array
     {
         return [
             'title'       => 'Detect paths and domain',
@@ -14,17 +14,17 @@ class PHS_Step_1 extends PHS_Step
         ];
     }
 
-    public function get_config_file() : string
+    public function get_config_file(): string
     {
         return 'main_paths_and_domain.php';
     }
 
-    public function step_config_passed() : bool
+    public function step_config_passed(): bool
     {
         return @file_exists(PHS_SETUP_CONFIG_DIR.$this->get_config_file());
     }
 
-    public function load_current_configuration() : bool
+    public function load_current_configuration(): bool
     {
         if ($this->config_file_loaded()) {
             return true;
@@ -48,7 +48,7 @@ class PHS_Step_1 extends PHS_Step
         return true;
     }
 
-    protected function render_step_interface(array $data = []) : string
+    protected function render_step_interface(array $data = []): string
     {
         $foobar = PHS_Params::_p('foobar', PHS_Params::T_INT);
         $phs_path = PHS_Params::_p('phs_path', PHS_Params::T_NOHTML);
@@ -106,7 +106,7 @@ class PHS_Step_1 extends PHS_Step
                     'PHS_DEFAULT_SSL_PORT'      => $phs_ssl_port,
                     'PHS_DEFAULT_DOMAIN_PATH'   => $phs_domain_path,
 
-                    ['block_comment'          => 'Session definition'],
+                    ['block_comment' => 'Session definition'],
                     'PHS_DEFAULT_SESSION_DIR' => [
                         'raw' => 'PHS_PATH.\'sess/\'',
                     ],
@@ -124,7 +124,7 @@ class PHS_Step_1 extends PHS_Step
                         'raw' => 'false',
                     ],
 
-                    ['block_comment'         => 'Misc dirs...'],
+                    ['block_comment' => 'Misc dirs...'],
                     'PHS_FRAMEWORK_LOGS_DIR' => [
                         'raw' => 'PHS_PATH.\'system/logs/\'',
                     ],

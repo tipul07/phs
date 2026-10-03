@@ -47,7 +47,7 @@ PHS_Logger::notice(' --- Started InMail check', $inmail_plugin::LOG_CHANNEL);
 if (!$inmail_lib->check_incoming_email_from_buffer($email_buf)) {
     PHS_Logger::error('Error parsing incoming email: '
                       .$inmail_lib->get_simple_error_message(),
-        $inmail_plugin::LOG_CHANNEL
+        $inmail_plugin::LOG_CHANNEL,
     );
 }
 
@@ -56,7 +56,7 @@ if (($debug_data = PHS::platform_debug_data())) {
         'DEBUG data: '.$debug_data['db_queries_count'].' queries,'
         .' bootstrap: '.number_format($debug_data['bootstrap_time'], 6, '.', '').'s,'
         .' running: '.number_format($debug_data['running_time'], 6, '.', '').'s',
-        $inmail_plugin::LOG_CHANNEL
+        $inmail_plugin::LOG_CHANNEL,
     );
 }
 

@@ -25,71 +25,71 @@ class PHS_Model_Request_queue extends PHS_Model
         self::STATUS_SUCCESS => ['title' => 'Success'],
     ];
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.0.7';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['phs_request_queue', 'phs_request_queue_runs'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'phs_request_queue';
     }
 
-    public function is_pending(int | array | PHS_Record_data $record_data) : bool
+    public function is_pending(int | array | PHS_Record_data $record_data): bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_PENDING;
     }
 
-    public function is_running(int | array | PHS_Record_data $record_data) : bool
+    public function is_running(int | array | PHS_Record_data $record_data): bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_RUNNING;
     }
 
-    public function is_failed(int | array | PHS_Record_data $record_data) : bool
+    public function is_failed(int | array | PHS_Record_data $record_data): bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_FAILED;
     }
 
-    public function is_paused(int | array | PHS_Record_data $record_data) : bool
+    public function is_paused(int | array | PHS_Record_data $record_data): bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_PAUSED;
     }
 
-    public function is_success(int | array | PHS_Record_data $record_data) : bool
+    public function is_success(int | array | PHS_Record_data $record_data): bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_SUCCESS;
     }
 
-    public function is_final(int | array | PHS_Record_data $record_data) : bool
+    public function is_final(int | array | PHS_Record_data $record_data): bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && !empty($record_arr['is_final']);
     }
 
-    public function is_timed(int | array | PHS_Record_data $record_data) : bool
+    public function is_timed(int | array | PHS_Record_data $record_data): bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
                && !empty($record_arr['run_after']);
     }
 
-    public function should_delete_on_completion(int | array | PHS_Record_data $record_data) : bool
+    public function should_delete_on_completion(int | array | PHS_Record_data $record_data): bool
     {
         return !empty($record_data)
                && ($record_arr = $this->data_to_array($record_data))
@@ -97,7 +97,7 @@ class PHS_Model_Request_queue extends PHS_Model
                && !empty($settings_arr['delete_on_completion']);
     }
 
-    public function can_run_request(int | array | PHS_Record_data $requet_data, bool $forced = false) : bool
+    public function can_run_request(int | array | PHS_Record_data $requet_data, bool $forced = false): bool
     {
         return !empty($requet_data)
                && ($request_arr = $this->data_to_array($requet_data))
@@ -105,7 +105,7 @@ class PHS_Model_Request_queue extends PHS_Model
                && ($forced || $request_arr['max_retries'] > $request_arr['fails']);
     }
 
-    public function can_be_forced(int | array | PHS_Record_data $requet_data) : bool
+    public function can_be_forced(int | array | PHS_Record_data $requet_data): bool
     {
         return !empty($requet_data)
                && ($request_arr = $this->data_to_array($requet_data))
@@ -114,7 +114,7 @@ class PHS_Model_Request_queue extends PHS_Model
                    || seconds_passed($request_arr['status_date']) > self::FORCE_RUNNING_SECONDS);
     }
 
-    public function act_pause(int | array | PHS_Record_data $record_data) : null | array | PHS_Record_data
+    public function act_pause(int | array | PHS_Record_data $record_data): null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -143,7 +143,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return $new_record;
     }
 
-    public function act_unpause(int | array $record_data) : null | array | PHS_Record_data
+    public function act_unpause(int | array $record_data): null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -180,7 +180,7 @@ class PHS_Model_Request_queue extends PHS_Model
         int $max_retries = 1,
         ?string $handle = null,
         ?string $run_after = null,
-    ) : null | array | PHS_Record_data {
+    ): null | array | PHS_Record_data {
         $this->reset_error();
 
         $method = strtoupper(trim($method));
@@ -231,7 +231,7 @@ class PHS_Model_Request_queue extends PHS_Model
 
     public function start_request(
         int | array | PHS_Record_data $request_data,
-    ) : null | array | PHS_Record_data {
+    ): null | array | PHS_Record_data {
         $this->reset_error();
 
         if (empty($request_data)
@@ -264,7 +264,7 @@ class PHS_Model_Request_queue extends PHS_Model
         ?int $http_code = null,
         null | bool | string $response = false,
         null | bool | string $error = false,
-    ) : ?array {
+    ): ?array {
         return $this->_update_request($request_data, $method, $http_code, self::STATUS_SUCCESS, $response, $error);
     }
 
@@ -274,11 +274,11 @@ class PHS_Model_Request_queue extends PHS_Model
         ?int $http_code = null,
         null | bool | string $response = false,
         null | bool | string $error = false,
-    ) : ?array {
+    ): ?array {
         return $this->_update_request($request_data, $method, $http_code, self::STATUS_FAILED, $response, $error);
     }
 
-    public function hard_delete_http_call(int | array $record_data) : ?array
+    public function hard_delete_http_call(int | array $record_data): ?array
     {
         $this->reset_error();
 
@@ -312,7 +312,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return $record_arr;
     }
 
-    public function update_payload(int | array $record_data, ?string $payload) : ?array
+    public function update_payload(int | array $record_data, ?string $payload): ?array
     {
         $this->reset_error();
 
@@ -342,7 +342,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return $new_record;
     }
 
-    public function empty_request_settings_arr() : array
+    public function empty_request_settings_arr(): array
     {
         return [
             'timeout'              => 30,
@@ -361,7 +361,7 @@ class PHS_Model_Request_queue extends PHS_Model
         ];
     }
 
-    public function obfuscate_minimum_settings(int | array $record_data) : ?array
+    public function obfuscate_minimum_settings(int | array $record_data): ?array
     {
         if (null === ($settings_arr = $this->get_request_minimum_settings($record_data))) {
             return null;
@@ -380,7 +380,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return $settings_arr;
     }
 
-    public function validate_settings_arr(?array $settings_arr) : array
+    public function validate_settings_arr(?array $settings_arr): array
     {
         $settings_arr ??= [];
 
@@ -421,7 +421,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return $new_settings_arr;
     }
 
-    public function check_settings_for_errors(array $settings_arr) : ?array
+    public function check_settings_for_errors(array $settings_arr): ?array
     {
         if (empty($settings_arr)) {
             return [];
@@ -513,7 +513,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return $settings_arr;
     }
 
-    public function validate_request_callback(array | string $callback) : null | string | array
+    public function validate_request_callback(array | string $callback): null | string | array
     {
         if (is_string($callback)) {
             if (!is_callable($callback)) {
@@ -557,7 +557,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return [$classname, $method];
     }
 
-    public function get_request_success_callback($request_data) : null | string | array
+    public function get_request_success_callback($request_data): null | string | array
     {
         return ($settings_arr = $this->get_request_minimum_settings($request_data))
                && !empty($settings_arr['success_callback'])
@@ -565,7 +565,7 @@ class PHS_Model_Request_queue extends PHS_Model
             : null;
     }
 
-    public function get_request_one_fail_callback($request_data) : null | string | array
+    public function get_request_one_fail_callback($request_data): null | string | array
     {
         return ($settings_arr = $this->get_request_minimum_settings($request_data))
                && !empty($settings_arr['one_fail_callback'])
@@ -573,7 +573,7 @@ class PHS_Model_Request_queue extends PHS_Model
             : null;
     }
 
-    public function get_request_fail_callback($request_data) : null | string | array
+    public function get_request_fail_callback($request_data): null | string | array
     {
         return ($settings_arr = $this->get_request_minimum_settings($request_data))
                && !empty($settings_arr['fail_callback'])
@@ -581,7 +581,7 @@ class PHS_Model_Request_queue extends PHS_Model
             : null;
     }
 
-    public function get_request_minimum_settings(int | array | PHS_Record_data $request_data) : ?array
+    public function get_request_minimum_settings(int | array | PHS_Record_data $request_data): ?array
     {
         $this->reset_error();
 
@@ -601,7 +601,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return $this->validate_settings_arr($settings_arr);
     }
 
-    public function get_request_full_settings(int | array | PHS_Record_data $request_data) : ?array
+    public function get_request_full_settings(int | array | PHS_Record_data $request_data): ?array
     {
         $this->reset_error();
 
@@ -625,7 +625,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return $default_settings;
     }
 
-    public function get_request_runs(int | array $request_data) : ?array
+    public function get_request_runs(int | array $request_data): ?array
     {
         $this->reset_error();
 
@@ -652,7 +652,7 @@ class PHS_Model_Request_queue extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;
@@ -762,7 +762,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return $return_arr;
     }
 
-    protected function get_insert_prepare_params_phs_request_queue($params) : ?array
+    protected function get_insert_prepare_params_phs_request_queue($params): ?array
     {
         if (empty($params) || !is_array($params)) {
             return null;
@@ -830,7 +830,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return $params;
     }
 
-    protected function get_edit_prepare_params_phs_request_queue($existing_data, $params) : ?array
+    protected function get_edit_prepare_params_phs_request_queue($existing_data, $params): ?array
     {
         if (empty($params) || !is_array($params)) {
             return null;
@@ -892,11 +892,11 @@ class PHS_Model_Request_queue extends PHS_Model
      * Call this method when we have a response from the 3rd party (success or fail)
      *
      * @param int|array $request_data
+     * @param ?string $method
      * @param null|int $http_code
      * @param null|int $status
      * @param null|bool|string $response
      * @param null|bool|string $error
-     * @param ?string $method
      *
      * @return null|array
      */
@@ -907,7 +907,7 @@ class PHS_Model_Request_queue extends PHS_Model
         ?int $status = null,
         null | bool | string $response = false,
         null | bool | string $error = false,
-    ) : ?array {
+    ): ?array {
         $this->reset_error();
 
         if (empty($request_data)
@@ -982,7 +982,7 @@ class PHS_Model_Request_queue extends PHS_Model
         ?string $response = null,
         ?string $error = null,
         ?int $status = null,
-    ) : ?array {
+    ): ?array {
         $this->reset_error();
 
         if (empty($request_data)
@@ -1014,7 +1014,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return $new_record;
     }
 
-    private function _instantiate_callback(null | string | array $callback) : null | string | array
+    private function _instantiate_callback(null | string | array $callback): null | string | array
     {
         $this->reset_error();
 
@@ -1064,7 +1064,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return [$callback_obj, $method];
     }
 
-    private function _decode_settings_field(?string $settings) : ?array
+    private function _decode_settings_field(?string $settings): ?array
     {
         if (empty($settings)) {
             return [];
@@ -1087,7 +1087,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return $decoded_settings;
     }
 
-    private function _encode_settings_field(null | string | array $settings) : ?string
+    private function _encode_settings_field(null | string | array $settings): ?string
     {
         if (empty($settings)) {
             return '';
@@ -1114,7 +1114,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return @json_encode($settings) ?: null;
     }
 
-    private function _encode_payload(null | string | array $payload) : ?string
+    private function _encode_payload(null | string | array $payload): ?string
     {
         if (empty($payload)) {
             return null;
@@ -1131,7 +1131,7 @@ class PHS_Model_Request_queue extends PHS_Model
         return @json_encode($payload) ?: null;
     }
 
-    private function _not_used_only_for_translation() : void
+    private function _not_used_only_for_translation(): void
     {
         $this->_pt('Pending');
         $this->_pt('Running');

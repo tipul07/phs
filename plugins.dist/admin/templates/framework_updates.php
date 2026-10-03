@@ -14,7 +14,7 @@ use phs\libraries\PHS_Utils;
 
     <p><?php
         echo $this->_pt('Update URL vailable for %s.',
-            '<strong>'.PHS_Utils::parse_period(PHS_Maintenance::UPDATE_TOKEN_LIFETIME).'</strong>'
+            '<strong>'.PHS_Utils::parse_period(PHS_Maintenance::UPDATE_TOKEN_LIFETIME).'</strong>',
         ); ?></p>
 
     <p><?php echo $this->_pt('NOTE: Provided URL is forced to use HTTPS, if you don\'t have HTTPS enabled, change the link to use HTTP protocol.'); ?></p>

@@ -22,7 +22,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
 
     private ?PHS_Sendgrid $sendgrid_library = null;
 
-    public function get_settings_keys_to_obfuscate() : array
+    public function get_settings_keys_to_obfuscate(): array
     {
         return ['sendgrid_api_key'];
     }
@@ -30,7 +30,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             // default template
@@ -75,24 +75,24 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         ];
     }
 
-    public function get_sendgrid_api_key() : string
+    public function get_sendgrid_api_key(): string
     {
         return $this->get_plugin_settings()['sendgrid_api_key'] ?? '';
     }
 
-    public function get_max_attachment_size() : int
+    public function get_max_attachment_size(): int
     {
         return (int)($this->get_plugin_settings()['max_attachment_size'] ?? 0);
     }
 
-    public function get_email_vars() : array
+    public function get_email_vars(): array
     {
         $email_vars = $this->get_plugin_settings()['email_vars'] ?? [];
 
         return is_array($email_vars) ? $email_vars : [];
     }
 
-    public function display_test_sending_emails($params) : ?string
+    public function display_test_sending_emails($params): ?string
     {
         $params = self::validate_array($params, self::default_custom_renderer_params());
 
@@ -122,7 +122,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
                             .'<strong>Note</strong>: this email is sent using SendGrid plugin ('.$this->instance_plugin_name().' v'.$this->get_plugin_version().')<br/>'
                             .'<br/>'."\n"
                             .'Best wishes,<br/>'."\n"
-                            .PHS_SITE_NAME.' team<br/>'."\n"
+                            .PHS_SITE_NAME.' team<br/>'."\n",
                         );
 
                 if ($email_obj?->send()) {
@@ -142,7 +142,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         return $this->quick_render_template_for_buffer('test_email_sending', $data_arr);
     }
 
-    public function init_email_hook_args($hook_args) : array
+    public function init_email_hook_args($hook_args): array
     {
         $this->reset_error();
 
@@ -182,7 +182,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
 
             $hook_args['hook_errors'] = self::arr_set_error(
                 self::ERR_TEMPLATE,
-                $this->_pt('Failed validating email template file.')
+                $this->_pt('Failed validating email template file.'),
             );
 
             return $hook_args;
@@ -301,7 +301,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         return $hook_args;
     }
 
-    public function send_email($hook_args) : array
+    public function send_email($hook_args): array
     {
         $this->reset_error();
 
@@ -465,7 +465,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         return $hook_args;
     }
 
-    public function listen_email_settings(PHS_Event_Emails_settings $event_obj) : bool
+    public function listen_email_settings(PHS_Event_Emails_settings $event_obj): bool
     {
         $event_obj->set_output([
             'email_vars'          => $this->get_email_vars(),
@@ -475,7 +475,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         return true;
     }
 
-    public function listen_email_send(PHS_Event_Emails_send $event_obj) : bool
+    public function listen_email_send(PHS_Event_Emails_send $event_obj): bool
     {
         if (!($is_success = $this->_send_from_event($event_obj->get_input()))) {
             $this->set_error_if_not_set(self::ERR_SEND, $this->_pt('Couldn\'t send email.'));
@@ -489,7 +489,7 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         return true;
     }
 
-    private function _send_from_event(array $event_input) : bool
+    private function _send_from_event(array $event_input): bool
     {
         $this->reset_error();
 
@@ -594,14 +594,14 @@ class PHS_Plugin_Sendgrid extends PHS_Plugin
         return true;
     }
 
-    private function _get_sendgrid_library() : ?PHS_Sendgrid
+    private function _get_sendgrid_library(): ?PHS_Sendgrid
     {
         $this->sendgrid_library ??= PHS_Sendgrid::get_instance(as_singleton: false);
 
         return $this->sendgrid_library;
     }
 
-    private static function _default_file_attachment() : array
+    private static function _default_file_attachment(): array
     {
         return [
             'file'                => '',

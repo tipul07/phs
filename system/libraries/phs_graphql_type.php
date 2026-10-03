@@ -15,23 +15,23 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
 
     private ?ObjectType $graphql_type = null;
 
-    abstract public static function get_model_class() : ?string;
+    abstract public static function get_model_class(): ?string;
 
-    abstract public static function get_type_name() : string;
+    abstract public static function get_type_name(): string;
 
-    abstract public static function get_type_description() : string;
+    abstract public static function get_type_description(): string;
 
-    public function instance_type() : string
+    public function instance_type(): string
     {
         return self::INSTANCE_TYPE_GRAPHQL;
     }
 
-    public function get_model_flow_params() : array
+    public function get_model_flow_params(): array
     {
         return $this->get_model_instance()?->fetch_default_flow_params() ?: [];
     }
 
-    public function get_type_fields() : array
+    public function get_type_fields(): array
     {
         return [];
     }
@@ -42,17 +42,17 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
      *
      * @return array
      */
-    public function do_not_extract_model_fields_for_graphql_type() : array
+    public function do_not_extract_model_fields_for_graphql_type(): array
     {
         return [];
     }
 
-    public function get_query_definition_type_name() : ?string
+    public function get_query_definition_type_name(): ?string
     {
         return null;
     }
 
-    public function get_query_definition() : array
+    public function get_query_definition(): array
     {
         return [
             'type'    => PHS_Graphql::ref_by_class(static::class),
@@ -61,7 +61,7 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
         ];
     }
 
-    public function get_type_definition() : array
+    public function get_type_definition(): array
     {
         return [
             'name'        => static::get_type_name(),
@@ -70,7 +70,7 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
         ];
     }
 
-    public function graphql_type() : ObjectType
+    public function graphql_type(): ObjectType
     {
         if (!$this->graphql_type) {
             $this->graphql_type = new ObjectType($this->get_type_definition());
@@ -79,12 +79,12 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
         return $this->graphql_type;
     }
 
-    public function lazy_graphql_type() : Closure
+    public function lazy_graphql_type(): Closure
     {
         return fn() => $this->graphql_type();
     }
 
-    public function get_model_instance() : ?PHS_Model
+    public function get_model_instance(): ?PHS_Model
     {
         if ($this->model_obj) {
             return $this->model_obj;
@@ -109,7 +109,7 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
         return $this->model_obj;
     }
 
-    public function extract_fields_from_model_definition() : array
+    public function extract_fields_from_model_definition(): array
     {
         if (!($model_obj = $this->get_model_instance())) {
             return [];
@@ -140,7 +140,7 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
         return $fields_arr;
     }
 
-    protected function _get_query_resolver_args() : array
+    protected function _get_query_resolver_args(): array
     {
         if (!($model_obj = $this->get_model_instance())
             || !($primary_key = $model_obj->get_primary_key($this->get_model_flow_params()))) {
@@ -152,7 +152,7 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
         ];
     }
 
-    protected function _get_query_resolver() : Closure
+    protected function _get_query_resolver(): Closure
     {
         return function($root, array $args) {
             if (($model_obj = $this->get_model_instance())
@@ -168,7 +168,7 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
     /**
      * @throws InvariantViolation
      */
-    public static function boolean() : ScalarType
+    public static function boolean(): ScalarType
     {
         return Type::boolean();
     }
@@ -176,7 +176,7 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
     /**
      * @throws InvariantViolation
      */
-    public static function float() : ScalarType
+    public static function float(): ScalarType
     {
         return Type::float();
     }
@@ -184,7 +184,7 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
     /**
      * @throws InvariantViolation
      */
-    public static function id() : ScalarType
+    public static function id(): ScalarType
     {
         return Type::id();
     }
@@ -192,7 +192,7 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
     /**
      * @throws InvariantViolation
      */
-    public static function int() : ScalarType
+    public static function int(): ScalarType
     {
         return Type::int();
     }
@@ -200,17 +200,17 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
     /**
      * @throws InvariantViolation
      */
-    public static function string() : ScalarType
+    public static function string(): ScalarType
     {
         return Type::string();
     }
 
-    public static function listOf($type) : ListOfType
+    public static function listOf($type): ListOfType
     {
         return Type::listOf($type);
     }
 
-    protected static function _model_field_type_to_graphql_type(array $field_definition) : ScalarType
+    protected static function _model_field_type_to_graphql_type(array $field_definition): ScalarType
     {
         if (!empty($field_definition['primary'])) {
             return self::id();
@@ -222,8 +222,8 @@ abstract class PHS_Graphql_Type extends PHS_Instantiable
 
         return match ($field_definition['type']) {
             PHS_Model_Mysqli::FTYPE_TINYINT, PHS_Model_Mysqli::FTYPE_SMALLINT, PHS_Model_Mysqli::FTYPE_MEDIUMINT, PHS_Model_Mysqli::FTYPE_INT, PHS_Model_Mysqli::FTYPE_BIGINT => self::int(),
-            PHS_Model_Mysqli::FTYPE_DECIMAL, PHS_Model_Mysqli::FTYPE_FLOAT, PHS_Model_Mysqli::FTYPE_DOUBLE, PHS_Model_Mysqli::FTYPE_REAL => self::float(),
-            default => self::string(),
+            PHS_Model_Mysqli::FTYPE_DECIMAL, PHS_Model_Mysqli::FTYPE_FLOAT, PHS_Model_Mysqli::FTYPE_DOUBLE, PHS_Model_Mysqli::FTYPE_REAL                                      => self::float(),
+            default                                                                                                                                                           => self::string(),
         };
     }
 }

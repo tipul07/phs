@@ -13,7 +13,7 @@ class PHS_Plugin_Mailchimp extends PHS_Plugin
      *
      * @return null|Mailchimp
      */
-    public function get_mailchimp_instance() : ?Mailchimp
+    public function get_mailchimp_instance(): ?Mailchimp
     {
         static $mailchimp_library = null;
 

@@ -34,7 +34,7 @@ class PHS_Ldap extends PHS_Registry
         $this->reset_error();
     }
 
-    public function server_settings(?array $settings = null) : bool | array
+    public function server_settings(?array $settings = null): bool | array
     {
         if ($settings === null) {
             return $this->server_config;
@@ -81,12 +81,12 @@ class PHS_Ldap extends PHS_Registry
         return true;
     }
 
-    public function is_ready() : bool
+    public function is_ready(): bool
     {
         return $this->server_ready;
     }
 
-    public function unlink_all() : bool
+    public function unlink_all(): bool
     {
         $this->reset_error();
 
@@ -101,7 +101,7 @@ class PHS_Ldap extends PHS_Registry
         return $this->_unlink_ldap_dir($settings['root']);
     }
 
-    public function rename(array $params) : ?array
+    public function rename(array $params): ?array
     {
         $this->reset_error();
 
@@ -180,7 +180,7 @@ class PHS_Ldap extends PHS_Registry
         ];
     }
 
-    public function identifier_details(string | array $ldap_id) : ?array
+    public function identifier_details(string | array $ldap_id): ?array
     {
         $this->reset_error();
 
@@ -205,7 +205,7 @@ class PHS_Ldap extends PHS_Registry
         return $ldap_data;
     }
 
-    public function unlink(array $params) : bool
+    public function unlink(array $params): bool
     {
         if (!$params
             || empty($params['ldap_data'])) {
@@ -239,7 +239,7 @@ class PHS_Ldap extends PHS_Registry
         return true;
     }
 
-    public function add(array $params) : ?array
+    public function add(array $params): ?array
     {
         $this->reset_error();
 
@@ -367,7 +367,7 @@ class PHS_Ldap extends PHS_Registry
         return $ldap_details;
     }
 
-    public function get_meta(string | array $ldap_data, array $params = []) : ?array
+    public function get_meta(string | array $ldap_data, array $params = []): ?array
     {
         $this->reset_error();
 
@@ -397,7 +397,7 @@ class PHS_Ldap extends PHS_Registry
         return $return_arr ?: self::default_meta_data();
     }
 
-    public function update_meta(string | array $ldap_data, array $params = []) : ?array
+    public function update_meta(string | array $ldap_data, array $params = []): ?array
     {
         $this->reset_error();
 
@@ -446,7 +446,7 @@ class PHS_Ldap extends PHS_Registry
         return $new_meta;
     }
 
-    public function identifier2ldap(string $identifier, ?string $source_file = null, array $meta_arr = []) : ?array
+    public function identifier2ldap(string $identifier, ?string $source_file = null, array $meta_arr = []): ?array
     {
         if (empty($identifier)) {
             return null;
@@ -503,7 +503,7 @@ class PHS_Ldap extends PHS_Registry
         return $return_arr;
     }
 
-    private function _reset_server_settings() : void
+    private function _reset_server_settings(): void
     {
         $this->server_config = self::default_settings();
 
@@ -511,7 +511,7 @@ class PHS_Ldap extends PHS_Registry
         $this->server_ready = false;
     }
 
-    private function _unlink_ldap_dir(string $dir, int $level = 0) : bool
+    private function _unlink_ldap_dir(string $dir, int $level = 0): bool
     {
         if (empty($dir) || !@is_dir($dir)) {
             return false;
@@ -534,7 +534,7 @@ class PHS_Ldap extends PHS_Registry
         return true;
     }
 
-    private function _extract_meta_data(string $file_name, string $ldap_id) : array
+    private function _extract_meta_data(string $file_name, string $ldap_id): array
     {
         if (empty($file_name)
             || !($new_file_name = @realpath($file_name))
@@ -559,7 +559,7 @@ class PHS_Ldap extends PHS_Registry
         return $return_arr;
     }
 
-    private function _mkdir_tree(array $segments_arr) : bool
+    private function _mkdir_tree(array $segments_arr): bool
     {
         if (empty($segments_arr)
             || !$this->is_ready()
@@ -604,7 +604,7 @@ class PHS_Ldap extends PHS_Registry
         return true;
     }
 
-    private function get_settings_checksum(array $settings_arr) : string
+    private function get_settings_checksum(array $settings_arr): string
     {
         $settings_arr = self::validate_array($settings_arr, self::default_settings());
 
@@ -614,7 +614,7 @@ class PHS_Ldap extends PHS_Registry
         return @md5(@json_encode($settings_arr));
     }
 
-    private function _save_ldap_settings() : bool
+    private function _save_ldap_settings(): bool
     {
         if (!$this->is_ready()) {
             return false;
@@ -652,7 +652,7 @@ class PHS_Ldap extends PHS_Registry
         return true;
     }
 
-    public static function settings_valid(array $settings) : ?array
+    public static function settings_valid(array $settings): ?array
     {
         if (empty($settings)
             || empty($settings['root'])
@@ -664,7 +664,7 @@ class PHS_Ldap extends PHS_Registry
         return $settings;
     }
 
-    public static function default_settings() : array
+    public static function default_settings(): array
     {
         $default_config = [];
         $default_config['version'] = 1;
@@ -683,7 +683,7 @@ class PHS_Ldap extends PHS_Registry
         return $default_config;
     }
 
-    public static function validate_settings(array $settings) : array
+    public static function validate_settings(array $settings): array
     {
         $def_settings = self::default_settings();
         if (empty($settings)) {
@@ -733,7 +733,7 @@ class PHS_Ldap extends PHS_Registry
         return $settings;
     }
 
-    public static function default_meta_data() : array
+    public static function default_meta_data(): array
     {
         return [
             'version'        => 1,
@@ -747,7 +747,7 @@ class PHS_Ldap extends PHS_Registry
     /**
      * @return array
      */
-    public static function default_ldap_data() : array
+    public static function default_ldap_data(): array
     {
         return [
             'ldap_id'                  => '',
@@ -763,7 +763,7 @@ class PHS_Ldap extends PHS_Registry
         ];
     }
 
-    public static function load_ldap_settings(string $root) : ?array
+    public static function load_ldap_settings(string $root): ?array
     {
         if (empty($root)
             || !($new_root = @realpath($root))
@@ -788,7 +788,7 @@ class PHS_Ldap extends PHS_Registry
         return self::validate_array(PHS_Line_params::parse_string($existing_config), self::default_settings());
     }
 
-    private static function _validate_extensions(mixed $extensions_arr) : array
+    private static function _validate_extensions(mixed $extensions_arr): array
     {
         if (empty($extensions_arr) || !is_array($extensions_arr)) {
             return [];
@@ -807,7 +807,7 @@ class PHS_Ldap extends PHS_Registry
         return $return_arr;
     }
 
-    private static function _read_meta_data(string $meta_file) : ?array
+    private static function _read_meta_data(string $meta_file): ?array
     {
         if (!@file_exists($meta_file) || !@is_readable($meta_file)
          // refuse to read files bigger than 2Mb - might be an error regarding meta file name
@@ -824,7 +824,7 @@ class PHS_Ldap extends PHS_Registry
         return $return_arr;
     }
 
-    private static function _ldap_config_file() : string
+    private static function _ldap_config_file(): string
     {
         return '__ldap.config';
     }

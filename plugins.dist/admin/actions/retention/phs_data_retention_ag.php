@@ -11,12 +11,12 @@ use phs\system\core\models\PHS_Model_Data_retention;
 
 class PHS_Action_Data_retention_ag extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_AGENT];
     }
 
-    public function execute() : ?array
+    public function execute(): ?array
     {
         if (!($admin_plugin = PHS_Plugin_Admin::get_instance())
              || !($retention_lib = Phs_Data_retention::get_instance())

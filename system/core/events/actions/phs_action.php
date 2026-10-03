@@ -5,7 +5,7 @@ use phs\libraries\PHS_Event;
 
 class PHS_Event_Action extends PHS_Event
 {
-    protected function _input_parameters() : array
+    protected function _input_parameters(): array
     {
         return [
             'action_obj'         => null,
@@ -14,7 +14,7 @@ class PHS_Event_Action extends PHS_Event
         ];
     }
 
-    protected function _output_parameters() : array
+    protected function _output_parameters(): array
     {
         return [
             'stop_execution' => false,

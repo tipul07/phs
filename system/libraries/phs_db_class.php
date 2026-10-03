@@ -55,9 +55,9 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
 
     abstract public function get_last_db_error($connection_name);
 
-    abstract protected function default_custom_settings_structure() : array;
+    abstract protected function default_custom_settings_structure(): array;
 
-    abstract protected function custom_settings_validation(array $conn_settings) : ?array;
+    abstract protected function custom_settings_validation(array $conn_settings): ?array;
 
     /**
      * @param array $conn_settings
@@ -69,9 +69,9 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
     /**
      * @return string
      */
-    abstract protected function default_connection_name() : string;
+    abstract protected function default_connection_name(): string;
 
-    public function default_settings_structure() : array
+    public function default_settings_structure(): array
     {
         if (!($custom_structure = $this->default_custom_settings_structure())) {
             $custom_structure = [];
@@ -199,7 +199,7 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
         return true;
     }
 
-    public function display_errors($var = null) : bool
+    public function display_errors($var = null): bool
     {
         if ($var === null) {
             return $this->display_errors;
@@ -210,7 +210,7 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
         return $this->display_errors;
     }
 
-    public function die_on_errors($var = null) : bool
+    public function die_on_errors($var = null): bool
     {
         if ($var === null) {
             return $this->die_on_errors;
@@ -221,7 +221,7 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
         return $this->die_on_errors;
     }
 
-    public function debug_errors($var = null) : bool
+    public function debug_errors($var = null): bool
     {
         if ($var === null) {
             return $this->debug_errors;
@@ -288,7 +288,7 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
     }
 
     // Suppress any errors database driver might throw
-    public function suppress_errors() : void
+    public function suppress_errors(): void
     {
         if (!empty($this->error_state)) {
             return;
@@ -306,7 +306,7 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
     }
 
     // Restore error handling functions as before suppress_errors() method was called
-    public function restore_errors_state() : void
+    public function restore_errors_state(): void
     {
         if (empty($this->error_state)) {
             return;
@@ -319,7 +319,7 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
         $this->error_state = null;
     }
 
-    protected function default_common_settings_structure() : array
+    protected function default_common_settings_structure(): array
     {
         return [
             // defaults to MySQLi driver...
@@ -335,7 +335,7 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
      * @param string $short_err
      * @param string|false $connection_name
      */
-    protected function set_my_error(int $error_code, string $debug_err, string $short_err, $connection_name = false) : void
+    protected function set_my_error(int $error_code, string $debug_err, string $short_err, $connection_name = false): void
     {
         if ($connection_name === false) {
             $connection_name = $this->default_connection();
@@ -363,7 +363,7 @@ abstract class PHS_Db_class extends PHS_Registry implements PHS_Db_interface
         }
     }
 
-    public static function default_dump_parameters() : array
+    public static function default_dump_parameters(): array
     {
         return [
             // input parameters

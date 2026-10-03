@@ -30,7 +30,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     // Languages might be defined by other plugins at bootstrap and current language might change
     private array $_custom_lang_files_included = [];
 
-    final public function instance_type() : string
+    final public function instance_type(): string
     {
         return self::INSTANCE_TYPE_PLUGIN;
     }
@@ -40,7 +40,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      * This method should be used in special cases (eg. plugin with dynamic models)
      * @return array Returns an array with plugin details populated array returned by default_plugin_details_fields() method
      */
-    public function get_plugin_details() : array
+    public function get_plugin_details(): array
     {
         return [];
     }
@@ -48,12 +48,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     /**
      * @return bool Tells if plugin is allowed to have tenant settings or functionality can be used per tenant
      */
-    public function is_multi_tenant() : bool
+    public function is_multi_tenant(): bool
     {
         return (bool)($this->get_json_info()['is_multi_tenant'] ?? false);
     }
 
-    final public function is_always_active() : bool
+    final public function is_always_active(): bool
     {
         return (bool)($this->get_plugin_info()['is_always_active'] ?? false);
     }
@@ -61,7 +61,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     /**
      * @return array An array of strings which are the models used by this plugin
      */
-    public function get_models() : array
+    public function get_models(): array
     {
         return (array)($this->get_json_info()['models'] ?? []);
     }
@@ -69,7 +69,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     /**
      * @return string Returns version of plugin
      */
-    public function get_plugin_version() : string
+    public function get_plugin_version(): string
     {
         return $this->get_json_info()['version'] ?? '0.0.0';
     }
@@ -131,15 +131,15 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      *
      * @return array Array of roles definition
      */
-    public function get_agent_jobs_definition() : array
+    public function get_agent_jobs_definition(): array
     {
         return (array)($this->get_json_info()['agent_jobs'] ?? []);
     }
 
     final public function quick_init_view_instance(
         string | array $template,
-        array $template_data = []
-    ) : ?PHS_View {
+        array $template_data = [],
+    ): ?PHS_View {
         $this->reset_error();
 
         if (is_string($template)) {
@@ -177,8 +177,8 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
     final public function quick_render_template_for_buffer(
         string $template,
-        array $template_data = []
-    ) : ?string {
+        array $template_data = [],
+    ): ?string {
         $this->reset_error();
 
         if (!$template
@@ -198,7 +198,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $buffer;
     }
 
-    public function include_plugin_language_files() : void
+    public function include_plugin_language_files(): void
     {
         if (!($current_language = self::get_current_language())
             || !empty($this->_custom_lang_files_included[$current_language])) {
@@ -216,7 +216,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         self::scan_for_language_files($languages_dir);
     }
 
-    final public function get_plugin_libraries_www(bool $slash_ended = true) : string
+    final public function get_plugin_libraries_www(bool $slash_ended = true): string
     {
         if ($this->instance_is_core()
          || !($prefix = $this->instance_plugin_www())) {
@@ -226,7 +226,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $prefix.self::LIBRARIES_DIR.($slash_ended ? '/' : '');
     }
 
-    final public function get_plugin_libraries_path(bool $slash_ended = true) : string
+    final public function get_plugin_libraries_path(bool $slash_ended = true): string
     {
         if ($this->instance_is_core()
             || !($prefix = $this->instance_plugin_path())) {
@@ -236,7 +236,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $prefix.self::LIBRARIES_DIR.($slash_ended ? '/' : '');
     }
 
-    public function get_library_relative_path(string $library_file, array $params = []) : string
+    public function get_library_relative_path(string $library_file, array $params = []): string
     {
         $params['path_in_lib_dir'] = $this->_prepare_path_in_lib_dir($params['path_in_lib_dir'] ?? '', false);
 
@@ -250,7 +250,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return ($params['path_in_lib_dir'] !== '' ? $params['path_in_lib_dir'].'/' : '').$library_file.'.php';
     }
 
-    public function get_library_full_path(string $library_file, array $params = []) : string
+    public function get_library_full_path(string $library_file, array $params = []): string
     {
         if (!($relative_file_path = $this->get_library_relative_path($library_file, $params))) {
             return '';
@@ -259,7 +259,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $this->get_plugin_libraries_path(false).'/'.$relative_file_path;
     }
 
-    public function get_library_full_www(string $library_file, array $params = []) : string
+    public function get_library_full_www(string $library_file, array $params = []): string
     {
         if (!($relative_file_path = $this->get_library_relative_path($library_file, $params))) {
             return '';
@@ -268,7 +268,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $this->get_plugin_libraries_www(false).'/'.$relative_file_path;
     }
 
-    public function load_library(string $library_file, ?array $params = null) : ?PHS_Library
+    public function load_library(string $library_file, ?array $params = null): ?PHS_Library
     {
         $this->reset_error();
 
@@ -378,7 +378,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $library_instance;
     }
 
-    public function load_library_file(string $library_file, string $path_in_lib_dir = '') : ?string
+    public function load_library_file(string $library_file, string $path_in_lib_dir = ''): ?string
     {
         $this->reset_error();
 
@@ -405,7 +405,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $file_path;
     }
 
-    public function email_template_resource_from_file(string $file, ?string $force_language = null) : array
+    public function email_template_resource_from_file(string $file, ?string $force_language = null): array
     {
         $init_arr = $this->instance_plugin_themes_email_templates_pairs($force_language);
 
@@ -422,7 +422,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $template_arr;
     }
 
-    public function template_resource_from_file(string $file) : array
+    public function template_resource_from_file(string $file): array
     {
         return [
             'file'        => $file,
@@ -432,12 +432,12 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         ];
     }
 
-    public function plugin_active() : bool
+    public function plugin_active(): bool
     {
         return $this->db_record_active();
     }
 
-    public function check_installation() : bool
+    public function check_installation(): bool
     {
         PHS_Maintenance::output('['.$this->instance_plugin_name().'] Checking installation...');
 
@@ -487,7 +487,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return true;
     }
 
-    final public function plugin_is_installed() : ?bool
+    final public function plugin_is_installed(): ?bool
     {
         $this->reset_error();
 
@@ -575,7 +575,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
                 if (!$this->_plugins_instance->edit($module_arr, $edit_params_arr)) {
                     $this->copy_or_set_error($this->_plugins_instance,
-                        self::ERR_CHANGES, self::_t('Error activating %s %s.', $module_arr['type'], $module_arr['instance_id'])
+                        self::ERR_CHANGES, self::_t('Error activating %s %s.', $module_arr['type'], $module_arr['instance_id']),
                     );
 
                     PHS_Maintenance::output('['.$this->instance_plugin_name().'] !!! Error activating database record ['.$module_arr['instance_id'].']');
@@ -612,7 +612,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $plugin_arr;
     }
 
-    final public function activate_plugin_on_tenant(int $tenant_id) : bool
+    final public function activate_plugin_on_tenant(int $tenant_id): bool
     {
         $this->reset_error();
 
@@ -653,7 +653,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return true;
     }
 
-    final public function get_plugin_display_name() : string
+    final public function get_plugin_display_name(): string
     {
         return $this->get_plugin_info()['name'] ?? '';
     }
@@ -765,7 +765,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $plugin_arr;
     }
 
-    final public function inactivate_plugin_on_tenant(int $tenant_id) : bool
+    final public function inactivate_plugin_on_tenant(int $tenant_id): bool
     {
         $this->reset_error();
 
@@ -809,7 +809,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return true;
     }
 
-    final public function user_has_any_of_defined_role_units() : bool
+    final public function user_has_any_of_defined_role_units(): bool
     {
         if (!($role_definition = $this->get_roles_definition())
          || !is_array($role_definition)) {
@@ -846,7 +846,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return can(array_keys($role_units_arr), ['logical_operation' => 'or']);
     }
 
-    final public function install_agent_jobs(bool $on_update = false) : bool
+    final public function install_agent_jobs(bool $on_update = false): bool
     {
         $this->reset_error();
 
@@ -951,7 +951,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return true;
     }
 
-    final public function uninstall_agent_jobs() : bool
+    final public function uninstall_agent_jobs(): bool
     {
         $this->reset_error();
 
@@ -978,7 +978,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $we_have_error;
     }
 
-    final public function suspend_agent_jobs() : bool
+    final public function suspend_agent_jobs(): bool
     {
         $this->reset_error();
 
@@ -1000,7 +1000,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return true;
     }
 
-    final public function unsuspend_agent_jobs() : bool
+    final public function unsuspend_agent_jobs(): bool
     {
         $this->reset_error();
 
@@ -1022,7 +1022,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return true;
     }
 
-    final public function remove_agent_jobs() : bool
+    final public function remove_agent_jobs(): bool
     {
         $this->reset_error();
 
@@ -1036,7 +1036,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return true;
     }
 
-    final public function install_roles() : ?array
+    final public function install_roles(): ?array
     {
         $this->reset_error();
 
@@ -1134,7 +1134,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return $db_roles_arr;
     }
 
-    final public function install() : bool
+    final public function install(): bool
     {
         $this->reset_error();
 
@@ -1167,7 +1167,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $plugin_version = $this->get_plugin_version();
 
         if (!($event_obj = PHS_Event_Migration_plugins::trigger_install(
-            plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
+            plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update,
         ))
              || $event_obj->result_has_error()
              || self::st_has_error()) {
@@ -1181,7 +1181,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         if (!($event_obj = PHS_Event_Migration_plugins::trigger_start(
-            plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
+            plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update,
         ))
              || $event_obj->result_has_error()
              || self::st_has_error()) {
@@ -1202,7 +1202,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         if (!($event_obj = PHS_Event_Migration_plugins::trigger_after_roles(
-            plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
+            plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update,
         ))
              || $event_obj->result_has_error()
              || self::st_has_error()) {
@@ -1223,7 +1223,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         if (!($event_obj = PHS_Event_Migration_plugins::trigger_after_jobs(
-            plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
+            plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update,
         ))
              || $event_obj->result_has_error()
              || self::st_has_error()) {
@@ -1315,7 +1315,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         if (!($event_obj = PHS_Event_Migration_plugins::trigger_finish(
-            plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update
+            plugin_obj: $this, old_version: '0.0.0', new_version: $plugin_version, is_dry_update: $is_dry_update,
         ))
              || $event_obj->result_has_error()
              || self::st_has_error()) {
@@ -1333,7 +1333,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return true;
     }
 
-    final public function uninstall() : ?array
+    final public function uninstall(): ?array
     {
         $this->reset_error();
 
@@ -1437,7 +1437,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      *
      * @return bool true on success, false on failure
      */
-    final public function update(string $old_version, string $new_version) : bool
+    final public function update(string $old_version, string $new_version): bool
     {
         $this->reset_error();
 
@@ -1454,7 +1454,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         $is_dry_update = PHS_Db::dry_update();
 
         if (!($event_obj = PHS_Event_Migration_plugins::trigger_start(
-            plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
+            plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update,
         ))
              || $event_obj->result_has_error()
              || self::st_has_error()) {
@@ -1477,7 +1477,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         if (!($event_obj = PHS_Event_Migration_plugins::trigger_after_roles(
-            plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
+            plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update,
         ))
              || $event_obj->result_has_error()
              || self::st_has_error()) {
@@ -1499,7 +1499,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         }
 
         if (!($event_obj = PHS_Event_Migration_plugins::trigger_after_jobs(
-            plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
+            plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update,
         ))
              || $event_obj->result_has_error()
              || self::st_has_error()) {
@@ -1592,7 +1592,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
 
         /** @var null|PHS_Event_Migration_plugins $event_obj */
         if (!($event_obj = PHS_Event_Migration_plugins::trigger_finish(
-            plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update
+            plugin_obj: $this, old_version: $old_version, new_version: $new_version, is_dry_update: $is_dry_update,
         ))
              || $event_obj->result_has_error()
              || self::st_has_error()) {
@@ -1637,7 +1637,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
      * Returns plugin information as described in plugin JSON file (if available) as array or false in case there is no JSON file
      * @return array
      */
-    final public function get_json_info() : ?array
+    final public function get_json_info(): ?array
     {
         if ($this->_plugin_json_details !== null) {
             return $this->_plugin_json_details;
@@ -1656,7 +1656,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
     /**
      * @return null|array
      */
-    final public function get_plugin_info() : ?array
+    final public function get_plugin_info(): ?array
     {
         if (!empty($this->_plugin_details)) {
             return $this->_plugin_details;
@@ -1791,7 +1791,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return true;
     }
 
-    private function _prepare_path_in_lib_dir(string $path, bool $slash_ended = true) : string
+    private function _prepare_path_in_lib_dir(string $path, bool $slash_ended = true): string
     {
         if ($path === '') {
             return '';
@@ -1800,7 +1800,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         return trim(str_replace('.', '', $path), '\\/').($slash_ended ? '/' : '');
     }
 
-    public static function role_unit_structure() : array
+    public static function role_unit_structure(): array
     {
         return [
             'name'        => '',
@@ -1808,7 +1808,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         ];
     }
 
-    public static function role_structure() : array
+    public static function role_structure(): array
     {
         return [
             'name'        => '',
@@ -1817,7 +1817,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         ];
     }
 
-    public static function agent_job_structure() : array
+    public static function agent_job_structure(): array
     {
         return [
             'title'         => '',
@@ -1831,7 +1831,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         ];
     }
 
-    final public static function default_plugin_details_fields() : array
+    final public static function default_plugin_details_fields(): array
     {
         return [
             'id'             => '', // full instance id $instance_type.':'.$plugin_name.':'.$instance_name
@@ -1862,7 +1862,7 @@ abstract class PHS_Plugin extends PHS_Has_db_registry
         ];
     }
 
-    public static function core_plugin_details_fields() : array
+    public static function core_plugin_details_fields(): array
     {
         $return_arr = [
             'id'               => PHS_Instantiable::CORE_PLUGIN,

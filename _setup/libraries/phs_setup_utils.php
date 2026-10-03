@@ -3,7 +3,7 @@ namespace phs\setup\libraries;
 
 class PHS_Setup_utils
 {
-    public static function _detect_setup_path() : string
+    public static function _detect_setup_path(): string
     {
         if (!($phs_setup_path = @dirname(__DIR__))) {
             $phs_setup_path = '..';
@@ -12,7 +12,7 @@ class PHS_Setup_utils
         return $phs_setup_path.'/';
     }
 
-    public static function _detect_setup_domain() : array
+    public static function _detect_setup_domain(): array
     {
         static $domain_settings_arr = false;
 
@@ -80,7 +80,7 @@ class PHS_Setup_utils
         return $domain_settings_arr;
     }
 
-    public static function safe_escape_script(string $script) : string
+    public static function safe_escape_script(string $script): string
     {
         if (!$script
             || preg_match('@[^a-zA-Z0-9_\-]@', $script)) {

@@ -14,7 +14,7 @@ class PHS_Params
         REGEX_URL = '_^(?:(?:https?|ftp)://)(?:\S+(?::\S*)?@)?(?:(?!10(?:\.\d{1,3}){3})(?!127(?:\.\d{1,3}){3})(?!169\.254(?:\.\d{1,3}){2})(?!192\.168(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\x{00a1}-\x{ffff}0-9]+-?)*[a-z\x{00a1}-\x{ffff}0-9]+)(?:\.(?:[a-z\x{00a1}-\x{ffff}0-9]+-?)*[a-z\x{00a1}-\x{ffff}0-9]+)*(?:\.(?:[a-z\x{00a1}-\x{ffff}]{2,})))(?::\d{2,5})?(?:/[^\s]*)?$_iuS',
         REGEX_GUID = '/^(\{)?[a-f\d]{8}(-[a-f\d]{4}){4}[a-f\d]{8}(?(1)\})$/i';
 
-    public static function get_valid_types() : array
+    public static function get_valid_types(): array
     {
         return [
             self::T_ASIS, self::T_INT, self::T_FLOAT, self::T_ALPHANUM, self::T_SAFEHTML, self::T_NOHTML, self::T_EMAIL,
@@ -23,12 +23,12 @@ class PHS_Params
         ];
     }
 
-    public static function valid_type(int $type) : bool
+    public static function valid_type(int $type): bool
     {
         return in_array($type, self::get_valid_types(), true);
     }
 
-    public static function check_type(mixed $val, int $type) : bool
+    public static function check_type(mixed $val, int $type): bool
     {
         return match ($type) {
             self::T_INT       => preg_match(self::REGEX_INT, $val),
@@ -42,7 +42,7 @@ class PHS_Params
         };
     }
 
-    public static function set_type(mixed $val, int $type, array $extra = []) : mixed
+    public static function set_type(mixed $val, int $type, array $extra = []): mixed
     {
         if ($val === null) {
             return null;
@@ -206,7 +206,7 @@ class PHS_Params
      *
      * @return null|mixed
      */
-    public static function _var(string $from, ?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
+    public static function _var(string $from, ?string $v, int $type = self::T_ASIS, array $extra = []): mixed
     {
         if (!$from) {
             return null;
@@ -263,7 +263,7 @@ class PHS_Params
         return null;
     }
 
-    public static function _gp(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
+    public static function _gp(?string $v, int $type = self::T_ASIS, array $extra = []): mixed
     {
         $var = $_GET[$v] ?? $_POST[$v] ?? null;
         if ($v === null || $var === null) {
@@ -273,7 +273,7 @@ class PHS_Params
         return self::set_type($var, $type, $extra);
     }
 
-    public static function _pg(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
+    public static function _pg(?string $v, int $type = self::T_ASIS, array $extra = []): mixed
     {
         $var = $_POST[$v] ?? $_GET[$v] ?? null;
         if ($v === null || $var === null) {
@@ -283,7 +283,7 @@ class PHS_Params
         return self::set_type($var, $type, $extra);
     }
 
-    public static function _g(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
+    public static function _g(?string $v, int $type = self::T_ASIS, array $extra = []): mixed
     {
         if ($v === null || !isset($_GET[$v])) {
             return null;
@@ -292,7 +292,7 @@ class PHS_Params
         return self::set_type($_GET[$v], $type, $extra);
     }
 
-    public static function _p(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
+    public static function _p(?string $v, int $type = self::T_ASIS, array $extra = []): mixed
     {
         if ($v === null || !isset($_POST[$v])) {
             return null;
@@ -301,7 +301,7 @@ class PHS_Params
         return self::set_type($_POST[$v], $type, $extra);
     }
 
-    public static function _f(?string $v) : ?array
+    public static function _f(?string $v): ?array
     {
         if ($v === null
             || !isset($_FILES[$v]['name'])
@@ -312,7 +312,7 @@ class PHS_Params
         return $_FILES[$v];
     }
 
-    public static function _s(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
+    public static function _s(?string $v, int $type = self::T_ASIS, array $extra = []): mixed
     {
         if ($v === null || !isset($_SESSION[$v])) {
             return null;
@@ -321,7 +321,7 @@ class PHS_Params
         return self::set_type($_SESSION[$v], $type, $extra);
     }
 
-    public static function _c(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
+    public static function _c(?string $v, int $type = self::T_ASIS, array $extra = []): mixed
     {
         if ($v === null || !isset($_COOKIE[$v])) {
             return null;
@@ -330,7 +330,7 @@ class PHS_Params
         return self::set_type($_COOKIE[$v], $type, $extra);
     }
 
-    public static function _r(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
+    public static function _r(?string $v, int $type = self::T_ASIS, array $extra = []): mixed
     {
         if ($v === null || !isset($_REQUEST[$v])) {
             return null;
@@ -339,7 +339,7 @@ class PHS_Params
         return self::set_type($_REQUEST[$v], $type, $extra);
     }
 
-    public static function _v(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
+    public static function _v(?string $v, int $type = self::T_ASIS, array $extra = []): mixed
     {
         if ($v === null || !isset($_SERVER[$v])) {
             return null;
@@ -348,7 +348,7 @@ class PHS_Params
         return self::set_type($_SERVER[$v], $type, $extra);
     }
 
-    public static function _e(?string $v, int $type = self::T_ASIS, array $extra = []) : mixed
+    public static function _e(?string $v, int $type = self::T_ASIS, array $extra = []): mixed
     {
         if ($v === null || !isset($_ENV[$v])) {
             return null;

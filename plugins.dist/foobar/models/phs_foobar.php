@@ -8,22 +8,22 @@ class PHS_Model_Foobar extends PHS_Model
 {
     public const ERR_DB_JOB = 10000;
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.0.10';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['foobar'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'foobar';
     }
 
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             'minutes_to_stall' => [
@@ -52,7 +52,7 @@ class PHS_Model_Foobar extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;

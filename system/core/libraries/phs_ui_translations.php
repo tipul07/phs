@@ -35,7 +35,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         self::STATUS_FORCE_STOPPED => ['title' => 'Force stopped'],
     ];
 
-    public function get_po_instance() : ?PHS_Po_format
+    public function get_po_instance(): ?PHS_Po_format
     {
         if (!class_exists(PHS_Po_format::class, false)) {
             include_once PHS_LIBRARIES_DIR.'phs_po_format.php';
@@ -50,7 +50,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         return new PHS_Po_format();
     }
 
-    public function check_ui_translations_results() : ?array
+    public function check_ui_translations_results(): ?array
     {
         $languages_arr = self::get_defined_languages();
 
@@ -75,7 +75,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         return $results_arr;
     }
 
-    public function start_ui_translations(string $lang, bool $force = false) : ?array
+    public function start_ui_translations(string $lang, bool $force = false): ?array
     {
         $this->reset_error();
 
@@ -100,7 +100,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
                 $this->set_error(
                     self::ERR_FUNCTIONALITY,
                     self::_t('There is already an task running. You should wait %s secods before retry starting a new translation task.',
-                        self::SECONDS_STARTED_RETRY)
+                        self::SECONDS_STARTED_RETRY),
                 );
 
                 return null;
@@ -110,7 +110,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
                 $this->set_error(
                     self::ERR_FUNCTIONALITY,
                     self::_t('You should wait %s secods before retry starting a new translation task while another task is still running.',
-                        self::SECONDS_RUNNING_RETRY)
+                        self::SECONDS_RUNNING_RETRY),
                 );
 
                 return null;
@@ -163,7 +163,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         return $status_arr;
     }
 
-    public function start_ui_translations_bg(string $lang, bool $force = false, array $params = []) : ?array
+    public function start_ui_translations_bg(string $lang, bool $force = false, array $params = []): ?array
     {
         $this->reset_error();
 
@@ -318,7 +318,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         return $this->get_status($lang);
     }
 
-    public function update_language_files_with_translation_result(string $lang, array $params = []) : ?array
+    public function update_language_files_with_translation_result(string $lang, array $params = []): ?array
     {
         $this->reset_error();
 
@@ -371,7 +371,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         return $po_obj->update_language_files($resources_arr['full_lang_file'], $params);
     }
 
-    public function force_stop_ui_translation(string $lang) : ?array
+    public function force_stop_ui_translation(string $lang): ?array
     {
         $this->reset_error();
 
@@ -402,7 +402,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         return $new_status;
     }
 
-    public function get_status(string $lang) : ?array
+    public function get_status(string $lang): ?array
     {
         $this->reset_error();
 
@@ -434,7 +434,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         return self::validate_array($status_arr, $status_structure);
     }
 
-    public function get_status_structure() : array
+    public function get_status_structure(): array
     {
         return [
             'started'                    => 0, // timestamp
@@ -452,7 +452,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         ];
     }
 
-    public function status_is_finished(array $status_arr) : bool
+    public function status_is_finished(array $status_arr): bool
     {
         if (empty($status_arr['status'])) {
             $status_arr = self::validate_array($status_arr, $this->get_status_structure());
@@ -462,7 +462,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
             [self::STATUS_FINISHED, self::STATUS_ERROR, self::STATUS_FORCE_STOPPED], true);
     }
 
-    public function status_is_running(array $status_arr) : bool
+    public function status_is_running(array $status_arr): bool
     {
         if (empty($status_arr['status'])) {
             $status_arr = self::validate_array($status_arr, $this->get_status_structure());
@@ -471,7 +471,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         return (int)$status_arr['status'] === self::STATUS_RUNNING;
     }
 
-    public function status_is_just_started(array $status_arr) : bool
+    public function status_is_just_started(array $status_arr): bool
     {
         if (empty($status_arr['status'])) {
             $status_arr = self::validate_array($status_arr, $this->get_status_structure());
@@ -480,7 +480,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         return (int)$status_arr['status'] === self::STATUS_STARTING;
     }
 
-    public function status_is_success(array $status_arr) : bool
+    public function status_is_success(array $status_arr): bool
     {
         if (empty($status_arr['status'])) {
             $status_arr = self::validate_array($status_arr, $this->get_status_structure());
@@ -489,7 +489,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         return (int)$status_arr['status'] === self::STATUS_FINISHED;
     }
 
-    public function status_is_error(array $status_arr) : bool
+    public function status_is_error(array $status_arr): bool
     {
         if (empty($status_arr['status'])) {
             $status_arr = self::validate_array($status_arr, $this->get_status_structure());
@@ -498,7 +498,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         return (int)$status_arr['status'] === self::STATUS_ERROR;
     }
 
-    public function status_is_force_stopped(array $status_arr) : bool
+    public function status_is_force_stopped(array $status_arr): bool
     {
         if (empty($status_arr['status'])) {
             $status_arr = self::validate_array($status_arr, $this->get_status_structure());
@@ -507,7 +507,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         return (int)$status_arr['status'] === self::STATUS_FORCE_STOPPED;
     }
 
-    private function _translate_po_unit(array $po_unit, string $lang) : ?string
+    private function _translate_po_unit(array $po_unit, string $lang): ?string
     {
         $this->reset_error();
 
@@ -532,7 +532,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         return $result_payload['text'] ?? null;
     }
 
-    private function _get_status_resources_details(string $lang) : ?array
+    private function _get_status_resources_details(string $lang): ?array
     {
         $this->reset_error();
 
@@ -564,7 +564,7 @@ class PHS_Library_Ui_translations extends PHS_Library_instantiable
         return $return_arr;
     }
 
-    private function _update_status(string $lang, array $payload_arr) : ?array
+    private function _update_status(string $lang, array $payload_arr): ?array
     {
         $this->reset_error();
 

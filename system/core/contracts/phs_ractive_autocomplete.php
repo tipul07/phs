@@ -12,7 +12,7 @@ class PHS_Contract_Ractive_autocomplete extends PHS_Contract
     /**
      * @inheritdoc
      */
-    public function get_contract_data_definition() : ?array
+    public function get_contract_data_definition(): ?array
     {
         return $this->_autocomplete_contract->get_contract_data_definition();
     }

@@ -9,7 +9,7 @@ use phs\system\core\models\PHS_Model_Migrations;
 
 class PHS_Action_Rerun_bg extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_BACKGROUND];
     }

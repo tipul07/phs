@@ -20,12 +20,12 @@ class PHS_Model_Retention_mock extends PHS_Model
 
     private ?array $_retention_arr = null;
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.0.0';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         if (empty($this->_retention_arr['table'])
              || !$this->_load_dependencies()) {
@@ -35,7 +35,7 @@ class PHS_Model_Retention_mock extends PHS_Model
         return [$this->_retention_lib->get_data_retention_table_name_from_table($this->_retention_arr['table'])];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         if (empty($this->_retention_arr['table'])
              || !$this->_load_dependencies()) {
@@ -45,7 +45,7 @@ class PHS_Model_Retention_mock extends PHS_Model
         return $this->_retention_lib->get_data_retention_table_name_from_table($this->_retention_arr['table']);
     }
 
-    public function fields_definition($params = false) : ?array
+    public function fields_definition($params = false): ?array
     {
         if (empty($this->_retention_arr['table'])
             || empty($this->_model_obj)
@@ -58,7 +58,7 @@ class PHS_Model_Retention_mock extends PHS_Model
         return $this->_model_obj->fields_definition(['table_name' => $this->_retention_arr['table']]);
     }
 
-    public function inject_data_retention_model(PHS_Model $model, int | array $retention_data) : bool
+    public function inject_data_retention_model(PHS_Model $model, int | array $retention_data): bool
     {
         $this->reset_error();
 
@@ -123,7 +123,7 @@ class PHS_Model_Retention_mock extends PHS_Model
         return true;
     }
 
-    public function move_data_for_retention(string $last_date) : ?array
+    public function move_data_for_retention(string $last_date): ?array
     {
         $this->reset_error();
 
@@ -195,7 +195,7 @@ class PHS_Model_Retention_mock extends PHS_Model
             $error_msg = self::_t('Error querying source table for data.');
 
             if (!$this->_retention_model->start_retention_run(
-                $this->_retention_arr, $last_date, 0, true, error: $error_msg
+                $this->_retention_arr, $last_date, 0, true, error: $error_msg,
             )) {
                 PHS_Logger::error('Error saving data retention run for record #'.$this->_retention_arr['id'].': '
                                   .$error_msg, $this->_admin_plugin::LOG_DATA_RETENTION);
@@ -208,7 +208,7 @@ class PHS_Model_Retention_mock extends PHS_Model
 
         if (empty($total_count['total_rows'])) {
             if (!($run_record = $this->_retention_model->start_retention_run(
-                $this->_retention_arr, $last_date, 0, true
+                $this->_retention_arr, $last_date, 0, true,
             ))) {
                 PHS_Logger::error('Error saving data retention run for record #'.$this->_retention_arr['id'].': '
                                   .'No records to move.', $this->_admin_plugin::LOG_DATA_RETENTION);
@@ -239,7 +239,7 @@ class PHS_Model_Retention_mock extends PHS_Model
 
                 if (!empty($run_record)
                     && !$this->_retention_model->update_retention_run(
-                        $run_record, 0, true, $error_msg
+                        $run_record, 0, true, $error_msg,
                     )) {
                     PHS_Logger::error('Error saving data retention run for record RD#'.$this->_retention_arr['id'].', #'.$run_record['id'].': '
                                       .$error_msg.'; '
@@ -256,7 +256,7 @@ class PHS_Model_Retention_mock extends PHS_Model
 
             if (!empty($run_record)
                 && !($new_run_record = $this->_retention_model->update_retention_run(
-                    $run_record, $return_arr['affected_rows'], true, null
+                    $run_record, $return_arr['affected_rows'], true, null,
                 ))) {
                 PHS_Logger::error('Error saving data retention run for record RD#'.$this->_retention_arr['id'].', #'.$run_record['id'].': '
                                   .$this->_retention_model->get_simple_error_message('Unknown error.'),
@@ -285,7 +285,7 @@ class PHS_Model_Retention_mock extends PHS_Model
         $new_run_record = null;
         if (!empty($run_record)
             && !($new_run_record = $this->_retention_model->update_retention_run(
-                $run_record, 0, destination_table: $destination_table
+                $run_record, 0, destination_table: $destination_table,
             ))) {
             PHS_Logger::error('Error saving data retention run for record RD#'.$this->_retention_arr['id'].', #'.$run_record['id'].': '
                               .'Error updating destination table; '
@@ -385,7 +385,7 @@ class PHS_Model_Retention_mock extends PHS_Model
         return $return_arr;
     }
 
-    private function _get_records_from_query_as_generator(string $query, bool | string $db_connection, int $step = 20) : ?Generator
+    private function _get_records_from_query_as_generator(string $query, bool | string $db_connection, int $step = 20): ?Generator
     {
         for ($offset = 0; ; $offset += $step) {
             if (!($qid = db_query($query.' LIMIT '.$offset.', '.$step, $db_connection))
@@ -403,13 +403,13 @@ class PHS_Model_Retention_mock extends PHS_Model
         }
     }
 
-    private function _reset_tables_definition() : void
+    private function _reset_tables_definition(): void
     {
         $this->_definition = [];
         $this->model_tables_arr = [];
     }
 
-    private function _load_dependencies() : bool
+    private function _load_dependencies(): bool
     {
         $this->reset_error();
 

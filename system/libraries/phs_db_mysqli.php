@@ -52,12 +52,12 @@ class PHS_Db_mysqli extends PHS_Db_class
         return $this->last_inserted_id;
     }
 
-    public function affected_rows() : int
+    public function affected_rows(): int
     {
         return $this->affected_rows;
     }
 
-    public function close_after_query($var = null) : bool
+    public function close_after_query($var = null): bool
     {
         if ($var === null) {
             return $this->close_after_query;
@@ -76,7 +76,7 @@ class PHS_Db_mysqli extends PHS_Db_class
      *
      * @return string
      */
-    public function get_last_db_error($connection_name = false) : string
+    public function get_last_db_error($connection_name = false): string
     {
         if ($connection_name === false) {
             $connection_name = $this->default_connection();
@@ -118,7 +118,7 @@ class PHS_Db_mysqli extends PHS_Db_class
      *
      * @return bool
      */
-    public function close($connection_name = false) : bool
+    public function close($connection_name = false): bool
     {
         if ($connection_name === false) {
             $connection_name = $this->default_connection();
@@ -278,7 +278,7 @@ class PHS_Db_mysqli extends PHS_Db_class
      *
      * @return string
      */
-    public function quick_insert($table_name, $insert_arr, $connection_name = false, $params = false) : string
+    public function quick_insert($table_name, $insert_arr, $connection_name = false, $params = false): string
     {
         if (!is_array($insert_arr) || !count($insert_arr)) {
             return '';
@@ -341,7 +341,7 @@ class PHS_Db_mysqli extends PHS_Db_class
      *
      * @return string
      */
-    public function quick_edit($table_name, $edit_arr, $connection_name = false, $params = false) : string
+    public function quick_edit($table_name, $edit_arr, $connection_name = false, $params = false): string
     {
         if (!is_array($edit_arr) || !count($edit_arr)) {
             return '';
@@ -454,7 +454,7 @@ class PHS_Db_mysqli extends PHS_Db_class
      *
      * @return bool
      */
-    public function test_connection($connection_name = false) : bool
+    public function test_connection($connection_name = false): bool
     {
         $this->reset_error();
 
@@ -812,7 +812,7 @@ class PHS_Db_mysqli extends PHS_Db_class
      *
      * @return int
      */
-    public function queries_number(bool $incr = false) : int
+    public function queries_number(bool $incr = false): int
     {
         static $queries_no = 0;
 
@@ -830,7 +830,7 @@ class PHS_Db_mysqli extends PHS_Db_class
      *
      * @return null|false|string[]
      */
-    public function fetch_assoc($qid) : ?array
+    public function fetch_assoc($qid): ?array
     {
         if (empty($qid)
          || !($qid instanceof \mysqli_result)) {
@@ -845,7 +845,7 @@ class PHS_Db_mysqli extends PHS_Db_class
      *
      * @return int
      */
-    public function num_rows($qid) : int
+    public function num_rows($qid): int
     {
         if (empty($qid)
          || !($qid instanceof \mysqli_result)) {
@@ -949,7 +949,7 @@ class PHS_Db_mysqli extends PHS_Db_class
         return $dump_params;
     }
 
-    protected function default_custom_settings_structure() : array
+    protected function default_custom_settings_structure(): array
     {
         return [
             'user'         => '',
@@ -964,7 +964,7 @@ class PHS_Db_mysqli extends PHS_Db_class
         ];
     }
 
-    protected function custom_settings_validation(array $conn_settings) : ?array
+    protected function custom_settings_validation(array $conn_settings): ?array
     {
         if (!$this->custom_settings_are_valid($conn_settings)) {
             return null;
@@ -997,7 +997,7 @@ class PHS_Db_mysqli extends PHS_Db_class
     /**
      * @return string
      */
-    protected function default_connection_name() : string
+    protected function default_connection_name(): string
     {
         return self::DEFAULT_CONNECTION_NAME;
     }
@@ -1008,7 +1008,7 @@ class PHS_Db_mysqli extends PHS_Db_class
      * @param string $short_err
      * @param false|string $connection_name
      */
-    protected function set_my_error(int $error_code, string $debug_err, string $short_err, $connection_name = false) : void
+    protected function set_my_error(int $error_code, string $debug_err, string $short_err, $connection_name = false): void
     {
         if ($connection_name === false) {
             $connection_name = $this->default_connection();
@@ -1040,7 +1040,7 @@ class PHS_Db_mysqli extends PHS_Db_class
     /**
      * @return array
      */
-    public static function get_default_driver_settings() : array
+    public static function get_default_driver_settings(): array
     {
         return [
             'sql_mode' => '',

@@ -18,11 +18,11 @@ if (($trd_party_plugin = PHS_Plugin_Accounts_3rd::get_instance())) {
     } else {
         $accounts_plugin->define_login_source(
             $trd_party_plugin::LOGIN_SOURCE_APPLE,
-            ['title' => 'Apple Login', 'bypass_internal_tfa' => true]
+            ['title' => 'Apple Login', 'bypass_internal_tfa' => true],
         );
         $accounts_plugin->define_login_source(
             $trd_party_plugin::LOGIN_SOURCE_GOOGLE,
-            ['title' => 'Google Login', 'bypass_internal_tfa' => true]
+            ['title' => 'Google Login', 'bypass_internal_tfa' => true],
         );
     }
 
@@ -45,7 +45,7 @@ if (($trd_party_plugin = PHS_Plugin_Accounts_3rd::get_instance())) {
                 'method'                  => 'post',
                 'name'                    => '3rd party Google mobile login',
                 'description'             => 'Login functionality for 3rd party mobile applications with Google accounts',
-            ]
+            ],
         );
 
         // POST /users/google/register Register an account from 3rd party mobile app using a Google account
@@ -65,7 +65,7 @@ if (($trd_party_plugin = PHS_Plugin_Accounts_3rd::get_instance())) {
                 'method'                  => 'post',
                 'name'                    => '3rd party Google mobile register',
                 'description'             => 'Register functionality for 3rd party mobile applications with Google accounts',
-            ]
+            ],
         );
 
         // POST /users/apple/login Login an account from 3rd party mobile app using an Apple account
@@ -85,7 +85,7 @@ if (($trd_party_plugin = PHS_Plugin_Accounts_3rd::get_instance())) {
                 'method'                  => 'post',
                 'name'                    => '3rd party Apple mobile login',
                 'description'             => 'Login functionality for 3rd party mobile applications with Apple accounts',
-            ]
+            ],
         );
 
         // POST /users/apple/register Register an account from 3rd party mobile app using an Apple account
@@ -105,7 +105,7 @@ if (($trd_party_plugin = PHS_Plugin_Accounts_3rd::get_instance())) {
                 'method'                  => 'post',
                 'name'                    => '3rd party Apple mobile register',
                 'description'             => 'Register functionality for 3rd party mobile applications with Apple accounts',
-            ]
+            ],
         );
     }
 
@@ -113,13 +113,13 @@ if (($trd_party_plugin = PHS_Plugin_Accounts_3rd::get_instance())) {
         $trd_party_plugin::H_ACCOUNTS_3RD_LOGIN_BUFFER,
         [$trd_party_plugin, 'trigger_trd_party_login_buffer'],
         PHS_Hooks::default_buffer_hook_args(),
-        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 0, ]
+        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 0, ],
     );
 
     PHS::register_hook(
         $trd_party_plugin::H_ACCOUNTS_3RD_REGISTER_BUFFER,
         [$trd_party_plugin, 'trigger_trd_party_register_buffer'],
         PHS_Hooks::default_buffer_hook_args(),
-        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 0, ]
+        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 0, ],
     );
 }

@@ -45,7 +45,7 @@ if (!($api_obj = PHS_Api::api_factory($api_params))) {
     PHS_Logger::error('Error obtaining API instance: ['.$error_msg.']', PHS_Logger::TYPE_API);
 
     PHS_Model_Api_monitor::api_incoming_request_direct_error(
-        PHS_Api_base::GENERIC_ERROR_CODE, 'Error obtaining API instance: '.$error_msg
+        PHS_Api_base::GENERIC_ERROR_CODE, 'Error obtaining API instance: '.$error_msg,
     );
 
     PHS_Api::generic_error($error_msg);
@@ -56,7 +56,7 @@ if (!$api_obj->extract_api_request_details()) {
     $error_msg = $api_obj->get_simple_error_message($api_obj::_t('Unknow error.'));
 
     PHS_Model_Api_monitor::api_incoming_request_direct_error(
-        PHS_Api_base::GENERIC_ERROR_CODE, 'Error initializing API: '.$error_msg
+        PHS_Api_base::GENERIC_ERROR_CODE, 'Error initializing API: '.$error_msg,
     );
 
     PHS_Api::generic_error($error_msg);

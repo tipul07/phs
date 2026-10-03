@@ -11,7 +11,7 @@ class PHS_Setup_view extends PHS_Registry
 
     private static string $templates_dir = '';
 
-    public function render_view(string $template, array $data = []) : string
+    public function render_view(string $template, array $data = []): string
     {
         $this->set_context($data);
 
@@ -36,12 +36,12 @@ class PHS_Setup_view extends PHS_Registry
         return @ob_get_clean() ?: '';
     }
 
-    public function get_resource_url($resource) : string
+    public function get_resource_url($resource): string
     {
         return self::get_templates_www().$resource;
     }
 
-    public static function set_templates_www(?string $www_path = null) : ?string
+    public static function set_templates_www(?string $www_path = null): ?string
     {
         if ($www_path === null) {
             return self::$templates_www;
@@ -52,7 +52,7 @@ class PHS_Setup_view extends PHS_Registry
         return self::$templates_www;
     }
 
-    public static function get_templates_www(bool $slash_ended = true) : string
+    public static function get_templates_www(bool $slash_ended = true): string
     {
         if (self::$templates_www === null) {
             return 'templates'.($slash_ended ? '/' : '');
@@ -65,7 +65,7 @@ class PHS_Setup_view extends PHS_Registry
         return self::$templates_www.($slash_ended ? '/' : '');
     }
 
-    public static function set_templates_dir(?string $dir_path = null) : string
+    public static function set_templates_dir(?string $dir_path = null): string
     {
         if ($dir_path === null) {
             return self::$templates_dir;
@@ -76,7 +76,7 @@ class PHS_Setup_view extends PHS_Registry
         return self::$templates_dir;
     }
 
-    public static function get_templates_dir(bool $slash_ended = true) : string
+    public static function get_templates_dir(bool $slash_ended = true): string
     {
         if (!self::$templates_dir) {
             return '';

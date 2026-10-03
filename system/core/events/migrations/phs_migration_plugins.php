@@ -30,7 +30,7 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
-    ) : ?self {
+    ): ?self {
         if (!$plugin_obj) {
             return null;
         }
@@ -38,7 +38,7 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         return self::trigger(
             self::_generate_event_input($plugin_obj, $old_version, $new_version, $is_dry_update, $is_forced),
             $plugin_obj::class.'::'.self::EP_INSTALL,
-            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
+            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false],
         );
     }
 
@@ -59,7 +59,7 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
-    ) : ?self {
+    ): ?self {
         if (!$plugin_obj) {
             return null;
         }
@@ -67,7 +67,7 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         return self::trigger(
             self::_generate_event_input($plugin_obj, $old_version, $new_version, $is_dry_update, $is_forced),
             $plugin_obj::class.'::'.self::EP_START,
-            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
+            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false],
         );
     }
 
@@ -88,7 +88,7 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
-    ) : ?self {
+    ): ?self {
         if (!$plugin_obj) {
             return null;
         }
@@ -96,7 +96,7 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         return self::trigger(
             self::_generate_event_input($plugin_obj, $old_version, $new_version, $is_dry_update, $is_forced),
             $plugin_obj::class.'::'.self::EP_AFTER_ROLES,
-            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
+            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false],
         );
     }
 
@@ -117,7 +117,7 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
-    ) : ?self {
+    ): ?self {
         if (!$plugin_obj) {
             return null;
         }
@@ -125,7 +125,7 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         return self::trigger(
             self::_generate_event_input($plugin_obj, $old_version, $new_version, $is_dry_update, $is_forced),
             $plugin_obj::class.'::'.self::EP_AFTER_JOBS,
-            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
+            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false],
         );
     }
 
@@ -146,7 +146,7 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
-    ) : ?self {
+    ): ?self {
         if (!$plugin_obj) {
             return null;
         }
@@ -154,7 +154,7 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         return self::trigger(
             self::_generate_event_input($plugin_obj, $old_version, $new_version, $is_dry_update, $is_forced),
             $plugin_obj::class.'::'.self::EP_FINISH,
-            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false]
+            ['stop_on_first_error' => true, 'include_listeners_without_prefix' => false],
         );
     }
     // endregion Triggers
@@ -163,60 +163,60 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
     public static function listen_install(
         callable | array | string | Closure $callback,
         string $plugin_class,
-        int $priority = 10
-    ) : ?self {
+        int $priority = 10,
+    ): ?self {
         return self::listen(
             $callback,
             $plugin_class.'::'.self::EP_INSTALL,
-            ['priority' => $priority]
+            ['priority' => $priority],
         );
     }
 
     public static function listen_start(
         callable | array | string | Closure $callback,
         string $plugin_class,
-        int $priority = 10
-    ) : ?self {
+        int $priority = 10,
+    ): ?self {
         return self::listen(
             $callback,
             $plugin_class.'::'.self::EP_START,
-            ['priority' => $priority]
+            ['priority' => $priority],
         );
     }
 
     public static function listen_after_roles(
         callable | array | string | Closure $callback,
         string $plugin_class,
-        int $priority = 10
-    ) : ?self {
+        int $priority = 10,
+    ): ?self {
         return self::listen(
             $callback,
             $plugin_class.'::'.self::EP_AFTER_ROLES,
-            ['priority' => $priority]
+            ['priority' => $priority],
         );
     }
 
     public static function listen_after_jobs(
         callable | array | string | Closure $callback,
         string $plugin_class,
-        int $priority = 10
-    ) : ?self {
+        int $priority = 10,
+    ): ?self {
         return self::listen(
             $callback,
             $plugin_class.'::'.self::EP_AFTER_JOBS,
-            ['priority' => $priority]
+            ['priority' => $priority],
         );
     }
 
     public static function listen_finish(
         callable | array | string | Closure $callback,
         string $plugin_class,
-        int $priority = 10
-    ) : ?self {
+        int $priority = 10,
+    ): ?self {
         return self::listen(
             $callback,
             $plugin_class.'::'.self::EP_FINISH,
-            ['priority' => $priority]
+            ['priority' => $priority],
         );
     }
     // endregion Listeners
@@ -227,7 +227,7 @@ class PHS_Event_Migration_plugins extends PHS_Event_Migration
         ?string $new_version = '',
         bool $is_dry_update = false,
         bool $is_forced = false,
-    ) : array {
+    ): array {
         return [
             'is_forced'          => $is_forced,
             'is_dry_update'      => $is_dry_update,

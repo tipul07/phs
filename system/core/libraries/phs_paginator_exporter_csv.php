@@ -6,7 +6,7 @@ use phs\libraries\PHS_Paginator_exporter_library;
 
 class PHS_Paginator_exporter_csv extends PHS_Paginator_exporter_library
 {
-    public function default_csv_params() : array
+    public function default_csv_params(): array
     {
         return [
             'line_delimiter'   => "\n",
@@ -19,7 +19,7 @@ class PHS_Paginator_exporter_csv extends PHS_Paginator_exporter_library
     /**
      * @inheritdoc
      */
-    public function record_to_buffer(array $record_data, ?array $params = null) : string
+    public function record_to_buffer(array $record_data, ?array $params = null): string
     {
         if (empty($record_data['record_arr']) || !is_array($record_data['record_arr'])) {
             return '';

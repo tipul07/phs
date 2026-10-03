@@ -19,7 +19,7 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             'qrcodes_settings_group' => [
@@ -43,17 +43,17 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
         ];
     }
 
-    public function get_qr_code_path(bool $slash_ended = true) : string
+    public function get_qr_code_path(bool $slash_ended = true): string
     {
         return rtrim(PHS_UPLOADS_DIR, '/').'/'.self::QR_DIR.(!empty($slash_ended) ? '/' : '');
     }
 
-    public function get_qr_code_www(bool $slash_ended = true) : string
+    public function get_qr_code_www(bool $slash_ended = true): string
     {
         return rtrim(PHS_UPLOADS_WWW, '/').'/'.self::QR_DIR.(!empty($slash_ended) ? '/' : '');
     }
 
-    public function extract_qr_code_url_details(string $from = 'g', ?string $crypted_data = null) : ?array
+    public function extract_qr_code_url_details(string $from = 'g', ?string $crypted_data = null): ?array
     {
         $this->reset_error();
 
@@ -120,7 +120,7 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
         return $return_arr;
     }
 
-    public function generate_qr_code_img_url(string $url, ?array $options = null) : ?array
+    public function generate_qr_code_img_url(string $url, ?array $options = null): ?array
     {
         $this->reset_error();
 
@@ -140,7 +140,7 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
         return $return_arr;
     }
 
-    public function clean_qr_code_directory_bg() : bool
+    public function clean_qr_code_directory_bg(): bool
     {
         $this->reset_error();
 
@@ -213,7 +213,7 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
         return true;
     }
 
-    private function _generate_qr_code_img_url_token(string $url, ?array $options = null) : ?string
+    private function _generate_qr_code_img_url_token(string $url, ?array $options = null): ?string
     {
         if (empty($url)) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Please provide an URL for QR code.'));
@@ -253,7 +253,7 @@ class PHS_Plugin_Phs_libs extends PHS_Plugin
         return $token;
     }
 
-    private function _create_qr_code_folder() : bool
+    private function _create_qr_code_folder(): bool
     {
         $this->reset_error();
 

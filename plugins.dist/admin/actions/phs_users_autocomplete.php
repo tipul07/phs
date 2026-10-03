@@ -51,7 +51,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         self::K_SEARCH_TERM => '',
     ];
 
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_AJAX];
     }
@@ -131,8 +131,8 @@ class PHS_Action_Users_autocomplete extends PHS_Action
 
     public function set_account_data(
         int | array | PHS_Record_data $account_data,
-        null | int | array | PHS_Record_data $account_details_data = null
-    ) : bool {
+        null | int | array | PHS_Record_data $account_details_data = null,
+    ): bool {
         $this->reset_error();
 
         $this->autocomplete_params([
@@ -173,7 +173,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         return true;
     }
 
-    public function format_data(bool $as_html = true, int $format = 0) : string
+    public function format_data(bool $as_html = true, int $format = 0): string
     {
         if (!($account_arr = $this->autocomplete_params(self::K_ACCOUNT_DATA) ?: null)) {
             return '';
@@ -225,13 +225,13 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         return $return_str;
     }
 
-    public function js_all_functionality(array $data) : string
+    public function js_all_functionality(array $data): string
     {
         return $this->js_generic_functionality($data)
                .$this->js_autocomplete_functionality($data);
     }
 
-    public function js_generic_functionality(array $data) : string
+    public function js_generic_functionality(array $data): string
     {
         if (($params_arr = $this->autocomplete_params())
             && is_array($params_arr)) {
@@ -247,7 +247,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         return $action_result['buffer'] ?? '';
     }
 
-    public function js_autocomplete_functionality(array $data) : string
+    public function js_autocomplete_functionality(array $data): string
     {
         if (($params_arr = $this->autocomplete_params())
             && is_array($params_arr)) {
@@ -263,7 +263,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         return $action_result['buffer'] ?? '';
     }
 
-    public function autocomplete_inputs(array $data) : string
+    public function autocomplete_inputs(array $data): string
     {
         if (($params_arr = $this->autocomplete_params())
             && is_array($params_arr)) {
@@ -279,7 +279,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         return $action_result['buffer'] ?? '';
     }
 
-    public function autocomplete_params(null | string | array $key = null, mixed $val = null) : mixed
+    public function autocomplete_params(null | string | array $key = null, mixed $val = null): mixed
     {
         if ($key === null) {
             return $this->autocomplete_params;
@@ -317,7 +317,7 @@ class PHS_Action_Users_autocomplete extends PHS_Action
         return true;
     }
 
-    private function _highlight_data(?string $str, string $term) : string
+    private function _highlight_data(?string $str, string $term): string
     {
         if (empty($term)) {
             return $str;

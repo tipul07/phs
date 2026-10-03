@@ -45,26 +45,26 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      * value is default value if parameter is not provided in event data
      * @return array
      */
-    abstract protected function _input_parameters() : array;
+    abstract protected function _input_parameters(): array;
 
     /**
      * Array with key, value pairs. Key represents output parameter
      * value is default value if parameter is not found in event results
      * @return array
      */
-    abstract protected function _output_parameters() : array;
+    abstract protected function _output_parameters(): array;
 
-    public function instance_type() : string
+    public function instance_type(): string
     {
         return self::INSTANCE_TYPE_EVENT;
     }
 
-    public function has_listeners() : bool
+    public function has_listeners(): bool
     {
         return !empty($this->event_listeners_ids);
     }
 
-    public function has_background_listeners() : bool
+    public function has_background_listeners(): bool
     {
         return !empty($this->background_listeners);
     }
@@ -79,7 +79,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      *
      * @return bool
      */
-    public function add_listener(callable | array | string | Closure $callback, string $event_prefix = '', array $options = []) : bool
+    public function add_listener(callable | array | string | Closure $callback, string $event_prefix = '', array $options = []): bool
     {
         $this->reset_error();
 
@@ -141,7 +141,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      *
      * @return null|array
      */
-    public function do_trigger_from_background(array $input = [], string $event_prefix = '', array $params = []) : ?array
+    public function do_trigger_from_background(array $input = [], string $event_prefix = '', array $params = []): ?array
     {
         if (!PHS::are_we_in_a_background_thread()) {
             return $this->_validate_event_output();
@@ -157,7 +157,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         return $this->do_trigger($input, $event_prefix, $params);
     }
 
-    public function do_trigger(array $input = [], string $event_prefix = '', array $params = []) : ?array
+    public function do_trigger(array $input = [], string $event_prefix = '', array $params = []): ?array
     {
         $this->reset_error();
         $this->_reset_output();
@@ -257,7 +257,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         return $this->output;
     }
 
-    public function get_callbacks(string $event_prefix = '', bool $listeners_without_prefix = false) : ?array
+    public function get_callbacks(string $event_prefix = '', bool $listeners_without_prefix = false): ?array
     {
         $event_prefix = self::_prepare_event_prefix($event_prefix);
 
@@ -295,7 +295,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      *
      * @return bool
      */
-    public function is_callback_of_event(null | callable | array | string | Closure $callback) : bool
+    public function is_callback_of_event(null | callable | array | string | Closure $callback): bool
     {
         return !empty($callback)
             && ($callback_details = $this->_get_callback_details($callback))
@@ -303,7 +303,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
             && in_array($callback_details['callback_id'], $this->event_listeners_ids, true);
     }
 
-    public function get_input(?string $key = null) : mixed
+    public function get_input(?string $key = null): mixed
     {
         if ($key === null) {
             return $this->input;
@@ -312,7 +312,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         return $this->input[$key] ?? null;
     }
 
-    public function get_output(?string $key = null) : mixed
+    public function get_output(?string $key = null): mixed
     {
         if ($key === null) {
             return $this->output;
@@ -327,7 +327,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      *
      * @return bool
      */
-    public function set_output(string | array $key, mixed $val = null) : bool
+    public function set_output(string | array $key, mixed $val = null): bool
     {
         if ($val === null) {
             if (!is_array($key)) {
@@ -366,12 +366,12 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      * Override this method if event should not accept background listeners
      * @return bool
      */
-    public function supports_background_listeners() : bool
+    public function supports_background_listeners(): bool
     {
         return true;
     }
 
-    public function validate_and_set_input(array $input) : void
+    public function validate_and_set_input(array $input): void
     {
         $this->_set_input($this->_validate_event_input($input) ?: []);
     }
@@ -380,7 +380,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      * Override this method if event should do a cleanup after calling all listeners for current event
      * @param bool $are_we_in_background Tells if the method was called from background
      */
-    protected function _finally(bool $are_we_in_background) : void
+    protected function _finally(bool $are_we_in_background): void
     {
     }
 
@@ -390,7 +390,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      * Useful for events with background listeners as the trigger will be stopped before launching the background job.
      * @return bool
      */
-    protected function _pre_trigger_condition() : bool
+    protected function _pre_trigger_condition(): bool
     {
         return true;
     }
@@ -400,7 +400,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      * Method should return old hook name
      * @return ?string
      */
-    protected function _auto_trigger_hook_name() : ?string
+    protected function _auto_trigger_hook_name(): ?string
     {
         return null;
     }
@@ -412,7 +412,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      * e.g. [ 'inout_key' => 'hookparam' ] => $hook_args['hookparam'] = $input['inout_key'] ?? $output['inout_key'] ?? null;
      * @return null|array
      */
-    protected function _auto_trigger_hook_args_map() : ?array
+    protected function _auto_trigger_hook_args_map(): ?array
     {
         return null;
     }
@@ -423,7 +423,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      * serialize the data, so it can be passed as string in background job
      * @return array
      */
-    protected function _serialize_input_for_background() : array
+    protected function _serialize_input_for_background(): array
     {
         return $this->get_input();
     }
@@ -434,7 +434,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      * sent to background job
      * @return array
      */
-    protected function _unserialize_input_for_background() : array
+    protected function _unserialize_input_for_background(): array
     {
         return $this->get_input();
     }
@@ -445,7 +445,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      *
      * @return bool
      */
-    protected function _set_input(string | array $key, mixed $val = null) : bool
+    protected function _set_input(string | array $key, mixed $val = null): bool
     {
         if ($val === null) {
             if (!is_array($key)) {
@@ -483,7 +483,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      *
      * @return null|callable|array|Closure|string
      */
-    private function _validate_listener_callback(callable | array | string | Closure $callback) : null | callable | array | string | Closure
+    private function _validate_listener_callback(callable | array | string | Closure $callback): null | callable | array | string | Closure
     {
         if (!@is_callable($callback)
             && (!is_array($callback)
@@ -558,7 +558,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      *
      * @return null|callable|array|string|Closure
      */
-    private function _instantiate_callback(null | callable | array | string | Closure $callback) : null | callable | array | string | Closure
+    private function _instantiate_callback(null | callable | array | string | Closure $callback): null | callable | array | string | Closure
     {
         if (!($callback = $this->_validate_listener_callback($callback))) {
             return null;
@@ -595,7 +595,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         return [$listener_obj, $callback[1]];
     }
 
-    private function _trigger_old_hooks(array $old_hooks) : void
+    private function _trigger_old_hooks(array $old_hooks): void
     {
         $hook_args = $this->_generate_hook_args_for_hook();
         $output_arr = $this->_validate_event_output($this->get_output());
@@ -620,7 +620,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         $this->set_output($trigger_result);
     }
 
-    private function _generate_hook_args_for_hook() : array
+    private function _generate_hook_args_for_hook(): array
     {
         $io_args = $this->get_input() ?: [];
 
@@ -648,7 +648,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         return $hook_args;
     }
 
-    private function _get_callback_details(null | callable | array | string | Closure $callback) : ?array
+    private function _get_callback_details(null | callable | array | string | Closure $callback): ?array
     {
         if (!($callback = $this->_validate_listener_callback($callback))) {
             return null;
@@ -664,7 +664,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         return $return_arr;
     }
 
-    private function _get_callback_id(null | callable | array | string | Closure $callback) : string
+    private function _get_callback_id(null | callable | array | string | Closure $callback): string
     {
         if ($callback instanceof Closure) {
             // Cannot determine uniqueness of closures
@@ -691,7 +691,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         return '';
     }
 
-    private function _validate_event_input(array $input = []) : array
+    private function _validate_event_input(array $input = []): array
     {
         if (!$input) {
             return $this->_input_parameters();
@@ -700,7 +700,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         return self::validate_array($input, $this->_input_parameters());
     }
 
-    private function _validate_event_output(array $output = []) : array
+    private function _validate_event_output(array $output = []): array
     {
         if (!$output) {
             return $this->_output_parameters();
@@ -709,17 +709,17 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         return self::validate_array($output, $this->_output_parameters());
     }
 
-    private function _reset_output() : void
+    private function _reset_output(): void
     {
         $this->output = $this->_output_parameters();
     }
 
-    private function _get_callback_index() : string
+    private function _get_callback_index(): string
     {
         return static::class;
     }
 
-    public static function get_all_callbacks() : array
+    public static function get_all_callbacks(): array
     {
         return self::$callbacks;
     }
@@ -727,7 +727,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
     /**
      * @inheritdoc
      */
-    public static function listen(callable | array | string | Closure $callback, string $event_prefix = '', array $options = []) : ?self
+    public static function listen(callable | array | string | Closure $callback, string $event_prefix = '', array $options = []): ?self
     {
         $options['in_background'] = false;
 
@@ -737,7 +737,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
     /**
      * @inheritdoc
      */
-    public static function listen_in_background(callable | array | string $callback, string $event_prefix = '', array $options = []) : ?self
+    public static function listen_in_background(callable | array | string $callback, string $event_prefix = '', array $options = []): ?self
     {
         $options['in_background'] = true;
 
@@ -747,7 +747,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
     /**
      * @inheritdoc
      */
-    public static function get_instance_with_input(array $input = []) : ?self
+    public static function get_instance_with_input(array $input = []): ?self
     {
         self::st_reset_error();
 
@@ -766,7 +766,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
     /**
      * @inheritdoc
      */
-    public static function trigger(array $input = [], string $event_prefix = '', array $params = []) : ?self
+    public static function trigger(array $input = [], string $event_prefix = '', array $params = []): ?self
     {
         self::st_reset_error();
 
@@ -786,7 +786,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         return $event_obj;
     }
 
-    private static function _do_listen(callable | array | string | Closure $callback, string $event_prefix = '', array $options = []) : ?self
+    private static function _do_listen(callable | array | string | Closure $callback, string $event_prefix = '', array $options = []): ?self
     {
         self::st_reset_error();
 
@@ -802,7 +802,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         if (!$event_obj->add_listener($callback, $event_prefix, $options)) {
             PHS_Logger::error(self::_t('Error adding listener for event %s: %s',
                 static::class, $event_obj->get_simple_error_message('Unknown error.')),
-                PHS_Logger::TYPE_DEBUG
+                PHS_Logger::TYPE_DEBUG,
             );
 
             self::st_set_error(self::ERR_LISTEN, self::_t('Error adding listener to the event.')
@@ -816,7 +816,7 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         return $event_obj;
     }
 
-    private static function _prepare_event_prefix(string $prefix) : string
+    private static function _prepare_event_prefix(string $prefix): string
     {
         if (!($prefix = strtolower(trim($prefix)))) {
             return '';

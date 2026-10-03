@@ -15,7 +15,7 @@ use phs\plugins\captcha\PHS_Plugin_Captcha;
 
 class PHS_Action_Contact_us extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
@@ -76,7 +76,7 @@ class PHS_Action_Contact_us extends PHS_Action
                       && empty($hook_result['check_valid'])) {
                 PHS_Notifications::add_error_notice(
                     PHS_Error::arr_get_simple_error_message(
-                        $hook_result['hook_errors'], self::_t('Invalid validation code.'))
+                        $hook_result['hook_errors'], self::_t('Invalid validation code.')),
                 );
             }
 
@@ -97,8 +97,8 @@ class PHS_Action_Contact_us extends PHS_Action
             if (!$email_obj || $email_obj->has_error()) {
                 PHS_Notifications::add_error_notice(
                     self::_t('Error obtaining email instance: %s',
-                        $email_obj?->get_simple_error_message(self::_t('Unknown error')) ?? self::_t('Unknown error')
-                    )
+                        $email_obj?->get_simple_error_message(self::_t('Unknown error')) ?? self::_t('Unknown error'),
+                    ),
                 );
             }
 
@@ -116,7 +116,7 @@ class PHS_Action_Contact_us extends PHS_Action
 
                     PHS_Logger::error(
                         self::_t('Error sending email from contact form to [%s].', $email_address),
-                        PHS_Logger::TYPE_DEBUG
+                        PHS_Logger::TYPE_DEBUG,
                     );
 
                     $email_obj->reset_error();

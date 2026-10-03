@@ -8,12 +8,12 @@ class PHS_Event_Template_details extends PHS_Event
     /**
      * @inheritdoc
      */
-    public function supports_background_listeners() : bool
+    public function supports_background_listeners(): bool
     {
         return false;
     }
 
-    protected function _input_parameters() : array
+    protected function _input_parameters(): array
     {
         return [
             // Previous action result (if any)
@@ -24,7 +24,7 @@ class PHS_Event_Template_details extends PHS_Event
         ];
     }
 
-    protected function _output_parameters() : array
+    protected function _output_parameters(): array
     {
         return [
             // Resulting action result (if any)

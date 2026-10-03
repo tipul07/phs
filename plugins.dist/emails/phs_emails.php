@@ -34,7 +34,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             'email_sending_group' => [
@@ -96,24 +96,24 @@ class PHS_Plugin_Emails extends PHS_Plugin
         ];
     }
 
-    public function should_log_success_emails() : bool
+    public function should_log_success_emails(): bool
     {
         return (bool)($this->get_plugin_settings()['log_success_emails'] ?? false);
     }
 
-    public function get_max_attachment_size() : int
+    public function get_max_attachment_size(): int
     {
         return (int)($this->get_plugin_settings()['max_attachment_size'] ?? 0);
     }
 
-    public function get_email_vars() : array
+    public function get_email_vars(): array
     {
         $email_vars = $this->get_plugin_settings()['email_vars'] ?? [];
 
         return is_array($email_vars) ? $email_vars : [];
     }
 
-    public function save_settings_routes(array $params) : ?array
+    public function save_settings_routes(array $params): ?array
     {
         if (!$params) {
             return null;
@@ -170,7 +170,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $return_data;
     }
 
-    public function display_settings_routes($params) : ?string
+    public function display_settings_routes($params): ?string
     {
         $params = self::validate_array($params, self::default_custom_renderer_params());
 
@@ -218,7 +218,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $this->quick_render_template_for_buffer('routes_settings', $data_arr);
     }
 
-    public function display_test_sending_emails($params) : ?string
+    public function display_test_sending_emails($params): ?string
     {
         $params = self::validate_array($params, self::default_custom_renderer_params());
 
@@ -256,7 +256,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
                             .'<br/>'."\n"
                             .'<strong>Note</strong>: this email is sent using SMTP plugin ('.$this->instance_plugin_name().' v'.$this->get_plugin_version().')<br/>'.'Best wishes,<br/>'."\n"
                             .'<br/>'."\n"
-                            .PHS_SITE_NAME.' team<br/>'."\n"
+                            .PHS_SITE_NAME.' team<br/>'."\n",
                         );
 
                 if ($email_obj?->send()) {
@@ -278,7 +278,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $this->quick_render_template_for_buffer('test_email_sending', $data_arr);
     }
 
-    public function get_smtp_routes_settings() : array
+    public function get_smtp_routes_settings(): array
     {
         static $defined_routes = null;
 
@@ -306,14 +306,14 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $defined_routes;
     }
 
-    public function get_defined_smtp_routes() : array
+    public function get_defined_smtp_routes(): array
     {
         $routes_settings = $this->get_smtp_routes_settings() ?: [];
 
         return array_keys($routes_settings);
     }
 
-    public function get_smtp_route_settings($route) : ?array
+    public function get_smtp_route_settings($route): ?array
     {
         if (!($routes_settings = $this->get_smtp_routes_settings())) {
             return null;
@@ -322,7 +322,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $routes_settings[$route] ?? null;
     }
 
-    public function init_email_hook_args($hook_args) : array
+    public function init_email_hook_args($hook_args): array
     {
         $this->reset_error();
 
@@ -501,7 +501,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $hook_args;
     }
 
-    public function send_email(array $hook_args) : array
+    public function send_email(array $hook_args): array
     {
         $this->reset_error();
 
@@ -656,7 +656,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $hook_args;
     }
 
-    public function listen_email_settings(PHS_Event_Emails_settings $event_obj) : bool
+    public function listen_email_settings(PHS_Event_Emails_settings $event_obj): bool
     {
         $event_obj->set_output([
             'email_vars'          => $this->get_email_vars(),
@@ -666,7 +666,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return true;
     }
 
-    public function listen_email_send(PHS_Event_Emails_send $event_obj) : bool
+    public function listen_email_send(PHS_Event_Emails_send $event_obj): bool
     {
         if (!($is_success = $this->_send_from_event($event_obj->get_input()))) {
             $this->set_error_if_not_set(self::ERR_SEND, $this->_pt('Couldn\'t send email.'));
@@ -680,7 +680,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return true;
     }
 
-    private function _send_from_event(array $event_input) : bool
+    private function _send_from_event(array $event_input): bool
     {
         $this->reset_error();
 
@@ -797,7 +797,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return false;
     }
 
-    private function _log_debug_log() : void
+    private function _log_debug_log(): void
     {
         if (($debugging_log = $this->smtp_library->debug_log())) {
             $debugging_str = '';
@@ -809,7 +809,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         }
     }
 
-    private function _send_email_smtp(array $hook_args) : array
+    private function _send_email_smtp(array $hook_args): array
     {
         $this->reset_error();
 
@@ -878,18 +878,18 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $hook_args;
     }
 
-    private function _log_success_email(array $email_details) : void
+    private function _log_success_email(array $email_details): void
     {
         PHS_Logger::notice('Email sent to '
                            .'server: '.($email_details['server'] ?? 'N/A')
                            .', to email: "'.($email_details['to_email'] ?? 'N/A').'"'
                            .', subject: "'.($email_details['subject'] ?? 'N/A').'"'
                            .', sent with succes: '.(!empty($email_details['sent_success']) ? 'Yes' : 'No')
-                           .', server response: '.($email_details['server_response'] ?? 'N/A'), self::LOG_CHANNEL
+                           .', server response: '.($email_details['server_response'] ?? 'N/A'), self::LOG_CHANNEL,
         );
     }
 
-    private function _send_email_native(array $hook_args) : array
+    private function _send_email_native(array $hook_args): array
     {
         $this->reset_error();
 
@@ -915,7 +915,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return $hook_args;
     }
 
-    public static function mail_auth_key(?string $key = null) : string
+    public static function mail_auth_key(?string $key = null): string
     {
         if ($key === null) {
             return self::$MAIL_AUTH_KEY;
@@ -926,7 +926,7 @@ class PHS_Plugin_Emails extends PHS_Plugin
         return self::$MAIL_AUTH_KEY;
     }
 
-    private static function _get_default_smtp_settings() : array
+    private static function _get_default_smtp_settings(): array
     {
         return [
             'localhost'           => '',
@@ -940,12 +940,12 @@ class PHS_Plugin_Emails extends PHS_Plugin
         ];
     }
 
-    private static function _valid_smtp_settings(array $settings) : bool
+    private static function _valid_smtp_settings(array $settings): bool
     {
         return !empty($settings['smtp_host']) && !empty($settings['smtp_port']);
     }
 
-    private static function _default_file_attachment() : array
+    private static function _default_file_attachment(): array
     {
         return [
             'file'                   => '',

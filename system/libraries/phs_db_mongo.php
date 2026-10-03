@@ -30,11 +30,11 @@ class PHS_Db_mongo extends PHS_Db_class
     private $query_id;
 
     // ! Query result details...
-    private $last_inserted_id,
+    private $last_inserted_id;
 
-        $inserted_rows,
+    private $inserted_rows;
 
-        $updated_rows;
+    private $updated_rows;
 
     public function __construct($mysql_settings = null)
     {
@@ -97,7 +97,7 @@ class PHS_Db_mongo extends PHS_Db_class
         return $this->last_inserted_id;
     }
 
-    public function affected_rows() : int
+    public function affected_rows(): int
     {
         return $this->inserted_rows + $this->updated_rows;
     }
@@ -259,7 +259,7 @@ class PHS_Db_mongo extends PHS_Db_class
         return $edit_arr;
     }
 
-    public function test_connection($connection_name = false) : bool
+    public function test_connection($connection_name = false): bool
     {
         return (bool)$this->connect($connection_name);
     }
@@ -396,7 +396,7 @@ class PHS_Db_mongo extends PHS_Db_class
         return $fields;
     }
 
-    public function queries_number(bool $incr = false) : int
+    public function queries_number(bool $incr = false): int
     {
         static $queries_no = 0;
 
@@ -409,7 +409,7 @@ class PHS_Db_mongo extends PHS_Db_class
         return $queries_no;
     }
 
-    public function fetch_assoc($qid) : ?array
+    public function fetch_assoc($qid): ?array
     {
         if (empty($qid)
             // MongoDB\Driver\Cursor
@@ -430,7 +430,7 @@ class PHS_Db_mongo extends PHS_Db_class
         return $result_arr[0];
     }
 
-    public function num_rows($qid) : int
+    public function num_rows($qid): int
     {
         if (empty($qid)
          || @gettype($qid) !== 'object'
@@ -542,7 +542,7 @@ class PHS_Db_mongo extends PHS_Db_class
         return $dump_params;
     }
 
-    protected function default_custom_settings_structure() : array
+    protected function default_custom_settings_structure(): array
     {
         return [
             // FULL connection URI(s). This is prefferable as it supports multiple Mongo servers
@@ -561,7 +561,7 @@ class PHS_Db_mongo extends PHS_Db_class
         ];
     }
 
-    protected function custom_settings_validation(array $conn_settings) : ?array
+    protected function custom_settings_validation(array $conn_settings): ?array
     {
         if (!$this->custom_settings_are_valid($conn_settings)) {
             return null;
@@ -596,7 +596,7 @@ class PHS_Db_mongo extends PHS_Db_class
         return $conn_settings;
     }
 
-    protected function default_connection_name() : string
+    protected function default_connection_name(): string
     {
         return self::DEFAULT_CONNECTION_NAME;
     }

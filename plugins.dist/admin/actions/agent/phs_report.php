@@ -20,7 +20,7 @@ class PHS_Action_Report extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function should_stop_execution() : ?array
+    public function should_stop_execution(): ?array
     {
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -40,7 +40,7 @@ class PHS_Action_Report extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function load_paginator_params() : ?array
+    public function load_paginator_params(): ?array
     {
         PHS::page_settings('page_title', $this->_pt('Agent Jobs Report'));
 
@@ -164,7 +164,7 @@ class PHS_Action_Report extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    public function display_hide_id(array $params) : null | int | string
+    public function display_hide_id(array $params): null | int | string
     {
         if (empty($params['record']) || !is_array($params['record'])
             || !($agent_job = $this->_paginator_model->data_to_array($params['record']))) {
@@ -176,7 +176,7 @@ class PHS_Action_Report extends PHS_Action_Generic_list
             : (int)$agent_job['id'];
     }
 
-    public function display_job_title(array $params) : ?string
+    public function display_job_title(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])
          || !($agent_job = $this->_paginator_model->data_to_array($params['record']))) {
@@ -195,7 +195,7 @@ class PHS_Action_Report extends PHS_Action_Generic_list
         return $params['preset_content'];
     }
 
-    public function display_error_message(array $params) : ?string
+    public function display_error_message(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])
          || !($agent_job = $this->_paginator_model->data_to_array($params['record']))) {
@@ -222,12 +222,12 @@ class PHS_Action_Report extends PHS_Action_Generic_list
         return $params['preset_content'];
     }
 
-    public function manage_action(array $action) : null | bool | array
+    public function manage_action(array $action): null | bool | array
     {
         return $this->_paginator->default_action_params();
     }
 
-    public function after_table_callback(array $params) : string
+    public function after_table_callback(array $params): string
     {
         static $js_functionality = false;
 
@@ -261,7 +261,7 @@ class PHS_Action_Report extends PHS_Action_Generic_list
         return ob_get_clean() ?: '';
     }
 
-    protected function _load_dependencies() : bool
+    protected function _load_dependencies(): bool
     {
         if (!$this->_paginator_model
             && !($this->_paginator_model = PHS_Model_Agent_jobs_monitor::get_instance())) {

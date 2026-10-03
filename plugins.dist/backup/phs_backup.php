@@ -31,7 +31,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_roles_definition() : array
+    public function get_roles_definition(): array
     {
         $return_arr = [
             self::ROLE_BACKUP_OPERATOR => [
@@ -70,7 +70,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         @ob_start();
         $mysql_dump_path = @system('which mysqldump') ?: 'mysqldump';
@@ -104,12 +104,12 @@ class PHS_Plugin_Backup extends PHS_Plugin
         ];
     }
 
-    public function get_backups_location() : string
+    public function get_backups_location(): string
     {
         return $this->get_plugin_settings()[self::K_SETTINGS_LOCATION] ?? '';
     }
 
-    public function plugin_settings_render_location(array $params) : string
+    public function plugin_settings_render_location(array $params): string
     {
         $params = self::validate_array($params, self::default_custom_renderer_params());
 
@@ -201,7 +201,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $new_value;
     }
 
-    public function resolve_directory_location(?string $location_path) : array
+    public function resolve_directory_location(?string $location_path): array
     {
         if ($location_path === null || $location_path === '') {
             $location_path = self::DIRNAME_IN_UPLOADS;
@@ -242,7 +242,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $return_arr;
     }
 
-    public function get_location_for_path(?string $path, array $params = []) : ?array
+    public function get_location_for_path(?string $path, array $params = []): ?array
     {
         $this->reset_error();
 
@@ -291,7 +291,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
                 $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t create full directory structure for backup rule.'));
                 PHS_Logger::error('Couldn\'t create full directory structure for backup location ('
                                   .$location_details['location_root'].$location_details['location_path'].').',
-                    PHS_Logger::TYPE_MAINTENANCE
+                    PHS_Logger::TYPE_MAINTENANCE,
                 );
 
                 return null;
@@ -304,7 +304,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $location_details;
     }
 
-    public function get_directory_stats(string $dir) : ?array
+    public function get_directory_stats(string $dir): ?array
     {
         $this->reset_error();
 
@@ -320,7 +320,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         ];
     }
 
-    public function copy_backup_files_bg() : ?array
+    public function copy_backup_files_bg(): ?array
     {
         $this->reset_error();
 
@@ -582,7 +582,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $return_arr;
     }
 
-    public function delete_old_backups_bg() : ?array
+    public function delete_old_backups_bg(): ?array
     {
         $this->reset_error();
 
@@ -650,7 +650,7 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $return_arr;
     }
 
-    public function run_backups_bg() : ?array
+    public function run_backups_bg(): ?array
     {
         $this->reset_error();
 
@@ -698,14 +698,14 @@ class PHS_Plugin_Backup extends PHS_Plugin
         return $return_arr;
     }
 
-    public function listen_after_left_menu_admin(PHS_Event_Layout $event_obj) : bool
+    public function listen_after_left_menu_admin(PHS_Event_Layout $event_obj): bool
     {
         $event_obj->append_to_buffer($this->quick_render_template_for_buffer('left_menu_admin') ?? '');
 
         return true;
     }
 
-    public function listen_accounts_registration_roles(PHS_Event_Accounts_registration_roles $event_obj) : bool
+    public function listen_accounts_registration_roles(PHS_Event_Accounts_registration_roles $event_obj): bool
     {
         if (!($account_arr = $event_obj->get_input('account_data'))
             || !($accounts_model = PHS_Model_Accounts::get_instance())) {

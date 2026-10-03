@@ -14,7 +14,7 @@ if (($plugin_obj = PHS_Plugin_Phs_mock_emails::get_instance())) {
         PHS_Hooks::H_EMAIL_INIT,
         [$plugin_obj, 'init_email_hook_args'],
         PHS_Hooks::default_init_email_hook_args(),
-        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 1000, ]
+        ['chained_hook' => true, 'stop_chain' => false, 'priority' => 1000, ],
     );
 
     PHS_Event_Emails_settings::listen([$plugin_obj, 'listen_email_settings'], options: ['priority' => 1000]);

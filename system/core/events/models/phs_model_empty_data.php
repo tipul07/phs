@@ -9,12 +9,12 @@ class PHS_Event_Model_empty_data extends PHS_Event
     /**
      * @inheritdoc
      */
-    public function supports_background_listeners() : bool
+    public function supports_background_listeners(): bool
     {
         return false;
     }
 
-    protected function _input_parameters() : array
+    protected function _input_parameters(): array
     {
         return [
             'model_instance_id'  => '',
@@ -25,7 +25,7 @@ class PHS_Event_Model_empty_data extends PHS_Event
         ];
     }
 
-    protected function _output_parameters() : array
+    protected function _output_parameters(): array
     {
         return [
             'data_arr' => [],
@@ -36,11 +36,11 @@ class PHS_Event_Model_empty_data extends PHS_Event
         string $model_class,
         array $input_arr,
         array $params = [],
-    ) : ?self {
+    ): ?self {
         return self::trigger(
             $input_arr,
             $model_class,
-            $params
+            $params,
         );
     }
 
@@ -48,11 +48,11 @@ class PHS_Event_Model_empty_data extends PHS_Event
         string $model_class,
         callable | array | string | Closure $callback,
         array $options = [],
-    ) : ?self {
+    ): ?self {
         return self::listen(
             $callback,
             $model_class,
-            $options
+            $options,
         );
     }
 }

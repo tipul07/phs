@@ -54,21 +54,21 @@ class PHS_Library_Email extends PHS_Library_instantiable
 
     private bool $_enriched_vars = false;
 
-    public function subject(string $subject) : self
+    public function subject(string $subject): self
     {
         $this->_subject = $subject;
 
         return $this;
     }
 
-    public function full_body(string $full_body) : self
+    public function full_body(string $full_body): self
     {
         $this->_full_body = $full_body;
 
         return $this;
     }
 
-    public function to(string $to_email, ?string $to_name = null) : self
+    public function to(string $to_email, ?string $to_name = null): self
     {
         if (!PHS_Params::check_type($to_email, PHS_Params::T_EMAIL)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid TO email address.'));
@@ -82,7 +82,7 @@ class PHS_Library_Email extends PHS_Library_instantiable
         return $this;
     }
 
-    public function from(string $from_email, ?string $from_name = null) : self
+    public function from(string $from_email, ?string $from_name = null): self
     {
         if (!PHS_Params::check_type($from_email, PHS_Params::T_EMAIL)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid FROM email address.'));
@@ -96,7 +96,7 @@ class PHS_Library_Email extends PHS_Library_instantiable
         return $this;
     }
 
-    public function reply(string $reply_email, ?string $reply_name = null) : self
+    public function reply(string $reply_email, ?string $reply_name = null): self
     {
         if (!PHS_Params::check_type($reply_email, PHS_Params::T_EMAIL)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid REPLY email address.'));
@@ -110,7 +110,7 @@ class PHS_Library_Email extends PHS_Library_instantiable
         return $this;
     }
 
-    public function no_reply(string $no_reply_email, ?string $no_reply_name = null) : self
+    public function no_reply(string $no_reply_email, ?string $no_reply_name = null): self
     {
         if (!PHS_Params::check_type($no_reply_email, PHS_Params::T_EMAIL)) {
             $this->set_error(self::ERR_PARAMETERS, self::_t('Invalid NO REPLY email address.'));
@@ -124,42 +124,42 @@ class PHS_Library_Email extends PHS_Library_instantiable
         return $this;
     }
 
-    public function force_language(?string $force_language) : self
+    public function force_language(?string $force_language): self
     {
         $this->_force_language = $force_language;
 
         return $this;
     }
 
-    public function with_priority(bool $with_priority = true) : self
+    public function with_priority(bool $with_priority = true): self
     {
         $this->_with_priority = $with_priority;
 
         return $this;
     }
 
-    public function as_noreply(bool $as_noreply = true) : self
+    public function as_noreply(bool $as_noreply = true): self
     {
         $this->_as_noreply = $as_noreply;
 
         return $this;
     }
 
-    public function headers(array $custom_headers) : self
+    public function headers(array $custom_headers): self
     {
         $this->_custom_headers = array_merge($this->_custom_headers, $custom_headers);
 
         return $this;
     }
 
-    public function email_variables(array $email_vars) : self
+    public function email_variables(array $email_vars): self
     {
         $this->_email_vars = array_merge($this->_email_vars, $email_vars);
 
         return $this;
     }
 
-    public function main_template(string $template) : self
+    public function main_template(string $template): self
     {
         $this->_main_template = $template;
 
@@ -169,8 +169,8 @@ class PHS_Library_Email extends PHS_Library_instantiable
     public function template(
         string | array $template,
         null | string | PHS_Plugin $plugin = null,
-        ?string $force_language = null
-    ) : self {
+        ?string $force_language = null,
+    ): self {
         $this->reset_error();
 
         if (is_array($template)) {
@@ -212,7 +212,7 @@ class PHS_Library_Email extends PHS_Library_instantiable
         return $this;
     }
 
-    public function attach_files(array $attach_files) : self
+    public function attach_files(array $attach_files): self
     {
         $email_settings = PHS_Event_Emails_settings::get_settings();
 
@@ -234,7 +234,7 @@ class PHS_Library_Email extends PHS_Library_instantiable
                 || (!empty($file_details['file']) && !@file_exists($file_details['file']))) {
                 $this->set_error(
                     self::ERR_ATTACHMENTS,
-                    $this->_pt('Invalid parameters for attachment #%s.', $knti)
+                    $this->_pt('Invalid parameters for attachment #%s.', $knti),
                 );
 
                 break;
@@ -252,7 +252,7 @@ class PHS_Library_Email extends PHS_Library_instantiable
                     || false === ($file_content = @file_get_contents($file_details['file']))) {
                     $this->set_error(
                         self::ERR_ATTACHMENTS,
-                        $this->_pt('Couldn\'t obtain attachment file content for attachment #%s.', $knti)
+                        $this->_pt('Couldn\'t obtain attachment file content for attachment #%s.', $knti),
                     );
 
                     break;
@@ -272,8 +272,8 @@ class PHS_Library_Email extends PHS_Library_instantiable
                 $this->set_error(
                     self::ERR_ATTACHMENTS,
                     $this->_pt('Attachment #%s exceeds maximum allowed size %s.',
-                        $knti, $email_settings['max_attachment_size']
-                    )
+                        $knti, $email_settings['max_attachment_size'],
+                    ),
                 );
 
                 break;
@@ -295,7 +295,7 @@ class PHS_Library_Email extends PHS_Library_instantiable
         return $this;
     }
 
-    public function send() : bool
+    public function send(): bool
     {
         if ($this->has_error()) {
             return false;
@@ -316,10 +316,10 @@ class PHS_Library_Email extends PHS_Library_instantiable
 
         if (!($main_template = PHS_View_email::validate_template_resource(
             $this->_main_template ?? self::DEFAULT_MAIN_TEMPLATE,
-            $template_params
+            $template_params,
         ))) {
             $this->set_error(
-                self::ERR_TEMPLATE, self::_t('Failed validating main email template file.')
+                self::ERR_TEMPLATE, self::_t('Failed validating main email template file.'),
             );
 
             return false;
@@ -345,7 +345,7 @@ class PHS_Library_Email extends PHS_Library_instantiable
                 || null === ($body_buffer = $body_template->render(force_language: $this->_force_language))) {
                 $this->copy_or_set_static_error(
                     self::ERR_TEMPLATE,
-                    $this->_pt('Failed rendering email template file.')
+                    $this->_pt('Failed rendering email template file.'),
                 );
 
                 return false;
@@ -358,7 +358,7 @@ class PHS_Library_Email extends PHS_Library_instantiable
            || null === ($email_html_body = $email_template->render(force_language: $this->_force_language))) {
             $this->copy_or_set_static_error(
                 self::ERR_TEMPLATE,
-                $this->_pt('Failed rendering email template file.')
+                $this->_pt('Failed rendering email template file.'),
             );
 
             return false;
@@ -411,7 +411,7 @@ class PHS_Library_Email extends PHS_Library_instantiable
         return true;
     }
 
-    public function get_email_vars() : array
+    public function get_email_vars(): array
     {
         if ($this->_enriched_vars) {
             return $this->_email_vars;
@@ -419,13 +419,13 @@ class PHS_Library_Email extends PHS_Library_instantiable
 
         $this->_email_vars = array_merge(
             $this->_email_vars,
-            PHS_Event_Emails_settings::get_settings('email_vars') ?: []
+            PHS_Event_Emails_settings::get_settings('email_vars') ?: [],
         );
 
         return $this->_email_vars;
     }
 
-    private function _check_email_parameters() : void
+    private function _check_email_parameters(): void
     {
         $this->get_email_vars();
 
@@ -450,7 +450,7 @@ class PHS_Library_Email extends PHS_Library_instantiable
         }
     }
 
-    private function _file_attachment_details() : array
+    private function _file_attachment_details(): array
     {
         return [
             'file'                => '',
@@ -466,7 +466,7 @@ class PHS_Library_Email extends PHS_Library_instantiable
     /**
      * @inheritdoc
      */
-    public static function instances_as_singletons() : bool
+    public static function instances_as_singletons(): bool
     {
         return false;
     }

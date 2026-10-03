@@ -13,7 +13,7 @@ use phs\plugins\backup\models\PHS_Model_Results;
 
 class PHS_Action_D extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }

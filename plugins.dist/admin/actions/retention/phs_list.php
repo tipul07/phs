@@ -25,7 +25,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function should_stop_execution() : ?array
+    public function should_stop_execution(): ?array
     {
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -45,7 +45,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function load_paginator_params() : ?array
+    public function load_paginator_params(): ?array
     {
         PHS::page_settings('page_title', $this->_pt('Data retention Policies'));
 
@@ -263,7 +263,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    public function manage_action(array $action) : null | bool | array
+    public function manage_action(array $action): null | bool | array
     {
         $this->reset_error();
         $action_result_params = $this->_paginator->default_action_params();
@@ -652,7 +652,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_plugin(array $params) : ?string
+    public function display_plugin(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
             return null;
@@ -661,7 +661,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return empty($params['record']['plugin']) ? $this::_t('Core') : $params['record']['plugin'];
     }
 
-    public function display_retention(array $params) : ?string
+    public function display_retention(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
             return null;
@@ -678,7 +678,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             : $retention_arr['count'].' '.$interval_arr['title'];
     }
 
-    public function display_actions(array $params) : ?string
+    public function display_actions(array $params): ?string
     {
         if (!$this->_paginator->is_cell_rendering_for_html($params)
             || !$this->_admin_plugin->can_admin_manage_data_retention()) {
@@ -727,7 +727,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean() ?: '';
     }
 
-    public function after_filters_callback(array $params) : string
+    public function after_filters_callback(array $params): string
     {
         if (!$this->_admin_plugin->can_admin_manage_data_retention()) {
             return '';
@@ -745,7 +745,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean() ?: '';
     }
 
-    public function after_table_callback(array $params) : string
+    public function after_table_callback(array $params): string
     {
         static $js_functionality = false;
 
@@ -907,7 +907,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    protected function _load_dependencies() : bool
+    protected function _load_dependencies(): bool
     {
         if (!$this->_paginator_model
                 && !($this->_paginator_model = PHS_Model_Data_retention::get_instance())) {
