@@ -40,10 +40,8 @@ abstract class PHS_Api_base extends PHS_Registry
     // Built-in authentication methods
     public const AUTH_METHOD_BASIC = 'basic', AUTH_METHOD_BEARER = 'bearer';
 
-    /** @var array */
     protected array $raw_query_params = [];
 
-    /** @var array */
     protected array $init_query_params = [];
 
     /** @var array All allowed HTTP methods in lowercase */
@@ -55,7 +53,6 @@ abstract class PHS_Api_base extends PHS_Registry
     /** @var array Instance API flow */
     protected array $my_flow = [];
 
-    /** @var null|array */
     protected static ?array $_incoming_monitoring_record = null;
 
     /**
