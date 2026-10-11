@@ -3,8 +3,6 @@ namespace phs\plugins\admin\actions\retention;
 
 use phs\PHS;
 use phs\PHS_Scope;
-use phs\libraries\PHS_Model;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
@@ -17,9 +15,7 @@ use phs\system\core\models\PHS_Model_Data_retention;
 class PHS_Action_Edit extends PHS_Action
 {
     /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
+     * @inheritdoc
      */
     public function allowed_scopes(): array
     {
@@ -27,7 +23,7 @@ class PHS_Action_Edit extends PHS_Action
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute(): ?array
     {
@@ -56,21 +52,15 @@ class PHS_Action_Edit extends PHS_Action
         $drid = PHS_Params::_gp('drid', PHS_Params::T_INT);
         $back_page = PHS_Params::_gp('back_page', PHS_Params::T_ASIS);
 
-        if (empty($drid)
+        if (!$drid
             || !($retention_arr = $retention_model->get_details($drid))) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid data retention policy...'));
 
-            $args = [
-                'unknown_policy' => 1,
-            ];
+            $back_page = !$back_page
+                ? PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'retention'])
+                : from_safe_url($back_page);
 
-            if (empty($back_page)) {
-                $back_page = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'retention']);
-            } else {
-                $back_page = from_safe_url($back_page);
-            }
-
-            return action_redirect(add_url_params($back_page, $args));
+            return action_redirect(add_url_params($back_page, ['unknown_policy' => 1, ]));
         }
 
         if (PHS_Params::_g('changes_saved', PHS_Params::T_INT)) {
@@ -176,7 +166,7 @@ class PHS_Action_Edit extends PHS_Action
             }
         }
 
-        $data = [
+        return $this->quick_render_template('retention/edit', [
             'drid'      => $retention_arr['id'],
             'back_page' => $back_page,
 
@@ -197,9 +187,7 @@ class PHS_Action_Edit extends PHS_Action
 
             'plugin_obj' => $plugin_obj,
             'model_obj'  => $model_obj,
-        ];
-
-        return $this->quick_render_template('retention/edit', $data);
+        ]);
     }
 
     private function _get_models_for_plugin(?PHS_Plugin $plugin_obj): array

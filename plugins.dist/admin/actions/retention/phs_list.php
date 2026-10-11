@@ -16,6 +16,8 @@ use phs\system\core\models\PHS_Model_Data_retention;
  */
 class PHS_Action_List extends PHS_Action_Generic_list
 {
+    protected null | string | PHS_Instantiable $_paginator_model_class = PHS_Model_Data_retention::class;
+
     #[PHS_Dependency]
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
@@ -234,13 +236,13 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'display_callback'    => [&$this->_paginator, 'pretty_date'],
                 'date_format'         => 'd-m-Y H:i',
                 'invalid_value'       => $this->_pt('Invalid'),
-                'extra_style'         => 'width:130px;',
+                'extra_style'         => 'width:150px;',
                 'extra_records_style' => 'text-align:right;',
             ],
             [
                 'column_title'        => $this->_pt('Actions'),
                 'display_callback'    => [$this, 'display_actions'],
-                'extra_style'         => 'width:120px;',
+                'extra_style'         => 'width:150px;',
                 'extra_records_style' => 'text-align:right;',
                 'sortable'            => false,
             ],
@@ -718,7 +720,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         if (!$this->_paginator_model->is_deleted($retention_arr)) {
             ?>
-            <br/>
             <a href="javascript:void(0)" onclick="phs_data_retention_list_delete_record( '<?php echo $retention_arr['id']; ?>' )"
             ><i class="fa fa-times-circle-o action-icons" title="<?php echo $this->_pt('Delete data retention policy'); ?>"></i></a>
             <?php
@@ -905,17 +906,5 @@ class PHS_Action_List extends PHS_Action_Generic_list
         <?php
 
         return ob_get_clean();
-    }
-
-    protected function _load_dependencies(): bool
-    {
-        if (!$this->_paginator_model
-                && !($this->_paginator_model = PHS_Model_Data_retention::get_instance())) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
     }
 }

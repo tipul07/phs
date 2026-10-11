@@ -1688,7 +1688,9 @@ abstract class PHS_Model_Core_base extends PHS_Has_db_settings
 
     public function set_maintenance_database_credentials(array $flow_arr = []): bool
     {
-        $maintenance_db_pass = constant('PHS_MAINTENANCE_DB_PASSWORD') ?? '';
+        $maintenance_db_pass = defined('PHS_MAINTENANCE_DB_PASSWORD')
+            ? (constant('PHS_MAINTENANCE_DB_PASSWORD') ?? '')
+            : '';
 
         if (!defined('PHS_MAINTENANCE_DB_USERNAME')
             || !($maintenance_db_user = constant('PHS_MAINTENANCE_DB_USERNAME'))

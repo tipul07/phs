@@ -1,4 +1,4 @@
-* text=auto
+* text=lf
 
 bin/phs eol=lf
 bin/tests eol=lf

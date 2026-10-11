@@ -33,7 +33,7 @@ $retention_count = (int)($this->view_var('retention_count') ?: 0);
             <h3><?php echo $this->_pt('Add Data Retention Policy'); ?></h3>
         </section>
 
-        <div class="form-group row">
+        <div class="mb-2 row">
             <label for="plugin" class="col-sm-2 col-form-label"><?php echo $this->_pt('Plugin'); ?></label>
             <div class="col-sm-10">
                 <select name="plugin" id="plugin" class="chosen-select" style="width:400px;"
@@ -56,7 +56,7 @@ $retention_count = (int)($this->view_var('retention_count') ?: 0);
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="mb-2 row">
             <label for="model" class="col-sm-2 col-form-label"><?php echo $this->_pt('Model'); ?></label>
             <div class="col-sm-10">
                 <?php
@@ -83,7 +83,7 @@ if (empty($plugin)) {
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="mb-2 row">
             <label for="table" class="col-sm-2 col-form-label"><?php echo $this->_pt('Table'); ?></label>
             <div class="col-sm-10">
                 <?php
@@ -110,7 +110,7 @@ if (empty($model)) {
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="mb-2 row">
             <label for="date_field" class="col-sm-2 col-form-label"><?php echo $this->_pt('Date field'); ?></label>
             <div class="col-sm-10">
                 <?php
@@ -137,7 +137,7 @@ if (empty($table)) {
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="mb-2 row">
             <label for="type" class="col-sm-2 col-form-label"><?php echo $this->_pt('Retention Action'); ?></label>
             <div class="col-sm-10">
                 <select name="type" id="type" class="chosen-select" style="width:400px;">
@@ -155,14 +155,15 @@ foreach ($types_arr as $type_id => $type_title) {
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="mb-2 row">
             <label for="retention_count" class="col-sm-2 col-form-label"><?php echo $this->_pt('Retention Interval'); ?></label>
             <div class="col-sm-10">
+                <div class="col-5"><div class="input-group">
                 <input type="text" name="retention_count" id="retention_count"
-                       class="form-control" style="width:150px;display: inline;"
+                       class="form-control"
                        placeholder="<?php echo form_str($this::_t('Interval length')); ?>"
                        value="<?php echo form_str($retention_count); ?>" />
-                <select name="retention_interval" id="retention_interval" class="chosen-select">
+                <select name="retention_interval" id="retention_interval" class="form-control">
                 <option value=""><?php echo $this::_t(' - Choose - '); ?></option>
                 <?php
 foreach ($intervals_arr as $interval_id => $interval_title) {
@@ -174,13 +175,16 @@ foreach ($intervals_arr as $interval_id => $interval_title) {
 }
 ?>
                 </select>
+                </div></div>
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="mb-2 row">
+            <div class="col">
             <input type="submit" id="do_submit" name="do_submit"
                    class="btn btn-primary submit-protection ignore_hidden_required"
                    value="<?php echo $this->_pte('Add Retention Policy'); ?>" />
+            </div>
         </div>
 
     </div>

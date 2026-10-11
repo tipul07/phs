@@ -3,11 +3,11 @@ namespace phs\plugins\admin\actions\retention;
 
 use phs\PHS;
 use phs\libraries\PHS_Params;
+use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
 use phs\system\core\attributes\PHS_Dependency;
-use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\admin\libraries\Phs_Data_retention;
 use phs\system\core\models\PHS_Model_Data_retention;
 
@@ -16,6 +16,8 @@ use phs\system\core\models\PHS_Model_Data_retention;
  */
 class PHS_Action_List_runs extends PHS_Action_Generic_list
 {
+    protected null | string | PHS_Instantiable $_paginator_model_class = PHS_Model_Data_retention::class;
+
     #[PHS_Dependency]
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
@@ -186,7 +188,7 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
                 'display_callback'    => [&$this->_paginator, 'pretty_date'],
                 'date_format'         => 'd-m-Y H:i',
                 'invalid_value'       => $this->_pt('Invalid'),
-                'extra_style'         => 'width:130px;',
+                'extra_style'         => 'width:150px;',
                 'extra_records_style' => 'text-align:right;',
             ],
             [
@@ -215,7 +217,7 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
                 'display_callback'    => [&$this->_paginator, 'pretty_date'],
                 'date_format'         => 'd-m-Y H:i',
                 'invalid_value'       => $this->_pt('Invalid'),
-                'extra_style'         => 'width:130px;',
+                'extra_style'         => 'width:150px;',
                 'extra_records_style' => 'text-align:right;',
             ],
             [
@@ -224,7 +226,7 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
                 'display_callback'    => [&$this->_paginator, 'pretty_date'],
                 'date_format'         => 'd-m-Y H:i',
                 'invalid_value'       => $this->_pt('Invalid'),
-                'extra_style'         => 'width:130px;',
+                'extra_style'         => 'width:150px;',
                 'extra_records_style' => 'text-align:right;',
             ],
             [

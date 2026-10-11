@@ -124,7 +124,7 @@ class PHS_Action_Add extends PHS_Action
             }
         }
 
-        $data = [
+        return $this->quick_render_template('retention/add', [
             'plugin'             => $plugin,
             'model'              => $model,
             'table'              => $table,
@@ -142,9 +142,7 @@ class PHS_Action_Add extends PHS_Action
 
             'plugin_obj' => $plugin_obj,
             'model_obj'  => $model_obj,
-        ];
-
-        return $this->quick_render_template('retention/add', $data);
+        ]);
     }
 
     private function _get_models_for_plugin(?PHS_Plugin $plugin_obj): array
