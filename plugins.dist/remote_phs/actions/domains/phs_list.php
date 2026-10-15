@@ -5,8 +5,10 @@ use phs\PHS;
 use phs\PHS_Ajax;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_params;
+use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
 use phs\libraries\PHS_Action_Generic_list;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\models\PHS_Model_Api_keys;
 use phs\plugins\remote_phs\PHS_Plugin_Remote_phs;
 use phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains;
@@ -16,8 +18,12 @@ use phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains;
  */
 class PHS_Action_List extends PHS_Action_Generic_list
 {
+    protected null | string | PHS_Instantiable $_paginator_model_class = PHS_Model_Phs_remote_domains::class;
+
+    #[PHS_Dependency]
     private ?PHS_Model_Api_keys $_apikeys_model = null;
 
+    #[PHS_Dependency]
     private ?PHS_Plugin_Remote_phs $_remote_plugin = null;
 
     /**
@@ -552,8 +558,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
             return null;
         }
 
-        if (empty($params['preset_content'])
-            || !PHS::user_logged_in()) {
+        if (empty($params['preset_content'])) {
             return '-';
         }
 
@@ -562,9 +567,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
 
         if (!empty($params['record']['apikey_id'])
-         && can(PHS_Roles::ROLEU_MANAGE_API_KEYS)
-         && ($edit_apikey_url = PHS::url(['p' => 'admin', 'a' => 'edit', 'ad' => 'apikeys'],
-             ['aid' => $params['record']['apikey_id'], 'back_page' => $this->_paginator->get_full_url()]))) {
+            && can(PHS_Roles::ROLEU_MANAGE_API_KEYS)
+            && ($edit_apikey_url = PHS::url(['p' => 'admin', 'a' => 'edit', 'ad' => 'apikeys'],
+                ['aid' => $params['record']['apikey_id'], 'back_page' => $this->_paginator->get_full_url()]))) {
             return '<a href="'.$edit_apikey_url.'">'.$params['preset_content'].'</a>'
                    .(!empty($params['record']['api_keys_api_key']) ? '<br/>'.$params['record']['api_keys_api_key'] : '');
         }
@@ -594,8 +599,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
             <i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt('Edit remote PHS domain'); ?>"></i></a>
         <?php
         if ($this->_paginator_model->is_not_connected($domain_arr)
-         || $this->_paginator_model->is_connection_error($domain_arr)
-         || $this->_paginator_model->is_suspended($domain_arr)) {
+            || $this->_paginator_model->is_connection_error($domain_arr)
+            || $this->_paginator_model->is_suspended($domain_arr)) {
             ?>
             <a href="javascript:void(0)" onclick="phs_remote_domains_list_connect( '<?php echo $domain_arr['id']; ?>' )">
                 <i class="fa fa-play-circle-o action-icons" title="<?php echo $this->_pt('Connect remote PHS domain'); ?>"></i></a>
@@ -780,19 +785,5 @@ class PHS_Action_List extends PHS_Action_Generic_list
         <?php
 
             return ob_get_clean() ?: '';
-    }
-
-    protected function _load_dependencies(): bool
-    {
-        if ((!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Phs_remote_domains::get_instance()))
-            || (!$this->_remote_plugin && !($this->_remote_plugin = PHS_Plugin_Remote_phs::get_instance()))
-            || (!$this->_apikeys_model && !($this->_apikeys_model = PHS_Model_Api_keys::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
     }
 }

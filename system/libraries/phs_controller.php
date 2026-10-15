@@ -9,14 +9,14 @@ abstract class PHS_Controller extends PHS_Instantiable
 {
     public const ERR_RUN_ACTION = 40000, ERR_SCOPE = 40001;
 
-    private $_action = false;
+    private ?PHS_Action $_action = null;
 
     // ! Tells if running controller should choose admin template if Scope should display a layout
     /** @var bool */
     private bool $_is_admin_controller = false;
 
     /**
-     * @return string
+     * @inheritdoc
      */
     final public function instance_type(): string
     {
@@ -25,9 +25,9 @@ abstract class PHS_Controller extends PHS_Instantiable
 
     /**
      * Returns action running currently using this controller
-     * @return bool|PHS_Action
+     * @return null|PHS_Action
      */
-    final public function get_action()
+    final public function get_action(): ?PHS_Action
     {
         return $this->_action;
     }
@@ -37,7 +37,7 @@ abstract class PHS_Controller extends PHS_Instantiable
      *
      * @return array If empty array, controller is allowed in all scopes...
      */
-    public function allowed_scopes()
+    public function allowed_scopes(): array
     {
         return [];
     }
@@ -194,7 +194,7 @@ abstract class PHS_Controller extends PHS_Instantiable
             return null;
         }
 
-        if (empty($action_result)) {
+        if (!$action_result) {
             $action_result = PHS_Action::default_action_result();
         }
 

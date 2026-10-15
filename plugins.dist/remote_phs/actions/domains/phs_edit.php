@@ -28,10 +28,6 @@ class PHS_Action_Edit extends PHS_Action
             return action_request_login();
         }
 
-        /** @var PHS_Plugin_Remote_phs $remote_plugin */
-        /** @var PHS_Model_Api_keys $apikeys_model */
-        /** @var PHS_Model_Accounts $accounts_model */
-        /** @var PHS_Model_Phs_remote_domains $domains_model */
         if (!($remote_plugin = PHS_Plugin_Remote_phs::get_instance())
             || !($apikeys_model = PHS_Model_Api_keys::get_instance())
             || !($accounts_model = PHS_Model_Accounts::get_instance())
@@ -50,32 +46,24 @@ class PHS_Action_Edit extends PHS_Action
         $did = PHS_params::_gp('did', PHS_params::T_INT);
         $back_page = PHS_params::_gp('back_page', PHS_params::T_ASIS);
 
-        if (empty($did)
-         || !($domain_arr = $domains_model->get_details($did))
-         || $domains_model->is_deleted($domain_arr)
-         || !$domains_model->can_user_edit($domain_arr, $current_user)) {
+        if (!$did
+            || !($domain_arr = $domains_model->get_details($did))
+            || $domains_model->is_deleted($domain_arr)
+            || !$domains_model->can_user_edit($domain_arr, $current_user)) {
             PHS_Notifications::add_warning_notice($this->_pt('Invalid remote PHS domain...'));
 
-            $args = [
-                'unknown_domain' => 1,
-            ];
+            $back_page = !$back_page
+                ? PHS::url(['p' => 'remote_phs', 'c' => 'admin', 'a' => 'list', 'ad' => 'domains'])
+                : from_safe_url($back_page);
 
-            if (empty($back_page)) {
-                $back_page = PHS::url(['p' => 'remote_phs', 'c' => 'admin', 'a' => 'list', 'ad' => 'domains']);
-            } else {
-                $back_page = from_safe_url($back_page);
-            }
-
-            return action_redirect(add_url_params($back_page, $args));
+            return action_redirect(add_url_params($back_page, ['unknown_domain' => 1]));
         }
 
         if (PHS_params::_g('changes_saved', PHS_params::T_INT)) {
             PHS_Notifications::add_success_notice($this->_pt('Remote domain details saved in database.'));
         }
 
-        if (!($apikeys_arr = $apikeys_model->get_all_api_keys_as_key_val())) {
-            $apikeys_arr = [];
-        }
+        $apikeys_arr = $apikeys_model->get_all_api_keys_as_key_val();
 
         $foobar = PHS_params::_p('foobar', PHS_params::T_INT);
         $title = PHS_params::_pg('title', PHS_params::T_NOHTML);
@@ -87,27 +75,13 @@ class PHS_Action_Edit extends PHS_Action
         $out_timeout = PHS_params::_p('out_timeout', PHS_params::T_INT);
         $ips_whihtelist = PHS_params::_p('ips_whihtelist', PHS_params::T_NOHTML);
 
-        if (PHS_params::_p('allow_incoming', PHS_params::T_INT)) {
-            $allow_incoming = true;
-        } else {
-            $allow_incoming = false;
-        }
-
-        if (PHS_params::_p('log_requests', PHS_params::T_INT)) {
-            $log_requests = true;
-        } else {
-            $log_requests = false;
-        }
-
-        if (PHS_params::_p('log_body', PHS_params::T_INT)) {
-            $log_body = true;
-        } else {
-            $log_body = false;
-        }
+        $allow_incoming = (bool)PHS_params::_p('allow_incoming', PHS_params::T_INT);
+        $log_requests = (bool)PHS_params::_p('log_requests', PHS_params::T_INT);
+        $log_body = (bool)PHS_params::_p('log_body', PHS_params::T_INT);
 
         $do_submit = PHS_params::_p('do_submit');
 
-        if (empty($foobar)) {
+        if (!$foobar) {
             $title = $domain_arr['title'];
             $handle = $domain_arr['handle'];
             $remote_www = $domain_arr['remote_www'];
@@ -137,24 +111,22 @@ class PHS_Action_Edit extends PHS_Action
             $edit_arr['log_requests'] = $log_requests;
             $edit_arr['log_body'] = $log_body;
 
-            $edit_params_arr = [];
-            $edit_params_arr['fields'] = $edit_arr;
-
-            if ($domains_model->edit($domain_arr, $edit_params_arr)) {
+            if ($domains_model->edit($domain_arr, ['fields' => $edit_arr])) {
                 PHS_Notifications::add_success_notice($this->_pt('Remote PHS domain details saved in database.'));
 
-                return action_redirect(['p' => 'remote_phs', 'c' => 'admin', 'a' => 'edit', 'ad' => 'domains'],
-                    ['did' => $domain_arr['id'], 'changes_saved' => 1]);
+                return action_redirect(
+                    ['p' => 'remote_phs', 'c' => 'admin', 'a' => 'edit', 'ad' => 'domains'],
+                    ['did' => $domain_arr['id'], 'changes_saved' => 1],
+                );
             }
 
-            if ($domains_model->has_error()) {
-                PHS_Notifications::add_error_notice($domains_model->get_error_message());
-            } else {
-                PHS_Notifications::add_error_notice($this->_pt('Error saving details to database. Please try again.'));
-            }
+            PHS_Notifications::add_error_notice(
+                $domains_model->get_simple_error_message(
+                    $this->_pt('Error saving details to database. Please try again.')),
+            );
         }
 
-        $data = [
+        return $this->quick_render_template('domains/edit', [
             'did'        => $domain_arr['id'],
             'back_page'  => $back_page,
             'domain_arr' => $domain_arr,
@@ -176,8 +148,6 @@ class PHS_Action_Edit extends PHS_Action
             'accounts_model' => $accounts_model,
             'apikeys_model'  => $apikeys_model,
             'domains_model'  => $domains_model,
-        ];
-
-        return $this->quick_render_template('domains/edit', $data);
+        ]);
     }
 }

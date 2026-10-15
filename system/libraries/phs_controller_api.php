@@ -8,7 +8,7 @@ abstract class PHS_Controller_Api extends PHS_Controller
     /**
      * @inheritdoc
      */
-    public function allowed_scopes()
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_API];
     }

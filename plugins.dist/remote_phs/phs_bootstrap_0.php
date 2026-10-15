@@ -21,7 +21,7 @@ if (($remote_phs_plugin = PHS_Plugin_Remote_phs::get_instance())) {
             'p'  => 'remote_phs',
             'c'  => 'index_api',
             'a'  => 'ping',
-            'ad' => 'connection',
+            'ad' => 'remote',
         ], [
             'authentication_required' => true,
             'method'                  => 'post',

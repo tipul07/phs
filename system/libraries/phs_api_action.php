@@ -17,9 +17,6 @@ abstract class PHS_Api_action extends PHS_Action
         return [PHS_Scope::SCOPE_API, PHS_Scope::SCOPE_AJAX];
     }
 
-    /**
-     * @return null|PHS_Api_base
-     */
     public function get_action_api_instance(): ?PHS_Api_base
     {
         if (!$this->api_obj
@@ -30,28 +27,22 @@ abstract class PHS_Api_action extends PHS_Action
         return $this->api_obj;
     }
 
-    /**
-     * @param array $response_data
-     * @param null|array $action_result_defaults Array with keys that should replace action array keys
-     *
-     * @return array|false
-     */
     public function send_api_response(array $response_data, ?array $action_result_defaults = null)
     {
         $response_data = self::validate_array_recursive($response_data, self::default_api_response());
 
         if (!empty($response_data['force_scope'])
-         && PHS_Scope::valid_scope($response_data['force_scope'])) {
+            && PHS_Scope::valid_scope($response_data['force_scope'])) {
             $scope = $response_data['force_scope'];
         } else {
             $scope = PHS_Scope::current_scope();
         }
 
         if (!empty($response_data['error']['code'])
-         && (empty($response_data['http_code'])
+            && (empty($response_data['http_code'])
                 || in_array((int)$response_data['http_code'],
                     [PHS_Api_base::H_CODE_OK, PHS_Api_base::H_CODE_OK_CREATED, PHS_Api_base::H_CODE_OK_NO_CONTENT], true)
-         )) {
+            )) {
             $response_data['http_code'] = PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR;
         }
 
@@ -70,9 +61,9 @@ abstract class PHS_Api_action extends PHS_Action
         }
 
         if ($scope === PHS_Scope::SCOPE_API
-         || $scope === PHS_Scope::SCOPE_REMOTE) {
+            || $scope === PHS_Scope::SCOPE_REMOTE) {
             if (!empty($response_data['api_obj'])
-             && ($response_data['api_obj'] instanceof PHS_Api_base)) {
+                && ($response_data['api_obj'] instanceof PHS_Api_base)) {
                 $api_obj = $response_data['api_obj'];
             } else {
                 $api_obj = PHS_Api::global_api_instance();
@@ -95,7 +86,7 @@ abstract class PHS_Api_action extends PHS_Action
             }
         } elseif ($scope === PHS_Scope::SCOPE_AJAX) {
             if (!empty($response_data['http_code_is_error'])
-             && !PHS_Api_base::http_header_response($response_data['http_code'])) {
+                && !PHS_Api_base::http_header_response($response_data['http_code'])) {
                 return false;
             }
         }
@@ -105,65 +96,36 @@ abstract class PHS_Api_action extends PHS_Action
         return $action_result;
     }
 
-    /**
-     * @param int $http_error
-     * @param int $error_no
-     * @param string $error_msg
-     * @param null|array $action_result_defaults
-     * @param null|array $extra_arr
-     *
-     * @return array|false
-     */
     public function send_api_error(int $http_error, int $error_no, string $error_msg,
-        ?array $action_result_defaults = null, ?array $extra_arr = null)
+        ?array $action_result_defaults = null, ?array $extra_arr = [])
     {
         if (!PHS_Api::valid_http_code($http_error)) {
             $http_error = PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR;
         }
 
-        if (empty($extra_arr)) {
-            $extra_arr = [];
-        }
-
-        $extra_arr['only_response_data_node'] = (!empty($extra_arr['only_response_data_node']));
-
-        if (empty($error_no)) {
-            $error_no = self::ERR_FRAMEWORK;
-        }
-        if (empty($error_msg)) {
-            $error_msg = $this->_pt('Error not provided.');
-        }
+        $extra_arr['only_response_data_node'] = !empty($extra_arr['only_response_data_node']);
 
         $response_params = self::default_api_response();
         $response_params['api_obj'] = $this->get_action_api_instance();
         $response_params['http_code'] = $http_error;
         $response_params['only_response_data_node'] = $extra_arr['only_response_data_node'];
         $response_params['http_code_is_error'] = true;
-        $response_params['error']['code'] = $error_no;
-        $response_params['error']['message'] = $error_msg;
+        $response_params['error']['code'] = $error_no ?: self::ERR_FRAMEWORK;
+        $response_params['error']['message'] = $error_msg ?: $this->_pt('Error not provided.');
 
         return $this->send_api_response($response_params, $action_result_defaults);
     }
 
-    /**
-     * @param null|array $payload_arr
-     * @param int $http_code
-     * @param null|array $action_result_defaults
-     * @param null|array $extra_arr
-     *
-     * @return array|false
-     */
     public function send_api_success(
         $payload_arr,
         int $http_code = PHS_Api_base::H_CODE_OK,
         ?array $action_result_defaults = null,
-        ?array $extra_arr = null,
+        ?array $extra_arr = [],
     ) {
         if (!PHS_Api::valid_http_code($http_code)) {
             $http_code = PHS_Api_base::H_CODE_OK;
         }
 
-        $extra_arr ??= [];
         $extra_arr['only_response_data_node'] = !empty($extra_arr['only_response_data_node']);
 
         $response_params = self::default_api_response();
@@ -184,7 +146,7 @@ abstract class PHS_Api_action extends PHS_Action
      * @param string $var_name What variable are we looking for
      * @param int $type Type used for value validation
      * @param mixed $default Default value if variable not found in request
-     * @param false|array $type_extra Extra params used in variable validation
+     * @param array $type_extra Extra params used in variable validation
      * @param string $order Order in which we will do the checks (b - request body as JSON, g - get, p - post)
      *
      * @return mixed

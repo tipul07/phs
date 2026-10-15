@@ -13,6 +13,10 @@ $can_manage_domains = $plugin_obj->can_admin_manage_domains();
 $can_list_logs = $plugin_obj->can_admin_list_logs();
 $can_manage_logs = $plugin_obj->can_admin_manage_logs();
 
+if (!$can_list_domains && !$can_manage_domains
+    && !$can_list_logs && !$can_manage_logs) {
+    return '';
+}
 ?>
 <li><?php echo $this->_pt('PHS Remote'); ?>
     <ul>

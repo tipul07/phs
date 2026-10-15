@@ -8,7 +8,7 @@ use phs\PHS_Tenants;
 /** @var \phs\system\core\models\PHS_Model_Api_keys $apikeys_model */
 /** @var \phs\plugins\admin\actions\PHS_Action_Users_autocomplete $users_autocomplete_action */
 if (!($apikeys_model = $this->view_var('apikeys_model'))
- || !($users_autocomplete_action = $this->view_var('users_autocomplete_action'))) {
+    || !($users_autocomplete_action = $this->view_var('users_autocomplete_action'))) {
     return $this->_pt('Couldn\'t initialize view.');
 }
 
@@ -33,7 +33,7 @@ $is_multi_tenant = PHS::is_multi_tenant();
             <h3><?php echo $this->_pt('Add API key'); ?></h3>
         </section>
 
-        <div class="form-group row">
+        <div class="mb-2 row">
             <label for="autocomplete_uid" class="col-sm-2 col-form-label"><?php echo $this->_pt('User account'); ?></label>
             <div class="col-sm-10">
             <?php echo $users_autocomplete_action->autocomplete_inputs($this->get_all_view_vars()); ?>
@@ -43,7 +43,7 @@ $is_multi_tenant = PHS::is_multi_tenant();
         <?php
         if ($is_multi_tenant) {
             ?>
-            <div class="form-group row">
+            <div class="mb-2 row">
                 <label for="tenant_id" class="col-sm-2 col-form-label"><?php echo $this->_pt('Tenants'); ?></label>
                 <div class="col-sm-10">
                     <select name="tenant_id" id="tenant_id" class="chosen-select" style="width:100%;">
@@ -62,7 +62,7 @@ $is_multi_tenant = PHS::is_multi_tenant();
             </div>
         <?php } ?>
 
-        <div class="form-group row">
+        <div class="mb-2 row">
             <label for="title" class="col-sm-2 col-form-label"><?php echo $this->_pt('Title'); ?></label>
             <div class="col-sm-10">
             <input type="text" id="title" name="title" class="form-control"
@@ -71,7 +71,7 @@ $is_multi_tenant = PHS::is_multi_tenant();
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="mb-2 row">
             <label for="api_key" class="col-sm-2 col-form-label"><?php echo $this->_pt('API Key'); ?></label>
             <div class="col-sm-10">
             <input type="text" id="api_key" name="api_key" class="form-control"
@@ -80,7 +80,7 @@ $is_multi_tenant = PHS::is_multi_tenant();
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="mb-2 row">
             <label for="api_secret" class="col-sm-2 col-form-label"><?php echo $this->_pt('API Secret'); ?></label>
             <div class="col-sm-10">
             <input type="text" id="api_secret" name="api_secret" class="form-control"
@@ -89,7 +89,7 @@ $is_multi_tenant = PHS::is_multi_tenant();
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="mb-2 row">
             <label for="allowed_methods" class="col-sm-2 col-form-label"><?php echo $this->_pt('Allowed HTTP methods'); ?></label>
             <div class="col-sm-10">
             <?php
@@ -108,7 +108,7 @@ $is_multi_tenant = PHS::is_multi_tenant();
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="mb-2 row">
             <label for="denied_methods" class="col-sm-2 col-form-label"><?php echo $this->_pt('Denied HTTP methods'); ?></label>
             <div class="col-sm-10">
             <?php
@@ -127,7 +127,7 @@ foreach ($api_methods_arr as $api_method) {
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="mb-2 row">
             <label for="allow_sw" class="col-sm-2 col-form-label"><?php echo $this->_pt('Allow Simulating Web'); ?></label>
             <div class="col-sm-10">
                 <div class="form-check">
@@ -138,7 +138,7 @@ foreach ($api_methods_arr as $api_method) {
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="mb-2 row">
             <label for="allow_graphql" class="col-sm-2 col-form-label"><?php echo $this->_pt('Allow GraphQL'); ?></label>
             <div class="col-sm-10">
                 <div class="form-check">
@@ -149,10 +149,12 @@ foreach ($api_methods_arr as $api_method) {
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="mb-2 row">
+            <div>
             <input type="submit" id="do_submit" name="do_submit"
                    class="btn btn-primary submit-protection ignore_hidden_required"
                    value="<?php echo $this->_pte('Add API key'); ?>" />
+            </div>
         </div>
 
     </div>

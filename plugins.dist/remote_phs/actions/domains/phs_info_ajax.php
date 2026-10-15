@@ -42,17 +42,17 @@ class PHS_Action_Info_ajax extends PHS_Action
         $domain_id = PHS_params::_gp('domain_id', PHS_params::T_INT);
         $do_ping = PHS_params::_gp('do_ping', PHS_params::T_INT);
 
-        if (empty($domain_id)
-         || !($domain_arr = $domains_model->get_details($domain_id, ['table_name' => 'phs_remote_domains']))
-         || $domains_model->is_deleted($domain_arr)) {
+        if (!$domain_id
+            || !($domain_arr = $domains_model->get_details($domain_id, ['table_name' => 'phs_remote_domains']))
+            || $domains_model->is_deleted($domain_arr)) {
             PHS_Notifications::add_warning_notice($this->_pt('Remote domain is not connected.'));
 
             return self::default_action_result();
         }
 
         $ping_result = null;
-        if (!empty($do_ping)) {
-            if (!$remote_plugin->can_admin_ping_domains($current_user)) {
+        if ($do_ping) {
+            if (!$remote_plugin->can_admin_ping_domains()) {
                 PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
                 return self::default_action_result();
@@ -93,15 +93,13 @@ class PHS_Action_Info_ajax extends PHS_Action
             }
         }
 
-        $data = [
+        return $this->quick_render_template('domains/info', [
             'domain_arr' => $domain_arr,
 
             'do_ping'     => $do_ping,
             'ping_result' => $ping_result,
 
             'domains_model' => $domains_model,
-        ];
-
-        return $this->quick_render_template('domains/info', $data);
+        ]);
     }
 }

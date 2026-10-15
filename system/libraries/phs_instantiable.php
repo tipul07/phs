@@ -1158,6 +1158,28 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
         ];
     }
 
+    public static function get_full_instance_details(?string $full_class_name = null): ?array
+    {
+        self::st_reset_error();
+
+        if (!$full_class_name) {
+            $full_class_name = static::class;
+        }
+
+        $full_class_name = ltrim($full_class_name, '\\');
+
+        if (!$full_class_name
+            || !($details = self::extract_details_from_full_namespace_name($full_class_name))
+            || empty($details['class_name']) || empty($details['plugin_name']) || empty($details['instance_type'])
+            || !($instance_details = self::get_instance_details($details['class_name'], $details['plugin_name'], $details['instance_type'], $details['instance_subdir']))) {
+            self::st_set_error_if_not_set(self::ERR_CLASS_NAME, self::_t('Cannot extract required information to instantiate class.'));
+
+            return null;
+        }
+
+        return $instance_details;
+    }
+
     public static function get_instance(bool $as_singleton = true, ?string $full_class_name = null): ?static
     {
         self::st_reset_error();

@@ -28,20 +28,16 @@ class PHS_Action_Add extends PHS_Action
             return action_request_login();
         }
 
-        /** @var PHS_Plugin_Remote_phs $remote_plugin */
-        /** @var PHS_Model_Api_keys $apikeys_model */
-        /** @var PHS_Model_Accounts $accounts_model */
-        /** @var PHS_Model_Phs_remote_domains $domains_model */
         if (!($remote_plugin = PHS_Plugin_Remote_phs::get_instance())
-         || !($apikeys_model = PHS_Model_Api_keys::get_instance())
-         || !($accounts_model = PHS_Model_Accounts::get_instance())
-         || !($domains_model = PHS_Model_Phs_remote_domains::get_instance())) {
+            || !($apikeys_model = PHS_Model_Api_keys::get_instance())
+            || !($accounts_model = PHS_Model_Accounts::get_instance())
+            || !($domains_model = PHS_Model_Phs_remote_domains::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
 
             return self::default_action_result();
         }
 
-        if (!$remote_plugin->can_admin_manage_domains($current_user)) {
+        if (!$remote_plugin->can_admin_manage_domains()) {
             PHS_Notifications::add_error_notice($this->_pt('You don\'t have rights to access this section.'));
 
             return self::default_action_result();
@@ -65,27 +61,11 @@ class PHS_Action_Add extends PHS_Action
         $out_timeout = PHS_params::_p('out_timeout', PHS_params::T_INT);
         $ips_whihtelist = PHS_params::_p('ips_whihtelist', PHS_params::T_NOHTML);
 
-        if (PHS_params::_p('allow_incoming', PHS_params::T_INT)) {
-            $allow_incoming = true;
-        } else {
-            $allow_incoming = false;
-        }
+        $allow_incoming = (bool)PHS_params::_p('allow_incoming', PHS_params::T_INT);
+        $log_requests = (bool)PHS_params::_p('log_requests', PHS_params::T_INT);
+        $log_body = (bool)PHS_params::_p('log_body', PHS_params::T_INT);
 
-        if (PHS_params::_p('log_requests', PHS_params::T_INT)) {
-            $log_requests = true;
-        } else {
-            $log_requests = false;
-        }
-
-        if (PHS_params::_p('log_body', PHS_params::T_INT)) {
-            $log_body = true;
-        } else {
-            $log_body = false;
-        }
-
-        $do_submit = PHS_params::_p('do_submit');
-
-        if (!empty($do_submit)) {
+        if (PHS_params::_p('do_submit')) {
             $insert_arr = [];
             $insert_arr['added_by_uid'] = $current_user['id'];
             $insert_arr['title'] = $title;
@@ -101,23 +81,21 @@ class PHS_Action_Add extends PHS_Action
             $insert_arr['log_body'] = $log_body;
             $insert_arr['source'] = $domains_model::SOURCE_MANUALLY;
 
-            $insert_params_arr = [];
-            $insert_params_arr['fields'] = $insert_arr;
-
-            if (($new_domain = $domains_model->insert($insert_params_arr))) {
+            if ($domains_model->insert(['fields' => $insert_arr])) {
                 PHS_Notifications::add_success_notice($this->_pt('Remote domain details saved in database.'));
 
-                return action_redirect(['p' => 'remote_phs', 'c' => 'admin', 'a' => 'list', 'ad' => 'domains'], ['domain_added' => 1]);
+                return action_redirect(
+                    ['p' => 'remote_phs', 'c' => 'admin', 'a' => 'list', 'ad' => 'domains'], ['domain_added' => 1],
+                );
             }
 
-            if ($domains_model->has_error()) {
-                PHS_Notifications::add_error_notice($domains_model->get_error_message());
-            } else {
-                PHS_Notifications::add_error_notice($this->_pt('Error saving details to database. Please try again.'));
-            }
+            PHS_Notifications::add_error_notice(
+                $domains_model->get_simple_error_message(
+                    $this->_pt('Error saving details to database. Please try again.')),
+            );
         }
 
-        $data = [
+        return $this->quick_render_template('domains/add', [
             'title'          => $title,
             'handle'         => $handle,
             'remote_www'     => $remote_www,
@@ -135,8 +113,6 @@ class PHS_Action_Add extends PHS_Action
             'accounts_model' => $accounts_model,
             'apikeys_model'  => $apikeys_model,
             'domains_model'  => $domains_model,
-        ];
-
-        return $this->quick_render_template('domains/add', $data);
+        ]);
     }
 }

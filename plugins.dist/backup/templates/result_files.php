@@ -16,7 +16,7 @@ if (!($result_arr = $this->view_var('result_data'))
  || !($results_model = $this->view_var('results_model'))
  || !($rules_model = $this->view_var('rules_model'))
  || !($backup_plugin = $this->view_var('backup_plugin'))) {
-    return $this->_pt('Could\'t loaded required resources for this view.');
+    return $this->_pt('Could\'t load required resources for this view.');
 }
 
 $current_scope = PHS_Scope::current_scope();

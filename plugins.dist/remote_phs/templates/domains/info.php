@@ -11,7 +11,7 @@ $current_user = PHS::user_logged_in();
 /** @var \phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains $domains_model */
 if (!($domain_arr = $this->view_var('domain_arr'))
     || !($domains_model = $this->view_var('domains_model'))) {
-    return $this->_pt('Could\'t loaded required resources for this view.');
+    return $this->_pt('Could\'t load required resources for this view.');
 }
 
 $do_ping = $this->view_var('do_ping') ?: false;
