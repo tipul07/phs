@@ -1122,10 +1122,10 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
         }
 
         if (empty($class_namespace_path[0])
-         || empty($class_namespace_path[1])
-         || empty($class_namespace_path[2])
-         || $class_namespace_path[0] !== 'phs'
-         || !in_array($class_namespace_path[1], ['plugins', 'system'], true)) {
+            || empty($class_namespace_path[1])
+            || empty($class_namespace_path[2])
+            || $class_namespace_path[0] !== 'phs'
+            || !in_array($class_namespace_path[1], ['plugins', 'system'], true)) {
             self::st_set_error(self::ERR_INSTANCE_CLASS,
                 self::_t('Couldn\'t create instance for classes outside phs namespace.')
                 .' ('.$class_with_namespace.')');

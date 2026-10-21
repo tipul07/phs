@@ -26,7 +26,7 @@ class PHS_Ajax extends PHS_Registry
         return self::$_ajax_checksum_timeout;
     }
 
-    public static function url(null | bool | array $route_arr = null, null | bool | array $args = null, null | bool | array $extra = null): string
+    public static function url(null | bool | string | array $route_arr = null, null | bool | array $args = null, null | bool | array $extra = null): string
     {
         $extra = $extra ?: [];
         $extra['for_scope'] = PHS_Scope::SCOPE_AJAX;

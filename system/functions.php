@@ -15,6 +15,7 @@ use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Record_data;
+use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Model_Core_base;
 use phs\system\core\libraries\PHS_Library_Email;
 use phs\system\core\libraries\PHS_Migrations_manager;
@@ -49,15 +50,22 @@ function action_should_redirect(array $action_result): bool
     return !empty($action_result['redirect_to_url']);
 }
 
-function action_redirect(array | string $path = '', ?array $args = null, ?array $extra = null): array
+function action_redirect(array | string $path = '', ?array $args = null, ?array $extra = null): ?array
 {
     $action_result = PHS_Action::default_action_result();
     if (is_string($path)) {
         if ($path === '') {
-            $path = PHS::url();
+            $action_result['redirect_to_url'] = PHS::url();
+        } elseif (!PHS_Instantiable::extract_details_from_full_namespace_name($path)) {
+            $action_result['redirect_to_url'] = $path;
+        } elseif (($class_path = PHS_Action::get_route_from_class($extra['controller'] ?? null, $path))) {
+            $path = $class_path;
+        } else {
+            return null;
         }
-        $action_result['redirect_to_url'] = $path;
-    } elseif (is_array($path)) {
+    }
+
+    if (is_array($path)) {
         $action_result['redirect_to_url'] = PHS::url($path, $args, $extra);
     }
 
@@ -350,9 +358,6 @@ function phs_init_before_bootstrap(): bool
     return true;
 }
 
-/**
- * @return string
- */
 function generate_guid(): string
 {
     try {

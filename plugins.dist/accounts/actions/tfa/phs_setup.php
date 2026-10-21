@@ -8,7 +8,6 @@ use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\phs_libs\PHS_Plugin_Phs_libs;
-use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts_tfa;
 use phs\system\core\events\actions\PHS_Event_Action_after;
 use phs\system\core\events\actions\PHS_Event_Action_start;
@@ -24,9 +23,7 @@ class PHS_Action_Setup extends PHS_Action
     }
 
     /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
+     * @inheritdoc
      */
     public function allowed_scopes(): array
     {
@@ -34,7 +31,7 @@ class PHS_Action_Setup extends PHS_Action
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {
@@ -53,9 +50,6 @@ class PHS_Action_Setup extends PHS_Action
         }
 
         PHS::page_settings('page_title', $this->_pt('Two Factor Authentication Setup'));
-        /** @var PHS_Plugin_Accounts $accounts_plugin */
-        /** @var PHS_Model_Accounts_tfa $tfa_model */
-        /** @var PHS_Plugin_Phs_libs $libs_plugin */
         if (!($tfa_model = PHS_Model_Accounts_tfa::get_instance())
             || !($accounts_plugin = PHS_Plugin_Accounts::get_instance())
             || !($libs_plugin = PHS_Plugin_Phs_libs::get_instance())) {
@@ -156,7 +150,7 @@ class PHS_Action_Setup extends PHS_Action
             }
         }
 
-        $data = [
+        return $this->quick_render_template('tfa/setup', [
             'back_page'             => $back_page,
             'nick'                  => $current_user['nick'],
             'qr_code_url'           => $qr_code_url,
@@ -168,8 +162,6 @@ class PHS_Action_Setup extends PHS_Action
             'libs_plugin'     => $libs_plugin,
             'tfa_model'       => $tfa_model,
             'accounts_plugin' => $accounts_plugin,
-        ];
-
-        return $this->quick_render_template('tfa/setup', $data);
+        ]);
     }
 }

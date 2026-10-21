@@ -1,7 +1,6 @@
 <?php
 namespace phs\plugins\mobileapi\actions;
 
-use phs\PHS;
 use phs\PHS_Api;
 use phs\PHS_Scope;
 use phs\PHS_Api_base;
@@ -22,7 +21,6 @@ class PHS_Action_Account_edit extends PHS_Api_action
 
     public function execute()
     {
-        /** @var PHS_Plugin_Mobileapi $mobile_plugin */
         if (!($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             return $this->send_api_error(PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR, self::ERR_FUNCTIONALITY,
                 $this->_pt('Error loading required resources.'));

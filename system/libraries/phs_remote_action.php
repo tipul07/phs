@@ -7,7 +7,7 @@ use phs\PHS_Api_remote;
 
 abstract class PHS_Remote_action extends PHS_Api_action
 {
-    public function allowed_scopes()
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_REMOTE];
     }

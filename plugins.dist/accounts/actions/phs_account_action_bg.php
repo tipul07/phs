@@ -6,10 +6,13 @@ use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\accounts\controllers\PHS_Controller_Index_bg;
 
 class PHS_Action_Account_action_bg extends PHS_Action
 {
     public const ERR_UNKNOWN_ACCOUNT = 1, ERR_TRIGGER = 2;
+
+    protected static ?string $_default_controller_for_route = PHS_Controller_Index_bg::class;
 
     public function allowed_scopes(): array
     {
@@ -18,7 +21,6 @@ class PHS_Action_Account_action_bg extends PHS_Action
 
     public function execute()
     {
-        /** @var PHS_Model_Accounts $accounts_model */
         if (!($params = PHS_Bg_jobs::get_current_job_parameters())
          || !($hook_args = self::validate_array($params, PHS_Hooks::default_account_action_hook_args()))
          || empty($hook_args['account_data'])

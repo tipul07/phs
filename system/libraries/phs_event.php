@@ -79,8 +79,9 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      *
      * @return bool
      */
-    public function add_listener(callable | array | string | Closure $callback, string $event_prefix = '', array $options = []): bool
-    {
+    public function add_listener(
+        callable | array | string | Closure $callback, string $event_prefix = '', array $options = [],
+    ): bool {
         $this->reset_error();
 
         $options['unique'] = !empty($options['unique']);
@@ -472,9 +473,6 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         return true;
     }
 
-    //
-    // region Utilities
-    //
     /**
      * Make sure callable for background events are arrays with class name (strings), not an instance,
      * so we can send it as parameter to background job
@@ -483,8 +481,9 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      *
      * @return null|callable|array|Closure|string
      */
-    private function _validate_listener_callback(callable | array | string | Closure $callback): null | callable | array | string | Closure
-    {
+    private function _validate_listener_callback(
+        callable | array | string | Closure $callback,
+    ): null | callable | array | string | Closure {
         if (!@is_callable($callback)
             && (!is_array($callback)
                 || empty($callback[0]) || empty($callback[1])
@@ -558,8 +557,9 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
      *
      * @return null|callable|array|string|Closure
      */
-    private function _instantiate_callback(null | callable | array | string | Closure $callback): null | callable | array | string | Closure
-    {
+    private function _instantiate_callback(
+        null | callable | array | string | Closure $callback,
+    ): null | callable | array | string | Closure {
         if (!($callback = $this->_validate_listener_callback($callback))) {
             return null;
         }
@@ -727,8 +727,9 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
     /**
      * @inheritdoc
      */
-    public static function listen(callable | array | string | Closure $callback, string $event_prefix = '', array $options = []): ?self
-    {
+    public static function listen(
+        callable | array | string | Closure $callback, string $event_prefix = '', array $options = [],
+    ): ?static {
         $options['in_background'] = false;
 
         return static::_do_listen($callback, $event_prefix, $options);
@@ -737,21 +738,18 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
     /**
      * @inheritdoc
      */
-    public static function listen_in_background(callable | array | string $callback, string $event_prefix = '', array $options = []): ?self
-    {
+    public static function listen_in_background(
+        callable | array | string $callback, string $event_prefix = '', array $options = [],
+    ): ?static {
         $options['in_background'] = true;
 
         return static::_do_listen($callback, $event_prefix, $options);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public static function get_instance_with_input(array $input = []): ?self
+    public static function get_instance_with_input(array $input = []): ?static
     {
         self::st_reset_error();
 
-        /** @var static $event_obj */
         if (!($event_obj = static::get_instance(true, static::class))) {
             self::st_set_error(self::ERR_TRIGGER, self::_t('Error instantiating event.'));
 
@@ -766,11 +764,10 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
     /**
      * @inheritdoc
      */
-    public static function trigger(array $input = [], string $event_prefix = '', array $params = []): ?self
+    public static function trigger(array $input = [], string $event_prefix = '', array $params = []): ?static
     {
         self::st_reset_error();
 
-        /** @var static $event_obj */
         if (!($event_obj = static::get_instance(true, static::class))) {
             self::st_set_error(self::ERR_TRIGGER, self::_t('Error instantiating event.'));
 
@@ -786,11 +783,11 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
         return $event_obj;
     }
 
-    private static function _do_listen(callable | array | string | Closure $callback, string $event_prefix = '', array $options = []): ?self
-    {
+    private static function _do_listen(
+        callable | array | string | Closure $callback, string $event_prefix = '', array $options = [],
+    ): ?static {
         self::st_reset_error();
 
-        /** @var self $event_obj */
         if (!($event_obj = static::get_instance(true, static::class))) {
             PHS_Logger::error(self::_t('Error instantiating event %s.', static::class), PHS_Logger::TYPE_DEBUG);
 
@@ -818,13 +815,6 @@ abstract class PHS_Event extends PHS_Instantiable implements PHS_Event_interface
 
     private static function _prepare_event_prefix(string $prefix): string
     {
-        if (!($prefix = strtolower(trim($prefix)))) {
-            return '';
-        }
-
-        return $prefix;
+        return strtolower(trim($prefix)) ?: '';
     }
-    //
-    // endregion Utilities
-    //
 }

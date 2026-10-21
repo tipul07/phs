@@ -1279,7 +1279,7 @@ final class PHS extends PHS_Registry
     ): ?string {
         if ($for_domain !== null) {
             if ($force_https
-             || self::is_secured_request()) {
+                || self::is_secured_request()) {
                 if (stripos($for_domain, 'https://') !== 0) {
                     $for_domain = 'https://'.$for_domain;
                 }
@@ -1327,8 +1327,12 @@ final class PHS extends PHS_Registry
         return PHS_PATH.self::ajax_script();
     }
 
-    public static function get_api_url(bool $force_https = false, bool $use_rewrite = true, ?string $for_domain = null): ?string
-    {
+    public static function get_api_url(
+        bool $force_https = false,
+        bool $use_rewrite = true,
+        ?string $for_domain = null,
+        string $version = PHS_Api_base::DEFAULT_VERSION,
+    ): ?string {
         if (!($base_url = self::get_domain_url($force_https, true, $for_domain))) {
             return null;
         }
@@ -1337,7 +1341,7 @@ final class PHS extends PHS_Registry
             return $base_url.self::api_script();
         }
 
-        return $base_url.'api/v1/';
+        return $base_url.'api/v'.$version.'/';
     }
 
     public static function get_api_path(): string
@@ -1349,6 +1353,7 @@ final class PHS extends PHS_Registry
         bool $force_https = false,
         bool $use_rewrite = true,
         ?string $for_domain = null,
+        string $version = '1',
     ): ?string {
         if (!($base_url = self::get_domain_url($force_https, true, $for_domain))) {
             return null;
@@ -1358,7 +1363,7 @@ final class PHS extends PHS_Registry
             return $base_url.self::remote_script();
         }
 
-        return $base_url.'remote/v1/';
+        return $base_url.'remote/v'.$version.'/';
     }
 
     public static function get_remote_script_path(): string
@@ -1385,21 +1390,21 @@ final class PHS extends PHS_Registry
         return PHS_PATH.self::inmail_script();
     }
 
-    public static function current_url(): ?string
+    public static function current_url(): string
     {
         if (!($plugin = self::get_data(self::ROUTE_PLUGIN))) {
-            $plugin = false;
+            $plugin = null;
         }
         if (!($controller = self::get_data(self::ROUTE_CONTROLLER))
-         || $controller === self::ROUTE_DEFAULT_CONTROLLER) {
-            $controller = false;
+            || $controller === self::ROUTE_DEFAULT_CONTROLLER) {
+            $controller = null;
         }
         if (!($action_dir = self::get_data(self::ROUTE_ACTION_DIR))) {
-            $action_dir = false;
+            $action_dir = null;
         }
         if (!($action = self::get_data(self::ROUTE_ACTION))
-         || $action === self::ROUTE_DEFAULT_ACTION) {
-            $action = false;
+            || $action === self::ROUTE_DEFAULT_ACTION) {
+            $action = null;
         }
 
         return self::url([
@@ -1453,17 +1458,8 @@ final class PHS extends PHS_Registry
         return str_replace('/', '_', str_replace('_', '', $ad));
     }
 
-    /**
-     * @param bool|array $parts
-     *
-     * @return null|string
-     */
-    public static function route_from_parts($parts = false): ?string
+    public static function route_from_parts(array $parts = []): ?string
     {
-        if (empty($parts) || !is_array($parts)) {
-            $parts = [];
-        }
-
         $parts = self::validate_route_from_parts($parts, true);
 
         if (!self::validate_short_name_route_parts($parts, false)) {
@@ -1536,10 +1532,10 @@ final class PHS extends PHS_Registry
     {
         if ((!empty($check_if_empty)
              && empty($route_arr['p']) && empty($route_arr['c']) && empty($route_arr['a']))
-         || (!empty($route_arr['p']) && !self::safe_escape_route_parts($route_arr['p']))
-         || (!empty($route_arr['c']) && !self::safe_escape_route_parts($route_arr['c']))
-         || (!empty($route_arr['a']) && !self::safe_escape_route_parts($route_arr['a']))
-         || (!empty($route_arr['ad']) && !self::safe_escape_route_action_dir($route_arr['ad']))) {
+            || (!empty($route_arr['p']) && !self::safe_escape_route_parts($route_arr['p']))
+            || (!empty($route_arr['c']) && !self::safe_escape_route_parts($route_arr['c']))
+            || (!empty($route_arr['a']) && !self::safe_escape_route_parts($route_arr['a']))
+            || (!empty($route_arr['ad']) && !self::safe_escape_route_action_dir($route_arr['ad']))) {
             return null;
         }
 
@@ -1553,27 +1549,27 @@ final class PHS extends PHS_Registry
 
         if ($use_short_names) {
             if (empty($route_arr['p'])) {
-                $route_arr['p'] = false;
+                $route_arr['p'] = null;
             }
             if (empty($route_arr['c'])) {
-                $route_arr['c'] = false;
+                $route_arr['c'] = null;
             }
             // action directory (if applicable)
             if (empty($route_arr['ad'])) {
-                $route_arr['ad'] = false;
+                $route_arr['ad'] = null;
             }
             if (empty($route_arr['a'])) {
                 $route_arr['a'] = self::ROUTE_DEFAULT_ACTION;
             }
         } else {
             if (empty($route_arr['plugin'])) {
-                $route_arr['plugin'] = false;
+                $route_arr['plugin'] = null;
             }
             if (empty($route_arr['controller'])) {
-                $route_arr['controller'] = false;
+                $route_arr['controller'] = null;
             }
             if (empty($route_arr['action_dir'])) {
-                $route_arr['action_dir'] = false;
+                $route_arr['action_dir'] = null;
             }
             if (empty($route_arr['action'])) {
                 $route_arr['action'] = self::ROUTE_DEFAULT_ACTION;
@@ -1583,19 +1579,14 @@ final class PHS extends PHS_Registry
         return $route_arr;
     }
 
-    public static function url(?array $route_arr = null, null | bool | array $args = null, ?array $extra = null): string
-    {
-        $route_arr = self::validate_route_from_parts($route_arr, true);
-
-        // As we run in a background job we don't know if initial request was made using https, so we force https links
-        if (self::are_we_in_a_background_thread()) {
-            $route_arr['force_https'] = true;
-        }
-
+    public static function url(
+        null | string | array $route_arr = null, null | bool | array $args = null, ?array $extra = null,
+    ): string {
         $args = $args ?: [];
         $extra ??= [];
 
         $extra['anchor'] ??= '';
+        $extra['controller'] ??= null;
 
         if (empty($extra['http']) || !is_array($extra['http'])) {
             $extra['http'] = [];
@@ -1634,12 +1625,26 @@ final class PHS extends PHS_Registry
             $extra['use_rewrite_url'] = !empty($extra['use_rewrite_url']);
         }
 
+        if (is_string($route_arr)
+           && !($route_arr = PHS_Action::get_route_from_class($extra['controller'] ?? null, $route_arr))) {
+            return '#invalid_path['.$route_arr.']'.$extra['anchor'];
+        }
+
+        $route_arr = self::validate_route_from_parts($route_arr, true);
+
+        // As we run in a background job we don't know if initial request was made using https, so we force https links
+        if (self::are_we_in_a_background_thread()) {
+            $route_arr['force_https'] = true;
+        }
+
         $new_args = [];
         $rewrite_route = '';
 
         // We can pass raw route as a string (obtained as PHS::route_from_parts())
         // which is passed as a parameter in a JavaScript script
-        // (e.g. data_call( route, data ) { PHS_JSEN.createAjaxDialog( { ... url: "PHS_Ajax::url( false, [], [ 'raw_route' => '" + route + "' ] )", ... }
+        // (e.g. data_call( route, data ) {
+        // PHS_JSEN.createAjaxDialog({ ... url: PHS_Ajax::url( false, [], [ 'raw_route' => '" + route + "' ] ), ...
+        // }
         if (!empty($extra['raw_route']) && is_string($extra['raw_route'])) {
             if ($extra['use_rewrite_url']) {
                 $rewrite_route = $extra['raw_route'];
@@ -1648,16 +1653,14 @@ final class PHS extends PHS_Registry
             }
         } elseif (!($route = self::route_from_parts($route_arr))) {
             return '#invalid_path['
-                   .(!empty($route_arr['p']) ? $route_arr['p'] : '').'::'
-                   .(!empty($route_arr['c']) ? $route_arr['c'] : '').'::'
-                   .(!empty($route_arr['ad']) ? $route_arr['ad'] : '').'/'
-                   .(!empty($route_arr['a']) ? $route_arr['a'] : '').']'.$extra['anchor'];
+                   .(($route_arr['p'] ?? '') ?: '').'::'
+                   .(($route_arr['c'] ?? '') ?: '').'::'
+                   .(($route_arr['ad'] ?? '') ?: '').'/'
+                   .(($route_arr['a'] ?? '') ?: '').']'.$extra['anchor'];
+        } elseif ($extra['use_rewrite_url']) {
+            $rewrite_route = $route;
         } else {
-            if ($extra['use_rewrite_url']) {
-                $rewrite_route = $route;
-            } else {
-                $new_args[self::ROUTE_PARAM] = $route;
-            }
+            $new_args[self::ROUTE_PARAM] = $route;
         }
 
         if (isset($args[self::ROUTE_PARAM])) {
@@ -1711,13 +1714,18 @@ final class PHS extends PHS_Registry
         // Let plugins change API provided route in actual plugin, controller, action route (if required)
         if (empty($extra['skip_formatters'])
             && ($event_obj = PHS_Event_Url_rewrite::trigger([
-                'route'              => $route_arr, 'args' => $args, 'raw_args' => $extra['raw_args'], 'stock_args' => $new_args,
-                'stock_query_string' => $query_string, 'stock_url' => $stock_url, ]))
+                'route'              => $route_arr,
+                'args'               => $args,
+                'raw_args'           => $extra['raw_args'],
+                'stock_args'         => $new_args,
+                'stock_query_string' => $query_string,
+                'stock_url'          => $stock_url,
+            ]))
             && ($new_url = $event_obj->get_output('url'))) {
             $final_url = $new_url;
         }
 
-        return $final_url;
+        return $final_url ?: '#invalid_route';
     }
 
     public static function relative_url(?string $url): string

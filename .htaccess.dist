@@ -2,21 +2,6 @@
 #| Disable directory listing
 Options -Indexes
 
-<IfModule mod_php5.c>
-
-    # adjust php values and flags (if required)
-    # examples to be used
-    # php_value memory_limit 32M
-    # php_value max_execution_time 30
-    # php_flag zlib.output_compression on
-    # php_flag suhosin.session.cryptua off
-
-    # recommended
-    # php_flag session.auto_start off
-
-    {{HTACCESS_PHP_VALUES_AND_FLAGS}}
-
-</IfModule>
 <IfModule mod_php7.c>
 
     # adjust php values and flags (if required)
@@ -109,6 +94,11 @@ Options -Indexes
 
     {{HTACCESS_PHS_REWRITE_RULES}}
 
+    # !!!DO NOT REMOVE!!!
+    # __PHS_PROGRAMMATICALLY_ADD_MORE_RULES__
+    # END __PHS_PROGRAMMATICALLY_ADD_MORE_RULES__
+    # !!!DO NOT REMOVE!!!
+
 #+--------------------------------------------------------
 #| never rewrite for existing files, directories and links
 
@@ -125,7 +115,7 @@ Options -Indexes
 
 #+--------------------------------------------------------
 #| Deny access to sensitive scripts
-<Files ~ "^(_agent.php|_agent_bg.php|_bg.php|_config.yml|_new_crypt_keys.php|php-cs-fixer.php|bootstrap.php|main.php|main.dist.php|README.md|VERSION|LICENSE)$">
+<Files ~ "^(_agent.php|_agent_bg.php|_bg.php|_eml.php|_new_crypt_keys.php|php-cs-fixer.php|bootstrap.php|main.php|main.dist.php|_config.yml|.editorconfig|.gitattributes|.gitignore|README.md|VERSION|LICENSE)$">
     <IfVersion < 2.4>
         order allow,deny
         deny from all

@@ -18,11 +18,34 @@ abstract class PHS_Action extends PHS_Instantiable
         ACT_ROLE_REMOTE_PHS_CALL = 'phs_remote_phs_call',
         ACT_ROLE_TFA_SETUP = 'phs_tfa_setup', ACT_ROLE_TFA_VERIFY = 'phs_tfa_verify', ACT_ROLE_TFA_SETTINGS = 'phs_tfa_settings';
 
-    /** @var null|PHS_Controller */
+    /**
+     * Controller instance used when running the action
+     *
+     * @var null|PHS_Controller
+     */
     private ?PHS_Controller $_controller_obj = null;
 
-    /** @var null|array */
     private ?array $_action_result = null;
+
+    /**
+     * This can be overwritten in child action to say what controller class name to use in case static::get_route_from_class() is used
+     *
+     * @var null|string
+     * @see static::get_route_from_class()
+     */
+    protected static ?string $_default_controller_for_route = null;
+
+    /**
+     * A name for this action (if required) Option more used for API actions in order to extract automated documentation
+     * @var null|string
+     */
+    protected static ?string $_action_name = null;
+
+    /**
+     * A description for this action (if required) Option more used for API actions in order to extract automated documentation
+     * @var null|string
+     */
+    protected static ?string $_action_description = null;
 
     private static array $_action_roles = [];
 
@@ -56,7 +79,7 @@ abstract class PHS_Action extends PHS_Instantiable
      *
      * @return int[] If empty array, action is allowed in all scopes...
      */
-    public function allowed_scopes() // : array
+    public function allowed_scopes(): array
     {
         return [];
     }
@@ -64,9 +87,14 @@ abstract class PHS_Action extends PHS_Instantiable
     /**
      * @return array Returns roles that current action have
      */
-    public function action_roles() // :array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_PAGE];
+    }
+
+    final public function instance_type(): string
+    {
+        return self::INSTANCE_TYPE_ACTION;
     }
 
     final public function define_action_role(string $role_key, array $role_arr): ?array
@@ -132,11 +160,6 @@ abstract class PHS_Action extends PHS_Instantiable
         }
 
         return $return_arr ?: null;
-    }
-
-    final public function instance_type(): string
-    {
-        return self::INSTANCE_TYPE_ACTION;
     }
 
     /**
@@ -345,6 +368,40 @@ abstract class PHS_Action extends PHS_Instantiable
         return $action_result;
     }
 
+    final public static function get_route_from_class(?string $controller_class = null, ?string $full_class_name = null): ?array
+    {
+        if (!$full_class_name) {
+            $full_class_name = static::class;
+        }
+
+        $full_class_name = ltrim($full_class_name, '\\');
+
+        if (!($details = self::get_full_instance_details($full_class_name))
+           || empty($details['instance_name'])) {
+            return null;
+        }
+
+        $return_arr = ['a' => strtolower($details['instance_name'])];
+        if (!empty($details['instance_subdir'])) {
+            $return_arr['ad'] = $details['instance_subdir'];
+        }
+        if (($controller_class ??= static::$_default_controller_for_route ?? null)) {
+            if (!($c_details = self::get_full_instance_details($controller_class))
+               || empty($c_details['instance_name'])) {
+                self::st_set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Unknown controller class.'));
+
+                return null;
+            }
+            $return_arr['c'] = strtolower($c_details['instance_name']);
+        }
+        if (($details['plugin_name'] ?? null)
+           && $details['plugin_name'] !== self::CORE_PLUGIN) {
+            $return_arr['p'] = strtolower($details['plugin_name']);
+        }
+
+        return $return_arr;
+    }
+
     final public static function default_action_role_definition_array(): array
     {
         return [
@@ -365,12 +422,7 @@ abstract class PHS_Action extends PHS_Instantiable
 
     final public static function valid_action_role(string $role_key): ?array
     {
-        if (!($roles_arr = self::get_action_roles())
-         || empty($roles_arr[$role_key])) {
-            return null;
-        }
-
-        return $roles_arr[$role_key];
+        return self::get_action_roles()[$role_key] ?? null;
     }
 
     /**

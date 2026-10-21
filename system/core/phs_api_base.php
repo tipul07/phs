@@ -1,6 +1,7 @@
 <?php
 namespace phs;
 
+use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Registry;
 use phs\libraries\PHS_Notifications;
@@ -287,38 +288,19 @@ abstract class PHS_Api_base extends PHS_Registry
         ];
     }
 
-    /**
-     * @param bool|array $route_arr Route array defining plugin, controller and action to be used
-     * @param bool|array $args Query parameters to be set for this URL
-     * @param bool|array $extra Extra parameters sent to method
-     *
-     * @return mixed
-     */
-    final public function url($route_arr = false, $args = false, $extra = false)
+    final public function url(null | string | array $route_arr = null, array $args = [], array $extra = []): string
     {
-        if (empty($route_arr) || !is_array($route_arr)) {
-            $route_arr = [];
-        }
-
-        if (empty($args) || !is_array($args)) {
-            $args = [];
-        }
-
-        if (empty($extra) || !is_array($extra)) {
-            $extra = [];
-        }
-
-        $api_url_params = [];
-        $api_url_params['include_version'] = !$this->is_rewrite_request();
-
-        if (!($args = $this->_get_predefined_api_url_params($args, $api_url_params))) {
-            $args = [];
-        }
+        $args = $this->_get_predefined_api_url_params($args, ['include_version' => !$this->is_rewrite_request()]);
 
         $extra['for_scope'] = PHS_Scope::SCOPE_API;
 
         // Using special rewrite for api routes
         if ($this->is_rewrite_request()) {
+            if (is_string($route_arr)
+               && !($route_arr = PHS_Action::get_route_from_class($extra['controller'] ?? null, $route_arr))) {
+                return 'invalidApiRoute_'.$route_arr;
+            }
+
             $route_arr = PHS::validate_route_from_parts($route_arr, true);
 
             if (!($route = PHS::route_from_parts($route_arr))) {
@@ -326,13 +308,11 @@ abstract class PHS_Api_base extends PHS_Registry
                          .($route_arr['p'] ?? '').'::'.($route_arr['c'] ?? '').'::'.($route_arr['ad'] ?? '').'__'.($route_arr['a'] ?? '');
             }
 
-            if (!($query_string = @http_build_query($args))) {
-                $query_string = '';
-            }
+            $query_string = @http_build_query($args);
 
             // Parameters that shouldn't be run through http_build_query as values will be rawurlencoded,
-            // and we might add javascript code in parameters
-            // e.g. $extra['raw_args'] might be an id passed as javascript function parameter
+            // and we might add JavaScript code in parameters
+            // e.g. $extra['raw_args'] might be an id passed as JavaScript function parameter
             if (!empty($extra['raw_args']) && is_array($extra['raw_args'])
                 && ($raw_query = array_to_query_string($extra['raw_args'], ['raw_encode_values' => false]))) {
                 $query_string .= ($query_string !== '' ? '&' : '').$raw_query;
@@ -356,17 +336,15 @@ abstract class PHS_Api_base extends PHS_Registry
         $this->reset_error();
 
         $account_arr = null;
-        /** @var PHS_Model_Api_keys $apikeys_model */
-        /** @var PHS_Model_Accounts $accounts_model */
         if (empty($apikey)
-         || !($apikeys_model = PHS_Model_Api_keys::get_instance())
-         || !($accounts_model = PHS_Model_Accounts::get_instance())
-         || !($apikey_arr = $apikeys_model->get_details_fields(['api_key' => $apikey]))
-         || !$apikeys_model->is_active($apikey_arr)
-         || (!empty($apikey_arr['uid'])
-            && (!($account_arr = $accounts_model->get_details($apikey_arr['uid']))
-               || !$accounts_model->is_active($account_arr))
-         )) {
+            || !($apikeys_model = PHS_Model_Api_keys::get_instance())
+            || !($accounts_model = PHS_Model_Accounts::get_instance())
+            || !($apikey_arr = $apikeys_model->get_details_fields(['api_key' => $apikey]))
+            || !$apikeys_model->is_active($apikey_arr)
+            || (!empty($apikey_arr['uid'])
+                && (!($account_arr = $accounts_model->get_details($apikey_arr['uid']))
+                    || !$accounts_model->is_active($account_arr))
+            )) {
             $this->set_error(self::ERR_APIKEY, $this->_pt('Api key not found in database.'));
 
             return null;
@@ -430,28 +408,18 @@ abstract class PHS_Api_base extends PHS_Registry
 
     public function response_headers(bool $raw = false)
     {
-        if (empty($this->my_flow)) {
-            $this->my_flow = $this->_default_api_flow();
-        }
-
-        if (!empty($raw)) {
-            return $this->my_flow['raw_response_headers'] ?? [];
-        }
-
-        return $this->my_flow['response_headers'] ?? [];
+        return $raw
+            ? ($this->api_flow_value('raw_response_headers') ?? [])
+            : ($this->api_flow_value('response_headers') ?? []);
     }
 
-    public function set_response_headers($headers_arr, bool $append = true)
+    public function set_response_headers(array $headers_arr, bool $append = true)
     {
-        if (empty($this->my_flow)) {
+        if (!$this->my_flow) {
             $this->my_flow = $this->_default_api_flow();
         }
 
-        if (!is_array($headers_arr)) {
-            return false;
-        }
-
-        if (empty($append)) {
+        if (!$append) {
             $this->my_flow['response_headers'] = [];
             $this->my_flow['raw_response_headers'] = [];
         }
@@ -493,36 +461,27 @@ abstract class PHS_Api_base extends PHS_Registry
         return $this->my_flow['raw_response_headers'];
     }
 
-    /**
-     * @param null|string $body_str
-     *
-     * @return bool|string
-     */
     public function response_body(?string $body_str = null): string | bool
     {
         if ($body_str === null) {
-            return ($this->my_flow['response_body'] ?? '') ?: '';
+            return $this->api_flow_value('response_body') ?: '';
         }
 
-        $this->my_flow['response_body'] = $body_str;
+        $this->api_flow_value('response_body', $body_str);
 
         return true;
     }
 
     public function http_method(): string
     {
-        if (empty($this->my_flow)) {
-            $this->my_flow = $this->_default_api_flow();
-        }
-
-        return ($this->my_flow['api_method'] ?? '') ?: '';
+        return $this->api_flow_value('api_method') ?: '';
     }
 
     public function set_http_method(string $method): ?string
     {
         $this->reset_error();
 
-        if (empty($this->my_flow)) {
+        if (!$this->my_flow) {
             $this->my_flow = $this->_default_api_flow();
         }
 
@@ -544,18 +503,18 @@ abstract class PHS_Api_base extends PHS_Registry
             $this->my_flow = $this->_default_api_flow();
         }
 
-        return $this->my_flow['http_protocol'];
+        return $this->my_flow['http_protocol'] ?: '';
     }
 
     public function set_http_protocol(string $protocol): ?string
     {
         $this->reset_error();
 
-        if (empty($this->my_flow)) {
+        if (!$this->my_flow) {
             $this->my_flow = $this->_default_api_flow();
         }
 
-        if (empty($protocol)) {
+        if (!$protocol) {
             $this->set_error(self::ERR_HTTP_PROTOCOL, self::_t('Invalid HTTP protocol.'));
 
             return null;
@@ -572,14 +531,14 @@ abstract class PHS_Api_base extends PHS_Registry
             $this->my_flow = $this->_default_api_flow();
         }
 
-        return $this->my_flow['content_type'];
+        return $this->my_flow['content_type'] ?: '';
     }
 
     public function set_content_type(string $type): ?string
     {
         $this->reset_error();
 
-        if (empty($this->my_flow)) {
+        if (!$this->my_flow) {
             $this->my_flow = $this->_default_api_flow();
         }
 
@@ -596,29 +555,17 @@ abstract class PHS_Api_base extends PHS_Registry
 
     public function api_user_account_id(): int
     {
-        if (empty($this->my_flow)) {
-            $this->my_flow = $this->_default_api_flow();
-        }
-
-        return $this->my_flow['api_key_user_id'] ?? 0;
+        return (int)($this->api_flow_value('api_key_user_id') ?: 0);
     }
 
     public function api_account_data(): ?array
     {
-        if (empty($this->my_flow)) {
-            $this->my_flow = $this->_default_api_flow();
-        }
-
-        return ($this->my_flow['api_account_data'] ?? null) ?: null;
+        return $this->api_flow_value('api_account_data') ?: null;
     }
 
     public function api_session_data(): ?array
     {
-        if (empty($this->my_flow)) {
-            $this->my_flow = $this->_default_api_flow();
-        }
-
-        return ($this->my_flow['api_session_data'] ?? null) ?: null;
+        return $this->api_flow_value('api_session_data') ?: null;
     }
 
     public function send_header_response(int $code, ?string $msg = null): bool
@@ -701,8 +648,6 @@ abstract class PHS_Api_base extends PHS_Registry
 
     protected function _bearer_api_authentication_failed(bool $authentication_is_optional = false): ?array
     {
-        /** @var PHS_Plugin_Accounts $accounts_plugin */
-        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
             || !($accounts_model = PHS_Model_Accounts::get_instance())) {
             return [
@@ -735,8 +680,8 @@ abstract class PHS_Api_base extends PHS_Registry
         $this->api_flow_value('api_key_data', false);
         $this->api_flow_value('api_key_user_id', 0);
 
-        $this->api_flow_value('api_account_data', $account_arr ?? null);
-        $this->api_flow_value('api_session_data', $online_arr ?? null);
+        $this->api_flow_value('api_account_data', ($account_arr ?? null) ?: false);
+        $this->api_flow_value('api_session_data', ($online_arr ?? null) ?: false);
 
         PHS::user_logged_in(true);
 
@@ -909,6 +854,8 @@ abstract class PHS_Api_base extends PHS_Registry
 
     protected function _default_api_flow(): array
     {
+        // false should be used for object rather than null as api_flow_value will consider null for value
+        // as a call to get the current value
         return [
             'die_when_needed' => true,
 
@@ -923,8 +870,8 @@ abstract class PHS_Api_base extends PHS_Registry
 
             'original_api_route_tokens' => false,
             'final_api_route_tokens'    => false,
-            'phs_route'                 => null,
-            'api_route'                 => null,
+            'phs_route'                 => false,
+            'api_route'                 => false,
 
             // Remote domain record
             'remote_domain' => false,
@@ -950,32 +897,18 @@ abstract class PHS_Api_base extends PHS_Registry
         ];
     }
 
-    /**
-     * @param null|array $args Arguments which must be added in query string (other than predefined ones)
-     * @param null|array $extra Call parameters
-     *
-     * @return array Arguments to be added to query string of API URL
-     */
-    protected function _get_predefined_api_url_params(?array $args = null, ?array $extra = null): array
+    protected function _get_predefined_api_url_params(array $args = [], array $extra = []): array
     {
-        if (empty($args) || !is_array($args)) {
-            $args = [];
-        }
-
-        if (empty($extra) || !is_array($extra)) {
-            $extra = [];
-        }
-
-        $extra['include_version'] = (!isset($extra['include_version']) || !empty($extra['include_version']));
+        $extra['include_version'] = !isset($extra['include_version']) || !empty($extra['include_version']);
 
         if (!empty($this->raw_query_params)) {
             foreach ($this->raw_query_params as $key => $val) {
                 // rewrite parameter is set in rewrite rule...
                 // put in parameters parsed value
                 if ($key === self::PARAM_USING_REWRITE
-                 || $key === self::PARAM_API_ROUTE
-                 || !isset($this->init_query_params[$key])
-                 || ($key === self::PARAM_VERSION && empty($extra['include_version']))) {
+                    || $key === self::PARAM_API_ROUTE
+                    || !isset($this->init_query_params[$key])
+                    || ($key === self::PARAM_VERSION && empty($extra['include_version']))) {
                     continue;
                 }
 

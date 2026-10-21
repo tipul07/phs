@@ -6,13 +6,15 @@ use phs\PHS_Scope;
 use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
-use phs\system\core\libraries\PHS_Email;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\accounts\controllers\PHS_Controller_Index_bg;
 
 class PHS_Action_Pass_changed_email_bg extends PHS_Action
 {
     public const ERR_UNKNOWN_ACCOUNT = 40000;
+
+    protected static ?string $_default_controller_for_route = PHS_Controller_Index_bg::class;
 
     /**
      * @inheritdoc

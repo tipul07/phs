@@ -12,9 +12,18 @@ use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\system\core\events\actions\PHS_Event_Action_after;
 use phs\system\core\events\actions\PHS_Event_Action_start;
 use phs\plugins\accounts\contracts\PHS_Contract_Account_basic;
+use phs\plugins\accounts\controllers\PHS_Controller_Index_api;
 
 class PHS_Action_Login extends PHS_Api_action
 {
+    protected static ?string $_default_controller_for_route = PHS_Controller_Index_api::class;
+
+    protected static ?string $_action_name = 'Login using bearer authentication';
+
+    protected static ?string $_action_description = 'Login using API calls with bearer authentication in headers';
+
+    protected static ?bool $_authentication_required = false;
+
     /**
      * @inheritdoc
      */

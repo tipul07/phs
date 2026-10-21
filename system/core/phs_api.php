@@ -107,7 +107,7 @@ class PHS_Api extends PHS_Api_base
         }
 
         $this->api_flow_value('phs_route', $phs_route);
-        $this->api_flow_value('api_route', $api_route);
+        $this->api_flow_value('api_route', $api_route ?: false);
 
         PHS::set_route($phs_route);
 
@@ -198,11 +198,11 @@ class PHS_Api extends PHS_Api_base
      * An array containing errors if authentication fails...
      *
      * @param null|array $api_route
-     * @param null|array $phs_route
+     * @param array $phs_route
      *
      * @return ?array
      */
-    protected function _api_route_authentication_failed(?array $api_route, ?array $phs_route): ?array
+    protected function _api_route_authentication_failed(?array $api_route, array $phs_route): ?array
     {
         $this->reset_error();
 
@@ -275,18 +275,11 @@ class PHS_Api extends PHS_Api_base
         return null;
     }
 
-    /**
-     * @param null|array $init_query_params
-     *
-     * @return null|PHS_Api_base
-     */
     final public static function api_factory(?array $init_query_params = null): ?PHS_Api_base
     {
         self::st_reset_error();
 
         $api_obj = null;
-
-        /** @var PHS_Event_Api_instance $event_obj */
         if (($event_obj = PHS_Event_Api_instance::trigger())
             && ($api_obj = $event_obj->get_output('api_instance'))
             && !($api_obj instanceof PHS_Api_base)) {
@@ -297,18 +290,17 @@ class PHS_Api extends PHS_Api_base
 
         // If we don't have an instance provided by hook result, instantiate default API class
         if (empty($api_obj)
-         && !($api_obj = new self())) {
+            && !($api_obj = new self())) {
             self::st_set_error(self::ERR_API_INIT, self::_t('Error obtaining API instance.'));
 
             return null;
         }
 
         if (!($api_obj->_init_api_query_params($init_query_params))) {
-            if ($api_obj->has_error()) {
-                self::st_copy_error($api_obj);
-            } else {
-                self::st_set_error(self::ERR_API_INIT, self::_t('Couldn\'t initialize API object.'));
-            }
+            self::st_copy_or_set_error(
+                $api_obj,
+                self::ERR_API_INIT, self::_t('Couldn\'t initialize API object.'),
+            );
 
             return null;
         }
