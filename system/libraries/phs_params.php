@@ -30,6 +30,8 @@ class PHS_Params
 
     public static function check_type(mixed $val, int $type): bool
     {
+        $val = self::_validate_external_input($val, $type);
+
         return match ($type) {
             self::T_INT       => preg_match(self::REGEX_INT, $val),
             self::T_FLOAT     => preg_match(self::REGEX_FLOAT, $val),
@@ -55,32 +57,38 @@ class PHS_Params
             $val = trim($val);
         }
 
+        $val = self::_validate_external_input($val, $type);
+
         switch ($type) {
             default:
             case self::T_ASIS:
                 return $val;
             case self::T_INT:
+                if (!$val) {
+                    return 0;
+                }
+
                 // Make sure we trim
                 if (!$extra['trim_before']) {
                     $val = trim($val);
                 }
 
-                if ($val !== '') {
-                    $val = (int)$val;
-                }
-
-                return $val;
+                return (int)($val ?: 0);
             case self::T_FLOAT:
+                if (!$val) {
+                    return 0.0;
+                }
+
                 // Make sure we trim
                 if (!$extra['trim_before']) {
                     $val = trim($val);
                 }
 
-                if (empty($extra['digits'])) {
-                    $extra['digits'] = self::FLOAT_PRECISION;
-                }
-
                 if ($val !== '') {
+                    if (empty($extra['digits'])) {
+                        $extra['digits'] = self::FLOAT_PRECISION;
+                    }
+
                     if (@function_exists('bcmul')) {
                         $val = @bcmul($val, 1, $extra['digits']);
                     } else {
@@ -96,23 +104,21 @@ class PHS_Params
                             $val = '0'.$val;
                         }
                     }
-
-                    $val = (float)$val;
                 }
 
-                return $val;
+                return (float)($val ?: 0.0);
             case self::T_ALPHANUM:
-                return preg_replace('/^([a-zA-Z0-9]+)$/', '$1', strip_tags($val));
+                return $val ? preg_replace('/^([a-zA-Z0-9]+)$/', '$1', strip_tags($val)) : '';
             case self::T_SAFEHTML:
-                return htmlspecialchars($val);
+                return $val ? htmlspecialchars($val) : '';
             case self::T_EMAIL:
             case self::T_NOHTML:
             case self::T_URL:
-                return strip_tags($val);
+                return $val ? strip_tags($val) : '';
             case self::T_REMSQL_CHARS:
-                return str_replace(['--', '\b', '\Z', '%'], '', $val);
+                return $val ? str_replace(['--', '\b', '\Z', '%'], '', $val) : '';
             case self::T_ARRAY:
-                if (empty($val) || !is_array($val)) {
+                if (!$val || !is_array($val)) {
                     return [];
                 }
 
@@ -126,18 +132,26 @@ class PHS_Params
 
                 return $val;
             case self::T_DATE:
+                if (!$val) {
+                    return null;
+                }
+
                 if (!$extra['trim_before']) {
                     $val = trim($val);
                 }
 
                 if (empty($val) || ($val = @strtotime($val)) === false || $val === -1) {
-                    $val = false;
+                    $val = null;
                 } elseif (!empty($extra['format'])) {
                     $val = @date($extra['format'], $val);
                 }
 
                 return $val;
             case self::T_TIMESTAMP:
+                if (!$val) {
+                    return 0;
+                }
+
                 if (!$extra['trim_before']) {
                     $val = trim($val);
                 }
@@ -157,7 +171,7 @@ class PHS_Params
                 return $val;
             case self::T_BOOL:
             case self::T_NUMERIC_BOOL:
-                if (is_string($val)) {
+                if (is_string($val) && $val !== '') {
                     if (!$extra['trim_before']) {
                         $val = trim($val);
                     }
@@ -186,7 +200,7 @@ class PHS_Params
                     $val = trim($val);
                 }
 
-                if (!self::check_type($val, self::T_GUID)) {
+                if (!$val || !self::check_type($val, self::T_GUID)) {
                     $val = null;
                 }
 
@@ -355,5 +369,14 @@ class PHS_Params
         }
 
         return self::set_type($_ENV[$v], $type, $extra);
+    }
+
+    private static function _validate_external_input(mixed $val, int $type): mixed
+    {
+        return $type !== self::T_ASIS
+               && $type !== self::T_ARRAY
+               && !is_scalar($val)
+            ? ''
+            : $val;
     }
 }

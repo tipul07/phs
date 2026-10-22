@@ -187,7 +187,26 @@ if (typeof PHS_JSEN === 'undefined' || !PHS_JSEN) {
                     continue;
                 }
 
-                form_obj.append(i, obj[i]);
+                form_obj = PHS_JSEN.add_object_to_form_data(i, obj[i], form_obj);
+            }
+
+            return form_obj;
+        },
+
+        add_object_to_form_data: function(key, val, form_obj = null) {
+            form_obj = form_obj || new FormData();
+
+            if (typeof val !== "object") {
+                form_obj.append(key, val);
+                return form_obj;
+            }
+
+            for (const i in val) {
+                if( !val.hasOwnProperty( i ) ) {
+                    continue;
+                }
+
+                form_obj = PHS_JSEN.add_object_to_form_data(key + "[" + i + "]", val[i], form_obj);
             }
 
             return form_obj;
