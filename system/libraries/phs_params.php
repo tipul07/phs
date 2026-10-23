@@ -64,21 +64,17 @@ class PHS_Params
             case self::T_ASIS:
                 return $val;
             case self::T_INT:
-                if (!$val) {
-                    return 0;
-                }
-
                 // Make sure we trim
                 if (!$extra['trim_before']) {
                     $val = trim($val);
                 }
 
-                return (int)($val ?: 0);
-            case self::T_FLOAT:
-                if (!$val) {
-                    return 0.0;
+                if ($val !== '') {
+                    $val = (int)$val;
                 }
 
+                return $val;
+            case self::T_FLOAT:
                 // Make sure we trim
                 if (!$extra['trim_before']) {
                     $val = trim($val);
@@ -104,9 +100,11 @@ class PHS_Params
                             $val = '0'.$val;
                         }
                     }
+
+                    $val = (float)$val;
                 }
 
-                return (float)($val ?: 0.0);
+                return $val;
             case self::T_ALPHANUM:
                 return $val ? preg_replace('/^([a-zA-Z0-9]+)$/', '$1', strip_tags($val)) : '';
             case self::T_SAFEHTML:
@@ -148,15 +146,11 @@ class PHS_Params
 
                 return $val;
             case self::T_TIMESTAMP:
-                if (!$val) {
-                    return 0;
-                }
-
                 if (!$extra['trim_before']) {
                     $val = trim($val);
                 }
 
-                if (empty($val)) {
+                if (!$val) {
                     $val = 0;
                 } elseif (is_numeric($val)) {
                     $val = (int)$val;
