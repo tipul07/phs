@@ -30,7 +30,7 @@ class PHS_Action_Register extends PHS_Action
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {

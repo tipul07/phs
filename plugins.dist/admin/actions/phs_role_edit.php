@@ -18,7 +18,7 @@ class PHS_Action_Role_edit extends PHS_Action
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {

@@ -35,7 +35,7 @@ class PHS_Action_Apple_register extends PHS_Action
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {

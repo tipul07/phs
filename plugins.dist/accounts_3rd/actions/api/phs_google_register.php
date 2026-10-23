@@ -31,9 +31,7 @@ class PHS_Action_Google_register extends PHS_Api_action
     }
 
     /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
+     * @inheritdoc
      */
     public function allowed_scopes(): array
     {
@@ -41,15 +39,10 @@ class PHS_Action_Google_register extends PHS_Api_action
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {
-        /** @var PHS_Model_Accounts $accounts_model */
-        /** @var PHS_Plugin_Accounts_3rd $accounts_trd_plugin */
-        /** @var PHS_Plugin_Mobileapi $mobile_plugin */
-        /** @var PHS_Model_Api_online $online_model */
-        /** @var PHS_Model_Accounts_services $services_model */
         if (!($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())
             || !($online_model = PHS_Model_Api_online::get_instance())
             || !($accounts_trd_plugin = PHS_Plugin_Accounts_3rd::get_instance())
@@ -125,7 +118,7 @@ class PHS_Action_Google_register extends PHS_Api_action
                 $this->_pt('Registration failed.'));
         }
 
-        if (!($db_linkage_arr = $services_model->link_user_with_service($account_arr['id'], $services_model::SERVICE_GOOGLE, @json_encode($account_info)))) {
+        if (!$services_model->link_user_with_service($account_arr['id'], $services_model::SERVICE_GOOGLE, @json_encode($account_info))) {
             PHS_Logger::error('Error linking Google service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL);
         }
 

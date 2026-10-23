@@ -17,7 +17,7 @@ class PHS_Action_Add extends PHS_Action
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {

@@ -20,9 +20,7 @@ class PHS_Action_Logout extends PHS_Action
     }
 
     /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
+     * @inheritdoc
      */
     public function allowed_scopes(): array
     {
@@ -30,7 +28,7 @@ class PHS_Action_Logout extends PHS_Action
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {

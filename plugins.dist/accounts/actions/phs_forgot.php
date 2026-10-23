@@ -29,7 +29,7 @@ class PHS_Action_Forgot extends PHS_Action
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {
