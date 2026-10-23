@@ -21,7 +21,7 @@ class PHS_Action_Google_login extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_REGISTER, self::ACT_ROLE_LOGIN];
     }
@@ -29,7 +29,7 @@ class PHS_Action_Google_login extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB];
     }
@@ -56,7 +56,7 @@ class PHS_Action_Google_login extends PHS_Action
         $register_login_non_existing = (!empty($settings_arr['register_login_non_existing']));
         $register_login_forced = (!empty($settings_arr['register_login_forced']));
 
-        $account_info = false;
+        $account_info = null;
         $account_arr = false;
         $register_required = false;
         $retry_action = false;
@@ -67,25 +67,23 @@ class PHS_Action_Google_login extends PHS_Action
         $do_register = PHS_Params::_p('do_register', PHS_Params::T_NOHTML);
 
         if (($phs_gal_code = PHS_Params::_p('phs_gal_code', PHS_Params::T_NOHTML))) {
-            if (!($account_info = $this->decode_google_account_data($phs_gal_code))
-             || !is_array($account_info)) {
+            if (!($account_info = $this->decode_google_account_data($phs_gal_code))) {
                 $retry_action = true;
-                $account_info = false;
+                $account_info = null;
                 $display_error_msg = $this->_pt('Error decoding Google account details. Please try again.');
             }
         } elseif (!($google_code = PHS_Params::_gp('code', PHS_Params::T_NOHTML))) {
             $retry_action = true;
             $display_error_msg = $this->_pt('Invalid Google token. Please try again.');
-        } elseif (!($account_info = $google_lib->get_web_account_details_by_code($google_code, 'login'))
-               || !is_array($account_info)) {
+        } elseif (!($account_info = $google_lib->get_web_account_details_by_code($google_code, 'login'))) {
             $retry_action = true;
-            $account_info = false;
+            $account_info = null;
             $display_error_msg = $this->_pt('Error obtaining Google account details. Please try again.');
         }
 
         if (!empty($account_info)) {
             if (empty($account_info['email'])) {
-                $account_info = false;
+                $account_info = null;
                 $retry_action = true;
                 $display_error_msg = $this->_pt('Error obtaining Google account email address. Please make sure you give us rights to read Google account email address.');
             } elseif (!($account_arr = $accounts_model->get_details_fields(['email' => $account_info['email']]))) {
@@ -103,11 +101,10 @@ class PHS_Action_Google_login extends PHS_Action
             }
         }
 
-        if (empty($account_arr)
-         && !empty($account_info)
+        if (empty($account_arr) && $account_info
          && ($register_login_forced
-            || ($register_login_non_existing && $do_register)
-         )) {
+            || ($register_login_non_existing && $do_register))
+        ) {
             $fields_arr = [];
             $fields_arr['nick'] = $account_info['email'];
             $fields_arr['email'] = $account_info['email'];
@@ -150,7 +147,7 @@ class PHS_Action_Google_login extends PHS_Action
         }
 
         if (!empty($account_arr)) {
-            if (!($db_linkage_arr = $services_model->link_user_with_service($account_arr['id'], $services_model::SERVICE_GOOGLE, @json_encode($account_info)))) {
+            if (!$services_model->link_user_with_service($account_arr['id'], $services_model::SERVICE_GOOGLE, @json_encode($account_info))) {
                 PHS_Logger::error('Error linking Google service with user #'.$account_arr['id'].'.', $accounts_trd_plugin::LOG_ERR_CHANNEL);
             }
 
@@ -196,7 +193,7 @@ class PHS_Action_Google_login extends PHS_Action
                                  .$accounts_plugin->get_simple_error_message($this->_pt('Please try again.'));
         }
 
-        $data_arr = [
+        return $this->quick_render_template('google/login', [
             'display_error_msg'   => $display_error_msg,
             'display_message_msg' => $display_message_msg,
             'account_arr'         => $account_arr,
@@ -205,9 +202,7 @@ class PHS_Action_Google_login extends PHS_Action
             'register_required'   => $register_required,
             'phs_gal_code'        => ($account_info ? $this->encode_google_account_data($account_info) : ''),
             'google_lib'          => $google_lib,
-        ];
-
-        return $this->quick_render_template('google/login', $data_arr);
+        ]);
     }
 
     public function encode_google_account_data($google_result)
@@ -215,11 +210,11 @@ class PHS_Action_Google_login extends PHS_Action
         return PHS_Crypt::quick_encode(@json_encode($google_result));
     }
 
-    public function decode_google_account_data($google_result)
+    public function decode_google_account_data(string $google_result): ?array
     {
         if (!($clean_str = PHS_Crypt::quick_decode($google_result))
             || !($result_arr = @json_decode($clean_str, true))) {
-            return false;
+            return null;
         }
 
         return $result_arr;

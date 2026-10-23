@@ -4,7 +4,6 @@ use phs\PHS_Api;
 use phs\libraries\PHS_Logger;
 use phs\plugins\mobileapi\PHS_Plugin_Mobileapi;
 
-/** @var PHS_Plugin_Mobileapi $mobile_plugin */
 if (($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())) {
     PHS_Logger::define_channel($mobile_plugin::LOG_CHANNEL);
     PHS_Logger::define_channel($mobile_plugin::LOG_FIREBASE);
@@ -22,7 +21,7 @@ if (($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             'method'      => 'post',
             'name'        => 'Create session for device',
             'description' => '3rd party app can anonymously create a session for a device in the system in order to send push notifications.',
-        ]
+        ],
     );
 
     // GET /devices/session Get session details
@@ -39,7 +38,7 @@ if (($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             'method'                  => 'get',
             'name'                    => 'Get session details',
             'description'             => '3rd party app can get session details.',
-        ]
+        ],
     );
 
     // POST /devices/update Update session
@@ -56,7 +55,7 @@ if (($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             'method'                  => 'post',
             'name'                    => 'Update session for device',
             'description'             => '3rd party app can send device updates as required (update location or other variables)',
-        ]
+        ],
     );
 
     // POST /users/login Login an account from 3rd party mobile app
@@ -73,7 +72,7 @@ if (($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             'method'                  => 'post',
             'name'                    => '3rd party login',
             'description'             => 'Login functionality for 3rd party applications',
-        ]
+        ],
     );
 
     // POST /users/register Register an account from a 3rd party mobile app
@@ -90,7 +89,7 @@ if (($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             'method'                  => 'post',
             'name'                    => '3rd party registration',
             'description'             => 'Registration functionality for 3rd party applications',
-        ]
+        ],
     );
 
     // POST /users/forgot_password User forgot password request from a 3rd party mobile app
@@ -107,7 +106,7 @@ if (($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             'method'                  => 'post',
             'name'                    => '3rd party forgot password',
             'description'             => 'Forgot password functionality for 3rd party applications',
-        ]
+        ],
     );
 
     // GET /users/logout Logout from a 3rd party mobile app
@@ -124,7 +123,7 @@ if (($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             'method'                  => 'get',
             'name'                    => '3rd party logout',
             'description'             => 'Logout functionality for 3rd party applications',
-        ]
+        ],
     );
 
     // GET /users/logout_others Logout other sessions from a 3rd party mobile app
@@ -141,7 +140,7 @@ if (($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             'method'                  => 'get',
             'name'                    => '3rd party logout other sessions',
             'description'             => 'Logout other sessions functionality for 3rd party applications',
-        ]
+        ],
     );
 
     // GET /users/change_password Request new password from a 3rd party mobile app
@@ -158,7 +157,7 @@ if (($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             'method'                  => 'post',
             'name'                    => '3rd party change password',
             'description'             => 'Change password functionality for 3rd party applications',
-        ]
+        ],
     );
 
     // POST /users/edit Edit account request from a 3rd party mobile app
@@ -175,6 +174,6 @@ if (($mobile_plugin = PHS_Plugin_Mobileapi::get_instance())) {
             'method'                  => 'post',
             'name'                    => '3rd party edit account',
             'description'             => 'Change account functionality for 3rd party applications',
-        ]
+        ],
     );
 }

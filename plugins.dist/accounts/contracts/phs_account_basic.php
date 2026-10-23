@@ -15,7 +15,7 @@ class PHS_Contract_Account_basic extends PHS_Contract
     /**
      * @inheritdoc
      */
-    public function get_parsing_data_model() : ?PHS_Model
+    public function get_parsing_data_model(): ?PHS_Model
     {
         return $this->_accounts_model;
     }
@@ -23,7 +23,7 @@ class PHS_Contract_Account_basic extends PHS_Contract
     /**
      * @inheritdoc
      */
-    public function get_parsing_data_model_flow() : ?array
+    public function get_parsing_data_model_flow(): ?array
     {
         return $this->_accounts_model->fetch_default_flow_params(['table_name' => 'users']);
     }
@@ -31,7 +31,7 @@ class PHS_Contract_Account_basic extends PHS_Contract
     /**
      * @inheritdoc
      */
-    public function get_contract_data_definition() : ?array
+    public function get_contract_data_definition(): ?array
     {
         return [
             'id' => [

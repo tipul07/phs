@@ -13,7 +13,7 @@ use phs\system\core\libraries\PHS_Paginator_exporter_manager;
 
 class PHS_Action_Paginator_export_status_ajax extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_AJAX];
     }

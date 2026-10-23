@@ -42,12 +42,12 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         self::STATUS_CANCELLED => ['title' => 'Cancelled'],
     ];
 
-    public function get_account_data() : ?PHS_Record_data
+    public function get_account_data(): ?PHS_Record_data
     {
         return $this->_account_data;
     }
 
-    public function get_paginator_action() : ?PHS_Action_Generic_list
+    public function get_paginator_action(): ?PHS_Action_Generic_list
     {
         return $this->_paginator_action;
     }
@@ -57,7 +57,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         string $bulk_action,
         array $export_params,
         null | int | array | PHS_Record_data $account_data,
-    ) : bool {
+    ): bool {
         $this->reset_error();
 
         if (!$this->_set_account_data($account_data)) {
@@ -101,7 +101,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         return true;
     }
 
-    public function start_export_from_background_action(array $export_context) : ?array
+    public function start_export_from_background_action(array $export_context): ?array
     {
         if (!$this->_load_dependencies()) {
             return null;
@@ -259,25 +259,25 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         return $export_result;
     }
 
-    public function can_cancel_export(array $export_status) : bool
+    public function can_cancel_export(array $export_status): bool
     {
         return !$this->is_final_status($export_status);
     }
 
-    public function can_reset_export(array $export_status) : bool
+    public function can_reset_export(array $export_status): bool
     {
         return $this->is_final_status($export_status)
                || empty($export_status['now_time'])
                || $export_status['now_time'] + self::RESET_EXPORT_TIME < time();
     }
 
-    public function is_final_status(array $export_status) : bool
+    public function is_final_status(array $export_status): bool
     {
         return !empty($export_status['status'])
                && in_array((int)$export_status['status'], [self::STATUS_ERROR, self::STATUS_FINISHED, self::STATUS_CANCELLED], true);
     }
 
-    public function is_success_status(array $export_status) : bool
+    public function is_success_status(array $export_status): bool
     {
         return !empty($export_status['status'])
                && (int)$export_status['status'] === self::STATUS_FINISHED;
@@ -286,7 +286,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
     public function read_export_details(
         ?PHS_Action_Generic_list $action_obj = null,
         null | int | array | PHS_Record_data $account_data = null,
-    ) : ?array {
+    ): ?array {
         if (!$this->_load_dependencies()) {
             return null;
         }
@@ -320,7 +320,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
     public function download_export_file(
         ?PHS_Action_Generic_list $action_obj = null,
         null | int | array | PHS_Record_data $account_data = null,
-    ) : ?array {
+    ): ?array {
         if (@headers_sent()) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Headers already sent. Cannot send export file to browser.'));
 
@@ -350,7 +350,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
     public function reset_export(
         ?PHS_Action_Generic_list $action_obj = null,
         null | int | array | PHS_Record_data $account_data = null,
-    ) : ?bool {
+    ): ?bool {
         if (!($export_status = $this->read_export_details($action_obj, $account_data))
             || !$this->can_reset_export($export_status)) {
             $this->set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Resetting export is not available.'));
@@ -377,7 +377,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
     public function cancel_export(
         ?PHS_Action_Generic_list $action_obj = null,
         null | int | array | PHS_Record_data $account_data = null,
-    ) : ?bool {
+    ): ?bool {
         if (!($export_status = $this->read_export_details($action_obj, $account_data))
             || !$this->can_cancel_export($export_status)) {
             $this->set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Cancelling export is not available.'));
@@ -394,7 +394,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         return true;
     }
 
-    public function _get_export_status_file() : ?string
+    public function _get_export_status_file(): ?string
     {
         if (!($action_obj = $this->get_paginator_action())
            || !($current_user = $this->get_account_data())) {
@@ -404,7 +404,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         return $this->_get_export_path().'status_'.$current_user['id'].'_'.md5($action_obj::class).'.json';
     }
 
-    public function _get_cancel_export_file() : ?string
+    public function _get_cancel_export_file(): ?string
     {
         if (!($action_obj = $this->get_paginator_action())
            || !($current_user = $this->get_account_data())) {
@@ -414,12 +414,12 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         return $this->_get_export_path().'cancel_'.$current_user['id'].'_'.md5($action_obj::class).'.json';
     }
 
-    private function _is_cancelled_status() : bool
+    private function _is_cancelled_status(): bool
     {
         return ($this->read_export_details()['status'] ?? 0) === self::STATUS_CANCELLED;
     }
 
-    private function _should_cancel_export_on_tick() : bool
+    private function _should_cancel_export_on_tick(): bool
     {
         @clearstatcache();
 
@@ -427,14 +427,14 @@ class PHS_Paginator_exporter_manager extends PHS_Library
                && @file_exists($cancel_file);
     }
 
-    private function _export_just_cancelled() : void
+    private function _export_just_cancelled(): void
     {
         if (($cancel_file = $this->_get_cancel_export_file())) {
             @unlink($cancel_file);
         }
     }
 
-    private function _set_export_context(array $context) : void
+    private function _set_export_context(array $context): void
     {
         $context['bulk_action'] ??= '';
         $context['action'] ??= null;
@@ -445,12 +445,12 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         $this->_export_context = $context;
     }
 
-    private function _get_export_context(string $key) : mixed
+    private function _get_export_context(string $key): mixed
     {
         return $this->_export_context[$key] ?? null;
     }
 
-    private function _get_friendly_filename_for_current_export(string $format) : ?string
+    private function _get_friendly_filename_for_current_export(string $format): ?string
     {
         if (!($action_obj = $this->get_paginator_action())
            || !($paginator_obj = $action_obj->get_paginator())) {
@@ -463,7 +463,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
                .'.'.$this->_get_export_file_extension($format);
     }
 
-    private function _get_actual_filename_for_current_export(string $format) : ?string
+    private function _get_actual_filename_for_current_export(string $format): ?string
     {
         if (!($action_obj = $this->get_paginator_action())
            || !($current_user = $this->get_account_data())) {
@@ -473,7 +473,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         return 'export_'.$current_user['id'].'_'.md5($action_obj::class).'.'.$this->_get_export_file_extension($format);
     }
 
-    private function _get_export_render_type(PHS_Paginator $paginator_obj) : int
+    private function _get_export_render_type(PHS_Paginator $paginator_obj): int
     {
         return match ($this->_get_export_context('export_params')['export_format'] ?? '') {
             'xls'   => $paginator_obj::CELL_RENDER_EXCEL,
@@ -481,7 +481,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         };
     }
 
-    private function _get_export_file_mime_type(string $format) : string
+    private function _get_export_file_mime_type(string $format): string
     {
         return match ($format) {
             'xls'   => 'application/vnd.ms-excel',
@@ -489,7 +489,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         };
     }
 
-    private function _get_export_file_extension(string $format) : string
+    private function _get_export_file_extension(string $format): string
     {
         return match ($format) {
             'xls'   => 'xlsx',
@@ -509,7 +509,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         ?string $friendly_file = null,
         ?string $actual_file = null,
         bool $clean_update = false,
-    ) : bool {
+    ): bool {
         $new_values = [];
         if ($action !== null) {
             $new_values['action'] = $action;
@@ -558,7 +558,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         return false;
     }
 
-    private function _update_export_payload(array $payload, bool $clean_update = false) : ?array
+    private function _update_export_payload(array $payload, bool $clean_update = false): ?array
     {
         $this->reset_error();
 
@@ -582,7 +582,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         return $new_payload;
     }
 
-    private function _create_export_context(string $action_class, string $bulk_action, array $export_params, PHS_Paginator $paginator) : array
+    private function _create_export_context(string $action_class, string $bulk_action, array $export_params, PHS_Paginator $paginator): array
     {
         return [
             'action'            => $action_class,
@@ -593,12 +593,12 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         ];
     }
 
-    private function _set_paginator_action(PHS_Action_Generic_list $paginator_action) : void
+    private function _set_paginator_action(PHS_Action_Generic_list $paginator_action): void
     {
         $this->_paginator_action = $paginator_action;
     }
 
-    private function _set_account_data(int | array | PHS_Record_data $account_data) : bool
+    private function _set_account_data(int | array | PHS_Record_data $account_data): bool
     {
         if (!$this->_load_dependencies()) {
             return false;
@@ -616,17 +616,17 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         return true;
     }
 
-    private function _get_export_path(bool $slash_ended = true) : string
+    private function _get_export_path(bool $slash_ended = true): string
     {
         return rtrim(PHS_UPLOADS_DIR, '/').'/'.self::EXPORT_DIR.(!empty($slash_ended) ? '/' : '');
     }
 
-    private function _get_export_www(bool $slash_ended = true) : string
+    private function _get_export_www(bool $slash_ended = true): string
     {
         return rtrim(PHS_UPLOADS_WWW, '/').'/'.self::EXPORT_DIR.(!empty($slash_ended) ? '/' : '');
     }
 
-    private function _create_export_folder() : bool
+    private function _create_export_folder(): bool
     {
         $this->reset_error();
 
@@ -660,7 +660,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         return true;
     }
 
-    private function _load_dependencies() : bool
+    private function _load_dependencies(): bool
     {
         $this->reset_error();
 
@@ -678,7 +678,7 @@ class PHS_Paginator_exporter_manager extends PHS_Library
         return true;
     }
 
-    private function _not_used_only_for_translation() : void
+    private function _not_used_only_for_translation(): void
     {
         self::_t('Launched');
         self::_t('Started');

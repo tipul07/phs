@@ -352,7 +352,7 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
                 }
 
                 if(success) {
-                    if ($.isFunction(success)) {
+                    if (typeof success === "function") {
                         success(result_response, status, ajax_obj, data);
                     } else if (typeof failure === "string") {
                         eval(success + "( result_response, status, ajax_obj, data )");
@@ -381,7 +381,7 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
                 }
 
                 if(failure) {
-                    if ($.isFunction(failure)) {
+                    if (typeof failure === "function") {
                         failure(ajax_obj, status, error_exception);
                     } else if (typeof failure === "string") {
                         eval(failure + "( ajax_obj, status, error_exception )");
@@ -394,7 +394,7 @@ var PHS_RActive = PHS_RActive || Ractive.extend({
         if(full_url && full_url.length > 0) {
             final_url = full_url;
         } else {
-            final_url = "<?php echo PHS_Ajax::url(null, null, ['raw_route' => '" + raw_route + "']); ?>";
+            final_url = "<?php echo PHS_Ajax::url(extra: ['raw_route' => '" + raw_route + "']); ?>";
         }
 
         return PHS_JSEN.do_ajax( final_url, ajax_params );

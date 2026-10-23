@@ -87,20 +87,21 @@ module.exports = {
     created: function() {
         this.phs_autocomplete_search = _.debounce( ( loading, search, vm ) => {
             let app = null;
-            if( typeof vm.phsVueApp !== "undefined" && vm.phsVueApp )
+            if( typeof vm.phsVueApp !== "undefined" && vm.phsVueApp ) {
                 app = vm.phsVueApp;
-            else if( typeof vm.$root !== "undefined" && vm.$root )
+            } else if( typeof vm.$root !== "undefined" && vm.$root ) {
                 app = vm.$root;
+            }
 
-            if( !app )
-            {
+            if( !app ) {
                 console.warn( "Couldn't determine Vue application. Use phsVueApp parameter to pass autocomplete a Vue application instance." );
                 return;
             }
 
             let ajax_params = vm.ajaxUrlGetParams;
-            if( typeof ajax_params.limit === "undefined" )
+            if( typeof ajax_params.limit === "undefined" ) {
                 ajax_params.limit = 20;
+            }
             ajax_params.q = search;
 
             app.read_data(
@@ -113,23 +114,26 @@ module.exports = {
                         && !app.valid_default_response_from_read_data( data ) ) {
                         let error_msg = vm.ajaxRequestError;
                         let extra_error = app.get_error_message_for_default_read_data( data );
-                        if( extra_error )
+                        if( extra_error ) {
                             error_msg += ": " + extra_error;
+                        }
 
                         app.error_message( error_msg, 10 );
                         return;
                     }
 
                     if( typeof data.response.items === "undefined"
-                     || !data.response.items )
+                        || !data.response.items ) {
                         data.response.items = [];
+                    }
 
                     vm.options = data.response.items;
                 },
                 function() {
                     loading( false );
-                    if( app.error_message )
-                        app.error_message( vm.ajaxRequestError );
+                    if( app.error_message ) {
+                        app.error_message(vm.ajaxRequestError);
+                    }
                 }, vm.ajaxParams
             );
         }, this.inputLazyness );
@@ -137,34 +141,40 @@ module.exports = {
     methods: {
         get_listing_item_label: function( option_item ) {
             if( typeof option_item === "undefined"
-             || !option_item )
+                || !option_item ) {
                 return "";
+            }
 
             if( typeof option_item.listing_title_html === "string"
-             && option_item.listing_title_html.length > 0 )
+                && option_item.listing_title_html.length > 0 ) {
                 return option_item.listing_title_html;
+            }
 
             if( typeof option_item.listing_title === "string"
-             && option_item.listing_title.length > 0 )
+                && option_item.listing_title.length > 0 ) {
                 return option_item.listing_title;
+            }
 
             return "";
         },
         get_selected_item_label: function( option_item = null ) {
-            if( option_item === null )
+            if( option_item === null ) {
                 option_item = this.localval;
+            }
 
             if( typeof option_item === "undefined"
-             || !option_item
-             || typeof option_item.listing_title === "undefined"
-             || !option_item.listing_title )
+                || !option_item
+                || typeof option_item.listing_title === "undefined"
+                || !option_item.listing_title ) {
                 return "";
+            }
 
             return option_item.listing_title;
         },
         onsearch( search, loading ) {
-            if( !this.ajaxRoute || this.ajaxRoute.length === 0 )
+            if( !this.ajaxRoute || this.ajaxRoute.length === 0 ) {
                 return;
+            }
 
             loading( true );
             this.phs_autocomplete_search( loading, search, this );

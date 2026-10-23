@@ -8,7 +8,7 @@ use phs\plugins\backup\PHS_Plugin_Backup;
 
 class PHS_Action_Run_backups_ag extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_AGENT];
     }

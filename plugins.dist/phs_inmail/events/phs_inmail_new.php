@@ -14,12 +14,12 @@ class PHS_Event_Inmail_new extends PHS_Event
     /**
      * @inheritdoc
      */
-    public function supports_background_listeners() : bool
+    public function supports_background_listeners(): bool
     {
         return false;
     }
 
-    protected function _input_parameters() : array
+    protected function _input_parameters(): array
     {
         return [
             'from'             => [],
@@ -35,12 +35,12 @@ class PHS_Event_Inmail_new extends PHS_Event
         ];
     }
 
-    protected function _output_parameters() : array
+    protected function _output_parameters(): array
     {
         return [];
     }
 
-    protected function _finally(bool $are_we_in_background) : void
+    protected function _finally(bool $are_we_in_background): void
     {
         if (!($attachments_dir = $this->get_input('attachments_dir'))
             || !($inmail_dir = $this->_inmail_plugin->get_inmail_dir())

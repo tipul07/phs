@@ -27,7 +27,7 @@ class PHS_Firebase extends PHS_Library
         $this->reset_api_params();
     }
 
-    public function get_default_api_settings() : array
+    public function get_default_api_settings(): array
     {
         return [
             'fcm_base_url'    => 'https://fcm.googleapis.com',
@@ -36,7 +36,7 @@ class PHS_Firebase extends PHS_Library
         ];
     }
 
-    public function get_default_api_params() : array
+    public function get_default_api_params(): array
     {
         return [
             'rest_url' => '',
@@ -46,12 +46,12 @@ class PHS_Firebase extends PHS_Library
         ];
     }
 
-    public function reset_api_settings() : void
+    public function reset_api_settings(): void
     {
         $this->_api_settings = $this->get_default_api_settings();
     }
 
-    public function reset_api_params() : void
+    public function reset_api_params(): void
     {
         $this->_api_params = $this->get_default_api_params();
     }
@@ -99,12 +99,12 @@ class PHS_Firebase extends PHS_Library
         return $this->_api_params;
     }
 
-    public function can_connect() : bool
+    public function can_connect(): bool
     {
         return !(empty($this->_api_settings['fcm_base_url']) || empty($this->_api_settings['fcm_auth_key']));
     }
 
-    public function send_notification(string | array $token, array $payload_arr, array $envelope_arr = []) : ?array
+    public function send_notification(string | array $token, array $payload_arr, array $envelope_arr = []): ?array
     {
         $this->reset_error();
 
@@ -193,7 +193,7 @@ class PHS_Firebase extends PHS_Library
         return true;
     }
 
-    private function _load_dependencies() : bool
+    private function _load_dependencies(): bool
     {
         $this->reset_error();
 

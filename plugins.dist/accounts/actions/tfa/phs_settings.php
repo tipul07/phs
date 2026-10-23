@@ -16,23 +16,21 @@ class PHS_Action_Settings extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_TFA_SETTINGS, ];
     }
 
     /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
+     * @inheritdoc
      */
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB];
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {
@@ -107,15 +105,13 @@ class PHS_Action_Settings extends PHS_Action
             }
         }
 
-        $data = [
+        return $this->quick_render_template('tfa/settings', [
             'nick'     => $current_user['nick'],
             'tfa_data' => $tfa_arr,
 
             'libs_plugin'     => $libs_plugin,
             'tfa_model'       => $tfa_model,
             'accounts_plugin' => $accounts_plugin,
-        ];
-
-        return $this->quick_render_template('tfa/settings', $data);
+        ]);
     }
 }

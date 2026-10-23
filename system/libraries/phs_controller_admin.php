@@ -8,12 +8,12 @@ abstract class PHS_Controller_Admin extends PHS_Controller
     /**
      * @inheritdoc
      */
-    public function should_request_have_logged_in_user() : bool
+    public function should_request_have_logged_in_user(): bool
     {
         return true;
     }
 
-    public function allowed_scopes()
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }

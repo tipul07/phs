@@ -50,7 +50,7 @@ class PHS_Jwt extends PHS_Library
         $this->reset_error();
     }
 
-    public function timestamp(?int $ts = null) : int
+    public function timestamp(?int $ts = null): int
     {
         if ($ts !== null) {
             $this->timestamp = $ts;
@@ -65,7 +65,7 @@ class PHS_Jwt extends PHS_Library
         return $this->timestamp;
     }
 
-    public function leeway(?int $lw = null) : int
+    public function leeway(?int $lw = null): int
     {
         if ($lw !== null) {
             $this->leeway = $lw;
@@ -76,7 +76,7 @@ class PHS_Jwt extends PHS_Library
         return $this->leeway;
     }
 
-    public function decode(string $jwt, array $params = []) : ?array
+    public function decode(string $jwt, array $params = []): ?array
     {
         $this->reset_error();
 
@@ -251,7 +251,7 @@ class PHS_Jwt extends PHS_Library
      *
      * @return bool True is payload passed validation check, false otherwise
      */
-    public function verify_payload(string $msg, string $signature, string $key, string $alg) : bool
+    public function verify_payload(string $msg, string $signature, string $key, string $alg): bool
     {
         $this->reset_error();
 
@@ -321,7 +321,7 @@ class PHS_Jwt extends PHS_Library
      *
      * @return null|string Encoded JWT
      */
-    public function encode(array $payload, string $key, array $params = []) : ?string
+    public function encode(array $payload, string $key, array $params = []): ?string
     {
         $this->reset_error();
 
@@ -365,7 +365,7 @@ class PHS_Jwt extends PHS_Library
         return implode('.', $segments);
     }
 
-    public function sign_payload(string $msg, string $key, string $alg = 'RS256') : ?string
+    public function sign_payload(string $msg, string $key, string $alg = 'RS256'): ?string
     {
         $this->reset_error();
 
@@ -411,7 +411,7 @@ class PHS_Jwt extends PHS_Library
         return null;
     }
 
-    private function _safe_base64_decode(string $str) : string
+    private function _safe_base64_decode(string $str): string
     {
         if (empty($str)) {
             return '';
@@ -427,7 +427,7 @@ class PHS_Jwt extends PHS_Library
         return $decoded_str !== false ? $decoded_str : '';
     }
 
-    private function _safe_base64_encode(string $str) : string
+    private function _safe_base64_encode(string $str): string
     {
         if ($str === '') {
             return '';
@@ -436,7 +436,7 @@ class PHS_Jwt extends PHS_Library
         return @str_replace('=', '', @strtr(@base64_encode($str), '+/', '-_'));
     }
 
-    private static function _safe_strlen(string $str) : int
+    private static function _safe_strlen(string $str): int
     {
         if (function_exists('mb_strlen')) {
             return mb_strlen($str, '8bit');

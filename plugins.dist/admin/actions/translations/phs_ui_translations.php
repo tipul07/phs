@@ -30,7 +30,7 @@ class PHS_Action_Ui_translations extends PHS_Api_action
     #[PHS_Dependency]
     private ?PHS_Model_Accounts $_accounts_model = null;
 
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
@@ -60,7 +60,7 @@ class PHS_Action_Ui_translations extends PHS_Api_action
                 return $this->send_api_error(
                     PHS_Api_base::framework_error_code_to_http_code($error_code),
                     $error_code,
-                    $error_msg
+                    $error_msg,
                 );
             }
 
@@ -75,7 +75,7 @@ class PHS_Action_Ui_translations extends PHS_Api_action
         ]);
     }
 
-    private function _execute_api_call() : null | bool | array
+    private function _execute_api_call(): null | bool | array
     {
         return match ($this->request_var('action', PHS_Params::T_NOHTML)) {
             'do_regenerate_pot'           => $this->_do_regenerate_pot(),
@@ -93,7 +93,7 @@ class PHS_Action_Ui_translations extends PHS_Api_action
         };
     }
 
-    private function _do_download() : ?array
+    private function _do_download(): ?array
     {
         if (!(['basename' => $basename, 'extension' => $extension]
                 = PHS_Utils::mypathinfo($this->request_var('file', PHS_Params::T_NOHTML)))
@@ -119,7 +119,7 @@ class PHS_Action_Ui_translations extends PHS_Api_action
         return $this->send_api_success($payload_arr);
     }
 
-    private function _do_regenerate_po_file() : ?array
+    private function _do_regenerate_po_file(): ?array
     {
         if (!($lang = $this->request_var('lang', PHS_Params::T_NOHTML) ?: '')
            || !self::valid_language($lang)) {
@@ -142,7 +142,7 @@ class PHS_Action_Ui_translations extends PHS_Api_action
         return $this->send_api_success($payload_arr);
     }
 
-    private function _do_translate_po_file() : ?array
+    private function _do_translate_po_file(): ?array
     {
         if (!($lang = $this->request_var('lang', PHS_Params::T_NOHTML) ?: '')
            || !self::valid_language($lang)) {
@@ -167,7 +167,7 @@ class PHS_Action_Ui_translations extends PHS_Api_action
         return $this->send_api_success($payload_arr);
     }
 
-    private function _do_check_translations() : ?array
+    private function _do_check_translations(): ?array
     {
         if (!($check_result = $this->_ui_translations->check_ui_translations_results())) {
             $this->copy_or_set_error($this->_ui_translations,
@@ -183,7 +183,7 @@ class PHS_Action_Ui_translations extends PHS_Api_action
         return $this->send_api_success($payload_arr);
     }
 
-    private function _do_update_translation_files() : ?array
+    private function _do_update_translation_files(): ?array
     {
         if (!($lang = $this->request_var('lang', PHS_Params::T_NOHTML) ?: '')
             || !self::valid_language($lang)) {
@@ -212,7 +212,7 @@ class PHS_Action_Ui_translations extends PHS_Api_action
         return $this->send_api_success($payload_arr);
     }
 
-    private function _do_stop_translation() : ?array
+    private function _do_stop_translation(): ?array
     {
         if (!($lang = $this->request_var('lang', PHS_Params::T_NOHTML) ?: '')
            || !self::valid_language($lang)) {
@@ -235,7 +235,7 @@ class PHS_Action_Ui_translations extends PHS_Api_action
         return $this->send_api_success($payload_arr);
     }
 
-    private function _generate_po_file_from_pot(string $lang) : ?PHS_Po_format
+    private function _generate_po_file_from_pot(string $lang): ?PHS_Po_format
     {
         if (!($po_obj = $this->_ui_translations->get_po_instance())) {
             $this->copy_or_set_error($this->_ui_translations,
@@ -256,7 +256,7 @@ class PHS_Action_Ui_translations extends PHS_Api_action
         return $po_obj;
     }
 
-    private function _do_regenerate_pot() : ?array
+    private function _do_regenerate_pot(): ?array
     {
         if (!($po_obj = $this->_ui_translations->get_po_instance())) {
             $this->copy_or_set_error($this->_ui_translations,
@@ -285,7 +285,7 @@ class PHS_Action_Ui_translations extends PHS_Api_action
         return $this->send_api_success($payload_arr);
     }
 
-    private function _do_po_info() : ?array
+    private function _do_po_info(): ?array
     {
         if (!($po_obj = $this->_ui_translations->get_po_instance())) {
             $this->copy_or_set_error($this->_ui_translations,
@@ -331,7 +331,7 @@ class PHS_Action_Ui_translations extends PHS_Api_action
         return $this->send_api_success($payload_arr);
     }
 
-    private function _do_download_file() : ?array
+    private function _do_download_file(): ?array
     {
         if (!(['basename' => $basename, 'extension' => $extension]
             = $this->_decode_download_token($this->request_var('download_token', PHS_Params::T_NOHTML)))
@@ -357,7 +357,7 @@ class PHS_Action_Ui_translations extends PHS_Api_action
         exit;
     }
 
-    private function _get_file_path_by_basename_and_extension(string $basename, string $extension) : ?string
+    private function _get_file_path_by_basename_and_extension(string $basename, string $extension): ?string
     {
         $file = LANG_PO_DIR.$basename.'.'.$extension;
         if (!@file_exists($file)) {
@@ -367,12 +367,12 @@ class PHS_Action_Ui_translations extends PHS_Api_action
         return $file;
     }
 
-    private function _generate_download_token(int $account_id, string $basename, string $extension) : string
+    private function _generate_download_token(int $account_id, string $basename, string $extension): string
     {
         return PHS_Crypt::quick_encode($account_id.'::'.$basename.'::'.$extension.'::'.time());
     }
 
-    private function _decode_download_token(string $token) : ?array
+    private function _decode_download_token(string $token): ?array
     {
         if (!$token
             || !($decoded_token = PHS_Crypt::quick_decode($token))

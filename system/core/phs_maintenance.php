@@ -20,12 +20,12 @@ final class PHS_Maintenance extends PHS_Registry
 
     private static int $low_level_db_structure_cache = 0;
 
-    public static function lock_db_structure_read() : int
+    public static function lock_db_structure_read(): int
     {
         return ++self::$low_level_db_structure_cache;
     }
 
-    public static function unlock_db_structure_read() : int
+    public static function unlock_db_structure_read(): int
     {
         if (self::$low_level_db_structure_cache === 0) {
             return 0;
@@ -34,17 +34,17 @@ final class PHS_Maintenance extends PHS_Registry
         return --self::$low_level_db_structure_cache;
     }
 
-    public static function release_db_structure_lock() : void
+    public static function release_db_structure_lock(): void
     {
         self::$low_level_db_structure_cache = 0;
     }
 
-    public static function db_structure_is_locked() : bool
+    public static function db_structure_is_locked(): bool
     {
         return self::$low_level_db_structure_cache > 0;
     }
 
-    public static function output(string $msg) : void
+    public static function output(string $msg): void
     {
         // We don't need to output anything else than SQL statements
         if (PHS_Db::dry_update()) {
@@ -74,7 +74,7 @@ final class PHS_Maintenance extends PHS_Registry
      *
      * @return null|bool|callable|Closure
      */
-    public static function output_callback(null | bool | callable | Closure $callback = null) : null | bool | callable | Closure
+    public static function output_callback(null | bool | callable | Closure $callback = null): null | bool | callable | Closure
     {
         static $output_callback = null;
 
@@ -102,7 +102,7 @@ final class PHS_Maintenance extends PHS_Registry
         return true;
     }
 
-    public static function generate_framework_update_token() : array
+    public static function generate_framework_update_token(): array
     {
         $pub_key = time() + self::UPDATE_TOKEN_LIFETIME;
         $clean_str = $pub_key.':'.PHS_Crypt::crypting_key();
@@ -120,7 +120,7 @@ final class PHS_Maintenance extends PHS_Registry
         ];
     }
 
-    public static function get_framework_update_url_with_token() : string
+    public static function get_framework_update_url_with_token(): string
     {
         $token = self::generate_framework_update_token();
 
@@ -142,7 +142,7 @@ final class PHS_Maintenance extends PHS_Registry
      *
      * @return bool
      */
-    public static function validate_framework_update_params(int $pub_key, string $hash) : bool
+    public static function validate_framework_update_params(int $pub_key, string $hash): bool
     {
         if (empty($pub_key) || empty($hash)
          || $pub_key < time()) {
@@ -168,7 +168,7 @@ final class PHS_Maintenance extends PHS_Registry
     /**
      * @return bool
      */
-    public static function validate_framework_update_action() : bool
+    public static function validate_framework_update_action(): bool
     {
         return ($pub_key = PHS_Params::_gp(self::PARAM_UPDATE_TOKEN_PUBKEY, PHS_Params::T_INT))
              && ($hash = PHS_Params::_gp(self::PARAM_UPDATE_TOKEN_HASH, PHS_Params::T_NOHTML))
@@ -183,7 +183,7 @@ final class PHS_Maintenance extends PHS_Registry
      *
      * @return null|array
      */
-    public static function check_plugin_in_repo(string $plugin, string $repo_dir) : ?array
+    public static function check_plugin_in_repo(string $plugin, string $repo_dir): ?array
     {
         self::st_reset_error();
 
@@ -208,7 +208,7 @@ final class PHS_Maintenance extends PHS_Registry
         return $json_arr;
     }
 
-    public static function convert_plugin_repo_to_real_path(string $repo_dir, bool $slash_ended = true) : string
+    public static function convert_plugin_repo_to_real_path(string $repo_dir, bool $slash_ended = true): string
     {
         if (str_starts_with($repo_dir, '/')) {
             return $slash_ended ? rtrim($repo_dir, '/').'/' : $repo_dir;
@@ -221,7 +221,7 @@ final class PHS_Maintenance extends PHS_Registry
         return $slash_ended ? rtrim($real_path, '/').'/' : $real_path;
     }
 
-    public static function symlink_plugin_from_repo(string $plugin, string $repo_dir) : bool
+    public static function symlink_plugin_from_repo(string $plugin, string $repo_dir): bool
     {
         self::st_reset_error();
 
@@ -244,7 +244,7 @@ final class PHS_Maintenance extends PHS_Registry
         return @symlink(rtrim($repo_dir, '/').'/'.$plugin, PHS_PLUGINS_DIR.$plugin);
     }
 
-    public static function plugin_is_symlinked_with_repo(string $plugin, string $repo_dir) : bool
+    public static function plugin_is_symlinked_with_repo(string $plugin, string $repo_dir): bool
     {
         if (empty($plugin) || empty($repo_dir)
          || !self::check_plugin_in_repo($plugin, $repo_dir)
@@ -256,7 +256,7 @@ final class PHS_Maintenance extends PHS_Registry
         return !empty($instance_details['plugin_is_setup']);
     }
 
-    public static function plugin_is_symlinked(string $plugin) : bool
+    public static function plugin_is_symlinked(string $plugin): bool
     {
         return !empty($plugin)
                 && ($instance_details = PHS_Instantiable::get_instance_details('PHS_Plugin_'.ucfirst(strtolower($plugin)),
@@ -264,7 +264,7 @@ final class PHS_Maintenance extends PHS_Registry
                 && !empty($instance_details['plugin_is_setup']);
     }
 
-    public static function unlink_plugin(string $plugin) : bool
+    public static function unlink_plugin(string $plugin): bool
     {
         self::st_reset_error();
 

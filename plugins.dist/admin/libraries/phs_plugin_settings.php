@@ -21,7 +21,7 @@ class Phs_Plugin_settings extends PHS_Library
      *
      * @return null|array<string, array{"plugin_info":array, "instance":PHS_Plugin}>
      */
-    public function get_plugins_list_as_array(bool $include_core = true) : ?array
+    public function get_plugins_list_as_array(bool $include_core = true): ?array
     {
         $this->reset_error();
 
@@ -61,7 +61,7 @@ class Phs_Plugin_settings extends PHS_Library
     //
     // region Import plugin settings
     //
-    public function decode_plugin_settings_from_encoded_array(array $encoded_arr, string $crypting_key) : ?array
+    public function decode_plugin_settings_from_encoded_array(array $encoded_arr, string $crypting_key): ?array
     {
         if (!($settings_buf = PHS_Crypt::quick_decode_from_export_array($encoded_arr, $crypting_key))) {
             $this->copy_or_set_static_error(self::ERR_FUNCTIONALITY, $this->_pt('Error decoding settings data.'));
@@ -77,7 +77,7 @@ class Phs_Plugin_settings extends PHS_Library
         return $settings_arr;
     }
 
-    public function do_platform_import_settings_for_plugins_from_cli(array $encrypted_setting_arr, string $crypting_key, array $only_plugins = [], ?int $tenant_id = null) : bool
+    public function do_platform_import_settings_for_plugins_from_cli(array $encrypted_setting_arr, string $crypting_key, array $only_plugins = [], ?int $tenant_id = null): bool
     {
         if (null === ($all_settings_arr = $this->do_platform_import_get_plugins_settings_array_from_encrypted_array($encrypted_setting_arr, $crypting_key))
             || !is_array($all_settings_arr)) {
@@ -89,7 +89,7 @@ class Phs_Plugin_settings extends PHS_Library
         return $this->do_platform_import_settings_for_plugins($all_settings_arr, $only_plugins, $tenant_id);
     }
 
-    public function do_platform_import_settings_for_plugins_from_interface(array $decoded_settings_arr, array $only_plugins = [], ?int $tenant_id = null) : bool
+    public function do_platform_import_settings_for_plugins_from_interface(array $decoded_settings_arr, array $only_plugins = [], ?int $tenant_id = null): bool
     {
         if (empty($decoded_settings_arr['settings']) || !is_array($decoded_settings_arr['settings'])) {
             $this->set_error(self::ERR_PARAMETERS, $this->_pt('Import JSON doesn\'t contain settngs for import..'));
@@ -100,7 +100,7 @@ class Phs_Plugin_settings extends PHS_Library
         return $this->do_platform_import_settings_for_plugins($decoded_settings_arr['settings'], $only_plugins, $tenant_id);
     }
 
-    public function do_platform_import_settings_for_plugins(array $all_settings_arr, array $only_plugins = [], ?int $tenant_id = null) : bool
+    public function do_platform_import_settings_for_plugins(array $all_settings_arr, array $only_plugins = [], ?int $tenant_id = null): bool
     {
         PHS_Maintenance::output('Importing settings for '.count($only_plugins ?? $all_settings_arr).' plugins, tenant '.($tenant_id ?: 'Default').'...');
 
@@ -131,7 +131,7 @@ class Phs_Plugin_settings extends PHS_Library
         return true;
     }
 
-    public function do_platform_import_settings_for_plugins_from_json_buffer(string $json_buf, string $crypting_key) : ?array
+    public function do_platform_import_settings_for_plugins_from_json_buffer(string $json_buf, string $crypting_key): ?array
     {
         $this->reset_error();
 
@@ -149,7 +149,7 @@ class Phs_Plugin_settings extends PHS_Library
         return $this->do_platform_import_get_plugins_settings_array_from_encrypted_array($json_arr, $crypting_key);
     }
 
-    public function do_platform_import_get_plugins_settings_array_from_encrypted_array(array $json_arr, string $crypting_key) : ?array
+    public function do_platform_import_get_plugins_settings_array_from_encrypted_array(array $json_arr, string $crypting_key): ?array
     {
         $this->reset_error();
 
@@ -174,7 +174,7 @@ class Phs_Plugin_settings extends PHS_Library
     //
     // region Export plugin settings
     //
-    public function export_plugin_settings_from_interface(string $crypting_key, array $plugins_arr = [], array $export_params = []) : bool
+    public function export_plugin_settings_from_interface(string $crypting_key, array $plugins_arr = [], array $export_params = []): bool
     {
         $this->reset_error();
 
@@ -242,7 +242,7 @@ class Phs_Plugin_settings extends PHS_Library
         return true;
     }
 
-    public function get_settings_for_plugins_as_encrypted_array_for_export(string $crypting_key, array $plugins_arr = []) : ?array
+    public function get_settings_for_plugins_as_encrypted_array_for_export(string $crypting_key, array $plugins_arr = []): ?array
     {
         $this->reset_error();
 
@@ -265,7 +265,7 @@ class Phs_Plugin_settings extends PHS_Library
         return $result_arr;
     }
 
-    public function get_settings_for_plugins_as_encrypted_json_for_export_from_interface(string $crypting_key, array $plugins_arr = []) : ?string
+    public function get_settings_for_plugins_as_encrypted_json_for_export_from_interface(string $crypting_key, array $plugins_arr = []): ?string
     {
         if (!($settings_json = $this->get_settings_for_plugins_as_json_for_export_from_interface($plugins_arr))) {
             return null;
@@ -274,7 +274,7 @@ class Phs_Plugin_settings extends PHS_Library
         return PHS_Crypt::quick_encode_buffer_for_export_as_json($settings_json, $crypting_key);
     }
 
-    public function get_settings_for_plugins_as_json_for_export_from_interface(array $plugins_arr = []) : string
+    public function get_settings_for_plugins_as_json_for_export_from_interface(array $plugins_arr = []): string
     {
         try {
             return @json_encode([
@@ -287,7 +287,7 @@ class Phs_Plugin_settings extends PHS_Library
         }
     }
 
-    public function get_settings_for_plugins_as_json_for_export(array $plugins_arr = []) : string
+    public function get_settings_for_plugins_as_json_for_export(array $plugins_arr = []): string
     {
         try {
             return @json_encode($this->_get_settings_for_plugins_as_array_for_export($plugins_arr), JSON_THROW_ON_ERROR) ?: '';
@@ -296,7 +296,7 @@ class Phs_Plugin_settings extends PHS_Library
         }
     }
 
-    protected function _get_settings_for_plugins_as_array_for_export(array $plugins_arr = []) : array
+    protected function _get_settings_for_plugins_as_array_for_export(array $plugins_arr = []): array
     {
         $this->reset_error();
 
@@ -317,7 +317,7 @@ class Phs_Plugin_settings extends PHS_Library
         return $settings_arr;
     }
 
-    protected function _extract_settings_for_plugin_for_export(?string $plugin_name) : ?array
+    protected function _extract_settings_for_plugin_for_export(?string $plugin_name): ?array
     {
         $this->reset_error();
 
@@ -333,7 +333,7 @@ class Phs_Plugin_settings extends PHS_Library
 
         if (!($plugin_settings_arr = $this->_extract_settings_for_plugin_only_for_export($plugin_name, $plugin_instance))) {
             $this->set_error_if_not_set(
-                self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t obtain plugin settings.')
+                self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t obtain plugin settings.'),
             );
 
             return null;
@@ -343,7 +343,7 @@ class Phs_Plugin_settings extends PHS_Library
             $plugin_instance ? $plugin_instance->get_models() : PHS::get_core_models(), $plugin_name))
         ) {
             $this->set_error_if_not_set(
-                self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t obtain plugin\'s models settings.')
+                self::ERR_FUNCTIONALITY, $this->_pt('Couldn\'t obtain plugin\'s models settings.'),
             );
 
             return null;
@@ -360,7 +360,7 @@ class Phs_Plugin_settings extends PHS_Library
         return $plugin_settings_arr;
     }
 
-    private function _import_settings_for_plugin(string $plugin_name, array $plugin_settings_arr, ?int $tenant_id = null) : bool
+    private function _import_settings_for_plugin(string $plugin_name, array $plugin_settings_arr, ?int $tenant_id = null): bool
     {
         $this->reset_error();
 
@@ -389,7 +389,7 @@ class Phs_Plugin_settings extends PHS_Library
         return true;
     }
 
-    private function _import_settings_for_plugin_models(string $plugin_name, array $models_arr, ?int $tenant_id = null) : bool
+    private function _import_settings_for_plugin_models(string $plugin_name, array $models_arr, ?int $tenant_id = null): bool
     {
         $this->reset_error();
 
@@ -418,7 +418,7 @@ class Phs_Plugin_settings extends PHS_Library
         return true;
     }
 
-    private function _extract_settings_for_plugin_only_for_export(?string $plugin_name, ?PHS_Plugin $plugin_instance) : ?array
+    private function _extract_settings_for_plugin_only_for_export(?string $plugin_name, ?PHS_Plugin $plugin_instance): ?array
     {
         $this->reset_error();
 
@@ -447,7 +447,7 @@ class Phs_Plugin_settings extends PHS_Library
         ];
     }
 
-    private function _get_settings_for_models_as_array_for_export(array $models_arr, ?string $plugin_name) : ?array
+    private function _get_settings_for_models_as_array_for_export(array $models_arr, ?string $plugin_name): ?array
     {
         $models_settings_arr = [];
 
@@ -469,7 +469,7 @@ class Phs_Plugin_settings extends PHS_Library
         return $models_settings_arr;
     }
 
-    private function _extract_settings_for_model(string $model_name, ?string $plugin_name) : ?array
+    private function _extract_settings_for_model(string $model_name, ?string $plugin_name): ?array
     {
         $this->reset_error();
 
@@ -497,7 +497,7 @@ class Phs_Plugin_settings extends PHS_Library
     // endregion Export plugin settings
     //
 
-    public static function valid_export_to(int $export_to) : bool
+    public static function valid_export_to(int $export_to): bool
     {
         return !empty($export_to)
                && in_array($export_to, [self::EXPORT_TO_FILE, self::EXPORT_TO_OUTPUT, self::EXPORT_TO_BROWSER], true);

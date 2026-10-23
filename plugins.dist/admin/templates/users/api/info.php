@@ -24,24 +24,24 @@ $db_account_tenants = $this->view_var('db_account_tenants') ?: [];
         <h3><?php echo $this->_pt('Account Details'); ?></h3>
     </section>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label class="col-sm-3 col-form-label"><?php echo $this->_pt('ID'); ?></label>
         <div class="col-sm-9"><?php echo $account_arr['id'] ?? 'N/A'; ?></div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Username'); ?></label>
         <div class="col-sm-9"><?php echo $account_arr['nick'] ?? 'N/A'; ?></div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Created'); ?></label>
         <div class="col-sm-9"><?php
             echo !empty($account_arr['cdate']) ? PHS_Utils::pretty_date_html($account_arr['cdate']) : $this->_pt('N/A');
 ?></div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Created by'); ?></label>
         <div class="col-sm-9"><?php
 if (empty($account_arr['added_by'])) {
@@ -56,17 +56,17 @@ if (empty($account_arr['added_by'])) {
 ?></div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Email'); ?></label>
         <div class="col-sm-9"><?php echo $account_arr['email'] ?? 'N/A'; ?></div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Level'); ?></label>
         <div class="col-sm-9"><?php echo $account_levels[$account_arr['level']] ?? 'N/A'; ?></div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Status'); ?></label>
         <div class="col-sm-9"><?php
 echo ($account_statuses[$account_arr['status']] ?? 'N/A')
@@ -74,7 +74,7 @@ echo ($account_statuses[$account_arr['status']] ?? 'N/A')
 ?></div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Last login'); ?></label>
         <div class="col-sm-9"><?php
     echo (!empty($account_arr['lastlog']) ? PHS_Utils::pretty_date_html($account_arr['lastlog']) : $this->_pt('N/A'))
@@ -82,35 +82,35 @@ echo ($account_statuses[$account_arr['status']] ?? 'N/A')
 ?></div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Password changed'); ?></label>
         <div class="col-sm-9"><?php
     echo !empty($account_arr['last_pass_change']) ? PHS_Utils::pretty_date_html($account_arr['last_pass_change']) : $this->_pt('N/A');
 ?></div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Selected language'); ?></label>
         <div class="col-sm-9"><?php
     echo !empty($account_arr['language']) ? ($this::get_defined_language($account_arr['language'])['title'] ?? $this->_pt('N/A')) : $this->_pt('N/A');
 ?></div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Email verified'); ?></label>
         <div class="col-sm-9"><?php
     echo !empty($account_arr['email_verified']) ? $this->_pt('Yes') : $this->_pt('No');
 ?></div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Password generated'); ?></label>
         <div class="col-sm-9"><?php
     echo !empty($account_arr['pass_generated']) ? $this->_pt('Yes') : $this->_pt('No');
 ?></div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Locked'); ?></label>
         <div class="col-sm-9"><?php
     echo (empty($account_arr['locked_date'])
@@ -126,21 +126,21 @@ echo ($account_statuses[$account_arr['status']] ?? 'N/A')
         <h3><?php echo $this->_pt('Multi-tenancy'); ?></h3>
     </section>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Multi-tenancy enabled'); ?></label>
         <div class="col-sm-9"><?php
             echo PHS::is_multi_tenant() ? $this->_pt('Yes') : $this->_pt('No');
 ?></div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Multi-tenant account'); ?></label>
         <div class="col-sm-9"><?php
 echo !empty($account_arr['is_multitenant']) ? $this->_pt('Yes') : $this->_pt('No');
 ?></div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label class="col-sm-3 col-form-label"><?php echo $this->_pt('Account tenants'); ?></label>
         <div class="col-sm-9"><?php
 if (!empty($account_arr['is_multitenant'])) {

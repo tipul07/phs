@@ -12,7 +12,7 @@ class PHS_Sendgrid extends PHS_Library
 
     private ?PHS_Plugin_Sendgrid $_sendgrid_plugin = null;
 
-    public function get_sendgrid_dir_paths() : ?array
+    public function get_sendgrid_dir_paths(): ?array
     {
         $this->reset_error();
 
@@ -29,7 +29,7 @@ class PHS_Sendgrid extends PHS_Library
         return $return_arr;
     }
 
-    public function get_sendgrid_instance(bool $as_static = false) : ?Mail
+    public function get_sendgrid_instance(bool $as_static = false): ?Mail
     {
         static $sendgrid_obj = null;
 
@@ -52,7 +52,7 @@ class PHS_Sendgrid extends PHS_Library
         return $sendgrid_obj;
     }
 
-    private function _load_dependencies() : bool
+    private function _load_dependencies(): bool
     {
         $this->reset_error();
 

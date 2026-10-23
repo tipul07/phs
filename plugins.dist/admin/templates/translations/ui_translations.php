@@ -872,7 +872,7 @@ $(document).ready(function() {
                             error_msg += " " + extra_error;
                         }
 
-                        if( $.isFunction( failure_callback ) ) {
+                        if( typeof failure_callback === "function" ) {
                             failure_callback(self, error_msg);
                         } else if( typeof failure_callback == "string" ) {
                             eval(failure_callback + "( self, error_msg )");
@@ -892,7 +892,7 @@ $(document).ready(function() {
 
                     const error_msg = "<?php echo $this->_pte('Error sending request to the server. Please try again.'); ?>";
 
-                    if( $.isFunction( failure_callback ) ) {
+                    if( typeof failure_callback === "function" ) {
                         failure_callback(self, error_msg);
                     } else if( typeof failure_callback == "string" ) {
                         eval(failure_callback + "( self, error_msg )");

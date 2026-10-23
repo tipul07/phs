@@ -10,17 +10,17 @@ class PHS_Model_Accounts_tenants extends PHS_Model
     #[PHS_Dependency]
     private static ?PHS_Model_Accounts $_accounts_model = null;
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.0.0';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['users_tenants'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'users_tenants';
     }
@@ -32,7 +32,7 @@ class PHS_Model_Accounts_tenants extends PHS_Model
      *
      * @return null|int
      */
-    public function get_account_tenants_count(int $account_id) : ?int
+    public function get_account_tenants_count(int $account_id): ?int
     {
         if (empty($account_id)
          || !($flow_arr = $this->fetch_default_flow_params(['table_name' => 'users_tenants']))
@@ -49,7 +49,7 @@ class PHS_Model_Accounts_tenants extends PHS_Model
      * Returning an empty array means that account belongs to all tenants
      * @param int $account_id
      */
-    public function get_account_tenants_as_ids_array(int $account_id) : array
+    public function get_account_tenants_as_ids_array(int $account_id): array
     {
         if (!$account_id
             || !($flow_arr = $this->fetch_default_flow_params(['table_name' => 'users_tenants']))
@@ -69,8 +69,8 @@ class PHS_Model_Accounts_tenants extends PHS_Model
     public function link_tenants_to_account(
         int | array | PHS_Record_data $account_data,
         array $tenants_arr,
-        array $params = []
-    ) : bool {
+        array $params = [],
+    ): bool {
         $this->reset_error();
 
         $params['append_tenants'] = !isset($params['append_tenants']) || !empty($params['append_tenants']);
@@ -169,7 +169,7 @@ class PHS_Model_Accounts_tenants extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;

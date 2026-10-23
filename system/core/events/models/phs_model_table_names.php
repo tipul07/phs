@@ -10,12 +10,12 @@ class PHS_Event_Model_table_names extends PHS_Event
     /**
      * @inheritdoc
      */
-    public function supports_background_listeners() : bool
+    public function supports_background_listeners(): bool
     {
         return false;
     }
 
-    protected function _input_parameters() : array
+    protected function _input_parameters(): array
     {
         return [
             'instance_id' => '',
@@ -23,7 +23,7 @@ class PHS_Event_Model_table_names extends PHS_Event
         ];
     }
 
-    protected function _output_parameters() : array
+    protected function _output_parameters(): array
     {
         return [
             'tables_arr' => [],
@@ -34,13 +34,13 @@ class PHS_Event_Model_table_names extends PHS_Event
         string $instance_id,
         array $tables_arr,
         array $params = [],
-    ) : ?self {
+    ): ?self {
         return self::trigger(
             [
                 'instance_id' => $instance_id,
                 'tables_arr'  => $tables_arr,
             ],
-            params: $params
+            params: $params,
         );
     }
 }

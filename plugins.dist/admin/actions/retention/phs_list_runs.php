@@ -3,17 +3,21 @@ namespace phs\plugins\admin\actions\retention;
 
 use phs\PHS;
 use phs\libraries\PHS_Params;
+use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
 use phs\system\core\attributes\PHS_Dependency;
-use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\admin\libraries\Phs_Data_retention;
 use phs\system\core\models\PHS_Model_Data_retention;
 
-/** @property PHS_Model_Data_retention $_paginator_model */
+/**
+ * @property PHS_Model_Data_retention $_paginator_model
+ */
 class PHS_Action_List_runs extends PHS_Action_Generic_list
 {
+    protected null | string | PHS_Instantiable $_paginator_model_class = PHS_Model_Data_retention::class;
+
     #[PHS_Dependency]
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
@@ -25,7 +29,7 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function should_stop_execution() : ?array
+    public function should_stop_execution(): ?array
     {
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -45,7 +49,7 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function load_paginator_params() : ?array
+    public function load_paginator_params(): ?array
     {
         PHS::page_settings('page_title', $this->_pt('Data Retention Policies Runs'));
 
@@ -184,7 +188,7 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
                 'display_callback'    => [&$this->_paginator, 'pretty_date'],
                 'date_format'         => 'd-m-Y H:i',
                 'invalid_value'       => $this->_pt('Invalid'),
-                'extra_style'         => 'width:130px;',
+                'extra_style'         => 'width:150px;',
                 'extra_records_style' => 'text-align:right;',
             ],
             [
@@ -213,7 +217,7 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
                 'display_callback'    => [&$this->_paginator, 'pretty_date'],
                 'date_format'         => 'd-m-Y H:i',
                 'invalid_value'       => $this->_pt('Invalid'),
-                'extra_style'         => 'width:130px;',
+                'extra_style'         => 'width:150px;',
                 'extra_records_style' => 'text-align:right;',
             ],
             [
@@ -222,7 +226,7 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
                 'display_callback'    => [&$this->_paginator, 'pretty_date'],
                 'date_format'         => 'd-m-Y H:i',
                 'invalid_value'       => $this->_pt('Invalid'),
-                'extra_style'         => 'width:130px;',
+                'extra_style'         => 'width:150px;',
                 'extra_records_style' => 'text-align:right;',
             ],
             [
@@ -251,7 +255,7 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    public function manage_action(array $action) : null | bool | array
+    public function manage_action(array $action): null | bool | array
     {
         $this->reset_error();
 
@@ -304,7 +308,7 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_retention_policy(array $params) : ?string
+    public function display_retention_policy(array $params): ?string
     {
         if (empty($params['record']['retention_policy_id'])
             || (!($retention_arr = $this->policies_cache[(int)$params['record']['retention_policy_id']] ?? null)
@@ -328,7 +332,7 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
                .($retention_arr['retention'] ?? $this->_pt('N/A'));
     }
 
-    public function display_actions(array $params) : ?string
+    public function display_actions(array $params): ?string
     {
         if (!$this->_paginator->is_cell_rendering_for_html($params)
             || !$this->_admin_plugin->can_admin_manage_data_retention()) {
@@ -352,7 +356,7 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
         return ob_get_clean() ?: '';
     }
 
-    public function after_table_callback(array $params) : string
+    public function after_table_callback(array $params): string
     {
         static $js_functionality = false;
 
@@ -385,7 +389,7 @@ class PHS_Action_List_runs extends PHS_Action_Generic_list
         return ob_get_clean() ?: '';
     }
 
-    protected function _load_dependencies() : bool
+    protected function _load_dependencies(): bool
     {
         if (!$this->_paginator_model
             && !($this->_paginator_model = PHS_Model_Data_retention::get_instance())) {

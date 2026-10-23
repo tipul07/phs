@@ -35,12 +35,12 @@ class PHS_View extends PHS_Instantiable
 
     protected ?self $_parent_view = null;
 
-    final public function instance_type() : string
+    final public function instance_type(): string
     {
         return self::INSTANCE_TYPE_VIEW;
     }
 
-    public function set_controller(null | bool | PHS_Controller $controller_obj) : bool
+    public function set_controller(null | bool | PHS_Controller $controller_obj): bool
     {
         $this->reset_error();
 
@@ -56,7 +56,7 @@ class PHS_View extends PHS_Instantiable
         return true;
     }
 
-    public function set_action(null | bool | PHS_Action $action_obj) : bool
+    public function set_action(null | bool | PHS_Action $action_obj): bool
     {
         $this->reset_error();
 
@@ -72,12 +72,12 @@ class PHS_View extends PHS_Instantiable
         return true;
     }
 
-    public function set_parent_view(?self $view_obj) : void
+    public function set_parent_view(?self $view_obj): void
     {
         $this->_parent_view = $view_obj;
     }
 
-    final public function is_admin_controller() : bool
+    final public function is_admin_controller(): bool
     {
         return $this->_controller && $this->_controller->is_admin_controller();
     }
@@ -85,7 +85,7 @@ class PHS_View extends PHS_Instantiable
     /**
      * @return null|PHS_Controller Controller that "owns" this view or null if no controller
      */
-    public function get_controller() : ?PHS_Controller
+    public function get_controller(): ?PHS_Controller
     {
         return $this->_controller;
     }
@@ -93,7 +93,7 @@ class PHS_View extends PHS_Instantiable
     /**
      * @return null|PHS_Action Action that "owns" this view or null if no action
      */
-    final public function get_action() : ?PHS_Action
+    final public function get_action(): ?PHS_Action
     {
         return $this->_action;
     }
@@ -101,7 +101,7 @@ class PHS_View extends PHS_Instantiable
     /**
      * @return null|PHS_View View that "owns" this sub-view or null if no parent view
      */
-    final public function get_parent_view() : ?self
+    final public function get_parent_view(): ?self
     {
         return $this->_parent_view;
     }
@@ -109,7 +109,7 @@ class PHS_View extends PHS_Instantiable
     /**
      * @return array If current view has an action associated, return it's action result
      */
-    public function get_action_result() : array
+    public function get_action_result(): array
     {
         $default_action_result = PHS_Action::default_action_result();
         if (!($action = $this->get_action())) {
@@ -119,7 +119,7 @@ class PHS_View extends PHS_Instantiable
         return self::validate_array($action->get_action_result(), $default_action_result);
     }
 
-    public function get_theme() : string
+    public function get_theme(): string
     {
         return $this->_theme;
     }
@@ -134,12 +134,12 @@ class PHS_View extends PHS_Instantiable
         return $this->_template_dirs;
     }
 
-    public function get_template_file() : string
+    public function get_template_file(): string
     {
         return $this->_template_file;
     }
 
-    public function add_extra_template_dir(string $dir_path, string $dir_www) : bool
+    public function add_extra_template_dir(string $dir_path, string $dir_www): bool
     {
         if (empty($dir_path)) {
             return false;
@@ -157,7 +157,7 @@ class PHS_View extends PHS_Instantiable
         return true;
     }
 
-    public function add_extra_theme_dir(string $theme_relative_dir) : bool
+    public function add_extra_theme_dir(string $theme_relative_dir): bool
     {
         if (!($extra_dirs = self::st_add_extra_theme_dir($theme_relative_dir, $this->get_theme()))) {
             return false;
@@ -178,7 +178,7 @@ class PHS_View extends PHS_Instantiable
      *
      * @return null|array
      */
-    public function get_resource_details(string $file, ?string $force_language = null) : ?array
+    public function get_resource_details(string $file, ?string $force_language = null): ?array
     {
         $this->reset_error();
 
@@ -206,7 +206,7 @@ class PHS_View extends PHS_Instantiable
      *
      * @return null|array
      */
-    public function get_template_file_details(string $template, ?string $force_language = null) : ?array
+    public function get_template_file_details(string $template, ?string $force_language = null): ?array
     {
         $this->reset_error();
 
@@ -232,7 +232,7 @@ class PHS_View extends PHS_Instantiable
      *
      * @return string
      */
-    public function get_resource_url(string | array $resource) : string
+    public function get_resource_url(string | array $resource): string
     {
         return $this->get_resource_url_if_exists($resource) ?? '#resource_not_found';
     }
@@ -243,7 +243,7 @@ class PHS_View extends PHS_Instantiable
      *
      * @return null|string
      */
-    public function get_resource_url_if_exists(string | array $resource) : ?string
+    public function get_resource_url_if_exists(string | array $resource): ?string
     {
         return $this->_get_resource_details($resource)['full_url'] ?? null;
     }
@@ -254,7 +254,7 @@ class PHS_View extends PHS_Instantiable
      *
      * @return null|string
      */
-    public function get_resource_path(string | array $file) : ?string
+    public function get_resource_path(string | array $file): ?string
     {
         if (!($resource_details = $this->_get_resource_details($file))) {
             return null;
@@ -263,7 +263,7 @@ class PHS_View extends PHS_Instantiable
         return $resource_details['full_path'] ?? null;
     }
 
-    public function set_template(string | array $template, array $params = []) : ?array
+    public function set_template(string | array $template, array $params = []): ?array
     {
         $this->reset_error();
 
@@ -293,7 +293,7 @@ class PHS_View extends PHS_Instantiable
         return $template_structure;
     }
 
-    public function set_theme(?string $theme) : bool
+    public function set_theme(?string $theme): bool
     {
         $this->reset_error();
 
@@ -313,8 +313,8 @@ class PHS_View extends PHS_Instantiable
     }
 
     public function sub_view_if_exists(
-        string | array $template, ?string $force_theme = null, ?string $force_language = null
-    ) : ?string {
+        string | array $template, ?string $force_theme = null, ?string $force_language = null,
+    ): ?string {
         $this->reset_error();
 
         $view_theme = $force_theme ?: $this->get_theme();
@@ -335,7 +335,7 @@ class PHS_View extends PHS_Instantiable
         return $this->sub_view($valid_template, $view_theme);
     }
 
-    public function sub_view(string | array $template, ?string $force_theme = null) : ?string
+    public function sub_view(string | array $template, ?string $force_theme = null): ?string
     {
         $this->reset_error();
 
@@ -373,7 +373,7 @@ class PHS_View extends PHS_Instantiable
         return $subview_buffer;
     }
 
-    public function get_all_view_vars() : array
+    public function get_all_view_vars(): array
     {
         return $this->get_context(self::VIEW_CONTEXT_DATA_KEY) ?: [];
     }
@@ -385,12 +385,12 @@ class PHS_View extends PHS_Instantiable
      *
      * @return bool|mixed Variable value
      */
-    public function view_var(string $key) : mixed
+    public function view_var(string $key): mixed
     {
         return $this->get_context(self::VIEW_CONTEXT_DATA_KEY)[$key] ?? null;
     }
 
-    final public function set_view_var(string | array $key, mixed $val = null) : bool
+    final public function set_view_var(string | array $key, mixed $val = null): bool
     {
         if (($parent_view = $this->get_parent_view())) {
             $parent_view->set_view_var($key, $val);
@@ -437,8 +437,8 @@ class PHS_View extends PHS_Instantiable
         null | string | array $template = null,
         ?string $force_theme = null,
         ?array $params = null,
-        ?string $force_language = null
-    ) : ?string {
+        ?string $force_language = null,
+    ): ?string {
         if ($force_language !== null
            && !self::valid_language($force_language)) {
             $force_language = null;
@@ -461,7 +461,7 @@ class PHS_View extends PHS_Instantiable
                         (!empty($this->_template) ? $this->_template : 'N/A'),
                         (!empty($this->_template_file) ? $this->_template_file : 'N/A'),
                         $this->get_theme(),
-                        $force_language ?? '-'
+                        $force_language ?? '-',
                     ),
                     PHS_Logger::TYPE_DEBUG);
             }
@@ -506,7 +506,7 @@ class PHS_View extends PHS_Instantiable
         return $resulting_buf;
     }
 
-    protected function reset_view() : void
+    protected function reset_view(): void
     {
         $this->_template = '';
         $this->_theme = '';
@@ -515,8 +515,8 @@ class PHS_View extends PHS_Instantiable
     }
 
     protected function _check_directory_for_template(
-        string $path, string $www, string $language, array &$matching_arr, ?string $force_language = null
-    ) : void {
+        string $path, string $www, string $language, array &$matching_arr, ?string $force_language = null,
+    ): void {
         if (!@file_exists($path) || !@is_dir($path)) {
             return;
         }
@@ -534,7 +534,7 @@ class PHS_View extends PHS_Instantiable
         $matching_arr[$path.'/'] = $www.'/';
     }
 
-    protected function _get_template_directories(?string $force_language = null) : array
+    protected function _get_template_directories(?string $force_language = null): array
     {
         $this->_template_dirs = [];
 
@@ -566,7 +566,7 @@ class PHS_View extends PHS_Instantiable
                             PHS_THEMES_WWW.$location,
                             $current_language,
                             $this->_template_dirs,
-                            $force_language
+                            $force_language,
                         );
                     }
                 }
@@ -581,7 +581,7 @@ class PHS_View extends PHS_Instantiable
                     rtrim($dir_www, '/'),
                     $current_language,
                     $this->_template_dirs,
-                    $force_language
+                    $force_language,
                 );
             }
         }
@@ -594,7 +594,7 @@ class PHS_View extends PHS_Instantiable
                 $this->_controller->instance_plugin_www().self::TEMPLATES_DIR,
                 $current_language,
                 $this->_template_dirs,
-                $force_language
+                $force_language,
             );
         }
 
@@ -606,7 +606,7 @@ class PHS_View extends PHS_Instantiable
                 $this->_action->instance_plugin_www().self::TEMPLATES_DIR,
                 $current_language,
                 $this->_template_dirs,
-                $force_language
+                $force_language,
             );
         }
 
@@ -618,7 +618,7 @@ class PHS_View extends PHS_Instantiable
                     PHS_THEMES_WWW.$theme,
                     $current_language,
                     $this->_template_dirs,
-                    $force_language
+                    $force_language,
                 );
             }
         }
@@ -634,7 +634,7 @@ class PHS_View extends PHS_Instantiable
      *
      * @return null|string
      */
-    protected function _get_template_path(?string $force_language = null) : ?string
+    protected function _get_template_path(?string $force_language = null): ?string
     {
         $this->reset_error();
 
@@ -653,7 +653,7 @@ class PHS_View extends PHS_Instantiable
             $this->set_error_if_not_set(
                 self::ERR_BAD_TEMPLATE,
                 self::_t('Template [%s] not found, theme [%s], forced language [%s].',
-                    $this->_template, $this->_theme, $force_language ?? '-')
+                    $this->_template, $this->_theme, $force_language ?? '-'),
             );
 
             return null;
@@ -664,7 +664,7 @@ class PHS_View extends PHS_Instantiable
         return $this->_template_file;
     }
 
-    protected function _get_resource_details(string | array $res_file) : ?array
+    protected function _get_resource_details(string | array $res_file): ?array
     {
         if (!$res_file) {
             return null;
@@ -687,7 +687,7 @@ class PHS_View extends PHS_Instantiable
         return null;
     }
 
-    private function _get_file_details(string $file_name, ?string $force_language = null) : ?array
+    private function _get_file_details(string $file_name, ?string $force_language = null): ?array
     {
         $this->reset_error();
 
@@ -721,7 +721,7 @@ class PHS_View extends PHS_Instantiable
     /**
      * @return array{"file": string, "extra_paths": array, "resource_validated": bool}
      */
-    public static function default_template_resource_arr() : array
+    public static function default_template_resource_arr(): array
     {
         return [
             'file'               => '',
@@ -730,7 +730,7 @@ class PHS_View extends PHS_Instantiable
         ];
     }
 
-    public static function validate_template_resource(string | array $template, array $params = []) : ?array
+    public static function validate_template_resource(string | array $template, array $params = []): ?array
     {
         self::st_reset_error();
 
@@ -793,7 +793,7 @@ class PHS_View extends PHS_Instantiable
         return $template_structure;
     }
 
-    public static function init_view(string | array $template, array $params = []) : ?self
+    public static function init_view(string | array $template, array $params = []): ?self
     {
         $params['action_obj'] ??= null;
         /** @var PHS_Controller $params['controller_obj'] */
@@ -847,7 +847,7 @@ class PHS_View extends PHS_Instantiable
         return $view_obj;
     }
 
-    public static function st_add_extra_theme_dir(string $theme_relative_dir, ?string $theme = null) : ?array
+    public static function st_add_extra_theme_dir(string $theme_relative_dir, ?string $theme = null): ?array
     {
         if ($theme === null) {
             $theme = PHS::get_theme();
@@ -874,7 +874,7 @@ class PHS_View extends PHS_Instantiable
         return $extra_dirs;
     }
 
-    public static function safe_escape_template(string $template) : string
+    public static function safe_escape_template(string $template): string
     {
         if (empty($template)
             || preg_match('@[^a-zA-Z0-9_\-\./]@', $template)) {
@@ -884,7 +884,7 @@ class PHS_View extends PHS_Instantiable
         return str_replace('..', '', trim($template, '/'));
     }
 
-    public static function safe_escape_resource(string $resource) : string
+    public static function safe_escape_resource(string $resource): string
     {
         if (empty($resource)
          || preg_match('@[^a-zA-Z0-9_\-\./]@', $resource)) {

@@ -20,40 +20,40 @@ class PHS_Model_Api_keys extends PHS_Model
         self::STATUS_DELETED  => ['title' => 'Deleted'],
     ];
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.2.0';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['api_keys'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'api_keys';
     }
 
-    public function is_active(int | array | PHS_Record_data $record_data) : bool
+    public function is_active(int | array | PHS_Record_data $record_data): bool
     {
         return ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_ACTIVE;
     }
 
-    public function is_inactive(int | array | PHS_Record_data $record_data) : bool
+    public function is_inactive(int | array | PHS_Record_data $record_data): bool
     {
         return ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_INACTIVE;
     }
 
-    public function is_deleted(int | array | PHS_Record_data $record_data) : bool
+    public function is_deleted(int | array | PHS_Record_data $record_data): bool
     {
         return ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_DELETED;
     }
 
-    public function act_activate(int | array | PHS_Record_data $record_data) : null | array | PHS_Record_data
+    public function act_activate(int | array | PHS_Record_data $record_data): null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -77,7 +77,7 @@ class PHS_Model_Api_keys extends PHS_Model
         return $new_record;
     }
 
-    public function act_inactivate(int | array | PHS_Record_data $record_data) : null | array | PHS_Record_data
+    public function act_inactivate(int | array | PHS_Record_data $record_data): null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -101,7 +101,7 @@ class PHS_Model_Api_keys extends PHS_Model
         return $new_record;
     }
 
-    public function act_delete(int | array | PHS_Record_data $record_data) : null | array | PHS_Record_data
+    public function act_delete(int | array | PHS_Record_data $record_data): null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -125,7 +125,7 @@ class PHS_Model_Api_keys extends PHS_Model
         return $new_record;
     }
 
-    public function can_user_edit(int | array | PHS_Record_data $record_data, int | array | PHS_Record_data $account_data) : ?array
+    public function can_user_edit(int | array | PHS_Record_data $record_data, int | array | PHS_Record_data $account_data): ?array
     {
         /** @var PHS_Model_Accounts $accounts_model */
         if (empty($record_data) || empty($account_data)
@@ -143,7 +143,7 @@ class PHS_Model_Api_keys extends PHS_Model
         ];
     }
 
-    public function get_apikeys_for_user_id(int $user_id) : array
+    public function get_apikeys_for_user_id(int $user_id): array
     {
         if (empty($user_id)) {
             return [];
@@ -162,7 +162,7 @@ class PHS_Model_Api_keys extends PHS_Model
         return $return_arr;
     }
 
-    public function apikeys_count_for_user_id(int $user_id) : int
+    public function apikeys_count_for_user_id(int $user_id): int
     {
         if (!empty($user_id)
             && ($flow_params = $this->fetch_default_flow_params())
@@ -177,7 +177,7 @@ class PHS_Model_Api_keys extends PHS_Model
         return (int)($total_arr['total_apikeys'] ?? 0);
     }
 
-    public function get_all_api_keys(bool $only_active = false) : array
+    public function get_all_api_keys(bool $only_active = false): array
     {
         static $cached_api_keys = null, $cached_active_api_keys = null;
 
@@ -215,7 +215,7 @@ class PHS_Model_Api_keys extends PHS_Model
         return $cached_api_keys;
     }
 
-    public function get_all_api_keys_as_key_val(bool $only_active = false) : array
+    public function get_all_api_keys_as_key_val(bool $only_active = false): array
     {
         $this->reset_error();
 
@@ -231,17 +231,17 @@ class PHS_Model_Api_keys extends PHS_Model
         return $return_arr;
     }
 
-    public function generate_random_api_key() : string
+    public function generate_random_api_key(): string
     {
         return md5(uniqid(mt_rand(), true));
     }
 
-    public function generate_random_api_secret() : string
+    public function generate_random_api_secret(): string
     {
         return md5(uniqid(mt_rand(), true));
     }
 
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;

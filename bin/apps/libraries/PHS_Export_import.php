@@ -26,7 +26,7 @@ trait PHS_Export_import
     //
     // region Common for import and export
     //
-    protected function _get_phs_root_path(string $forced_dir = '', bool $slash_ended = true) : string
+    protected function _get_phs_root_path(string $forced_dir = '', bool $slash_ended = true): string
     {
         static $root_path = '';
 
@@ -55,7 +55,7 @@ trait PHS_Export_import
         return $root_path.($slash_ended ? '/' : '');
     }
 
-    protected function _get_phs_uploads_path($forced_dir = '', $slash_ended = true) : string
+    protected function _get_phs_uploads_path($forced_dir = '', $slash_ended = true): string
     {
         return (defined('PHS_UPLOADS_DIR')
                 ? rtrim(PHS_UPLOADS_DIR, '/')
@@ -63,7 +63,7 @@ trait PHS_Export_import
                .($slash_ended ? '/' : '');
     }
 
-    protected function platform_import_export_json_structure() : array
+    protected function platform_import_export_json_structure(): array
     {
         return [
             'version'   => 1,
@@ -82,7 +82,7 @@ trait PHS_Export_import
     //
     // region Export functionality
     //
-    protected function platform_export_json_structure() : array
+    protected function platform_export_json_structure(): array
     {
         return [
             'export' => ['all', 'symlinks', 'plugin_settings', 'themes', 'languages'],
@@ -100,7 +100,7 @@ trait PHS_Export_import
         ];
     }
 
-    protected function _do_platform_delete_action_file($action_json_arr) : ?bool
+    protected function _do_platform_delete_action_file($action_json_arr): ?bool
     {
         if (!empty($action_json_arr['delete_json_file_after_action'])
          && !empty($action_json_arr['action_file'])
@@ -111,7 +111,7 @@ trait PHS_Export_import
         return null;
     }
 
-    protected function _do_platform_export_action_to_file(?array $action_json_arr) : bool
+    protected function _do_platform_export_action_to_file(?array $action_json_arr): bool
     {
         $this->reset_error();
 
@@ -126,7 +126,7 @@ trait PHS_Export_import
         return true;
     }
 
-    protected function _do_platform_export_action_as_buffer(array $action_json_arr) : ?string
+    protected function _do_platform_export_action_as_buffer(array $action_json_arr): ?string
     {
         $this->reset_error();
 
@@ -140,7 +140,7 @@ trait PHS_Export_import
         return $buf;
     }
 
-    protected function _do_platform_export_action_as_array(?array $action_json_arr) : ?array
+    protected function _do_platform_export_action_as_array(?array $action_json_arr): ?array
     {
         $this->reset_error();
 
@@ -216,7 +216,7 @@ trait PHS_Export_import
         return $export_arr;
     }
 
-    protected function _setup_action_import_json_structure() : array
+    protected function _setup_action_import_json_structure(): array
     {
         return [
             'import' => ['all', 'symlinks', 'plugin_settings', 'themes', 'languages'],
@@ -233,7 +233,7 @@ trait PHS_Export_import
         ];
     }
 
-    protected function _do_platform_import_action_read_import_file($import_file) : ?array
+    protected function _do_platform_import_action_read_import_file($import_file): ?array
     {
         $this->reset_error();
 
@@ -249,7 +249,7 @@ trait PHS_Export_import
         return $import_arr;
     }
 
-    protected function _do_platform_import_action(array $action_json_arr) : bool
+    protected function _do_platform_import_action(array $action_json_arr): bool
     {
         $this->reset_error();
 
@@ -292,7 +292,7 @@ trait PHS_Export_import
         return true;
     }
 
-    protected function _do_platform_import_action_for_plugin_symlinks(array $symlinks, array $only_plugins = []) : ?array
+    protected function _do_platform_import_action_for_plugin_symlinks(array $symlinks, array $only_plugins = []): ?array
     {
         $this->reset_error();
 
@@ -323,7 +323,7 @@ trait PHS_Export_import
                 $this->copy_or_set_static_error(
                     self::ERR_PARAMETERS,
                     self::_t('Couldn\'t locate plugin repository directory %s for plugin %s.',
-                        $repo_dir ?: 'N/A', $plugin_name)
+                        $repo_dir ?: 'N/A', $plugin_name),
                 );
 
                 return null;
@@ -338,7 +338,7 @@ trait PHS_Export_import
         return $imported_symlinks;
     }
 
-    private function _validate_import_export_json_structure(?array $json_arr, array $structure) : ?array
+    private function _validate_import_export_json_structure(?array $json_arr, array $structure): ?array
     {
         $this->reset_error();
 
@@ -379,7 +379,7 @@ trait PHS_Export_import
         return $json_arr;
     }
 
-    private function _platform_import_export_decode_action_file($action_file) : array
+    private function _platform_import_export_decode_action_file($action_file): array
     {
         if (!@file_exists($action_file)
          || !@is_readable($action_file)
@@ -394,7 +394,7 @@ trait PHS_Export_import
         return $action_json_arr;
     }
 
-    private function _validate_platform_export_action_json_structure(array $json_arr) : ?array
+    private function _validate_platform_export_action_json_structure(array $json_arr): ?array
     {
         $this->reset_error();
 
@@ -473,7 +473,7 @@ trait PHS_Export_import
     //
     // region Import functionality
     //
-    private function _validate_setup_action_import_json_structure(?array $json_arr) : ?array
+    private function _validate_setup_action_import_json_structure(?array $json_arr): ?array
     {
         $this->reset_error();
 

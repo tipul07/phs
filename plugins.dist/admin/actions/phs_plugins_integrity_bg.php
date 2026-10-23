@@ -8,7 +8,7 @@ use phs\libraries\PHS_Action;
 
 class PHS_Action_Plugins_integrity_bg extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_BACKGROUND];
     }

@@ -300,12 +300,12 @@ class PHS_Ftp extends PHS_Library
         return $this->ftp_settings;
     }
 
-    public function is_connected() : bool
+    public function is_connected(): bool
     {
         return !empty($this->internal_settings['con']);
     }
 
-    public function can_connect() : bool
+    public function can_connect(): bool
     {
         return $this->settings_passed;
     }
@@ -1136,7 +1136,7 @@ class PHS_Ftp extends PHS_Library
                 if (empty($params['skip_callbacks'])) {
                     $this->trigger_phs_hooks(
                         self::H_AFTER_GET,
-                        ['server' => $ftp_settings, 'file' => $file, 'mode' => $mode, 'params' => $params, 'success' => false]
+                        ['server' => $ftp_settings, 'file' => $file, 'mode' => $mode, 'params' => $params, 'success' => false],
                     );
                 }
 
@@ -1745,7 +1745,7 @@ class PHS_Ftp extends PHS_Library
     //     return true;
     // }
 
-    protected function _connect(array $params = []) : bool
+    protected function _connect(array $params = []): bool
     {
         $this->reset_error();
 
@@ -2299,7 +2299,7 @@ class PHS_Ftp extends PHS_Library
         return $line_arr;
     }
 
-    public static function default_entry_array() : array
+    public static function default_entry_array(): array
     {
         $default_rights_arr = self::default_rights_array();
 
@@ -2319,7 +2319,7 @@ class PHS_Ftp extends PHS_Library
         return $line_arr;
     }
 
-    public static function default_rights_array() : array
+    public static function default_rights_array(): array
     {
         $return_arr = [];
         $return_arr['type'] = self::TYPE_FILE;
@@ -2330,7 +2330,7 @@ class PHS_Ftp extends PHS_Library
         return $return_arr;
     }
 
-    public static function cloud_parse_datetime_string(string $str) : int
+    public static function cloud_parse_datetime_string(string $str): int
     {
         if (!$str) {
             return 0;

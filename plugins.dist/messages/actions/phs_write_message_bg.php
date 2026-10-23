@@ -10,7 +10,7 @@ class PHS_Action_Write_message_bg extends PHS_Action
 {
     public const ERR_UNKNOWN_MESSAGE = 40000, ERR_FINISH_ERROR = 40001;
 
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_BACKGROUND];
     }
@@ -36,7 +36,7 @@ class PHS_Action_Write_message_bg extends PHS_Action
             $this->copy_or_set_error(
                 $messages_model,
                 self::ERR_FINISH_ERROR,
-                $this->_pt('Error finishing additional work required for message #%s.', $message_arr['id'])
+                $this->_pt('Error finishing additional work required for message #%s.', $message_arr['id']),
             );
 
             return false;

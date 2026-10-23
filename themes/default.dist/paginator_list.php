@@ -488,7 +488,7 @@ if (!$is_api_scope
         $flow_params_arr['term_plural'],
         $pagination_arr['page'] + 1,
         $pagination_arr['max_pages'],
-        $pagination_arr['records_per_page']
+        $pagination_arr['records_per_page'],
     );
     ?></div>
 		</td>
@@ -503,7 +503,7 @@ if (!$is_api_scope
         $flow_params_arr['term_plural'],
         $pagination_arr['page'] + 1,
         $pagination_arr['max_pages'],
-        $pagination_arr['records_per_page']
+        $pagination_arr['records_per_page'],
     );
     ?></div></td>
     </tr>
@@ -571,7 +571,7 @@ if (!$is_api_scope
 <div class="clearfix"></div>
 <?php
 if (!function_exists('phs_paginator_display_js_functionality')) {
-    function phs_paginator_display_js_functionality(PHS_View $this_object, PHS_Paginator $paginator_obj) : void
+    function phs_paginator_display_js_functionality(PHS_View $this_object, PHS_Paginator $paginator_obj): void
     {
         static $js_displayed = false;
         if ($js_displayed) {

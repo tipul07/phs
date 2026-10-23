@@ -15,23 +15,21 @@ class PHS_Action_Setup_password extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_REGISTER, self::ACT_ROLE_CHANGE_PASSWORD, ];
     }
 
     /**
-     * Returns an array of scopes in which action is allowed to run
-     *
-     * @return array If empty array, action is allowed in all scopes...
+     * @inheritdoc
      */
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB];
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {
@@ -60,8 +58,8 @@ class PHS_Action_Setup_password extends PHS_Action
                     sprintf(
                         '<a href="%s">%s</a>',
                         PHS::url(['a' => 'login', 'p' => 'accounts']),
-                        $this->_pt('login page')
-                    )
+                        $this->_pt('login page'),
+                    ),
                 ));
 
             return self::default_action_result();

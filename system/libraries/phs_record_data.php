@@ -66,74 +66,74 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
         }
     }
 
-    public function record_has_relations() : bool
+    public function record_has_relations(): bool
     {
         return $this->_has_relations;
     }
 
-    public function record_is_new() : bool
+    public function record_is_new(): bool
     {
         return $this->_new_record;
     }
 
-    public function mark_as_not_new() : void
+    public function mark_as_not_new(): void
     {
         $this->_new_record = false;
     }
 
-    public function data_key_exists(string $key) : bool
+    public function data_key_exists(string $key): bool
     {
         return array_key_exists($key, $this->_data);
     }
 
-    public function data_key_is_allowed(string $key) : bool
+    public function data_key_is_allowed(string $key): bool
     {
         return in_array($key, $this->_allowed_extra_keys, true);
     }
 
-    public function is_data_structure_key(string $key) : bool
+    public function is_data_structure_key(string $key): bool
     {
         return array_key_exists($key, $this->_data_structure);
     }
 
-    public function is_relation_key(string $key) : bool
+    public function is_relation_key(string $key): bool
     {
         return in_array($key, $this->_relation_keys, true);
     }
 
-    public function get_flow_table_name() : ?string
+    public function get_flow_table_name(): ?string
     {
         return $this->_model?->get_flow_table_name($this->_flow_arr);
     }
 
-    public function fetch_default_flow_params() : ?array
+    public function fetch_default_flow_params(): ?array
     {
         return $this->_model?->fetch_default_flow_params($this->_flow_arr);
     }
 
-    public function get_simple_table_name_from_flow() : ?string
+    public function get_simple_table_name_from_flow(): ?string
     {
         return $this->_model?->get_table_name($this->_flow_arr);
     }
 
-    public function get_record_data_model_class() : string
+    public function get_record_data_model_class(): string
     {
         return $this->_model_class;
     }
 
-    public function get_record_data_model_and_table() : string
+    public function get_record_data_model_and_table(): string
     {
         return $this->_model_class.'::'.($this->get_simple_table_name_from_flow() ?? '');
     }
 
-    public function set_data(array $data) : void
+    public function set_data(array $data): void
     {
         foreach ($data as $key => $value) {
             $this->set_data_key($key, $value);
         }
     }
 
-    public function set_data_key(string $key, mixed $value) : void
+    public function set_data_key(string $key, mixed $value): void
     {
         if ($this->_model
             && !$this->is_data_structure_key($key)
@@ -146,43 +146,43 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
     }
 
     // region Countable
-    public function count() : int
+    public function count(): int
     {
         return count($this->_data);
     }
     // endregion Countable
 
     // region IteratorAggregate
-    public function getIterator() : Iterator
+    public function getIterator(): Iterator
     {
         return new ArrayIterator($this->_data);
     }
     // endregion IteratorAggregate
 
     // region ArrayAccess
-    public function offsetSet(mixed $key, mixed $value) : void
+    public function offsetSet(mixed $key, mixed $value): void
     {
         $this->set_data_key($key, $value);
     }
 
-    public function offsetExists(mixed $key) : bool
+    public function offsetExists(mixed $key): bool
     {
         return array_key_exists($key, $this->_data);
     }
 
-    public function offsetUnset(mixed $key) : void
+    public function offsetUnset(mixed $key): void
     {
         unset($this->_data[$key]);
     }
 
-    public function offsetGet(mixed $key) : mixed
+    public function offsetGet(mixed $key): mixed
     {
         return $this->_return_relation_value($key);
     }
     // endregion ArrayAccess
 
     // region ArrayObject
-    public function append(mixed $value) : void
+    public function append(mixed $value): void
     {
     }
 
@@ -234,21 +234,21 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
         return true;
     }
 
-    public function exchangeArray(array | object $array) : array
+    public function exchangeArray(array | object $array): array
     {
         $this->set_data((array)$array);
 
         return $this->_data;
     }
 
-    public function getArrayCopy() : array
+    public function getArrayCopy(): array
     {
         return $this->_data;
     }
     // endregion ArrayObject
 
     // region Serializable
-    public function serialize() : string
+    public function serialize(): string
     {
         try {
             $data = @json_encode($this->_data, JSON_THROW_ON_ERROR);
@@ -259,7 +259,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
         return $data;
     }
 
-    public function unserialize(string $data) : void
+    public function unserialize(string $data): void
     {
         try {
             if (($data = @json_decode($data, true, 512, JSON_THROW_ON_ERROR))) {
@@ -272,18 +272,18 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
     /**
      * @inheritDoc
      */
-    public function jsonSerialize() : mixed
+    public function jsonSerialize(): mixed
     {
         return $this->_data;
     }
     // endregion Serializable
 
-    public function cast_to_array() : array
+    public function cast_to_array(): array
     {
         return $this->_data;
     }
 
-    private function _data_structure_definition() : void
+    private function _data_structure_definition(): void
     {
         if (!$this->_model
             || !($data_structure = $this->_model->get_empty_data($this->_flow_arr))) {
@@ -293,7 +293,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
         $this->_data_structure = $data_structure;
     }
 
-    private function _check_allowed_extra_keys() : void
+    private function _check_allowed_extra_keys(): void
     {
         if (!$this->_model) {
             return;
@@ -302,7 +302,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
         $this->_allowed_extra_keys = $this->_model->allow_record_data_keys($this->_flow_arr);
     }
 
-    private function _extract_relations_details() : void
+    private function _extract_relations_details(): void
     {
         if (!$this->_model
             || !($relations = $this->_model->relations())) {
@@ -323,7 +323,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
         $this->_relation_keys = $relation_keys;
     }
 
-    private function _load_relation(string $key) : void
+    private function _load_relation(string $key): void
     {
         if (!$this->_has_relations
             || !$this->_model
@@ -334,7 +334,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
         $this->_model->load_relation($this, $key);
     }
 
-    private function _load_and_read_relation(string $key, ...$args) : ?PHS_Relation_result
+    private function _load_and_read_relation(string $key, ...$args): ?PHS_Relation_result
     {
         $this->_load_relation($key);
 
@@ -346,7 +346,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
         return null;
     }
 
-    private function _return_relation_value(string $key, ...$arguments) : mixed
+    private function _return_relation_value(string $key, ...$arguments): mixed
     {
         if ($this->is_relation_key($key)
             && ($relation_result = $this->_load_and_read_relation($key, ...$arguments))
@@ -357,7 +357,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
         return $this->_data[$key] ?? null;
     }
 
-    public function __debugInfo() : array
+    public function __debugInfo(): array
     {
         return $this->_data;
     }
@@ -365,7 +365,7 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
     /**
      * @inheritDoc
      */
-    public function __serialize() : array
+    public function __serialize(): array
     {
         return $this->_data;
     }
@@ -373,17 +373,17 @@ class PHS_Record_data extends ArrayObject implements JsonSerializable
     /**
      * @inheritDoc
      */
-    public function __unserialize(array $data) : void
+    public function __unserialize(array $data): void
     {
         $this->set_data($data);
     }
 
-    public function __toString() : string
+    public function __toString(): string
     {
         return $this->serialize();
     }
 
-    public function __call(string $name, array $arguments) : mixed
+    public function __call(string $name, array $arguments): mixed
     {
         return $this->_return_relation_value($name, ...$arguments);
     }

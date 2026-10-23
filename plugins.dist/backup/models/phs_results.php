@@ -29,17 +29,17 @@ class PHS_Model_Results extends PHS_Model
         self::FILE_TYPE_RESULT => ['title' => 'Result file'],
     ];
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.0.7';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['backup_results', 'backup_results_files'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'backup_results';
     }
@@ -144,7 +144,7 @@ class PHS_Model_Results extends PHS_Model
         return $record_arr;
     }
 
-    public function act_delete(int | array | PHS_Record_data $record_data, array $params = []) : bool
+    public function act_delete(int | array | PHS_Record_data $record_data, array $params = []): bool
     {
         $this->reset_error();
 
@@ -166,7 +166,7 @@ class PHS_Model_Results extends PHS_Model
         return $this->hard_delete($record_arr);
     }
 
-    public function launch_result_shell_script_bg(int | array | PHS_Record_data $result_data, array $params = []) : ?array
+    public function launch_result_shell_script_bg(int | array | PHS_Record_data $result_data, array $params = []): ?array
     {
         $this->reset_error();
 
@@ -235,7 +235,7 @@ class PHS_Model_Results extends PHS_Model
      *
      * @return null|array
      */
-    public function finish_result_shell_script_bg($result_data, ?array $params = null) : ?array
+    public function finish_result_shell_script_bg($result_data, ?array $params = null): ?array
     {
         $this->reset_error();
 
@@ -762,7 +762,7 @@ class PHS_Model_Results extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;
@@ -891,7 +891,7 @@ class PHS_Model_Results extends PHS_Model
         return $params;
     }
 
-    protected function insert_after_backup_results(array $insert_arr, array $params) : ?array
+    protected function insert_after_backup_results(array $insert_arr, array $params): ?array
     {
         $insert_arr['{result_files}'] = [];
 

@@ -29,7 +29,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_keys_to_obfuscate() : array
+    public function get_settings_keys_to_obfuscate(): array
     {
         return ['ai_openai_token'];
     }
@@ -37,7 +37,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             'themes_settings_group' => [
@@ -266,102 +266,102 @@ class PHS_Plugin_Admin extends PHS_Plugin
         ];
     }
 
-    public function use_default_theme_in_admin() : bool
+    public function use_default_theme_in_admin(): bool
     {
         return (bool)($this->get_plugin_settings()['default_theme_in_admin'] ?? false);
     }
 
-    public function use_current_theme_as_default_in_admin() : bool
+    public function use_current_theme_as_default_in_admin(): bool
     {
         return (bool)($this->get_plugin_settings()['current_theme_as_default_in_admin'] ?? false);
     }
 
-    public function monitor_agent_jobs() : bool
+    public function monitor_agent_jobs(): bool
     {
         return (bool)($this->get_plugin_settings()['monitor_agent_jobs'] ?? false);
     }
 
-    public function agent_jobs_allowance_interval() : int
+    public function agent_jobs_allowance_interval(): int
     {
         return (int)($this->get_plugin_settings()['data_retention_run_hour'] ?? 60);
     }
 
-    public function data_retention_agent_run_hour() : int
+    public function data_retention_agent_run_hour(): int
     {
         return (int)($this->get_plugin_settings()['data_retention_run_hour'] ?? 3);
     }
 
-    public function monitor_api_incoming_calls() : bool
+    public function monitor_api_incoming_calls(): bool
     {
         return (bool)($this->get_plugin_settings()['monitor_api_incoming_calls'] ?? false);
     }
 
-    public function monitor_api_incoming_cors_calls() : bool
+    public function monitor_api_incoming_cors_calls(): bool
     {
         return (bool)($this->get_plugin_settings()['monitor_api_incoming_cors_calls'] ?? false);
     }
 
-    public function monitor_api_outgoing_calls() : bool
+    public function monitor_api_outgoing_calls(): bool
     {
         return (bool)($this->get_plugin_settings()['monitor_api_outgoing_calls'] ?? false);
     }
 
-    public function monitor_api_full_request_body() : bool
+    public function monitor_api_full_request_body(): bool
     {
         return (bool)($this->get_plugin_settings()['monitor_api_full_request_body'] ?? false);
     }
 
-    public function monitor_api_full_response_body() : bool
+    public function monitor_api_full_response_body(): bool
     {
         return (bool)($this->get_plugin_settings()['monitor_api_full_response_body'] ?? false);
     }
 
-    public function allow_graphql_calls() : bool
+    public function allow_graphql_calls(): bool
     {
         return (bool)($this->get_plugin_settings()['allow_graphql_calls'] ?? false);
     }
 
-    public function monitor_graphql_calls() : bool
+    public function monitor_graphql_calls(): bool
     {
         return (bool)($this->get_plugin_settings()['monitor_graphql_calls'] ?? false);
     }
 
-    public function is_log_rotation_enabled() : bool
+    public function is_log_rotation_enabled(): bool
     {
         return (bool)($this->get_plugin_settings()['logs_rotation_enabled'] ?? false);
     }
 
-    public function log_add_loggedin_user() : bool
+    public function log_add_loggedin_user(): bool
     {
         return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_add_loggedin_user']);
     }
 
-    public function log_rotation_policy() : int
+    public function log_rotation_policy(): int
     {
         return (int)($this->get_plugin_settings()['log_rotate_policy'] ?? 0);
     }
 
-    public function get_ai_openai_url() : ?string
+    public function get_ai_openai_url(): ?string
     {
         return $this->get_plugin_settings()['ai_openai_url'] ?? null;
     }
 
-    public function get_ai_openai_token() : ?string
+    public function get_ai_openai_token(): ?string
     {
         return $this->get_plugin_settings()['ai_openai_token'] ?? null;
     }
 
-    public function get_ai_openai_model() : string
+    public function get_ai_openai_model(): string
     {
         return $this->get_plugin_settings()['ai_openai_model'] ?? 'gpt-3.5-turbo';
     }
 
-    public function get_ai_openai_temperature() : float
+    public function get_ai_openai_temperature(): float
     {
         return (float)($this->get_plugin_settings()['ai_openai_temperature'] ?? 0.01);
     }
 
-    public function get_ui_translation_excluding_paths() : array
+    public function get_ui_translation_excluding_paths(): array
     {
         if (!($registry_paths = $this->get_db_registry()['ui_translation_excluding_paths'] ?? null)
            || !is_array($registry_paths)) {
@@ -371,7 +371,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
         return $registry_paths;
     }
 
-    public function save_ui_translation_excluding_paths(array $paths) : array
+    public function save_ui_translation_excluding_paths(array $paths): array
     {
         return $this->update_db_registry([
             'ui_translation_excluding_paths' => self::extract_strings_from_array($paths) ?: [],
@@ -381,7 +381,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_roles_definition() : array
+    public function get_roles_definition(): array
     {
         $return_arr = [
             PHS_Roles::ROLE_GUEST => [
@@ -602,140 +602,140 @@ class PHS_Plugin_Admin extends PHS_Plugin
     }
 
     // region Can_* section
-    public function can_admin_manage_roles(bool | null | int | array $user_data = null) : bool
+    public function can_admin_manage_roles(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_ROLES, null, $user_data);
     }
 
-    public function can_admin_list_roles(bool | null | int | array $user_data = null) : bool
+    public function can_admin_list_roles(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_LIST_ROLES, null, $user_data);
     }
 
-    public function can_admin_manage_plugins(bool | null | int | array $user_data = null) : bool
+    public function can_admin_manage_plugins(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_PLUGINS, null, $user_data);
     }
 
-    public function can_admin_list_plugins(bool | null | int | array $user_data = null) : bool
+    public function can_admin_list_plugins(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_LIST_PLUGINS, null, $user_data);
     }
 
-    public function can_admin_import_plugins_settings(bool | null | int | array $user_data = null) : bool
+    public function can_admin_import_plugins_settings(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_IMPORT_PLUGINS_SETTINGS, null, $user_data);
     }
 
-    public function can_admin_export_plugins_settings(bool | null | int | array $user_data = null) : bool
+    public function can_admin_export_plugins_settings(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_EXPORT_PLUGINS_SETTINGS, null, $user_data);
     }
 
-    public function can_admin_manage_accounts(bool | null | int | array $user_data = null) : bool
+    public function can_admin_manage_accounts(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_ACCOUNTS, null, $user_data);
     }
 
-    public function can_admin_list_accounts(bool | null | int | array $user_data = null) : bool
+    public function can_admin_list_accounts(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_LIST_ACCOUNTS, null, $user_data);
     }
 
-    public function can_admin_login_subaccounts(bool | null | int | array $user_data = null) : bool
+    public function can_admin_login_subaccounts(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_LOGIN_SUBACCOUNT, null, $user_data);
     }
 
-    public function can_admin_export_accounts(bool | null | int | array $user_data = null) : bool
+    public function can_admin_export_accounts(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_EXPORT_ACCOUNTS, null, $user_data);
     }
 
-    public function can_admin_import_accounts(bool | null | int | array $user_data = null) : bool
+    public function can_admin_import_accounts(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_IMPORT_ACCOUNTS, null, $user_data);
     }
 
-    public function can_admin_manage_agent_jobs(bool | null | int | array $user_data = null) : bool
+    public function can_admin_manage_agent_jobs(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_AGENT_JOBS, null, $user_data);
     }
 
-    public function can_admin_list_agent_jobs(bool | null | int | array $user_data = null) : bool
+    public function can_admin_list_agent_jobs(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_LIST_AGENT_JOBS, null, $user_data);
     }
 
-    public function can_admin_manage_api_keys(bool | null | int | array $user_data = null) : bool
+    public function can_admin_manage_api_keys(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_API_KEYS, null, $user_data);
     }
 
-    public function can_admin_list_api_keys(bool | null | int | array $user_data = null) : bool
+    public function can_admin_list_api_keys(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_LIST_API_KEYS, null, $user_data);
     }
 
-    public function can_admin_view_api_monitoring_report(bool | null | int | array $user_data = null) : bool
+    public function can_admin_view_api_monitoring_report(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_API_MONITORING_REPORT, null, $user_data);
     }
 
-    public function can_admin_view_logs(bool | null | int | array $user_data = null) : bool
+    public function can_admin_view_logs(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_VIEW_LOGS, null, $user_data);
     }
 
-    public function can_admin_list_tenants(bool | null | int | array $user_data = null) : bool
+    public function can_admin_list_tenants(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_TENANTS_LIST, null, $user_data);
     }
 
-    public function can_admin_manage_tenants(bool | null | int | array $user_data = null) : bool
+    public function can_admin_manage_tenants(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_TENANTS_MANAGE, null, $user_data);
     }
 
-    public function can_admin_list_migrations(bool | null | int | array $user_data = null) : bool
+    public function can_admin_list_migrations(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_LIST_MIGRATIONS, null, $user_data);
     }
 
-    public function can_admin_manage_migrations(bool | null | int | array $user_data = null) : bool
+    public function can_admin_manage_migrations(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_MIGRATIONS, null, $user_data);
     }
 
-    public function can_admin_list_data_retention(bool | null | int | array $user_data = null) : bool
+    public function can_admin_list_data_retention(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_LIST_DATA_RETENTION, null, $user_data);
     }
 
-    public function can_admin_manage_data_retention(bool | null | int | array $user_data = null) : bool
+    public function can_admin_manage_data_retention(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_DATA_RETENTION, null, $user_data);
     }
 
-    public function can_admin_list_http_calls(bool | null | int | array $user_data = null) : bool
+    public function can_admin_list_http_calls(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_LIST_HTTP_CALLS, null, $user_data);
     }
 
-    public function can_admin_manage_http_calls(bool | null | int | array $user_data = null) : bool
+    public function can_admin_manage_http_calls(bool | null | int | array $user_data = null): bool
     {
         return can(PHS_Roles::ROLEU_MANAGE_HTTP_CALLS, null, $user_data);
     }
     // endregion Can_* section
 
-    public function listen_after_left_menu_admin(PHS_Event_Layout $event_obj) : bool
+    public function listen_after_left_menu_admin(PHS_Event_Layout $event_obj): bool
     {
         $event_obj->append_to_buffer($this->quick_render_template_for_buffer('left_menu_admin') ?? '');
 
         return true;
     }
 
-    public function listen_web_template_rendering(PHS_Event_Template $event_obj) : bool
+    public function listen_web_template_rendering(PHS_Event_Template $event_obj): bool
     {
         if ($event_obj->get_input('page_template') === 'template_admin'
          && ($current_theme = PHS::get_theme()) !== 'default'
@@ -751,7 +751,7 @@ class PHS_Plugin_Admin extends PHS_Plugin
         return true;
     }
 
-    protected function _db_registry_fields_settings() : array
+    protected function _db_registry_fields_settings(): array
     {
         return [
             'ui_translation_excluding_paths' => [

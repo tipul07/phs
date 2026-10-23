@@ -10,7 +10,7 @@ class PHS_Plugin_Phs_security extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             'headers_settings_group' => [
@@ -42,22 +42,22 @@ class PHS_Plugin_Phs_security extends PHS_Plugin
         ];
     }
 
-    public function security_headers_are_enabled() : bool
+    public function security_headers_are_enabled(): bool
     {
         return (bool)($this->get_plugin_settings()['headers_enabled'] ?? false);
     }
 
-    public function get_enabled_security_headers() : array
+    public function get_enabled_security_headers(): array
     {
         return $this->get_plugin_settings()['headers_selected'] ?? [];
     }
 
-    public function get_security_headers_values() : array
+    public function get_security_headers_values(): array
     {
         return $this->get_plugin_settings()['headers_values'] ?? [];
     }
 
-    public function plugin_settings_display_security_headers($params) : string
+    public function plugin_settings_display_security_headers($params): string
     {
         // Load ekyc instance to make sure ekyc is bootstrapped
         if (!($headers_lib = Phs_security_headers::get_instance())) {

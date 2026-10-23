@@ -24,22 +24,22 @@ class PHS_Model_Roles extends PHS_Model
 
     private static ?PHS_Model_Accounts $_accounts_model = null;
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.0.2';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['roles', 'roles_units', 'roles_units_links', 'roles_users'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'roles';
     }
 
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             'roles_cache_size' => [
@@ -57,37 +57,37 @@ class PHS_Model_Roles extends PHS_Model
         ];
     }
 
-    public function is_active(int | array | PHS_Record_data $role_data) : bool
+    public function is_active(int | array | PHS_Record_data $role_data): bool
     {
         return ($role_arr = $this->data_to_array($role_data))
                && (int)$role_arr['status'] === self::STATUS_ACTIVE;
     }
 
-    public function is_inactive(int | array | PHS_Record_data $role_data) : bool
+    public function is_inactive(int | array | PHS_Record_data $role_data): bool
     {
         return ($role_arr = $this->data_to_array($role_data))
                && (int)$role_arr['status'] === self::STATUS_INACTIVE;
     }
 
-    public function is_deleted(int | array | PHS_Record_data $role_data) : bool
+    public function is_deleted(int | array | PHS_Record_data $role_data): bool
     {
         return ($role_arr = $this->data_to_array($role_data))
                && (int)$role_arr['status'] === self::STATUS_DELETED;
     }
 
-    public function is_suspended(int | array | PHS_Record_data $role_data) : bool
+    public function is_suspended(int | array | PHS_Record_data $role_data): bool
     {
         return ($role_arr = $this->data_to_array($role_data))
                && (int)$role_arr['status'] === self::STATUS_SUSPENDED;
     }
 
-    public function is_predefined(int | array | PHS_Record_data $role_data) : bool
+    public function is_predefined(int | array | PHS_Record_data $role_data): bool
     {
         return ($role_arr = $this->data_to_array($role_data))
                && !empty($role_arr['predefined']);
     }
 
-    public function activate_role(int | array | PHS_Record_data $role_data) : ?array
+    public function activate_role(int | array | PHS_Record_data $role_data): ?array
     {
         $this->reset_error();
 
@@ -116,7 +116,7 @@ class PHS_Model_Roles extends PHS_Model
         return $new_role;
     }
 
-    public function inactivate_role(int | array | PHS_Record_data $role_data) : ?array
+    public function inactivate_role(int | array | PHS_Record_data $role_data): ?array
     {
         $this->reset_error();
 
@@ -145,7 +145,7 @@ class PHS_Model_Roles extends PHS_Model
         return $new_role;
     }
 
-    public function delete_role(int | array | PHS_Record_data $role_data) : ?array
+    public function delete_role(int | array | PHS_Record_data $role_data): ?array
     {
         $this->reset_error();
 
@@ -188,7 +188,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return string Returns string containing resulting slug
      */
-    public function transform_string_to_slug(string $str) : string
+    public function transform_string_to_slug(string $str): string
     {
         $str = trim($str);
         if (empty($str)) {
@@ -198,7 +198,7 @@ class PHS_Model_Roles extends PHS_Model
         return str_replace('__', '_', @preg_replace('/[^a-zA-Z0-9_]+/', '_', $str));
     }
 
-    public function get_all_role_units(bool $force = false) : array
+    public function get_all_role_units(bool $force = false): array
     {
         static $all_role_units = null;
 
@@ -225,7 +225,7 @@ class PHS_Model_Roles extends PHS_Model
         return $all_role_units;
     }
 
-    public function get_all_role_units_by_slug(bool $force = false) : array
+    public function get_all_role_units_by_slug(bool $force = false): array
     {
         static $all_role_units = null;
 
@@ -246,12 +246,12 @@ class PHS_Model_Roles extends PHS_Model
         return $all_role_units;
     }
 
-    public function get_role_unit_by_slug(string $slug, bool $force = false) : ?array
+    public function get_role_unit_by_slug(string $slug, bool $force = false): ?array
     {
         return $this->get_all_role_units_by_slug($force)[$slug] ?? null;
     }
 
-    public function get_all_role_units_by_slug_list(array $slug_arr, bool $force = false) : array
+    public function get_all_role_units_by_slug_list(array $slug_arr, bool $force = false): array
     {
         if (!$slug_arr
             || !($role_units_arr = $this->get_all_role_units_by_slug($force))) {
@@ -270,7 +270,7 @@ class PHS_Model_Roles extends PHS_Model
         return $return_arr;
     }
 
-    public function get_all_roles(bool $force = false) : array
+    public function get_all_roles(bool $force = false): array
     {
         static $all_roles = null;
 
@@ -294,7 +294,7 @@ class PHS_Model_Roles extends PHS_Model
         return $all_roles;
     }
 
-    public function get_all_roles_by_slug(bool $force = false) : array
+    public function get_all_roles_by_slug(bool $force = false): array
     {
         static $all_roles = null;
 
@@ -315,12 +315,12 @@ class PHS_Model_Roles extends PHS_Model
         return $all_roles;
     }
 
-    public function get_role_by_slug($slug, $force = false) : ?array
+    public function get_role_by_slug($slug, $force = false): ?array
     {
         return $this->get_all_roles_by_slug($force)[$slug] ?? null;
     }
 
-    public function get_all_roles_by_slug_list(array $slug_arr, bool $force = false) : array
+    public function get_all_roles_by_slug_list(array $slug_arr, bool $force = false): array
     {
         if (empty($slug_arr)
             || !($roles_arr = $this->get_all_roles_by_slug($force))) {
@@ -339,7 +339,7 @@ class PHS_Model_Roles extends PHS_Model
         return $return_arr;
     }
 
-    public function get_roles_ids_for_roles_units_list($role_units_arr) : array
+    public function get_roles_ids_for_roles_units_list($role_units_arr): array
     {
         if (empty($role_units_arr) || !is_array($role_units_arr)
          || !($flow_params = $this->fetch_default_flow_params(['table_name' => 'roles_units_links']))
@@ -359,7 +359,7 @@ class PHS_Model_Roles extends PHS_Model
         return $return_arr;
     }
 
-    public function get_roles_ids_for_roles_units_list_grouped($role_units_arr) : array
+    public function get_roles_ids_for_roles_units_list_grouped($role_units_arr): array
     {
         if (empty($role_units_arr) || !is_array($role_units_arr)
          || !($flow_params = $this->fetch_default_flow_params(['table_name' => 'roles_units_links']))
@@ -384,7 +384,7 @@ class PHS_Model_Roles extends PHS_Model
         return $return_arr;
     }
 
-    public function get_role_ids_for_user(int $user_id) : array
+    public function get_role_ids_for_user(int $user_id): array
     {
         $this->reset_error();
 
@@ -404,7 +404,7 @@ class PHS_Model_Roles extends PHS_Model
         return $return_arr;
     }
 
-    public function get_role_unit_ids_for_role(int $role_id) : array
+    public function get_role_unit_ids_for_role(int $role_id): array
     {
         $this->reset_error();
 
@@ -432,7 +432,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return array
      */
-    public function roles_list_to_ids(array $roles_arr, bool $fresh_roles = false) : array
+    public function roles_list_to_ids(array $roles_arr, bool $fresh_roles = false): array
     {
         if (empty($roles_arr)) {
             return [];
@@ -476,7 +476,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return array
      */
-    public function role_units_list_to_ids(array $role_units_arr, bool $fresh_role_units = false) : array
+    public function role_units_list_to_ids(array $role_units_arr, bool $fresh_role_units = false): array
     {
         if (empty($role_units_arr)) {
             return [];
@@ -512,7 +512,7 @@ class PHS_Model_Roles extends PHS_Model
         return array_keys($unit_ids_arr);
     }
 
-    public function unlink_all_role_units_from_role(int | array | PHS_Record_data $role_data) : bool
+    public function unlink_all_role_units_from_role(int | array | PHS_Record_data $role_data): bool
     {
         $this->reset_error();
 
@@ -541,7 +541,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return bool
      */
-    public function unlink_role_units_from_role(int | array | PHS_Record_data $role_data, array $role_units_arr) : bool
+    public function unlink_role_units_from_role(int | array | PHS_Record_data $role_data, array $role_units_arr): bool
     {
         $this->reset_error();
 
@@ -576,7 +576,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return bool
      */
-    public function link_role_units_to_role(int | array | PHS_Record_data $role_data, array $role_units_arr, ?array $params = null) : bool
+    public function link_role_units_to_role(int | array | PHS_Record_data $role_data, array $role_units_arr, ?array $params = null): bool
     {
         $this->reset_error();
 
@@ -659,7 +659,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return bool
      */
-    public function unlink_roles_from_user(int | array | PHS_Record_data $account_data, string | array $roles_arr) : bool
+    public function unlink_roles_from_user(int | array | PHS_Record_data $account_data, string | array $roles_arr): bool
     {
         if (!$this->_load_dependencies()) {
             return false;
@@ -706,7 +706,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return bool
      */
-    public function unlink_all_roles_from_user(int | array | PHS_Record_data $account_data) : bool
+    public function unlink_all_roles_from_user(int | array | PHS_Record_data $account_data): bool
     {
         if (!$this->_load_dependencies()) {
             return false;
@@ -736,7 +736,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return bool
      */
-    public function unlink_role_from_all_users(int | array | PHS_Record_data $role_data) : bool
+    public function unlink_role_from_all_users(int | array | PHS_Record_data $role_data): bool
     {
         $this->reset_error();
 
@@ -766,7 +766,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return bool
      */
-    public function account_roles_changed(int | array | PHS_Record_data $account_data, array $roles_arr) : bool
+    public function account_roles_changed(int | array | PHS_Record_data $account_data, array $roles_arr): bool
     {
         if (!$this->_load_dependencies()) {
             return false;
@@ -781,7 +781,7 @@ class PHS_Model_Roles extends PHS_Model
 
         return !self::arrays_have_same_values(
             $this->get_role_ids_for_user($account_arr['id']) ?: [],
-            $this->roles_list_to_ids($roles_arr, true) ?: []
+            $this->roles_list_to_ids($roles_arr, true) ?: [],
         );
     }
 
@@ -794,7 +794,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return bool
      */
-    public function link_roles_to_user(int | array | PHS_Record_data $account_data, string | array $roles_arr, array $params = []) : bool
+    public function link_roles_to_user(int | array | PHS_Record_data $account_data, string | array $roles_arr, array $params = []): bool
     {
         $params['append_roles'] = !isset($params['append_roles']) || !empty($params['append_roles']);
 
@@ -884,7 +884,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return array False on error or an array of slugs for provided role
      */
-    public function get_role_role_units_slugs(int | string | array | PHS_Record_data $role_data) : array
+    public function get_role_role_units_slugs(int | string | array | PHS_Record_data $role_data): array
     {
         if (!($flow_params_ru = $this->fetch_default_flow_params(['table_name' => 'roles_units']))
          || !($flow_params_rul = $this->fetch_default_flow_params(['table_name' => 'roles_units_links']))
@@ -915,7 +915,7 @@ class PHS_Model_Roles extends PHS_Model
      *
      * @return array array of slugs for provided roles
      */
-    public function get_role_units_slugs_from_roles_slugs(int | array | string | PHS_Record_data $roles_slugs) : array
+    public function get_role_units_slugs_from_roles_slugs(int | array | string | PHS_Record_data $roles_slugs): array
     {
         if (!is_array($roles_slugs)) {
             $roles_slugs = [$roles_slugs];
@@ -955,7 +955,7 @@ class PHS_Model_Roles extends PHS_Model
      * @return array|bool False if logical operation doesn't match list of roles with roles assigned to
      *                    provided account or an array with account details and matched roles slugs
      */
-    public function user_has_roles(int | array | PHS_Record_data $account_data, string | array $roles_list, array $params = []) : ?array
+    public function user_has_roles(int | array | PHS_Record_data $account_data, string | array $roles_list, array $params = []): ?array
     {
         if (!$this->_load_dependencies()) {
             return null;
@@ -1048,7 +1048,7 @@ class PHS_Model_Roles extends PHS_Model
      * @return array|bool False if logical operation doesn't match list of role units with role units assigned
      *                    to provided account or an array with account details and matched role units slugs
      */
-    public function user_has_role_units(int | array | PHS_Record_data $account_data, string | array $role_units_list, array $params = []) : ?array
+    public function user_has_role_units(int | array | PHS_Record_data $account_data, string | array $role_units_list, array $params = []): ?array
     {
         $this->reset_error();
 
@@ -1125,7 +1125,7 @@ class PHS_Model_Roles extends PHS_Model
         return $return_arr;
     }
 
-    public function get_user_roles_slugs(int | array | PHS_Record_data $account_data) : ?array
+    public function get_user_roles_slugs(int | array | PHS_Record_data $account_data): ?array
     {
         $this->reset_error();
 
@@ -1158,7 +1158,7 @@ class PHS_Model_Roles extends PHS_Model
         return $return_arr;
     }
 
-    public function get_user_role_units_slugs(int | array | PHS_Record_data $account_data) : ?array
+    public function get_user_role_units_slugs(int | array | PHS_Record_data $account_data): ?array
     {
         $this->reset_error();
 
@@ -1199,7 +1199,7 @@ class PHS_Model_Roles extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;
@@ -1352,7 +1352,7 @@ class PHS_Model_Roles extends PHS_Model
         return $return_arr;
     }
 
-    protected function _relations_definition() : void
+    protected function _relations_definition(): void
     {
         $this->relation_many_to_many('role_units_slugs',
             self::class, 'id',
@@ -1362,7 +1362,7 @@ class PHS_Model_Roles extends PHS_Model
             source_flow: ['table_name' => 'roles'],
             filter_fn: function(PHS_Record_data $role_data, mixed $read_value) {
                 return $role_data['slug'] ?? '';
-            }
+            },
         );
     }
 
@@ -1418,7 +1418,7 @@ class PHS_Model_Roles extends PHS_Model
         return $params;
     }
 
-    protected function insert_after_roles(array $insert_arr, array $params) : ?array
+    protected function insert_after_roles(array $insert_arr, array $params): ?array
     {
         if (!empty($params['{role_units}']) && is_array($params['{role_units}'])) {
             if (empty($params['{role_units_params}'])) {
@@ -1694,7 +1694,7 @@ class PHS_Model_Roles extends PHS_Model
         return $params;
     }
 
-    private function _load_dependencies() : bool
+    private function _load_dependencies(): bool
     {
         $this->reset_error();
 
@@ -1712,7 +1712,7 @@ class PHS_Model_Roles extends PHS_Model
      * Returns an array of key-values of fields that should edit role unit in case role unit already exists
      * @return array
      */
-    public static function get_register_edit_role_unit_fields() : array
+    public static function get_register_edit_role_unit_fields(): array
     {
         return [
             'name'        => '',

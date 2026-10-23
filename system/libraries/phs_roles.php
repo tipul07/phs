@@ -31,7 +31,7 @@ class PHS_Roles extends PHS_Registry
     /** @var null|PHS_Model_Roles */
     private static ?PHS_Model_Roles $_role_model = null;
 
-    public static function transform_string_to_slug($str) : ?string
+    public static function transform_string_to_slug($str): ?string
     {
         self::st_reset_error();
 
@@ -45,8 +45,8 @@ class PHS_Roles extends PHS_Registry
     public static function user_has_role(
         null | bool | int | array | PHS_Record_data $account_data,
         string | array $role_list,
-        array $params = []
-    ) : ?array {
+        array $params = [],
+    ): ?array {
         if (!self::load_dependencies()) {
             return null;
         }
@@ -65,8 +65,8 @@ class PHS_Roles extends PHS_Registry
     public static function user_has_role_units(
         null | bool | int | array | PHS_Record_data $account_data,
         string | array $role_units_list,
-        ?array $params = []
-    ) : ?array {
+        ?array $params = [],
+    ): ?array {
         if (!self::load_dependencies()) {
             return null;
         }
@@ -84,7 +84,7 @@ class PHS_Roles extends PHS_Registry
         return $return_arr;
     }
 
-    public static function get_user_roles_slugs(null | bool | int | array | PHS_Record_data $account_data) : ?array
+    public static function get_user_roles_slugs(null | bool | int | array | PHS_Record_data $account_data): ?array
     {
         if (!self::load_dependencies()) {
             return null;
@@ -101,7 +101,7 @@ class PHS_Roles extends PHS_Registry
         return $slugs_arr;
     }
 
-    public static function get_user_role_units_slugs(null | bool | int | array | PHS_Record_data $account_data) : ?array
+    public static function get_user_role_units_slugs(null | bool | int | array | PHS_Record_data $account_data): ?array
     {
         if (!self::load_dependencies()) {
             return null;
@@ -118,7 +118,7 @@ class PHS_Roles extends PHS_Registry
         return $slugs_arr;
     }
 
-    public static function get_role_role_units_slugs(int | string | array | PHS_Record_data $role_data) : ?array
+    public static function get_role_role_units_slugs(int | string | array | PHS_Record_data $role_data): ?array
     {
         self::st_reset_error();
 
@@ -139,7 +139,7 @@ class PHS_Roles extends PHS_Registry
         return $slugs_arr;
     }
 
-    public static function get_role_units_slugs_from_roles_slugs(int | string | array | PHS_Record_data $roles_slugs) : ?array
+    public static function get_role_units_slugs_from_roles_slugs(int | string | array | PHS_Record_data $roles_slugs): ?array
     {
         if (!self::load_dependencies()) {
             return null;
@@ -158,7 +158,7 @@ class PHS_Roles extends PHS_Registry
         return $slugs_arr;
     }
 
-    public static function link_roles_to_user(int | array | PHS_Record_data $account_data, $role_data, array $params = []) : bool
+    public static function link_roles_to_user(int | array | PHS_Record_data $account_data, $role_data, array $params = []): bool
     {
         if (!self::load_dependencies()) {
             return false;
@@ -173,7 +173,7 @@ class PHS_Roles extends PHS_Registry
         return true;
     }
 
-    public static function unlink_roles_from_user(int | array | PHS_Record_data $account_data, string | array $role_data) : bool
+    public static function unlink_roles_from_user(int | array | PHS_Record_data $account_data, string | array $role_data): bool
     {
         if (!self::load_dependencies()) {
             return false;
@@ -188,7 +188,7 @@ class PHS_Roles extends PHS_Registry
         return true;
     }
 
-    public static function unlink_all_roles_from_user(int | array | PHS_Record_data $account_data) : bool
+    public static function unlink_all_roles_from_user(int | array | PHS_Record_data $account_data): bool
     {
         if (!self::load_dependencies()) {
             return false;
@@ -203,7 +203,7 @@ class PHS_Roles extends PHS_Registry
         return true;
     }
 
-    public static function register_role(array $params) : ?array
+    public static function register_role(array $params): ?array
     {
         if (!self::load_dependencies()) {
             return null;
@@ -305,7 +305,7 @@ class PHS_Roles extends PHS_Registry
      *
      * @return null|array
      */
-    public static function register_role_unit(array $params) : ?array
+    public static function register_role_unit(array $params): ?array
     {
         self::st_reset_error();
 
@@ -390,7 +390,7 @@ class PHS_Roles extends PHS_Registry
         return $role_unit_arr;
     }
 
-    private static function load_dependencies() : bool
+    private static function load_dependencies(): bool
     {
         self::st_reset_error();
 

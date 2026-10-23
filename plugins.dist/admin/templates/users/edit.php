@@ -55,7 +55,7 @@ if (!empty($back_page)) {
         <h3><?php echo $this->_pt('Edit User Account'); ?></h3>
     </section>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label for="nick" class="col-sm-2 col-form-label"><?php echo $this->_pt('Username'); ?></label>
         <div class="col-sm-10">
             <input type="text" id="nick" name="nick" class="form-control"
@@ -64,7 +64,7 @@ if (!empty($back_page)) {
         </div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label for="email" class="col-sm-2 col-form-label"><?php echo $this->_pt('Email'); ?></label>
         <div class="col-sm-10">
             <input type="text" id="email" name="email" class="form-control" autocomplete="email"
@@ -73,7 +73,7 @@ if (!empty($back_page)) {
         </div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label for="level" class="col-sm-2 col-form-label"><?php echo $this->_pt('Level'); ?></label>
         <div class="col-sm-10"><?php
         if ((int)$account_arr['level'] === (int)$current_user['level']) {
@@ -99,7 +99,7 @@ if (!empty($back_page)) {
         </div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label for="account_current_roles" class="col-sm-2 col-form-label"><?php echo $this->_pt('Roles'); ?></label>
         <div class="col-sm-10">
             <div id="account_current_roles"></div>
@@ -111,7 +111,7 @@ if (!empty($back_page)) {
     <?php
     if ($is_multi_tenant) {
         ?>
-    <div class="form-group row">
+    <div class="row mb-2">
         <label for="account_current_tenants" class="col-sm-2 col-form-label"><?php echo $this->_pt('Tenants'); ?></label>
         <div class="col-sm-10">
             <div id="account_current_tenants"></div>
@@ -121,7 +121,7 @@ if (!empty($back_page)) {
     </div>
     <?php } ?>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label for="title" class="col-sm-2 col-form-label"><?php echo $this->_pt('Title'); ?></label>
         <div class="col-sm-10">
             <input type="text" id="title" name="title" class="form-control"
@@ -131,7 +131,7 @@ if (!empty($back_page)) {
         </div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label for="fname" class="col-sm-2 col-form-label"><?php echo $this->_pt('First Name'); ?></label>
         <div class="col-sm-10">
             <input type="text" id="fname" name="fname" class="form-control" autocomplete="fname"
@@ -139,7 +139,7 @@ if (!empty($back_page)) {
         </div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label for="lname" class="col-sm-2 col-form-label"><?php echo $this->_pt('Last Name'); ?></label>
         <div class="col-sm-10">
             <input type="text" id="lname" name="lname" class="form-control" autocomplete="lname"
@@ -147,7 +147,7 @@ if (!empty($back_page)) {
         </div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label for="phone" class="col-sm-2 col-form-label"><?php echo $this->_pt('Phone Number'); ?></label>
         <div class="col-sm-10">
             <input type="text" id="phone" name="phone" class="form-control" autocomplete="phone"
@@ -155,7 +155,7 @@ if (!empty($back_page)) {
         </div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label for="company" class="col-sm-2 col-form-label"><?php echo $this->_pt('Company'); ?></label>
         <div class="col-sm-10">
             <input type="text" id="company" name="company" class="form-control" autocomplete="company"
@@ -167,7 +167,7 @@ if (!empty($back_page)) {
         <small><?php echo $this->_pt('Complete password fields ony if you want to change password'); ?></small>
     </fieldset>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label for="pass" class="col-sm-2 col-form-label"><?php echo $this->_pt('Password'); ?></label>
         <div class="col-sm-10">
         <input type="password" id="pass" name="pass" class="form-control" autocomplete="pass"
@@ -197,7 +197,7 @@ if (!empty($pass_regexp)) {
         </div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label for="pass2" class="col-sm-2 col-form-label"><?php echo $this->_pt('Password'); ?> (<?php echo $this->_pt('confirm'); ?>)</label>
         <div class="col-sm-10">
             <input type="password" id="pass2" name="pass2" class="form-control"
@@ -206,10 +206,12 @@ if (!empty($pass_regexp)) {
         </div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
+        <div class="col">
         <input type="submit" id="do_submit" name="do_submit"
                class="btn btn-primary submit-protection ignore_hidden_required"
                value="<?php echo $this->_pt('Save Changes'); ?>" />
+        </div>
     </div>
 
 </div>

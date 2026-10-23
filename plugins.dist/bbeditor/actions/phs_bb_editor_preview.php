@@ -10,7 +10,7 @@ use phs\plugins\bbeditor\libraries\Bbcode;
 
 class PHS_Action_Bb_editor_preview extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_AJAX, PHS_Scope::SCOPE_WEB];
     }

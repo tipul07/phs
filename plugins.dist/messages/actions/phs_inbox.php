@@ -10,7 +10,9 @@ use phs\plugins\messages\PHS_Plugin_Messages;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\messages\models\PHS_Model_Messages;
 
-/** @property PHS_Model_Messages $_paginator_model */
+/**
+ * @property PHS_Model_Messages $_paginator_model
+ */
 class PHS_Action_Inbox extends PHS_Action_Generic_list
 {
     private ?PHS_Model_Roles $_roles_model = null;
@@ -22,7 +24,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function should_stop_execution() : ?array
+    public function should_stop_execution(): ?array
     {
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -42,7 +44,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function load_paginator_params() : ?array
+    public function load_paginator_params(): ?array
     {
         PHS::page_settings('page_title', $this->_pt('Inbox'));
 
@@ -224,7 +226,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    public function manage_action(array $action) : null | bool | array
+    public function manage_action(array $action): null | bool | array
     {
         $messages_plugin = $this->_messages_plugin;
 
@@ -395,12 +397,12 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_hide_id(array $params) : string
+    public function display_hide_id(array $params): string
     {
         return '';
     }
 
-    public function display_subject(array $params) : ?string
+    public function display_subject(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
             return null;
@@ -416,7 +418,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         return $extra_str.'<a href="'.$message_link.'">'.$params['record']['subject'].'</a> <span>['.$params['record']['m_thread_count'].']</span>';
     }
 
-    public function display_from(array $params) : ?string
+    public function display_from(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
             return null;
@@ -430,7 +432,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         return $params['record']['from_handle'];
     }
 
-    public function display_to(array $params) : ?string
+    public function display_to(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
             return null;
@@ -498,7 +500,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         return $destination_str;
     }
 
-    public function display_last_reply(array $params) : ?string
+    public function display_last_reply(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
             return null;
@@ -509,7 +511,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         return $this->_paginator->pretty_date($params);
     }
 
-    public function display_actions(array $params) : ?string
+    public function display_actions(array $params): ?string
     {
         if (!$this->_paginator->is_cell_rendering_for_html($params)) {
             return '-';
@@ -532,7 +534,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
         return ob_get_clean() ?: '';
     }
 
-    public function after_table_callback(array $params) : string
+    public function after_table_callback(array $params): string
     {
         static $js_functionality = false;
 
@@ -615,7 +617,7 @@ class PHS_Action_Inbox extends PHS_Action_Generic_list
             return ob_get_clean() ?: '';
     }
 
-    protected function _load_dependencies() : bool
+    protected function _load_dependencies(): bool
     {
         if ((!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Messages::get_instance()))
             || (!$this->_accounts_model && !($this->_accounts_model = PHS_Model_Accounts::get_instance()))

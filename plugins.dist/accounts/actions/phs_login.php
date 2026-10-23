@@ -18,7 +18,7 @@ class PHS_Action_Login extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_LOGIN];
     }
@@ -26,7 +26,7 @@ class PHS_Action_Login extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB];
     }
@@ -142,7 +142,7 @@ class PHS_Action_Login extends PHS_Action
                     ) {
                         return action_redirect(
                             ['p' => 'accounts', 'ad' => 'tfa', 'a' => 'setup'],
-                            empty($back_page) ? [] : ['back_page' => $back_page]
+                            empty($back_page) ? [] : ['back_page' => $back_page],
                         );
                     }
 
@@ -160,7 +160,7 @@ class PHS_Action_Login extends PHS_Action
 
                 PHS_Notifications::add_error_notice(
                     $accounts_plugin->get_simple_error_message(
-                        $this->_pt('Error logging in... Please try again.'))
+                        $this->_pt('Error logging in... Please try again.')),
                 );
             }
 

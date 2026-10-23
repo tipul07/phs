@@ -17,32 +17,32 @@ class PHS_Model_Agent_jobs_monitor extends PHS_Model
         self::STATUS_ERROR   => ['title' => 'Error'],
     ];
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.0.0';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['bg_agent_monitor'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'bg_agent_monitor';
     }
 
-    public function job_started(int | array | PHS_Record_data $job_data) : null | array | PHS_Record_data
+    public function job_started(int | array | PHS_Record_data $job_data): null | array | PHS_Record_data
     {
         return $this->_add_job_monitor_record($job_data, self::STATUS_STARTED);
     }
 
-    public function job_success(int | array | PHS_Record_data $job_data) : null | array | PHS_Record_data
+    public function job_success(int | array | PHS_Record_data $job_data): null | array | PHS_Record_data
     {
         return $this->_add_job_monitor_record($job_data, self::STATUS_SUCCESS);
     }
 
-    public function job_error(int | array | PHS_Record_data $job_data, string $error_msg, int $error_code) : null | array | PHS_Record_data
+    public function job_error(int | array | PHS_Record_data $job_data, string $error_msg, int $error_code): null | array | PHS_Record_data
     {
         return $this->_add_job_monitor_record($job_data, self::STATUS_ERROR, $error_msg, $error_code);
     }
@@ -50,7 +50,7 @@ class PHS_Model_Agent_jobs_monitor extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;
@@ -188,7 +188,7 @@ class PHS_Model_Agent_jobs_monitor extends PHS_Model
         return $params;
     }
 
-    private function _add_job_monitor_record(int | array | PHS_Record_data $job_data, int $status, ?string $error_msg = null, int $error_code = 0) : null | array | PHS_Record_data
+    private function _add_job_monitor_record(int | array | PHS_Record_data $job_data, int $status, ?string $error_msg = null, int $error_code = 0): null | array | PHS_Record_data
     {
         $this->reset_error();
 

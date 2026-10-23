@@ -6,7 +6,7 @@ use phs\PHS_Tenants;
 
 abstract class PHS_Has_db_registry extends PHS_Has_db_settings
 {
-    public function get_db_registry_details(?int $tenant_id = null, bool $force = false) : ?array
+    public function get_db_registry_details(?int $tenant_id = null, bool $force = false): ?array
     {
         if (!$this->_load_plugins_instance()) {
             return null;
@@ -22,7 +22,7 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         return $this->_plugins_instance->get_db_registry($this->instance_id(), $tenant_id, $force);
     }
 
-    public function get_db_registry(?int $tenant_id = null, bool $force = false) : ?array
+    public function get_db_registry(?int $tenant_id = null, bool $force = false): ?array
     {
         if (!$this->_load_plugins_instance()) {
             return null;
@@ -38,7 +38,7 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         return $this->_plugins_instance->get_plugins_db_registry($this->instance_id(), $tenant_id, $force);
     }
 
-    public function save_db_registry(array $registry_arr, ?int $tenant_id = null) : ?array
+    public function save_db_registry(array $registry_arr, ?int $tenant_id = null): ?array
     {
         if (!$this->_load_plugins_instance()) {
             return null;
@@ -54,7 +54,7 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         return $this->_plugins_instance->save_plugins_db_registry($registry_arr, $this->instance_id(), $tenant_id);
     }
 
-    public function update_db_registry(array $registry_part_arr, ?int $tenant_id = null) : ?array
+    public function update_db_registry(array $registry_part_arr, ?int $tenant_id = null): ?array
     {
         if (empty($registry_part_arr)) {
             return null;
@@ -63,12 +63,12 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         return $this->save_db_registry(self::merge_array_assoc($this->get_db_registry($tenant_id), $registry_part_arr), $tenant_id);
     }
 
-    public function clean_db_registry(?int $tenant_id = null) : ?array
+    public function clean_db_registry(?int $tenant_id = null): ?array
     {
         return $this->save_db_registry([], $tenant_id);
     }
 
-    public function delete_db_registry(?int $tenant_id = null) : bool
+    public function delete_db_registry(?int $tenant_id = null): bool
     {
         if (!$this->_load_plugins_instance()) {
             return false;
@@ -91,7 +91,7 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         return true;
     }
 
-    public function delete_all_db_registry() : bool
+    public function delete_all_db_registry(): bool
     {
         if (!$this->_load_plugins_instance()
             || !$this->_plugins_instance->delete_all_db_registry($this->instance_id())) {
@@ -104,7 +104,7 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
         return true;
     }
 
-    public function get_db_registry_fields_settings() : array
+    public function get_db_registry_fields_settings(): array
     {
         if (!($registry_fields = $this->_db_registry_fields_settings())) {
             return [];
@@ -125,12 +125,12 @@ abstract class PHS_Has_db_registry extends PHS_Has_db_settings
      *
      * @return array
      */
-    protected function _db_registry_fields_settings() : array
+    protected function _db_registry_fields_settings(): array
     {
         return [];
     }
 
-    private static function _default_db_registry_fields_settings() : array
+    private static function _default_db_registry_fields_settings(): array
     {
         return [
             'readonly'       => false,

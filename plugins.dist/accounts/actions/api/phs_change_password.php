@@ -15,7 +15,7 @@ class PHS_Action_Change_password extends PHS_Api_action
     /**
      * @inheritdoc
      */
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_CHANGE_PASSWORD];
     }
@@ -63,7 +63,7 @@ class PHS_Action_Change_password extends PHS_Api_action
             return $this->send_api_error(
                 PHS_Api_base::H_CODE_BAD_REQUEST,
                 $accounts_model::ERR_CHANGE_PASS,
-                $accounts_plugin->get_simple_error_message($this->_pt('Error changing account password. Please try again.'))
+                $accounts_plugin->get_simple_error_message($this->_pt('Error changing account password. Please try again.')),
             );
         }
 

@@ -24,17 +24,17 @@ class PHSMaintenance extends PHS_Cli
 
     public const ITEM_TYPE_EVENT = 'event', ITEM_TYPE_MIGRATION = 'migration', ITEM_TYPE_GQLTYPE = 'gqltype';
 
-    public function get_app_dir() : string
+    public function get_app_dir(): string
     {
         return __DIR__.'/';
     }
 
-    public function cli_maintenance_output($msg) : void
+    public function cli_maintenance_output($msg): void
     {
         $this->_echo($msg);
     }
 
-    public function cmd_plugin_action() : bool
+    public function cmd_plugin_action(): bool
     {
         if (null === ($plugins_dirs_arr = $this->get_plugins_as_dirs())) {
             $this->_echo_error(self::_t('Couldn\'t obtain plugins list: %s', $this->get_simple_error_message()));
@@ -170,7 +170,7 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    public function cmd_make_items() : bool
+    public function cmd_make_items(): bool
     {
         $this->reset_error();
 
@@ -237,13 +237,13 @@ class PHSMaintenance extends PHS_Cli
             $this->cli_color(self::_t('SUCCESS'), 'green'),
             $this->cli_color($item_type, 'white'),
             $this->cli_color($result_arr['destination_dir'].'/'.$result_arr['file_name'], 'white'),
-            $this->cli_color($plugin_name, 'white')
+            $this->cli_color($plugin_name, 'white'),
         ));
 
         return true;
     }
 
-    public function cmd_setup_action() : bool
+    public function cmd_setup_action(): bool
     {
         $this->reset_error();
 
@@ -270,7 +270,7 @@ class PHSMaintenance extends PHS_Cli
 
         $this->_echo(self::_t('Running action %s using action file %s...',
             $this->cli_color($action, 'white'),
-            $this->cli_color(($action_file ?: 'N/A'), 'white'))
+            $this->cli_color(($action_file ?: 'N/A'), 'white')),
         );
 
         if ($action === 'export') {
@@ -289,7 +289,7 @@ class PHSMaintenance extends PHS_Cli
     // endregion setup action
     //
 
-    public function cmd_web_update() : bool
+    public function cmd_web_update(): bool
     {
         $this->reset_error();
 
@@ -301,14 +301,14 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    public function cmd_dry_update() : bool
+    public function cmd_dry_update(): bool
     {
         $this->set_output_colors(false);
 
         return $this->cmd_update(true);
     }
 
-    public function cmd_update(bool $dry_run = false) : bool
+    public function cmd_update(bool $dry_run = false): bool
     {
         $this->reset_error();
 
@@ -379,7 +379,7 @@ class PHSMaintenance extends PHS_Cli
             $this->_echo('Update stats:');
             $this->_echo('DB queries: '.$debug_data['db_queries_count'].', '
                           .'bootstrap time: '.number_format($debug_data['bootstrap_time'], 6, '.', '').'s, '
-                          .'running time: '.number_format($debug_data['running_time'], 6, '.', '').'s.'
+                          .'running time: '.number_format($debug_data['running_time'], 6, '.', '').'s.',
             );
         }
 
@@ -391,7 +391,7 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    public function cmd_list_plugins() : bool
+    public function cmd_list_plugins(): bool
     {
         if (null === ($plugins_dirs_arr = $this->get_plugins_as_dirs())) {
             $this->_echo_error(self::_t('Couldn\'t obtain plugins list: %s', $this->get_simple_error_message()));
@@ -450,12 +450,12 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    protected function _get_app_options_definition() : array
+    protected function _get_app_options_definition(): array
     {
         return [];
     }
 
-    protected function _get_app_commands_definition() : array
+    protected function _get_app_commands_definition(): array
     {
         return [
             'phs_setup' => [
@@ -501,7 +501,7 @@ class PHSMaintenance extends PHS_Cli
         ];
     }
 
-    protected function _init_app() : bool
+    protected function _init_app(): bool
     {
         $this->reset_error();
 
@@ -510,7 +510,7 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    private function _display_items_command_usage() : void
+    private function _display_items_command_usage(): void
     {
         $this->_echo('Usage: '.$this->get_app_cli_script().' [options] make [item] [plugin] [options]');
         $this->_echo('Available item types: '.implode(', ', self::_get_items_command_valid_item_types()).'.');
@@ -520,8 +520,8 @@ class PHSMaintenance extends PHS_Cli
     private function _create_file_for_stub(
         string $item_type, string $item_name, string $item_path,
         string $destination_dir,
-        PHS_Plugin $plugin
-    ) : ?array {
+        PHS_Plugin $plugin,
+    ): ?array {
         $this->reset_error();
 
         if (!($file_details = $this->_get_stub_item_destination_file_details($item_type, $item_path, $item_name))
@@ -571,7 +571,7 @@ class PHSMaintenance extends PHS_Cli
         string $class_name,
         PHS_Plugin $plugin,
         string $class_namespace = '',
-    ) : ?string {
+    ): ?string {
         $context = [
             '__PLUGIN_NAME__'     => $plugin->instance_plugin_name(),
             '__CLASS_NAME__'      => $class_name,
@@ -581,7 +581,7 @@ class PHSMaintenance extends PHS_Cli
         return str_replace(array_keys($context), array_values($context), $buf);
     }
 
-    private function _get_stub_item_destination_file_details(string $item_type, string $item_path, string $item_name) : ?array
+    private function _get_stub_item_destination_file_details(string $item_type, string $item_path, string $item_name): ?array
     {
         $escaped_name = str_replace(' ', '_', strtolower($item_name));
 
@@ -615,7 +615,7 @@ class PHSMaintenance extends PHS_Cli
         return null;
     }
 
-    private function _get_stub_item_details(string $item_type, string $item_name_with_path) : ?array
+    private function _get_stub_item_details(string $item_type, string $item_name_with_path): ?array
     {
         $item_path = '';
         $item_name = @basename($item_name_with_path);
@@ -638,7 +638,7 @@ class PHSMaintenance extends PHS_Cli
         ];
     }
 
-    private function _get_stub_item_destination_dir(string $item_type, PHS_Plugin $plugin_obj) : ?string
+    private function _get_stub_item_destination_dir(string $item_type, PHS_Plugin $plugin_obj): ?string
     {
         if ($item_type === self::ITEM_TYPE_MIGRATION) {
             return $plugin_obj->instance_plugin_migrations_path();
@@ -661,7 +661,7 @@ class PHSMaintenance extends PHS_Cli
         return null;
     }
 
-    private function _get_stub_file_content(string $item_type) : ?string
+    private function _get_stub_file_content(string $item_type): ?string
     {
         if (!($stub_file = $this->_get_stub_file($item_type))) {
             return null;
@@ -670,7 +670,7 @@ class PHSMaintenance extends PHS_Cli
         return @file_get_contents($stub_file);
     }
 
-    private function _get_stub_file(string $item_type) : ?string
+    private function _get_stub_file(string $item_type): ?string
     {
         $stub_dirs = [];
         if (defined('PHS_CUSTOM_STUBS_DIR')) {
@@ -695,7 +695,7 @@ class PHSMaintenance extends PHS_Cli
         return null;
     }
 
-    private function _install_plugin(string $plugin_name) : bool
+    private function _install_plugin(string $plugin_name): bool
     {
         if (!($plugin_obj = PHS::load_plugin($plugin_name))) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error instantiating plugin.'));
@@ -725,7 +725,7 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    private function _uninstall_plugin(string $plugin_name) : bool
+    private function _uninstall_plugin(string $plugin_name): bool
     {
         if (!($plugin_obj = PHS::load_plugin($plugin_name))) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error instantiating plugin.'));
@@ -755,7 +755,7 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    private function _activate_plugin(string $plugin_name) : bool
+    private function _activate_plugin(string $plugin_name): bool
     {
         if (!($plugin_obj = PHS::load_plugin($plugin_name))) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error instantiating plugin.'));
@@ -777,7 +777,7 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    private function _inactivate_plugin(string $plugin_name) : bool
+    private function _inactivate_plugin(string $plugin_name): bool
     {
         if (!($plugin_obj = PHS::load_plugin($plugin_name))) {
             $this->set_error(self::ERR_FUNCTIONALITY, self::_t('Error instantiating plugin.'));
@@ -799,19 +799,19 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    private function _symlink_repository_directory_details($repo_dir) : void
+    private function _symlink_repository_directory_details($repo_dir): void
     {
         $this->_echo(self::_t('Please not that repository directory should be an absolute path to repository directory or a relative path from plugins directory.'));
         $this->_echo(self::_t('Eg. %s should point to repository directory from %s plugins directory.',
             $this->cli_color((!empty($repo_dir) ? $repo_dir : 'N/A'), 'white'),
-            $this->cli_color(PHS_PLUGINS_DIR, 'white')
+            $this->cli_color(PHS_PLUGINS_DIR, 'white'),
         ));
         $this->_echo(self::_t('Repository directory %s is invalid.',
-            $this->cli_color(PHS_PLUGINS_DIR.(!empty($repo_dir) ? $repo_dir : 'N/A'), 'white')
+            $this->cli_color(PHS_PLUGINS_DIR.(!empty($repo_dir) ? $repo_dir : 'N/A'), 'white'),
         ));
     }
 
-    private function _symlink_plugin($plugin_name) : bool
+    private function _symlink_plugin($plugin_name): bool
     {
         $repo_dir = $this->_get_argument_chained() ?: '';
 
@@ -820,7 +820,7 @@ class PHSMaintenance extends PHS_Cli
         if (!$repo_dir
             || !($real_path = PHS_Maintenance::convert_plugin_repo_to_real_path($repo_dir))) {
             $this->_echo_error(self::_t('Couldn\'t locate plugin repository directory %s.',
-                $this->cli_color((!empty($repo_dir) ? $repo_dir : 'N/A'), 'white')
+                $this->cli_color((!empty($repo_dir) ? $repo_dir : 'N/A'), 'white'),
             ));
 
             $this->_symlink_repository_directory_details($repo_dir);
@@ -832,7 +832,7 @@ class PHSMaintenance extends PHS_Cli
             $this->_echo_error(self::_t('Couldn\'t locate plugin %s in repository directory %s (real path %s).',
                 $this->cli_color($plugin_name, 'white'),
                 $this->cli_color($repo_dir, 'white'),
-                $this->cli_color($real_path, 'white')
+                $this->cli_color($real_path, 'white'),
             ));
 
             $this->_symlink_repository_directory_details($repo_dir);
@@ -854,7 +854,7 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    private function _unlink_plugin(string $plugin_name) : bool
+    private function _unlink_plugin(string $plugin_name): bool
     {
         if (!PHS_Maintenance::unlink_plugin($plugin_name)) {
             $error_msg = self::_t('Error unlinking the plugin');
@@ -876,17 +876,17 @@ class PHSMaintenance extends PHS_Cli
     //
     // region setup action
     //
-    private function _display_cmd_setup_action_usage() : void
+    private function _display_cmd_setup_action_usage(): void
     {
         $this->_echo('Usage: '.$this->get_app_cli_script().' [options] setup [export|import] {[action_json_file]}');
     }
 
-    private function _setup_do_export(?array $action_json_arr) : bool
+    private function _setup_do_export(?array $action_json_arr): bool
     {
         if (!($action_json_arr = $this->_validate_platform_export_action_json_structure($action_json_arr))) {
             $this->_set_and_echo_error(
                 $this->get_simple_error_message(self::_t('Error validating export JSON structure.')),
-                $this->get_error_code(self::ERR_PARAMETERS)
+                $this->get_error_code(self::ERR_PARAMETERS),
             );
 
             return false;
@@ -899,7 +899,7 @@ class PHSMaintenance extends PHS_Cli
         if (!$this->_do_platform_export_action_to_file($action_json_arr)) {
             $this->_set_and_echo_error(
                 $this->get_simple_error_message(self::_t('Error exporting data. Please try again.')),
-                $this->get_error_code(self::ERR_FUNCTIONALITY)
+                $this->get_error_code(self::ERR_FUNCTIONALITY),
             );
 
             return false;
@@ -914,7 +914,7 @@ class PHSMaintenance extends PHS_Cli
         }
 
         $this->_echo(self::_t('Exported settings to file %s.',
-            $this->cli_color($action_json_arr['export_full_file'] ?? 'N/A', 'white'))
+            $this->cli_color($action_json_arr['export_full_file'] ?? 'N/A', 'white')),
         );
 
         $this->_echo($this->cli_color('DONE', 'green'));
@@ -922,12 +922,12 @@ class PHSMaintenance extends PHS_Cli
         return true;
     }
 
-    private function _setup_do_import(?array $action_json_arr) : bool
+    private function _setup_do_import(?array $action_json_arr): bool
     {
         if (!($action_json_arr = $this->_validate_setup_action_import_json_structure($action_json_arr))) {
             $this->_set_and_echo_error(
                 $this->get_simple_error_message(self::_t('Error validating import JSON structure.')),
-                $this->get_error_code(self::ERR_PARAMETERS)
+                $this->get_error_code(self::ERR_PARAMETERS),
             );
 
             return false;
@@ -936,7 +936,7 @@ class PHSMaintenance extends PHS_Cli
         if (!$this->_do_platform_import_action($action_json_arr)) {
             $this->_set_and_echo_error(
                 $this->get_simple_error_message(self::_t('Error importing data. Please try again.')),
-                $this->get_error_code(self::ERR_FUNCTIONALITY)
+                $this->get_error_code(self::ERR_FUNCTIONALITY),
             );
 
             return false;
@@ -955,7 +955,7 @@ class PHSMaintenance extends PHS_Cli
         return false;
     }
 
-    private function _set_and_echo_error($error_msg, $error_code = self::ERR_FUNCTIONALITY, $force_set = true) : void
+    private function _set_and_echo_error($error_msg, $error_code = self::ERR_FUNCTIONALITY, $force_set = true): void
     {
         if ($force_set || !$this->has_error()) {
             $this->set_error($error_code, $error_msg);
@@ -969,22 +969,22 @@ class PHSMaintenance extends PHS_Cli
     //
     // region plugin action
     //
-    private static function _get_plugin_command_actions() : array
+    private static function _get_plugin_command_actions(): array
     {
         return ['info', 'install', 'uninstall', 'activate', 'inactivate', 'symlink', 'unlink'];
     }
 
-    private static function _get_plugin_command_actions_with_valid_plugins() : array
+    private static function _get_plugin_command_actions_with_valid_plugins(): array
     {
         return ['info', 'install', 'uninstall', 'activate', 'inactivate', 'unlink'];
     }
 
-    private static function _valid_items_command_item(string $item) : bool
+    private static function _valid_items_command_item(string $item): bool
     {
         return in_array($item, self::_get_items_command_valid_item_types(), true);
     }
 
-    private static function _get_items_command_valid_item_types() : array
+    private static function _get_items_command_valid_item_types(): array
     {
         return [self::ITEM_TYPE_MIGRATION, self::ITEM_TYPE_EVENT, self::ITEM_TYPE_GQLTYPE];
     }

@@ -2,7 +2,7 @@
 
 // Version main,php was installed with. In case there are variables / definitions that change in future releases
 // bootstrap.php will announce that main.php has to be updated
-define( 'PHS_KNOWN_VERSION', '1.3.1.0' );
+define( 'PHS_KNOWN_VERSION', '1.3.1.1' );
 
 // Site build version
 define( 'PHS_SITEBUILD_VERSION', '{{PHS_SITEBUILD_VERSION}}' ); // Default: 1.0.0
@@ -115,6 +115,7 @@ if( !defined( 'PHS_THEME' ) ) {
 }
 
 // Default crypting keys...
+define( 'PHS_DEFAULT_CRYPT_SODIUM_KEY', '{{PHS_CRYPT_SODIUM_KEY}}' );
 define( 'PHS_DEFAULT_CRYPT_KEY', '{{PHS_CRYPT_KEY}}' );
 global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 // You should use _new_crypt_keys.php script to generate new crypting internal keys before using platform.

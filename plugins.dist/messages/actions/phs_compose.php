@@ -14,7 +14,7 @@ use phs\plugins\messages\models\PHS_Model_Messages;
 
 class PHS_Action_Compose extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
@@ -281,7 +281,7 @@ class PHS_Action_Compose extends PHS_Action
 
             PHS_Notifications::add_error_notice(
                 $messages_model->get_simple_error_message(
-                    $this->_pt('Error sending message. Please try again.'))
+                    $this->_pt('Error sending message. Please try again.')),
             );
         }
 

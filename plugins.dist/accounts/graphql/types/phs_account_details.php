@@ -7,19 +7,19 @@ use phs\plugins\accounts\models\PHS_Model_Accounts_details;
 
 class PHS_Graphql_Account_details extends PHS_Graphql_Type
 {
-    public function get_model_flow_params() : array
+    public function get_model_flow_params(): array
     {
         return ['table_name' => 'users_details'];
     }
 
-    protected function _get_query_resolver_args() : array
+    protected function _get_query_resolver_args(): array
     {
         return [...parent::_get_query_resolver_args(), ...[
             'account_id' => ['type' => self::id()],
         ]];
     }
 
-    protected function _get_query_resolver() : Closure
+    protected function _get_query_resolver(): Closure
     {
         return function($root, array $args) {
             /** @var PHS_Model_Accounts_details $accounts_details_model */
@@ -39,17 +39,17 @@ class PHS_Graphql_Account_details extends PHS_Graphql_Type
         };
     }
 
-    public static function get_type_name() : string
+    public static function get_type_name(): string
     {
         return 'accountDetails';
     }
 
-    public static function get_type_description() : string
+    public static function get_type_description(): string
     {
         return 'Platform account details';
     }
 
-    public static function get_model_class() : ?string
+    public static function get_model_class(): ?string
     {
         return PHS_Model_Accounts_details::class;
     }

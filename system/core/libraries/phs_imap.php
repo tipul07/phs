@@ -38,7 +38,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
 
     private $fp;
 
-    public function fetch_all_as_string(string $uid) : ?string
+    public function fetch_all_as_string(string $uid): ?string
     {
         if (!($lines_arr = $this->fetch($uid, 'BODY[]'))) {
             return null;
@@ -47,7 +47,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
         return implode("\n", $lines_arr);
     }
 
-    public function fetch_all(string $uid) : ?array
+    public function fetch_all(string $uid): ?array
     {
         if (!($lines_arr = $this->fetch($uid, 'BODY[]'))) {
             return null;
@@ -56,7 +56,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
         return $lines_arr;
     }
 
-    public function fetch_headers(string $uid) : ?array
+    public function fetch_headers(string $uid): ?array
     {
         if (null === ($lines_arr = $this->fetch($uid, 'BODY.PEEK[HEADER]'))) {
             return null;
@@ -91,7 +91,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
         return $headers;
     }
 
-    public function fetch(string $uid, string $what = 'ALL') : ?array
+    public function fetch(string $uid, string $what = 'ALL'): ?array
     {
         $this->reset_error();
 
@@ -109,7 +109,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
                 PHS_Logger::warning(
                     'Could not fetch uid '.$uid.': '
                     .$this->get_simple_error_message('Unknown error'),
-                    $this->_logger
+                    $this->_logger,
                 );
             }
 
@@ -126,7 +126,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
             if ($this->_logger) {
                 PHS_Logger::warning(
                     'Could not fetch data for uid '.$uid.': '.$this->get_simple_error_message('Unknown error'),
-                    $this->_logger
+                    $this->_logger,
                 );
             }
 
@@ -140,17 +140,17 @@ class PHS_Library_Imap extends PHS_Library_instantiable
         return $lines;
     }
 
-    public function search_new_emails() : ?array
+    public function search_new_emails(): ?array
     {
         return $this->search('UNSEEN');
     }
 
-    public function search_since_timestamp(int $timestamp) : ?array
+    public function search_since_timestamp(int $timestamp): ?array
     {
         return $this->search('SINCE '.date('j-M-Y', $timestamp));
     }
 
-    public function search(string $criteria) : ?array
+    public function search(string $criteria): ?array
     {
         $this->reset_error();
 
@@ -167,7 +167,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
             if ($this->_logger) {
                 PHS_Logger::warning(
                     'Could not perform search: '.$this->get_simple_error_message('Unknown error'),
-                    $this->_logger
+                    $this->_logger,
                 );
             }
 
@@ -188,12 +188,12 @@ class PHS_Library_Imap extends PHS_Library_instantiable
         return $search_results;
     }
 
-    public function select_folder_inbox() : bool
+    public function select_folder_inbox(): bool
     {
         return $this->select_folder(self::DIR_INBOX);
     }
 
-    public function select_folder(string $folder) : bool
+    public function select_folder(string $folder): bool
     {
         $this->reset_error();
 
@@ -210,7 +210,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
             if ($this->_logger) {
                 PHS_Logger::warning(
                     'Select folder error: '.$this->get_simple_error_message('Unknown error'),
-                    $this->_logger
+                    $this->_logger,
                 );
             }
 
@@ -220,7 +220,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
         return true;
     }
 
-    public function login(string $login, string $pwd) : bool
+    public function login(string $login, string $pwd): bool
     {
         $this->reset_error();
 
@@ -234,7 +234,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
                 PHS_Logger::error(
                     'Login error: '.$this->get_simple_error_message('Unknown error')
                     .' Server response: '.$this->get_last_response(),
-                    $this->_logger
+                    $this->_logger,
                 );
             }
 
@@ -246,7 +246,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
         return true;
     }
 
-    public function logout() : bool
+    public function logout(): bool
     {
         $this->reset_error();
 
@@ -261,7 +261,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
             if ($this->_logger) {
                 PHS_Logger::warning(
                     'Could not logout: '.$this->get_simple_error_message('Unknown error'),
-                    $this->_logger
+                    $this->_logger,
                 );
             }
 
@@ -274,7 +274,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
         return true;
     }
 
-    public function connect() : bool
+    public function connect(): bool
     {
         $this->reset_error();
 
@@ -310,42 +310,42 @@ class PHS_Library_Imap extends PHS_Library_instantiable
         return true;
     }
 
-    public function is_logged_in() : bool
+    public function is_logged_in(): bool
     {
         return $this->_loggedin;
     }
 
-    public function is_ok_last_status() : bool
+    public function is_ok_last_status(): bool
     {
         return $this->last_status === self::STATUS_OK;
     }
 
-    public function is_no_last_status() : bool
+    public function is_no_last_status(): bool
     {
         return $this->last_status === self::STATUS_NO;
     }
 
-    public function is_bad_last_status() : bool
+    public function is_bad_last_status(): bool
     {
         return $this->last_status === self::STATUS_BAD;
     }
 
-    public function get_last_status() : ?string
+    public function get_last_status(): ?string
     {
         return $this->last_status;
     }
 
-    public function get_last_response() : ?string
+    public function get_last_response(): ?string
     {
         return $this->last_response;
     }
 
-    public function get_last_line() : ?string
+    public function get_last_line(): ?string
     {
         return $this->last_line;
     }
 
-    public function get_last_response_lines() : array
+    public function get_last_response_lines(): array
     {
         return $this->last_lines;
     }
@@ -354,8 +354,8 @@ class PHS_Library_Imap extends PHS_Library_instantiable
         ?string $host = null,
         ?int $port = null,
         ?bool $ssl = null,
-        ?int $timeout = null
-    ) : bool {
+        ?int $timeout = null,
+    ): bool {
         if (!$this->_validate_settings($host, $port)) {
             return false;
         }
@@ -376,7 +376,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
         return true;
     }
 
-    public function logger(?string $logger = null) : ?string
+    public function logger(?string $logger = null): ?string
     {
         if ($logger === null) {
             return $this->_logger;
@@ -387,12 +387,12 @@ class PHS_Library_Imap extends PHS_Library_instantiable
         return $this->_logger;
     }
 
-    public function reset_logger() : void
+    public function reset_logger(): void
     {
         $this->_logger = null;
     }
 
-    private function _close_fp() : void
+    private function _close_fp(): void
     {
         if ($this->fp) {
             @fclose($this->fp);
@@ -400,7 +400,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
         }
     }
 
-    private function _command(string $command) : ?string
+    private function _command(string $command): ?string
     {
         if (!$this->fp
            && !$this->connect()) {
@@ -432,7 +432,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
         return $this->last_status;
     }
 
-    private function _reset_last_response() : void
+    private function _reset_last_response(): void
     {
         $this->last_line = null;
         $this->last_lines = [];
@@ -440,7 +440,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
         $this->last_response = null;
     }
 
-    private function _add_to_headers(array &$headers, string $h_name, string $h_value) : void
+    private function _add_to_headers(array &$headers, string $h_name, string $h_value): void
     {
         if (isset($headers[$h_name])) {
             if (!is_array($headers[$h_name])) {
@@ -455,34 +455,34 @@ class PHS_Library_Imap extends PHS_Library_instantiable
         $headers[$h_name] = $h_value;
     }
 
-    private function _get_next_command_index() : string
+    private function _get_next_command_index(): string
     {
         $this->line_index++;
 
         return $this->_get_command_index();
     }
 
-    private function _get_command_index() : string
+    private function _get_command_index(): string
     {
         return self::COMMAND_PREFIX.$this->line_index;
     }
 
-    private function _get_settings_imap_timeout() : int
+    private function _get_settings_imap_timeout(): int
     {
         return (int)(($this->_settings['timeout'] ?? 30) ?: 30);
     }
 
-    private function _get_settings_imap_port() : int
+    private function _get_settings_imap_port(): int
     {
         return (int)(($this->_settings['port'] ?? 0) ?: 0);
     }
 
-    private function _get_settings_imap_ssl() : bool
+    private function _get_settings_imap_ssl(): bool
     {
         return (bool)($this->_settings['ssl'] ?? true);
     }
 
-    private function _get_settings_imap_host() : ?string
+    private function _get_settings_imap_host(): ?string
     {
         $this->reset_error();
 
@@ -496,7 +496,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
                .$this->_settings['host'];
     }
 
-    private function _validate_settings(?string $host = null, ?int $port = null) : bool
+    private function _validate_settings(?string $host = null, ?int $port = null): bool
     {
         $host ??= $this->_settings['host'] ?? null;
         $port ??= $this->_settings['port'] ?? 0;
@@ -509,7 +509,7 @@ class PHS_Library_Imap extends PHS_Library_instantiable
     /**
      * @inheritdoc
      */
-    public static function instances_as_singletons() : bool
+    public static function instances_as_singletons(): bool
     {
         return false;
     }

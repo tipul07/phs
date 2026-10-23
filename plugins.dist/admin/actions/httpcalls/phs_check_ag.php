@@ -7,7 +7,7 @@ use phs\libraries\PHS_Logger;
 
 class PHS_Action_Check_ag extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_AGENT];
     }
@@ -25,13 +25,13 @@ class PHS_Action_Check_ag extends PHS_Action
         if (!($check_result = $rq_manager->check_http_calls_queue())) {
             PHS_Logger::error('ERROR checking HTTP Calls queue: '
                               .$rq_manager->get_simple_error_message($this->_pt('Unknown error.')),
-                PHS_Logger::TYPE_HTTP_CALLS
+                PHS_Logger::TYPE_HTTP_CALLS,
             );
         } else {
             PHS_Logger::notice('Total HTTP calls '.$check_result['total']
                                .', success '.($check_result['success'] ?? 0).', failed '.($check_result['failed'] ?? 0)
                                .', retries '.($check_result['retries'] ?? 0).', timed '.($check_result['timed'] ?? 0).'.',
-                PHS_Logger::TYPE_HTTP_CALLS
+                PHS_Logger::TYPE_HTTP_CALLS,
             );
         }
 

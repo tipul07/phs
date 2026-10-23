@@ -23,7 +23,7 @@ class PHS_Plugin_Phs_mock_emails extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             'email_sending_group' => [
@@ -83,45 +83,45 @@ class PHS_Plugin_Phs_mock_emails extends PHS_Plugin
         ];
     }
 
-    public function get_max_attachment_size() : int
+    public function get_max_attachment_size(): int
     {
         return self::FAKE_MAX_ATTACHMENT_SIZE;
     }
 
-    public function get_email_vars() : array
+    public function get_email_vars(): array
     {
         $email_vars = $this->get_plugin_settings()['email_vars'] ?? [];
 
         return is_array($email_vars) ? $email_vars : [];
     }
 
-    public function get_template_main() : string | array
+    public function get_template_main(): string | array
     {
         return $this->get_plugin_settings()['template_main']
                ?? $this->template_resource_from_file('template_emails');
     }
 
-    public function log_text_body() : bool
+    public function log_text_body(): bool
     {
         return (bool)($this->get_plugin_settings()['log_text_body'] ?? false);
     }
 
-    public function log_html_body() : bool
+    public function log_html_body(): bool
     {
         return (bool)($this->get_plugin_settings()['log_html_body'] ?? false);
     }
 
-    public function log_attachment_names() : bool
+    public function log_attachment_names(): bool
     {
         return (bool)($this->get_plugin_settings()['log_attachment_names'] ?? false);
     }
 
-    public function log_headers() : bool
+    public function log_headers(): bool
     {
         return (bool)($this->get_plugin_settings()['log_headers'] ?? false);
     }
 
-    public function init_email_hook_args($hook_args) : array
+    public function init_email_hook_args($hook_args): array
     {
         $this->reset_error();
 
@@ -278,7 +278,7 @@ class PHS_Plugin_Phs_mock_emails extends PHS_Plugin
         return $hook_args;
     }
 
-    public function send_email(array $hook_args) : array
+    public function send_email(array $hook_args): array
     {
         $this->reset_error();
 
@@ -453,7 +453,7 @@ class PHS_Plugin_Phs_mock_emails extends PHS_Plugin
         return $hook_args;
     }
 
-    public function listen_email_settings(PHS_Event_Emails_settings $event_obj) : bool
+    public function listen_email_settings(PHS_Event_Emails_settings $event_obj): bool
     {
         $event_obj->set_output([
             'email_vars'          => $this->get_email_vars(),
@@ -463,7 +463,7 @@ class PHS_Plugin_Phs_mock_emails extends PHS_Plugin
         return true;
     }
 
-    public function listen_email_send(PHS_Event_Emails_send $event_obj) : bool
+    public function listen_email_send(PHS_Event_Emails_send $event_obj): bool
     {
         if (!($is_success = $this->_send_from_event($event_obj->get_input()))) {
             $this->set_error_if_not_set(self::ERR_SEND, $this->_pt('Couldn\'t send email.'));
@@ -479,7 +479,7 @@ class PHS_Plugin_Phs_mock_emails extends PHS_Plugin
         return true;
     }
 
-    private function _send_from_event(array $event_input) : bool
+    private function _send_from_event(array $event_input): bool
     {
         $this->reset_error();
 
@@ -536,7 +536,7 @@ class PHS_Plugin_Phs_mock_emails extends PHS_Plugin
         return true;
     }
 
-    public static function mail_auth_key(?string $key = null) : string
+    public static function mail_auth_key(?string $key = null): string
     {
         if ($key === null) {
             return self::$MAIL_AUTH_KEY;
@@ -547,7 +547,7 @@ class PHS_Plugin_Phs_mock_emails extends PHS_Plugin
         return self::$MAIL_AUTH_KEY;
     }
 
-    private static function _default_file_attachment() : array
+    private static function _default_file_attachment(): array
     {
         return [
             'file'                => '',

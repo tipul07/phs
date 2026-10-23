@@ -13,7 +13,7 @@ use phs\plugins\accounts\models\PHS_Model_Accounts;
 
 class PHS_Action_Result_files extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }

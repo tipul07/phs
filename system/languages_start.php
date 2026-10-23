@@ -23,7 +23,7 @@ if (($hook_args = PHS::trigger_hooks(PHS_Hooks::H_LANGUAGE_DEFINITION, $hook_arg
             PHS_Language::trigger_critical_error(
                 PHS_Language::st_has_error()
                     ? PHS_Language::st_get_simple_error_message()
-                    : 'Error defining required languages.'
+                    : 'Error defining required languages.',
             );
         }
     }

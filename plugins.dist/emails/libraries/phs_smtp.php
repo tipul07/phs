@@ -79,36 +79,36 @@ class PHS_Smtp extends PHS_Library
         $this->reset_error();
     }
 
-    public function get_authentication_methods() : array
+    public function get_authentication_methods(): array
     {
         return self::$AUTHENTICATION_METHODS_ARR;
     }
 
-    public function valid_authentication($method) : bool
+    public function valid_authentication($method): bool
     {
         $method = strtoupper(trim($method));
 
         return in_array($method, self::$AUTHENTICATION_METHODS_ARR, true);
     }
 
-    public function get_encryption_types() : array
+    public function get_encryption_types(): array
     {
         return self::$ENCRYPTIONS_ARR;
     }
 
-    public function valid_encryption(string $item) : bool
+    public function valid_encryption(string $item): bool
     {
         $item = strtolower(trim($item));
 
         return in_array($item, self::$ENCRYPTIONS_ARR, true);
     }
 
-    public function debug_log() : array
+    public function debug_log(): array
     {
         return $this->debug_log;
     }
 
-    public function settings(?array $params = null) : array
+    public function settings(?array $params = null): array
     {
         if ($params === null) {
             return $this->smtp_settings;
@@ -127,7 +127,7 @@ class PHS_Smtp extends PHS_Library
         return $this->smtp_settings;
     }
 
-    public function email_details(?array $params = null) : array
+    public function email_details(?array $params = null): array
     {
         if ($params === null) {
             return $this->email_settings;
@@ -145,7 +145,7 @@ class PHS_Smtp extends PHS_Library
         return $this->email_settings;
     }
 
-    public function send(array $params = []) : bool
+    public function send(array $params = []): bool
     {
         $this->reset_error();
 
@@ -319,17 +319,17 @@ class PHS_Smtp extends PHS_Library
         return true;
     }
 
-    public function is_connected() : bool
+    public function is_connected(): bool
     {
         return !empty($this->fd);
     }
 
-    public function get_last_email_details() : array
+    public function get_last_email_details(): array
     {
         return $this->_email_details();
     }
 
-    protected function _read() : string
+    protected function _read(): string
     {
         if (!$this->is_connected()) {
             return '';
@@ -346,7 +346,7 @@ class PHS_Smtp extends PHS_Library
         return trim($response);
     }
 
-    protected function _write($cmd) : bool
+    protected function _write($cmd): bool
     {
         if (!$this->is_connected()) {
             return false;
@@ -355,7 +355,7 @@ class PHS_Smtp extends PHS_Library
         return (bool)@fwrite($this->fd, $cmd.self::EOL);
     }
 
-    protected function _add_debug_log($cmd, $response) : void
+    protected function _add_debug_log($cmd, $response): void
     {
         $this->debug_log[] = [
             'cmd'      => $cmd,
@@ -363,7 +363,7 @@ class PHS_Smtp extends PHS_Library
         ];
     }
 
-    protected function _exec(string $cmd, ?string $expected = null) : ?string
+    protected function _exec(string $cmd, ?string $expected = null): ?string
     {
         if (!$this->_write($cmd)) {
             return null;
@@ -384,7 +384,7 @@ class PHS_Smtp extends PHS_Library
         return $response;
     }
 
-    protected function _authenticate(string $response, ?array $smtp_settings = null) : bool
+    protected function _authenticate(string $response, ?array $smtp_settings = null): bool
     {
         if (!$this->is_connected()) {
             return false;
@@ -426,7 +426,7 @@ class PHS_Smtp extends PHS_Library
                 $short_auth_string = preg_replace('/^cram\-/', '', strtolower($smtp_settings['smtp_authentication']));
                 if (null === $this->_exec(
                     base64_encode($smtp_settings['smtp_user'].' '.hash_hmac($short_auth_string, base64_decode(preg_replace('/^334 /', '', trim($auth_request))), $smtp_settings['smtp_pass'])),
-                    235
+                    235,
                 )) {
                     return false;
                 }
@@ -471,7 +471,7 @@ class PHS_Smtp extends PHS_Library
         return true;
     }
 
-    protected function _connect() : bool
+    protected function _connect(): bool
     {
         if ($this->is_connected()) {
             return true;
@@ -532,7 +532,7 @@ class PHS_Smtp extends PHS_Library
         return $this->_authenticate(trim($response));
     }
 
-    private function _reset_email_details() : void
+    private function _reset_email_details(): void
     {
         $this->_last_email_details = [
             'to_email'        => '',
@@ -546,7 +546,7 @@ class PHS_Smtp extends PHS_Library
         }
     }
 
-    private function _email_details(array | string | null $key = null, mixed $val = null) : ?array
+    private function _email_details(array | string | null $key = null, mixed $val = null): ?array
     {
         if ($key === null) {
             return $this->_last_email_details;
@@ -573,7 +573,7 @@ class PHS_Smtp extends PHS_Library
         return $this->_last_email_details;
     }
 
-    private function _disconnect() : void
+    private function _disconnect(): void
     {
         if ($this->is_connected()) {
             $this->_exec('QUIT');
@@ -585,7 +585,7 @@ class PHS_Smtp extends PHS_Library
         }
     }
 
-    public static function instances_as_singletons() : bool
+    public static function instances_as_singletons(): bool
     {
         return false;
     }

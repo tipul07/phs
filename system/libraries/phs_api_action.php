@@ -12,15 +12,56 @@ abstract class PHS_Api_action extends PHS_Action
 
     protected ?PHS_Api_base $api_obj = null;
 
-    public function allowed_scopes()
+    /**
+     * API route requires authentication to run
+     *
+     * @var null|bool
+     */
+    protected static ?bool $_authentication_required = null;
+
+    /**
+     * Run this API action even if there is no authentication (used for actions required for both authenticated or not users)
+     *
+     * @var null|bool
+     */
+    protected static ?bool $_authentication_is_optional = null;
+
+    /**
+     * Run a single method for authentication
+     * Method receives as parameters an array and should return false in case authentication failed,
+     * or it can safetly send headers back to browser and exit directly
+     * !!! If authetication passes it MUST return true
+     *
+     * @var null|callable
+     * @see PHS_Api_base::default_api_authentication_callback_params()
+     */
+    protected static $_authentication_callback;
+
+    /**
+     * Provide an array of authentication methods which will be called in the order presented in this array
+     * If authentication_callback is provided, that callback is called first
+     * Custom error can be set using {$param['api_obj']}->set_error().
+     * This will be sent in header as response. Don't put a long string here...
+     *
+     * @var null|array
+     */
+    protected static ?array $_authentication_callback_cascade = null;
+
+    /**
+     * This is an array which specifies what default authentication methods to be used (basic or bearer)
+     * null means default ones
+     *
+     * @var null|array
+     * @see self::AUTH_METHOD_BASIC, self::AUTH_METHOD_BEARER
+     */
+    protected static ?array $_authentication_methods = null;
+
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_API, PHS_Scope::SCOPE_AJAX];
     }
 
-    /**
-     * @return null|PHS_Api_base
-     */
-    public function get_action_api_instance() : ?PHS_Api_base
+    public function get_action_api_instance(): ?PHS_Api_base
     {
         if (!$this->api_obj
             && PHS_Scope::current_scope() === PHS_Scope::SCOPE_API) {
@@ -30,32 +71,26 @@ abstract class PHS_Api_action extends PHS_Action
         return $this->api_obj;
     }
 
-    /**
-     * @param array $response_data
-     * @param null|array $action_result_defaults Array with keys that should replace action array keys
-     *
-     * @return array|false
-     */
     public function send_api_response(array $response_data, ?array $action_result_defaults = null)
     {
         $response_data = self::validate_array_recursive($response_data, self::default_api_response());
 
         if (!empty($response_data['force_scope'])
-         && PHS_Scope::valid_scope($response_data['force_scope'])) {
+            && PHS_Scope::valid_scope($response_data['force_scope'])) {
             $scope = $response_data['force_scope'];
         } else {
             $scope = PHS_Scope::current_scope();
         }
 
         if (!empty($response_data['error']['code'])
-         && (empty($response_data['http_code'])
+            && (empty($response_data['http_code'])
                 || in_array((int)$response_data['http_code'],
                     [PHS_Api_base::H_CODE_OK, PHS_Api_base::H_CODE_OK_CREATED, PHS_Api_base::H_CODE_OK_NO_CONTENT], true)
-         )) {
+            )) {
             $response_data['http_code'] = PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR;
         }
 
-        $action_result = PHS_Action::default_action_result();
+        $action_result = self::default_action_result();
         if ($action_result_defaults !== null) {
             $action_result = self::merge_array_assoc($action_result, $action_result_defaults);
         }
@@ -70,9 +105,9 @@ abstract class PHS_Api_action extends PHS_Action
         }
 
         if ($scope === PHS_Scope::SCOPE_API
-         || $scope === PHS_Scope::SCOPE_REMOTE) {
+            || $scope === PHS_Scope::SCOPE_REMOTE) {
             if (!empty($response_data['api_obj'])
-             && ($response_data['api_obj'] instanceof PHS_Api_base)) {
+                && ($response_data['api_obj'] instanceof PHS_Api_base)) {
                 $api_obj = $response_data['api_obj'];
             } else {
                 $api_obj = PHS_Api::global_api_instance();
@@ -87,7 +122,7 @@ abstract class PHS_Api_action extends PHS_Action
                 if (!empty($response_data['http_code_is_error'])) {
                     PHS_Model_Api_monitor::api_incoming_request_error($response_data['http_code'],
                         (!empty($response_data['error']['code']) ? $response_data['error']['code'].': ' : '')
-                        .($response_data['error']['message'] ?? 'Unknown error.')
+                        .($response_data['error']['message'] ?? 'Unknown error.'),
                     );
                 } else {
                     PHS_Model_Api_monitor::api_incoming_request_success($response_data['http_code']);
@@ -95,7 +130,7 @@ abstract class PHS_Api_action extends PHS_Action
             }
         } elseif ($scope === PHS_Scope::SCOPE_AJAX) {
             if (!empty($response_data['http_code_is_error'])
-             && !PHS_Api_base::http_header_response($response_data['http_code'])) {
+                && !PHS_Api_base::http_header_response($response_data['http_code'])) {
                 return false;
             }
         }
@@ -105,65 +140,36 @@ abstract class PHS_Api_action extends PHS_Action
         return $action_result;
     }
 
-    /**
-     * @param int $http_error
-     * @param int $error_no
-     * @param string $error_msg
-     * @param null|array $action_result_defaults
-     * @param null|array $extra_arr
-     *
-     * @return array|false
-     */
     public function send_api_error(int $http_error, int $error_no, string $error_msg,
-        ?array $action_result_defaults = null, ?array $extra_arr = null)
+        ?array $action_result_defaults = null, ?array $extra_arr = [])
     {
         if (!PHS_Api::valid_http_code($http_error)) {
             $http_error = PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR;
         }
 
-        if (empty($extra_arr)) {
-            $extra_arr = [];
-        }
-
-        $extra_arr['only_response_data_node'] = (!empty($extra_arr['only_response_data_node']));
-
-        if (empty($error_no)) {
-            $error_no = self::ERR_FRAMEWORK;
-        }
-        if (empty($error_msg)) {
-            $error_msg = $this->_pt('Error not provided.');
-        }
+        $extra_arr['only_response_data_node'] = !empty($extra_arr['only_response_data_node']);
 
         $response_params = self::default_api_response();
         $response_params['api_obj'] = $this->get_action_api_instance();
         $response_params['http_code'] = $http_error;
         $response_params['only_response_data_node'] = $extra_arr['only_response_data_node'];
         $response_params['http_code_is_error'] = true;
-        $response_params['error']['code'] = $error_no;
-        $response_params['error']['message'] = $error_msg;
+        $response_params['error']['code'] = $error_no ?: self::ERR_FRAMEWORK;
+        $response_params['error']['message'] = $error_msg ?: $this->_pt('Error not provided.');
 
         return $this->send_api_response($response_params, $action_result_defaults);
     }
 
-    /**
-     * @param null|array $payload_arr
-     * @param int $http_code
-     * @param null|array $action_result_defaults
-     * @param null|array $extra_arr
-     *
-     * @return array|false
-     */
     public function send_api_success(
         $payload_arr,
         int $http_code = PHS_Api_base::H_CODE_OK,
         ?array $action_result_defaults = null,
-        ?array $extra_arr = null
+        ?array $extra_arr = [],
     ) {
         if (!PHS_Api::valid_http_code($http_code)) {
             $http_code = PHS_Api_base::H_CODE_OK;
         }
 
-        $extra_arr ??= [];
         $extra_arr['only_response_data_node'] = !empty($extra_arr['only_response_data_node']);
 
         $response_params = self::default_api_response();
@@ -175,7 +181,7 @@ abstract class PHS_Api_action extends PHS_Action
         return $this->send_api_response($response_params, $action_result_defaults);
     }
 
-    public function get_request_body() : ?array
+    public function get_request_body(): ?array
     {
         return PHS_Api_base::get_request_body_as_json_array();
     }
@@ -184,7 +190,7 @@ abstract class PHS_Api_action extends PHS_Action
      * @param string $var_name What variable are we looking for
      * @param int $type Type used for value validation
      * @param mixed $default Default value if variable not found in request
-     * @param false|array $type_extra Extra params used in variable validation
+     * @param array $type_extra Extra params used in variable validation
      * @param string $order Order in which we will do the checks (b - request body as JSON, g - get, p - post)
      *
      * @return mixed
@@ -194,8 +200,8 @@ abstract class PHS_Api_action extends PHS_Action
         int $type = PHS_Params::T_ASIS,
         mixed $default = null,
         array $type_extra = [],
-        string $order = 'bpg'
-    ) : mixed {
+        string $order = 'bpg',
+    ): mixed {
         if ($order === '') {
             return $default;
         }
@@ -242,7 +248,7 @@ abstract class PHS_Api_action extends PHS_Action
     /**
      * @return array{force_scope:false|int, api_obj:null|PHS_Api, response_data:null|array, only_response_data_node:bool, http_code_is_error:bool, http_code:int, error: array{code: int, message:string}}
      */
-    public static function default_api_response() : array
+    public static function default_api_response(): array
     {
         return [
             // Scope ID if you want to force a scope
@@ -266,5 +272,71 @@ abstract class PHS_Api_action extends PHS_Action
                 'message' => '',
             ],
         ];
+    }
+
+    final public static function get(string | array $api_route, array $params = [], ?string $controller_class = null): bool
+    {
+        return static::method('get', $api_route, $params, $controller_class);
+    }
+
+    final public static function post(string | array $api_route, array $params = [], ?string $controller_class = null): bool
+    {
+        return static::method('post', $api_route, $params, $controller_class);
+    }
+
+    final public static function patch(string | array $api_route, array $params = [], ?string $controller_class = null): bool
+    {
+        return static::method('patch', $api_route, $params, $controller_class);
+    }
+
+    final public static function put(string | array $api_route, array $params = [], ?string $controller_class = null): bool
+    {
+        return static::method('put', $api_route, $params, $controller_class);
+    }
+
+    final public static function delete(string | array $api_route, array $params = [], ?string $controller_class = null): bool
+    {
+        return static::method('delete', $api_route, $params, $controller_class);
+    }
+
+    final public static function head(string | array $api_route, array $params = [], ?string $controller_class = null): bool
+    {
+        return static::method('head', $api_route, $params, $controller_class);
+    }
+
+    final public static function options(string | array $api_route, array $params = [], ?string $controller_class = null): bool
+    {
+        return static::method('options', $api_route, $params, $controller_class);
+    }
+
+    final public static function trace(string | array $api_route, array $params = [], ?string $controller_class = null): bool
+    {
+        return static::method('trace', $api_route, $params, $controller_class);
+    }
+
+    final public static function method(string $method, string | array $api_route, array $params = [], ?string $controller_class = null): bool
+    {
+        if (is_string($api_route)) {
+            $api_route = explode('/', $api_route);
+        }
+
+        $api_route = array_map(static function(string | array $item) {
+            return is_string($item) ? ['exact_match' => $item] : $item;
+        }, $api_route);
+
+        return PHS_Api::register_api_route(
+            $api_route,
+            static::get_route_from_class($controller_class),
+            array_merge([
+                'method'                          => $method,
+                'name'                            => static::$_action_name,
+                'description'                     => static::$_action_description,
+                'authentication_required'         => static::$_authentication_required,
+                'authentication_is_optional'      => static::$_authentication_required,
+                'authentication_callback'         => static::$_authentication_callback,
+                'authentication_callback_cascade' => static::$_authentication_callback_cascade,
+                'authentication_methods'          => static::$_authentication_methods,
+            ], $params),
+        );
     }
 }

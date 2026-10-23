@@ -41,7 +41,7 @@ class PHS_Po_format extends PHS_Registry
         'plugins/sendgrid/libraries/sendgrid',
     ];
 
-    public function set_filename(string $f) : bool
+    public function set_filename(string $f): bool
     {
         $this->reset_error();
 
@@ -64,14 +64,14 @@ class PHS_Po_format extends PHS_Registry
         return $this->set_buffer($buf);
     }
 
-    public function set_buffer(string $b) : bool
+    public function set_buffer(string $b): bool
     {
         $this->_reset_lines_arr();
 
         return (bool)$this->_get_lines($b);
     }
 
-    public function get_parsed_indexes() : array
+    public function get_parsed_indexes(): array
     {
         return [
             'count'              => $this->indexes_count,
@@ -82,12 +82,12 @@ class PHS_Po_format extends PHS_Registry
         ];
     }
 
-    public function get_po_units() : array
+    public function get_po_units(): array
     {
         return $this->po_units;
     }
 
-    public function get_translation_existing_files() : array
+    public function get_translation_existing_files(): array
     {
         $files_arr = [];
 
@@ -125,12 +125,12 @@ class PHS_Po_format extends PHS_Registry
         return $files_arr;
     }
 
-    public function validate_filename(string $filename) : ?string
+    public function validate_filename(string $filename): ?string
     {
         return str_replace(['/', '\\', '.'], '', $filename);
     }
 
-    public function generate_pot_file(string $pot_file = '', array $params = []) : bool
+    public function generate_pot_file(string $pot_file = '', array $params = []): bool
     {
         $this->reset_error();
 
@@ -173,7 +173,7 @@ class PHS_Po_format extends PHS_Registry
         return true;
     }
 
-    public function refresh_po_file_from_pot(string $lang, string $pot_file = '', array $params = []) : bool
+    public function refresh_po_file_from_pot(string $lang, string $pot_file = '', array $params = []): bool
     {
         $this->reset_error();
 
@@ -222,7 +222,7 @@ class PHS_Po_format extends PHS_Registry
         return true;
     }
 
-    public function generate_po_file_from_pot_file(string $lang, string $pot_file = '', array $params = []) : ?array
+    public function generate_po_file_from_pot_file(string $lang, string $pot_file = '', array $params = []): ?array
     {
         $this->reset_error();
 
@@ -277,7 +277,7 @@ class PHS_Po_format extends PHS_Registry
         ];
     }
 
-    public function generate_empty_po_file(string $lang, string $pot_file = '', array $params = []) : ?array
+    public function generate_empty_po_file(string $lang, string $pot_file = '', array $params = []): ?array
     {
         $this->reset_error();
 
@@ -333,7 +333,7 @@ class PHS_Po_format extends PHS_Registry
         ];
     }
 
-    public function export_csv_from_po(string $po_file, array $params = []) : bool
+    public function export_csv_from_po(string $po_file, array $params = []): bool
     {
         if (!$this->set_filename($po_file)) {
             $this->set_error_if_not_set(self::ERR_PO_FILE, self::_t('Couldn\'t read PO file or it is empty.'));
@@ -398,7 +398,7 @@ class PHS_Po_format extends PHS_Registry
         return true;
     }
 
-    public function update_language_files(string $po_file, array $params = []) : ?array
+    public function update_language_files(string $po_file, array $params = []): ?array
     {
         if (empty($params['language'])) {
             $params['language'] = null;
@@ -535,7 +535,7 @@ class PHS_Po_format extends PHS_Registry
         return $return_arr;
     }
 
-    public function parse_details_from_po_file_by_language(string $lang, array $params = []) : bool
+    public function parse_details_from_po_file_by_language(string $lang, array $params = []): bool
     {
         $this->reset_error();
 
@@ -558,7 +558,7 @@ class PHS_Po_format extends PHS_Registry
         return $this->parse_details_from_po_file($po_file, $params);
     }
 
-    public function parse_details_from_po_file(string $po_file, array $params = []) : bool
+    public function parse_details_from_po_file(string $po_file, array $params = []): bool
     {
         $this->reset_error();
 
@@ -656,7 +656,7 @@ class PHS_Po_format extends PHS_Registry
 
                 if ($plugin_name
                     && ($instance_dirs = PHS_Instantiable::get_instance_details(
-                        'PHS_Plugin_'.ucfirst($plugin_name), $plugin_name, PHS_Instantiable::INSTANCE_TYPE_PLUGIN
+                        'PHS_Plugin_'.ucfirst($plugin_name), $plugin_name, PHS_Instantiable::INSTANCE_TYPE_PLUGIN,
                     ))
                     && !empty($instance_dirs['plugin_paths'][PHS_Instantiable::LANGUAGES_DIR])) {
                     // Add index to plugin
@@ -679,7 +679,7 @@ class PHS_Po_format extends PHS_Registry
         return true;
     }
 
-    public function extract_po_translation() : ?array
+    public function extract_po_translation(): ?array
     {
         if (!$this->header_arr) {
             $this->_extract_headers();
@@ -688,7 +688,7 @@ class PHS_Po_format extends PHS_Registry
         return $this->_extract_po_unit();
     }
 
-    public function get_po_header(?string $key = null) : null | string | array
+    public function get_po_header(?string $key = null): null | string | array
     {
         static $lower_header_arr = null;
 
@@ -718,7 +718,7 @@ class PHS_Po_format extends PHS_Registry
         ];
     }
 
-    public function guess_language_from_header() : ?array
+    public function guess_language_from_header(): ?array
     {
         if (!($language = $this->get_po_header('language'))) {
             return null;
@@ -748,7 +748,7 @@ class PHS_Po_format extends PHS_Registry
         return $return_arr;
     }
 
-    public function add_translation_for_po_unit(int $po_index, string $translation) : bool
+    public function add_translation_for_po_unit(int $po_index, string $translation): bool
     {
         if (!($this->po_units[$po_index]['index'] ?? null)) {
             return false;
@@ -759,7 +759,7 @@ class PHS_Po_format extends PHS_Registry
         return true;
     }
 
-    public function write_po_units_to_file(string $file_name, bool $force = false) : bool
+    public function write_po_units_to_file(string $file_name, bool $force = false): bool
     {
         $this->reset_error();
 
@@ -806,7 +806,7 @@ class PHS_Po_format extends PHS_Registry
         return true;
     }
 
-    public function write_po_unit_to_file_handle(array $po_unit, $file_handle) : bool
+    public function write_po_unit_to_file_handle(array $po_unit, $file_handle): bool
     {
         if (!($po_string = $this->get_po_unit_as_string($po_unit))
             || !is_resource($file_handle)
@@ -821,7 +821,7 @@ class PHS_Po_format extends PHS_Registry
         return true;
     }
 
-    public function get_po_unit_as_string(array $po_unit) : ?string
+    public function get_po_unit_as_string(array $po_unit): ?string
     {
         $this->reset_error();
 
@@ -839,7 +839,7 @@ class PHS_Po_format extends PHS_Registry
         return $return_str;
     }
 
-    private function _get_po_comments_as_string(array $comments) : string
+    private function _get_po_comments_as_string(array $comments): string
     {
         $comment_str = '';
         foreach ($comments as $comment) {
@@ -853,7 +853,7 @@ class PHS_Po_format extends PHS_Registry
         return $comment_str !== '' ? $comment_str."\n" : '';
     }
 
-    private function _get_po_files_as_string(array $files) : string
+    private function _get_po_files_as_string(array $files): string
     {
         $files_str = '';
         $line_str = '';
@@ -880,7 +880,7 @@ class PHS_Po_format extends PHS_Registry
         return $files_str !== '' ? $files_str."\n" : '';
     }
 
-    private function _backup_language_file(string $lang_file) : ?array
+    private function _backup_language_file(string $lang_file): ?array
     {
         $this->reset_error();
 
@@ -933,7 +933,7 @@ class PHS_Po_format extends PHS_Registry
         return $return_arr;
     }
 
-    private function _reset_parsed_indexes() : void
+    private function _reset_parsed_indexes(): void
     {
         $this->indexes_count = 0;
         $this->parsed_language = '';
@@ -941,7 +941,7 @@ class PHS_Po_format extends PHS_Registry
         $this->po_units = [];
     }
 
-    private function _add_po_unit_from_array(array $po_unit) : bool
+    private function _add_po_unit_from_array(array $po_unit): bool
     {
         if (!$po_unit
         || empty($po_unit['index'])) {
@@ -957,7 +957,7 @@ class PHS_Po_format extends PHS_Registry
         return true;
     }
 
-    private function _get_empty_po_unit() : array
+    private function _get_empty_po_unit(): array
     {
         return [
             'index'       => '',
@@ -967,7 +967,7 @@ class PHS_Po_format extends PHS_Registry
         ];
     }
 
-    private function _extract_po_unit() : ?array
+    private function _extract_po_unit(): ?array
     {
         // read empty lines till first translation unit
         do {
@@ -1001,7 +1001,7 @@ class PHS_Po_format extends PHS_Registry
         return $unit_arr;
     }
 
-    private function _parse_comments_line(string $line_str) : ?string
+    private function _parse_comments_line(string $line_str): ?string
     {
         if (!str_starts_with($line_str, '# ')) {
             return null;
@@ -1010,7 +1010,7 @@ class PHS_Po_format extends PHS_Registry
         return substr($line_str, 2);
     }
 
-    private function _parse_files_line(string $line_str) : ?array
+    private function _parse_files_line(string $line_str): ?array
     {
         if (!str_starts_with($line_str, '#: ')) {
             return null;
@@ -1051,7 +1051,7 @@ class PHS_Po_format extends PHS_Registry
         return $files_arr;
     }
 
-    private function _parse_msgid_line(string $line_str) : ?string
+    private function _parse_msgid_line(string $line_str): ?string
     {
         if (!str_starts_with($line_str, 'msgid ')) {
             return null;
@@ -1070,7 +1070,7 @@ class PHS_Po_format extends PHS_Registry
         return $msgid;
     }
 
-    private function _parse_msgstr_line(string $line_str) : ?string
+    private function _parse_msgstr_line(string $line_str): ?string
     {
         if (!str_starts_with($line_str, 'msgstr ')) {
             return null;
@@ -1089,7 +1089,7 @@ class PHS_Po_format extends PHS_Registry
         return $msgstr;
     }
 
-    private function _reset_lines_arr() : void
+    private function _reset_lines_arr(): void
     {
         $this->lines_arr = [];
         $this->_li = 0;
@@ -1100,7 +1100,7 @@ class PHS_Po_format extends PHS_Registry
         $this->_reset_parsed_indexes();
     }
 
-    private function _get_lines(?string $buffer = null) : bool | array
+    private function _get_lines(?string $buffer = null): bool | array
     {
         if ($buffer === null) {
             return $this->lines_arr;
@@ -1133,12 +1133,12 @@ class PHS_Po_format extends PHS_Registry
      *
      * @return null|string
      */
-    private function get_line(int $index) : ?string
+    private function get_line(int $index): ?string
     {
         return $this->lines_arr[$index] ?? null;
     }
 
-    private function _validate_language_from_po(?string $provided_language = null) : ?array
+    private function _validate_language_from_po(?string $provided_language = null): ?array
     {
         if (!$provided_language
             && ($guessed_language = $this->guess_language_from_header())) {
@@ -1153,7 +1153,7 @@ class PHS_Po_format extends PHS_Registry
         return $language_details;
     }
 
-    private function _extract_headers() : void
+    private function _extract_headers(): void
     {
         $this->_li = 0;
         $this->header_lines = 0;
@@ -1202,17 +1202,17 @@ class PHS_Po_format extends PHS_Registry
         $this->header_lines = $this->_li;
     }
 
-    public static function get_default_pot_file() : string
+    public static function get_default_pot_file(): string
     {
         return LANG_PO_DIR.'project.pot';
     }
 
-    public static function get_filename_with_files_list_for_pot_file() : string
+    public static function get_filename_with_files_list_for_pot_file(): string
     {
         return LANG_PO_DIR.'potfiles.txt';
     }
 
-    public static function get_po_filepath_by_language(string $lang, string $prefix = '') : ?string
+    public static function get_po_filepath_by_language(string $lang, string $prefix = ''): ?string
     {
         if (!($lang = self::valid_language($lang))) {
             return null;
@@ -1221,12 +1221,12 @@ class PHS_Po_format extends PHS_Registry
         return LANG_PO_DIR.$prefix.$lang.'.po';
     }
 
-    public static function add_to_ignored_directories_for_pot_list(array $ignore_dirs) : void
+    public static function add_to_ignored_directories_for_pot_list(array $ignore_dirs): void
     {
         self::$pot_ignore_list = array_merge(self::$pot_ignore_list, $ignore_dirs);
     }
 
-    private static function _generate_files_list_for_pot_file(string $filename) : bool
+    private static function _generate_files_list_for_pot_file(string $filename): bool
     {
         self::st_reset_error();
 
@@ -1265,7 +1265,7 @@ class PHS_Po_format extends PHS_Registry
         return true;
     }
 
-    private static function _get_php_files_from_dir(string $dir, bool $recursive = true) : ?array
+    private static function _get_php_files_from_dir(string $dir, bool $recursive = true): ?array
     {
         if (!@is_dir($dir)) {
             self::st_set_error(self::ERR_PARAMETERS, 'Directory not found: '.$dir.'.');
@@ -1302,12 +1302,12 @@ class PHS_Po_format extends PHS_Registry
         return $files_arr;
     }
 
-    private static function _get_root_directories_for_pot_list() : array
+    private static function _get_root_directories_for_pot_list(): array
     {
         return ['_setup', 'bin', 'config', 'graphql', 'plugins', 'system', 'tests', 'themes'];
     }
 
-    private static function _should_ignore_directory(string $dir) : bool
+    private static function _should_ignore_directory(string $dir): bool
     {
         if (PHS::running_on_windows()) {
             $dir = str_replace('\\', '/', $dir);
@@ -1323,12 +1323,12 @@ class PHS_Po_format extends PHS_Registry
         return false;
     }
 
-    private static function _get_ignored_directories_for_pot_list() : array
+    private static function _get_ignored_directories_for_pot_list(): array
     {
         return self::$pot_ignore_list;
     }
 
-    private static function _generate_po_headers_as_po_string(string $language = '') : string
+    private static function _generate_po_headers_as_po_string(string $language = ''): string
     {
         $result_str = 'msgid ""'."\n"
                       .'msgstr ""'."\n";
@@ -1343,7 +1343,7 @@ class PHS_Po_format extends PHS_Registry
         return $result_str;
     }
 
-    private static function _get_po_formatted_string(string $str, string $prefix = '', bool $prefix_multiline = false) : string
+    private static function _get_po_formatted_string(string $str, string $prefix = '', bool $prefix_multiline = false): string
     {
         if ($prefix !== '') {
             $prefix .= ' ';
@@ -1370,12 +1370,12 @@ class PHS_Po_format extends PHS_Registry
         return $prefix.($prefix_multiline ? '""'."\n" : '').$result_str;
     }
 
-    private static function _escape_po_string(string $str) : string
+    private static function _escape_po_string(string $str): string
     {
         return str_replace('"', '\"', $str);
     }
 
-    private static function _generate_po_headers_as_array(string $language = '') : array
+    private static function _generate_po_headers_as_array(string $language = ''): array
     {
         // lines end with \n as string, not as EOL
         $headers_arr = [];
@@ -1399,12 +1399,12 @@ class PHS_Po_format extends PHS_Registry
         return $headers_arr;
     }
 
-    private static function _language_translation_methods() : array
+    private static function _language_translation_methods(): array
     {
         return ['_pt', '_t', '_pte', 'st_pt', '_te', '_tl'];
     }
 
-    private static function _get_xgettext_command(string $pot_filename, string $xgettext_bin = '') : string
+    private static function _get_xgettext_command(string $pot_filename, string $xgettext_bin = ''): string
     {
         $xgettext_bin = self::_get_xgettext_bin($xgettext_bin);
 
@@ -1420,24 +1420,24 @@ class PHS_Po_format extends PHS_Registry
                .' -f "'.self::get_filename_with_files_list_for_pot_file().'"';
     }
 
-    private static function _get_mergemsg_command(string $lang, string $old_po_file, string $new_po_file, string $pot_filename, string $mergemsg_bin = '') : string
+    private static function _get_mergemsg_command(string $lang, string $old_po_file, string $new_po_file, string $pot_filename, string $mergemsg_bin = ''): string
     {
         return self::_get_msgmerge_bin($mergemsg_bin).' -o '.$new_po_file
                .' -D "'.PHS_PATH.'" --lang='.$lang.' --previous --no-fuzzy-matching --force-po --quiet'
                .' "'.$old_po_file.'" "'.$pot_filename.'"';
     }
 
-    private static function _get_xgettext_bin(string $bin = '') : string
+    private static function _get_xgettext_bin(string $bin = ''): string
     {
         return self::_get_generic_bin_path('xgettext', $bin);
     }
 
-    private static function _get_msgmerge_bin(string $bin = '') : string
+    private static function _get_msgmerge_bin(string $bin = ''): string
     {
         return self::_get_generic_bin_path('msgmerge', $bin);
     }
 
-    private static function _get_generic_bin_path(string $bin_name, string $provided_bin = '') : string
+    private static function _get_generic_bin_path(string $bin_name, string $provided_bin = ''): string
     {
         @ob_start();
         $provided_bin = $provided_bin ?: @system('which '.$bin_name) ?: $bin_name;

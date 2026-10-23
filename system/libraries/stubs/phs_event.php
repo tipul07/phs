@@ -11,15 +11,13 @@ class PHS_Event___CLASS_NAME__ extends PHS_Event
      * @see PHS_Event::_serialize_input_for_background()
      * @see PHS_Event::_unserialize_input_for_background()
      */
-    protected function _input_parameters() : array
+    protected function _input_parameters(): array
     {
-        return [
-        ];
+        return [];
     }
 
-    protected function _output_parameters() : array
+    protected function _output_parameters(): array
     {
-        return [
-        ];
+        return [];
     }
 }

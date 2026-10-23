@@ -10,7 +10,7 @@ trait PHS_Trait_Has_relations
 {
     private array $_relations = [];
 
-    abstract protected function _relations_definition() : void;
+    abstract protected function _relations_definition(): void;
 
     public function relation_one_to_one(
         string $key,
@@ -20,7 +20,7 @@ trait PHS_Trait_Has_relations
         ?Closure $filter_fn = null,
         ?Closure $read_fn = null,
         array $options = [],
-    ) : bool {
+    ): bool {
         if (!($this instanceof PHS_Model_Core_base)
             || !empty($this->_relations[$key])) {
             return false;
@@ -40,7 +40,7 @@ trait PHS_Trait_Has_relations
         ?Closure $filter_fn = null,
         ?Closure $read_fn = null,
         array $options = [],
-    ) : bool {
+    ): bool {
         if (!($this instanceof PHS_Model_Core_base)
             || !empty($this->_relations[$key])) {
             return false;
@@ -63,7 +63,7 @@ trait PHS_Trait_Has_relations
         ?Closure $read_fn = null,
         int $read_limit = 20,
         array $options = [],
-    ) : bool {
+    ): bool {
         if (!($this instanceof PHS_Model_Core_base)
             || !empty($this->_relations[$key])) {
             return false;
@@ -87,7 +87,7 @@ trait PHS_Trait_Has_relations
         ?Closure $read_fn = null,
         int $read_limit = 20,
         array $options = [],
-    ) : bool {
+    ): bool {
         if (!($this instanceof PHS_Model_Core_base)
             || !empty($this->_relations[$key])) {
             return false;
@@ -108,7 +108,7 @@ trait PHS_Trait_Has_relations
         ?Closure $read_fn = null,
         ?array $source_flow = [], string $source_key = '',
         array $options = [],
-    ) : bool {
+    ): bool {
         if (!($this instanceof PHS_Model_Core_base)
             || !empty($this->_relations[$key])) {
             return false;
@@ -122,17 +122,17 @@ trait PHS_Trait_Has_relations
         return true;
     }
 
-    public function relations() : array
+    public function relations(): array
     {
         return $this->_relations;
     }
 
-    public function relation(string $key) : ?PHS_Relation
+    public function relation(string $key): ?PHS_Relation
     {
         return $this->_relations[$key] ?? null;
     }
 
-    public function load_relation(PHS_Record_data $record_data, string $relation_key) : void
+    public function load_relation(PHS_Record_data $record_data, string $relation_key): void
     {
         if (static::key_exists_for_record($relation_key, $record_data)
             || !($relation = $this->relation($relation_key))
@@ -144,14 +144,14 @@ trait PHS_Trait_Has_relations
         $record_data[$relation_key] = $relation->load_relation_result($record_data[$record_key], $record_data);
     }
 
-    public function load_relations(PHS_Record_data $record_data, array $relations_key) : void
+    public function load_relations(PHS_Record_data $record_data, array $relations_key): void
     {
         foreach ($relations_key as $relation_key) {
             $this->load_relation($record_data, $relation_key);
         }
     }
 
-    public function load_all_relations(PHS_Record_data $record_data) : void
+    public function load_all_relations(PHS_Record_data $record_data): void
     {
         if (!($relations = $this->relations())) {
             return;
@@ -162,7 +162,7 @@ trait PHS_Trait_Has_relations
         }
     }
 
-    public static function key_exists_for_record(string $key, PHS_Record_data $record_data) : bool
+    public static function key_exists_for_record(string $key, PHS_Record_data $record_data): bool
     {
         if (empty($key)) {
             return false;

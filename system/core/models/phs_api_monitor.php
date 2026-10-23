@@ -36,22 +36,22 @@ class PHS_Model_Api_monitor extends PHS_Model
 
     private static ?PHS_Model_Api_monitor $_the_model = null;
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.0.5';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['api_monitor'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'api_monitor';
     }
 
-    public function get_types(null | bool | string $lang = null) : array
+    public function get_types(null | bool | string $lang = null): array
     {
         static $types_arr = [];
 
@@ -73,7 +73,7 @@ class PHS_Model_Api_monitor extends PHS_Model
         return $result_arr;
     }
 
-    public function get_types_as_key_val(null | bool | string $lang = null) : array
+    public function get_types_as_key_val(null | bool | string $lang = null): array
     {
         static $types_key_val_arr = null;
 
@@ -100,12 +100,12 @@ class PHS_Model_Api_monitor extends PHS_Model
         return $key_val_arr;
     }
 
-    public function valid_type(int $type, null | bool | string $lang = null) : ?array
+    public function valid_type(int $type, null | bool | string $lang = null): ?array
     {
         return $this->get_types($lang)[$type] ?? null;
     }
 
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;
@@ -310,7 +310,7 @@ class PHS_Model_Api_monitor extends PHS_Model
     }
 
     // region Incoming monitoring
-    public static function graphql_request_started() : ?array
+    public static function graphql_request_started(): ?array
     {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
@@ -336,7 +336,7 @@ class PHS_Model_Api_monitor extends PHS_Model
         ?string $response_body = null,
         int $http_code = 200,
         null | int | array | PHS_Record_data $force_record = null,
-    ) : ?array {
+    ): ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -372,7 +372,7 @@ class PHS_Model_Api_monitor extends PHS_Model
         int $http_code = 500,
         ?string $response_body = null,
         null | int | array | PHS_Record_data $force_record = null,
-    ) : ?array {
+    ): ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -406,7 +406,7 @@ class PHS_Model_Api_monitor extends PHS_Model
         return self::_update_api_monitor_record($fields_arr, $record);
     }
 
-    public static function api_incoming_request_started() : ?array
+    public static function api_incoming_request_started(): ?array
     {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
@@ -431,7 +431,7 @@ class PHS_Model_Api_monitor extends PHS_Model
         ?int $http_code = null,
         ?string $response_body = null,
         null | int | array | PHS_Record_data $force_record = null,
-    ) : ?array {
+    ): ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -461,7 +461,7 @@ class PHS_Model_Api_monitor extends PHS_Model
         ?string $error_message = null,
         ?string $response_body = null,
         null | int | array | PHS_Record_data $force_record = null,
-    ) : ?array {
+    ): ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -493,7 +493,7 @@ class PHS_Model_Api_monitor extends PHS_Model
         int $http_code,
         ?string $error_message = null,
         ?string $response_body = null,
-    ) : ?array {
+    ): ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -520,7 +520,7 @@ class PHS_Model_Api_monitor extends PHS_Model
     public static function update_incoming_request_record(
         array $fields_arr,
         null | int | array | PHS_Record_data $force_record = null,
-    ) : ?array {
+    ): ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -558,7 +558,7 @@ class PHS_Model_Api_monitor extends PHS_Model
         string $url,
         ?string $request_body = null,
         string $method = 'GET',
-    ) : ?array {
+    ): ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -583,7 +583,7 @@ class PHS_Model_Api_monitor extends PHS_Model
         null | int | array | PHS_Record_data $outgoing_request,
         ?int $http_code = null,
         ?string $response_body = null,
-    ) : ?array {
+    ): ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -611,7 +611,7 @@ class PHS_Model_Api_monitor extends PHS_Model
         ?int $http_code = null,
         ?string $error_message = null,
         ?string $response_body = null,
-    ) : ?array {
+    ): ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -639,8 +639,8 @@ class PHS_Model_Api_monitor extends PHS_Model
 
     public static function api_outgoing_request_direct_error(
         string $url, ?string $request_body = null, ?string $method = null,
-        ?int $http_code = null, ?string $error_message = null, ?string $response_body = null
-    ) : ?array {
+        ?int $http_code = null, ?string $error_message = null, ?string $response_body = null,
+    ): ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -675,7 +675,7 @@ class PHS_Model_Api_monitor extends PHS_Model
     public static function update_outgoing_request_record(
         array $fields_arr,
         null | int | array | PHS_Record_data $force_record,
-    ) : ?array {
+    ): ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -708,7 +708,7 @@ class PHS_Model_Api_monitor extends PHS_Model
     private static function _update_api_monitor_record(
         array $fields_arr,
         null | int | array | PHS_Record_data $record_data = null,
-    ) : ?array {
+    ): ?array {
         if (!self::_load_dependencies()) {
             self::st_set_error(self::ERR_FUNCTIONALITY, self::_t('Error loading required resources.'));
 
@@ -811,7 +811,7 @@ class PHS_Model_Api_monitor extends PHS_Model
         return $record_arr;
     }
 
-    private static function _load_dependencies() : bool
+    private static function _load_dependencies(): bool
     {
         self::st_reset_error();
 

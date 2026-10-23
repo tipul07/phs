@@ -11,6 +11,6 @@ if (!PHS_Tenants::init()) {
     PHS_Tenants::trigger_critical_error(
         PHS_Tenants::st_has_error()
             ? PHS_Tenants::st_get_simple_error_message()
-            : 'Error initializing multi-tenants.'
+            : 'Error initializing multi-tenants.',
     );
 }

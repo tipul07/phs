@@ -64,7 +64,7 @@ if (($debug_data = PHS::platform_debug_data())) {
          .'</small>';
 }
 
-function _update_maintenance_output(string $msg) : void
+function _update_maintenance_output(string $msg): void
 {
     echo $msg."\n";
 }

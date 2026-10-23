@@ -49,7 +49,7 @@ class PHS_Logger extends PHS_Registry
 
     private static null | bool | array $logged_in_user = null;
 
-    public static function get_log_levels(?string $lang = null) : array
+    public static function get_log_levels(?string $lang = null): array
     {
         static $levels_arr = [];
 
@@ -80,7 +80,7 @@ class PHS_Logger extends PHS_Registry
         return $result_arr;
     }
 
-    public static function get_log_levels_as_key_val(?string $lang = null) : array
+    public static function get_log_levels_as_key_val(?string $lang = null): array
     {
         static $levels_key_val_arr = null;
 
@@ -107,12 +107,12 @@ class PHS_Logger extends PHS_Registry
         return $key_val_arr;
     }
 
-    public static function valid_log_level(int $level, ?string $lang = null) : ?array
+    public static function valid_log_level(int $level, ?string $lang = null): ?array
     {
         return self::get_log_levels($lang)[$level] ?? null;
     }
 
-    public static function get_types() : array
+    public static function get_types(): array
     {
         return [
             self::TYPE_MAINTENANCE, self::TYPE_ERROR, self::TYPE_DEBUG, self::TYPE_INFO,
@@ -121,17 +121,17 @@ class PHS_Logger extends PHS_Registry
         ];
     }
 
-    public static function valid_type(string $type) : bool
+    public static function valid_type(string $type): bool
     {
         return $type && in_array($type, self::get_types(), true);
     }
 
-    public static function defined_channel($channel) : bool
+    public static function defined_channel($channel): bool
     {
         return !empty(self::$_channels[$channel]);
     }
 
-    public static function safe_escape_log_channel(string $channel) : ?string
+    public static function safe_escape_log_channel(string $channel): ?string
     {
         if (!$channel
             || preg_match('@[^a-zA-Z0-9_\-]@', $channel)) {
@@ -146,7 +146,7 @@ class PHS_Logger extends PHS_Registry
      *
      * @return bool true on success, false on error
      */
-    public static function define_channel(string $channel) : bool
+    public static function define_channel(string $channel): bool
     {
         if (!$channel) {
             return false;
@@ -168,7 +168,7 @@ class PHS_Logger extends PHS_Registry
         return true;
     }
 
-    public static function logging_enabled($log = null) : bool
+    public static function logging_enabled($log = null): bool
     {
         if ($log === null) {
             return self::$_logging;
@@ -179,7 +179,7 @@ class PHS_Logger extends PHS_Registry
         return self::$_logging;
     }
 
-    public static function default_log_level(?int $lvl = null) : ?int
+    public static function default_log_level(?int $lvl = null): ?int
     {
         if ($lvl === null) {
             return self::$_default_log_level ?? (self::st_debugging_mode() ? self::L_DEBUG : self::L_NOTICE);
@@ -194,7 +194,7 @@ class PHS_Logger extends PHS_Registry
         return self::$_default_log_level;
     }
 
-    public static function log_level(?int $lvl = null) : ?int
+    public static function log_level(?int $lvl = null): ?int
     {
         if ($lvl === null) {
             return self::$_log_level;
@@ -209,7 +209,7 @@ class PHS_Logger extends PHS_Registry
         return self::$_log_level;
     }
 
-    public static function logging_dir(?string $dir = null) : string
+    public static function logging_dir(?string $dir = null): string
     {
         if ($dir === null) {
             return self::$_logs_dir;
@@ -227,7 +227,7 @@ class PHS_Logger extends PHS_Registry
         return self::$_logs_dir;
     }
 
-    public static function log_channels($types_arr) : ?array
+    public static function log_channels($types_arr): ?array
     {
         if (!is_array($types_arr)) {
             if (!is_string($types_arr)) {
@@ -276,7 +276,7 @@ class PHS_Logger extends PHS_Registry
         return self::$_channels;
     }
 
-    public static function get_file_header_arr() : array
+    public static function get_file_header_arr(): array
     {
         return [
             '          Date          | Lvl |    Identifier   |      IP         |  Account (if available)',
@@ -284,12 +284,12 @@ class PHS_Logger extends PHS_Registry
         ];
     }
 
-    public static function get_file_header_str() : string
+    public static function get_file_header_str(): string
     {
         return implode("\n", self::get_file_header_arr())."\n";
     }
 
-    public static function get_logging_files() : ?array
+    public static function get_logging_files(): ?array
     {
         self::st_reset_error();
 
@@ -315,7 +315,7 @@ class PHS_Logger extends PHS_Registry
         return $return_arr;
     }
 
-    public static function tail_log(string $log_file, int $lines, int $buffer = 4096) : ?string
+    public static function tail_log(string $log_file, int $lines, int $buffer = 4096): ?string
     {
         self::st_reset_error();
 
@@ -405,52 +405,52 @@ class PHS_Logger extends PHS_Registry
         return $output;
     }
 
-    public static function emergency(string $message, string $log_file, array $context = []) : void
+    public static function emergency(string $message, string $log_file, array $context = []): void
     {
         self::log(self::L_EMERGENCY, $message, $log_file, $context);
     }
 
-    public static function alert(string $message, string $log_file, array $context = []) : void
+    public static function alert(string $message, string $log_file, array $context = []): void
     {
         self::log(self::L_ALERT, $message, $log_file, $context);
     }
 
-    public static function critical(string $message, string $log_file, array $context = []) : void
+    public static function critical(string $message, string $log_file, array $context = []): void
     {
         self::log(self::L_CRITICAL, $message, $log_file, $context);
     }
 
-    public static function error(string $message, string $log_file, array $context = []) : void
+    public static function error(string $message, string $log_file, array $context = []): void
     {
         self::log(self::L_ERROR, $message, $log_file, $context);
     }
 
-    public static function warning(string $message, string $log_file, array $context = []) : void
+    public static function warning(string $message, string $log_file, array $context = []): void
     {
         self::log(self::L_WARNING, $message, $log_file, $context);
     }
 
-    public static function notice(string $message, string $log_file, array $context = []) : void
+    public static function notice(string $message, string $log_file, array $context = []): void
     {
         self::log(self::L_NOTICE, $message, $log_file, $context);
     }
 
-    public static function info(string $message, string $log_file, array $context = []) : void
+    public static function info(string $message, string $log_file, array $context = []): void
     {
         self::log(self::L_INFO, $message, $log_file, $context);
     }
 
-    public static function debug(string $message, string $log_file, array $context = []) : void
+    public static function debug(string $message, string $log_file, array $context = []): void
     {
         self::log(self::L_DEBUG, $message, $log_file, $context);
     }
 
-    public static function log(int $level, string $message, string $log_file, array $context = []) : void
+    public static function log(int $level, string $message, string $log_file, array $context = []): void
     {
         self::logf(self::interpolate($message, $context), $log_file, $level);
     }
 
-    public static function interpolate($message, array $context = []) : string
+    public static function interpolate($message, array $context = []): string
     {
         if (!str_contains($message, '{')) {
             return $message;
@@ -466,7 +466,7 @@ class PHS_Logger extends PHS_Registry
         return strtr($message, $replace);
     }
 
-    public static function logf() : bool
+    public static function logf(): bool
     {
         if (!self::logging_enabled()) {
             return true;
@@ -631,7 +631,7 @@ class PHS_Logger extends PHS_Registry
             .str_pad($request_ip, 15, ' ', STR_PAD_LEFT).' | '
             .'#'.(self::$logged_in_user['id'] ?? 0).' '.(self::$logged_in_user['nick'] ?? '(System)')."\n"
             .$str
-            ."\n\n"
+            ."\n\n",
         );
 
         @fflush($fil);
@@ -640,7 +640,7 @@ class PHS_Logger extends PHS_Registry
         return true;
     }
 
-    private static function _get_rotation_log_filename(string $log_file) : string
+    private static function _get_rotation_log_filename(string $log_file): string
     {
         if (!($rotate_suffix = self::_get_rotation_log_file_suffix())) {
             return $log_file;
@@ -653,7 +653,7 @@ class PHS_Logger extends PHS_Registry
         return $log_file.'_'.$rotate_suffix.'.log';
     }
 
-    private static function _get_rotation_log_file_suffix() : ?string
+    private static function _get_rotation_log_file_suffix(): ?string
     {
         if (!self::$admin_plugin
             || !($policy = self::$admin_plugin->log_rotation_policy())) {
@@ -674,7 +674,7 @@ class PHS_Logger extends PHS_Registry
         return null;
     }
 
-    private static function _regenerate_request_identifier() : void
+    private static function _regenerate_request_identifier(): void
     {
         self::$_request_identifier = (string)microtime(true);
     }

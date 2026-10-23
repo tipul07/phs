@@ -25,7 +25,7 @@ final class PHS_Session extends PHS_Registry
         self::init();
     }
 
-    public static function init() : bool
+    public static function init(): bool
     {
         self::reset_registry();
 
@@ -113,7 +113,7 @@ final class PHS_Session extends PHS_Registry
      *
      * @return bool
      */
-    public static function _s(string $key, string $val) : bool
+    public static function _s(string $key, string $val): bool
     {
         if (PHS::prevent_session()
          || (!self::is_started() && !self::start())) {
@@ -137,7 +137,7 @@ final class PHS_Session extends PHS_Registry
      *
      * @return array
      */
-    public static function validate_cookie_params(?array $options_arr = null) : array
+    public static function validate_cookie_params(?array $options_arr = null): array
     {
         $options_arr ??= [];
 
@@ -170,7 +170,7 @@ final class PHS_Session extends PHS_Registry
      * @param null|array $options_arr
      * @return bool
      */
-    public static function raw_setcookie(string $name, $value, ?array $options_arr = null) : bool
+    public static function raw_setcookie(string $name, $value, ?array $options_arr = null): bool
     {
         $options_arr = self::validate_cookie_params($options_arr);
 
@@ -207,7 +207,7 @@ final class PHS_Session extends PHS_Registry
      *
      * @return bool
      */
-    public static function set_cookie(string $name, string $val, ?array $params = null) : bool
+    public static function set_cookie(string $name, string $val, ?array $params = null): bool
     {
         self::st_reset_error();
 
@@ -270,7 +270,7 @@ final class PHS_Session extends PHS_Registry
      *
      * @return bool
      */
-    public static function delete_cookie(string $name, ?array $params = null) : bool
+    public static function delete_cookie(string $name, ?array $params = null): bool
     {
         self::st_reset_error();
 
@@ -326,12 +326,12 @@ final class PHS_Session extends PHS_Registry
         return true;
     }
 
-    public static function get_cookie(string $name) : ?string
+    public static function get_cookie(string $name): ?string
     {
         return $_COOKIE[$name] ?? null;
     }
 
-    public static function start() : bool
+    public static function start(): bool
     {
         if (PHS::prevent_session()) {
             return false;
@@ -353,7 +353,7 @@ final class PHS_Session extends PHS_Registry
             [__CLASS__, 'sf_read'],
             [__CLASS__, 'sf_write'],
             [__CLASS__, 'sf_destroy'],
-            [__CLASS__, 'sf_gc']
+            [__CLASS__, 'sf_gc'],
         );
 
         @session_save_path(self::get_data(self::SESS_DIR));
@@ -389,14 +389,14 @@ final class PHS_Session extends PHS_Registry
         return true;
     }
 
-    public static function get_id() : ?string
+    public static function get_id(): ?string
     {
         return PHS::prevent_session()
             ? null
             : (@session_id() ?: null);
     }
 
-    public static function resume_session(string $id) : ?bool
+    public static function resume_session(string $id): ?bool
     {
         if (PHS::prevent_session()
            || !self::safe_session_id($id)) {
@@ -411,7 +411,7 @@ final class PHS_Session extends PHS_Registry
         return true;
     }
 
-    public static function safe_session_id($id) : ?string
+    public static function safe_session_id($id): ?string
     {
         if (empty($id) || !is_string($id)
          || !preg_match('/^[-,a-zA-Z0-9]{1,128}$/', $id)) {
@@ -426,7 +426,7 @@ final class PHS_Session extends PHS_Registry
      *
      * @return array
      */
-    public static function get_session_id_dir_as_array($id) : array
+    public static function get_session_id_dir_as_array($id): array
     {
         if (empty($id) || !is_string($id)
          || !self::safe_session_id($id)
@@ -447,7 +447,7 @@ final class PHS_Session extends PHS_Registry
      *
      * @return string
      */
-    public static function get_session_id_dir($id) : string
+    public static function get_session_id_dir($id): string
     {
         if (empty($id) || !is_string($id)
          || !self::safe_session_id($id)) {
@@ -701,12 +701,12 @@ final class PHS_Session extends PHS_Registry
         return $return_arr;
     }
 
-    public static function is_started() : bool
+    public static function is_started(): bool
     {
         return (bool)self::get_data(self::SESS_STARTED);
     }
 
-    private static function start_session_with_data() : void
+    private static function start_session_with_data(): void
     {
         @session_start();
 
@@ -720,7 +720,7 @@ final class PHS_Session extends PHS_Registry
         self::set_data(self::SESS_DATA, $_SESSION);
     }
 
-    private static function reset_registry() : void
+    private static function reset_registry(): void
     {
         self::set_data(self::SESS_DIR, '');
         self::set_data(self::SESS_NAME, 'PHS_SESS');

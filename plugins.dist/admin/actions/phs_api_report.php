@@ -9,7 +9,9 @@ use phs\libraries\PHS_Action_Generic_list;
 use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\models\PHS_Model_Api_monitor;
 
-/** @property PHS_Model_Api_monitor $_paginator_model */
+/**
+ * @property PHS_Model_Api_monitor $_paginator_model
+ */
 class PHS_Action_Api_report extends PHS_Action_Generic_list
 {
     #[PHS_Dependency]
@@ -18,7 +20,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function should_stop_execution() : ?array
+    public function should_stop_execution(): ?array
     {
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -38,7 +40,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function load_paginator_params() : ?array
+    public function load_paginator_params(): ?array
     {
         PHS::page_settings('page_title', $this->_pt('API Monitor Report'));
 
@@ -252,12 +254,12 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    public function manage_action(array $action) : null | bool | array
+    public function manage_action(array $action): null | bool | array
     {
         return $this->_paginator->default_action_params();
     }
 
-    public function display_hide_id(array $params) : ?string
+    public function display_hide_id(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])
             || !($record_arr = $this->_paginator_model->data_to_array($params['record']))) {
@@ -282,7 +284,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
         return $params['preset_content'];
     }
 
-    public function display_account_name(array $params) : ?string
+    public function display_account_name(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
             return null;
@@ -310,7 +312,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
         return $params['preset_content'];
     }
 
-    public function display_request_details(array $params) : ?string
+    public function display_request_details(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])
          || !($record_arr = $this->_paginator_model->data_to_array($params['record']))) {
@@ -360,7 +362,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
         return $cell_str;
     }
 
-    public function display_response_details(array $params) : ?string
+    public function display_response_details(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])
          || !($record_arr = $this->_paginator_model->data_to_array($params['record']))) {
@@ -410,7 +412,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
         return $cell_str;
     }
 
-    public function display_error_message(array $params) : ?string
+    public function display_error_message(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])
          || !($record_arr = $this->_paginator_model->data_to_array($params['record']))) {
@@ -446,7 +448,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
         return $cell_str;
     }
 
-    public function after_table_callback(array $params) : string
+    public function after_table_callback(array $params): string
     {
         static $js_functionality = false;
 
@@ -565,7 +567,7 @@ class PHS_Action_Api_report extends PHS_Action_Generic_list
         return ob_get_clean() ?: '';
     }
 
-    protected function _load_dependencies() : bool
+    protected function _load_dependencies(): bool
     {
         $this->reset_error();
 

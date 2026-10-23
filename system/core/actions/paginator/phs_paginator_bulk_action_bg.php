@@ -10,12 +10,12 @@ use phs\libraries\PHS_Action_Generic_list;
 
 class PHS_Action_Paginator_bulk_action_bg extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_BACKGROUND];
     }
 
-    public function execute() : ?array
+    public function execute(): ?array
     {
         if (!($params = PHS_Bg_jobs::get_current_job_parameters())
             || empty($params['context']['action_class'])
@@ -32,7 +32,7 @@ class PHS_Action_Paginator_bulk_action_bg extends PHS_Action
             || !($action_obj instanceof PHS_Action_Generic_list)) {
             PHS_Logger::error(
                 'Error while instantiating paginator action class '.($params['export_context']['action'] ?? 'N/A').'.',
-                $admin_plugin::LOG_PAGINATOR
+                $admin_plugin::LOG_PAGINATOR,
             );
 
             return self::default_action_result();
@@ -40,12 +40,12 @@ class PHS_Action_Paginator_bulk_action_bg extends PHS_Action
 
         if (!$action_obj->initialize_paginator(
             $params['context']['scope'] ?? [],
-            $params['context']['pagination_params'] ?? []
+            $params['context']['pagination_params'] ?? [],
         )) {
             PHS_Logger::error(
                 'Error while initializing paginator for action class '.$action_obj::class.': '
                 .$action_obj->get_simple_error_message('Unknown error.'),
-                $admin_plugin::LOG_PAGINATOR
+                $admin_plugin::LOG_PAGINATOR,
             );
 
             return self::default_action_result();
@@ -54,21 +54,21 @@ class PHS_Action_Paginator_bulk_action_bg extends PHS_Action
         PHS_Logger::debug('Launching action '
                           .($params['context']['bulk_action']['action'] ?? 'N/A')
                           .' for class '.$action_obj::class.'.',
-            $admin_plugin::LOG_PAGINATOR
+            $admin_plugin::LOG_PAGINATOR,
         );
 
         if (!$action_obj->default_manage_action($params['context']['bulk_action'])) {
             PHS_Logger::error('Error in manage action '.($params['context']['bulk_action']['action'] ?? 'N/A')
                               .' for class '.$action_obj::class.': '
                               .$action_obj->get_simple_error_message('Unknown error.'),
-                $admin_plugin::LOG_PAGINATOR
+                $admin_plugin::LOG_PAGINATOR,
             );
         }
 
         PHS_Logger::debug('Finished action '
                           .($params['context']['bulk_action']['action'] ?? 'N/A')
                           .' for class '.$action_obj::class.'.',
-            $admin_plugin::LOG_PAGINATOR
+            $admin_plugin::LOG_PAGINATOR,
         );
 
         return self::default_action_result();

@@ -26,7 +26,7 @@ class PHS_Api_remote extends PHS_Api_base
     /**
      * @inheritdoc
      */
-    final public function run_route(array $extra = []) : ?array
+    final public function run_route(array $extra = []): ?array
     {
         $this->reset_error();
 
@@ -160,12 +160,12 @@ class PHS_Api_remote extends PHS_Api_base
     /**
      * @inheritdoc
      */
-    public function create_response_envelope(array $response_arr, ?array $errors_arr = null) : ?array
+    public function create_response_envelope(array $response_arr, ?array $errors_arr = null): ?array
     {
         return $this->default_response_envelope($response_arr, $errors_arr);
     }
 
-    protected function _before_route_run() : bool
+    protected function _before_route_run(): bool
     {
         if ($this->is_web_simulation()) {
             PHS_Scope::emulated_scope(PHS_Scope::SCOPE_WEB);
@@ -200,7 +200,7 @@ class PHS_Api_remote extends PHS_Api_base
         return true;
     }
 
-    protected function _after_route_run() : bool
+    protected function _after_route_run(): bool
     {
         if ($this->is_web_simulation()) {
             PHS_Scope::emulated_scope(0);
@@ -212,7 +212,7 @@ class PHS_Api_remote extends PHS_Api_base
     /**
      * @return bool Returns true if custom authentication is ok or false if authentication failed
      */
-    protected function _check_api_authentication() : bool
+    protected function _check_api_authentication(): bool
     {
         $this->reset_error();
 
@@ -223,7 +223,7 @@ class PHS_Api_remote extends PHS_Api_base
 
             if (!$this->send_header_response(
                 $authentication_failed['http_code'] ?? self::H_CODE_UNAUTHORIZED,
-                $authentication_failed['error_msg'] ?? self::_t('Authentication failed.')
+                $authentication_failed['error_msg'] ?? self::_t('Authentication failed.'),
             )) {
                 return false;
             }
@@ -234,7 +234,7 @@ class PHS_Api_remote extends PHS_Api_base
         return true;
     }
 
-    private function _load_dependencies() : bool
+    private function _load_dependencies(): bool
     {
         $this->reset_error();
 
@@ -248,7 +248,7 @@ class PHS_Api_remote extends PHS_Api_base
         return true;
     }
 
-    private function _parse_remote_message() : ?array
+    private function _parse_remote_message(): ?array
     {
         if (!$this->_load_dependencies()) {
             return null;
@@ -301,7 +301,7 @@ class PHS_Api_remote extends PHS_Api_base
         ];
     }
 
-    final public static function api_factory(array $init_query_params = []) : ?self
+    final public static function api_factory(array $init_query_params = []): ?self
     {
         self::st_reset_error();
 

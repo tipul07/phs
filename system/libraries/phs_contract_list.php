@@ -11,7 +11,7 @@ abstract class PHS_Contract_list extends PHS_Contract
      * If nodes in list are defined in a contract, return contract instance here
      * @return null|PHS_Contract
      */
-    public function get_list_node_contract() : ?PHS_Contract
+    public function get_list_node_contract(): ?PHS_Contract
     {
         return null;
     }
@@ -19,9 +19,9 @@ abstract class PHS_Contract_list extends PHS_Contract
     /**
      * Returns an array containing item node definition in the list (only if different from provided contract - if any)
      * @return null|array
-     * @see \phs\libraries\PHS_Contract::_get_contract_node_definition()
+     * @see PHS_Contract::_get_contract_node_definition()
      */
-    public function get_contract_data_list_definition() : ?array
+    public function get_contract_data_list_definition(): ?array
     {
         return $this->get_list_node_contract()?->get_contract_data_definition();
     }
@@ -29,11 +29,11 @@ abstract class PHS_Contract_list extends PHS_Contract
     /**
      * @inheritdoc
      */
-    public function get_contract_data_definition() : ?array
+    public function get_contract_data_definition(): ?array
     {
         $contract_obj = $this->get_list_node_contract();
 
-        return [
+        $return_arr = [
             'total_count' => [
                 'title'       => 'Total items count',
                 'description' => 'Total items resulted when we query database with provided filters',
@@ -58,5 +58,22 @@ abstract class PHS_Contract_list extends PHS_Contract
                 'nodes'               => $contract_obj ? [] : $this->get_contract_data_list_definition(),
             ],
         ];
+
+        if (($max_regords = $this->_list_maximum_records()) !== null) {
+            $return_arr['list']['recurring_max_items'] = $max_regords;
+        }
+
+        return $return_arr;
+    }
+
+    /**
+     * Override this method if you want to change the default maximum number of records that can be returned in a list.
+     * If null is returned, default limit will be applied.
+     *
+     * @return null|int
+     */
+    protected function _list_maximum_records(): ?int
+    {
+        return null;
     }
 }

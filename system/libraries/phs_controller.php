@@ -9,25 +9,25 @@ abstract class PHS_Controller extends PHS_Instantiable
 {
     public const ERR_RUN_ACTION = 40000, ERR_SCOPE = 40001;
 
-    private $_action = false;
+    private ?PHS_Action $_action = null;
 
     // ! Tells if running controller should choose admin template if Scope should display a layout
     /** @var bool */
     private bool $_is_admin_controller = false;
 
     /**
-     * @return string
+     * @inheritdoc
      */
-    final public function instance_type() : string
+    final public function instance_type(): string
     {
         return self::INSTANCE_TYPE_CONTROLLER;
     }
 
     /**
      * Returns action running currently using this controller
-     * @return bool|PHS_Action
+     * @return null|PHS_Action
      */
-    final public function get_action()
+    final public function get_action(): ?PHS_Action
     {
         return $this->_action;
     }
@@ -37,12 +37,12 @@ abstract class PHS_Controller extends PHS_Instantiable
      *
      * @return array If empty array, controller is allowed in all scopes...
      */
-    public function allowed_scopes()
+    public function allowed_scopes(): array
     {
         return [];
     }
 
-    final public function is_admin_controller($is_admin = null) : bool
+    final public function is_admin_controller($is_admin = null): bool
     {
         if ($is_admin === null) {
             return $this->_is_admin_controller;
@@ -58,7 +58,7 @@ abstract class PHS_Controller extends PHS_Instantiable
      *
      * @return bool Returns true if controller is allowed to run in provided scope
      */
-    final public function scope_is_allowed(int $scope) : bool
+    final public function scope_is_allowed(int $scope): bool
     {
         $this->reset_error();
 
@@ -76,7 +76,7 @@ abstract class PHS_Controller extends PHS_Instantiable
      * Overwrite this method to tell controller to redirect user to login page if not logged in
      * @return bool
      */
-    public function should_request_have_logged_in_user() : bool
+    public function should_request_have_logged_in_user(): bool
     {
         return false;
     }
@@ -86,7 +86,7 @@ abstract class PHS_Controller extends PHS_Instantiable
      * If this method returns true, an user checked test is also made
      * @return bool
      */
-    public function should_user_have_any_of_defined_role_units() : bool
+    public function should_user_have_any_of_defined_role_units(): bool
     {
         return false;
     }
@@ -172,7 +172,7 @@ abstract class PHS_Controller extends PHS_Instantiable
      *
      * @return null|array Returns an action result array which was generated from controller...
      */
-    public function execute_foobar_action(?array $action_result = null) : ?array
+    public function execute_foobar_action(?array $action_result = null): ?array
     {
         PHS::running_controller($this);
 
@@ -194,7 +194,7 @@ abstract class PHS_Controller extends PHS_Instantiable
             return null;
         }
 
-        if (empty($action_result)) {
+        if (!$action_result) {
             $action_result = PHS_Action::default_action_result();
         }
 
@@ -243,7 +243,7 @@ abstract class PHS_Controller extends PHS_Instantiable
         if (!($action_obj = PHS::load_action($action, $plugin, $action_dir))) {
             $this->copy_or_set_static_error(
                 self::ERR_RUN_ROUTE_ERROR,
-                self::_t('Couldn\'t load action [%s].', ($action_dir !== '' ? $action_dir.'/' : '').$action)
+                self::_t('Couldn\'t load action [%s].', ($action_dir !== '' ? $action_dir.'/' : '').$action),
             );
 
             return false;

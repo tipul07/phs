@@ -17,7 +17,7 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             // default template
@@ -43,12 +43,12 @@ class PHS_Plugin_Cookie_notice extends PHS_Plugin
         ];
     }
 
-    public function agreed_cookies() : bool
+    public function agreed_cookies(): bool
     {
         return (bool)PHS_Session::get_cookie(self::COOKIE_NAME);
     }
 
-    public function accept_cookie_agreement() : bool
+    public function accept_cookie_agreement(): bool
     {
         return PHS_Session::set_cookie(self::COOKIE_NAME, 1, [
             'expire_secs' => self::COOKIE_EXPIRE_SECS,

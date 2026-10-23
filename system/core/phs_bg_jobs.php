@@ -15,7 +15,7 @@ class PHS_Bg_jobs extends PHS_Registry
 
     public const DATA_JOB_KEY = 'bg_jobs_job_data';
 
-    public static function current_job_data(null | array | PHS_Record_data $job_data = null) : null | array | PHS_Record_data
+    public static function current_job_data(null | array | PHS_Record_data $job_data = null): null | array | PHS_Record_data
     {
         if ($job_data === null) {
             return self::get_data(self::DATA_JOB_KEY);
@@ -26,7 +26,7 @@ class PHS_Bg_jobs extends PHS_Registry
         return $job_data;
     }
 
-    public static function get_current_job_parameters() : array
+    public static function get_current_job_parameters(): array
     {
         if (!($job_arr = self::current_job_data())
             || empty($job_arr['params'])
@@ -37,7 +37,7 @@ class PHS_Bg_jobs extends PHS_Registry
         return $job_params_arr;
     }
 
-    public static function get_stalling_minutes() : int
+    public static function get_stalling_minutes(): int
     {
         static $stalling_minutes = null;
 
@@ -45,7 +45,6 @@ class PHS_Bg_jobs extends PHS_Registry
             return $stalling_minutes;
         }
 
-        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
         if (!($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())
             || !($stalling_minutes = $bg_jobs_model->get_stalling_minutes())) {
             $stalling_minutes = 0;
@@ -54,11 +53,10 @@ class PHS_Bg_jobs extends PHS_Registry
         return $stalling_minutes;
     }
 
-    public static function refresh_current_job() : ?array
+    public static function refresh_current_job(): ?array
     {
         self::st_reset_error();
 
-        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
         if (!($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())
             || !($job_data = self::current_job_data())
             || !($job_arr = $bg_jobs_model->data_to_array($job_data))) {
@@ -85,13 +83,12 @@ class PHS_Bg_jobs extends PHS_Registry
      *
      * @return bool|string|array
      */
-    public static function run(array | string $route, array $params = [], array $extra = []) : bool | string | array
+    public static function run(array | string $route, array $params = [], array $extra = []): bool | string | array
     {
         // We don't use here PHS::route_exists() because route_exists() will instantiate plugin, controller and action and if they have errors
         // launching script will die...
         self::st_reset_error();
 
-        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
         if (!($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())) {
             self::st_set_error_if_not_set(self::ERR_DEPENDENCIES, self::_t('Error loading required resources.'));
 
@@ -110,18 +107,10 @@ class PHS_Bg_jobs extends PHS_Registry
             return false;
         }
 
-        if (!isset($route_parts['plugin'])) {
-            $route_parts['plugin'] = false;
-        }
-        if (!isset($route_parts['controller'])) {
-            $route_parts['controller'] = false;
-        }
-        if (!isset($route_parts['action'])) {
-            $route_parts['action'] = false;
-        }
-        if (!isset($route_parts['action_dir'])) {
-            $route_parts['action_dir'] = false;
-        }
+        $route_parts['plugin'] ??= null;
+        $route_parts['controller'] ??= null;
+        $route_parts['action'] ??= null;
+        $route_parts['action_dir'] ??= null;
 
         if (!($cleaned_route = PHS::route_from_parts([
             'p'  => $route_parts['plugin'],
@@ -257,17 +246,16 @@ class PHS_Bg_jobs extends PHS_Registry
         return $result;
     }
 
-    public static function get_job_command(int | array | PHS_Record_data $job_data, array $extra = []) : ?array
+    public static function get_job_command(int | array | PHS_Record_data $job_data, array $extra = []): ?array
     {
         self::st_reset_error();
 
         $extra['return_buffer'] = !empty($extra['return_buffer']);
         $extra['async_task'] = !isset($extra['async_task']) || !empty($extra['async_task']);
 
-        /** @var PHS_Model_Bg_jobs $bg_jobs_model */
-        if (empty($job_data)
-         || !($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())
-         || !($job_arr = $bg_jobs_model->data_to_array($job_data))) {
+        if (!$job_data
+            || !($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())
+            || !($job_arr = $bg_jobs_model->data_to_array($job_data))) {
             self::st_set_error_if_not_set(self::ERR_COMMAND, self::_t('Couldn\'t get background jobs details.'));
 
             return null;
@@ -302,12 +290,12 @@ class PHS_Bg_jobs extends PHS_Registry
         ];
     }
 
-    public static function bg_validate_input(string $input_str) : ?array
+    public static function bg_validate_input(string $input_str): ?array
     {
         if (empty($input_str)
-         || !str_contains($input_str, '::')
-         || !($parts_arr = explode('::', $input_str, 2))
-         || empty($parts_arr[0]) || empty($parts_arr[1])) {
+            || !str_contains($input_str, '::')
+            || !($parts_arr = explode('::', $input_str, 2))
+            || empty($parts_arr[0]) || empty($parts_arr[1])) {
             PHS_Logger::error('Invalid input', PHS_Logger::TYPE_BACKGROUND);
 
             return null;
@@ -317,12 +305,12 @@ class PHS_Bg_jobs extends PHS_Registry
         $pub_key = $parts_arr[1];
 
         if (!($decrypted_data = PHS_Crypt::quick_decode($crypted_data))
-         || !($decrypted_parts = explode('::', $decrypted_data, 2))
-         || empty($decrypted_parts[0]) || empty($decrypted_parts[1])
-         || !($job_id = (int)$decrypted_parts[0])
-         || !($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())
-         || !($job_arr = $bg_jobs_model->get_details($job_id))
-         || $decrypted_parts[1] !== md5($job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'])) {
+            || !($decrypted_parts = explode('::', $decrypted_data, 2))
+            || empty($decrypted_parts[0]) || empty($decrypted_parts[1])
+            || !($job_id = (int)$decrypted_parts[0])
+            || !($bg_jobs_model = PHS_Model_Bg_jobs::get_instance())
+            || !($job_arr = $bg_jobs_model->get_details($job_id))
+            || $decrypted_parts[1] !== md5($job_arr['route'].':'.$pub_key.':'.$job_arr['cdate'])) {
             PHS_Logger::error('Input validation failed', PHS_Logger::TYPE_BACKGROUND);
 
             return null;
@@ -335,7 +323,7 @@ class PHS_Bg_jobs extends PHS_Registry
         ];
     }
 
-    public static function bg_run_job(int | array | PHS_Record_data $job_data) : ?array
+    public static function bg_run_job(int | array | PHS_Record_data $job_data): ?array
     {
         self::st_reset_error();
 
@@ -345,7 +333,7 @@ class PHS_Bg_jobs extends PHS_Registry
             return null;
         }
 
-        if (empty($job_data)
+        if (!$job_data
             || !($job_arr = $bg_jobs_model->data_to_array($job_data))) {
             self::st_copy_or_set_error($bg_jobs_model,
                 self::ERR_RUN_JOB, self::_t('Couldn\'t get background jobs details.'));
@@ -396,7 +384,7 @@ class PHS_Bg_jobs extends PHS_Registry
             $error_arr = $technical_error ?? self::st_get_error();
 
             $bg_jobs_model->job_error_stop($job_arr,
-                ['last_error' => self::arr_get_simple_error_message($error_arr)]
+                ['last_error' => self::arr_get_simple_error_message($error_arr)],
             );
 
             self::st_copy_error_from_array($error_arr);

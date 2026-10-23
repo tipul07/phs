@@ -8,7 +8,7 @@ use phs\plugins\cookie_notice\PHS_Plugin_Cookie_notice;
 
 class PHS_Action_Cookie_notice_ajax extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_AJAX];
     }

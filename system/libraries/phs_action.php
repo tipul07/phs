@@ -18,11 +18,34 @@ abstract class PHS_Action extends PHS_Instantiable
         ACT_ROLE_REMOTE_PHS_CALL = 'phs_remote_phs_call',
         ACT_ROLE_TFA_SETUP = 'phs_tfa_setup', ACT_ROLE_TFA_VERIFY = 'phs_tfa_verify', ACT_ROLE_TFA_SETTINGS = 'phs_tfa_settings';
 
-    /** @var null|PHS_Controller */
+    /**
+     * Controller instance used when running the action
+     *
+     * @var null|PHS_Controller
+     */
     private ?PHS_Controller $_controller_obj = null;
 
-    /** @var null|array */
     private ?array $_action_result = null;
+
+    /**
+     * This can be overwritten in child action to say what controller class name to use in case static::get_route_from_class() is used
+     *
+     * @var null|string
+     * @see static::get_route_from_class()
+     */
+    protected static ?string $_default_controller_for_route = null;
+
+    /**
+     * A name for this action (if required) Option more used for API actions in order to extract automated documentation
+     * @var null|string
+     */
+    protected static ?string $_action_name = null;
+
+    /**
+     * A description for this action (if required) Option more used for API actions in order to extract automated documentation
+     * @var null|string
+     */
+    protected static ?string $_action_description = null;
 
     private static array $_action_roles = [];
 
@@ -56,7 +79,7 @@ abstract class PHS_Action extends PHS_Instantiable
      *
      * @return int[] If empty array, action is allowed in all scopes...
      */
-    public function allowed_scopes() // : array
+    public function allowed_scopes(): array
     {
         return [];
     }
@@ -64,12 +87,17 @@ abstract class PHS_Action extends PHS_Instantiable
     /**
      * @return array Returns roles that current action have
      */
-    public function action_roles() // :array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_PAGE];
     }
 
-    final public function define_action_role(string $role_key, array $role_arr) : ?array
+    final public function instance_type(): string
+    {
+        return self::INSTANCE_TYPE_ACTION;
+    }
+
+    final public function define_action_role(string $role_key, array $role_arr): ?array
     {
         $this->reset_error();
 
@@ -102,7 +130,7 @@ abstract class PHS_Action extends PHS_Instantiable
      *
      * @return null|array Return null if provided roles are not for current action or a list of matching action roles
      */
-    final public function action_role_is(string | array $role_check, array $params = []) : ?array
+    final public function action_role_is(string | array $role_check, array $params = []): ?array
     {
         if (!is_array($role_check)) {
             $role_check = [$role_check];
@@ -134,17 +162,12 @@ abstract class PHS_Action extends PHS_Instantiable
         return $return_arr ?: null;
     }
 
-    final public function instance_type() : string
-    {
-        return self::INSTANCE_TYPE_ACTION;
-    }
-
     /**
      * @param int $scope Scope to be checked
      *
      * @return bool Returns true if controller is allowed to run in provided scope
      */
-    final public function scope_is_allowed(int $scope) : bool
+    final public function scope_is_allowed(int $scope): bool
     {
         $this->reset_error();
 
@@ -159,24 +182,24 @@ abstract class PHS_Action extends PHS_Instantiable
                || in_array($scope, $allowed_scopes, true);
     }
 
-    final public function set_action_defaults() : void
+    final public function set_action_defaults(): void
     {
         $this->_action_result = self::default_action_result();
     }
 
-    final public function get_action_result() : ?array
+    final public function get_action_result(): ?array
     {
         return $this->_action_result;
     }
 
-    final public function set_action_result(array $result) : array
+    final public function set_action_result(array $result): array
     {
         $this->_action_result = self::validate_action_result($result);
 
         return $this->_action_result;
     }
 
-    final public function quick_render_template(string $template, array $template_data = []) : ?array
+    final public function quick_render_template(string $template, array $template_data = []): ?array
     {
         $this->reset_error();
 
@@ -200,7 +223,7 @@ abstract class PHS_Action extends PHS_Instantiable
             $this->copy_or_set_error(
                 $view_obj,
                 self::ERR_RENDER,
-                self::_t('Error rendering template [%s].', $view_obj->get_template())
+                self::_t('Error rendering template [%s].', $view_obj->get_template()),
             );
 
             return null;
@@ -215,7 +238,7 @@ abstract class PHS_Action extends PHS_Instantiable
         return $action_result;
     }
 
-    final public function run_action() : ?array
+    final public function run_action(): ?array
     {
         PHS::running_action($this);
 
@@ -283,8 +306,8 @@ abstract class PHS_Action extends PHS_Instantiable
                 [],
                 self::arr_copy_or_set_error(
                     $this,
-                    self::ERR_RUN_ROUTE_ERROR, self::_t('Error in action execution.')
-                )
+                    self::ERR_RUN_ROUTE_ERROR, self::_t('Error in action execution.'),
+                ),
             );
         }
 
@@ -318,22 +341,22 @@ abstract class PHS_Action extends PHS_Instantiable
         return $action_result;
     }
 
-    final public function set_controller(?PHS_Controller $controller_obj) : void
+    final public function set_controller(?PHS_Controller $controller_obj): void
     {
         $this->_controller_obj = $controller_obj;
     }
 
-    final public function get_controller() : ?PHS_Controller
+    final public function get_controller(): ?PHS_Controller
     {
         return $this->_controller_obj;
     }
 
-    final public function is_admin_controller() : bool
+    final public function is_admin_controller(): bool
     {
         return $this->_controller_obj && $this->_controller_obj->is_admin_controller();
     }
 
-    public function send_ajax_response(string | array $payload, array $action_result = [], ?bool $only_result = null) : array
+    public function send_ajax_response(string | array $payload, array $action_result = [], ?bool $only_result = null): array
     {
         $action_result = $action_result ?: self::default_action_result();
 
@@ -345,14 +368,48 @@ abstract class PHS_Action extends PHS_Instantiable
         return $action_result;
     }
 
-    final public static function default_action_role_definition_array() : array
+    final public static function get_route_from_class(?string $controller_class = null, ?string $full_class_name = null): ?array
+    {
+        if (!$full_class_name) {
+            $full_class_name = static::class;
+        }
+
+        $full_class_name = ltrim($full_class_name, '\\');
+
+        if (!($details = self::get_full_instance_details($full_class_name))
+           || empty($details['instance_name'])) {
+            return null;
+        }
+
+        $return_arr = ['a' => strtolower($details['instance_name'])];
+        if (!empty($details['instance_subdir'])) {
+            $return_arr['ad'] = $details['instance_subdir'];
+        }
+        if (($controller_class ??= static::$_default_controller_for_route ?? null)) {
+            if (!($c_details = self::get_full_instance_details($controller_class))
+               || empty($c_details['instance_name'])) {
+                self::st_set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Unknown controller class.'));
+
+                return null;
+            }
+            $return_arr['c'] = strtolower($c_details['instance_name']);
+        }
+        if (($details['plugin_name'] ?? null)
+           && $details['plugin_name'] !== self::CORE_PLUGIN) {
+            $return_arr['p'] = strtolower($details['plugin_name']);
+        }
+
+        return $return_arr;
+    }
+
+    final public static function default_action_role_definition_array(): array
     {
         return [
             'title' => '',
         ];
     }
 
-    final public static function get_action_roles() : array
+    final public static function get_action_roles(): array
     {
         if (!empty(self::$_action_roles)) {
             return self::$_action_roles;
@@ -363,14 +420,9 @@ abstract class PHS_Action extends PHS_Instantiable
         return self::$_action_roles;
     }
 
-    final public static function valid_action_role(string $role_key) : ?array
+    final public static function valid_action_role(string $role_key): ?array
     {
-        if (!($roles_arr = self::get_action_roles())
-         || empty($roles_arr[$role_key])) {
-            return null;
-        }
-
-        return $roles_arr[$role_key];
+        return self::get_action_roles()[$role_key] ?? null;
     }
 
     /**
@@ -380,7 +432,7 @@ abstract class PHS_Action extends PHS_Instantiable
      *
      * @return array
      */
-    final public static function validate_action_result($action_result) : array
+    final public static function validate_action_result($action_result): array
     {
         $default_action_result = self::default_action_result();
         if (!$action_result) {
@@ -390,7 +442,7 @@ abstract class PHS_Action extends PHS_Instantiable
         return self::validate_array($action_result, $default_action_result);
     }
 
-    final public static function action_result_has_errors(array $action_result) : bool
+    final public static function action_result_has_errors(array $action_result): bool
     {
         if (empty($action_result['end_user_error']) && empty($action_result['technical_error'])) {
             return false;
@@ -400,7 +452,7 @@ abstract class PHS_Action extends PHS_Instantiable
                || (!empty($action_result['technical_error']) && self::arr_has_error($action_result['technical_error']));
     }
 
-    final public static function set_action_result_errors(array $action_result, ?array $end_user_error, ?array $technical_error = null) : array
+    final public static function set_action_result_errors(array $action_result, ?array $end_user_error, ?array $technical_error = null): array
     {
         if ($technical_error === null && !empty($end_user_error)) {
             $technical_error = $end_user_error;
@@ -416,12 +468,12 @@ abstract class PHS_Action extends PHS_Instantiable
         return $action_result;
     }
 
-    final public static function get_end_user_error_from_action_result(array $action_result) : ?array
+    final public static function get_end_user_error_from_action_result(array $action_result): ?array
     {
         return $action_result['end_user_error'] ?? null;
     }
 
-    final public static function get_technical_error_from_action_result(array $action_result) : ?array
+    final public static function get_technical_error_from_action_result(array $action_result): ?array
     {
         return $action_result['technical_error'] ?? null;
     }
@@ -430,7 +482,7 @@ abstract class PHS_Action extends PHS_Instantiable
      * Returns a default array as result of an action execution
      * @return array
      */
-    final public static function default_action_result() : array
+    final public static function default_action_result(): array
     {
         return [
             // Action "content"

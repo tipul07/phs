@@ -8,22 +8,22 @@ class PHS_Model_Migrations extends PHS_Model
 {
     private static ?bool $_model_installed = null;
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.0.1';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['phs_migrations'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'phs_migrations';
     }
 
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             'minutes_to_stall' => [
@@ -35,7 +35,7 @@ class PHS_Model_Migrations extends PHS_Model
         ];
     }
 
-    public function migration_model_is_installed(bool $force = false) : bool
+    public function migration_model_is_installed(bool $force = false): bool
     {
         if (empty($force)
              && null !== self::$_model_installed) {
@@ -47,7 +47,7 @@ class PHS_Model_Migrations extends PHS_Model
         return self::$_model_installed;
     }
 
-    public function start_migration(string $plugin, string $script, string $version, bool $force = false) : ?array
+    public function start_migration(string $plugin, string $script, string $version, bool $force = false): ?array
     {
         $this->reset_error();
 
@@ -88,7 +88,7 @@ class PHS_Model_Migrations extends PHS_Model
         return $new_migration;
     }
 
-    public function refresh_migration(int | array $migration_data, ?int $total_count = null, ?int $current_count = null) : ?array
+    public function refresh_migration(int | array $migration_data, ?int $total_count = null, ?int $current_count = null): ?array
     {
         $this->reset_error();
 
@@ -132,7 +132,7 @@ class PHS_Model_Migrations extends PHS_Model
         return $new_job_arr;
     }
 
-    public function migration_error(int | array $migration_data, string $error_msg) : ?array
+    public function migration_error(int | array $migration_data, string $error_msg): ?array
     {
         $this->reset_error();
 
@@ -163,7 +163,7 @@ class PHS_Model_Migrations extends PHS_Model
         return $new_job_arr;
     }
 
-    public function migration_finish(int | array $migration_data) : ?array
+    public function migration_finish(int | array $migration_data): ?array
     {
         $this->reset_error();
 
@@ -194,7 +194,7 @@ class PHS_Model_Migrations extends PHS_Model
         return $new_job_arr;
     }
 
-    public function get_stalling_minutes() : int
+    public function get_stalling_minutes(): int
     {
         static $stalling_minutes = null;
 
@@ -209,7 +209,7 @@ class PHS_Model_Migrations extends PHS_Model
         return $stalling_minutes;
     }
 
-    public function get_seconds_since_last_action(int | array $migration_data) : ?int
+    public function get_seconds_since_last_action(int | array $migration_data): ?int
     {
         $this->reset_error();
 
@@ -229,7 +229,7 @@ class PHS_Model_Migrations extends PHS_Model
         return !empty($migration_arr['last_action']) ? seconds_passed($migration_arr['last_action']) : 0;
     }
 
-    public function is_stalling(int | array $migration_data) : ?bool
+    public function is_stalling(int | array $migration_data): ?bool
     {
         $this->reset_error();
 
@@ -251,7 +251,7 @@ class PHS_Model_Migrations extends PHS_Model
                && floor($this->get_seconds_since_last_action($migration_arr) / 60) >= $minutes_to_stall;
     }
 
-    public function is_running(int | array $migration_data) : bool
+    public function is_running(int | array $migration_data): bool
     {
         return !$this->migration_model_is_installed()
                || (!empty($migration_data)
@@ -259,7 +259,7 @@ class PHS_Model_Migrations extends PHS_Model
                    && !empty($migration_arr['pid']));
     }
 
-    public function is_finished(int | array $migration_data) : bool
+    public function is_finished(int | array $migration_data): bool
     {
         return !$this->migration_model_is_installed()
                || (!empty($migration_data)
@@ -272,7 +272,7 @@ class PHS_Model_Migrations extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;
@@ -339,7 +339,7 @@ class PHS_Model_Migrations extends PHS_Model
         return $return_arr;
     }
 
-    protected function get_insert_prepare_params_phs_migrations(array $params) : ?array
+    protected function get_insert_prepare_params_phs_migrations(array $params): ?array
     {
         if (empty($params['fields']['plugin'])) {
             $this->set_error(self::ERR_INSERT, self::_t('Please provide a plugin for the migration.'));
@@ -362,7 +362,7 @@ class PHS_Model_Migrations extends PHS_Model
         return $params;
     }
 
-    protected function get_edit_prepare_params_phs_migrations(array $existing_data, array $params) : ?array
+    protected function get_edit_prepare_params_phs_migrations(array $existing_data, array $params): ?array
     {
         if (empty($params['fields']['last_action'])) {
             $params['fields']['last_action'] = date(self::DATETIME_DB);

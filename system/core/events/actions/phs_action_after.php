@@ -19,7 +19,7 @@ class PHS_Event_Action_after extends PHS_Event_Action
      *
      * @return null|array{"stop_execution":bool, "action_result": ?array}
      */
-    public static function action(string $action = '', ?PHS_Action $action_obj = null) : ?array
+    public static function action(string $action = '', ?PHS_Action $action_obj = null): ?array
     {
         $event_params = [];
         if (!empty(self::OLD_HOOKS[$action])) {

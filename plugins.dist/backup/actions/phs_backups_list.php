@@ -10,7 +10,9 @@ use phs\libraries\PHS_Action_Generic_list;
 use phs\plugins\backup\models\PHS_Model_Rules;
 use phs\plugins\backup\models\PHS_Model_Results;
 
-/** @property PHS_Model_Results $_paginator_model */
+/**
+ * @property PHS_Model_Results $_paginator_model
+ */
 class PHS_Action_Backups_list extends PHS_Action_Generic_list
 {
     private ?PHS_Plugin_Backup $_backup_plugin = null;
@@ -20,7 +22,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function should_stop_execution() : ?array
+    public function should_stop_execution(): ?array
     {
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -41,7 +43,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function load_paginator_params() : ?array
+    public function load_paginator_params(): ?array
     {
         PHS::page_settings('page_title', $this->_pt('Backup Results List'));
 
@@ -184,7 +186,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    public function manage_action(array $action) : null | bool | array
+    public function manage_action(array $action): null | bool | array
     {
         $this->reset_error();
 
@@ -339,7 +341,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
                .'<small>'.$days_str_arr.$hour_str.'</small>';
     }
 
-    public function display_backup_rule_where(array $params) : ?string
+    public function display_backup_rule_where(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
             return null;
@@ -367,7 +369,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
             );
     }
 
-    public function display_backup_rule_what(array $params) : ?string
+    public function display_backup_rule_what(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
             return null;
@@ -404,7 +406,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
         // return $targets_str_arr;
     }
 
-    public function display_actions(array $params) : ?string
+    public function display_actions(array $params): ?string
     {
         if (!$this->_paginator->is_cell_rendering_for_html($params)
             || !can($this->_backup_plugin::ROLEU_DELETE_BACKUPS)) {
@@ -428,7 +430,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
         return ob_get_clean() ?: null;
     }
 
-    public function after_table_callback(array $params) : string
+    public function after_table_callback(array $params): string
     {
         static $js_functionality = false;
 
@@ -507,7 +509,7 @@ class PHS_Action_Backups_list extends PHS_Action_Generic_list
             return ob_get_clean() ?: '';
     }
 
-    protected function _load_dependencies() : bool
+    protected function _load_dependencies(): bool
     {
         if ((!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Results::get_instance()))
             || (!$this->_backup_plugin && !($this->_backup_plugin = PHS_Plugin_Backup::get_instance()))

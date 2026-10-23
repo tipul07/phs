@@ -22,7 +22,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
 
     public const SESSION_VAR = 'phs_image_code';
 
-    public function get_output_as_key_vals() : array
+    public function get_output_as_key_vals(): array
     {
         return [
             self::OUTPUT_JPG => 'JPG',
@@ -34,7 +34,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_keys_to_obfuscate() : array
+    public function get_settings_keys_to_obfuscate(): array
     {
         return ['reference_code', ];
     }
@@ -42,7 +42,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             // default template
@@ -92,7 +92,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         ];
     }
 
-    public function get_font_full_path($font) : ?string
+    public function get_font_full_path($font): ?string
     {
         $font = make_sure_is_filename($font);
         if (empty($font)
@@ -105,7 +105,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         return $dir_path.self::FONT_DIR.'/'.$font;
     }
 
-    public function check_captcha_code(string $code) : bool
+    public function check_captcha_code(string $code): bool
     {
         if (!($img_library = $this->load_image_library(true))) {
             return false;
@@ -125,7 +125,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         return $code_valid;
     }
 
-    public function captcha_regeneration() : bool
+    public function captcha_regeneration(): bool
     {
         if (!($img_library = $this->load_image_library())) {
             return false;
@@ -138,7 +138,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         return true;
     }
 
-    public function generate_or_refresh_public_code() : bool
+    public function generate_or_refresh_public_code(): bool
     {
         if (!($img_library = $this->load_image_library(true))) {
             return false;
@@ -153,7 +153,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         return true;
     }
 
-    public function load_image_library(bool $force_code_check = false) : ?PHS_Image_code
+    public function load_image_library(bool $force_code_check = false): ?PHS_Image_code
     {
         static $img_library = null;
 
@@ -199,7 +199,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         return $img_library;
     }
 
-    public function get_captcha_check_hook_args($hook_args) : array
+    public function get_captcha_check_hook_args($hook_args): array
     {
         $this->reset_error();
 
@@ -234,7 +234,7 @@ class PHS_Plugin_Captcha extends PHS_Plugin
         return $hook_args;
     }
 
-    public function get_captcha_display_hook_args($hook_args) : array
+    public function get_captcha_display_hook_args($hook_args): array
     {
         $this->reset_error();
 

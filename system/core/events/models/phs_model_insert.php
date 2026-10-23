@@ -6,7 +6,7 @@ use phs\libraries\PHS_Event;
 
 class PHS_Event_Model_insert extends PHS_Event
 {
-    protected function _input_parameters() : array
+    protected function _input_parameters(): array
     {
         return [
             'flow_params' => [],
@@ -16,7 +16,7 @@ class PHS_Event_Model_insert extends PHS_Event
         ];
     }
 
-    protected function _output_parameters() : array
+    protected function _output_parameters(): array
     {
         return [
             'record_data' => null,
@@ -27,11 +27,11 @@ class PHS_Event_Model_insert extends PHS_Event
         string $model_class,
         array $input_arr,
         array $params = [],
-    ) : ?self {
+    ): ?self {
         return self::trigger(
             $input_arr,
             $model_class,
-            $params
+            $params,
         );
     }
 
@@ -39,11 +39,11 @@ class PHS_Event_Model_insert extends PHS_Event
         string $model_class,
         callable | array | string | Closure $callback,
         array $options = [],
-    ) : ?self {
+    ): ?self {
         return self::listen(
             $callback,
             $model_class,
-            $options
+            $options,
         );
     }
 }

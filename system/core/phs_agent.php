@@ -23,7 +23,7 @@ class PHS_Agent extends PHS_Registry
 
     private ?PHS_Model_Agent_jobs $_jobs_model = null;
 
-    public function run_job(int | array | PHS_Record_data $job_data, array $extra = []) : bool | array
+    public function run_job(int | array | PHS_Record_data $job_data, array $extra = []): bool | array
     {
         if (!$this->_load_dependencies()) {
             return false;
@@ -101,7 +101,7 @@ class PHS_Agent extends PHS_Registry
      * Any agent jobs that are not following stalling policy will be stopped
      * @return null|array
      */
-    public function check_stalling_agent_jobs() : ?array
+    public function check_stalling_agent_jobs(): ?array
     {
         if (!$this->_load_dependencies()) {
             return null;
@@ -140,7 +140,7 @@ class PHS_Agent extends PHS_Registry
         return $return_arr;
     }
 
-    public function check_agent_jobs() : ?array
+    public function check_agent_jobs(): ?array
     {
         if (!$this->_load_dependencies()) {
             return null;
@@ -171,7 +171,7 @@ class PHS_Agent extends PHS_Registry
 
                 PHS_Logger::error(
                     $this->get_simple_error_message('Error launching agent job: [#'.$job_arr['id'].']['.$job_arr['route'].']'),
-                    PHS_Logger::TYPE_AGENT
+                    PHS_Logger::TYPE_AGENT,
                 );
             }
         }
@@ -179,7 +179,7 @@ class PHS_Agent extends PHS_Registry
         return $return_arr;
     }
 
-    private function _get_job_command(int | array | PHS_Record_data $job_data, array $extra = []) : ?array
+    private function _get_job_command(int | array | PHS_Record_data $job_data, array $extra = []): ?array
     {
         if (!$this->_load_dependencies()) {
             return null;
@@ -225,7 +225,7 @@ class PHS_Agent extends PHS_Registry
         ];
     }
 
-    private function _load_dependencies() : bool
+    private function _load_dependencies(): bool
     {
         $this->reset_error();
 
@@ -238,7 +238,7 @@ class PHS_Agent extends PHS_Registry
         return true;
     }
 
-    public static function get_agent_routes() : ?array
+    public static function get_agent_routes(): ?array
     {
         self::st_reset_error();
 
@@ -278,7 +278,7 @@ class PHS_Agent extends PHS_Registry
         return $available_plugins_arr;
     }
 
-    public static function get_agent_available_controllers(?string $plugin = null) : array
+    public static function get_agent_available_controllers(?string $plugin = null): array
     {
         self::st_reset_error();
 
@@ -305,7 +305,7 @@ class PHS_Agent extends PHS_Registry
         return $available_controllers;
     }
 
-    public static function get_agent_available_actions(?string $plugin = null) : array
+    public static function get_agent_available_actions(?string $plugin = null): array
     {
         self::st_reset_error();
 
@@ -334,7 +334,7 @@ class PHS_Agent extends PHS_Registry
         return $available_actions;
     }
 
-    public static function current_job_data(null | array | PHS_Record_data $job_data = null) : null | array | PHS_Record_data
+    public static function current_job_data(null | array | PHS_Record_data $job_data = null): null | array | PHS_Record_data
     {
         if ($job_data === null) {
             return self::get_data(self::DATA_AGENT_KEY);
@@ -345,7 +345,7 @@ class PHS_Agent extends PHS_Registry
         return $job_data;
     }
 
-    public static function get_current_job_parameters() : array
+    public static function get_current_job_parameters(): array
     {
         if (!($job_arr = self::current_job_data())
             || empty($job_arr['params'])) {
@@ -355,13 +355,13 @@ class PHS_Agent extends PHS_Registry
         return @json_decode($job_arr['params'], true) ?: [];
     }
 
-    public static function current_job_is_forced() : bool
+    public static function current_job_is_forced(): bool
     {
         return ($job_params = self::get_current_job_parameters())
                && !empty($job_params['force_job']);
     }
 
-    public static function remove_job_handler(string $handler) : bool
+    public static function remove_job_handler(string $handler): bool
     {
         self::st_reset_error();
 
@@ -384,7 +384,7 @@ class PHS_Agent extends PHS_Registry
         return (bool)self::remove_job($existing_job);
     }
 
-    public static function remove_job_handler_array(array $handlers_arr) : bool
+    public static function remove_job_handler_array(array $handlers_arr): bool
     {
         self::st_reset_error();
 
@@ -411,14 +411,14 @@ class PHS_Agent extends PHS_Registry
         if (!$is_success) {
             self::st_copy_error_from_array(self::arr_set_error_if_not_set($error_arr,
                 self::ERR_JOB_DB,
-                self::_t('Couldn\'t delete all agent jobs from database.'))
+                self::_t('Couldn\'t delete all agent jobs from database.')),
             );
         }
 
         return $is_success;
     }
 
-    public static function get_db_agent_jobs(string $plugin) : ?array
+    public static function get_db_agent_jobs(string $plugin): ?array
     {
         self::st_reset_error();
 
@@ -459,7 +459,7 @@ class PHS_Agent extends PHS_Registry
         return $jobs_arr;
     }
 
-    public static function remove_job(int | array | PHS_Record_data $job_data) : null | array | PHS_Record_data
+    public static function remove_job(int | array | PHS_Record_data $job_data): null | array | PHS_Record_data
     {
         self::st_reset_error();
 
@@ -491,8 +491,8 @@ class PHS_Agent extends PHS_Registry
         string | array $route,
         int $once_every_seconds,
         array $params = [],
-        array $extra = []
-    ) : ?array {
+        array $extra = [],
+    ): ?array {
         // We don't use here PHS::route_exists() because route_exists() will instantiate plugin, controller and action and if they have errors
         // launching script will die...
         self::st_reset_error();
@@ -553,7 +553,7 @@ class PHS_Agent extends PHS_Registry
                 'c'  => $route_parts['controller'],
                 'a'  => $route_parts['action'],
                 'ad' => $route_parts['action_dir'],
-            ]
+            ],
         ))) {
             self::st_set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Invalid route for agent job.'));
 
@@ -598,7 +598,7 @@ class PHS_Agent extends PHS_Registry
         return $job_arr;
     }
 
-    public static function suspend_agent_jobs(string $plugin) : bool
+    public static function suspend_agent_jobs(string $plugin): bool
     {
         self::st_reset_error();
 
@@ -632,7 +632,7 @@ class PHS_Agent extends PHS_Registry
         return true;
     }
 
-    public static function unsuspend_agent_jobs(string $plugin) : bool
+    public static function unsuspend_agent_jobs(string $plugin): bool
     {
         self::st_reset_error();
 
@@ -666,7 +666,7 @@ class PHS_Agent extends PHS_Registry
         return true;
     }
 
-    public static function remove_agent_jobs(string $plugin) : bool
+    public static function remove_agent_jobs(string $plugin): bool
     {
         self::st_reset_error();
 
@@ -698,7 +698,7 @@ class PHS_Agent extends PHS_Registry
         return true;
     }
 
-    public static function bg_validate_input(string $input_str) : ?array
+    public static function bg_validate_input(string $input_str): ?array
     {
         if (empty($input_str)
          || @strstr($input_str, '::') === false
@@ -731,7 +731,7 @@ class PHS_Agent extends PHS_Registry
         ];
     }
 
-    public static function get_stalling_minutes() : int
+    public static function get_stalling_minutes(): int
     {
         static $stalling_minutes = null;
 
@@ -747,7 +747,7 @@ class PHS_Agent extends PHS_Registry
         return $stalling_minutes;
     }
 
-    public static function refresh_current_job() : null | array | PHS_Record_data
+    public static function refresh_current_job(): null | array | PHS_Record_data
     {
         self::st_reset_error();
 
@@ -771,7 +771,7 @@ class PHS_Agent extends PHS_Registry
         return $new_job;
     }
 
-    public static function bg_run_job(int | array | PHS_Record_data $job_data, array $extra = []) : ?array
+    public static function bg_run_job(int | array | PHS_Record_data $job_data, array $extra = []): ?array
     {
         self::st_reset_error();
 

@@ -5,23 +5,31 @@ use phs\PHS;
 use phs\PHS_Ajax;
 use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_params;
+use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
 use phs\libraries\PHS_Action_Generic_list;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\models\PHS_Model_Api_keys;
 use phs\plugins\remote_phs\PHS_Plugin_Remote_phs;
 use phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains;
 
-/** @property PHS_Model_Phs_remote_domains $_paginator_model */
+/**
+ * @property PHS_Model_Phs_remote_domains $_paginator_model
+ */
 class PHS_Action_List extends PHS_Action_Generic_list
 {
+    protected null | string | PHS_Instantiable $_paginator_model_class = PHS_Model_Phs_remote_domains::class;
+
+    #[PHS_Dependency]
     private ?PHS_Model_Api_keys $_apikeys_model = null;
 
+    #[PHS_Dependency]
     private ?PHS_Plugin_Remote_phs $_remote_plugin = null;
 
     /**
      * @inheritdoc
      */
-    public function should_stop_execution() : ?array
+    public function should_stop_execution(): ?array
     {
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -41,7 +49,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function load_paginator_params() : ?array
+    public function load_paginator_params(): ?array
     {
         PHS::page_settings('page_title', $this->_pt('Remote PHS Domains List'));
 
@@ -248,7 +256,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    public function manage_action(array $action) : null | bool | array
+    public function manage_action(array $action): null | bool | array
     {
         $this->reset_error();
 
@@ -539,19 +547,18 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_hide_id(array $params) : string
+    public function display_hide_id(array $params): string
     {
         return '';
     }
 
-    public function display_incoming_api_key(array $params) : ?string
+    public function display_incoming_api_key(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
             return null;
         }
 
-        if (empty($params['preset_content'])
-            || !PHS::user_logged_in()) {
+        if (empty($params['preset_content'])) {
             return '-';
         }
 
@@ -560,9 +567,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
         }
 
         if (!empty($params['record']['apikey_id'])
-         && can(PHS_Roles::ROLEU_MANAGE_API_KEYS)
-         && ($edit_apikey_url = PHS::url(['p' => 'admin', 'a' => 'edit', 'ad' => 'apikeys'],
-             ['aid' => $params['record']['apikey_id'], 'back_page' => $this->_paginator->get_full_url()]))) {
+            && can(PHS_Roles::ROLEU_MANAGE_API_KEYS)
+            && ($edit_apikey_url = PHS::url(['p' => 'admin', 'a' => 'edit', 'ad' => 'apikeys'],
+                ['aid' => $params['record']['apikey_id'], 'back_page' => $this->_paginator->get_full_url()]))) {
             return '<a href="'.$edit_apikey_url.'">'.$params['preset_content'].'</a>'
                    .(!empty($params['record']['api_keys_api_key']) ? '<br/>'.$params['record']['api_keys_api_key'] : '');
         }
@@ -571,7 +578,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                .(!empty($params['record']['api_keys_api_key']) ? '<br/>'.$params['record']['api_keys_api_key'] : '');
     }
 
-    public function display_actions(array $params) : ?string
+    public function display_actions(array $params): ?string
     {
         if (!$this->_paginator->is_cell_rendering_for_html($params)
             || !$this->_remote_plugin->can_admin_manage_domains()) {
@@ -592,8 +599,8 @@ class PHS_Action_List extends PHS_Action_Generic_list
             <i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt('Edit remote PHS domain'); ?>"></i></a>
         <?php
         if ($this->_paginator_model->is_not_connected($domain_arr)
-         || $this->_paginator_model->is_connection_error($domain_arr)
-         || $this->_paginator_model->is_suspended($domain_arr)) {
+            || $this->_paginator_model->is_connection_error($domain_arr)
+            || $this->_paginator_model->is_suspended($domain_arr)) {
             ?>
             <a href="javascript:void(0)" onclick="phs_remote_domains_list_connect( '<?php echo $domain_arr['id']; ?>' )">
                 <i class="fa fa-play-circle-o action-icons" title="<?php echo $this->_pt('Connect remote PHS domain'); ?>"></i></a>
@@ -616,7 +623,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean() ?: '';
     }
 
-    public function after_filters_callback(array $params) : string
+    public function after_filters_callback(array $params): string
     {
         if (!$this->_remote_plugin->can_admin_manage_domains()) {
             return '';
@@ -635,7 +642,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean() ?: '';
     }
 
-    public function after_table_callback(array $params) : string
+    public function after_table_callback(array $params): string
     {
         static $js_functionality = false;
 
@@ -778,19 +785,5 @@ class PHS_Action_List extends PHS_Action_Generic_list
         <?php
 
             return ob_get_clean() ?: '';
-    }
-
-    protected function _load_dependencies() : bool
-    {
-        if ((!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Phs_remote_domains::get_instance()))
-            || (!$this->_remote_plugin && !($this->_remote_plugin = PHS_Plugin_Remote_phs::get_instance()))
-            || (!$this->_apikeys_model && !($this->_apikeys_model = PHS_Model_Api_keys::get_instance()))
-        ) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
     }
 }

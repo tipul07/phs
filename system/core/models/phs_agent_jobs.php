@@ -33,22 +33,22 @@ class PHS_Model_Agent_jobs extends PHS_Model
         self::STATUS_SUSPENDED => ['title' => 'Suspended'],
     ];
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.1.0';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['bg_agent'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'bg_agent';
     }
 
-    public function get_stalling_policies(null | bool | string $lang = false) : array
+    public function get_stalling_policies(null | bool | string $lang = false): array
     {
         static $policies_arr = [];
 
@@ -70,7 +70,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $result_arr;
     }
 
-    public function get_stalling_policies_as_key_val(null | bool | string $lang = false) : ?array
+    public function get_stalling_policies_as_key_val(null | bool | string $lang = false): ?array
     {
         static $policies_key_val_arr = null;
 
@@ -97,7 +97,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $key_val_arr;
     }
 
-    public function valid_stalling_policy(int $policy, null | bool | string $lang = false) : ?array
+    public function valid_stalling_policy(int $policy, null | bool | string $lang = false): ?array
     {
         if (!$policy) {
             return null;
@@ -106,7 +106,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $this->get_stalling_policies($lang)[$policy] ?? null;
     }
 
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         if (!($policies_arr = $this->get_stalling_policies_as_key_val())) {
             $policies_arr = [];
@@ -129,7 +129,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         ];
     }
 
-    public function act_activate(int | array | PHS_Record_data $job_data) : null | array | PHS_Record_data
+    public function act_activate(int | array | PHS_Record_data $job_data): null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -155,7 +155,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $new_job;
     }
 
-    public function act_inactivate(int | array | PHS_Record_data $job_data) : null | array | PHS_Record_data
+    public function act_inactivate(int | array | PHS_Record_data $job_data): null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -181,7 +181,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $new_job;
     }
 
-    public function act_suspend(int | array | PHS_Record_data $job_data) : null | array | PHS_Record_data
+    public function act_suspend(int | array | PHS_Record_data $job_data): null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -201,7 +201,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $new_job;
     }
 
-    public function act_delete(int | array | PHS_Record_data $job_data) : bool
+    public function act_delete(int | array | PHS_Record_data $job_data): bool
     {
         $this->reset_error();
 
@@ -223,7 +223,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return true;
     }
 
-    public function start_job(int | array | PHS_Record_data $job_data, array $params = []) : null | array | PHS_Record_data
+    public function start_job(int | array | PHS_Record_data $job_data, array $params = []): null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -266,7 +266,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $new_job_arr;
     }
 
-    public function stop_job(int | array | PHS_Record_data $job_data, array $params = []) : null | array | PHS_Record_data
+    public function stop_job(int | array | PHS_Record_data $job_data, array $params = []): null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -331,7 +331,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $new_job_arr;
     }
 
-    public function refresh_job(int | array | PHS_Record_data $job_data) : null | array | PHS_Record_data
+    public function refresh_job(int | array | PHS_Record_data $job_data): null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -368,7 +368,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $new_record_arr;
     }
 
-    public function get_stalling_minutes() : int
+    public function get_stalling_minutes(): int
     {
         static $stalling_minutes = null;
 
@@ -381,7 +381,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $stalling_minutes;
     }
 
-    public function get_stalling_policy() : int
+    public function get_stalling_policy(): int
     {
         static $stalling_policy = null;
 
@@ -399,7 +399,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
      *
      * @return null|bool
      */
-    public function is_job_dead_as_per_stalling_policy($job_data) : ?bool
+    public function is_job_dead_as_per_stalling_policy($job_data): ?bool
     {
         $this->reset_error();
 
@@ -427,7 +427,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
             );
     }
 
-    public function get_job_stalling_minutes($job_data) : int
+    public function get_job_stalling_minutes($job_data): int
     {
         $this->reset_error();
 
@@ -445,7 +445,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return $this->get_stalling_minutes();
     }
 
-    public function get_job_seconds_since_last_action(int | array $job_data) : ?int
+    public function get_job_seconds_since_last_action(int | array $job_data): ?int
     {
         $this->reset_error();
 
@@ -459,7 +459,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
         return !empty($job_arr['last_action']) ? seconds_passed($job_arr['last_action']) : 0;
     }
 
-    public function job_is_stalling(int | array $job_data) : ?bool
+    public function job_is_stalling(int | array $job_data): ?bool
     {
         $this->reset_error();
 
@@ -475,14 +475,14 @@ class PHS_Model_Agent_jobs extends PHS_Model
                && floor($this->get_job_seconds_since_last_action($job_arr) / 60) >= $minutes_to_stall;
     }
 
-    public function job_runs_async($job_data) : bool
+    public function job_runs_async($job_data): bool
     {
         return !(empty($job_data)
          || !($job_arr = $this->data_to_array($job_data))
          || empty($job_arr['run_async']));
     }
 
-    public function job_is_running($job_data) : bool
+    public function job_is_running($job_data): bool
     {
         return !(empty($job_data)
          || !($job_arr = $this->data_to_array($job_data))
@@ -490,21 +490,21 @@ class PHS_Model_Agent_jobs extends PHS_Model
          || empty_db_date($job_arr['is_running']));
     }
 
-    public function job_is_active($job_data) : bool
+    public function job_is_active($job_data): bool
     {
         return !(empty($job_data)
          || !($job_arr = $this->data_to_array($job_data))
          || (int)$job_arr['status'] !== self::STATUS_ACTIVE);
     }
 
-    public function job_is_inactive($job_data) : bool
+    public function job_is_inactive($job_data): bool
     {
         return !(empty($job_data)
          || !($job_arr = $this->data_to_array($job_data))
          || (int)$job_arr['status'] !== self::STATUS_INACTIVE);
     }
 
-    public function job_is_suspended($job_data) : bool
+    public function job_is_suspended($job_data): bool
     {
         return !(empty($job_data)
          || !($job_arr = $this->data_to_array($job_data))
@@ -514,7 +514,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;
@@ -737,7 +737,7 @@ class PHS_Model_Agent_jobs extends PHS_Model
      *
      * @return null|string
      */
-    private function _reset_job_parameters_on_stop(?string $job_params_str) : ?string
+    private function _reset_job_parameters_on_stop(?string $job_params_str): ?string
     {
         if (empty($job_params_str)
          || !($job_params_arr = @json_decode($job_params_str, true))) {

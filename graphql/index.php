@@ -89,7 +89,7 @@ if (!($result = $api_obj->run_route($input))) {
 
         PHS_Model_Api_monitor::graphql_request_error(
             'Error processing GraphQL result: '.$error_msg,
-            response_body: $response_body
+            response_body: $response_body,
         );
 
         PHS_Api_graphql::generic_error($error_msg);

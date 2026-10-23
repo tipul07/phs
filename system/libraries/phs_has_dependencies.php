@@ -14,7 +14,7 @@ abstract class PHS_Has_dependencies extends PHS_Registry
 
     private static array $_dependency_errors = [];
 
-    protected function _check_dependencies_properties(bool $as_singleton = true) : void
+    protected function _check_dependencies_properties(bool $as_singleton = true): void
     {
         $this->reset_error();
 
@@ -68,7 +68,7 @@ abstract class PHS_Has_dependencies extends PHS_Registry
                             self::_t('Error for field %s in class %s, dependency %s.',
                                 $prop_obj->getName(),
                                 $prop_obj->getDeclaringClass()?->getName() ?? 'N/A',
-                                $phs_class ?? 'N/A')
+                                $phs_class ?? 'N/A'),
                         );
 
                         if (!empty($phs_class)) {
@@ -81,7 +81,7 @@ abstract class PHS_Has_dependencies extends PHS_Registry
                     /** @var string|PHS_Instantiable $phs_class */
                     if (!($details = PHS_Instantiable::extract_details_from_full_namespace_name($phs_class))) {
                         $this->_set_dependency_error(
-                            self::_t('Do not use %s attribute on non-PHS instantiable or library classes.', PHS_Dependency::class)
+                            self::_t('Do not use %s attribute on non-PHS instantiable or library classes.', PHS_Dependency::class),
                         );
 
                         return;
@@ -110,7 +110,7 @@ abstract class PHS_Has_dependencies extends PHS_Registry
                     if (!($instance_obj = $phs_class::get_instance(...$args))
                        && $dependency['error_if_fails']) {
                         $this->_set_dependency_error(
-                            self::_t('Error loading required resources: %s', $phs_class)
+                            self::_t('Error loading required resources: %s', $phs_class),
                         );
 
                         $this->_set_value($dependency['as_singleton'], $prop_obj, null, $phs_class);
@@ -141,7 +141,7 @@ abstract class PHS_Has_dependencies extends PHS_Registry
         } catch (Exception $e) {
             $this->set_error(
                 self::ERR_DEPENDENCIES,
-                self::_t('Exception when loading required resources: %s', $e->getMessage())
+                self::_t('Exception when loading required resources: %s', $e->getMessage()),
             );
         }
     }
@@ -150,8 +150,8 @@ abstract class PHS_Has_dependencies extends PHS_Registry
         bool $as_singleton,
         ReflectionProperty $prop_obj,
         ?self $instance_obj,
-        string $php_class
-    ) : void {
+        string $php_class,
+    ): void {
         if (!$as_singleton) {
             self::_update_lazy_loaders($php_class, $instance_obj);
         }
@@ -159,7 +159,7 @@ abstract class PHS_Has_dependencies extends PHS_Registry
         self::_set_property_value($this, $prop_obj, $instance_obj);
     }
 
-    private function _get_all_properties(array &$matches, ?ReflectionClass $obj = null) : void
+    private function _get_all_properties(array &$matches, ?ReflectionClass $obj = null): void
     {
         if ($obj === null) {
             $obj = new ReflectionClass($this);
@@ -179,14 +179,14 @@ abstract class PHS_Has_dependencies extends PHS_Registry
         }
     }
 
-    private function _set_dependency_error(string $msg) : void
+    private function _set_dependency_error(string $msg): void
     {
         $myclass = ltrim($this::class, '\\');
         self::$_dependency_errors[$myclass] ??= [];
         self::$_dependency_errors[$myclass][] = 'Dependency error: '.$msg;
     }
 
-    public static function get_dependency_errors(?string $class = null) : ?array
+    public static function get_dependency_errors(?string $class = null): ?array
     {
         $class ??= static::class;
         $class = ltrim($class, '\\');
@@ -194,7 +194,7 @@ abstract class PHS_Has_dependencies extends PHS_Registry
         return self::$_dependency_errors[$class] ?? null;
     }
 
-    public static function has_dependency_errors(?string $class = null) : bool
+    public static function has_dependency_errors(?string $class = null): bool
     {
         $class ??= static::class;
         $class = ltrim($class, '\\');
@@ -204,14 +204,14 @@ abstract class PHS_Has_dependencies extends PHS_Registry
 
     final public static function set_instance_for_full_class_with_namespace(
         string $full_class_name,
-        null | PHS_Instantiable | PHS_Library $instance_obj
-    ) : void {
+        null | PHS_Instantiable | PHS_Library $instance_obj,
+    ): void {
         self::$_instances[ltrim($full_class_name, '\\')] = $instance_obj;
     }
 
     final public static function get_instance_for_full_class_with_namespace(
-        string $full_class_name
-    ) : null | PHS_Instantiable | PHS_Library {
+        string $full_class_name,
+    ): null | PHS_Instantiable | PHS_Library {
         return self::$_instances[ltrim($full_class_name, '\\')] ?? null;
     }
 
@@ -219,7 +219,7 @@ abstract class PHS_Has_dependencies extends PHS_Registry
         self $on_obj,
         ReflectionProperty $prop_obj,
         ?self $instance_obj,
-    ) : void {
+    ): void {
         if ($prop_obj->isStatic()) {
             $prop_obj->setValue(null, $instance_obj);
         } else {
@@ -232,7 +232,7 @@ abstract class PHS_Has_dependencies extends PHS_Registry
         self $request_class,
         ReflectionProperty $property,
         bool $as_singleton,
-    ) : void {
+    ): void {
         self::$_lazy_load[$class_to_load][$request_class::class][$property->getName()][$as_singleton ? 1 : 0][] = [
             'request_class' => $request_class,
             'property'      => $property,
@@ -243,14 +243,14 @@ abstract class PHS_Has_dependencies extends PHS_Registry
         string $class_to_load,
         self $request_class,
         string $property_name,
-    ) : bool {
+    ): bool {
         return !empty(self::$_lazy_load[$class_to_load][$request_class::class][$property_name]);
     }
 
     private static function _update_lazy_loaders(
         string $full_class_name,
-        null | PHS_Instantiable | PHS_Library $instance_obj
-    ) : void {
+        null | PHS_Instantiable | PHS_Library $instance_obj,
+    ): void {
         if (empty(self::$_lazy_load[$full_class_name])) {
             return;
         }

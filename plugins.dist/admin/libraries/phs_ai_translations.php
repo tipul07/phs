@@ -15,7 +15,7 @@ class PHS_Ai_translations extends PHS_Library
 
     private static array $_injected_settings = [];
 
-    public function translate(array $payload, string $from_language, string $to_language) : ?array
+    public function translate(array $payload, string $from_language, string $to_language): ?array
     {
         if (!$this->_extract_ai_settings()) {
             return null;
@@ -40,7 +40,7 @@ class PHS_Ai_translations extends PHS_Library
 
         if (!($prompt_arr = $this->_get_ai_prompt($payload, $from_lang['title'], $to_lang['title']))) {
             $this->set_error_if_not_set(
-                self::ERR_PARAMETERS, $this->_pt('Error obtaining prompt for OpenAI request.')
+                self::ERR_PARAMETERS, $this->_pt('Error obtaining prompt for OpenAI request.'),
             );
 
             return null;
@@ -87,7 +87,7 @@ class PHS_Ai_translations extends PHS_Library
         return $response_arr;
     }
 
-    public function inject_settings(array $settings) : bool
+    public function inject_settings(array $settings): bool
     {
         $settings = !$settings ? [] : self::validate_array_to_new_array($settings, self::_get_settings_structure());
 
@@ -114,7 +114,7 @@ class PHS_Ai_translations extends PHS_Library
         return $this->_extract_ai_settings();
     }
 
-    private function _get_ai_prompt(array $payload, string $from_lang_title, string $to_lang_title) : array
+    private function _get_ai_prompt(array $payload, string $from_lang_title, string $to_lang_title): array
     {
         if (!$payload
             || !($payload_keys = array_keys($payload))
@@ -145,7 +145,7 @@ class PHS_Ai_translations extends PHS_Library
         return $prompt_arr;
     }
 
-    private function _extract_ai_settings() : bool
+    private function _extract_ai_settings(): bool
     {
         if ($this->_settings) {
             return true;
@@ -170,7 +170,7 @@ class PHS_Ai_translations extends PHS_Library
         return true;
     }
 
-    private function _validate_settings(array $settings) : bool
+    private function _validate_settings(array $settings): bool
     {
         if (empty($settings['openai_url'])
             || empty($settings['openai_token'])
@@ -183,7 +183,7 @@ class PHS_Ai_translations extends PHS_Library
         return true;
     }
 
-    private static function _get_settings_structure() : array
+    private static function _get_settings_structure(): array
     {
         return [
             'openai_url'         => '',

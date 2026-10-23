@@ -22,13 +22,13 @@ class PHS_Event_Action_start extends PHS_Event_Action
     ];
 
     /**
-     * @param array $action_arr
      * @param string $action
      * @param null|PHS_Action $action_obj
+     * @param array $action_arr
      *
      * @return null|array{"stop_execution":bool, "action_result": ?array}
      */
-    public static function action(string $action = '', ?PHS_Action $action_obj = null) : ?array
+    public static function action(string $action = '', ?PHS_Action $action_obj = null): ?array
     {
         $event_params = [];
         if (!empty(self::OLD_HOOKS[$action])) {

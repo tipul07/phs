@@ -18,7 +18,7 @@ class PHS_Plugin_Hubspot extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             'default_settings_group' => [
@@ -53,7 +53,7 @@ class PHS_Plugin_Hubspot extends PHS_Plugin
      *
      * @return null|PHS_Hubspot
      */
-    public function get_hubspot_instance() : ?PHS_Hubspot
+    public function get_hubspot_instance(): ?PHS_Hubspot
     {
         static $hubspot_library = null;
 

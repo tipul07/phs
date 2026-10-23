@@ -1,18 +1,13 @@
 <?php
 namespace phs\plugins\remote_phs;
 
-use phs\PHS;
-use phs\PHS_Api;
-use phs\PHS_Crypt;
-use phs\PHS_Scope;
-use phs\PHS_Session;
-use phs\libraries\PHS_Hooks;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Params;
 use phs\libraries\PHS_Plugin;
 use phs\libraries\PHS_Record_data;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\system\core\events\layout\PHS_Event_Layout;
+use phs\system\core\events\accounts\PHS_Event_Accounts_registration_roles;
 
 class PHS_Plugin_Remote_phs extends PHS_Plugin
 {
@@ -24,42 +19,43 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
         ROLEU_ADM_PING_DOMAIN = 'phs_remote_adm_ping_domain',
         ROLEU_ADM_LIST_LOGS = 'phs_remote_adm_list_logs', ROLEU_ADM_MANAGE_LOGS = 'phs_remote_adm_manage_logs';
 
+    #[PHS_Dependency]
     private ?PHS_Model_Accounts $_accounts_model = null;
 
     //
     // region is_* and can_* functions
     //
-    public function is_operator(bool | null | int | array | PHS_Record_data $user_data = null) : bool
+    public function is_operator(bool | null | int | array | PHS_Record_data $user_data = null): bool
     {
         return has_role(self::ROLE_OPERATOR, $user_data);
     }
 
-    public function is_manager(bool | null | int | array | PHS_Record_data $user_data = null) : bool
+    public function is_manager(bool | null | int | array | PHS_Record_data $user_data = null): bool
     {
         return has_role(self::ROLE_MANAGER, $user_data);
     }
 
-    public function can_admin_list_domains(bool | null | int | array | PHS_Record_data $user_data = null) : bool
+    public function can_admin_list_domains(bool | null | int | array | PHS_Record_data $user_data = null): bool
     {
         return can(self::ROLEU_ADM_LIST_DOMAINS, account_structure: $user_data);
     }
 
-    public function can_admin_manage_domains(bool | null | int | array | PHS_Record_data $user_data = null) : bool
+    public function can_admin_manage_domains(bool | null | int | array | PHS_Record_data $user_data = null): bool
     {
         return can(self::ROLEU_ADM_MANAGE_DOMAINS, account_structure: $user_data);
     }
 
-    public function can_admin_ping_domains(bool | null | int | array | PHS_Record_data $user_data = null) : bool
+    public function can_admin_ping_domains(bool | null | int | array | PHS_Record_data $user_data = null): bool
     {
         return can(self::ROLEU_ADM_PING_DOMAIN, account_structure: $user_data);
     }
 
-    public function can_admin_list_logs(bool | null | int | array | PHS_Record_data $user_data = null) : bool
+    public function can_admin_list_logs(bool | null | int | array | PHS_Record_data $user_data = null): bool
     {
         return can(self::ROLEU_ADM_LIST_LOGS, account_structure: $user_data);
     }
 
-    public function can_admin_manage_logs(bool | null | int | array | PHS_Record_data $user_data = null) : bool
+    public function can_admin_manage_logs(bool | null | int | array | PHS_Record_data $user_data = null): bool
     {
         return can(self::ROLEU_ADM_MANAGE_LOGS, account_structure: $user_data);
     }
@@ -73,7 +69,7 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_roles_definition() : array
+    public function get_roles_definition(): array
     {
         $return_arr = [];
 
@@ -133,7 +129,7 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             'enable_remotes' => [
@@ -157,78 +153,48 @@ class PHS_Plugin_Remote_phs extends PHS_Plugin
         ];
     }
 
-    public function is_remote_enabled() : bool
+    public function is_remote_enabled(): bool
     {
-        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['enable_remotes']);
+        return (bool)($this->get_plugin_settings()['enable_remotes'] ?? false);
     }
 
-    public function is_remote_calls_enabled() : bool
+    public function is_remote_calls_enabled(): bool
     {
-        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['allow_remote_calls']);
+        return (bool)($this->get_plugin_settings()['allow_remote_calls'] ?? false);
     }
 
-    public function is_accepting_remote_calls() : bool
+    public function is_accepting_remote_calls(): bool
     {
         return $this->is_remote_enabled() && $this->is_remote_calls_enabled();
     }
 
-    public function log_all_outgoing_calls() : bool
+    public function log_all_outgoing_calls(): bool
     {
-        return ($settings_arr = $this->get_plugin_settings()) && !empty($settings_arr['log_outgoing_calls']);
+        return (bool)($this->get_plugin_settings()['log_outgoing_calls'] ?? false);
     }
 
-    //
-    // region Triggers
-    //
-    public function listen_after_left_menu_admin(PHS_Event_Layout $event_obj) : bool
+    public function listen_after_left_menu_admin(PHS_Event_Layout $event_obj): bool
     {
         $event_obj->append_to_buffer($this->quick_render_template_for_buffer('layout/left_menu_admin') ?? '');
 
         return true;
     }
 
-    /**
-     * @param bool|array $hook_args
-     *
-     * @return array|bool
-     */
-    public function trigger_assign_registration_roles($hook_args = false)
+    public function listen_accounts_registration_roles(PHS_Event_Accounts_registration_roles $event_obj): bool
     {
-        $hook_args = self::validate_array($hook_args, PHS_Hooks::default_user_registration_roles_hook_args());
-
-        if (empty($hook_args['account_data'])
-            || !$this->_load_dependencies()
-            || !($account_arr = $this->_accounts_model->data_to_array($hook_args['account_data']))) {
-            return $hook_args;
-        }
-
-        if (empty($hook_args['roles_arr'])) {
-            $hook_args['roles_arr'] = [];
-        }
-
-        if ($this->_accounts_model->acc_is_developer($account_arr)) {
-            $hook_args['roles_arr'][] = self::ROLE_MANAGER;
-        } elseif ($this->_accounts_model->acc_is_admin($account_arr)) {
-            $hook_args['roles_arr'][] = self::ROLE_OPERATOR;
-        }
-
-        return $hook_args;
-    }
-
-    private function _load_dependencies() : bool
-    {
-        $this->reset_error();
-
-        if (empty($this->_accounts_model)
-         && !($this->_accounts_model = PHS_Model_Accounts::get_instance())) {
-            $this->set_error(self::ERR_FUNCTIONALITY, $this->_pt('Error loading accounts model.'));
-
+        if (!($account_arr = $event_obj->get_input('account_data'))) {
             return false;
         }
 
+        $roles_arr = [];
+        if ($this->_accounts_model->acc_is_admin($account_arr)) {
+            $roles_arr[] = self::ROLE_MANAGER;
+        } elseif ($this->_accounts_model->acc_is_operator($account_arr)) {
+            $roles_arr[] = self::ROLE_OPERATOR;
+        }
+
+        $event_obj->add_roles($roles_arr);
+
         return true;
     }
-    //
-    // endregion Triggers
-    //
 }

@@ -2,9 +2,9 @@
 /** @var \phs\system\core\views\PHS_View $this */
 
 use phs\PHS;
+use phs\plugins\remote_phs\PHS_Plugin_Remote_phs;
 
-/** @var \phs\plugins\remote_phs\PHS_Plugin_Remote_phs $plugin_obj */
-if (!($plugin_obj = $this->get_plugin_instance())) {
+if (!($plugin_obj = PHS_Plugin_Remote_phs::get_instance())) {
     return $this->_pt('Couldn\'t get parent plugin object.');
 }
 
@@ -13,6 +13,10 @@ $can_manage_domains = $plugin_obj->can_admin_manage_domains();
 $can_list_logs = $plugin_obj->can_admin_list_logs();
 $can_manage_logs = $plugin_obj->can_admin_manage_logs();
 
+if (!$can_list_domains && !$can_manage_domains
+    && !$can_list_logs && !$can_manage_logs) {
+    return '';
+}
 ?>
 <li><?php echo $this->_pt('PHS Remote'); ?>
     <ul>

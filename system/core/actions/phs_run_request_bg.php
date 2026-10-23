@@ -9,12 +9,12 @@ use phs\system\core\models\PHS_Model_Request_queue;
 
 class PHS_Action_Run_request_bg extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_BACKGROUND];
     }
 
-    public function execute() : ?array
+    public function execute(): ?array
     {
         if (!($params = PHS_Bg_jobs::get_current_job_parameters())
             || empty($params['request_id'])

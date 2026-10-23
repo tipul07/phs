@@ -11,7 +11,9 @@ use phs\system\core\attributes\PHS_Dependency;
 use phs\system\core\models\PHS_Model_Api_keys;
 use phs\plugins\accounts\models\PHS_Model_Accounts_tenants;
 
-/** @property null|false|PHS_Model_Api_keys $_paginator_model */
+/**
+ * @property null|false|PHS_Model_Api_keys $_paginator_model
+ */
 class PHS_Action_List extends PHS_Action_Generic_list
 {
     #[PHS_Dependency]
@@ -28,7 +30,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function should_stop_execution() : ?array
+    public function should_stop_execution(): ?array
     {
         if (!PHS::user_logged_in()) {
             PHS_Notifications::add_warning_notice($this->_pt('You should login first...'));
@@ -48,7 +50,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
     /**
      * @inheritdoc
      */
-    public function load_paginator_params() : ?array
+    public function load_paginator_params(): ?array
     {
         PHS::page_settings('page_title', $this->_pt('API Keys List'));
 
@@ -285,7 +287,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $return_arr;
     }
 
-    public function manage_action(array $action) : null | bool | array
+    public function manage_action(array $action): null | bool | array
     {
         $this->reset_error();
 
@@ -576,7 +578,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $action_result_params;
     }
 
-    public function display_apikey(array $params) : ?string
+    public function display_apikey(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
             return null;
@@ -603,7 +605,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function display_apikey_account(array $params) : ?string
+    public function display_apikey_account(array $params): ?string
     {
         if (empty($params['record']) || !is_array($params['record'])) {
             return null;
@@ -621,7 +623,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
                .$params['record']['account_email'];
     }
 
-    public function display_tenant(array $params) : ?string
+    public function display_tenant(array $params): ?string
     {
         if (empty($params)
             || empty($params['record']['id'])) {
@@ -639,7 +641,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $this->_tenants_list_arr[$params['record']['tenant_id']];
     }
 
-    public function display_actions(array $params) : ?string
+    public function display_actions(array $params): ?string
     {
         if (!$this->_paginator->is_cell_rendering_for_html($params)
             || !$this->_admin_plugin->can_admin_manage_api_keys()) {
@@ -685,7 +687,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean() ?: '';
     }
 
-    public function after_filters_callback(array $params) : string
+    public function after_filters_callback(array $params): string
     {
         if (!$this->_admin_plugin->can_admin_manage_api_keys()) {
             return '';
@@ -703,7 +705,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    public function after_table_callback(array $params) : string
+    public function after_table_callback(array $params): string
     {
         static $js_functionality = false;
 
@@ -832,7 +834,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean();
     }
 
-    protected function _load_dependencies() : bool
+    protected function _load_dependencies(): bool
     {
         if (!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Api_keys::get_instance())) {
             $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));

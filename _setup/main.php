@@ -35,9 +35,14 @@ define('PHS_SETUP_PHS_CORE_MODEL_DIR', PHS_SETUP_PHS_CORE_DIR.'models/');
 define('PHS_SETUP_PHS_CORE_CONTROLLER_DIR', PHS_SETUP_PHS_CORE_DIR.'controllers/');
 define('PHS_SETUP_PHS_CORE_VIEW_DIR', PHS_SETUP_PHS_CORE_DIR.'views/');
 define('PHS_SETUP_PHS_CORE_ACTION_DIR', PHS_SETUP_PHS_CORE_DIR.'actions/');
+define('PHS_SETUP_PHS_CORE_CONTRACT_DIR', PHS_SETUP_PHS_CORE_DIR.'contracts/');
+define('PHS_SETUP_PHS_CORE_EVENT_DIR', PHS_SETUP_PHS_CORE_DIR.'events/');
+define('PHS_SETUP_PHS_CORE_GRAPHQL_DIR', PHS_SETUP_PHS_CORE_DIR.'graphql/');
+define('PHS_SETUP_PHS_CORE_LIBRARY_DIR', PHS_SETUP_PHS_CORE_DIR.'libraries/');
 define('PHS_SETUP_PHS_CORE_PLUGIN_DIR', PHS_SETUP_PHS_CORE_DIR.'plugins/');
 define('PHS_SETUP_PHS_CORE_SCOPE_DIR', PHS_SETUP_PHS_CORE_DIR.'scopes/');
 define('PHS_SETUP_PHS_CORE_TRAIT_DIR', PHS_SETUP_PHS_CORE_DIR.'traits/');
+define('PHS_SETUP_PHS_CORE_ATTRIBUTE_DIR', PHS_SETUP_PHS_CORE_DIR.'attributes/');
 
 // These paths will need a www pair, but after bootstrap
 define('PHS_THEMES_DIR', PHS_SETUP_PHS_PATH.'themes/');
@@ -55,6 +60,8 @@ if (!@file_exists(PHS_SETUP_PHS_LIBRARIES_DIR.'phs_error.php')
     exit;
 }
 
+include_once PHS_SETUP_PHS_CORE_ATTRIBUTE_DIR.'phs_dependency.php';
+
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_event_interface.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_error.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_language_container.php';
@@ -63,9 +70,11 @@ include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_registry.php';
 
 // Make sure we can use maintenance things anytime
 include_once PHS_SETUP_PHS_CORE_DIR.'phs_maintenance.php';
+include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_has_dependencies.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_library.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_roles.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_instantiable.php';
+include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_library_instantiable.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_undefined_instantiable.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_has_db_settings.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_has_db_registry.php';
@@ -73,13 +82,13 @@ include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_plugin.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_record_data.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_relation.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_relation_result.php';
+include_once PHS_SETUP_PHS_CORE_TRAIT_DIR.'phs_trait_has_relations.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_model_base.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_model_mysqli.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_model_mongo.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_model.php';
 include_once PHS_SETUP_PHS_CORE_TRAIT_DIR.'phs_model_trait_statuses.php';
 include_once PHS_SETUP_PHS_CORE_TRAIT_DIR.'phs_model_trait_record_types.php';
-include_once PHS_SETUP_PHS_CORE_TRAIT_DIR.'phs_trait_has_relations.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_controller.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_controller_index.php';
 include_once PHS_SETUP_PHS_LIBRARIES_DIR.'phs_controller_api.php';

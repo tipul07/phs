@@ -24,7 +24,7 @@ final class PHS_Tenants extends PHS_Registry
         self::init();
     }
 
-    public static function init() : bool
+    public static function init(): bool
     {
         if (!PHS::is_multi_tenant()
             || self::get_current_tenant_record()) {
@@ -65,7 +65,7 @@ final class PHS_Tenants extends PHS_Registry
         return self::st_has_error();
     }
 
-    public static function get_tenant_details_for_display($tenant_data) : ?string
+    public static function get_tenant_details_for_display($tenant_data): ?string
     {
         if (!PHS::is_multi_tenant()) {
             return '';
@@ -78,7 +78,7 @@ final class PHS_Tenants extends PHS_Registry
         return self::$_tenants_model->get_tenant_details_for_display($tenant_data);
     }
 
-    public static function set_current_tenant($tenant_data) : bool
+    public static function set_current_tenant($tenant_data): bool
     {
         if (!PHS::is_multi_tenant()) {
             return true;
@@ -139,7 +139,7 @@ final class PHS_Tenants extends PHS_Registry
         return true;
     }
 
-    public static function get_current_tenant_record() : ?array
+    public static function get_current_tenant_record(): ?array
     {
         if (!PHS::is_multi_tenant()) {
             return null;
@@ -148,7 +148,7 @@ final class PHS_Tenants extends PHS_Registry
         return self::$_current_tenant ?? null;
     }
 
-    public static function get_current_tenant_id() : int
+    public static function get_current_tenant_id(): int
     {
         if (!PHS::is_multi_tenant()) {
             return 0;
@@ -157,7 +157,7 @@ final class PHS_Tenants extends PHS_Registry
         return (int)(self::$_current_tenant['id'] ?? 0);
     }
 
-    private static function get_requested_script() : string
+    private static function get_requested_script(): string
     {
         static $script_name = null;
 
@@ -180,7 +180,7 @@ final class PHS_Tenants extends PHS_Registry
         return $script_name;
     }
 
-    private static function _guess_tenant_from_domain_and_path() : ?array
+    private static function _guess_tenant_from_domain_and_path(): ?array
     {
         $directory = self::_get_request_directory();
         if (!empty($_SERVER['SERVER_NAME'])
@@ -196,7 +196,7 @@ final class PHS_Tenants extends PHS_Registry
         return null;
     }
 
-    private static function _check_tenant_with_domain_and_directory(string $domain, string $directory) : ?array
+    private static function _check_tenant_with_domain_and_directory(string $domain, string $directory): ?array
     {
         if (!empty($domain)
          && ($tenants_arr = self::$_tenants_model->get_tenants_by_domain_and_directory($domain, $directory))
@@ -209,7 +209,7 @@ final class PHS_Tenants extends PHS_Registry
         return null;
     }
 
-    private static function _get_request_directory() : string
+    private static function _get_request_directory(): string
     {
         if (empty($_SERVER['REQUEST_URI'])
             || !($path_url = PHS_Utils::myparse_url($_SERVER['REQUEST_URI']))
@@ -230,7 +230,7 @@ final class PHS_Tenants extends PHS_Registry
         return $path;
     }
 
-    private static function _get_tenant_identifier_from_headers() : ?string
+    private static function _get_tenant_identifier_from_headers(): ?string
     {
         $tenant_identifier = null;
         if (!empty($_SERVER['HTTP_'.self::HEADER_TENANT_IDENTIFIER])) {
@@ -248,7 +248,7 @@ final class PHS_Tenants extends PHS_Registry
         return $tenant_identifier;
     }
 
-    private static function _get_tenant_identifier_from_request() : ?string
+    private static function _get_tenant_identifier_from_request(): ?string
     {
         $tenant_identifier = null;
         if (!empty($_POST[self::REQUEST_TENANT_IDENTIFIER])) {
@@ -271,7 +271,7 @@ final class PHS_Tenants extends PHS_Registry
         return $tenant_identifier;
     }
 
-    private static function _get_tenant_identifier() : ?string
+    private static function _get_tenant_identifier(): ?string
     {
         if (($tenant_id = self::_get_tenant_identifier_from_headers())
             || ($tenant_id = self::_get_tenant_identifier_from_request())) {
@@ -281,7 +281,7 @@ final class PHS_Tenants extends PHS_Registry
         return null;
     }
 
-    private static function _load_dependencies() : bool
+    private static function _load_dependencies(): bool
     {
         self::st_reset_error();
 

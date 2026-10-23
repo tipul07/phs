@@ -13,7 +13,7 @@ class Phs_qr_code extends PHS_Library
 
     protected const QR_VERSION = -1;
 
-    public function get_extension_by_output_type(string $output_type) : ?string
+    public function get_extension_by_output_type(string $output_type): ?string
     {
         switch ($output_type) {
             default:
@@ -27,7 +27,7 @@ class Phs_qr_code extends PHS_Library
         }
     }
 
-    public function get_mimetype_by_output_type(string $output_type) : ?string
+    public function get_mimetype_by_output_type(string $output_type): ?string
     {
         switch ($output_type) {
             default:
@@ -41,7 +41,7 @@ class Phs_qr_code extends PHS_Library
         }
     }
 
-    public function get_output_type_from_extension(string $extension) : ?string
+    public function get_output_type_from_extension(string $extension): ?string
     {
         switch ($extension) {
             default:
@@ -55,7 +55,7 @@ class Phs_qr_code extends PHS_Library
         }
     }
 
-    public function extract_token_details_from_qr_filename(string $filename) : ?array
+    public function extract_token_details_from_qr_filename(string $filename): ?array
     {
         if (($filename = basename($filename))
             || !($name_parts = explode('.', $filename, 2))
@@ -83,7 +83,7 @@ class Phs_qr_code extends PHS_Library
         ];
     }
 
-    public function render_url_to_output(string $url, ?array $options = null) : ?array
+    public function render_url_to_output(string $url, ?array $options = null): ?array
     {
         $options ??= [];
 
@@ -97,7 +97,7 @@ class Phs_qr_code extends PHS_Library
         return $result;
     }
 
-    public function render_url_to_file(string $url, ?array $options = null) : ?string
+    public function render_url_to_file(string $url, ?array $options = null): ?string
     {
         $options ??= [];
 
@@ -111,7 +111,7 @@ class Phs_qr_code extends PHS_Library
         return $result['result'];
     }
 
-    private function _get_qrcode_dir_paths() : ?array
+    private function _get_qrcode_dir_paths(): ?array
     {
         $this->reset_error();
 
@@ -128,7 +128,7 @@ class Phs_qr_code extends PHS_Library
         return $return_arr;
     }
 
-    private function _bootstrap_qr_codes() : bool
+    private function _bootstrap_qr_codes(): bool
     {
         static $_booted = false;
 
@@ -156,7 +156,7 @@ class Phs_qr_code extends PHS_Library
         return true;
     }
 
-    private function _qr_code_options() : array
+    private function _qr_code_options(): array
     {
         return [
             // In case this QR code is for a specific account
@@ -182,7 +182,7 @@ class Phs_qr_code extends PHS_Library
         ];
     }
 
-    private function _get_resulting_filename(array $options) : ?array
+    private function _get_resulting_filename(array $options): ?array
     {
         $this->reset_error();
 
@@ -230,7 +230,7 @@ class Phs_qr_code extends PHS_Library
         return $return_arr;
     }
 
-    private function _render_url(string $url, ?array $options = null) : ?array
+    private function _render_url(string $url, ?array $options = null): ?array
     {
         $this->reset_error();
 

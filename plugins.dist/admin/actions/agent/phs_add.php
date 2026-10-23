@@ -19,7 +19,7 @@ class PHS_Action_Add extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }

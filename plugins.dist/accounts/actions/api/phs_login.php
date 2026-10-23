@@ -12,13 +12,22 @@ use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\system\core\events\actions\PHS_Event_Action_after;
 use phs\system\core\events\actions\PHS_Event_Action_start;
 use phs\plugins\accounts\contracts\PHS_Contract_Account_basic;
+use phs\plugins\accounts\controllers\PHS_Controller_Index_api;
 
 class PHS_Action_Login extends PHS_Api_action
 {
+    protected static ?string $_default_controller_for_route = PHS_Controller_Index_api::class;
+
+    protected static ?string $_action_name = 'Login using bearer authentication';
+
+    protected static ?string $_action_description = 'Login using API calls with bearer authentication in headers';
+
+    protected static ?bool $_authentication_required = false;
+
     /**
      * @inheritdoc
      */
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_LOGIN];
     }
@@ -111,7 +120,7 @@ class PHS_Action_Login extends PHS_Api_action
                 return $this->send_api_error(
                     PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR,
                     $accounts_model::ERR_LOGIN,
-                    $this->_pt('Error generating bearer token.')
+                    $this->_pt('Error generating bearer token.'),
                 );
             }
 
@@ -122,7 +131,7 @@ class PHS_Action_Login extends PHS_Api_action
             return $this->send_api_error(
                 PHS_Api_base::H_CODE_INTERNAL_SERVER_ERROR,
                 $accounts_model::ERR_LOGIN,
-                $accounts_plugin->get_simple_error_message($this->_pt('Error logging in. Please try again.'))
+                $accounts_plugin->get_simple_error_message($this->_pt('Error logging in. Please try again.')),
             );
         }
 

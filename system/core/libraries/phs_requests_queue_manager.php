@@ -24,7 +24,7 @@ class PHS_Requests_queue_manager extends PHS_Library
         null | array | string $payload = null,
         ?array $settings = null,
         array $params = [],
-    ) : ?array {
+    ): ?array {
         if (!$this->_load_dependencies()) {
             return null;
         }
@@ -73,7 +73,7 @@ class PHS_Requests_queue_manager extends PHS_Library
         return $request_arr;
     }
 
-    public function check_http_calls_queue() : ?array
+    public function check_http_calls_queue(): ?array
     {
         if (!$this->_load_dependencies()) {
             return null;
@@ -120,7 +120,7 @@ class PHS_Requests_queue_manager extends PHS_Library
 
             PHS_Logger::notice('[QUEUE] Running request #'.$request_arr['id']
                 .($call_type ? ' - '.$call_type : ''),
-                PHS_Logger::TYPE_HTTP_CALLS
+                PHS_Logger::TYPE_HTTP_CALLS,
             );
 
             if (!($run_result = $this->run_request_bg($request_arr))
@@ -128,7 +128,7 @@ class PHS_Requests_queue_manager extends PHS_Library
                 PHS_Logger::error('[QUEUE] Error running request #'.$request_arr['id'].': '
                                   .$this->get_simple_error_message(self::_t('Unknown error.'))
                                   .(!empty($run_result['error_msg']) ? ' ('.$run_result['error_msg'].')' : ''),
-                    PHS_Logger::TYPE_HTTP_CALLS
+                    PHS_Logger::TYPE_HTTP_CALLS,
                 );
 
                 $return_arr['failed']++;
@@ -150,7 +150,7 @@ class PHS_Requests_queue_manager extends PHS_Library
         return $return_arr;
     }
 
-    public function run_request(int | array | PHS_Record_data $request_data, bool $force_run = false) : ?array
+    public function run_request(int | array | PHS_Record_data $request_data, bool $force_run = false): ?array
     {
         if (!$this->_load_dependencies()) {
             return null;
@@ -185,7 +185,7 @@ class PHS_Requests_queue_manager extends PHS_Library
         return $request_response;
     }
 
-    public function run_request_bg(int | array | PHS_Record_data $request_data, bool $force_run = false) : ?array
+    public function run_request_bg(int | array | PHS_Record_data $request_data, bool $force_run = false): ?array
     {
         if (!$this->_load_dependencies()) {
             return null;
@@ -215,7 +215,7 @@ class PHS_Requests_queue_manager extends PHS_Library
                 self::_LOG_METHOD_ERROR,
                 'Error updating request status (request #'.$request_arr['id'].') after run: '
                 .$this->_requests_model->get_simple_error_message(self::_t('Unknown error.')),
-                $request_response['log_file']
+                $request_response['log_file'],
             );
         } else {
             $request_response['request_data'] = $update_result['request_data'];
@@ -233,14 +233,14 @@ class PHS_Requests_queue_manager extends PHS_Library
                 self::_LOG_METHOD_WARNING,
                 'Error deleting request after successful run: '
                 .$this->_requests_model->get_simple_error_message(self::_t('Unknown error.')),
-                $request_response['log_file']
+                $request_response['log_file'],
             );
         }
 
         return $request_response;
     }
 
-    private function _callbacks_on_finish(array $request_arr, array $request_response) : void
+    private function _callbacks_on_finish(array $request_arr, array $request_response): void
     {
         $callbacks = [];
         $errors_arr = [];
@@ -270,7 +270,7 @@ class PHS_Requests_queue_manager extends PHS_Library
             self::_logf(
                 self::_LOG_METHOD_ERROR,
                 'Error(s) in callbacks: '.implode(', ', $errors_arr),
-                $request_response['log_file']
+                $request_response['log_file'],
             );
         }
 
@@ -283,7 +283,7 @@ class PHS_Requests_queue_manager extends PHS_Library
 
             self::_logf(self::_LOG_METHOD_NOTICE,
                 '[Callback] Request #'.$request_arr['id'].', calling: ['.$callack_str.'] for '.$key.'.',
-                $request_response['log_file'] ?: null
+                $request_response['log_file'] ?: null,
             );
 
             /** @var ?\phs\libraries\PHS_Instantiable $callback_obj */
@@ -293,13 +293,13 @@ class PHS_Requests_queue_manager extends PHS_Library
                     self::_LOG_METHOD_ERROR,
                     '[Callback] Error in callback '.$callack_str.' after request run: '
                     .($callback_obj ? $callback_obj->get_simple_error_message(self::_t('Unknown error.')) : 'N/A'),
-                    $request_response['log_file'] ?: null
+                    $request_response['log_file'] ?: null,
                 );
             }
         }
     }
 
-    private function _get_callback_as_string(string | array $callback) : string
+    private function _get_callback_as_string(string | array $callback): string
     {
         if (empty($callback)
             || (is_array($callback)
@@ -318,7 +318,7 @@ class PHS_Requests_queue_manager extends PHS_Library
         return $obj::class.'::'.$callback[1].'()';
     }
 
-    private function _do_api_call(array | PHS_Record_data $request_arr, array $params = []) : array
+    private function _do_api_call(array | PHS_Record_data $request_arr, array $params = []): array
     {
         $settings_arr = $this->_requests_model->get_request_full_settings($request_arr)
             ?: $this->_requests_model->empty_request_settings_arr();
@@ -358,7 +358,7 @@ class PHS_Requests_queue_manager extends PHS_Library
         return $this->_do_api_call_to_url($request_arr['url'], $request_arr['payload'], $request_arr['method'], $params);
     }
 
-    private function _do_api_call_to_url(string $url, ?string $payload = null, ?string $method = null, array $params = []) : array
+    private function _do_api_call_to_url(string $url, ?string $payload = null, ?string $method = null, array $params = []): array
     {
         $params['skip_api_monitoring'] = !empty($params['skip_api_monitoring']);
 
@@ -421,7 +421,7 @@ class PHS_Requests_queue_manager extends PHS_Library
         self::_logf(
             self::_LOG_METHOD_NOTICE,
             'Sending '.($method ?? 'GET').' request to '.$url.'.',
-            $params['log_file']
+            $params['log_file'],
         );
 
         $obfuscated_params = $curl_params;
@@ -431,7 +431,7 @@ class PHS_Requests_queue_manager extends PHS_Library
         if (!empty($obfuscated_params['header_keys_arr'])
             && self::array_key_exists_insensitive($obfuscated_params['header_keys_arr'], 'authorization')) {
             $obfuscated_params['header_keys_arr'] = self::array_replace_value_key_insensitive(
-                $obfuscated_params['header_keys_arr'], 'authorization', '(Obfuscated_authorization)'
+                $obfuscated_params['header_keys_arr'], 'authorization', '(Obfuscated_authorization)',
             );
         }
 
@@ -455,7 +455,7 @@ class PHS_Requests_queue_manager extends PHS_Library
                 self::_LOG_METHOD_INFO,
                 'API URL: '.$url."\n"
                 .'Params: '.$request_params,
-                $params['log_file']
+                $params['log_file'],
             );
 
             if ($monitoring_record
@@ -490,7 +490,7 @@ class PHS_Requests_queue_manager extends PHS_Library
                 'API URL: '.$url."\n"
                 .'Request headers:'."\n".$request_headers."\n"
                 .'Params: '.$request_params,
-                $params['log_file']
+                $params['log_file'],
             );
 
             if ($monitoring_record
@@ -527,7 +527,7 @@ class PHS_Requests_queue_manager extends PHS_Library
                     .'Request headers: '.$request_headers."\n"
                     .'Params: '.$request_params
                     .'API response: '.$request_response['response_buf'],
-                    $params['log_file']
+                    $params['log_file'],
                 );
 
                 if ($monitoring_record
@@ -553,13 +553,13 @@ class PHS_Requests_queue_manager extends PHS_Library
         self::_logf(
             self::_LOG_METHOD_NOTICE,
             'Success response for '.strtoupper($method ?? 'get').' request to '.$url.' with HTTP code '.$http_code.'.',
-            $params['log_file']
+            $params['log_file'],
         );
 
         return $request_response;
     }
 
-    private function _update_request_for_result(array $request_arr, array $request_response) : ?array
+    private function _update_request_for_result(array $request_arr, array $request_response): ?array
     {
         $update_result = $request_response['has_error']
             ? $this->_requests_model->update_request_for_failure($request_arr, $request_response['method'], $request_response['http_code'], $request_response['response_buf'], $request_response['error_msg'])
@@ -568,7 +568,7 @@ class PHS_Requests_queue_manager extends PHS_Library
         return $update_result ?: null;
     }
 
-    private function _empty_request_response() : array
+    private function _empty_request_response(): array
     {
         return [
             'in_background'     => false,
@@ -586,7 +586,7 @@ class PHS_Requests_queue_manager extends PHS_Library
         ];
     }
 
-    private function _load_dependencies() : bool
+    private function _load_dependencies(): bool
     {
         $this->reset_error();
 
@@ -601,7 +601,7 @@ class PHS_Requests_queue_manager extends PHS_Library
         return true;
     }
 
-    private static function _logf(string $method, string $msg, ?string $log_channel = null) : void
+    private static function _logf(string $method, string $msg, ?string $log_channel = null): void
     {
         if (!@method_exists(PHS_Logger::class, $method)) {
             return;

@@ -187,7 +187,26 @@ if (typeof PHS_JSEN === 'undefined' || !PHS_JSEN) {
                     continue;
                 }
 
-                form_obj.append(i, obj[i]);
+                form_obj = PHS_JSEN.add_object_to_form_data(i, obj[i], form_obj);
+            }
+
+            return form_obj;
+        },
+
+        add_object_to_form_data: function(key, val, form_obj = null) {
+            form_obj = form_obj || new FormData();
+
+            if (typeof val !== "object") {
+                form_obj.append(key, val);
+                return form_obj;
+            }
+
+            for (const i in val) {
+                if( !val.hasOwnProperty( i ) ) {
+                    continue;
+                }
+
+                form_obj = PHS_JSEN.add_object_to_form_data(key + "[" + i + "]", val[i], form_obj);
             }
 
             return form_obj;
@@ -1125,7 +1144,7 @@ if (typeof PHS_JSEN === 'undefined' || !PHS_JSEN) {
                 //var obj_options = PHS_JSEN.dialogOptions( suffix );
                 //if( obj_options && obj_options.onclose )
                 //{
-                //    if( $.isFunction( obj_options.onclose ) )
+                //    if( typeof obj_options.onclose === "function" ) )
                 //        obj_options.onclose();
                 //    else if( typeof obj_options.onclose == "string" )
                 //        eval( obj_options.onclose );
@@ -1228,7 +1247,11 @@ if (typeof PHS_JSEN === 'undefined' || !PHS_JSEN) {
                         dialog_obj.html(response);
 
                         if (options.onsuccess) {
-                            if ($.isFunction(options.onsuccess)) options.onsuccess(); else if (typeof options.onsuccess == "string") eval(options.onsuccess);
+                            if (typeof options.onsuccess === "function") {
+                                options.onsuccess();
+                            } else if (typeof options.onsuccess === "string") {
+                                eval(options.onsuccess);
+                            }
                         }
                     },
 
@@ -1363,10 +1386,11 @@ if (typeof PHS_JSEN === 'undefined' || !PHS_JSEN) {
 
                     beforeClose: function( event, ui ) {
                         if( options.onbeforeclose ) {
-                            if( $.isFunction( options.onbeforeclose ) )
+                            if( typeof options.onbeforeclose === "function" ) {
                                 options.onbeforeclose();
-                            else if( typeof options.onbeforeclose == "string" )
-                                eval( options.onbeforeclose );
+                            } else if( typeof options.onbeforeclose === "string" ) {
+                                eval(options.onbeforeclose);
+                            }
                         }
                     },
 
@@ -1400,10 +1424,11 @@ if (typeof PHS_JSEN === 'undefined' || !PHS_JSEN) {
                             }
 
                             if( options.onsuccess ) {
-                                if( $.isFunction( options.onsuccess ) )
+                                if( typeof options.onsuccess === "function" ) {
                                     options.onsuccess();
-                                else if( typeof options.onsuccess == "string" )
-                                    eval( options.onsuccess );
+                                } else if( typeof options.onsuccess == "string" ) {
+                                    eval(options.onsuccess);
+                                }
                             }
                         },
 
@@ -1415,10 +1440,11 @@ if (typeof PHS_JSEN === 'undefined' || !PHS_JSEN) {
                             }
 
                             if( options.onfailed ) {
-                                if( $.isFunction( options.onfailed ) )
-                                    options.onfailed( dialog_obj );
-                                else if( typeof options.onfailed == "string" )
-                                    eval( options.onfailed );
+                                if( typeof options.onfailed === "function" ) {
+                                    options.onfailed(dialog_obj);
+                                } else if( typeof options.onfailed == "string" ) {
+                                    eval(options.onfailed);
+                                }
                             }
                         }
                     };
@@ -1449,7 +1475,7 @@ if (typeof PHS_JSEN === 'undefined' || !PHS_JSEN) {
                     dialog_obj.dialog( "open" );
 
                     if( options.onsuccess ) {
-                        if( $.isFunction( options.onsuccess ) ) {
+                        if( typeof options.onsuccess === "function" ) {
                             options.onsuccess();
                         } else if( typeof options.onsuccess === "string" ) {
                             eval(options.onsuccess);
@@ -1467,7 +1493,7 @@ if (typeof PHS_JSEN === 'undefined' || !PHS_JSEN) {
 
                 dialog_obj.bind( 'dialogclose', function( event ) {
                     if( options.onclose ) {
-                        if( $.isFunction( options.onclose ) ) {
+                        if( typeof options.onclose === "function" ) {
                             options.onclose();
                         } else if( typeof options.onclose === "string" ) {
                             eval(options.onclose);

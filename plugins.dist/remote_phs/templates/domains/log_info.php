@@ -2,20 +2,17 @@
 /** @var \phs\system\core\views\PHS_View $this */
 
 use phs\PHS;
-use phs\PHS_ajax;
 use phs\PHS_Scope;
 
 $current_user = PHS::user_logged_in();
 
 /** @var \phs\plugins\remote_phs\models\PHS_Model_Phs_remote_domains $domains_model */
 if (!($log_arr = $this->view_var('log_arr'))
- || !($domains_model = $this->view_var('domains_model'))) {
-    return $this->_pt('Could\'t loaded required resources for this view.');
+    || !($domains_model = $this->view_var('domains_model'))) {
+    return $this->_pt('Could\'t load required resources for this view.');
 }
 
-if (!($domain_arr = $this->view_var('domain_arr'))) {
-    $domain_arr = false;
-}
+$domain_arr = $this->view_var('domain_arr') ?: null;
 
 $current_scope = PHS_Scope::current_scope();
 ?>
@@ -26,9 +23,9 @@ $current_scope = PHS_Scope::current_scope();
         <h3><?php echo $this->_pt('Domain log details'); ?></h3>
     </section>
 
-    <fieldset class="form-group">
-        <label><?php echo $this->_pt('Remote Domain'); ?></label>
-        <div class="lineform_line">
+    <div class="mb-2 row">
+        <label class="col-2 col-form-label"><?php echo $this->_pt('Remote Domain'); ?></label>
+        <div class="col-10">
         <?php
         if (empty($domain_arr)) {
             echo $this->_pt('N/A');
@@ -56,29 +53,29 @@ $current_scope = PHS_Scope::current_scope();
         }
 ?>
         </div>
-    </fieldset>
+    </div>
 
-    <fieldset class="form-group">
-        <label><?php echo $this->_pt('Log Type'); ?></label>
-        <div class="lineform_line"><?php
+    <div class="mb-2 row">
+        <label class="col-2 col-form-label"><?php echo $this->_pt('Log Type'); ?></label>
+        <div class="col-10"><?php
     if (($type_arr = $domains_model->valid_log_type($log_arr['type']))) {
         echo !empty($type_arr['title']) ? $type_arr['title'] : $this->_pt('N/A');
     } else {
         echo $this->_pt('N/A');
     }
 ?></div>
-    </fieldset>
+    </div>
 
-    <fieldset class="form-group">
+    <div class="mb-2 row">
         <label><?php echo $this->_pt('Route'); ?></label>
-        <div class="lineform_line"><?php
+        <div class="col-10"><?php
     echo !empty($log_arr['route']) ? $log_arr['route'] : $this->_pt('N/A');
 ?></div>
-    </fieldset>
+    </div>
 
-    <fieldset class="form-group">
-        <label><?php echo $this->_pt('Body'); ?></label>
-        <div class="lineform_line">
+    <div class="mb-2 row">
+        <label class="col-2 col-form-label"><?php echo $this->_pt('Body'); ?></label>
+        <div class="col-10">
             <?php
     if (empty($log_arr['body'])) {
         echo $this->_pt('N/A');
@@ -92,18 +89,18 @@ $current_scope = PHS_Scope::current_scope();
     }
 ?>
         </div>
-    </fieldset>
+    </div>
 
-    <fieldset class="form-group">
-        <label><?php echo $this->_pt('Error'); ?></label>
-        <div class="lineform_line"><?php
+    <div class="mb-2 row">
+        <label class="col-2 col-form-label"><?php echo $this->_pt('Error'); ?></label>
+        <div class="col-10"><?php
 echo !empty($log_arr['error_log']) ? $log_arr['error_log'] : $this->_pt('N/A');
 ?></div>
-    </fieldset>
+    </div>
 
-    <fieldset class="form-group">
-        <label><?php echo $this->_pt('Status'); ?></label>
-        <div class="lineform_line"><?php
+    <div class="mb-2 row">
+        <label class="col-2 col-form-label"><?php echo $this->_pt('Status'); ?></label>
+        <div class="col-10"><?php
     if (($status_arr = $domains_model->valid_log_status($log_arr['status']))) {
         echo !empty($status_arr['title']) ? $status_arr['title'] : $this->_pt('N/A');
     } else {
@@ -118,7 +115,7 @@ if (empty($log_arr['status_date']) || empty_db_date($log_arr['status_date'])) {
     echo date('Y-m-d H:i', parse_db_date($log_arr['status_date']));
 }
 ?></div>
-    </fieldset>
+    </div>
 
 </div>
 

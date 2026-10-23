@@ -61,7 +61,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return [];
     }
 
-    final public function get_all_settings_keys_to_obfuscate() : array
+    final public function get_all_settings_keys_to_obfuscate(): array
     {
         if ($this->_obfuscating_keys !== null) {
             return $this->_obfuscating_keys;
@@ -84,12 +84,12 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $obfuscating_keys;
     }
 
-    public function default_custom_save_params() : array
+    public function default_custom_save_params(): array
     {
         return self::st_default_custom_save_params();
     }
 
-    public function validate_settings_structure() : array
+    public function validate_settings_structure(): array
     {
         if (!empty($this->_settings_structure)) {
             return $this->_settings_structure;
@@ -110,7 +110,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $this->_settings_structure;
     }
 
-    final public function get_default_settings() : array
+    final public function get_default_settings(): array
     {
         if (!empty($this->_default_settings)) {
             return $this->_default_settings;
@@ -125,7 +125,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $this->_default_settings;
     }
 
-    public function get_db_main_details(bool $force = false) : ?array
+    public function get_db_main_details(bool $force = false): ?array
     {
         if (!$force
             && !empty($this->_db_details)) {
@@ -142,7 +142,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $this->_db_details;
     }
 
-    public function get_db_version(bool $force = false) : string
+    public function get_db_version(bool $force = false): string
     {
         if (!($db_details = $this->get_db_main_details($force))
             || empty($db_details['version'])) {
@@ -152,7 +152,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $db_details['version'];
     }
 
-    public function get_db_tenant_details(?int $tenant_id = null, bool $force = false) : ?array
+    public function get_db_tenant_details(?int $tenant_id = null, bool $force = false): ?array
     {
         if (!PHS::is_multi_tenant()) {
             return null;
@@ -178,7 +178,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $this->_db_tenant_details[$tenant_id];
     }
 
-    public function get_merged_db_details(?int $tenant_id = null, bool $force = false) : ?array
+    public function get_merged_db_details(?int $tenant_id = null, bool $force = false): ?array
     {
         $this->reset_error();
 
@@ -211,7 +211,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      *
      * @return array Settings saved in database for current instance
      */
-    public function get_db_settings_as_strings(?int $tenant_id = null, bool $force = false) : array
+    public function get_db_settings_as_strings(?int $tenant_id = null, bool $force = false): array
     {
         if (!($settings_arr = $this->get_db_settings($tenant_id, $force))
             || !($settings_structure = $this->validate_settings_structure())) {
@@ -234,7 +234,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      *
      * @return array Settings saved in database for current instance
      */
-    public function get_db_settings(?int $tenant_id = null, bool $force = false) : array
+    public function get_db_settings(?int $tenant_id = null, bool $force = false): array
     {
         if (!PHS::is_multi_tenant()
             || ($tenant_id === null
@@ -287,7 +287,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      *
      * @return array Settings saved in database for provided tenant for current instance
      */
-    public function get_tenant_db_settings(int $tenant_id, bool $force = false) : array
+    public function get_tenant_db_settings(int $tenant_id, bool $force = false): array
     {
         if (empty($tenant_id)
             || !PHS::is_multi_tenant()) {
@@ -324,7 +324,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $this->_db_tenant_settings[$tenant_id];
     }
 
-    public function save_db_settings(array $settings_arr, ?int $tenant_id = null) : ?array
+    public function save_db_settings(array $settings_arr, ?int $tenant_id = null): ?array
     {
         $this->reset_error();
 
@@ -369,7 +369,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $this->_db_settings[$tenant_id];
     }
 
-    public function db_record_active() : bool
+    public function db_record_active(): bool
     {
         return $this->_load_plugins_instance()
                 && ($db_details = $this->get_merged_db_details())
@@ -377,7 +377,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
                 && $this->_plugins_instance->active_status($db_details['status']);
     }
 
-    protected function _load_plugins_instance() : bool
+    protected function _load_plugins_instance(): bool
     {
         $this->reset_error();
 
@@ -392,8 +392,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
 
     private function _get_db_settings_as_strings_from_fields(
         array $settings_structure, array $settings_arr, array $defaults_arr,
-        array &$strings_arr
-    ) : void {
+        array &$strings_arr,
+    ): void {
         foreach ($settings_structure as $field_name => $field_details) {
             if (self::settings_field_is_group($field_details)) {
                 $this->_get_db_settings_as_strings_from_fields($field_details['group_fields'], $settings_arr, $defaults_arr, $strings_arr);
@@ -417,7 +417,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         }
     }
 
-    private function _get_field_value_as_string(string $field_name, array $field_details, $field_value) : string
+    private function _get_field_value_as_string(string $field_name, array $field_details, $field_value): string
     {
         $use_custom_renderer = (!empty($field_details['custom_renderer']) && is_callable($field_details['custom_renderer']));
         $custom_renderer_get_preset_buffer = (!empty($field_details['custom_renderer_get_preset_buffer']));
@@ -557,7 +557,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $string_value;
     }
 
-    private function _obfuscate_settings_array(array $settings_arr) : ?array
+    private function _obfuscate_settings_array(array $settings_arr): ?array
     {
         $this->reset_error();
 
@@ -580,7 +580,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $settings_arr;
     }
 
-    private function _deobfuscate_settings_array(?array $settings_arr) : array
+    private function _deobfuscate_settings_array(?array $settings_arr): array
     {
         if (empty($settings_arr)) {
             return [];
@@ -609,7 +609,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $settings_arr;
     }
 
-    public static function default_custom_renderer_params() : array
+    public static function default_custom_renderer_params(): array
     {
         return [
             'field_id'      => '',
@@ -627,7 +627,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         ];
     }
 
-    public static function st_default_custom_save_params() : array
+    public static function st_default_custom_save_params(): array
     {
         return [
             'tenant_id'       => 0,
@@ -647,7 +647,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      * can be provided
      * @return array
      */
-    public static function st_default_custom_save_callback_result() : array
+    public static function st_default_custom_save_callback_result(): array
     {
         return [
             // If there are more fields affected by the callback, provide a full array which will be merged with full settings array
@@ -661,7 +661,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      *
      * @return bool
      */
-    public static function settings_field_is_group(array $settings_field) : bool
+    public static function settings_field_is_group(array $settings_field): bool
     {
         return !empty($settings_field['group_fields']) && is_array($settings_field['group_fields']);
     }
@@ -672,7 +672,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      *
      * @return null|array
      */
-    public static function init_settings_context(array $context_arr) : ?array
+    public static function init_settings_context(array $context_arr): ?array
     {
         self::st_reset_error();
         $context_arr = self::validate_array($context_arr, self::_default_context_array());
@@ -746,7 +746,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      *
      * @return null|array
      */
-    public static function extract_settings_and_form_data_from_context(array $context_arr, ?array $submit_arr = null) : ?array
+    public static function extract_settings_and_form_data_from_context(array $context_arr, ?array $submit_arr = null): ?array
     {
         self::st_reset_error();
         $context_arr = self::validate_array($context_arr, self::_default_context_array());
@@ -760,7 +760,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         self::_extract_settings_and_form_data_from_submit(
             $context_arr['settings_structure'], $context_arr,
             $context_arr['submit_settings'], $context_arr['form_data'], $context_arr['tenant_custom_fields'],
-            $context_arr['extract_submit'], $submit_arr
+            $context_arr['extract_submit'], $submit_arr,
         );
 
         return $context_arr;
@@ -774,7 +774,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      *
      * @return null|array
      */
-    public static function get_custom_save_fields_settings_for_save(array $context_arr) : ?array
+    public static function get_custom_save_fields_settings_for_save(array $context_arr): ?array
     {
         $callback_params = self::st_default_custom_save_params();
         $callback_params['tenant_id'] = $context_arr['tenant_id'] ?? 0;
@@ -790,7 +790,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         if (!empty($context_arr['settings_structure'])) {
             self::_get_custom_save_fields_settings_for_save_from_structure(
                 $context_arr['settings_structure'], $callback_params, $context_arr,
-                $context_arr['submit_settings'], $context_arr['errors_arr'], $context_arr['warnings_arr']
+                $context_arr['submit_settings'], $context_arr['errors_arr'], $context_arr['warnings_arr'],
             );
         }
 
@@ -802,7 +802,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      *
      * @return array
      */
-    public static function get_plugin_models_with_settings(?PHS_Plugin $plugin_obj) : array
+    public static function get_plugin_models_with_settings(?PHS_Plugin $plugin_obj): array
     {
         if ($plugin_obj === null) {
             $plugin_models_arr = PHS::get_core_models();
@@ -828,7 +828,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     }
 
     // region NEW settings section
-    private static function _default_context_array() : array
+    private static function _default_context_array(): array
     {
         $context_arr = [];
         $context_arr['is_multi_tenant'] = false;
@@ -883,8 +883,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     private static function _extract_settings_and_form_data_from_submit(
         array $settings_structure, array $context_arr,
         array &$submit_settings, array &$form_data, array &$custom_fields,
-        bool $is_post = false, ?array $submit_arr = null
-    ) : void {
+        bool $is_post = false, ?array $submit_arr = null,
+    ): void {
         if (empty($settings_structure)) {
             return;
         }
@@ -934,7 +934,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
     private static function _extract_field_value_for_settings_and_form_data_from_submit(
         string $field_name, array $field_details, array $context_arr,
         array &$form_data,
-        bool $is_post = false, ?array $submit_arr = null
+        bool $is_post = false, ?array $submit_arr = null,
     ) {
         $field_value = null;
 
@@ -1018,7 +1018,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      *
      * @return array
      */
-    private static function _extract_settings_for_instance(?self $instance_obj, ?int $tenant_id = null) : array
+    private static function _extract_settings_for_instance(?self $instance_obj, ?int $tenant_id = null): array
     {
         $tenant_id ??= 0;
         $is_multi_tenant = PHS::is_multi_tenant();
@@ -1098,8 +1098,8 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      */
     private static function _get_custom_save_fields_settings_for_save_from_structure(
         array $settings_structure, array $callback_params, array $context_arr,
-        array &$new_settings, array &$errors_arr, array &$warnings_arr
-    ) : void {
+        array &$new_settings, array &$errors_arr, array &$warnings_arr,
+    ): void {
         // make sure static error is reset
         self::st_reset_error();
         // make sure static warnings are reset
@@ -1113,7 +1113,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             if (self::settings_field_is_group($field_details)) {
                 self::_get_custom_save_fields_settings_for_save_from_structure(
                     $field_details['group_fields'], $callback_params, $context_arr,
-                    $new_settings, $errors_arr, $warnings_arr
+                    $new_settings, $errors_arr, $warnings_arr,
                 );
 
                 continue;
@@ -1188,7 +1188,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         $warnings_arr = array_merge(...$warnings_arr);
     }
 
-    private static function _db_details_fields_prepare_for_merge(array $db_details) : array
+    private static function _db_details_fields_prepare_for_merge(array $db_details): array
     {
         $fields_arr = self::_get_merged_db_details_fields();
         $return_arr = [];
@@ -1199,7 +1199,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $return_arr;
     }
 
-    private static function _get_merged_db_details_fields() : array
+    private static function _get_merged_db_details_fields(): array
     {
         return ['tenant_id' => 0, 'instance_id' => '', 'type' => '', 'plugin' => '', 'settings' => null, 'status' => 0, 'status_date' => null,
             'last_update'   => null, 'cdate' => null,
@@ -1207,7 +1207,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
             'is_core' => false, 'version' => null, ];
     }
 
-    private static function _default_settings_field() : array
+    private static function _default_settings_field(): array
     {
         return [
             // Used to know how to render this field in plugin settings
@@ -1261,7 +1261,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
      *
      * @return array
      */
-    private static function _validate_settings_structure_fields(array $structure_arr) : array
+    private static function _validate_settings_structure_fields(array $structure_arr): array
     {
         if (empty($structure_arr)) {
             return [];
@@ -1282,7 +1282,7 @@ abstract class PHS_Has_db_settings extends PHS_Instantiable
         return $settings_structure;
     }
 
-    private static function _get_default_settings_for_structure($structure_arr) : array
+    private static function _get_default_settings_for_structure($structure_arr): array
     {
         $default_arr = [];
         foreach ($structure_arr as $field_name => $field_arr) {

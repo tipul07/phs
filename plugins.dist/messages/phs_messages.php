@@ -16,6 +16,7 @@ use phs\plugins\messages\models\PHS_Model_Messages;
 use phs\system\core\events\layout\PHS_Event_Layout;
 use phs\plugins\accounts\models\PHS_Model_Accounts_details;
 use phs\system\core\events\accounts\PHS_Event_Accounts_info_template;
+use phs\system\core\events\accounts\PHS_Event_Accounts_registration_roles;
 
 class PHS_Plugin_Messages extends PHS_Plugin
 {
@@ -46,7 +47,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_settings_structure() : array
+    public function get_settings_structure(): array
     {
         return [
             // default template
@@ -81,7 +82,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
     /**
      * @inheritdoc
      */
-    public function get_roles_definition() : array
+    public function get_roles_definition(): array
     {
         $return_arr = [
             self::ROLE_MESSAGE_READER => [
@@ -219,7 +220,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
             $this->copy_or_set_error(
                 $messages_model,
                 self::ERR_TEMPLATE,
-                $this->_pt('Error obtaining summary list of messages.')
+                $this->_pt('Error obtaining summary list of messages.'),
             );
 
             $hook_args['hook_errors'] = self::validate_array($this->get_error(), PHS_Error::default_error_array());
@@ -254,7 +255,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
             $this->copy_or_set_error(
                 $view_obj,
                 self::ERR_RENDER,
-                $this->_pt('Error rendering template [%s].', $view_obj->get_template())
+                $this->_pt('Error rendering template [%s].', $view_obj->get_template()),
             );
 
             return false;
@@ -267,32 +268,45 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return $hook_args;
     }
 
-    /**
-     * @param bool|array $hook_args
-     *
-     * @return array
-     */
-    public function trigger_after_main_menu_logged_in($hook_args = false)
-    {
-        $hook_args = self::validate_array($hook_args, PHS_Hooks::default_buffer_hook_args());
-
-        $hook_args['buffer'] = $this->quick_render_template_for_buffer('main_menu_member');
-
-        return $hook_args;
-    }
-
-    public function listen_after_main_menu_admin(PHS_Event_Layout $event_obj) : bool
+    public function listen_after_main_menu_admin(PHS_Event_Layout $event_obj): bool
     {
         $event_obj->append_to_buffer($this->quick_render_template_for_buffer('main_menu_admin') ?? '');
 
         return true;
     }
 
-    public function listen_account_info_template(PHS_Event_Accounts_info_template $event_obj) : bool
+    public function listen_main_menu_logged_in(PHS_Event_Layout $event_obj): bool
+    {
+        $event_obj->append_to_buffer($this->quick_render_template_for_buffer('main_menu_member') ?? '');
+
+        return true;
+    }
+
+    public function listen_account_info_template(PHS_Event_Accounts_info_template $event_obj): bool
     {
         $event_obj->append_to_buffer(
-            $this->quick_render_template_for_buffer('account_info', $event_obj->get_buffer_data_input()) ?? ''
+            $this->quick_render_template_for_buffer('account_info', $event_obj->get_buffer_data_input()) ?? '',
         );
+
+        return true;
+    }
+
+    public function listen_accounts_registration_roles(PHS_Event_Accounts_registration_roles $event_obj): bool
+    {
+        if (!($account_arr = $event_obj->get_input('account_data'))) {
+            return false;
+        }
+
+        $roles_arr = [];
+        if ($this->accounts_model->acc_is_admin($account_arr)) {
+            $roles_arr[] = self::ROLE_MESSAGE_ADMIN;
+        } elseif ($this->accounts_model->acc_is_operator($account_arr)) {
+            $roles_arr[] = self::ROLE_MESSAGE_ALL;
+        } else {
+            $roles_arr[] = self::ROLE_MESSAGE_WRITER;
+        }
+
+        $event_obj->add_roles($roles_arr);
 
         return true;
     }
@@ -362,35 +376,6 @@ class PHS_Plugin_Messages extends PHS_Plugin
      *
      * @return array|bool
      */
-    public function trigger_assign_registration_roles($hook_args = false)
-    {
-        $hook_args = self::validate_array($hook_args, PHS_Hooks::default_user_registration_roles_hook_args());
-
-        if (empty($hook_args['account_data'])
-            || !($account_arr = $this->accounts_model->data_to_array($hook_args['account_data']))) {
-            return $hook_args;
-        }
-
-        if (empty($hook_args['roles_arr'])) {
-            $hook_args['roles_arr'] = [];
-        }
-
-        if ($this->accounts_model->acc_is_admin($account_arr)) {
-            $hook_args['roles_arr'][] = self::ROLE_MESSAGE_ADMIN;
-        } elseif ($this->accounts_model->acc_is_operator($account_arr)) {
-            $hook_args['roles_arr'][] = self::ROLE_MESSAGE_ALL;
-        } else {
-            $hook_args['roles_arr'][] = self::ROLE_MESSAGE_WRITER;
-        }
-
-        return $hook_args;
-    }
-
-    /**
-     * @param bool|array $hook_args
-     *
-     * @return array|bool
-     */
     public function trigger_user_details_fields($hook_args = false)
     {
         $hook_args = self::validate_array($hook_args, PHS_Hooks::default_user_account_fields_hook_args());
@@ -400,7 +385,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
             return $hook_args;
         }
 
-        $account_details_arr = false;
+        $account_details_arr = null;
         if (empty($hook_args['account_details_data'])) {
             $hook_args['account_details_data'] = false;
         } elseif (!($account_details_arr = $this->accounts_details_model->data_to_array($hook_args['account_details_data']))) {
@@ -411,8 +396,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
             $hook_args['account_details_fields'] = [];
         }
 
-        if (empty($account_details_arr) || !is_array($account_details_arr)
-         || empty($account_details_arr[self::UD_COLUMN_MSG_HANDLER])) {
+        if (empty($account_details_arr[self::UD_COLUMN_MSG_HANDLER])) {
             $hook_args['account_details_fields'][self::UD_COLUMN_MSG_HANDLER] = $account_arr['nick'];
         }
 
@@ -433,8 +417,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
             return $hook_args;
         }
 
-        if (empty($hook_args['account_details_data']) || !is_array($hook_args['account_details_data'])
-         || empty($hook_args['account_details_data'][self::UD_COLUMN_MSG_HANDLER])) {
+        if (empty($hook_args['account_details_data'][self::UD_COLUMN_MSG_HANDLER])) {
             if (empty($hook_args['account_details_data']) || !is_array($hook_args['account_details_data'])) {
                 $hook_args['account_details_data'] = [];
             }
@@ -503,7 +486,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return true;
     }
 
-    protected function custom_uninstall() : bool
+    protected function custom_uninstall(): bool
     {
         $flow_params = ['table_name' => 'users_details'];
 
@@ -516,7 +499,7 @@ class PHS_Plugin_Messages extends PHS_Plugin
         return true;
     }
 
-    public static function get_msg_handler_field_definition() : array
+    public static function get_msg_handler_field_definition(): array
     {
         return [
             'type'     => PHS_Model_Mysqli::FTYPE_VARCHAR,

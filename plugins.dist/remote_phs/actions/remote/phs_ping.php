@@ -6,7 +6,7 @@ use phs\libraries\PHS_Remote_action;
 class PHS_Action_Ping extends PHS_Remote_action
 {
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {

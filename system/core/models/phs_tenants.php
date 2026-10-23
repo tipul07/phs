@@ -22,50 +22,50 @@ class PHS_Model_Tenants extends PHS_Model
 
     private static ?array $_default_tenant = null;
 
-    public function get_model_version() : string
+    public function get_model_version(): string
     {
         return '1.0.6';
     }
 
-    public function get_table_names() : array
+    public function get_table_names(): array
     {
         return ['phs_tenants'];
     }
 
-    public function get_main_table_name() : string
+    public function get_main_table_name(): string
     {
         return 'phs_tenants';
     }
 
-    public function is_active(int | array | PHS_Record_data $record_data) : bool
+    public function is_active(int | array | PHS_Record_data $record_data): bool
     {
         return $record_data
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_ACTIVE;
     }
 
-    public function is_inactive(int | array | PHS_Record_data $record_data) : bool
+    public function is_inactive(int | array | PHS_Record_data $record_data): bool
     {
         return $record_data
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_INACTIVE;
     }
 
-    public function is_deleted(int | array | PHS_Record_data $record_data) : bool
+    public function is_deleted(int | array | PHS_Record_data $record_data): bool
     {
         return $record_data
                && ($record_arr = $this->data_to_array($record_data))
                && (int)$record_arr['status'] === self::STATUS_DELETED;
     }
 
-    public function is_default_tenant(int | array | PHS_Record_data $record_data) : bool
+    public function is_default_tenant(int | array | PHS_Record_data $record_data): bool
     {
         return $record_data
                && ($record_arr = $this->data_to_array($record_data))
                && !empty($record_arr['is_default']);
     }
 
-    public function act_activate(int | array | PHS_Record_data $record_data) : null | array | PHS_Record_data
+    public function act_activate(int | array | PHS_Record_data $record_data): null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -89,7 +89,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $new_record;
     }
 
-    public function act_inactivate(int | array | PHS_Record_data $record_data) : null | array | PHS_Record_data
+    public function act_inactivate(int | array | PHS_Record_data $record_data): null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -113,7 +113,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $new_record;
     }
 
-    public function act_delete(int | array | PHS_Record_data $record_data) : null | array | PHS_Record_data
+    public function act_delete(int | array | PHS_Record_data $record_data): null | array | PHS_Record_data
     {
         $this->reset_error();
 
@@ -143,7 +143,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $new_record;
     }
 
-    public function act_set_default(int | array | PHS_Record_data $record_data) : ?array
+    public function act_set_default(int | array | PHS_Record_data $record_data): ?array
     {
         $this->reset_error();
 
@@ -173,7 +173,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $new_record;
     }
 
-    public function get_default_tenant() : ?array
+    public function get_default_tenant(): ?array
     {
         if (!PHS::is_multi_tenant() || (empty(self::$_default_tenant) && !$this->_get_cached_tenants())) {
             return null;
@@ -182,7 +182,7 @@ class PHS_Model_Tenants extends PHS_Model
         return self::$_default_tenant;
     }
 
-    public function get_tenant_by_identifier(string $identifier) : ?array
+    public function get_tenant_by_identifier(string $identifier): ?array
     {
         if (!PHS::is_multi_tenant()
             || !($all_tenants_arr = $this->_get_cached_tenants_by_identifier())
@@ -193,7 +193,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $all_tenants_arr[$identifier];
     }
 
-    public function get_tenants_by_domain_and_directory(string $domain, ?string $directory = null) : ?array
+    public function get_tenants_by_domain_and_directory(string $domain, ?string $directory = null): ?array
     {
         if (!$domain
             || !PHS::is_multi_tenant()
@@ -205,7 +205,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $all_tenants_arr[$dd_identifier] ?? null;
     }
 
-    public function get_tenants_as_key_val() : array
+    public function get_tenants_as_key_val(): array
     {
         if (!PHS::is_multi_tenant()
             || !($all_tenants_arr = $this->_get_cached_tenants())) {
@@ -220,7 +220,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $return_arr;
     }
 
-    public function get_all_tenants(bool $force = false) : array
+    public function get_all_tenants(bool $force = false): array
     {
         if ((!$force && !PHS::is_multi_tenant())
             || !($all_tenants_arr = $this->_get_cached_tenants())) {
@@ -230,7 +230,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $all_tenants_arr;
     }
 
-    public function can_user_edit(int | array | PHS_Record_data $record_data, int | array | PHS_Record_data $account_data) : ?array
+    public function can_user_edit(int | array | PHS_Record_data $record_data, int | array | PHS_Record_data $account_data): ?array
     {
         if (!$record_data || !$account_data
          || !PHS::is_multi_tenant()
@@ -249,7 +249,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $return_arr;
     }
 
-    public function get_tenant_details_for_display(int | array | PHS_Record_data $tenant_data) : ?string
+    public function get_tenant_details_for_display(int | array | PHS_Record_data $tenant_data): ?string
     {
         if (!PHS::is_multi_tenant()) {
             return '';
@@ -262,7 +262,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $tenant_arr['name'].' ('.self::prepare_tenant_domain_and_directory($tenant_arr['domain'], $tenant_arr['directory']).')';
     }
 
-    public function get_tenant_settings($record_data) : ?array
+    public function get_tenant_settings($record_data): ?array
     {
         $this->reset_error();
 
@@ -279,7 +279,7 @@ class PHS_Model_Tenants extends PHS_Model
         return self::validate_array($this->_decode_settings_field($record_arr['settings']), $this->_get_settings_fields());
     }
 
-    public function generate_identifier() : string
+    public function generate_identifier(): string
     {
         return md5(uniqid(mt_rand(), true));
     }
@@ -287,7 +287,7 @@ class PHS_Model_Tenants extends PHS_Model
     /**
      * @inheritdoc
      */
-    final public function fields_definition($params = false) : ?array
+    final public function fields_definition($params = false): ?array
     {
         if (empty($params['table_name'])) {
             return null;
@@ -505,7 +505,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $params;
     }
 
-    protected function insert_after_phs_tenants(array $insert_arr, array $params) : ?array
+    protected function insert_after_phs_tenants(array $insert_arr, array $params): ?array
     {
         if (!empty($params['fields']['is_default'])
          && ($flow_arr = $this->fetch_default_flow_params(['table_name' => 'phs_tenants']))
@@ -534,7 +534,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $existing_data;
     }
 
-    private function _get_settings_fields() : array
+    private function _get_settings_fields(): array
     {
         return [
             'default_theme'    => '',
@@ -543,7 +543,7 @@ class PHS_Model_Tenants extends PHS_Model
         ];
     }
 
-    private function _encode_settings_field(null | array | string $settings) : ?string
+    private function _encode_settings_field(null | array | string $settings): ?string
     {
         if ($settings === null) {
             return null;
@@ -561,7 +561,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $settings;
     }
 
-    private function _decode_settings_field(null | array | string $settings) : array
+    private function _decode_settings_field(null | array | string $settings): array
     {
         if (!$settings) {
             return [];
@@ -578,7 +578,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $settings;
     }
 
-    private function _get_cached_tenants(bool $only_active = false, bool $force = false) : ?array
+    private function _get_cached_tenants(bool $only_active = false, bool $force = false): ?array
     {
         static $all_tenants = null, $active_tenants = null;
 
@@ -610,7 +610,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $only_active ? $active_tenants : $all_tenants;
     }
 
-    private function _get_cached_tenants_by_identifier(bool $only_active = false, bool $force = false) : ?array
+    private function _get_cached_tenants_by_identifier(bool $only_active = false, bool $force = false): ?array
     {
         static $all_tenants_id = null, $active_tenants_id = null;
 
@@ -635,7 +635,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $only_active ? $active_tenants_id : $all_tenants_id;
     }
 
-    private function _get_cached_tenants_by_domain_and_directory(bool $only_active = false, bool $force = false) : ?array
+    private function _get_cached_tenants_by_domain_and_directory(bool $only_active = false, bool $force = false): ?array
     {
         static $all_tenants_dd = null, $active_tenants_dd = null;
 
@@ -661,7 +661,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $only_active ? $active_tenants_dd : $all_tenants_dd;
     }
 
-    public static function prepare_tenant_domain(?string $domain, bool $slash_ended = true) : string
+    public static function prepare_tenant_domain(?string $domain, bool $slash_ended = true): string
     {
         if ($domain === null
             || ($domain = trim(trim($domain), '/')) === '') {
@@ -671,7 +671,7 @@ class PHS_Model_Tenants extends PHS_Model
         return $domain.($slash_ended ? '/' : '');
     }
 
-    public static function prepare_tenant_directory(?string $directory, bool $slash_ended = true) : string
+    public static function prepare_tenant_directory(?string $directory, bool $slash_ended = true): string
     {
         if ($directory === null
             || ($directory = trim(trim($directory), '/')) === '') {
@@ -684,8 +684,8 @@ class PHS_Model_Tenants extends PHS_Model
     public static function prepare_tenant_domain_and_directory(
         ?string $domain,
         ?string $directory,
-        bool $slash_ended = true
-    ) : string {
+        bool $slash_ended = true,
+    ): string {
         return self::prepare_tenant_domain($domain).self::prepare_tenant_directory($directory, $slash_ended);
     }
 }

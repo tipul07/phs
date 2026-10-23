@@ -10,14 +10,12 @@ define('PHS_VERSION', phs_version());
 
 global $PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR;
 
-if (!defined('PHS_DEFAULT_CRYPT_KEY') || !constant('PHS_DEFAULT_CRYPT_KEY')) {
-    echo 'You should generate first your crypting key and update main.php <em>PHS_DEFAULT_CRYPT_KEY</em> constant.';
-    exit;
-}
+$using_v2_crypt = defined('PHS_DEFAULT_CRYPT_SODIUM_KEY') && constant('PHS_DEFAULT_CRYPT_SODIUM_KEY');
 
-if (empty($PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR) || !is_array($PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR)) {
-    echo 'You should generate first your crypting keys and update main.php '
-         .' <em>$PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR</em> array variable using <em>_new_crypt_keys.php</em> script.';
+if (!$using_v2_crypt
+   && (!defined('PHS_DEFAULT_CRYPT_KEY') || !constant('PHS_DEFAULT_CRYPT_KEY'))
+   && (empty($PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR) || !is_array($PHS_DEFAULT_CRYPT_INTERNAL_KEYS_ARR))) {
+    echo 'You should generate first your crypting key and update main.php <em>PHS_DEFAULT_CRYPT_SODIUM_KEY</em> constant.';
     exit;
 }
 

@@ -10,12 +10,12 @@ use phs\system\core\libraries\PHS_Paginator_exporter_manager;
 
 class PHS_Action_Paginator_exporter_bg extends PHS_Action
 {
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_BACKGROUND];
     }
 
-    public function execute() : ?array
+    public function execute(): ?array
     {
         if (!($params = PHS_Bg_jobs::get_current_job_parameters())
             || empty($params['export_context'])

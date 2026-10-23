@@ -33,7 +33,7 @@ class PHS_Migrations_manager extends PHS_Library
         $this->reset_error();
     }
 
-    public function get_existing_migrations_per_plugin() : array
+    public function get_existing_migrations_per_plugin(): array
     {
         if (self::$_existing_migrations_per_plugin === null) {
             $this->_load_existing_migrations();
@@ -42,14 +42,14 @@ class PHS_Migrations_manager extends PHS_Library
         return self::$_existing_migrations_per_plugin;
     }
 
-    public function get_existing_migrations_for_plugin(string $plugin_name) : array
+    public function get_existing_migrations_for_plugin(string $plugin_name): array
     {
         return ($migrations_arr = $this->get_existing_migrations_per_plugin()) && !empty($migrations_arr[$plugin_name])
             ? $migrations_arr[$plugin_name]
             : [];
     }
 
-    public function get_existing_migrations() : array
+    public function get_existing_migrations(): array
     {
         if (self::$_existing_migrations === null) {
             $this->_load_existing_migrations();
@@ -58,7 +58,7 @@ class PHS_Migrations_manager extends PHS_Library
         return self::$_existing_migrations;
     }
 
-    public function register_migrations_for_plugins(array $plugin_names) : ?array
+    public function register_migrations_for_plugins(array $plugin_names): ?array
     {
         if (null === ($migrations_arr = $this->get_migration_scripts_to_be_run_for_plugins($plugin_names))) {
             return null;
@@ -92,7 +92,7 @@ class PHS_Migrations_manager extends PHS_Library
         return $return_arr;
     }
 
-    public function get_migration_scripts_to_be_run_for_plugins(array $plugin_names) : ?array
+    public function get_migration_scripts_to_be_run_for_plugins(array $plugin_names): ?array
     {
         if (!$this->_load_dependencies()) {
             return null;
@@ -111,7 +111,7 @@ class PHS_Migrations_manager extends PHS_Library
         return $scripts_arr;
     }
 
-    public function get_migration_scripts_to_be_run_for_one_plugin(string $plugin_name) : ?array
+    public function get_migration_scripts_to_be_run_for_one_plugin(string $plugin_name): ?array
     {
         if (!$this->_load_dependencies()) {
             return null;
@@ -138,7 +138,7 @@ class PHS_Migrations_manager extends PHS_Library
         return $migrations_arr;
     }
 
-    public function get_migrations_scripts_from_plugin_class(string $plugin_class, array $params = []) : ?array
+    public function get_migrations_scripts_from_plugin_class(string $plugin_class, array $params = []): ?array
     {
         self::st_reset_error();
 
@@ -154,7 +154,7 @@ class PHS_Migrations_manager extends PHS_Library
         return $this->get_migrations_scripts_from_plugin_instance($plugin_obj, $params);
     }
 
-    public function get_migrations_scripts_from_plugin_name(string $plugin_name, array $params = []) : ?array
+    public function get_migrations_scripts_from_plugin_name(string $plugin_name, array $params = []): ?array
     {
         $this->reset_error();
 
@@ -170,7 +170,7 @@ class PHS_Migrations_manager extends PHS_Library
         return $this->get_migrations_scripts_from_plugin_instance($plugin_obj, $params);
     }
 
-    public function get_migrations_scripts_from_plugin_instance(PHS_Plugin $plugin_obj, array $params = []) : ?array
+    public function get_migrations_scripts_from_plugin_instance(PHS_Plugin $plugin_obj, array $params = []): ?array
     {
         $this->reset_error();
 
@@ -209,7 +209,7 @@ class PHS_Migrations_manager extends PHS_Library
         return $migrations_arr;
     }
 
-    public function launch_rerun_migration_job(int | array $migration_data) : bool
+    public function launch_rerun_migration_job(int | array $migration_data): bool
     {
         if (!$this->_load_dependencies()) {
             return false;
@@ -238,7 +238,7 @@ class PHS_Migrations_manager extends PHS_Library
         return true;
     }
 
-    public function rerun_migration_data(int | array $migration_data) : bool
+    public function rerun_migration_data(int | array $migration_data): bool
     {
         if (!($migration_obj = $this->_register_migration_from_migration_data($migration_data, true))) {
             return false;
@@ -254,7 +254,7 @@ class PHS_Migrations_manager extends PHS_Library
         return true;
     }
 
-    private function _register_migration_from_migration_data(int | array $migration_data, bool $forced) : ?PHS_Migration
+    private function _register_migration_from_migration_data(int | array $migration_data, bool $forced): ?PHS_Migration
     {
         if (!($script_details = $this->_get_script_details_from_migration_data($migration_data))) {
             return null;
@@ -263,7 +263,7 @@ class PHS_Migrations_manager extends PHS_Library
         return $this->_register_script_details($script_details, $forced);
     }
 
-    private function _get_script_details_from_migration_data(int | array $migration_data) : ?array
+    private function _get_script_details_from_migration_data(int | array $migration_data): ?array
     {
         if (!$this->_load_dependencies()) {
             return null;
@@ -303,7 +303,7 @@ class PHS_Migrations_manager extends PHS_Library
         return $script_details;
     }
 
-    private function _register_script_details(array $script_details, bool $forced = false) : ?PHS_Migration
+    private function _register_script_details(array $script_details, bool $forced = false): ?PHS_Migration
     {
         $this->reset_error();
 
@@ -327,13 +327,13 @@ class PHS_Migrations_manager extends PHS_Library
         return $migration_obj;
     }
 
-    private function _migration_script_already_run(string $plugin_name, string $script) : bool
+    private function _migration_script_already_run(string $plugin_name, string $script): bool
     {
         return ($scripts_arr = $this->get_existing_migrations_for_plugin($plugin_name))
                && in_array($script, $scripts_arr, true);
     }
 
-    private function _get_migration_file_details(string $file, PHS_Plugin $plugin_obj) : ?array
+    private function _get_migration_file_details(string $file, PHS_Plugin $plugin_obj): ?array
     {
         $this->reset_error();
 
@@ -370,7 +370,7 @@ class PHS_Migrations_manager extends PHS_Library
         ];
     }
 
-    private function _validate_file_and_classname(string $file, string $file_class_name, PHS_Plugin $plugin_obj) : ?array
+    private function _validate_file_and_classname(string $file, string $file_class_name, PHS_Plugin $plugin_obj): ?array
     {
         $this->reset_error();
 
@@ -429,13 +429,13 @@ class PHS_Migrations_manager extends PHS_Library
         ];
     }
 
-    private function _is_migration_classname_safe(string $class_name) : bool
+    private function _is_migration_classname_safe(string $class_name): bool
     {
         return !empty($class_name)
                && !preg_match('/[^a-zA-Z0-9_]/', $class_name);
     }
 
-    private function _filestamp_to_timestamp(string $filestamp) : ?int
+    private function _filestamp_to_timestamp(string $filestamp): ?int
     {
         $this->reset_error();
 
@@ -458,7 +458,7 @@ class PHS_Migrations_manager extends PHS_Library
         return $my_timestamp;
     }
 
-    private function _load_existing_migrations() : bool
+    private function _load_existing_migrations(): bool
     {
         if (!$this->_load_dependencies()) {
             return false;
@@ -497,7 +497,7 @@ class PHS_Migrations_manager extends PHS_Library
         return true;
     }
 
-    private function _load_dependencies() : bool
+    private function _load_dependencies(): bool
     {
         $this->reset_error();
 
@@ -513,12 +513,12 @@ class PHS_Migrations_manager extends PHS_Library
         return true;
     }
 
-    public static function get_current_filestamp() : string
+    public static function get_current_filestamp(): string
     {
         return self::timestamp_to_filestamp(time());
     }
 
-    public static function timestamp_to_filestamp(int $timestamp) : string
+    public static function timestamp_to_filestamp(int $timestamp): string
     {
         return date(self::FILE_TIMESTAMP_FORMAT, $timestamp);
     }

@@ -19,18 +19,18 @@ class PHS_Action_Register extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function action_roles() : array
+    public function action_roles(): array
     {
         return [self::ACT_ROLE_REGISTER];
     }
 
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
 
     /**
-     * @return array|bool
+     * @inheritdoc
      */
     public function execute()
     {
@@ -164,7 +164,7 @@ class PHS_Action_Register extends PHS_Action
                 return action_redirect(
                     !$accounts_model->is_active($account_arr)
                         ? PHS::url(['p' => 'accounts', 'a' => 'register'], ['registered' => 1, 'nick' => $nick, 'email' => $email])
-                        : PHS::url(['p' => 'accounts', 'a' => 'login'], ['registered' => 1, 'nick' => $nick])
+                        : PHS::url(['p' => 'accounts', 'a' => 'login'], ['registered' => 1, 'nick' => $nick]),
                 );
             }
         }

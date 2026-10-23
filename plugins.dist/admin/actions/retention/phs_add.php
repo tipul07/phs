@@ -17,7 +17,7 @@ class PHS_Action_Add extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function allowed_scopes() : array
+    public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_WEB, PHS_Scope::SCOPE_AJAX];
     }
@@ -25,7 +25,7 @@ class PHS_Action_Add extends PHS_Action
     /**
      * @inheritdoc
      */
-    public function execute() : ?array
+    public function execute(): ?array
     {
         PHS::page_settings('page_title', $this->_pt('Add Data Retention Policy'));
 
@@ -124,7 +124,7 @@ class PHS_Action_Add extends PHS_Action
             }
         }
 
-        $data = [
+        return $this->quick_render_template('retention/add', [
             'plugin'             => $plugin,
             'model'              => $model,
             'table'              => $table,
@@ -142,12 +142,10 @@ class PHS_Action_Add extends PHS_Action
 
             'plugin_obj' => $plugin_obj,
             'model_obj'  => $model_obj,
-        ];
-
-        return $this->quick_render_template('retention/add', $data);
+        ]);
     }
 
-    private function _get_models_for_plugin(?PHS_Plugin $plugin_obj) : array
+    private function _get_models_for_plugin(?PHS_Plugin $plugin_obj): array
     {
         return $plugin_obj ? $plugin_obj->get_models() : PHS::get_core_models();
     }

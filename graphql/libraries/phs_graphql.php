@@ -29,7 +29,7 @@ final class PHS_Graphql
     /** @var array Types that should go to query root */
     private static array $query_types = [];
 
-    public static function resolve_request(array $input) : array
+    public static function resolve_request(array $input): array
     {
         $return_arr = [];
         $return_arr['has_error'] = false;
@@ -43,7 +43,7 @@ final class PHS_Graphql
                 (new SchemaConfig())
                     ->setTypes(self::_get_schema_types())
                     ->setQuery(self::_get_query_object())
-                    ->setMutation(self::_get_mutation_types())
+                    ->setMutation(self::_get_mutation_types()),
             );
 
             $result = GraphQL::executeQuery(schema: $schema, source: $input['query'] ?? '', variableValues: $input['variables'] ?? null);
@@ -71,7 +71,7 @@ final class PHS_Graphql
      *
      * @return bool
      */
-    public static function register_type(string $type_class, bool $is_query_type = false) : bool
+    public static function register_type(string $type_class, bool $is_query_type = false): bool
     {
         if (!($instance_details = PHS_Instantiable::extract_details_from_full_namespace_name($type_class))
              || $instance_details['instance_type'] !== PHS_Instantiable::INSTANCE_TYPE_GRAPHQL
@@ -90,38 +90,38 @@ final class PHS_Graphql
         return true;
     }
 
-    public static function valid_context() : bool
+    public static function valid_context(): bool
     {
         return defined('PHS_PATH')
                && PHS_Scope::current_scope() === PHS_Scope::SCOPE_GRAPHQL;
     }
 
-    public static function get_types() : array
+    public static function get_types(): array
     {
         return self::$types;
     }
 
-    public static function get_type_by_class_name(string $type_class) : array
+    public static function get_type_by_class_name(string $type_class): array
     {
         return self::$reverse_types[$type_class] ?? [];
     }
 
-    public static function get_query_types() : array
+    public static function get_query_types(): array
     {
         return self::$query_types;
     }
 
-    public static function ref_by_class(string $type_class) : Closure
+    public static function ref_by_class(string $type_class): Closure
     {
         return static fn() => self::instance_by_class($type_class);
     }
 
-    public static function ref_by_name(string $type_name) : Closure
+    public static function ref_by_name(string $type_name): Closure
     {
         return static fn() => self::instance_by_name($type_name);
     }
 
-    public static function instance_by_class(string $type_class) : ?ObjectType
+    public static function instance_by_class(string $type_class): ?ObjectType
     {
         if (empty(self::$reverse_types[$type_class])) {
             return null;
@@ -130,12 +130,12 @@ final class PHS_Graphql
         return self::phs_instance_by_name(self::$reverse_types[$type_class])?->graphql_type() ?: null;
     }
 
-    public static function instance_by_name(string $type_name) : ?ObjectType
+    public static function instance_by_name(string $type_name): ?ObjectType
     {
         return self::phs_instance_by_name($type_name)?->graphql_type() ?: null;
     }
 
-    public static function phs_instance_by_class(string $type_class) : ?PHS_Graphql_Type
+    public static function phs_instance_by_class(string $type_class): ?PHS_Graphql_Type
     {
         if (empty(self::$reverse_types[$type_class])) {
             return null;
@@ -144,7 +144,7 @@ final class PHS_Graphql
         return self::phs_instance_by_name(self::$reverse_types[$type_class]);
     }
 
-    public static function phs_instance_by_name(string $type_name) : ?PHS_Graphql_Type
+    public static function phs_instance_by_name(string $type_name): ?PHS_Graphql_Type
     {
         if (empty(self::$types[$type_name])) {
             return null;
@@ -165,7 +165,7 @@ final class PHS_Graphql
         return self::$types_instances[$type_name];
     }
 
-    private static function _get_query_object() : ObjectType
+    private static function _get_query_object(): ObjectType
     {
         return new ObjectType([
             'name'   => 'Query',
@@ -173,7 +173,7 @@ final class PHS_Graphql
         ]);
     }
 
-    private static function _get_schema_types() : callable
+    private static function _get_schema_types(): callable
     {
         return static function() {
             $types = [];
@@ -189,7 +189,7 @@ final class PHS_Graphql
         };
     }
 
-    private static function _get_query_types_as_fields() : array
+    private static function _get_query_types_as_fields(): array
     {
         if (!($query_types = self::get_query_types())) {
             return [];
@@ -211,7 +211,7 @@ final class PHS_Graphql
         return $query_fields;
     }
 
-    private static function _get_mutation_types() : ?ObjectType
+    private static function _get_mutation_types(): ?ObjectType
     {
         return null;
         // return new ObjectType([

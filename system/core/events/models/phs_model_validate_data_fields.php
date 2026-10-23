@@ -9,12 +9,12 @@ class PHS_Event_Model_validate_data_fields extends PHS_Event
     /**
      * @inheritdoc
      */
-    public function supports_background_listeners() : bool
+    public function supports_background_listeners(): bool
     {
         return false;
     }
 
-    protected function _input_parameters() : array
+    protected function _input_parameters(): array
     {
         return [
             'model_instance_id'  => '',
@@ -25,7 +25,7 @@ class PHS_Event_Model_validate_data_fields extends PHS_Event
         ];
     }
 
-    protected function _output_parameters() : array
+    protected function _output_parameters(): array
     {
         return [
             'flow_params'  => [],
