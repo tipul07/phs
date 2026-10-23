@@ -1067,8 +1067,11 @@ function from_safe_url($url): string
 
 /**
  * This function behaves as http_build_query() except that it doesn't rawurlencode the values (only values if required)
- * @param array $arr
- * @param array $params
+ *
+ * @param  array  $arr
+ * @param  array  $params
+ *
+ * @return string
  */
 function array_to_query_string(array $arr, array $params = []): string
 {
@@ -1093,7 +1096,7 @@ function array_to_query_string(array $arr, array $params = []): string
         }
 
         if ($params['raw_encode_values']) {
-            $val = urlencode($val);
+            $val = $val ? urlencode($val) : '';
         }
 
         $return_str .= !$params['array_name']
