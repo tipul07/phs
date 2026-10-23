@@ -168,7 +168,7 @@ class QRImage extends QROutputAbstract{
 		// @codeCoverageIgnoreEnd
 
 		$imageData = ob_get_contents();
-		imagedestroy($this->image);
+		@imagedestroy($this->image);
 
 		ob_end_clean();
 

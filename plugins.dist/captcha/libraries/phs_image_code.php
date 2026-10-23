@@ -334,7 +334,7 @@ class PHS_Image_code extends PHS_Library
                 break;
         }
 
-        imagedestroy($im);
+        @imagedestroy($im);
     }
 
     public function create_nottf_charimg($im, $angle, $x, $y, $char, $colors, $letter_w, $letter_h): bool
@@ -366,8 +366,8 @@ class PHS_Image_code extends PHS_Library
 
         @imagecopyresampled($im, $chimgrot, $x, $y, 0, 0, $letter_nw, $letter_nh, imagesx($chimgrot), imagesy($chimgrot));
 
-        imagedestroy($chimg);
-        imagedestroy($chimgrot);
+        @imagedestroy($chimg);
+        @imagedestroy($chimgrot);
 
         return true;
     }
