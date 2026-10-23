@@ -26,7 +26,7 @@ $current_scope = PHS_Scope::current_scope();
         <h3><?php echo $this->_pt('Domain details'); ?></h3>
     </section>
 
-    <fieldset class="form-group">
+    <div class="mb-2 row">
         <label><?php echo $this->_pt('Remote Domain'); ?></label>
         <div class="lineform_line">
         <?php
@@ -52,33 +52,33 @@ if (($status_title = $domains_model->valid_status($domain_arr['status']))) {
 }
 ?>
         </div>
-    </fieldset>
+    </div>
 
-    <fieldset class="form-group">
+    <div class="mb-2 row">
         <label><?php echo $this->_pt('Last error'); ?></label>
         <div class="lineform_line"><?php
     echo !empty($domain_arr['error_log']) ? $domain_arr['error_log'] : $this->_pt('N/A');
 ?></div>
-    </fieldset>
+    </div>
 
     <?php
 if ($domains_model->is_connected($domain_arr)) {
     ?>
-        <fieldset class="form-group">
+        <div class="mb-2 row">
             <button id="do_ping" name="do_ping"
                     onclick="phs_remote_domain_do_ping( '<?php echo $domain_arr['id']; ?>' )"
                     class="btn btn-primary submit-protection ignore_hidden_required">
                 <i class="fa fa-volume-control-phone"></i>
                 <?php echo $this->_pte('Ping'); ?>
             </button>
-        </fieldset>
+        </div>
         <?php
 }
 
 if ($do_ping
     && $ping_result && is_array($ping_result)) {
     ?>
-        <fieldset class="form-group">
+        <div class="mb-2 row">
             <label><?php echo $this->_pt('Ping Result'); ?></label>
             <div class="lineform_line"><?php
         if ($ping_result['timezone'] !== false) {
@@ -93,7 +93,7 @@ if ($do_ping
                 <?php
     }
     ?></div>
-        </fieldset>
+        </div>
         <?php
 }
 ?>

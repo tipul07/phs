@@ -2,9 +2,9 @@
 /** @var \phs\system\core\views\PHS_View $this */
 
 use phs\PHS;
+use phs\plugins\remote_phs\PHS_Plugin_Remote_phs;
 
-/** @var \phs\plugins\remote_phs\PHS_Plugin_Remote_phs $plugin_obj */
-if (!($plugin_obj = $this->get_plugin_instance())) {
+if (!($plugin_obj = PHS_Plugin_Remote_phs::get_instance())) {
     return $this->_pt('Couldn\'t get parent plugin object.');
 }
 
