@@ -2275,7 +2275,7 @@ class PHS_Paginator extends PHS_Registry
                     $page = 0;
                 } else {
                     $page = PHS_Params::_pg($flow_params_arr['form_prefix'].$pagination_params['page_var_name'],
-                        PHS_Params::T_INT);
+                        PHS_Params::T_INT) ?: 0;
                 }
 
                 $this->pagination_params('page', $page);
