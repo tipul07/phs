@@ -20,6 +20,7 @@ use phs\libraries\PHS_Notifications;
 use phs\libraries\PHS_Undefined_instantiable;
 use phs\system\core\events\routing\PHS_Event_Route;
 use phs\system\core\events\routing\PHS_Event_Url_rewrite;
+use phs\plugins\amv_products\actions\products\api\PHS_Action_Import;
 
 final class PHS extends PHS_Registry
 {
@@ -1458,22 +1459,29 @@ final class PHS extends PHS_Registry
         return str_replace('/', '_', str_replace('_', '', $ad));
     }
 
-    public static function route_from_parts(array $parts = []): ?string
+    public static function route_from_parts(string|array $parts = [], ?string $controller_class = null): ?string
     {
-        $parts = self::validate_route_from_parts($parts, true);
+        if(is_string($parts)) {
+            if(!$parts
+               || !($parts_arr = PHS_Action::get_route_from_class($controller_class, $parts))) {
+                return null;
+            }
 
+            $parts = $parts_arr;
+        }
+
+        $parts = self::validate_route_from_parts($parts, true);
         if (!self::validate_short_name_route_parts($parts, false)) {
             return null;
         }
 
-        $action_str = (!empty($parts['a']) ? $parts['a'] : '');
-        if (!empty($parts['ad'])
-            && !empty($action_str)) {
+        $action_str = $parts['a'] ?? '';
+        if (!empty($parts['ad']) && $action_str !== '') {
             $action_str = self::validate_action_dir_in_url(str_replace('_', '/', $parts['ad'])).self::ACTION_DIR_ACTION_SEPARATOR.$action_str;
         }
 
         if (empty($parts['p'])) {
-            $parts['p'] = '';
+            $parts['p'] ??= '';
         }
 
         if (!empty($parts['c'])) {

@@ -3,8 +3,6 @@ namespace phs\plugins\accounts\actions;
 
 use phs\PHS;
 use phs\PHS_Scope;
-use phs\PHS_Bg_jobs;
-use phs\libraries\PHS_Hooks;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\libraries\PHS_Params;
@@ -46,8 +44,6 @@ class PHS_Action_Change_password extends PHS_Action
 
         PHS::page_settings('page_title', $this->_pt('Change Password'));
 
-        /** @var PHS_Plugin_Accounts $accounts_plugin */
-        /** @var PHS_Model_Accounts $accounts_model */
         if (!($accounts_plugin = PHS_Plugin_Accounts::get_instance())
             || !($accounts_model = PHS_Model_Accounts::get_instance())) {
             PHS_Notifications::add_error_notice($this->_pt('Error loading required resources.'));
@@ -64,21 +60,18 @@ class PHS_Action_Change_password extends PHS_Action
             }
 
             if (!($confirmation_parts = $accounts_plugin->decode_confirmation_param($confirmation_param))
-             || empty($confirmation_parts['account_data']) || empty($confirmation_parts['reason'])
-             || $confirmation_parts['reason'] !== $accounts_plugin::CONF_REASON_FORGOT) {
-                if ($accounts_plugin->has_error()) {
-                    PHS_Notifications::add_error_notice($accounts_plugin->get_error_message());
-                } else {
-                    PHS_Notifications::add_error_notice($this->_pt('Couldn\'t interpret confirmation parameter. Please try again.'));
-                }
+                || empty($confirmation_parts['account_data']) || empty($confirmation_parts['reason'])
+                || $confirmation_parts['reason'] !== $accounts_plugin::CONF_REASON_FORGOT) {
+                PHS_Notifications::add_error_notice(
+                    $accounts_plugin->get_error_message(
+                        $this->_pt('Couldn\'t interpret confirmation parameter. Please try again.'))
+                );
             } else {
                 $forgot_account_arr = $confirmation_parts['account_data'];
             }
         }
 
-        if (!($accounts_settings = $accounts_plugin->get_plugin_settings())) {
-            $accounts_settings = [];
-        }
+        $accounts_settings = $accounts_plugin->get_plugin_settings();
 
         if (empty($accounts_settings['min_password_length'])) {
             $accounts_settings['min_password_length'] = $accounts_model::DEFAULT_MIN_PASSWORD_LENGTH;
@@ -103,25 +96,19 @@ class PHS_Action_Change_password extends PHS_Action
 
         $do_submit = PHS_Params::_p('do_submit');
 
-        if (!empty($do_submit)
-         && !PHS_Notifications::have_notifications_errors()) {
+        if ($do_submit
+            && !PHS_Notifications::have_notifications_errors()) {
             if ((!empty($current_user) && empty($pass))
-             || empty($pass1) || empty($pass2)) {
+                || empty($pass1) || empty($pass2)) {
                 PHS_Notifications::add_error_notice($this->_pt('Please provide mandatory fields.'));
             } elseif (!empty($current_user) && !$accounts_model->check_pass($current_user, $pass)) {
                 PHS_Notifications::add_error_notice($this->_pt('Wrong current password.'));
             } elseif ($pass1 !== $pass2) {
                 PHS_Notifications::add_error_notice($this->_pt('Passwords mismatch.'));
             } else {
-                $edit_arr = [];
-                $edit_arr['pass'] = $pass1;
-
-                $edit_params_arr = [];
-                $edit_params_arr['fields'] = $edit_arr;
-
                 $change_for_account = (!empty($current_user) ? $current_user : $forgot_account_arr);
 
-                if ($accounts_model->edit($change_for_account, $edit_params_arr)) {
+                if ($accounts_model->edit($change_for_account, ['fields' => ['pass' => $pass1]])) {
                     PHS_Notifications::add_success_notice($this->_pt('Password changed with success.'));
 
                     $args_arr = $external_args;

@@ -1068,8 +1068,8 @@ function from_safe_url($url): string
 /**
  * This function behaves as http_build_query() except that it doesn't rawurlencode the values (only values if required)
  *
- * @param  array  $arr
- * @param  array  $params
+ * @param array $arr
+ * @param array $params
  *
  * @return string
  */
