@@ -64,7 +64,7 @@ class PHS_Action_Change_password extends PHS_Action
                 || $confirmation_parts['reason'] !== $accounts_plugin::CONF_REASON_FORGOT) {
                 PHS_Notifications::add_error_notice(
                     $accounts_plugin->get_error_message(
-                        $this->_pt('Couldn\'t interpret confirmation parameter. Please try again.'))
+                        $this->_pt('Couldn\'t interpret confirmation parameter. Please try again.')),
                 );
             } else {
                 $forgot_account_arr = $confirmation_parts['account_data'];

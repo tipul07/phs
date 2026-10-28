@@ -20,7 +20,6 @@ use phs\libraries\PHS_Notifications;
 use phs\libraries\PHS_Undefined_instantiable;
 use phs\system\core\events\routing\PHS_Event_Route;
 use phs\system\core\events\routing\PHS_Event_Url_rewrite;
-use phs\plugins\amv_products\actions\products\api\PHS_Action_Import;
 
 final class PHS extends PHS_Registry
 {
@@ -1459,10 +1458,10 @@ final class PHS extends PHS_Registry
         return str_replace('/', '_', str_replace('_', '', $ad));
     }
 
-    public static function route_from_parts(string|array $parts = [], ?string $controller_class = null): ?string
+    public static function route_from_parts(string | array $parts = [], ?string $controller_class = null): ?string
     {
-        if(is_string($parts)) {
-            if(!$parts
+        if (is_string($parts)) {
+            if (!$parts
                || !($parts_arr = PHS_Action::get_route_from_class($controller_class, $parts))) {
                 return null;
             }

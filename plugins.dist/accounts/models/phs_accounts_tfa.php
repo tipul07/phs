@@ -384,7 +384,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         return $tfa_arr;
     }
 
-    public function get_tfa_data_for_account(int|array|PHS_Record_data $account_data): ?array
+    public function get_tfa_data_for_account(int | array | PHS_Record_data $account_data): ?array
     {
         $this->reset_error();
 
@@ -402,7 +402,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         ];
     }
 
-    public function install_tfa_for_account(int|array|PHS_Record_data $account_data): ?array
+    public function install_tfa_for_account(int | array | PHS_Record_data $account_data): ?array
     {
         $this->reset_error();
 
@@ -443,7 +443,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         return $result;
     }
 
-    public function update_tfa_for_account(int|array|PHS_Record_data $account_data, array $tfa_fields): ?array
+    public function update_tfa_for_account(int | array | PHS_Record_data $account_data, array $tfa_fields): ?array
     {
         $this->reset_error();
 
@@ -510,7 +510,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         return $result;
     }
 
-    public function get_qr_code_url_for_tfa_setup(int|array|PHS_Record_data $account_data, array $params = []): ?array
+    public function get_qr_code_url_for_tfa_setup(int | array | PHS_Record_data $account_data, array $params = []): ?array
     {
         $this->reset_error();
 
@@ -568,7 +568,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         ];
     }
 
-    public function get_secret(int|array|PHS_Record_data $tfa_data): ?string
+    public function get_secret(int | array | PHS_Record_data $tfa_data): ?string
     {
         $this->reset_error();
 
@@ -590,7 +590,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         return $result;
     }
 
-    public function get_recovery_codes(int|array|PHS_Record_data $tfa_data): ?array
+    public function get_recovery_codes(int | array | PHS_Record_data $tfa_data): ?array
     {
         $this->reset_error();
 
@@ -608,7 +608,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         return $result;
     }
 
-    public function download_recovery_codes_file(int|array|PHS_Record_data $tfa_data): ?bool
+    public function download_recovery_codes_file(int | array | PHS_Record_data $tfa_data): ?bool
     {
         $this->reset_error();
 
@@ -648,7 +648,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
         exit;
     }
 
-    public function get_recovery_codes_download_file_content(int|array|PHS_Record_data $tfa_data): ?string
+    public function get_recovery_codes_download_file_content(int | array | PHS_Record_data $tfa_data): ?string
     {
         $this->reset_error();
 
@@ -930,7 +930,7 @@ class PHS_Model_Accounts_tfa extends PHS_Model
      *
      * @return null|string
      */
-    private function _get_tfa_otp_url(int|array|PHS_Record_data $account_data): ?string
+    private function _get_tfa_otp_url(int | array | PHS_Record_data $account_data): ?string
     {
         $this->reset_error();
 
@@ -1013,9 +1013,8 @@ class PHS_Model_Accounts_tfa extends PHS_Model
     }
 
     public static function verify_code_with_secret(
-        string $secret, string $code, int $discrepancy = 1, ?float $time_slice = null
-    ): bool
-    {
+        string $secret, string $code, int $discrepancy = 1, ?float $time_slice = null,
+    ): bool {
         if ($time_slice === null) {
             $time_slice = floor(time() / 30);
         }
