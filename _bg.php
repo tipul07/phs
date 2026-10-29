@@ -15,7 +15,7 @@ use phs\libraries\PHS_Logger;
 PHS_Logger::notice(' --- Started bg job...', PHS_Logger::TYPE_BACKGROUND);
 
 if (!($parsed_input = PHS_Bg_jobs::bg_validate_input($_SERVER['argv'][1] ?? ''))
- || empty($parsed_input['job_data'])) {
+    || empty($parsed_input['job_data'])) {
     PHS_Logger::error('INVALID job input.', PHS_Logger::TYPE_BACKGROUND);
     exit;
 }

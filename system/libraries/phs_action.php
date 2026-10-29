@@ -376,14 +376,15 @@ abstract class PHS_Action extends PHS_Instantiable
     final public static function get_route_from_class(?string $controller_class = null, ?string $full_class_name = null): ?array
     {
         /** @var self $full_class_name */
-        if (!$full_class_name) {
+        if ($full_class_name === null) {
             $full_class_name = static::class;
         }
 
         $full_class_name = ltrim($full_class_name, '\\');
 
-        if (!($details = self::get_full_instance_details($full_class_name))
-           || empty($details['instance_name'])) {
+        if (!$full_class_name
+            || !($details = self::get_full_instance_details($full_class_name))
+            || empty($details['instance_name'])) {
             return null;
         }
 

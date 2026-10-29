@@ -789,7 +789,7 @@ final class PHS extends PHS_Registry
      *
      * @return null|array Returns true on success or null on error
      */
-    public static function parse_route($route = false, bool $use_short_names = false): ?array
+    public static function parse_route(null | array | string $route = null, bool $use_short_names = false): ?array
     {
         self::st_reset_error();
 
@@ -800,7 +800,7 @@ final class PHS extends PHS_Registry
         $force_https = false;
 
         $route_parts = [];
-        if (!empty($route)) {
+        if ($route) {
             if (is_array($route)) {
                 if (!empty($route['plugin'])) {
                     $plugin = $route['plugin'];
@@ -1950,17 +1950,17 @@ final class PHS extends PHS_Registry
 
     /**
      * This method spawns a view object with provided route as context for script which require resources
-     * (javascript URLs, image URLs, etc.), but they are not running in a view context. Usually javascript scripts
-     * which output javascript directly without rendering the code in a view context
+     * (JavaScript URLs, image URLs, etc.), but they are not running in a view context. Usually javascript scripts
+     * which output JavaScript directly without rendering the code in a view context
      *
-     * @param array|string $route_arr
+     * @param null|string|array $route_arr
      * @param string|array $template
      * @param array $template_data
      *
      * @return null|PHS_View
      */
     public static function spawn_view_in_context(
-        string | array $route_arr,
+        null | string | array $route_arr,
         string | array $template,
         array $template_data = [],
     ): ?PHS_View {
@@ -1971,9 +1971,9 @@ final class PHS extends PHS_Registry
         /** @var PHS_Controller $controller_obj */
         /** @var PHS_Action $action_obj */
         if (!($route_arr = self::parse_route($route_arr, true))
-         || (!empty($route_arr['p']) && !($plugin_obj = self::load_plugin($route_arr['p'])))
-         || !($controller_obj = self::load_controller($route_arr['c'], $route_arr['p']))
-         || !($action_obj = self::load_action($route_arr['a'], $route_arr['p'], $route_arr['ad']))) {
+            || (!empty($route_arr['p']) && !($plugin_obj = self::load_plugin($route_arr['p'])))
+            || !($controller_obj = self::load_controller($route_arr['c'], $route_arr['p']))
+            || !($action_obj = self::load_action($route_arr['a'], $route_arr['p'], $route_arr['ad']))) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Error instantiating controller or action from provided route.'));
 
             return null;
