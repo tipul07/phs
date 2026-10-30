@@ -1613,21 +1613,21 @@ class PHS_Utils extends PHS_Language
 
     /**
      * Convert a CSV column content to a CSV compatible string
-     * @param string $str Content of CSV column to be converted
+     * @param null|string $str Content of CSV column to be converted
      * @param string $delimiter
      * @param string $enclosure
      * @param string $escape
      *
      * @return string Converted string
      */
-    public static function csv_column(string $str, string $delimiter = ',', string $enclosure = '"', string $escape = '"'): string
+    public static function csv_column(?string $str, string $delimiter = ',', string $enclosure = '"', string $escape = '"'): string
     {
         if (str_contains($str, $enclosure)
             || str_contains($str, $delimiter)) {
             $str = $enclosure.str_replace($enclosure, $escape.$enclosure, $str).$enclosure;
         }
 
-        return $str;
+        return $str ?: '';
     }
 
     /**
@@ -1648,7 +1648,7 @@ class PHS_Utils extends PHS_Language
 
         $result_arr = [];
         foreach ($line_arr as $line_str) {
-            if (!is_scalar($line_str)) {
+            if ($line_str !== null && !is_scalar($line_str)) {
                 continue;
             }
 
@@ -1658,36 +1658,16 @@ class PHS_Utils extends PHS_Language
         return implode($delimiter, $result_arr).$line_delimiter;
     }
 
-    /**
-     * @param string $file
-     * @param string $str
-     * @param array|false $params
-     *
-     * @return false|int
-     */
-    public static function count_string_in_file($file, $str, $params = false)
+    public static function count_string_in_file(string $file, string $str, array $params = []): ?int
     {
-        if (empty($params) || !is_array($params)) {
-            $params = [];
-        }
-
-        if (!isset($params['case_sensitive'])) {
-            $params['case_sensitive'] = true;
-        } else {
-            $params['case_sensitive'] = (!empty($params['case_sensitive']));
-        }
-
-        if (!isset($params['ignore_size_limit'])) {
-            $params['ignore_size_limit'] = false;
-        } else {
-            $params['ignore_size_limit'] = (!empty($params['ignore_size_limit']));
-        }
+        $params['case_sensitive'] = !isset($params['case_sensitive']) || !empty($params['case_sensitive']);
+        $params['ignore_size_limit'] = !empty($params['ignore_size_limit']);
 
         if (empty($params['size_limit']) || !is_numeric($params['size_limit'])) {
             $params['size_limit'] = self::MAX_COUNT_FILESIZE;
         }
 
-        if (!($str_len = strlen($str))) {
+        if ($str === '') {
             return 0;
         }
 
@@ -1695,22 +1675,32 @@ class PHS_Utils extends PHS_Language
             $str = strtolower($str);
         }
 
-        if (empty($file)
-         || !@file_exists($file)
-         || (!$params['ignore_size_limit'] && @filesize($file) > $params['size_limit'])
-         || !@is_readable($file)
-         || !($fil = @fopen($file, 'rb'))) {
-            return false;
+        if (!$file
+            || !@file_exists($file)
+            || (!$params['ignore_size_limit'] && @filesize($file) > $params['size_limit'])
+            || !@is_readable($file)
+            || !($fil = @fopen($file, 'rb'))) {
+            return null;
         }
 
         $count = 0;
+        $old_buf = '';
+        $old_buf_count = 0;
         while (($buf = @fread($fil, 1024))) {
             if (!$params['case_sensitive']) {
                 $buf = strtolower($buf);
             }
 
-            $count += substr_count($buf, $str);
+            $this_count = substr_count($old_buf.$buf, $str);
+            $this_count -= $old_buf_count;
+
+            $count += $this_count;
+
+            $old_buf = $buf;
+            $old_buf_count = $this_count;
         }
+
+        @fclose($fil);
 
         return $count;
     }
