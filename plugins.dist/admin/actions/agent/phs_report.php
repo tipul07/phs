@@ -155,7 +155,7 @@ class PHS_Action_Report extends PHS_Action_Generic_list
         ];
 
         $return_arr = $this->default_paginator_params();
-        $return_arr['base_url'] = PHS::url(['p' => 'admin', 'a' => 'report', 'ad' => 'agent']);
+        $return_arr['base_url'] = PHS::url(self::class);
         $return_arr['export_actions'] = ['enabled' => true];
         $return_arr['flow_parameters'] = $flow_params;
         $return_arr['filters_arr'] = $filters_arr;

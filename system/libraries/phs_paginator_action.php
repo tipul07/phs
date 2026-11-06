@@ -6,6 +6,7 @@ use phs\PHS_Scope;
 use phs\PHS_Bg_jobs;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\system\core\libraries\PHS_Paginator_exporter_manager;
+use phs\system\core\actions\paginator\PHS_Action_Paginator_bulk_action_bg;
 
 abstract class PHS_Action_Generic_list extends PHS_Action
 {
@@ -343,6 +344,18 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         }
 
         return $buffer;
+    }
+
+    protected function _default_actions_column_definition(): array
+    {
+        return [
+            'column_title'          => $this->_pt('Actions'),
+            'display_callback'      => [$this, '_default_display_actions'],
+            'sortable'              => false,
+            'extra_style'           => 'width:120px;',
+            'extra_classes'         => 'actions_th',
+            'extra_records_classes' => 'actions',
+        ];
     }
 
     /**
@@ -692,7 +705,7 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         $action_result['action_redirect_url_params']['extra_params'] = ['in_bg' => 1];
 
         if (!($export_manager = PHS_Paginator_exporter_manager::get_instance())
-           || !$export_manager->launch_export_action_in_background($this, $action['action'], $export_params, PHS::user_logged_in() ?: null)) {
+            || !$export_manager->launch_export_action_in_background($this, $action['action'], $export_params, PHS::user_logged_in() ?: null)) {
             $action_result['action_result'] = 'failed';
         }
 
@@ -714,15 +727,13 @@ abstract class PHS_Action_Generic_list extends PHS_Action
         $action_result = $this->_paginator->generate_action_result($action);
         $action_result['action_result'] = 'success';
 
-        if (!PHS_Bg_jobs::run(
-            ['a' => 'paginator_bulk_action_bg', 'ad' => 'paginator', 'c' => 'index_bg'],
+        if (!PHS_Bg_jobs::run(PHS_Action_Paginator_bulk_action_bg::class,
             ['context' => [
                 'action_class'      => $this::class,
                 'bulk_action'       => $action,
                 'scope'             => $this->_paginator->get_scope(),
                 'pagination_params' => $this->_paginator->pagination_params(),
-            ],
-            ],
+            ], ],
             ['with_foreground_user' => true])
         ) {
             $action_result['action_result'] = 'failed';
@@ -748,12 +759,14 @@ abstract class PHS_Action_Generic_list extends PHS_Action
             'export_actions'  => [
                 'enabled'          => false,
                 'export_selection' => [
+                    'display_icon'    => 'fa-reply',
                     'display_name'    => self::_t('Export selected'),
                     'action'          => self::ACTION_EXPORT_SELECTED,
                     'js_callback'     => 'phs_paginator_export_selected_callback',
                     'checkbox_column' => 'id',
                 ],
                 'export_all' => [
+                    'display_icon' => 'fa-reply-all',
                     'display_name' => self::_t('Export ALL'),
                     'action'       => self::ACTION_EXPORT_ALL,
                     'js_callback'  => 'phs_paginator_export_all_callback',

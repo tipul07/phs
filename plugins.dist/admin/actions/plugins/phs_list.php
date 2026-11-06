@@ -22,18 +22,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
     #[PHS_Dependency]
     private ?PHS_Model_Tenants $_tenants_model = null;
 
+    protected null | string | PHS_Instantiable $_paginator_model_class = PHS_Model_Plugins::class;
+
     private array $_tenants_key_val_arr = [];
-
-    protected function _load_dependencies(): bool
-    {
-        if (!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Plugins::get_instance())) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
-    }
 
     /**
      * @inheritdoc
