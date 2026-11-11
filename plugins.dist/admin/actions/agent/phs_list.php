@@ -3,9 +3,9 @@ namespace phs\plugins\admin\actions\agent;
 
 use phs\PHS;
 use phs\PHS_Agent;
-use phs\libraries\PHS_Roles;
 use phs\libraries\PHS_Utils;
 use phs\libraries\PHS_Params;
+use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
@@ -17,6 +17,8 @@ use phs\system\core\models\PHS_Model_Agent_jobs;
  */
 class PHS_Action_List extends PHS_Action_Generic_list
 {
+    protected null | string | PHS_Instantiable $_paginator_model_class = PHS_Model_Agent_jobs::class;
+
     #[PHS_Dependency]
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
@@ -750,18 +752,18 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return ob_get_clean() ?: '';
     }
 
-    public function after_filters_callback($params)
+    public function after_filters_callback(array $params): string
     {
         ob_start();
         ?>
         <div style="width:97%;min-width:97%;margin: 15px auto 0;">
-          <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'add', 'ad' => 'agent']); ?>" class="btn btn-small btn-success"
+          <a href="<?php echo PHS::url(PHS_Action_Add::class); ?>" class="btn btn-small btn-success"
              style="color:white;"><i class="fa fa-plus"></i> <?php echo $this->_pt('Add Agent Job'); ?></a>
         </div>
         <div class="clearfix"></div>
         <?php
 
-        return ob_get_clean();
+        return ob_get_clean() ?: '';
     }
 
     public function after_table_callback(array $params): string
@@ -923,16 +925,5 @@ class PHS_Action_List extends PHS_Action_Generic_list
         <?php
 
         return ob_get_clean() ?: '';
-    }
-
-    protected function _load_dependencies(): bool
-    {
-        if (!($this->_paginator_model = PHS_Model_Agent_jobs::get_instance())) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
     }
 }

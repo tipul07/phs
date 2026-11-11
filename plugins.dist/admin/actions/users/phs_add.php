@@ -107,7 +107,7 @@ class PHS_Action_Add extends PHS_Action
             if ($accounts_model->insert($insert_params_arr)) {
                 PHS_Notifications::add_success_notice($this->_pt('User account created...'));
 
-                return action_redirect(['p' => 'admin', 'a' => 'list', 'ad' => 'users'], ['account_created' => 1]);
+                return action_redirect(PHS_Action_List::class, ['account_created' => 1]);
             }
 
             PHS_Notifications::add_error_notice(
@@ -116,7 +116,7 @@ class PHS_Action_Add extends PHS_Action
             );
         }
 
-        $data = [
+        return $this->quick_render_template('users/add', [
             'nick'    => $nick,
             'pass'    => $pass,
             'level'   => $level,
@@ -127,10 +127,9 @@ class PHS_Action_Add extends PHS_Action
             'phone'   => $phone,
             'company' => $company,
 
-            'accounts_plugin_settings' => $accounts_plugin_settings,
-            'user_levels'              => $accounts_model->get_levels(),
-            'min_password_length'      => $accounts_plugin_settings['min_password_length'],
-            'password_regexp'          => $accounts_plugin_settings['password_regexp'],
+            'user_levels'         => $accounts_model->get_levels(),
+            'min_password_length' => $accounts_plugin_settings['min_password_length'],
+            'password_regexp'     => $accounts_plugin_settings['password_regexp'],
 
             'roles_by_slug'   => $roles_by_slug,
             'all_tenants_arr' => $all_tenants_arr,
@@ -139,8 +138,6 @@ class PHS_Action_Add extends PHS_Action
             'roles_model'     => $roles_model,
             'plugins_model'   => $plugins_model,
             'accounts_plugin' => $accounts_plugin,
-        ];
-
-        return $this->quick_render_template('users/add', $data);
+        ]);
     }
 }

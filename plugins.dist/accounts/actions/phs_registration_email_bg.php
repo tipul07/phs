@@ -7,12 +7,19 @@ use phs\PHS_Bg_jobs;
 use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
+use phs\system\core\attributes\PHS_Dependency;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
 use phs\plugins\accounts\controllers\PHS_Controller_Index_bg;
 
 class PHS_Action_Registration_email_bg extends PHS_Action
 {
     public const ERR_UNKNOWN_ACCOUNT = 40000;
+
+    #[PHS_Dependency]
+    private ?PHS_Plugin_Accounts $_accounts_plugin = null;
+
+    #[PHS_Dependency]
+    private ?PHS_Model_Accounts $_accounts_model = null;
 
     protected static ?string $_default_controller_for_route = PHS_Controller_Index_bg::class;
 
@@ -33,27 +40,25 @@ class PHS_Action_Registration_email_bg extends PHS_Action
     {
         if (!($params = PHS_Bg_jobs::get_current_job_parameters())
             || empty($params['uid'])
-            || !($accounts_plugin = PHS_Plugin_Accounts::get_instance())
-            || !($accounts_model = PHS_Model_Accounts::get_instance())
-            || !($account_arr = $accounts_model->get_details($params['uid']))
-            || !$accounts_model->needs_activation($account_arr)) {
+            || !($account_arr = $this->_accounts_model->get_details($params['uid']))
+            || !$this->_accounts_model->needs_activation($account_arr)) {
             $this->set_error(self::ERR_UNKNOWN_ACCOUNT, $this->_pt('Cannot send registration email to this account.'));
 
             return null;
         }
 
-        $lang = $accounts_model->get_account_language($account_arr) ?: self::get_default_language();
+        $lang = $this->_accounts_model->get_account_language($account_arr) ?: self::get_default_language();
 
         $email_obj
             = phs_email()
                 ?->force_language($lang)
                 ->to($account_arr['email'], $account_arr['nick'])
-                ->template('registration', $accounts_plugin)
+                ->template('registration', $this->_accounts_plugin)
                 ->subject($this->_pt('Account Activation', $lang))
                 ->email_variables([
                     'nick'            => $account_arr['nick'],
                     'pass_generated'  => $account_arr['pass_generated'],
-                    'activation_link' => $accounts_plugin->get_confirmation_link($account_arr, $accounts_plugin::CONF_REASON_ACTIVATION),
+                    'activation_link' => $this->_accounts_plugin->get_confirmation_link($account_arr, $this->_accounts_plugin::CONF_REASON_ACTIVATION),
                     'contact_us_link' => PHS::url(['a' => 'contact_us']),
                     'login_link'      => PHS::url(['p' => 'accounts', 'a' => 'login'], ['nick' => $account_arr['nick']]),
                 ]);

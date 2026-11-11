@@ -26,9 +26,14 @@ if (($redirect_callback = $action['callbacks']['redirect_url'] ?? null)) {
 
 $tooltip = $action['display_tooltip'] ?? '';
 $icon = $action['display_icon'] ?? '';
+$icon_style = $action['display_icon_style'] ?? '';
 
 if ($tooltip) {
     $tooltip = ' title="'.$tooltip.'"';
+}
+
+if ($action['br_before_icon'] ?? false) {
+    ?><br /><?php
 }
 ?>
 <a <?php
@@ -41,9 +46,12 @@ if ($redirect_url) {
 }
 ?>><?php
 if ($icon) {
-    ?><i class="fa <?php echo $icon; ?> action-icons"<?php echo $tooltip; ?>></i><?php
+    ?><i class="fa action-icons <?php echo $icon; ?>"<?php echo $tooltip.($icon_style ? ' style="'.$icon_style.'"' : ''); ?>></i><?php
 } else {
     ?><span<?php echo $tooltip; ?>><?php echo $tooltip; ?></span><?php
 }
 ?></a>
 <?php
+if ($action['br_after_icon'] ?? false) {
+    ?><br /><?php
+}

@@ -4,6 +4,8 @@ namespace phs\plugins\admin\actions\users;
 use phs\PHS;
 use phs\PHS_Ajax;
 use phs\libraries\PHS_Params;
+use phs\libraries\PHS_Record_data;
+use phs\libraries\PHS_Instantiable;
 use phs\libraries\PHS_Notifications;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
@@ -11,6 +13,7 @@ use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\system\core\models\PHS_Model_Tenants;
 use phs\system\core\attributes\PHS_Dependency;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\plugins\admin\actions\users\api\PHS_Action_Info;
 use phs\plugins\accounts\models\PHS_Model_Accounts_tenants;
 
 /**
@@ -18,6 +21,8 @@ use phs\plugins\accounts\models\PHS_Model_Accounts_tenants;
  */
 class PHS_Action_List extends PHS_Action_Generic_list
 {
+    protected null | string | PHS_Instantiable $_paginator_model_class = PHS_Model_Accounts::class;
+
     #[PHS_Dependency]
     private ?PHS_Plugin_Admin $_admin_plugin = null;
 
@@ -104,6 +109,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
         $this->_tenants_list_arr = $all_tenants_arr;
 
         $can_export_accounts = $this->_admin_plugin->can_admin_export_accounts();
+        $can_manage_accounts = $this->_admin_plugin->can_admin_manage_accounts();
         $account_lockout_enabled = $this->_accounts_plugin->lockout_is_enabled();
 
         if (!($u_flow = $this->_paginator_model->fetch_default_flow_params(['table_name' => 'users']))
@@ -139,50 +145,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
         if (isset($users_statuses[$this->_paginator_model::STATUS_DELETED])) {
             unset($users_statuses[$this->_paginator_model::STATUS_DELETED], $users_statuses_filters[$this->_paginator_model::STATUS_DELETED]);
-        }
-
-        $bulk_actions = [
-            [
-                'display_name'    => $this->_pt('Inactivate'),
-                'action'          => 'bulk_inactivate',
-                'js_callback'     => 'phs_users_list_bulk_inactivate',
-                'checkbox_column' => 'id',
-            ],
-            [
-                'display_name'    => $this->_pt('Activate'),
-                'action'          => 'bulk_activate',
-                'js_callback'     => 'phs_users_list_bulk_activate',
-                'checkbox_column' => 'id',
-            ],
-            [
-                'display_name'    => $this->_pt('Delete'),
-                'action'          => 'bulk_delete',
-                'js_callback'     => 'phs_users_list_bulk_delete',
-                'checkbox_column' => 'id',
-            ],
-        ];
-
-        if ($account_lockout_enabled) {
-            $bulk_actions[] = [
-                'display_name'    => $this->_pt('Reset account locking'),
-                'action'          => 'bulk_reset_account_locking',
-                'js_callback'     => 'phs_users_list_bulk_reset_account_locking',
-                'checkbox_column' => 'id',
-            ];
-        }
-        if ($can_export_accounts) {
-            $bulk_actions[] = [
-                'display_name'    => $this->_pt('Export selected'),
-                'action'          => 'bulk_export_selected',
-                'js_callback'     => 'phs_users_list_bulk_export_selected',
-                'checkbox_column' => 'id',
-            ];
-            $bulk_actions[] = [
-                'display_name'    => $this->_pt('Export ALL accounts'),
-                'action'          => 'bulk_export_all',
-                'js_callback'     => 'phs_users_list_bulk_export_all',
-                'checkbox_column' => 'id',
-            ];
         }
 
         $lock_options_arr = [
@@ -387,565 +349,362 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 'extra_style'         => 'width:130px;',
                 'extra_records_style' => 'text-align:right;',
             ],
-            [
-                'column_title'        => $this->_pt('Actions'),
-                'display_callback'    => [$this, 'display_actions'],
-                'extra_style'         => 'width:150px;',
-                'extra_records_style' => 'text-align:right;',
-                'sortable'            => false,
-            ],
+            $this->_default_actions_column_definition(),
         ]);
 
+        $actions_arr = [
+            'bulk_export_selected' => [
+                'enabled'                => $can_export_accounts,
+                'is_bulk'                => true,
+                'with_submit_protection' => false,
+                'display_name'           => $this->_pt('Export selected'),
+                'display_icon'           => 'fa-reply',
+                'texts'                  => [
+                    'action_success'     => $this->_pt('Required accounts exported with success.'),
+                    'action_failed'      => $this->_pt('Exporting selected accounts failed. Please try again.'),
+                    'action_failed_some' => $this->_pt('Failed exporting all selected accounts. Accounts for which action failed are still selected. Please try again.'),
+                    'nothing_selected'   => $this->_pt('Please select accounts you want to export first.'),
+                    'bulk_confirmation'  => $this->_pt('Are you sure you want to export %s accounts?'),
+                ],
+                'callbacks' => [
+                    'bulk_single_action' => true,
+                    'can_run'            => function(int | array | PHS_Record_data $record_arr) use ($can_export_accounts): bool {
+                        return $can_export_accounts;
+                    },
+                    'action' => function(array $export_ids) use ($can_export_accounts): bool {
+                        $export_params = [];
+                        $export_params['export_file_name'] = 'accounts_export_'.date('YmdHi').'.json';
+
+                        return $can_export_accounts
+                               && $this->_accounts_plugin->export_account_ids($export_ids, $export_params);
+                    },
+                ],
+            ],
+            'bulk_export_all' => [
+                'enabled'                => $can_export_accounts,
+                'is_bulk'                => true,
+                'with_submit_protection' => false,
+                'checkbox_column'        => null,
+                'display_name'           => $this->_pt('Export ALL accounts'),
+                'display_icon'           => 'fa-reply-all',
+                'texts'                  => [
+                    'action_success'     => $this->_pt('ALL accounts exported with success.'),
+                    'action_failed'      => $this->_pt('Exporting ALL accounts failed. Please try again.'),
+                    'action_failed_some' => $this->_pt('Failed exporting ALL accounts. Accounts for which action failed are still selected. Please try again.'),
+                    'nothing_selected'   => $this->_pt('No accounts to export.'),
+                    'bulk_confirmation'  => $this->_pt('Are you sure you want to export ALL accounts?'),
+                ],
+                'callbacks' => [
+                    'require_selection'  => false,
+                    'bulk_single_action' => true,
+                    'can_run'            => function(int | array | PHS_Record_data $record_arr) use ($can_export_accounts): bool {
+                        return $can_export_accounts;
+                    },
+                    'action' => function() use ($can_export_accounts): bool {
+                        $export_params = [];
+                        $export_params['export_file_name'] = 'accounts_export_all_'.date('YmdHi').'.json';
+
+                        return $can_export_accounts
+                               && $this->_accounts_plugin->export_account_ids([], $export_params);
+                    },
+                ],
+            ],
+            'bulk_reset_account_locking' => [
+                'enabled'      => $can_manage_accounts && $account_lockout_enabled,
+                'is_bulk'      => true,
+                'display_name' => $this->_pt('Reset account locking'),
+                'display_icon' => 'fa-unlock',
+                'texts'        => [
+                    'action_success'     => $this->_pt('Reseted account locking for required accounts with success.'),
+                    'action_failed'      => $this->_pt('Resetting account locking for selected accounts failed. Please try again.'),
+                    'action_failed_some' => $this->_pt('Failed resetting account locking for all selected accounts. Accounts for which action failed are still selected. Please try again.'),
+                    'nothing_selected'   => $this->_pt('Please select accounts you want to reset account locking first.'),
+                    'bulk_confirmation'  => $this->_pt('Are you sure you want to reset account locking for %s accounts?'),
+                ],
+                'callbacks' => [
+                    'can_run' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts, $account_lockout_enabled): bool {
+                        return $can_manage_accounts && $account_lockout_enabled;
+                    },
+                    'action' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts, $account_lockout_enabled): bool {
+                        return $can_manage_accounts
+                               && $account_lockout_enabled
+                               && $this->_paginator_model->reset_account_locking($record_arr);
+                    },
+                ],
+            ],
+            'bulk_inactivate' => [
+                'enabled'      => $can_manage_accounts,
+                'is_bulk'      => true,
+                'display_name' => $this->_pt('Inactivate'),
+                'display_icon' => 'fa-pause-circle-o',
+                'texts'        => [
+                    'action_success'     => $this->_pt('Required accounts inactivated with success.'),
+                    'action_failed'      => $this->_pt('Inactivating selected accounts failed. Please try again.'),
+                    'action_failed_some' => $this->_pt('Failed inactivating all selected accounts. Accounts which failed inactivation are still selected. Please try again.'),
+                    'nothing_selected'   => $this->_pt('Please select accounts you want to inactivate first.'),
+                    'bulk_confirmation'  => $this->_pt('Are you sure you want to inactivate %s accounts?'),
+                ],
+                'callbacks' => [
+                    'can_run' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts): bool {
+                        return $can_manage_accounts;
+                    },
+                    'action' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts): bool {
+                        return $can_manage_accounts && $this->_paginator_model->inactivate_account($record_arr);
+                    },
+                ],
+            ],
+            'bulk_activate' => [
+                'enabled'      => $can_manage_accounts,
+                'is_bulk'      => true,
+                'display_name' => $this->_pt('Activate'),
+                'display_icon' => 'fa-play-circle-o',
+                'texts'        => [
+                    'action_success'     => $this->_pt('Required accounts activated with success.'),
+                    'action_failed'      => $this->_pt('Activating selected accounts failed. Please try again.'),
+                    'action_failed_some' => $this->_pt('Failed activating all selected accounts. Accounts which failed activating are still selected. Please try again.'),
+                    'nothing_selected'   => $this->_pt('Please select accounts you want to activate first.'),
+                    'bulk_confirmation'  => $this->_pt('Are you sure you want to activate %s accounts?'),
+                ],
+                'callbacks' => [
+                    'can_run' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts): bool {
+                        return $can_manage_accounts;
+                    },
+                    'action' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts): bool {
+                        return $can_manage_accounts && $this->_paginator_model->activate_account($record_arr);
+                    },
+                ],
+            ],
+            'bulk_delete' => [
+                'enabled'            => $can_manage_accounts,
+                'is_bulk'            => true,
+                'display_name'       => $this->_pt('Delete'),
+                'display_icon'       => 'fa-times-circle-o',
+                'display_icon_style' => 'color: red',
+                'texts'              => [
+                    'action_success'     => $this->_pt('Required accounts deleted with success.'),
+                    'action_failed'      => $this->_pt('Deleting selected accounts failed. Please try again.'),
+                    'action_failed_some' => $this->_pt('Failed deleting all selected accounts. Accounts which failed deletion are still selected. Please try again.'),
+                    'nothing_selected'   => $this->_pt('Please select accounts you want to delete first.'),
+                    'bulk_confirmation'  => $this->_pt('Are you sure you want to delete %s accounts?')."\n"
+                                            .$this->_pt('NOTE: You cannot undo this action!'),
+                ],
+                'callbacks' => [
+                    'can_run' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts): bool {
+                        return $can_manage_accounts;
+                    },
+                    'action' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts): bool {
+                        return $can_manage_accounts && $this->_paginator_model->delete_account($record_arr);
+                    },
+                ],
+            ],
+            'sublogin_account' => [
+                'display_icon'    => 'fa-sign-in',
+                'display_tooltip' => $this->_pt('Change login to this account'),
+                'callbacks'       => [
+                    'should_display' => function(array $render_params) use ($can_manage_accounts): bool {
+                        return !empty($render_params['record'])
+                               && $can_manage_accounts
+                               && $this->_admin_plugin->can_admin_login_subaccounts()
+                               && $this->_paginator_model->is_active($render_params['record']);
+                    },
+                    'can_run' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts): bool {
+                        return $can_manage_accounts
+                               && $this->_admin_plugin->can_admin_login_subaccounts()
+                               && $this->_paginator_model->is_active($record_arr);
+                    },
+                    'action' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts): bool {
+                        if (!$can_manage_accounts
+                           || !$this->_admin_plugin->can_admin_login_subaccounts()
+                           || !$this->_paginator_model->is_active($record_arr)
+                           || !$this->_paginator_model->login($record_arr)) {
+                            return false;
+                        }
+
+                        header('Location: '.PHS::url());
+                        exit;
+                    },
+                ],
+                'texts' => [
+                    'confirmation'   => $this->_pt('Are you sure you want to change login as this account?'),
+                    'action_success' => $this->_pt('Logged in with success.'),
+                    'action_failed'  => $this->_pt('Logging in as this account failed. Please try again.'),
+                ],
+            ],
+            'do_edit' => [
+                'enabled'         => $can_manage_accounts,
+                'display_icon'    => 'fa-pencil-square-o',
+                'display_tooltip' => $this->_pt('Edit account'),
+                'callbacks'       => [
+                    'should_display' => function(array $render_params) use ($can_manage_accounts): bool {
+                        return !empty($render_params['record'])
+                               && $can_manage_accounts
+                               && !$this->_paginator_model->is_deleted($render_params['record']);
+                    },
+                    'can_run' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts): bool {
+                        return $can_manage_accounts
+                               && !$this->_paginator_model->is_deleted($record_arr);
+                    },
+                    'redirect_url' => function(int | array | PHS_Record_data $record_arr): string {
+                        return PHS::url(
+                            PHS_Action_Edit::class,
+                            ['uid' => $record_arr['id'], 'back_page' => $this->_paginator->get_full_url()],
+                        );
+                    },
+                ],
+            ],
+            'reset_account_locking' => [
+                'display_icon'    => 'fa-unlock',
+                'display_tooltip' => $this->_pt('Reset account locking'),
+                'callbacks'       => [
+                    'should_display' => function(array $render_params) use ($current_user, $can_manage_accounts, $account_lockout_enabled): bool {
+                        return !empty($render_params['record'])
+                               && $can_manage_accounts
+                               && $account_lockout_enabled
+                               && $current_user
+                               && !$this->_paginator_model->is_deleted($render_params['record'])
+                               && $this->_paginator_model->can_manage_account($current_user, $render_params['record']);
+                    },
+                    'can_run' => function(int | array | PHS_Record_data $record_arr) use ($current_user, $can_manage_accounts, $account_lockout_enabled): bool {
+                        return $can_manage_accounts
+                               && $account_lockout_enabled
+                               && $current_user
+                               && !$this->_paginator_model->is_deleted($record_arr)
+                               && $this->_paginator_model->can_manage_account($current_user, $record_arr);
+                    },
+                    'action' => function(int | array | PHS_Record_data $record_arr) use ($current_user, $can_manage_accounts, $account_lockout_enabled): bool {
+                        return $can_manage_accounts
+                               && $account_lockout_enabled
+                               && $current_user
+                               && $this->_paginator_model->can_manage_account($current_user, $record_arr)
+                               && $this->_paginator_model->reset_account_locking($record_arr);
+                    },
+                ],
+                'texts' => [
+                    'confirmation'   => $this->_pt('Are you sure you want to reset account locking for this account?'),
+                    'action_success' => $this->_pt('Account locking reset with success.'),
+                    'action_failed'  => $this->_pt('Resetting account locking failed. Please try again.'),
+                ],
+            ],
+            'resend_registration_email' => [
+                'display_icon'    => 'fa-share-square-o',
+                'display_tooltip' => $this->_pt('Re-send registration email'),
+                'callbacks'       => [
+                    'should_display' => function(array $render_params) use ($can_manage_accounts): bool {
+                        return !empty($render_params['record'])
+                               && $can_manage_accounts
+                               && $this->_paginator_model->needs_after_registration_email($render_params['record']);
+                    },
+                    'can_run' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts): bool {
+                        return $can_manage_accounts
+                               && $this->_paginator_model->needs_after_registration_email($record_arr);
+                    },
+                    'action' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts): bool {
+                        return $can_manage_accounts
+                               && $this->_paginator_model->needs_after_registration_email($record_arr)
+                               && ($send_result = $this->_paginator_model->send_after_registration_email($record_arr, ['send_confirmation_email' => true]))
+                               && empty($send_result['has_error']);
+                    },
+                ],
+                'texts' => [
+                    'confirmation'   => $this->_pt('Are you sure you want to re-send registration email for this account?'),
+                    'action_success' => $this->_pt('Re-sent registration email with success.'),
+                    'action_failed'  => $this->_pt('Re-sending registration email failed. Please try again.'),
+                ],
+            ],
+            'do_activate' => [
+                'enabled'         => $can_manage_accounts,
+                'display_icon'    => 'fa-play-circle-o',
+                'display_tooltip' => $this->_pt('Activate account'),
+                'callbacks'       => [
+                    'should_display' => function(array $render_params) use ($can_manage_accounts): bool {
+                        return !empty($render_params['record'])
+                               && $can_manage_accounts
+                               && $this->_paginator_model->is_inactive($render_params['record']);
+                    },
+                    'can_run' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts): bool {
+                        return $can_manage_accounts
+                               && $this->_paginator_model->is_inactive($record_arr);
+                    },
+                    'action' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts): bool {
+                        return $can_manage_accounts && $this->_paginator_model->activate_account($record_arr);
+                    },
+                ],
+                'texts' => [
+                    'confirmation'   => $this->_pt('Are you sure you want to activate this account?'),
+                    'action_success' => $this->_pt('Account activated with success.'),
+                    'action_failed'  => $this->_pt('Activating account failed. Please try again.'),
+                ],
+            ],
+            'do_inactivate' => [
+                'enabled'         => $can_manage_accounts,
+                'display_icon'    => 'fa-pause-circle-o',
+                'display_tooltip' => $this->_pt('Inactivate account'),
+                'callbacks'       => [
+                    'should_display' => function(array $render_params) use ($can_manage_accounts): bool {
+                        return !empty($render_params['record'])
+                               && $can_manage_accounts
+                               && $this->_paginator_model->is_active($render_params['record']);
+                    },
+                    'can_run' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts): bool {
+                        return $can_manage_accounts
+                               && $this->_paginator_model->is_active($record_arr);
+                    },
+                    'action' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts): bool {
+                        return $can_manage_accounts && $this->_paginator_model->inactivate_account($record_arr);
+                    },
+                ],
+                'texts' => [
+                    'confirmation'   => $this->_pt('Are you sure you want to inactivate this account?'),
+                    'action_success' => $this->_pt('Account inactivated with success.'),
+                    'action_failed'  => $this->_pt('Inactivating account failed. Please try again.'),
+                ],
+            ],
+            'info' => [
+                'br_before_icon'  => true,
+                'display_icon'    => 'fa-info-circle',
+                'display_tooltip' => $this->_pt('Account details'),
+                'callbacks'       => [
+                    'javascript_callback' => function(int | array | PHS_Record_data $record_arr): string {
+                        return 'phs_users_list_view_info(\''.$record_arr['id'].'\')';
+                    },
+                ],
+            ],
+            'do_delete' => [
+                'enabled'            => $can_manage_accounts,
+                'display_icon'       => 'fa-times-circle-o',
+                'display_icon_style' => 'color: red',
+                'display_tooltip'    => $this->_pt('Delete account'),
+                'callbacks'          => [
+                    'should_display' => function(array $render_params) use ($can_manage_accounts): bool {
+                        return !empty($render_params['record'])
+                               && $can_manage_accounts
+                               && !$this->_paginator_model->is_deleted($render_params['record']);
+                    },
+                    'can_run' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts): bool {
+                        return $can_manage_accounts
+                               && !$this->_paginator_model->is_deleted($record_arr);
+                    },
+                    'action' => function(int | array | PHS_Record_data $record_arr) use ($can_manage_accounts): bool {
+                        return $can_manage_accounts && $this->_paginator_model->delete_account($record_arr);
+                    },
+                ],
+                'texts' => [
+                    'confirmation' => $this->_pt('Are you sure you want to DELETE this account?')."\n"
+                                      .$this->_pt('NOTE: You cannot undo this action!'),
+                    'action_success' => $this->_pt('Account deleted with success.'),
+                    'action_failed'  => $this->_pt('Deleting account failed. Please try again.'),
+                ],
+            ],
+        ];
+
         $return_arr = $this->default_paginator_params();
-        $return_arr['base_url'] = PHS::url(['p' => 'admin', 'a' => 'list', 'ad' => 'users']);
+        $return_arr['base_url'] = PHS::url(self::class);
         $return_arr['flow_parameters'] = $flow_params;
-        $return_arr['bulk_actions'] = $bulk_actions;
+        $return_arr['actions'] = $actions_arr;
         $return_arr['filters_arr'] = $filters_arr;
         $return_arr['columns_arr'] = $columns_arr;
 
         return $return_arr;
-    }
-
-    public function manage_action(array $action): null | bool | array
-    {
-        $this->reset_error();
-
-        $action_result_params = $this->_paginator->default_action_params();
-
-        if (empty($action['action'])) {
-            return $action_result_params;
-        }
-
-        $action_result_params['action'] = $action['action'];
-
-        switch ($action['action']) {
-            default:
-                PHS_Notifications::add_error_notice($this->_pt('Unknown action.'));
-
-                return true;
-            case 'bulk_reset_account_locking':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Reseted account locking for required accounts with success.'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Resetting account locking for selected accounts failed. Please try again.'));
-                    } elseif ($action['action_result'] === 'failed_some') {
-                        PHS_Notifications::add_error_notice($this->_pt('Failed resetting account locking for all selected accounts. Accounts for which action failed are still selected. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!$this->_admin_plugin->can_admin_manage_accounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-                    return false;
-                }
-
-                if (!($scope_arr = $this->_paginator->get_scope())
-                 || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
-                 || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
-                 || !($scope_key = @sprintf($ids_checkboxes_name, 'id'))
-                 || empty($scope_arr[$scope_key])
-                 || !is_array($scope_arr[$scope_key])
-                 || !($scope_all_key = @sprintf($ids_all_checkbox_name, 'id'))) {
-                    return true;
-                }
-
-                $remaining_ids_arr = [];
-                foreach ($scope_arr[$scope_key] as $account_id) {
-                    if (!$this->_paginator_model->reset_account_locking($account_id)) {
-                        $remaining_ids_arr[] = $account_id;
-                    }
-                }
-
-                if (isset($scope_arr[$scope_all_key])) {
-                    unset($scope_arr[$scope_all_key]);
-                }
-
-                if (empty($remaining_ids_arr)) {
-                    $action_result_params['action_result'] = 'success';
-
-                    unset($scope_arr[$scope_key]);
-
-                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
-                } else {
-                    if (count($remaining_ids_arr) !== count($scope_arr[$scope_key])) {
-                        $action_result_params['action_result'] = 'failed_some';
-                    } else {
-                        $action_result_params['action_result'] = 'failed';
-                    }
-
-                    $scope_arr[$scope_key] = implode(',', $remaining_ids_arr);
-
-                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
-                }
-                break;
-
-            case 'bulk_activate':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Required accounts activated with success.'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Activating selected accounts failed. Please try again.'));
-                    } elseif ($action['action_result'] === 'failed_some') {
-                        PHS_Notifications::add_error_notice($this->_pt('Failed activating all selected accounts. Accounts which failed activation are still selected. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!$this->_admin_plugin->can_admin_manage_accounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-                    return false;
-                }
-
-                if (!($scope_arr = $this->_paginator->get_scope())
-                 || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
-                 || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
-                 || !($scope_key = @sprintf($ids_checkboxes_name, 'id'))
-                 || empty($scope_arr[$scope_key])
-                 || !is_array($scope_arr[$scope_key])
-                 || !($scope_all_key = @sprintf($ids_all_checkbox_name, 'id'))) {
-                    return true;
-                }
-
-                $remaining_ids_arr = [];
-                foreach ($scope_arr[$scope_key] as $account_id) {
-                    if (!$this->_paginator_model->activate_account($account_id)) {
-                        $remaining_ids_arr[] = $account_id;
-                    }
-                }
-
-                if (isset($scope_arr[$scope_all_key])) {
-                    unset($scope_arr[$scope_all_key]);
-                }
-
-                if (empty($remaining_ids_arr)) {
-                    $action_result_params['action_result'] = 'success';
-
-                    unset($scope_arr[$scope_key]);
-
-                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
-                } else {
-                    if (count($remaining_ids_arr) !== count($scope_arr[$scope_key])) {
-                        $action_result_params['action_result'] = 'failed_some';
-                    } else {
-                        $action_result_params['action_result'] = 'failed';
-                    }
-
-                    $scope_arr[$scope_key] = implode(',', $remaining_ids_arr);
-
-                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
-                }
-                break;
-
-            case 'bulk_inactivate':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Required accounts inactivated with success.'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Inactivating selected accounts failed. Please try again.'));
-                    } elseif ($action['action_result'] === 'failed_some') {
-                        PHS_Notifications::add_error_notice($this->_pt('Failed inactivating all selected accounts. Accounts which failed inactivation are still selected. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!$this->_admin_plugin->can_admin_manage_accounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-                    return false;
-                }
-
-                if (!($scope_arr = $this->_paginator->get_scope())
-                 || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
-                 || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
-                 || !($scope_key = @sprintf($ids_checkboxes_name, 'id'))
-                 || empty($scope_arr[$scope_key])
-                 || !is_array($scope_arr[$scope_key])
-                 || !($scope_all_key = @sprintf($ids_all_checkbox_name, 'id'))) {
-                    return true;
-                }
-
-                $remaining_ids_arr = [];
-                foreach ($scope_arr[$scope_key] as $account_id) {
-                    if (!$this->_paginator_model->inactivate_account($account_id)) {
-                        $remaining_ids_arr[] = $account_id;
-                    }
-                }
-
-                if (isset($scope_arr[$scope_all_key])) {
-                    unset($scope_arr[$scope_all_key]);
-                }
-
-                if (empty($remaining_ids_arr)) {
-                    $action_result_params['action_result'] = 'success';
-
-                    unset($scope_arr[$scope_key]);
-
-                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
-                } else {
-                    if (count($remaining_ids_arr) !== count($scope_arr[$scope_key])) {
-                        $action_result_params['action_result'] = 'failed_some';
-                    } else {
-                        $action_result_params['action_result'] = 'failed';
-                    }
-
-                    $scope_arr[$scope_key] = implode(',', $remaining_ids_arr);
-
-                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
-                }
-                break;
-
-            case 'bulk_delete':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Required accounts deleted with success.'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Deleting selected accounts failed. Please try again.'));
-                    } elseif ($action['action_result'] === 'failed_some') {
-                        PHS_Notifications::add_error_notice($this->_pt('Failed deleting all selected accounts. Accounts which failed deletion are still selected. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!$this->_admin_plugin->can_admin_manage_accounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-                    return false;
-                }
-
-                if (!($scope_arr = $this->_paginator->get_scope())
-                 || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
-                 || !($ids_all_checkbox_name = $this->_paginator->get_all_checkbox_name_format())
-                 || !($scope_key = @sprintf($ids_checkboxes_name, 'id'))
-                 || empty($scope_arr[$scope_key])
-                 || !is_array($scope_arr[$scope_key])
-                 || !($scope_all_key = @sprintf($ids_all_checkbox_name, 'id'))) {
-                    return true;
-                }
-
-                $remaining_ids_arr = [];
-                foreach ($scope_arr[$scope_key] as $account_id) {
-                    if (!$this->_paginator_model->delete_account($account_id)) {
-                        $remaining_ids_arr[] = $account_id;
-                    }
-                }
-
-                if (isset($scope_arr[$scope_all_key])) {
-                    unset($scope_arr[$scope_all_key]);
-                }
-
-                if (empty($remaining_ids_arr)) {
-                    $action_result_params['action_result'] = 'success';
-
-                    unset($scope_arr[$scope_key]);
-
-                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
-                } else {
-                    if (count($remaining_ids_arr) !== count($scope_arr[$scope_key])) {
-                        $action_result_params['action_result'] = 'failed_some';
-                    } else {
-                        $action_result_params['action_result'] = 'failed';
-                    }
-
-                    $scope_arr[$scope_key] = implode(',', $remaining_ids_arr);
-
-                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
-                }
-                break;
-
-            case 'bulk_export_selected':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Required accounts exported with success.'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Exporting selected accounts failed. Please try again.'));
-                    } elseif ($action['action_result'] === 'failed_some') {
-                        PHS_Notifications::add_error_notice($this->_pt('Failed exporting all selected accounts. Accounts which failed export are still selected. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!$this->_admin_plugin->can_admin_export_accounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-                    return false;
-                }
-
-                if (!($scope_arr = $this->_paginator->get_scope())
-                 || !($ids_checkboxes_name = $this->_paginator->get_checkbox_name_format())
-                 || !($scope_key = @sprintf($ids_checkboxes_name, 'id'))
-                 || empty($scope_arr[$scope_key])
-                 || !is_array($scope_arr[$scope_key])) {
-                    return true;
-                }
-
-                $export_params = [];
-                $export_params['export_file_name'] = 'accounts_export_'.date('YmdHi').'.json';
-
-                if (!$this->_accounts_plugin->export_account_ids($scope_arr[$scope_key], $export_params)) {
-                    $action_result_params['action_result'] = 'failed';
-                    $action_result_params['action_redirect_url_params'] = ['force_scope' => $scope_arr];
-                }
-                break;
-
-            case 'bulk_export_all':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Required accounts exported with success.'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Exporting selected accounts failed. Please try again.'));
-                    } elseif ($action['action_result'] === 'failed_some') {
-                        PHS_Notifications::add_error_notice($this->_pt('Failed exporting all selected accounts. Accounts which failed export are still selected. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!$this->_admin_plugin->can_admin_export_accounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-                    return false;
-                }
-
-                $export_params = [];
-                $export_params['export_file_name'] = 'accounts_export_all_'.date('YmdHi').'.json';
-
-                if (!$this->_accounts_plugin->export_account_ids([], $export_params)) {
-                    $action_result_params['action_result'] = 'failed';
-                }
-                break;
-
-            case 'sublogin_account':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Logged in with success.'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Logging in as this account failed. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!$this->_admin_plugin->can_admin_login_subaccounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to access this section.'));
-
-                    return false;
-                }
-
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
-                if (empty($action['action_params'])
-                    || !($account_arr = $this->_paginator_model->get_details($action['action_params']))) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('Cannot login as this account. Account not found.'));
-
-                    return false;
-                }
-
-                if (!$this->_paginator_model->is_active($account_arr)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('Account not active. Activate account first.'));
-
-                    return false;
-                }
-
-                if (!$this->_paginator_model->login($account_arr)) {
-                    $action_result_params['action_result'] = 'failed';
-                } else {
-                    // If we logged in with success redirect at main page as we don't know if new logged-in user has rights to view this page...
-                    header('Location: '.PHS::url());
-                    exit;
-                }
-                break;
-
-            case 'reset_account_locking':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Account locking reset with success.'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Resetting account locking failed. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
-                if (empty($action['action_params'])
-                    || !($account_arr = $this->_paginator_model->get_details($action['action_params']))) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('Cannot reset account locking. Account not found.'));
-
-                    return false;
-                }
-
-                if (!($current_user = PHS::user_logged_in())
-                 || !$this->_admin_plugin->can_admin_manage_accounts()
-                 || !$this->_paginator_model->can_manage_account($current_user, $account_arr)) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage this account.'));
-
-                    return false;
-                }
-
-                if (!$this->_paginator_model->reset_account_locking($account_arr)) {
-                    $action_result_params['action_result'] = 'failed';
-                } else {
-                    $action_result_params['action_result'] = 'success';
-                }
-                break;
-
-            case 'resend_registration_email':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Re-sent registration email with success.'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Re-sending registration email failed. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!$this->_admin_plugin->can_admin_manage_accounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage accounts.'));
-
-                    return false;
-                }
-
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
-                if (empty($action['action_params'])
-                 || !($account_arr = $this->_paginator_model->get_details($action['action_params']))) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('Cannot re-send registration email. Account not found.'));
-
-                    return false;
-                }
-
-                if (!($send_result = $this->_paginator_model->send_after_registration_email($account_arr, ['send_confirmation_email' => true]))
-                 || !is_array($send_result)
-                 || !empty($send_result['has_error'])) {
-                    $action_result_params['action_result'] = 'failed';
-                } else {
-                    $action_result_params['action_result'] = 'success';
-                }
-                break;
-
-            case 'activate_account':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Account activated with success.'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Activating account failed. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!$this->_admin_plugin->can_admin_manage_accounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage accounts.'));
-
-                    return false;
-                }
-
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
-                if (empty($action['action_params'])
-                 || !($account_arr = $this->_paginator_model->get_details($action['action_params']))) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('Cannot activate account. Account not found.'));
-
-                    return false;
-                }
-
-                if (!$this->_paginator_model->activate_account($account_arr)) {
-                    $action_result_params['action_result'] = 'failed';
-                } else {
-                    $action_result_params['action_result'] = 'success';
-                }
-                break;
-
-            case 'inactivate_account':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Account inactivated with success.'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Inactivating account failed. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!$this->_admin_plugin->can_admin_manage_accounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage accounts.'));
-
-                    return false;
-                }
-
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
-                if (empty($action['action_params'])
-                 || !($account_arr = $this->_paginator_model->get_details($action['action_params']))) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('Cannot inactivate account. Account not found.'));
-
-                    return false;
-                }
-
-                if (!$this->_paginator_model->inactivate_account($account_arr)) {
-                    $action_result_params['action_result'] = 'failed';
-                } else {
-                    $action_result_params['action_result'] = 'success';
-                }
-                break;
-
-            case 'delete_account':
-                if (!empty($action['action_result'])) {
-                    if ($action['action_result'] === 'success') {
-                        PHS_Notifications::add_success_notice($this->_pt('Account deleted with success.'));
-                    } elseif ($action['action_result'] === 'failed') {
-                        PHS_Notifications::add_error_notice($this->_pt('Deleting account failed. Please try again.'));
-                    }
-
-                    return true;
-                }
-
-                if (!$this->_admin_plugin->can_admin_manage_accounts()) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('You don\'t have rights to manage accounts.'));
-
-                    return false;
-                }
-
-                if (!empty($action['action_params'])) {
-                    $action['action_params'] = (int)$action['action_params'];
-                }
-
-                if (empty($action['action_params'])
-                 || !($account_arr = $this->_paginator_model->get_details($action['action_params']))) {
-                    $this->set_error(self::ERR_ACTION, $this->_pt('Cannot delete account. Account not found.'));
-
-                    return false;
-                }
-
-                if (!$this->_paginator_model->delete_account($account_arr)) {
-                    $action_result_params['action_result'] = 'failed';
-                } else {
-                    $action_result_params['action_result'] = 'success';
-                }
-                break;
-        }
-
-        return $action_result_params;
     }
 
     public function display_tenants(array $params): ?string
@@ -1003,94 +762,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
         return $cell_str;
     }
 
-    public function display_actions(array $params): ?string
-    {
-        if (!$this->_paginator->is_cell_rendering_for_html($params)) {
-            return '-';
-        }
-
-        if (!($current_user = PHS::user_logged_in())
-            || empty($params['record']) || !is_array($params['record'])
-            || !($account_arr = $this->_paginator_model->data_to_array($params['record']))) {
-            return null;
-        }
-
-        $is_inactive = $this->_paginator_model->is_inactive($account_arr);
-        $is_active = $this->_paginator_model->is_active($account_arr);
-        $can_manage_account = $this->_paginator_model->can_manage_account($current_user, $account_arr);
-
-        ob_start();
-
-        if ($can_manage_account) {
-            if ($is_active
-                && $this->_admin_plugin->can_admin_login_subaccounts()) {
-                ?>
-                <a href="javascript:void(0)"
-                   onclick="phs_users_list_sublogin_account( '<?php echo $account_arr['id']; ?>' )"
-                ><i class="fa fa-sign-in action-icons" title="<?php echo $this->_pt('Change login to this account'); ?>"></i></a>
-                <?php
-            }
-
-            if ($is_inactive || $is_active) {
-                ?>
-                <a href="<?php echo PHS::url(['p' => 'admin', 'a' => 'edit', 'ad' => 'users'],
-                    ['uid' => $account_arr['id'], 'back_page' => $this->_paginator->get_full_url()]); ?>"
-                ><i class="fa fa-pencil-square-o action-icons" title="<?php echo $this->_pt('Edit account'); ?>"></i></a>
-                <?php
-            }
-
-            if ($this->_accounts_plugin->lockout_is_enabled()) {
-                ?>
-                <a href="javascript:void(0)"
-                    onclick="phs_users_list_reset_account_locking( '<?php echo $account_arr['id']; ?>' )"
-                ><i class="fa fa-unlock action-icons" title="<?php echo $this->_pt('Reset account locking'); ?>"></i></a>
-                <?php
-            }
-
-            if ($this->_paginator_model->needs_after_registration_email($account_arr)) {
-                ?>
-                <a href="javascript:void(0)"
-                   onclick="phs_users_list_resend_registration_email( '<?php echo $account_arr['id']; ?>' )"
-                ><i class="fa fa-share-square-o action-icons" title="<?php echo $this->_pt('Re-send registration email'); ?>"></i></a>
-                <?php
-            }
-
-            if ($is_inactive) {
-                ?>
-                <a href="javascript:void(0)"
-                   onclick="phs_users_list_activate_account( '<?php echo $account_arr['id']; ?>' )"
-                ><i class="fa fa-play-circle-o action-icons" title="<?php echo $this->_pt('Activate account'); ?>"></i></a>
-                <?php
-            }
-            if ($is_active) {
-                ?>
-                <a href="javascript:void(0)"
-                   onclick="phs_users_list_inactivate_account( '<?php echo $account_arr['id']; ?>' )"
-                ><i class="fa fa-pause-circle-o action-icons" title="<?php echo $this->_pt('Inactivate account'); ?>"></i></a>
-                <?php
-            }
-        }
-
-        if (!$this->_paginator_model->is_deleted($account_arr)) {
-            ?>
-            <br/>
-            <a href="javascript:void(0)"
-               onclick="phs_users_list_view_info( '<?php echo $account_arr['id']; ?>' )"
-            ><i class="fa fa-info action-icons" title="<?php echo $this->_pt('Account details'); ?>"></i></a>
-            <?php
-            if ($can_manage_account) {
-                ?>
-                <a href="javascript:void(0)"
-                   onclick="phs_users_list_delete_account( '<?php echo $account_arr['id']; ?>' )"
-                ><i class="fa fa-times-circle-o action-icons"
-                    style="color:red;" title="<?php echo $this->_pt('Delete account'); ?>"></i></a>
-                <?php
-            }
-        }
-
-        return ob_get_clean() ?: '';
-    }
-
     public function after_table_callback(array $params): string
     {
         static $js_functionality = false;
@@ -1104,92 +775,6 @@ class PHS_Action_List extends PHS_Action_Generic_list
         ob_start();
         ?>
         <script type="text/javascript">
-        function phs_users_list_sublogin_account( id )
-        {
-            if( !confirm( "<?php echo $this->_pte('Are you sure you want to change login as this account?', '"'); ?>" ) ) {
-                return;
-            }
-
-            <?php
-            $url_params = [];
-        $url_params['action'] = [
-            'action'        => 'sublogin_account',
-            'action_params' => '" + id + "',
-        ];
-        ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-        }
-        function phs_users_list_reset_account_locking( id )
-        {
-            if( !confirm( "<?php echo $this->_pte('Are you sure you want to reset account locking for this account?', '"'); ?>" ) ) {
-                return;
-            }
-
-            <?php
-        $url_params = [];
-        $url_params['action'] = [
-            'action'        => 'reset_account_locking',
-            'action_params' => '" + id + "',
-        ];
-        ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-        }
-        function phs_users_list_resend_registration_email( id )
-        {
-            if( !confirm( "<?php echo $this->_pte('Are you sure you want to re-send registration email for this account?', '"'); ?>" ) ) {
-                return;
-            }
-
-            <?php
-        $url_params = [];
-        $url_params['action'] = [
-            'action'        => 'resend_registration_email',
-            'action_params' => '" + id + "',
-        ];
-        ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-        }
-        function phs_users_list_activate_account( id )
-        {
-            if( !confirm( "<?php echo $this->_pte('Are you sure you want to activate this account?', '"'); ?>" ) ) {
-                return;
-            }
-
-            <?php
-        $url_params = [];
-        $url_params['action'] = [
-            'action'        => 'activate_account',
-            'action_params' => '" + id + "',
-        ];
-        ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-        }
-        function phs_users_list_inactivate_account( id )
-        {
-            if( !confirm( "<?php echo $this->_pte('Are you sure you want to inactivate this account?', '"'); ?>" ) ) {
-                return;
-            }
-
-            <?php
-        $url_params = [];
-        $url_params['action'] = [
-            'action'        => 'inactivate_account',
-            'action_params' => '" + id + "',
-        ];
-        ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-        }
-        function phs_users_list_delete_account( id )
-        {
-            if( !confirm( "<?php echo $this->_pte('Are you sure you want to DELETE this account?', '"'); ?>" + "\n" +
-                         "<?php echo $this->_pte('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
-                return;
-            }
-
-            <?php
-        $url_params = [];
-        $url_params['action'] = [
-            'action'        => 'delete_account',
-            'action_params' => '" + id + "',
-        ];
-        ?>document.location = "<?php echo $this->_paginator->get_full_url($url_params); ?>";
-        }
-
         function phs_users_list_view_info( id )
         {
             PHS_JSEN.js_messages_hide_all();
@@ -1204,7 +789,7 @@ class PHS_Action_List extends PHS_Action_Generic_list
 
                 title: "<?php echo self::_e($this->_pt('Account details')); ?>",
                 method: "GET",
-                url: "<?php echo PHS_Ajax::url(['p' => 'admin', 'a' => 'info', 'ad' => 'users/api']); ?>",
+                url: "<?php echo PHS_Ajax::url(PHS_Action_Info::class); ?>",
                 url_data: { account_id: id },
                 onsuccess: () => {
                     hide_submit_protection();
@@ -1215,121 +800,9 @@ class PHS_Action_List extends PHS_Action_Generic_list
                 },
             });
         }
-
-        function phs_users_list_bulk_activate()
-        {
-            let total_checked = phs_paginator_get_checkboxes_checked_count('id');
-            if( !total_checked ) {
-                alert( "<?php echo $this->_pte('Please select accounts you want to activate first.', '"'); ?>" );
-                return false;
-            }
-
-            if( !confirm( "<?php echo sprintf($this->_pte('Are you sure you want to activate %s accounts?', '"'), '" + total_checked + "'); ?>" ) ) {
-                return false;
-            }
-
-            let form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj ) {
-                form_obj.submit();
-            }
-        }
-
-        function phs_users_list_bulk_inactivate()
-        {
-            let total_checked = phs_paginator_get_checkboxes_checked_count('id');
-            if( !total_checked ) {
-                alert( "<?php echo $this->_pte('Please select accounts you want to inactivate first.', '"'); ?>" );
-                return false;
-            }
-
-            if( !confirm( "<?php echo sprintf($this->_pte('Are you sure you want to inactivate %s accounts?', '"'), '" + total_checked + "'); ?>" ) ) {
-                return false;
-            }
-
-            let form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj ) {
-                form_obj.submit();
-            }
-        }
-
-        function phs_users_list_bulk_delete()
-        {
-            let total_checked = phs_paginator_get_checkboxes_checked_count('id');
-            if( !total_checked ) {
-                alert( "<?php echo $this->_pte('Please select accounts you want to delete first.', '"'); ?>" );
-                return false;
-            }
-
-            if( !confirm( "<?php echo sprintf($this->_pte('Are you sure you want to DELETE %s accounts?', '"'), '" + total_checked + "'); ?>" + "\n" +
-                         "<?php echo $this->_pte('NOTE: You cannot undo this action!', '"'); ?>" ) ) {
-                return false;
-            }
-
-            let form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj ) {
-                form_obj.submit();
-            }
-        }
-
-        function phs_users_list_bulk_reset_account_locking()
-        {
-            let total_checked = phs_paginator_get_checkboxes_checked_count('id');
-            if( !total_checked ) {
-                alert( "<?php echo $this->_pte('Please select accounts you want to reset locking for first.', '"'); ?>" );
-                return false;
-            }
-
-            if( !confirm( "<?php echo sprintf($this->_pte('Are you sure you want to reset locking for %s accounts?', '"'), '" + total_checked + "'); ?>" ) ) {
-                return false;
-            }
-
-            let form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj ) {
-                form_obj.submit();
-            }
-        }
-
-        function phs_users_list_bulk_export_selected()
-        {
-            let total_checked = phs_paginator_get_checkboxes_checked_count('id');
-            if( !total_checked ) {
-                alert( "<?php echo self::_e('Please select accounts you want to export first.', '"'); ?>" );
-                return false;
-            }
-
-            if( !confirm( "<?php echo sprintf(self::_e('Are you sure you want to export %s accounts?', '"'), '" + total_checked + "'); ?>" ) ) {
-                return false;
-            }
-
-            let form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj )
-                form_obj.submit();
-        }
-        function phs_users_list_bulk_export_all()
-        {
-            if( !confirm( "<?php echo self::_e($this->_pt('Are you sure you want to export ALL accounts?'), '"'); ?>" ) ) {
-                return false;
-            }
-
-            let form_obj = $("#<?php echo $this->_paginator->get_listing_form_name(); ?>");
-            if( form_obj ) {
-                form_obj.submit();
-            }
-        }
         </script>
         <?php
 
             return ob_get_clean();
-    }
-
-    protected function _load_dependencies(): bool
-    {
-        if (!$this->_paginator_model && !($this->_paginator_model = PHS_Model_Accounts::get_instance())) {
-            $this->set_error(self::ERR_DEPENDENCIES, $this->_pt('Error loading required resources.'));
-
-            return false;
-        }
-
-        return true;
     }
 }

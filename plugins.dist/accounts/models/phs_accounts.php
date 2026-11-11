@@ -16,6 +16,7 @@ use phs\traits\PHS_Model_Trait_statuses;
 use phs\system\core\models\PHS_Model_Roles;
 use phs\plugins\accounts\PHS_Plugin_Accounts;
 use phs\system\core\attributes\PHS_Dependency;
+use phs\plugins\accounts\actions\PHS_Action_Registration_email_bg;
 use phs\system\core\events\accounts\PHS_Event_Accounts_generate_password;
 use phs\system\core\events\accounts\PHS_Event_Accounts_registration_roles;
 use phs\system\core\events\accounts\PHS_Event_Accounts_password_encryption;
@@ -373,47 +374,21 @@ class PHS_Model_Accounts extends PHS_Model
         return $account_arr;
     }
 
-    public function needs_after_registration_email(int | array | PHS_Record_data $user_data, array $params = []): bool
+    public function needs_after_registration_email(int | array | PHS_Record_data $user_data): bool
     {
-        if (!$user_data) {
-            return false;
-        }
-
-        $params['send_confirmation_email'] = !empty($params['send_confirmation_email']);
-
-        if ((empty($params['accounts_plugin_settings'])
-             || !is_array($params['accounts_plugin_settings']))
-            && !($params['accounts_plugin_settings'] = $this->get_plugin_settings())
-        ) {
-            $params['accounts_plugin_settings'] = [];
-        }
-
-        if (!($user_arr = $this->data_to_array($user_data))) {
-            return false;
-        }
-
-        return $this->needs_activation($user_arr, $params) || $this->needs_confirmation_email($user_arr);
+        return $user_data && ($user_arr = $this->data_to_array($user_data))
+               && ($this->needs_activation($user_arr) || $this->needs_confirmation_email($user_arr));
     }
 
-    public function needs_activation(int | array | PHS_Record_data $user_data, array $params = []): bool
+    public function needs_activation(int | array | PHS_Record_data $user_data): bool
     {
-        if (!$user_data) {
-            return false;
-        }
-
-        if ((empty($params['accounts_plugin_settings'])
-             || !is_array($params['accounts_plugin_settings']))
-            && !($params['accounts_plugin_settings'] = $this->get_plugin_settings())
-        ) {
-            $params['accounts_plugin_settings'] = [];
-        }
-
-        return !(empty($params['accounts_plugin_settings']['account_requires_activation'])
-            || !($user_arr = $this->data_to_array($user_data))
-            || !$this->is_just_registered($user_arr)
-            || $this->must_setup_password($user_arr)
-            || $this->is_active($user_arr)
-            || $this->is_deleted($user_arr));
+        return $user_data
+               && $this->_accounts_plugin->account_requires_activation()
+               && ($user_arr = $this->data_to_array($user_data))
+               && $this->is_just_registered($user_arr)
+               && !$this->must_setup_password($user_arr)
+               && !$this->is_active($user_arr)
+               && !$this->is_deleted($user_arr);
     }
 
     public function needs_confirmation_email(int | array | PHS_Record_data $user_data): bool
@@ -1330,20 +1305,13 @@ class PHS_Model_Accounts extends PHS_Model
         $this->reset_error();
 
         if (!$account_data
-         || !($account_arr = $this->data_to_array($account_data))) {
+            || !($account_arr = $this->data_to_array($account_data))) {
             $this->set_error(self::ERR_EMAIL, $this->_pt('Unknown account.'));
 
             return null;
         }
 
         $params['send_confirmation_email'] = !empty($params['send_confirmation_email']);
-
-        if ((empty($params['accounts_plugin_settings'])
-             || !is_array($params['accounts_plugin_settings']))
-            && !($params['accounts_plugin_settings'] = $this->get_plugin_settings())
-        ) {
-            $params['accounts_plugin_settings'] = [];
-        }
 
         $return_arr = [];
         $return_arr['has_error'] = false;
@@ -1352,15 +1320,15 @@ class PHS_Model_Accounts extends PHS_Model
         $return_arr['confirmation_email_required'] = false;
         $return_arr['confirmation_email_failed'] = false;
 
-        if (!$this->needs_after_registration_email($account_arr, $params)) {
+        if (!$this->needs_after_registration_email($account_arr)) {
             return $return_arr;
         }
 
-        if ($this->needs_activation($account_arr, ['accounts_plugin_settings' => $params['accounts_plugin_settings']])) {
+        if ($this->needs_activation($account_arr)) {
             $return_arr['activation_email_required'] = true;
 
             // send activation email...
-            if (!PHS_Bg_jobs::run(['p' => 'accounts', 'a' => 'registration_email_bg', 'c' => 'index_bg'], ['uid' => $account_arr['id']])) {
+            if (!PHS_Bg_jobs::run(PHS_Action_Registration_email_bg::class, ['uid' => $account_arr['id']])) {
                 $return_arr['has_error'] = true;
                 $return_arr['activation_email_failed'] = true;
 

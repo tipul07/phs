@@ -649,28 +649,15 @@ class PHS_Model_Agent_jobs extends PHS_Model
             $params['fields']['plugin'] = '';
         }
 
-        if (!isset($params['fields']['run_async'])) {
-            $params['fields']['run_async'] = 1;
-        } else {
-            $params['fields']['run_async'] = (!empty($params['fields']['run_async']) ? 1 : 0);
-        }
+        $params['fields']['run_async'] = !isset($params['fields']['run_async']) || !empty($params['fields']['run_async']) ? 1 : 0;
 
         if (empty($params['fields']['status'])
-         || !$this->valid_status($params['fields']['status'])) {
+            || !$this->valid_status($params['fields']['status'])) {
             $params['fields']['status'] = self::STATUS_ACTIVE;
         }
 
-        if (empty($params['fields']['timed_seconds'])) {
-            $params['fields']['timed_seconds'] = 0;
-        } else {
-            $params['fields']['timed_seconds'] = (int)$params['fields']['timed_seconds'];
-        }
-
-        if (empty($params['fields']['stalling_minutes'])) {
-            $params['fields']['stalling_minutes'] = 0;
-        } else {
-            $params['fields']['stalling_minutes'] = (int)$params['fields']['stalling_minutes'];
-        }
+        $params['fields']['timed_seconds'] = (int)($params['fields']['timed_seconds'] ?? 0);
+        $params['fields']['stalling_minutes'] = (int)($params['fields']['stalling_minutes'] ?? 0);
 
         $params['fields']['cdate'] = date(self::DATETIME_DB);
 

@@ -2,31 +2,13 @@
 /** @var \phs\system\core\views\PHS_View $this */
 
 use phs\PHS;
-use phs\libraries\PHS_Utils;
+use phs\plugins\admin\actions\users\PHS_Action_Import;
 
-/** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
-/** @var \phs\system\core\models\PHS_Model_Plugins $plugins_model */
-if (!($roles_model = $this->view_var('roles_model'))
- || !($plugins_model = $this->view_var('plugins_model'))) {
-    return $this->_pt('Error loading required resources.');
-}
-
-if (!($accounts_plugin_settings = $this->view_var('accounts_plugin_settings'))) {
-    $accounts_plugin_settings = [];
-}
-
-if (!($user_levels = $this->view_var('user_levels'))) {
-    $user_levels = [];
-}
-
-if (!($roles_by_slug = $this->view_var('roles_by_slug'))) {
-    $roles_by_slug = [];
-}
-
-$current_user = PHS::user_logged_in();
+$user_levels = $this->view_var('user_levels') ?: [];
+$roles_by_slug = $this->view_var('roles_by_slug') ?: [];
 ?>
 <form id="add_user_form" name="add_user_form" method="post" enctype="multipart/form-data"
-      action="<?php echo PHS::url(['p' => 'admin', 'a' => 'import', 'ad' => 'users']); ?>">
+      action="<?php echo PHS::url(PHS_Action_Import::class); ?>">
 <input type="hidden" name="foobar" value="1" />
 
 <div class="form_container">
@@ -35,7 +17,7 @@ $current_user = PHS::user_logged_in();
         <h3><?php echo $this->_pt('Import User Accounts'); ?></h3>
     </section>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label for="prod_picture" class="col-sm-2 col-form-label"><?php echo $this->_pt('Import file'); ?></label>
         <div class="col-sm-10">
             <div class="custom-file">
@@ -46,16 +28,14 @@ $current_user = PHS::user_logged_in();
             <div id="import_file_help" class="form-text">
                 <?php echo $this->_pt('This should be a JSON file exported using Export options from accounts management page.'); ?>
                 <?php
-                if (!($max_size = ini_get('upload_max_filesize'))) {
-                    $max_size = '20M';
-                }
+                $max_size = ini_get('upload_max_filesize') ?: '20M';
 
 echo $this->_pt('Current maximum upload file size %s.', $max_size); ?>
             </div>
         </div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label for="prod_picture" class="col-sm-2 col-form-label"><?php echo $this->_pt('Import options'); ?></label>
         <div class="col-sm-10">
             <div class="form-check form-switch">
@@ -93,7 +73,7 @@ echo $this->_pt('Current maximum upload file size %s.', $max_size); ?>
         </div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
         <label for="import_level" class="col-sm-2 col-form-label"><?php echo $this->_pt('Import only level'); ?></label>
         <div class="col-sm-10">
         <select name="import_level" id="import_level" class="chosen-select-nosearch" style="min-width:260px;">
@@ -110,10 +90,12 @@ foreach ($user_levels as $key => $level_details) {
         </div>
     </div>
 
-    <div class="form-group row">
+    <div class="row mb-2">
+        <div>
         <input type="submit" id="do_submit" name="do_submit"
                class="btn btn-primary submit-protection ignore_hidden_required"
                value="<?php echo $this->_pt('Import Accounts'); ?>" />
+        </div>
     </div>
 
 </div>

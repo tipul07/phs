@@ -138,7 +138,8 @@ if (!empty($flow_params_arr['display_top_bulk_actions'])
 
                 ?><option value="<?php echo $action_arr['action']; ?>" <?php echo $selected_option; ?>><?php
                 if (!empty($action_arr['display_icon'])) {
-                    ?><i class="fa <?php echo $action_arr['display_icon']; ?>"></i> <?php
+                    $icon_style = $action_arr['display_icon_style'] ?? '';
+                    ?><i class="fa <?php echo $action_arr['display_icon']; ?>"<?php echo $icon_style ? ' style="'.$icon_style.'"' : ''; ?>></i> <?php
                 }
                 echo $action_arr['display_name']; ?></option><?php
             }
@@ -551,7 +552,8 @@ if (!$is_api_scope
 
                     ?><option value="<?php echo $action_arr['action']; ?>" <?php echo $selected_option; ?>><?php
                     if (!empty($action_arr['display_icon'])) {
-                        ?><i class="fa <?php echo $action_arr['display_icon']; ?>"></i> <?php
+                        $icon_style = $action_arr['display_icon_style'] ?? '';
+                        ?><i class="fa <?php echo $action_arr['display_icon']; ?>"<?php echo $icon_style ? ' style="'.$icon_style.'"' : ''; ?>></i> <?php
                     }
                     echo $action_arr['display_name']; ?></option><?php
                 }
@@ -708,7 +710,9 @@ if (!function_exists('phs_paginator_display_js_functionality')) {
                 return;
             }
 
-            show_submit_protection("<?php echo $this_object::_e('Please wait...'); ?>");
+            if(phs_paginator_extract_node_from_action(action, 'with_submit_protection')) {
+                show_submit_protection("<?php echo $this_object::_e('Please wait...'); ?>");
+            }
 
             <?php
             $url_params = [];
@@ -757,7 +761,9 @@ if (!function_exists('phs_paginator_display_js_functionality')) {
                 return false;
             }
 
-            show_submit_protection("<?php echo $this_object::_e('Please wait...'); ?>");
+            if(phs_paginator_extract_node_from_action(action, 'with_submit_protection')) {
+                show_submit_protection("<?php echo $this_object::_e('Please wait...'); ?>");
+            }
 
             return true;
         }

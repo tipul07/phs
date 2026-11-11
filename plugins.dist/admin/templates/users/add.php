@@ -3,6 +3,7 @@
 
 use phs\PHS;
 use phs\libraries\PHS_Utils;
+use phs\plugins\admin\actions\users\PHS_Action_Add;
 
 /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
 /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
@@ -14,31 +15,19 @@ if (!($roles_model = $this->view_var('roles_model'))
 }
 
 /** @var null|\phs\system\core\models\PHS_Model_Tenants $tenants_model */
-if (!($tenants_model = $this->view_var('tenants_model'))) {
-    $tenants_model = null;
-}
+$tenants_model = $this->view_var('tenants_model') ?: null;
 
 $is_multi_tenant = PHS::is_multi_tenant();
 
-if (!($accounts_plugin_settings = $this->view_var('accounts_plugin_settings'))) {
-    $accounts_plugin_settings = [];
-}
+$user_levels = $this->view_var('user_levels') ?: [];
 
-if (!($user_levels = $this->view_var('user_levels'))) {
-    $user_levels = [];
-}
-
-if (!($roles_by_slug = $this->view_var('roles_by_slug'))) {
-    $roles_by_slug = [];
-}
-if (!($all_tenants_arr = $this->view_var('all_tenants_arr'))) {
-    $all_tenants_arr = [];
-}
+$roles_by_slug = $this->view_var('roles_by_slug') ?: [];
+$all_tenants_arr = $this->view_var('all_tenants_arr') ?: [];
 
 $current_user = PHS::user_logged_in();
 ?>
 <form id="add_user_form" name="add_user_form" method="post"
-      action="<?php echo PHS::url(['p' => 'admin', 'a' => 'add', 'ad' => 'users']); ?>">
+      action="<?php echo PHS::url(PHS_Action_Add::class); ?>">
 <input type="hidden" name="foobar" value="1" />
 
     <div class="form_container">
@@ -95,7 +84,7 @@ echo ' '
             <label for="email" class="col-sm-2 col-form-label"><?php echo $this->_pt('Email'); ?></label>
             <div class="col-sm-10">
                 <input type="text" id="email" name="email" class="form-control" autocomplete="email"
-                    <?php echo !empty($accounts_plugin_settings['email_mandatory']) ? 'required="required"' : ''; ?>
+                    <?php echo $accounts_plugin->registration_email_mandatory() ? 'required="required"' : ''; ?>
                        value="<?php echo form_str($this->view_var('email')); ?>" />
             </div>
         </div>

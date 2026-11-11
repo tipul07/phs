@@ -993,7 +993,8 @@ class PHS_Paginator extends PHS_Registry
         $new_actions = [];
         $default_actions_fields = self::_default_action_fields();
         foreach ($actions_arr as $action_name => $action) {
-            if (!($new_action = self::validate_array_to_new_array_recursive($action, $default_actions_fields))) {
+            if (!($new_action = self::validate_array_to_new_array_recursive($action, $default_actions_fields))
+                || empty($new_action['enabled'])) {
                 continue;
             }
 
@@ -1896,6 +1897,16 @@ class PHS_Paginator extends PHS_Registry
         return $cell_content;
     }
 
+    public function is_action_requiring_selection(array $action_arr): bool
+    {
+        return (bool)($action_arr['callbacks']['require_selection'] ?? false);
+    }
+
+    public function is_action_bulk_single_action(array $action_arr): bool
+    {
+        return (bool)($action_arr['callbacks']['bulk_single_action'] ?? false);
+    }
+
     public function is_action_bulk_action(array $action_arr): bool
     {
         return (bool)($action_arr['is_bulk'] ?? false);
@@ -2422,18 +2433,29 @@ class PHS_Paginator extends PHS_Registry
     private static function _default_action_fields(): array
     {
         return [
+            'enabled'     => true,
             'is_bulk'     => false,
             'bulk_action' => [
                 'display_in_top'    => true,
                 'display_in_bottom' => true,
             ],
-            'action'          => '',
-            'display_name'    => '',
-            'display_icon'    => '',
-            'display_tooltip' => '',
-            'checkbox_column' => '', // defaults to id
-            'js_callback'     => null,
-            'callbacks'       => [
+            'action'                 => '',
+            'display_name'           => '',
+            'display_icon'           => '',
+            'display_icon_style'     => '',
+            'br_before_icon'         => false,
+            'br_after_icon'          => false,
+            'display_tooltip'        => '',
+            'checkbox_column'        => '', // defaults to id
+            'with_submit_protection' => true,
+            'js_callback'            => null,
+            'callbacks'              => [
+                // !!! bool Tells if action requires at least one record to be selected.
+                // If true and no records are selected, action will not be run and user will be notified.
+                'require_selection' => true,
+                // !!! If this is a bulk action, do a single callback instead of calling action for each record.
+                // Callback will receive an array with all selected records for which action should be run
+                'bulk_single_action' => false,
                 // !!! Parameter to this function is the record for which we want to make the action !!!
                 'action' => null,
                 // For simple actions. Should action icon be displayed for rendering params?

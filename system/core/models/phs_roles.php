@@ -298,8 +298,7 @@ class PHS_Model_Roles extends PHS_Model
     {
         static $all_roles = null;
 
-        if (empty($force)
-            && $all_roles !== null) {
+        if ($force && $all_roles !== null) {
             return $all_roles;
         }
 
