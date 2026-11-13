@@ -7,9 +7,12 @@ use phs\libraries\PHS_Action;
 use phs\libraries\PHS_Logger;
 use phs\plugins\admin\PHS_Plugin_Admin;
 use phs\libraries\PHS_Action_Generic_list;
+use phs\system\core\controllers\PHS_Controller_Index_bg;
 
 class PHS_Action_Paginator_bulk_action_bg extends PHS_Action
 {
+    protected static ?string $_default_controller_for_route = PHS_Controller_Index_bg::class;
+
     public function allowed_scopes(): array
     {
         return [PHS_Scope::SCOPE_BACKGROUND];

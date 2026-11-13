@@ -1162,7 +1162,7 @@ abstract class PHS_Instantiable extends PHS_Has_dependencies
     {
         self::st_reset_error();
 
-        if (!$full_class_name) {
+        if ($full_class_name === null) {
             $full_class_name = static::class;
         }
 

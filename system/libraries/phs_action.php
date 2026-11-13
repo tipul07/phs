@@ -138,17 +138,13 @@ abstract class PHS_Action extends PHS_Instantiable
 
         $action_roles = $this->action_roles() ?: [self::ACT_ROLE_PAGE];
 
-        if (!is_array($action_roles)) {
-            $action_roles = [$action_roles];
-        }
-
         // Action has all provided roles
         $params['all_provided'] = !empty($params['all_provided']);
 
         $return_arr = [];
         foreach ($role_check as $role_key) {
             if (($role_arr = self::valid_action_role($role_key))
-             && in_array($role_key, $action_roles, true)) {
+                && in_array($role_key, $action_roles, true)) {
                 $return_arr[$role_key] = $role_arr;
                 continue;
             }
@@ -178,7 +174,6 @@ abstract class PHS_Action extends PHS_Instantiable
         }
 
         return !($allowed_scopes = $this->allowed_scopes())
-               || !is_array($allowed_scopes)
                || in_array($scope, $allowed_scopes, true);
     }
 
@@ -368,16 +363,23 @@ abstract class PHS_Action extends PHS_Instantiable
         return $action_result;
     }
 
+    final public static function get_default_controller_for_route(): ?string
+    {
+        return static::$_default_controller_for_route;
+    }
+
     final public static function get_route_from_class(?string $controller_class = null, ?string $full_class_name = null): ?array
     {
-        if (!$full_class_name) {
+        /** @var self $full_class_name */
+        if ($full_class_name === null) {
             $full_class_name = static::class;
         }
 
         $full_class_name = ltrim($full_class_name, '\\');
 
-        if (!($details = self::get_full_instance_details($full_class_name))
-           || empty($details['instance_name'])) {
+        if (!$full_class_name
+            || !($details = self::get_full_instance_details($full_class_name))
+            || empty($details['instance_name'])) {
             return null;
         }
 
@@ -385,7 +387,7 @@ abstract class PHS_Action extends PHS_Instantiable
         if (!empty($details['instance_subdir'])) {
             $return_arr['ad'] = $details['instance_subdir'];
         }
-        if (($controller_class ??= static::$_default_controller_for_route ?? null)) {
+        if (($controller_class ??= $full_class_name::get_default_controller_for_route())) {
             if (!($c_details = self::get_full_instance_details($controller_class))
                || empty($c_details['instance_name'])) {
                 self::st_set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Unknown controller class.'));

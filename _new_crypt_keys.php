@@ -24,8 +24,7 @@ require_once 'system/core/phs_crypt.php';
 
 use phs\PHS_Crypt;
 
-if (!($keys_arr = PHS_Crypt::generate_crypt_internal_keys())
- || !is_array($keys_arr)) {
+if (!($keys_arr = PHS_Crypt::generate_crypt_internal_keys())) {
     echo 'Error generating internal keys...';
     // Signal error to output...
     exit(254);

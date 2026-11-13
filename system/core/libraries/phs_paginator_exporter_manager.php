@@ -12,6 +12,7 @@ use phs\traits\PHS_Model_Trait_statuses;
 use phs\libraries\PHS_Action_Generic_list;
 use phs\libraries\PHS_Paginator_exporter_library;
 use phs\plugins\accounts\models\PHS_Model_Accounts;
+use phs\system\core\actions\paginator\PHS_Action_Paginator_exporter_bg;
 
 class PHS_Paginator_exporter_manager extends PHS_Library
 {
@@ -83,9 +84,9 @@ class PHS_Paginator_exporter_manager extends PHS_Library
             clean_update: true,
         );
 
-        if (!PHS_Bg_jobs::run(
-            ['a' => 'paginator_exporter_bg', 'ad' => 'paginator', 'c' => 'index_bg'],
-            ['export_context' => $this->_create_export_context($action_obj::class, $bulk_action, $export_params, $action_obj->get_paginator()),
+        if (!PHS_Bg_jobs::run(PHS_Action_Paginator_exporter_bg::class,
+            [
+                'export_context' => $this->_create_export_context($action_obj::class, $bulk_action, $export_params, $action_obj->get_paginator()),
             ],
             ['with_foreground_user' => true])
         ) {

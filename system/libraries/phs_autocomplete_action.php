@@ -94,11 +94,19 @@ abstract class PHS_Action_Autocomplete extends PHS_Action
 
     /**
      * This method is called from action/view where autocomplete is needed and sets where AJAX call will be sent when requiring autocomplete functionality
-     * @param array $route_arr
+     * @param string|array $route_arr
      * @param array $route_params_arr
      */
-    public function set_ajax_route(array $route_arr, array $route_params_arr = []): void
+    public function set_ajax_route(string | array $route_arr, array $route_params_arr = []): void
     {
+        if (is_string($route_arr)) {
+            if (!($parts_arr = PHS_Action::get_route_from_class(full_class_name: $route_arr))) {
+                return;
+            }
+
+            $route_arr = $parts_arr;
+        }
+
         $route_arr = PHS::validate_route_from_parts($route_arr, true);
 
         $this->autocomplete_params([

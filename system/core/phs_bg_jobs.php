@@ -95,6 +95,12 @@ class PHS_Bg_jobs extends PHS_Registry
             return false;
         }
 
+        if (is_string($route)
+            && $route
+            && ($route_arr = PHS_Action::get_route_from_class($extra['controller'] ?? null, $route))) {
+            $route = $route_arr;
+        }
+
         if (!($route_parts = PHS::parse_route($route, false))) {
             self::st_set_error_if_not_set(self::ERR_PARAMETERS, self::_t('Route is invalid.'));
 

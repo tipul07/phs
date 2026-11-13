@@ -20,7 +20,7 @@ $listing_form_name = $paginator_obj->get_listing_form_name() ?: $flow_params_arr
 $all_str = $this->_pt('ALL');
 echo $this->_pt('Exporting %s records...', '{{ export_count === -1 ? \''.$all_str.'\' : export_count }}'); ?></p>
 
-<div class="row form-group">
+<div class="row mb-2">
     <label for="export_format" class="col-sm-4 col-form-label"><?php echo $this->_pt('Export format'); ?></label>
     <div class="col-sm-8"><select name="export_format" id="export_format" value="{{ export_format }}" class="form-control">
             {{#each @this.get_valid_formats()}}<option value="{{.format}}">{{.title}}</option>{{/each}}
@@ -28,7 +28,7 @@ echo $this->_pt('Exporting %s records...', '{{ export_count === -1 ? \''.$all_st
 </div>
 
 {{#if export_format === 'csv'}}
-<div class="row form-group">
+<div class="row mb-2">
     <label for="column_delimiter" class="col-sm-4 col-form-label"><?php echo $this->_pt('Column delimiter'); ?></label>
     <div class="col-sm-8"><select name="column_delimiter" id="column_delimiter" value="{{ column_delimiter }}" class="form-control">
             <option value=",">Comma (,)</option>
@@ -37,18 +37,22 @@ echo $this->_pt('Exporting %s records...', '{{ export_count === -1 ? \''.$all_st
 </div>
 {{/if}}
 
-<div class="row form-group">
+<div class="row mb-2">
     <div class="col-sm-1"><input id="export_in_background" name="export_in_background" type="checkbox" checked="{{ export_in_background }}" /></div>
     <label for="export_in_background" class="col-sm-11 col-form-label"><?php echo $this->_pt('Run export action in background script.'); ?></label>
 </div>
 
-<div class="row form-group">
+<div class="row mb-2">
+    <div class="col-auto">
     <input type="button" id="do_submit_export" name="do_submit_export" class="btn btn-primary ignore_hidden_required"
            on-click="@this.do_submit_export()"
            value="<?php echo $this->_pte('Start export'); ?>" />
+    </div>
+    <div class="col-auto">
     <input type="button" id="do_cancel" name="do_cancel" class="btn btn-danger ignore_hidden_required"
            on-click="@this.cancel_action()"
            value="<?php echo $this->_pte('Cancel'); ?>" />
+    </div>
 </div>
 
 </script>

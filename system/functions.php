@@ -23,7 +23,7 @@ use phs\system\core\libraries\PHS_Requests_queue_manager;
 
 function phs_version(): string
 {
-    return '1.3.1.3';
+    return '1.3.1.4';
 }
 
 // region Helper functions
@@ -1068,8 +1068,8 @@ function from_safe_url($url): string
 /**
  * This function behaves as http_build_query() except that it doesn't rawurlencode the values (only values if required)
  *
- * @param  array  $arr
- * @param  array  $params
+ * @param array $arr
+ * @param array $params
  *
  * @return string
  */

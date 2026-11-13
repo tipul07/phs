@@ -162,7 +162,7 @@ class PHS_Action_Edit extends PHS_Action
                         $args['back_page'] = $back_page;
                     }
 
-                    return action_redirect(['p' => 'admin', 'a' => 'edit', 'ad' => 'users'], $args);
+                    return action_redirect(self::class, $args);
                 }
 
                 PHS_Notifications::add_error_notice(
@@ -172,7 +172,7 @@ class PHS_Action_Edit extends PHS_Action
             }
         }
 
-        $data = [
+        return $this->quick_render_template('users/edit', [
             'uid'          => $account_arr['id'],
             'back_page'    => $back_page,
             'account_data' => $account_arr,
@@ -190,10 +190,9 @@ class PHS_Action_Edit extends PHS_Action
             'account_roles'      => $account_roles,
             'db_account_tenants' => $db_account_tenants,
 
-            'accounts_plugin_settings' => $accounts_plugin_settings,
-            'user_levels'              => $accounts_model->get_levels(),
-            'min_password_length'      => $accounts_plugin_settings['min_password_length'],
-            'password_regexp'          => $accounts_plugin_settings['password_regexp'],
+            'user_levels'         => $accounts_model->get_levels(),
+            'min_password_length' => $accounts_plugin_settings['min_password_length'],
+            'password_regexp'     => $accounts_plugin_settings['password_regexp'],
 
             'roles_by_slug'   => $roles_by_slug,
             'all_tenants_arr' => $all_tenants_arr,
@@ -202,8 +201,6 @@ class PHS_Action_Edit extends PHS_Action
             'roles_model'     => $roles_model,
             'plugins_model'   => $plugins_model,
             'accounts_plugin' => $accounts_plugin,
-        ];
-
-        return $this->quick_render_template('users/edit', $data);
+        ]);
     }
 }

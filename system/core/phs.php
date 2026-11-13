@@ -54,8 +54,6 @@ final class PHS extends PHS_Registry
 
     private static array $hooks = [];
 
-    private static array $_core_libraries_instances = [];
-
     private static string $_INTERPRET_SCRIPT = 'index';
 
     private static string $_BACKGROUND_SCRIPT = '_bg';
@@ -789,7 +787,7 @@ final class PHS extends PHS_Registry
      *
      * @return null|array Returns true on success or null on error
      */
-    public static function parse_route($route = false, bool $use_short_names = false): ?array
+    public static function parse_route(null | array | string $route = null, bool $use_short_names = false): ?array
     {
         self::st_reset_error();
 
@@ -800,7 +798,7 @@ final class PHS extends PHS_Registry
         $force_https = false;
 
         $route_parts = [];
-        if (!empty($route)) {
+        if ($route) {
             if (is_array($route)) {
                 if (!empty($route['plugin'])) {
                     $plugin = $route['plugin'];
@@ -1458,22 +1456,29 @@ final class PHS extends PHS_Registry
         return str_replace('/', '_', str_replace('_', '', $ad));
     }
 
-    public static function route_from_parts(array $parts = []): ?string
+    public static function route_from_parts(string | array $parts = [], ?string $controller_class = null): ?string
     {
-        $parts = self::validate_route_from_parts($parts, true);
+        if (is_string($parts)) {
+            if (!$parts
+               || !($parts_arr = PHS_Action::get_route_from_class($controller_class, $parts))) {
+                return null;
+            }
 
+            $parts = $parts_arr;
+        }
+
+        $parts = self::validate_route_from_parts($parts, true);
         if (!self::validate_short_name_route_parts($parts, false)) {
             return null;
         }
 
-        $action_str = (!empty($parts['a']) ? $parts['a'] : '');
-        if (!empty($parts['ad'])
-            && !empty($action_str)) {
+        $action_str = $parts['a'] ?? '';
+        if (!empty($parts['ad']) && $action_str !== '') {
             $action_str = self::validate_action_dir_in_url(str_replace('_', '/', $parts['ad'])).self::ACTION_DIR_ACTION_SEPARATOR.$action_str;
         }
 
         if (empty($parts['p'])) {
-            $parts['p'] = '';
+            $parts['p'] ??= '';
         }
 
         if (!empty($parts['c'])) {
@@ -1943,17 +1948,17 @@ final class PHS extends PHS_Registry
 
     /**
      * This method spawns a view object with provided route as context for script which require resources
-     * (javascript URLs, image URLs, etc.), but they are not running in a view context. Usually javascript scripts
-     * which output javascript directly without rendering the code in a view context
+     * (JavaScript URLs, image URLs, etc.), but they are not running in a view context. Usually javascript scripts
+     * which output JavaScript directly without rendering the code in a view context
      *
-     * @param array|string $route_arr
+     * @param null|string|array $route_arr
      * @param string|array $template
      * @param array $template_data
      *
      * @return null|PHS_View
      */
     public static function spawn_view_in_context(
-        string | array $route_arr,
+        null | string | array $route_arr,
         string | array $template,
         array $template_data = [],
     ): ?PHS_View {
@@ -1964,9 +1969,9 @@ final class PHS extends PHS_Registry
         /** @var PHS_Controller $controller_obj */
         /** @var PHS_Action $action_obj */
         if (!($route_arr = self::parse_route($route_arr, true))
-         || (!empty($route_arr['p']) && !($plugin_obj = self::load_plugin($route_arr['p'])))
-         || !($controller_obj = self::load_controller($route_arr['c'], $route_arr['p']))
-         || !($action_obj = self::load_action($route_arr['a'], $route_arr['p'], $route_arr['ad']))) {
+            || (!empty($route_arr['p']) && !($plugin_obj = self::load_plugin($route_arr['p'])))
+            || !($controller_obj = self::load_controller($route_arr['c'], $route_arr['p']))
+            || !($action_obj = self::load_action($route_arr['a'], $route_arr['p'], $route_arr['ad']))) {
             self::st_set_error(self::ERR_PARAMETERS, self::_t('Error instantiating controller or action from provided route.'));
 
             return null;
@@ -2189,9 +2194,6 @@ final class PHS extends PHS_Registry
         if ($params['as_singleton']) {
             PHS_Instantiable::set_instance_for_full_class_with_namespace($params['full_class_name'], $library_instance);
         }
-        // if ($params['as_singleton']) {
-        //     self::$_core_libraries_instances[$library_file] = $library_instance;
-        // }
 
         return $library_instance;
     }

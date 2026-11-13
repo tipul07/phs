@@ -3,6 +3,7 @@
 
 use phs\PHS;
 use phs\PHS_Tenants;
+use phs\plugins\admin\actions\users\PHS_Action_Edit;
 
 /** @var \phs\system\core\models\PHS_Model_Roles $roles_model */
 /** @var \phs\plugins\accounts\PHS_Plugin_Accounts $accounts_plugin */
@@ -19,8 +20,6 @@ $tenants_model = $this->view_var('tenants_model') ?: null;
 
 $is_multi_tenant = PHS::is_multi_tenant();
 
-$accounts_plugin_settings = $this->view_var('accounts_plugin_settings') ?: [];
-
 $back_page = $this->view_var('back_page') ?: '';
 
 $user_levels = $this->view_var('user_levels') ?: [];
@@ -34,8 +33,7 @@ $all_tenants_arr = $this->view_var('all_tenants_arr') ?: [];
 $current_user = PHS::user_logged_in();
 ?>
 <form id="edit_user_form" name="edit_user_form" method="post"
-      action="<?php echo PHS::url(['p' => 'admin', 'a' => 'edit', 'ad' => 'users'],
-          ['uid' => $this->view_var('uid')]); ?>">
+      action="<?php echo PHS::url(PHS_Action_Edit::class, ['uid' => $this->view_var('uid')]); ?>">
 <input type="hidden" name="foobar" value="1" />
 <?php
 if (!empty($back_page)) {
