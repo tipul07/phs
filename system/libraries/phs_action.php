@@ -138,17 +138,13 @@ abstract class PHS_Action extends PHS_Instantiable
 
         $action_roles = $this->action_roles() ?: [self::ACT_ROLE_PAGE];
 
-        if (!is_array($action_roles)) {
-            $action_roles = [$action_roles];
-        }
-
         // Action has all provided roles
         $params['all_provided'] = !empty($params['all_provided']);
 
         $return_arr = [];
         foreach ($role_check as $role_key) {
             if (($role_arr = self::valid_action_role($role_key))
-             && in_array($role_key, $action_roles, true)) {
+                && in_array($role_key, $action_roles, true)) {
                 $return_arr[$role_key] = $role_arr;
                 continue;
             }
@@ -178,7 +174,6 @@ abstract class PHS_Action extends PHS_Instantiable
         }
 
         return !($allowed_scopes = $this->allowed_scopes())
-               || !is_array($allowed_scopes)
                || in_array($scope, $allowed_scopes, true);
     }
 

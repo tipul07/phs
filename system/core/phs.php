@@ -54,8 +54,6 @@ final class PHS extends PHS_Registry
 
     private static array $hooks = [];
 
-    private static array $_core_libraries_instances = [];
-
     private static string $_INTERPRET_SCRIPT = 'index';
 
     private static string $_BACKGROUND_SCRIPT = '_bg';
@@ -2196,9 +2194,6 @@ final class PHS extends PHS_Registry
         if ($params['as_singleton']) {
             PHS_Instantiable::set_instance_for_full_class_with_namespace($params['full_class_name'], $library_instance);
         }
-        // if ($params['as_singleton']) {
-        //     self::$_core_libraries_instances[$library_file] = $library_instance;
-        // }
 
         return $library_instance;
     }
